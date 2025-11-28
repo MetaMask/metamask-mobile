@@ -1,51 +1,24 @@
 name: Android Flask E2E Smoke Tests
 
 on:
-  pull_request:
-    types: [labeled, opened, synchronize]
-  schedule:
-    # Run the full suite every 3 hours
-    # This helps to identy the flaky and failed tests on main branch
-    - cron: '0 */3 * * *'
+  workflow_call:
+    inputs:
+      changed_files:
+        description: 'Changed files'
+        required: false
+        type: string
+        default: ''
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
-  needs_e2e_build:
-    name: 'Detect Mobile Build Changes'
-    # Execution rules:
-    # - schedule: always run
-    # - merge_group: never run
-    # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label
-    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') && github.event.pull_request.merged == false)) }}
-    uses: ./.github/workflows/needs-e2e-build.yml
-
-  build-android-flask-apps:
-    name: 'Build Android Flask Apps'
-    # Execution rules:
-    # - schedule: always run
-    # - merge_group: never run
-    # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label AND android_changed == 'true'
-    if: ${{ github.event_name != 'merge_group' && ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && needs.needs_e2e_build.outputs.android_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') ) ) }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build]
-    uses: ./.github/workflows/build-android-e2e.yml
-    with:
-      build_type: 'flask'
-      metamask_environment: 'e2e'
-      keystore_target: 'flask'
-    secrets: inherit
-
   flask-android-smoke:
     strategy:
       matrix:
         split: [1, 2, 3]
       fail-fast: false
-    needs: [build-android-flask-apps]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: flask-android-smoke-${{ matrix.split }}
@@ -53,17 +26,16 @@ jobs:
       test_suite_tag: 'FlaskBuildTests'
       split_number: ${{ matrix.split }}
       total_splits: 3
+      changed_files: ${{ inputs.changed_files }}
       build_type: 'flask'
-      metamask_environment: 'e2e'
     secrets: inherit
 
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && needs.flask-android-smoke.result != 'skipped'  }}
+    if: ${{ !cancelled() }}
     needs:
       - flask-android-smoke
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -93,5 +65,5 @@ jobs:
       - name: Upload all test artifacts (XMLs + Screenshots)
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-smoke-android-all-test-artifacts
+          name: e2e-smoke-android-flask-all-test-artifacts
           path: all-test-artifacts/

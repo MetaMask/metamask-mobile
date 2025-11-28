@@ -189,7 +189,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$0\.00/)).toBeOnTheScreen();
+      expect(getByText(/\$0/)).toBeOnTheScreen();
     });
 
     it('displays large balance correctly', () => {

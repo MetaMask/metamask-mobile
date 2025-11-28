@@ -12,6 +12,7 @@ import { useSendContext } from '../../context/send-context';
 import * as SendUtils from '../../utils/send';
 import { usePercentageAmount } from './usePercentageAmount';
 import { useBalance } from './useBalance';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('@metamask/assets-controllers', () => ({
   getNativeTokenAddress: () => '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
@@ -31,6 +32,10 @@ jest.mock('./useBalance', () => ({
   useBalance: jest.fn(),
 }));
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
+}));
+
 const mockState = {
   state: evmSendStateMock,
 };
@@ -41,7 +46,14 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
 
 const mockUseBalance = useBalance as jest.MockedFunction<typeof useBalance>;
 
+const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+
 describe('usePercentageAmount', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseParams.mockReturnValue(undefined);
+  });
+
   it('return required fields', () => {
     mockUseSendContext.mockReturnValue({
       asset: {},

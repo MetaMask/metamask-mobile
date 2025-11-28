@@ -548,7 +548,7 @@ class ResetPassword extends PureComponent {
           this.state.biometryChoice,
           this.state.rememberMe,
         );
-        await Authentication.storePassword(password, authData.currentAuthType);
+        await Authentication.storePasswordWithFallback(password, authData);
       } catch (error) {
         Logger.error(error);
       }

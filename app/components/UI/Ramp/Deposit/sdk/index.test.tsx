@@ -114,7 +114,6 @@ const mockedState = {
     selectedRegionDeposit: null,
     selectedCryptoCurrencyDeposit: null,
     selectedPaymentMethodDeposit: null,
-    getStartedDeposit: false,
   },
 };
 
@@ -699,6 +698,138 @@ describe('Deposit SDK Context', () => {
       await expect(async () => {
         await contextValue?.logoutFromProvider();
       }).rejects.toThrow();
+    });
+  });
+
+  describe('Intent Management', () => {
+    it('initializes with undefined intent', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      expect(contextValue?.intent).toBeUndefined();
+    });
+
+    it('updates intent when setIntent is called with a value', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const newIntent = { assetId: 'eth' };
+
+      act(() => {
+        contextValue?.setIntent(newIntent);
+      });
+
+      expect(contextValue?.intent).toEqual(newIntent);
+    });
+
+    it('clears intent when setIntent is called with undefined', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const newIntent = { assetId: 'eth', amount: '100' };
+
+      act(() => {
+        contextValue?.setIntent(newIntent);
+      });
+
+      expect(contextValue?.intent).toEqual(newIntent);
+
+      act(() => {
+        contextValue?.setIntent(undefined);
+      });
+
+      expect(contextValue?.intent).toBeUndefined();
+    });
+
+    it('updates intent when setIntent is called with setter function', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const initialIntent = { assetId: 'eth' };
+
+      act(() => {
+        contextValue?.setIntent(initialIntent);
+      });
+
+      expect(contextValue?.intent).toEqual(initialIntent);
+
+      act(() => {
+        contextValue?.setIntent((prev) =>
+          prev ? { ...prev, amount: '100' } : undefined,
+        );
+      });
+
+      expect(contextValue?.intent).toEqual({ assetId: 'eth', amount: '100' });
+    });
+
+    it('allows partial updates to intent via setter function', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      act(() => {
+        contextValue?.setIntent({ assetId: 'eth', amount: '100' });
+      });
+
+      act(() => {
+        contextValue?.setIntent((prev) =>
+          prev ? { ...prev, assetId: undefined } : undefined,
+        );
+      });
+
+      expect(contextValue?.intent).toEqual({
+        assetId: undefined,
+        amount: '100',
+      });
     });
   });
 });

@@ -41,33 +41,29 @@ describe('HeroNft', () => {
   });
 
   it('renders placeholder when image is not provided', () => {
-    const { getByText, getByTestId, queryAllByText } = renderWithProvider(
-      <HeroNft />,
-      {
-        state: merge({}, MOCK_STATE_NFT, {
-          engine: {
-            backgroundState: {
-              NftController: {
-                allNfts: {
-                  [MOCK_ADDRESS_1.toLowerCase()]: {
-                    '0x1': [
-                      {
-                        ...mockNft,
-                        image: undefined,
-                      },
-                    ],
-                  },
+    const { getByTestId, queryAllByText } = renderWithProvider(<HeroNft />, {
+      state: merge({}, MOCK_STATE_NFT, {
+        engine: {
+          backgroundState: {
+            NftController: {
+              allNfts: {
+                [MOCK_ADDRESS_1.toLowerCase()]: {
+                  '0x1': [
+                    {
+                      ...mockNft,
+                      image: undefined,
+                    },
+                  ],
                 },
               },
             },
           },
-        }),
-      },
-    );
+        },
+      }),
+    });
 
-    expect(getByText('Show')).toBeDefined();
     expect(queryAllByText('#12345')).toHaveLength(2);
-    expect(getByTestId('hero-nft-placeholder')).toBeDefined();
+    expect(getByTestId('hero-nft-placeholder')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('hero-nft-placeholder'));
     expect(mockNavigate).toHaveBeenCalledWith('NftDetailsFullImage', {
@@ -76,6 +72,28 @@ describe('HeroNft', () => {
         image: undefined,
       },
     });
+  });
+
+  it('placeholder is not interactable when no nft found', () => {
+    const state = merge({}, MOCK_STATE_NFT, {
+      engine: {
+        backgroundState: {
+          NftController: {},
+        },
+      },
+    });
+    state.engine.backgroundState.NftController.allNfts[
+      MOCK_ADDRESS_1.toLowerCase()
+    ]['0x1'] = [];
+    const { getByTestId } = renderWithProvider(<HeroNft />, {
+      state,
+    });
+
+    expect(getByTestId('hero-nft-placeholder')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('hero-nft-placeholder'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders NFT with network badge', () => {
@@ -89,6 +107,7 @@ describe('HeroNft', () => {
     expect(getByText('#12345')).toBeDefined();
 
     fireEvent.press(getByTestId('nft-image'));
+
     expect(mockNavigate).toHaveBeenCalledWith('NftDetailsFullImage', {
       collectible: mockNft,
     });
@@ -123,6 +142,7 @@ describe('HeroNft', () => {
     expect(getByText('#12345')).toBeDefined();
 
     fireEvent.press(getByTestId('nft-image'));
+
     expect(mockNavigate).toHaveBeenCalledWith('NftDetailsFullImage', {
       collectible: {
         ...mockNft,

@@ -3,24 +3,15 @@
 exports[`BrowserBottomBar Button states and interactions should apply disabled styles when buttons are disabled 1`] = `
 <View
   style={
-    [
-      {
-        "shadowOffset": {
-          "height": 6.6,
-        },
-        "shadowOpacity": 0.1965,
-        "shadowRadius": 5.94,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc866",
-        "borderTopWidth": 0.5,
-        "flex": 0,
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 0,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc866",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 0,
+    }
   }
 >
   <TouchableOpacity
@@ -352,24 +343,15 @@ exports[`BrowserBottomBar Button states and interactions should apply disabled s
 exports[`BrowserBottomBar Component snapshots should match snapshot with all props enabled 1`] = `
 <View
   style={
-    [
-      {
-        "shadowOffset": {
-          "height": 6.6,
-        },
-        "shadowOpacity": 0.1965,
-        "shadowRadius": 5.94,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc866",
-        "borderTopWidth": 0.5,
-        "flex": 0,
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 0,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc866",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 0,
+    }
   }
 >
   <TouchableOpacity
@@ -693,24 +675,15 @@ exports[`BrowserBottomBar Component snapshots should match snapshot with all pro
 exports[`BrowserBottomBar Component snapshots should match snapshot with mixed enabled/disabled states 1`] = `
 <View
   style={
-    [
-      {
-        "shadowOffset": {
-          "height": 6.6,
-        },
-        "shadowOpacity": 0.1965,
-        "shadowRadius": 5.94,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc866",
-        "borderTopWidth": 0.5,
-        "flex": 0,
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 0,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc866",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 0,
+    }
   }
 >
   <TouchableOpacity
@@ -1037,24 +1010,15 @@ exports[`BrowserBottomBar Component snapshots should match snapshot with mixed e
 exports[`BrowserBottomBar Edge cases and error handling should render without crashing when no props are provided 1`] = `
 <View
   style={
-    [
-      {
-        "shadowOffset": {
-          "height": 6.6,
-        },
-        "shadowOpacity": 0.1965,
-        "shadowRadius": 5.94,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc866",
-        "borderTopWidth": 0.5,
-        "flex": 0,
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 0,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc866",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 0,
+    }
   }
 >
   <TouchableOpacity
@@ -1386,24 +1350,15 @@ exports[`BrowserBottomBar Edge cases and error handling should render without cr
 exports[`BrowserBottomBar Fullscreen behavior should apply bottom inset padding when in fullscreen mode 1`] = `
 <View
   style={
-    [
-      {
-        "shadowOffset": {
-          "height": 6.6,
-        },
-        "shadowOpacity": 0.1965,
-        "shadowRadius": 5.94,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc866",
-        "borderTopWidth": 0.5,
-        "flex": 0,
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 0,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc866",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 0,
+    }
   }
 >
   <TouchableOpacity
@@ -1733,24 +1688,15 @@ exports[`BrowserBottomBar Fullscreen behavior should apply bottom inset padding 
 exports[`BrowserBottomBar Fullscreen behavior should display fullscreen icon when not in fullscreen mode 1`] = `
 <View
   style={
-    [
-      {
-        "shadowOffset": {
-          "height": 6.6,
-        },
-        "shadowOpacity": 0.1965,
-        "shadowRadius": 5.94,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc866",
-        "borderTopWidth": 0.5,
-        "flex": 0,
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 0,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc866",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 0,
+    }
   }
 >
   <TouchableOpacity
@@ -2080,24 +2026,15 @@ exports[`BrowserBottomBar Fullscreen behavior should display fullscreen icon whe
 exports[`BrowserBottomBar Fullscreen behavior should display fullscreen-exit icon when in fullscreen mode 1`] = `
 <View
   style={
-    [
-      {
-        "shadowOffset": {
-          "height": 6.6,
-        },
-        "shadowOpacity": 0.1965,
-        "shadowRadius": 5.94,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc866",
-        "borderTopWidth": 0.5,
-        "flex": 0,
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 0,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc866",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 0,
+    }
   }
 >
   <TouchableOpacity
@@ -2427,24 +2364,15 @@ exports[`BrowserBottomBar Fullscreen behavior should display fullscreen-exit ico
 exports[`BrowserBottomBar should render correctly 1`] = `
 <View
   style={
-    [
-      {
-        "shadowOffset": {
-          "height": 6.6,
-        },
-        "shadowOpacity": 0.1965,
-        "shadowRadius": 5.94,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc866",
-        "borderTopWidth": 0.5,
-        "flex": 0,
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 0,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc866",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 0,
+    }
   }
 >
   <TouchableOpacity

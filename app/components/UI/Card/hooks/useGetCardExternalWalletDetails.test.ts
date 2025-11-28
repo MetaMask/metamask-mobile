@@ -293,7 +293,6 @@ describe('mapCardExternalWalletDetailToCardTokenAllowance', () => {
 
 describe('useGetCardExternalWalletDetails', () => {
   const mockGetCardExternalWalletDetails = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
   const mockFetchData = jest.fn();
 
   const mockSDK = {
@@ -366,11 +365,8 @@ describe('useGetCardExternalWalletDetails', () => {
     mockUseSelector.mockReturnValue(true); // isAuthenticated
 
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
 
     mockUseWrapWithCache.mockImplementation((_key, fetchFn, _options) => {
@@ -415,11 +411,8 @@ describe('useGetCardExternalWalletDetails', () => {
   describe('Prerequisites Check', () => {
     it('returns null when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
@@ -639,11 +632,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
     it('does not trigger fetch when SDK is not available', () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       mockUseWrapWithCache.mockReturnValue({
@@ -740,11 +730,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       // Start with SDK unavailable
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { rerender } = renderHook(() =>
@@ -755,11 +742,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       // SDK becomes available
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: mockSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       rerender();

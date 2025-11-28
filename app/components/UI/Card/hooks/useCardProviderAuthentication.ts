@@ -53,7 +53,7 @@ interface UseCardProviderAuthenticationResponse {
     email: string;
     password: string;
     otpCode?: string;
-  }) => Promise<CardLoginResponse | void>;
+  }) => Promise<CardLoginResponse>;
   loading: boolean;
   error: string | null;
   clearError: () => void;
@@ -113,7 +113,7 @@ const useCardProviderAuthentication =
         email: string;
         password: string;
         otpCode?: string;
-      }): Promise<CardLoginResponse | void> => {
+      }): Promise<CardLoginResponse> => {
         if (!sdk) {
           throw new Error('Card SDK not initialized');
         }
@@ -138,11 +138,7 @@ const useCardProviderAuthentication =
             ...(params.otpCode ? { otpCode: params.otpCode } : {}),
           });
 
-          if (
-            loginResponse.isOtpRequired ||
-            loginResponse.verificationState === 'PENDING' ||
-            loginResponse.phase
-          ) {
+          if (loginResponse.isOtpRequired || loginResponse.phase) {
             return loginResponse;
           }
 
@@ -174,6 +170,8 @@ const useCardProviderAuthentication =
           setError(null);
           dispatch(setIsAuthenticatedAction(true));
           dispatch(setUserCardLocation(params.location));
+
+          return loginResponse;
         } catch (err) {
           const errorMessage = getErrorMessage(err);
           setError(errorMessage);

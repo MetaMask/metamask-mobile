@@ -65,7 +65,7 @@
     },
     "signed_or_submitted_perps_deposit": {
       "title": "Đang nạp tiền",
-      "message": "Bạn có một giao dịch nạp tiền đang được xử lý. Vui lòng chờ quá trình này hoàn tất trước khi nạp tiếp."
+      "message": "Wait for the last deposit to finish before making another."
     },
     "pending_transaction": {
       "title": "Giao dịch đang chờ xử lý",
@@ -83,18 +83,23 @@
       "message": "Không đủ tiền"
     },
     "insufficient_pay_token_balance_fees": {
-      "message": "Không đủ {{symbol}} để trả phí. Giảm số tiền hoặc chọn token khác để tiếp tục.",
+      "message": "Add less than {{amount}} or use a different token.",
       "title": "Không đủ tiền"
     },
+    "insufficient_pay_token_balance_fees_no_target": {
+      "message": "Add less or use a different token."
+    },
     "insufficient_pay_token_native": {
-      "message": "Không đủ {{ticker}} để trả phí. Chọn token trên mạng khác để tiếp tục."
+      "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
+      "title": "Không đủ tiền"
     },
     "no_pay_token_quotes": {
-      "message": "Lộ trình thanh toán này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất."
+      "message": "Lộ trình thanh toán này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất.",
+      "title": "No quotes"
     },
     "perps_hardware_account": {
       "title": "Ví không được hỗ trợ",
-      "message": "Hợp đồng vĩnh cửu không hỗ trợ ví cứng.\nChuyển tài khoản để tiếp tục nạp tiền."
+      "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
     "burn_address": {
       "message": "Bạn đang gửi tài sản của mình đến địa chỉ đốt. Nếu tiếp tục, bạn sẽ mất tài sản.",
@@ -354,7 +359,7 @@
   "login": {
     "title": "Chào mừng bạn trở lại!",
     "password": "Mật khẩu",
-    "password_placeholder": "Nhập mật khẩu MetaMask",
+    "password_placeholder": "Nhập mật khẩu",
     "unlock_button": "Mở khóa",
     "go_back": "Ví không mở khóa? Bạn có thể XÓA ví hiện tại và cài đặt ví mới",
     "forgot_password": "Quên mật khẩu?",
@@ -442,7 +447,7 @@
     "security_alert_title": "Cảnh báo bảo mật",
     "security_alert_message": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trong thiết bị của bạn (FaceID, TouchID hoặc Vân tay)",
     "i_understand": "Tôi hiểu rằng MetaMask không thể khôi phục mật khẩu này cho tôi.",
-    "learn_more": "Tìm hiểu thêm.",
+    "learn_more": "Tìm hiểu thêm",
     "secure": "Bảo mật ví",
     "confirm": "Xác nhận Cụm từ khôi phục bí mật",
     "disable_biometric_error": "Bạn đã tắt tính năng sinh trắc học cho ứng dụng. Cập nhật chế độ cài đặt Ghi nhớ và thử lại.",
@@ -473,7 +478,7 @@
     "security_alert_title": "Cảnh báo bảo mật",
     "security_alert_message": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trong thiết bị của bạn (FaceID, TouchID hoặc Vân tay)",
     "i_understand": "Tôi hiểu rằng MetaMask không thể khôi phục mật khẩu này cho tôi.",
-    "learn_more": "Tìm hiểu thêm.",
+    "learn_more": "Tìm hiểu thêm",
     "secure": "Bảo mật ví",
     "confirm": "Xác nhận Cụm từ khôi phục bí mật",
     "password_updated": "Đã lưu mật khẩu mới",
@@ -542,7 +547,8 @@
     "activity": "Hoạt động",
     "trade": "Giao dịch",
     "settings": "Cài đặt",
-    "rewards": "Phần thưởng"
+    "rewards": "Phần thưởng",
+    "trending": "Explore"
   },
   "drawer": {
     "send_button": "Gửi",
@@ -601,6 +607,7 @@
     "network_not_found_title": "Không tìm thấy mạng",
     "network_not_found_description": "Không tìm thấy mạng với ID chuỗi là {{chain_id}} trên ví của bạn. Vui lòng thêm mạng trước.",
     "network_missing_id": "Thiếu ID chuỗi.",
+    "search_tokens": "Tìm kiếm token",
     "search_tokens_and_nfts": "Tìm kiếm token và NFT",
     "tokens": "Token",
     "nfts": "NFT",
@@ -611,6 +618,11 @@
     "invalid_address": "Địa chỉ không hợp lệ",
     "contractAddressError": "Bạn đang gửi token đến địa chỉ hợp đồng của token. Điều này có thể dẫn đến việc mất token đó."
   },
+  "unified_ramp": {
+    "networks_filter_bar": {
+      "all_networks": "Tất cả"
+    }
+  },
   "deposit": {
     "title": "Nạp",
     "selectRegion": "Chọn khu vực",
@@ -620,7 +632,7 @@
       "unexpectedError": "Đã xảy ra lỗi không mong muốn.",
       "quoteFetchError": "Tìm nạp báo giá không thành công.",
       "kycFormsFetchError": "Tìm nạp biểu mẫu KYC không thành công.",
-      "title": "Nạp tiền",
+      "title": "Buy",
       "limitExceeded": "Khoản nạp này sẽ vượt quá hạn mức {{period}} của bạn. Khoản nạp bao gồm phí phải từ {{remaining}} trở xuống.",
       "limitError": "Không thể kiểm tra hạn mức nạp của bạn. Vui lòng thử lại sau."
     },
@@ -628,7 +640,10 @@
       "select_a_token": "Chọn Token",
       "select_token": "Chọn token",
       "search_by_name_or_address": "Tìm kiếm token theo tên hoặc địa chỉ",
-      "no_tokens_found": "Không có token nào khớp với \"{{searchString}}\""
+      "no_tokens_found": "Không có token nào khớp với \"{{searchString}}\"",
+      "unsupported_token_title": "Not available",
+      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers",
+      "error_loading_tokens": "Unable to load tokens. Please try again later."
     },
     "networks_filter_bar": {
       "all_networks": "Tất cả mạng"
@@ -640,13 +655,15 @@
       "apply": "Áp dụng"
     },
     "configuration_modal": {
-      "title": "Tùy chọn",
+      "title": "Cài đặt",
       "view_order_history": "Xem lịch sử lệnh",
       "contact_support": "Liên hệ bộ phận hỗ trợ",
-      "log_out": "Đăng xuất",
+      "log_out": "Log out of Transak",
       "logged_out_success": "Đã đăng xuất thành công",
       "error_sdk_not_initialized": "SDK chưa được khởi tạo",
-      "logged_out_error": "Lỗi khi đăng xuất"
+      "logged_out_error": "Lỗi khi đăng xuất",
+      "more_ways_to_buy": "More ways to buy",
+      "more_ways_to_buy_description": "Use a different payment provider"
     },
     "region_modal": {
       "select_a_region": "Chọn khu vực",
@@ -775,7 +792,9 @@
       "dob_required": "Ngày tháng năm sinh là bắt buộc",
       "dob_invalid": "Vui lòng nhập ngày tháng năm sinh hợp lệ",
       "ssn_required": "Số an sinh xã hội là bắt buộc",
-      "unexpected_error": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+      "unexpected_error": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+      "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
+      "login_with_email": "Log in with email"
     },
     "enter_address": {
       "navbar_title": "Xác minh danh tính của bạn",
@@ -921,6 +940,9 @@
     "withdraw": "Rút tiền",
     "refresh_balance": "Làm mới số dư",
     "add_funds": "Nạp tiền",
+    "trade_perps": "Trade perps",
+    "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
+    "available": "available to trade",
     "deposit_in_progress": "Đang nạp tiền",
     "withdraw_in_progress": "Đang tiến hành rút tiền",
     "multiple_transactions_in_progress": "Giao dịch đang diễn ra",
@@ -1038,10 +1060,10 @@
       "max": "Tối đa",
       "percentage_10": "10%",
       "percentage_25": "25%",
-      "available_balance": "Số dư hợp đồng vĩnh cửu khả dụng: {{amount}}",
+      "available_balance": "Available Perps balance: {{amount}}",
       "receive": "Nhận",
       "provider_fee": "Phí nhà cung cấp",
-      "you_will_receive": "Bạn sẽ nhận được",
+      "you_will_receive": "Bạn nhận",
       "continue": "Tiếp tục",
       "funds_received": "Đã nhận {{amount}} {{symbol}}"
     },
@@ -1091,10 +1113,12 @@
         "invalid_stop_loss": "Điểm Cắt lỗ phải {{direction}} giá hiện tại đối với vị thế {{positionType}}",
         "liquidation_warning": "Vị thế gần với giá thanh lý",
         "limit_price_required": "Vui lòng đặt giá giới hạn cho các lệnh giới hạn",
+        "price_required": "Price is required",
         "please_set_a_limit_price": "Vui lòng đặt giá giới hạn",
         "limit_price_must_be_set_before_configuring_tpsl": "Cần đặt giá giới hạn trước khi thiết lập mức Chốt lời/Cắt lỗ",
         "only_hyperliquid_usdc": "Hiện tại chỉ hỗ trợ USDC trên Hyperliquid khi thực hiện thanh toán",
-        "limit_price_far_warning": "Giá giới hạn cách xa giá thị trường hiện tại"
+        "limit_price_far_warning": "Giá giới hạn cách xa giá thị trường hiện tại",
+        "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time."
       },
       "error": {
         "placement_failed": "Đặt lệnh thất bại",
@@ -1152,7 +1176,7 @@
         "set_leverage": "Đặt đòn bẩy {{leverage}}x"
       },
       "type": {
-        "title": "Loại lệnh",
+        "title": "Order type",
         "market": {
           "title": "Thị trường",
           "description": "Thực hiện ngay lập tức theo giá thị trường hiện tại"
@@ -1302,7 +1326,8 @@
         "coinRequired": "Đồng tiền là bắt buộc để đặt lệnh",
         "sizePositive": "Kích thước phải là số dương",
         "pricePositive": "Giá phải là số dương nếu được cung cấp",
-        "unknownCoin": "Đồng tiền không xác định: {{coin}}"
+        "unknownCoin": "Đồng tiền không xác định: {{coin}}",
+        "limitPriceRequired": "Price is required for limit orders"
       },
       "networkToggleFailed": "Không thể chuyển đổi mạng: {{error}}",
       "accountBalanceFailed": "Không thể tải số dư tài khoản: {{error}}",
@@ -1316,9 +1341,10 @@
       "assetMappingFailed": "Không thể lập bản đồ tài sản",
       "depositFailed": "Nạp tiền thất bại",
       "orderLeverageReductionFailed": "Bạn không thể giảm đòn bẩy",
+      "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Đã hết thời gian chờ kết nối. Vui lòng kiểm tra mạng và thử lại.",
       "connectionFailed": {
-        "title": "Hợp đồng vĩnh cửu tạm thời ngoại tuyến",
+        "title": "Couldn't connect to perps",
         "description": "Chúng tôi đang nỗ lực khôi phục sớm nhất có thể.",
         "retry": "Thử lại",
         "go_back": "Quay lại"
@@ -1403,8 +1429,10 @@
       "position": "Vị thế",
       "orders": "Lệnh",
       "go_to_activity": "Đến hoạt động của bạn",
+      "recent_trades": "Recent activity",
+      "no_trades": "No recent activity",
       "trading_24_7": "This asset may be traded 24/7",
-      "expect_more_volatility": "Expect more volatility outside of regular market hours",
+      "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
@@ -1464,6 +1492,10 @@
       "funding_rate": {
         "title": "Tỷ lệ tài trợ",
         "content": "Một khoản phí theo giờ giữa các nhà giao dịch để giữ giá phù hợp với thị trường. Nếu tỷ lệ dương, người mua khống sẽ trả cho người bán khống. Nếu tỷ lệ âm, người bán khống sẽ trả cho người mua khống."
+      },
+      "funding_payments": {
+        "title": "Funding payments",
+        "content": "This is the amount you've paid in funding fees since the position was opened. Funding is paid or received every hour to keep the perp price close to the actual token price."
       },
       "geo_block": {
         "title": "Hợp đồng vĩnh cửu không khả dụng tại khu vực của bạn",
@@ -1530,31 +1562,38 @@
         "minutes": "Phút",
         "hours": "Giờ",
         "days": "Ngày"
+      },
+      "ohlc": {
+        "open": "Open",
+        "high": "High",
+        "low": "Low",
+        "close": "Close",
+        "volume": "Volume"
       }
     },
-    "cancel": "Cancel",
+    "cancel": "Hủy",
     "home": {
       "close_all": "Đóng tất cả",
       "cancel_all": "Hủy tất cả",
       "no_markets": "Không có thị trường khả dụng",
-      "recent_activity": "Activity",
+      "recent_activity": "Hoạt động",
       "loading": "Đang tải...",
       "no_activity": "Không có hoạt động gần đây",
       "see_all": "Xem tất cả",
-      "positions": "Your positions",
+      "positions": "Vị thế của bạn",
       "orders": "Your orders",
       "perps": "Vĩnh cửu",
-      "all": "All",
+      "all": "Tất cả",
       "crypto": "Explore crypto",
       "stocks": "Cổ phiếu",
       "commodities": "Hàng hóa",
       "stocks_and_commodities": "Explore stocks and commodities",
       "tabs": {
-        "all": "All",
+        "all": "Tất cả",
         "crypto": "Crypto",
-        "stocks_and_commodities": "Stocks"
+        "stocks_and_commodities": "Cổ phiếu"
       },
-      "filter_by": "Filter by",
+      "filter_by": "Lọc theo",
       "forex": "Ngoại hối",
       "watchlist": "Danh sách theo dõi",
       "markets": "Thị trường"
@@ -1565,7 +1604,7 @@
       "cta": "Tìm hiểu thêm"
     },
     "support": {
-      "title": "Contact support",
+      "title": "Liên hệ bộ phận hỗ trợ",
       "description": "Liên hệ bộ phận Hỗ trợ MetaMask để được trợ giúp"
     },
     "close_all_modal": {
@@ -1595,6 +1634,11 @@
       "partial_success": "Đã hủy {{successCount}}/{{totalCount}} lệnh",
       "error_title": "Hủy lệnh thất bại",
       "error_message": "Không thể hủy {{count}} lệnh"
+    },
+    "crossMargin": {
+      "title": "Cross Margin Not Supported",
+      "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
+      "dismiss": "Tôi đã hiểu"
     },
     "sort": {
       "volume": "Khối lượng",
@@ -1676,7 +1720,7 @@
         "history_will_appear": "Lịch sử giao dịch của bạn sẽ hiển thị tại đây"
       }
     },
-    "risk_disclaimer": "Hợp đồng vĩnh cửu tiềm ẩn rất nhiều rủi ro và bạn có thể đột ngột mất toàn bộ khoản đầu tư của mình mà không được báo trước. Bạn tự chịu hoàn toàn cho rủi ro khi giao dịch. Dữ liệu thị trường được cung cấp bởi Hyperliquid. Biểu đồ giá được hỗ trợ bởi",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Powered by {{source}}. Price chart powered by",
     "tutorial": {
       "continue": "Tiếp tục",
       "skip": "Bỏ qua",
@@ -1709,6 +1753,7 @@
         "footer_text": "MetaMask sẽ hoán đổi tiền của bạn sang USDC trên Arbitrum và nạp vào HyperCore mà không tính thêm phí."
       },
       "got_it": "Tôi đã hiểu",
+      "lets_go": "Let's go",
       "card": {
         "title": "Tìm hiểu những kiến thức cơ bản về hợp đồng vĩnh cửu"
       }
@@ -1722,12 +1767,12 @@
     "pnl_hero_card": {
       "title": "PnL Hero Card",
       "header_title": "Share your trade",
-      "share_button": "Share",
-      "share_message_with_referral_code": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
+      "share_button": "Chia sẻ",
+      "share_message_with_referral_code": "Giao dịch hợp đồng vĩnh cửu {{asset}} trên MetaMask. Đăng ký bằng mã giới thiệu {{code}} của tôi để nhận thêm phần thưởng. {{link}}",
       "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
       "share_failed": "Failed to export image",
       "export_success": "Exported image",
-      "referral_code_text": "Use my referral code to earn extra rewards."
+      "referral_code_text": "Sử dụng mã giới thiệu của tôi để nhận thêm phần thưởng."
     }
   },
   "predict": {
@@ -1735,6 +1780,12 @@
     "prediction_markets": "Thị trường dự đoán",
     "market_list": "Danh sách thị trường",
     "loading": "Đang tải...",
+    "gtm_content": {
+      "title": "DỰ ĐOÁN VÀ GIÀNH CHIẾN THẮNG",
+      "title_description": "Giao dịch dựa trên kết quả của các sự kiện thực tế, chẳng hạn như thể thao hoặc bầu cử.",
+      "get_started": "Bắt đầu",
+      "not_now": "Không phải bây giờ"
+    },
     "market_details": {
       "title": "Chi tiết thị trường",
       "market_ended_on": "Thị trường kết thúc với kết quả {{outcome}}",
@@ -1745,14 +1796,18 @@
       "end_date": "Ngày kết thúc",
       "resolver": "Bộ giải",
       "powered_by": "Được cung cấp bởi",
+      "resolution_details": "Chi tiết giải quyết",
       "yes": "Có",
       "no": "Không",
       "on": "bật",
       "won": "Thắng",
       "lost": "Thua",
       "market_unavailable": "Thị trường không khả dụng",
-      "amount_on_outcome": "${{amount}} cho {{outcome}}",
-      "outcome_at_price": "{{outcome}} ở mức {{price}}¢"
+      "amount_on_outcome": "{{amount}} on {{outcome}}",
+      "outcome_at_price": "{{outcome}} ở mức {{price}}¢",
+      "fee_exemption": "We don't charge any fees on this market.",
+      "ended": "Ended",
+      "resolved_early": "Resolved early"
     },
     "tab": {
       "no_predictions_description": "Dự đoán của bạn sẽ xuất hiện ở đây, hiển thị số tiền ký gửi và biến động thị trường.",
@@ -1768,6 +1823,10 @@
     "sell_position": "Vị thế bán",
     "cash_out": "Rút tiền",
     "cash_out_info": "Tiền sẽ được nạp vào số dư khả dụng của bạn",
+    "at_price_per_share": "Selling {{size}} shares at {{price}}",
+    "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}",
+    "cashout_info_multiple": "{{amount}} on {{outcomeGroupTitle}} • {{outcome}} at {{initialPrice}}",
+    "position_info": "{{initialValue}} on {{outcome}} to win {{shares}}",
     "buy_yes": "Có",
     "buy_no": "Không",
     "outcomes": "kết quả",
@@ -1782,16 +1841,21 @@
     },
     "outcomes_singular": "kết quả",
     "outcomes_plural": "kết quả",
-    "resolved_outcomes": "Resolved outcomes",
+    "outcome_winner": "Người chiến thắng",
+    "outcome_loser": "Người thua cuộc",
+    "outcome_draw": "Hòa",
+    "resolved_outcomes": "Kết quả đã được giải quyết",
     "category": {
       "trending": "Xu hướng",
       "new": "Mới",
       "sports": "Thể thao",
-      "crypto": "Tiền mã hóa",
+      "crypto": "Crypto",
       "politics": "Chính trị"
     },
     "search_placeholder": "Tìm kiếm thị trường dự đoán",
     "search_cancel": "Hủy",
+    "search_empty_state": "No {{category}} markets available",
+    "search_no_markets_found": "No results found for \"{{q}}\"",
     "claim_button": "Nhận",
     "markets_won": "Thị trường đã thắng",
     "won_markets_text": "Đã thắng {{count}} thị trường{{s}}",
@@ -1804,6 +1868,7 @@
       "title": "Không khả dụng tại khu vực của bạn",
       "description": "Dự đoán không khả dụng tại khu vực của bạn do hạn chế pháp lý.",
       "link": "Xem điều khoản của Polymarket",
+      "webview_title": "Điều khoản của Polymarket",
       "button": "Tôi đã hiểu"
     },
     "deposit": {
@@ -1812,17 +1877,25 @@
       "adding_your_funds": "Đang nạp tiền của bạn",
       "add_funds": "Nạp tiền",
       "withdraw": "Rút tiền",
-      "in_progress_description": "They'll be available in a moment",
+      "in_progress_description": "Sẽ có sẵn trong giây lát",
       "account_ready": "Tài khoản của bạn đã sẵn sàng",
       "account_ready_description": "{{amount}} đã được nạp vào số dư của bạn",
       "error_title": "Đã xảy ra sự cố",
       "error_description": "Tài khoản của bạn chưa được nạp tiền",
       "try_again": "Thử lại",
-      "in_progress_link": "View"
+      "in_progress_link": "Xem"
     },
     "add_funds_sheet": {
       "title": "Nạp tiền",
       "description": "Bạn sẽ cần nạp tiền vào tài khoản Dự đoán để bắt đầu. Bạn có thể nạp bất kỳ token nào và đưa ra dự đoán đầu tiên ngay lập tức."
+    },
+    "consent_sheet": {
+      "title": "Điều khoản sử dụng",
+      "description": "MetaMask hợp tác với Polymarket để cung cấp thị trường dự đoán. Tất cả các thị trường, lệnh và thanh toán đều diễn ra trên Polymarket.",
+      "learn_more": "Tìm hiểu thêm.",
+      "agree": "Đồng ý",
+      "disagree": "Không đồng ý",
+      "disclaimer": "Bằng cách tiếp tục, bạn chấp nhận các điều khoản của Polymarket."
     },
     "transactions": {
       "title": "Dự đoán",
@@ -1845,7 +1918,9 @@
       "net_pnl": "Lãi/Lỗ ròng",
       "total_net_pnl": "Tổng Lãi/Lỗ ròng",
       "market_net_pnl": "Lãi/Lỗ ròng của thị trường",
-      "activity_details": "Chi tiết hoạt động"
+      "activity_details": "Chi tiết hoạt động",
+      "today": "Hôm nay",
+      "yesterday": "Hôm qua"
     },
     "claim": {
       "toasts": {
@@ -1875,24 +1950,32 @@
       "prediction_placed": "Dự đoán đã đặt",
       "order_failed": "Đặt lệnh không thành công",
       "payments_made_in_usdc": "Tất cả các khoản thanh toán được thực hiện bằng USDC",
-      "prediction_insufficient_funds": "Không đủ tiền. Giảm số tiền hoặc nạp thêm tiền để tiếp tục.",
-      "prediction_minimum_bet": "Mức đặt cược tối thiểu là {{amount}}",
+      "prediction_insufficient_funds": "Không đủ tiền. Bạn có thể sử dụng tối đa {{amount}}.",
+      "prediction_minimum_bet": "Số tiền tối thiểu là {{amount}}",
       "to_win": "Để thắng",
       "order_failed_generic": "Giao dịch thất bại. Vui lòng thử lại."
     },
     "withdraw": {
-      "withdrawing": "Đang rút {{amount}} USDC",
-      "withdrawing_subtitle": "Ước tính {{time}} giây",
-      "withdraw_completed": "Đã hoàn tất rút tiền",
-      "withdraw_completed_subtitle": "{{amount}} USDC đã được cộng vào số dư của bạn",
+      "withdrawing": "Withdrawal in progress",
+      "withdrawing_subtitle": "Available in about 1 minute",
+      "withdraw_completed": "Withdrawal complete",
+      "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "error_title": "Đã xảy ra sự cố",
       "error_description": "Không thể thực hiện yêu cầu rút tiền",
       "try_again": "Thử lại"
     },
     "fee_summary": {
+      "fees": "Phí",
+      "provider_fee_label": "Phí Polymarket",
       "provider_fee": "Phí nhà cung cấp",
       "metamask_fee": "Phí MetaMask",
-      "total": "Tổng cộng"
+      "total": "Tổng cộng",
+      "estimated_points": "Điểm ước tính",
+      "points_tooltip": "Điểm",
+      "points_tooltip_content_1": "Điểm là cách bạn nhận được Phần thưởng MetaMask khi hoàn thành các giao dịch như hoán đổi, cầu nối hoặc dự đoán.",
+      "points_tooltip_content_2": "Lưu ý rằng giá trị này chỉ là ước tính và sẽ được xác nhận sau khi giao dịch hoàn tất. Điểm có thể mất đến 1 giờ để được xác nhận trong số dư Phần thưởng.",
+      "points_error": "Chúng tôi không thể tải điểm ngay bây giờ",
+      "points_error_content": "Bạn vẫn sẽ nhận được điểm cho giao dịch này. Chúng tôi sẽ thông báo cho bạn sau khi điểm đã được cộng vào tài khoản. Bạn cũng có thể kiểm tra tab Phần thưởng sau khoảng một giờ."
     },
     "error": {
       "title": "Không thể kết nối với thị trường dự đoán",
@@ -1900,13 +1983,17 @@
       "retry": "Thử lại"
     },
     "error_messages": {
+      "not_eligible": "Không khả dụng tại khu vực của bạn",
       "place_order_failed": "Không thể đặt lệnh",
       "preview_failed": "Không thể xem trước lệnh",
       "preview_no_order_book": "Không tìm thấy sổ lệnh",
-      "preview_no_order_match_buy": "Không tìm thấy lệnh khớp để mua",
-      "preview_no_order_match_sell": "Không tìm thấy lệnh khớp để bán",
+      "preview_no_order_match_buy": "Not enough shares available at market price to place your order right now.",
+      "preview_no_order_match_sell": "There isn't enough demand at market price to cash out right now.",
       "claim_failed": "Không thể nhận thưởng",
-      "unknown_error": "Đã xảy ra lỗi không xác định"
+      "unknown_error": "Đã xảy ra lỗi không xác định",
+      "order_not_fully_filled": "Không thể thực hiện lệnh của bạn",
+      "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
+      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
     }
   },
   "receive": {
@@ -2046,6 +2133,7 @@
     "learn_more": "Tìm hiểu thêm",
     "add_collectibles": "Nhập NFT",
     "nft_empty_description": "Có cả một thế giới NFT đang chờ bạn khám phá. Bắt đầu bộ sưu tập của bạn ngay hôm nay.",
+    "tokens_empty_description": "Nothing to see yet. Why not browse tokens or make a trade?",
     "discover_nfts": "Nhập NFT",
     "no_transactions": "Bạn không có giao dịch nào!",
     "switch_network_to_view_transactions": "Vui lòng chuyển mạng để xem giao dịch",
@@ -2503,23 +2591,21 @@
     "nft_autodetect_mode": "Tự động phát hiện NFT",
     "nft_autodetect_desc": "Việc hiển thị phương tiện và dữ liệu NFT có thể làm lộ địa chỉ IP của bạn cho các máy chủ tập trung. API của bên thứ ba (như OpenSea) được sử dụng để phát hiện NFT trong ví của bạn. Điều này làm lộ địa chỉ tài khoản của bạn cho các dịch vụ đó. Hãy tắt tính năng này nếu bạn không muốn ứng dụng lấy dữ liệu từ các dịch vụ đó.",
     "show_fiat_on_testnets": "Hiển thị tỷ lệ quy đổi trên các mạng thử nghiệm",
-    "show_fiat_on_testnets_desc": "Chọn tùy chọn này để hiển thị tỷ lệ quy đổi tiền pháp định trên mạng thử nghiệm",
+    "show_fiat_on_testnets_desc": "Chọn tùy chọn này để hiển thị tỷ lệ quy đổi tiền pháp định trên mạng thử nghiệm.",
     "show_fiat_on_testnets_modal_title": "Hãy cẩn thận",
     "show_fiat_on_testnets_modal_description": "Nếu bạn được yêu cầu bật tính năng này, bạn có thể đang bị lừa đảo. Các token này không có giá trị tài chính và chỉ dành cho mục đích thử nghiệm. Tính năng này giúp các nhà phát triển đảm bảo ứng dụng của họ hoạt động bình thường.",
     "show_fiat_on_testnets_modal_learn_more": "Tìm hiểu thêm.",
     "show_fiat_on_testnets_modal_button": "Tiếp tục",
     "show_hex_data": "Hiển thị dữ liệu với mã Hex",
     "show_hex_data_desc": "Chọn mục này để hiển thị trường dữ liệu với mã hex trên màn hình gửi.",
-    "show_custom_nonce": "Tùy chỉnh nonce (số chỉ được sử dụng một lần) của giao dịch",
-    "custom_nonce_desc": "Bật chế độ này để thay đổi số nonce (số giao dịch) trên màn hình xác nhận. Đây là tính năng nâng cao, hãy sử dụng cẩn trọng.",
     "accounts_identicon_title": "Biểu tượng tài khoản",
     "accounts_identicon_desc": "Chọn trong số ba kiểu biểu tượng độc đáo khác nhau để giúp bạn nhận diện tài khoản một cách nhanh chóng.",
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "Chung",
-    "general_desc": "Chuyển đổi tiền tệ, đơn vị tiền tệ chính, ngôn ngữ và công cụ tìm kiếm",
+    "general_desc": "Chuyển đổi tiền tệ, đơn vị tiền tệ chính, ngôn ngữ và công cụ tìm kiếm.",
     "advanced_title": "Nâng cao",
-    "advanced_desc": "Truy cập các tính năng của lập trình viên, đặt lại tài khoản, thiết lập mạng thử nghiệm, nhật ký trạng thái, giao thức IPFS và RPC tùy chỉnh",
+    "advanced_desc": "Truy cập các tính năng của lập trình viên, đặt lại tài khoản, thiết lập mạng thử nghiệm, nhật ký trạng thái, giao thức IPFS và RPC tùy chỉnh.",
     "notifications_title": "Thông báo",
     "notifications_desc": "Quản lý thông báo",
     "allow_notifications": "Cho phép thông báo",
@@ -2543,9 +2629,9 @@
       "perps_title": "Giao dịch hợp đồng vĩnh cửu"
     },
     "contacts_title": "Danh bạ",
-    "contacts_desc": "Thêm, sửa, xóa và quản lý các tài khoản của bạn",
+    "contacts_desc": "Thêm, sửa, xóa và quản lý các tài khoản của bạn.",
     "permissions_title": "Quyền",
-    "permissions_desc": "Quản lý các quyền được cấp cho trang web và ứng dụng",
+    "permissions_desc": "Quản lý các quyền được cấp cho trang web và ứng dụng.",
     "no_permissions": "Không có quyền nào",
     "no_permissions_desc": "Nếu bạn kết nối tài khoản với một trang web hoặc một ứng dụng, bạn sẽ thấy tài khoản đó ở đây.",
     "security_title": "Bảo mật & Quyền riêng tư",
@@ -2951,14 +3037,16 @@
     "deposit_description": "Chuyển khoản ngân hàng hoặc thẻ với phí thấp",
     "buy": "Mua",
     "buy_description": "Phù hợp để mua một token cụ thể",
-    "sell": "Rút tiền",
+    "buy_unified": "Mua",
+    "buy_unified_description": "Mua tiền mã hóa bằng tiền",
+    "sell": "Sell",
     "sell_description": "Bán tiền mã hóa lấy tiền mặt"
   },
   "asset_overview": {
     "send_button": "Gửi",
     "buy_button": "Mua",
     "token_marketplace": "Thị trường token",
-    "sell_button": "Rút tiền",
+    "sell_button": "Bán",
     "receive_button": "Nhận",
     "portfolio_button": "Portfolio",
     "deposit_button": "Nạp tiền",
@@ -2970,6 +3058,7 @@
     "swap": "Hoán đổi",
     "bridge": "Cầu nối",
     "earn": "Kiếm lợi nhuận",
+    "convert": "Convert",
     "tron": {
       "daily_resource": "Tài nguyên hằng ngày",
       "bandwidth": "Băng thông",
@@ -3005,7 +3094,7 @@
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa",
     "earn_description": "Kiếm phần thưởng trên token của bạn",
-    "perps_description": "Giao dịch hợp đồng vĩnh cửu",
+    "perps_description": "Trade perps contracts",
     "predict_description": "Giao dịch theo các sự kiện thực tế",
     "chart_time_period": {
       "1d": "Hôm nay",
@@ -3216,6 +3305,7 @@
     "failed": "Đã thất bại",
     "cancelled": "Đã hủy",
     "signed": "Chờ xử lý",
+    "unconfirmed": "Chờ xử lý",
     "tokenContractAddressWarning_1": "Địa chỉ này là ",
     "tokenContractAddressWarning_2": "địa chỉ hợp đồng của Token",
     "tokenContractAddressWarning_3": ". Nếu bạn gửi Token đến địa chỉ này, bạn sẽ mất chúng.",
@@ -3400,6 +3490,7 @@
     "tx_review_predict_deposit": "Dự đoán đã nạp tiền",
     "tx_review_predict_claim": "Tiền thắng đã nhận",
     "tx_review_predict_withdraw": "Rút tiền dự đoán",
+    "tx_review_musd_conversion": "mUSD Conversion",
     "sent_ether": "Đã gửi Ether",
     "self_sent_ether": "Đã gửi Ether cho chính bạn",
     "received_ether": "Đã nhận Ether",
@@ -3407,11 +3498,17 @@
     "self_sent_dai": "Đã gửi DAI cho chính bạn",
     "received_dai": "Đã nhận DAI",
     "sent_tokens": "Đã gửi Token",
+    "received_tokens": "Received Tokens",
     "ether": "Ether",
     "sent_unit": "Đã gửi {{unit}}",
     "self_sent_unit": "Đã gửi {{unit}} cho chính bạn",
     "received_unit": "Đã nhận {{unit}}",
     "sent_collectible": "Đã gửi bộ sưu tập",
+    "received_collectible": "Received Collectible",
+    "send_ether": "Send Ether",
+    "send_unit": "Send {{unit}}",
+    "send_collectible": "Send Collectible",
+    "receive_collectible": "Receive Collectible",
     "sent": "Đã gửi",
     "received": "Đã nhận",
     "receive": "Nhận",
@@ -3762,6 +3859,9 @@
   },
   "import_new_secret_recovery_phrase": {
     "title": "Nhập Cụm từ khôi phục bí mật",
+    "import_wallet_title": "Nhập ví",
+    "enter_srp_subtitle": "Nhập Cụm từ khôi phục bí mật của bạn",
+    "textarea_placeholder": "Thêm dấu cách giữa mỗi từ và đảm bảo không có ai đang nhìn",
     "description": "Nhập cụm từ khôi phục bí mật của ví. Bạn có thể nhập bất kỳ cụm từ khôi phục bí mật nào của Ethereum, Solana hoặc Bitcoin.",
     "subtitle": "Dán cụm từ khôi phục bí mật",
     "cta_text": "Tiếp tục",
@@ -3782,6 +3882,9 @@
     "error_multiple_srp_word_error_3": " không đúng hoặc sai chính tả.",
     "error_invalid_srp": "Cụm từ khôi phục bí mật không hợp lệ",
     "error_duplicate_srp": "Cụm từ khôi phục bí mật này đã được nhập rồi.",
+    "error_duplicate_account": "The account you are trying to import is a duplicate.",
+    "invalid_qr_code_title": "Mã QR không hợp lệ",
+    "invalid_qr_code_message": "The QR code does not contain a valid Secret Recovery Phrase",
     "success_1": "Ví",
     "success_2": "đã nhập"
   },
@@ -4243,13 +4346,13 @@
   },
   "experimental_settings": {
     "wallet_connect_dapps": "Phiên WalletConnect",
-    "wallet_connect_dapps_desc": "Xem danh sách các phiên WalletConnect đang hoạt động",
+    "wallet_connect_dapps_desc": "Xem danh sách các phiên WalletConnect đang hoạt động.",
     "wallet_connect_dapps_cta": "Xem phiên",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
     "select_provider": "Chọn nhà cung cấp ưu tiên của bạn",
     "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia",
     "card_title": "Luôn hiển thị nút Thẻ MetaMask",
-    "card_desc": "Thẻ MetaMask chỉ khả dụng cho cư dân của một số quốc gia được chọn"
+    "card_desc": "Thẻ MetaMask chỉ khả dụng cho cư dân của một số quốc gia được chọn."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Bạn không có phiên đang hoạt động nào",
@@ -4399,6 +4502,13 @@
     "order_status_completed": "Đã hoàn tất",
     "order_status_failed": "Đã thất bại",
     "order_status_cancelled": "Đã hủy",
+    "webview_no_url_provided": "No URL was provided to continue",
+    "webview_error_no_address_provided": "No wallet address was provided to continue",
+    "settings_modal": {
+      "title": "Cài đặt",
+      "use_new_buy_experience": "Use new buy experience",
+      "use_new_buy_experience_description": "Try new native on ramp"
+    },
     "onboarding": {
       "what_to_expect": "Mong đợi",
       "quotes": "Tính năng mua tiền mã hóa của chúng tôi sẽ tổng hợp báo giá từ các nhà cung cấp được tích hợp, cung cấp báo giá từ các nguồn đó để nhận tiền mã hóa trực tiếp vào ví của bạn mà không mất thời gian chờ đợi.",
@@ -4445,8 +4555,8 @@
     "quotes_timeout": "Báo giá hết hạn",
     "request_new_quotes": "Vui lòng yêu cầu báo giá mới để nhận tỷ giá tốt nhất và mới nhất.",
     "terms_of_service": "Điều khoản dịch vụ",
-    "amount_to_buy": "Số lượng mua",
-    "amount_to_sell": "Số tiền cần bán",
+    "amount_to_buy": "Buy",
+    "amount_to_sell": "Sell",
     "want_to_buy": "Bạn muốn mua",
     "want_to_sell": "Bạn muốn bán",
     "current_balance": "Số dư hiện tại",
@@ -4498,6 +4608,17 @@
       "title": "Tài khoản không tương thích",
       "description": "Tài khoản hiện tại của bạn không hỗ trợ token trên {{networkName}}. Vui lòng chuyển sang tài khoản tương thích để tiếp tục.",
       "cta": "Tôi đã hiểu"
+    },
+    "eligibility_failed_modal": {
+      "title": "Eligibility Check Failed",
+      "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
+      "contact_support": "Liên hệ bộ phận hỗ trợ",
+      "got_it": "Got It"
+    },
+    "unsupported_region_modal": {
+      "title": "Unavailable in your region",
+      "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
+      "got_it": "Got It"
     },
     "region": {
       "buy_crypto_tokens": "Mua token tiền điện tử",
@@ -5291,6 +5412,7 @@
     "service_interruption_banner": {
       "maintenance_message": "Chúng tôi đang bảo trì. Chúng tôi sẽ sớm hoạt động trở lại!"
     },
+    "supply": "Supply",
     "deposit": "Nạp tiền",
     "approve": "Phê duyệt",
     "approval": "Phê duyệt",
@@ -5358,7 +5480,16 @@
       "lending": "Lịch sử vị thế",
       "staking": "Lịch sử trả thưởng"
     },
-    "allowance_reset": "Đặt lại hạn mức cho phép"
+    "allowance_reset": "Đặt lại hạn mức cho phép",
+    "musd_conversion": {
+      "confirmation_button": "Convert to mUSD",
+      "earn_rewards_with": "Earn rewards with mUSD",
+      "toasts": {
+        "in_progress": "mUSD conversion in progress",
+        "success": "mUSD conversion succeeded",
+        "failed": "mUSD conversion failed"
+      }
+    }
   },
   "stake": {
     "stake": "Stake",
@@ -5406,6 +5537,11 @@
     "your_balance": "Số dư của bạn",
     "stake_your_eth_cta": {
       "base": "Ký gửi ETH của bạn với MetaMask Pool và kiếm",
+      "annually": "hằng năm.",
+      "learn_more_with_period": "Tìm hiểu thêm."
+    },
+    "stake_your_trx_cta": {
+      "base": "Stake your TRX with MetaMask Pool and earn",
       "annually": "hằng năm.",
       "learn_more_with_period": "Tìm hiểu thêm."
     },
@@ -5635,6 +5771,9 @@
       "predict_deposit": {
         "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang USDC.e trên Polygon, mạng được thị trường Dự đoán sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
       },
+      "musd_conversion": {
+        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+      },
       "title": {
         "transaction_fee": "Phí"
       }
@@ -5728,6 +5867,11 @@
       "footer_bottom": "Tiền sẽ được nạp vào số dư khả dụng của bạn",
       "footer_top": "Tiền thắng từ {{count}} thị trường"
     },
+    "custom_amount": {
+      "buy_button": "Mua tiền mã hóa",
+      "buy_predict": "Nạp tiền vào ví của bạn để sử dụng Dự đoán.",
+      "buy_perps": "Add funds to your wallet to use Perps."
+    },
     "unlimited": "Không giới hạn",
     "all": "Tất cả",
     "none": "Không có",
@@ -5739,8 +5883,10 @@
     "nested_transaction_heading": "Giao dịch {{index}}",
     "transaction": "Bảo vệ",
     "available_balance": "Khả dụng: ",
-    "edit_amount_done": "Hoàn tất",
-    "deposit_edit_amount_done": "Tiếp tục"
+    "edit_amount_done": "Continue",
+    "deposit_edit_amount_done": "Nạp tiền",
+    "deposit_edit_amount_predict_withdraw": "Rút tiền",
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
   },
   "change_in_simulation_modal": {
     "title": "Kết quả đã thay đổi",
@@ -5781,7 +5927,7 @@
     "quote": "Báo giá",
     "rate": "Tỷ lệ",
     "quote_details": "Chi tiết báo giá",
-    "price_impact": "Tác động đến giá",
+    "price_impact": "Mức tác động giá",
     "time": "Thời gian",
     "quote_info_content": "Mức giá tốt nhất chúng tôi tìm được từ các nhà cung cấp, đã bao gồm phí nhà cung cấp và phí 0,875% của MetaMask.",
     "quote_info_title": "Tỷ lệ",
@@ -5825,7 +5971,7 @@
     "approval_needed": "Phê duyệt token để hoán đổi.",
     "approval_tooltip_title": "Cấp quyền truy cập chính xác",
     "approval_tooltip_content": "Bạn đang cho phép truy cập đúng số lượng đã chỉ định, {{amount}} {{symbol}}. Hợp đồng sẽ không truy cập thêm bất kỳ khoản tiền nào khác.",
-    "minimum_received": "Số lượng tối thiểu nhận được",
+    "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Số lượng tối thiểu nhận được",
     "minimum_received_tooltip_content": "Số lượng tối thiểu bạn sẽ nhận được nếu giá thay đổi trong quá trình xử lý giao dịch, dựa trên mức trượt giá bạn cho phép. Đây là con số ước tính từ các nhà cung cấp thanh khoản. Số lượng cuối cùng có thể khác.",
     "verified_token": "Token đã xác minh",
@@ -6181,9 +6327,31 @@
         "verify_button": "Bắt đầu xác minh",
         "start_verification_error": "Lỗi khi bắt đầu xác minh. Vui lòng thử lại sau."
       },
+      "kyc_webview": {
+        "close_confirmation_title": "Exit verification?",
+        "close_confirmation_message": "If you exit now, you'll need to restart the identity verification process. Are you sure you want to exit?",
+        "cancel_button": "Stay",
+        "close_button": "Exit"
+      },
       "validating_kyc": {
         "title": "Đang xác thực KYC của bạn...",
         "timeout_button": "Bắt đầu lại quy trình xác minh"
+      },
+      "verifying_registration": {
+        "title": "Verifying your identity",
+        "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
+        "verified_title": "Approved!",
+        "verified_description": "Your KYC was approved. You can now use MetaMask Card.",
+        "continue_button": "Continue",
+        "timeout_title": "Verification in progress",
+        "timeout_description": "Your verification will take up to 12 hours. Please come back to the Card section in that time or contact support at\n{{email}}\nfor assistance.",
+        "rejected_title": "Verification incomplete",
+        "rejected_description": "We need a bit more information to complete your verification.",
+        "rejected_message": "Please reach out to our support team and we'll help you complete the process:\n{{email}}",
+        "server_error_title_main": "Something went wrong",
+        "server_error_title": "We're experiencing server issues",
+        "server_error_message": "Please try again later or contact support at\n{{email}}\nfor assistance.",
+        "success_toast": "Your ID was verified!"
       },
       "kyc_failed": {
         "title": "Bị từ chối",
@@ -6223,10 +6391,10 @@
         "electronic_consent_2": "E-Sign Act Consent and Disclosure",
         "electronic_consent_3": " and to receive all communications electronically",
         "terms_and_conditions_1": "I agree to the ",
-        "terms_and_conditions_2": "Terms and Conditions",
+        "terms_and_conditions_2": "Điều khoản và Điều kiện",
         "terms_and_conditions_3": " of MetaMask Card",
         "privacy_policy_1": "I agree to the data practices described in the ",
-        "privacy_policy_2": "Privacy Policy",
+        "privacy_policy_2": "Chính sách quyền riêng tư",
         "right_to_information_1": "I have been informed of my ",
         "right_to_information_2": "Right to Information",
         "right_to_information_3": " as provided by law",
@@ -6276,6 +6444,7 @@
       "logout_confirmation_message": "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Thẻ MetaMask của mình không?",
       "logout_confirmation_cancel": "Hủy",
       "logout_confirmation_confirm": "Đăng xuất",
+      "enable_card_error": "Failed to enable card. Please try again later.",
       "warnings": {
         "close_spending_limit": {
           "title": "Bạn sắp đạt đến hạn mức chi tiêu",
@@ -6299,6 +6468,26 @@
           "title": "Thẻ của bạn bị chặn",
           "description": "Vui lòng liên hệ bộ phận hỗ trợ để bỏ chặn thẻ của bạn"
         }
+      },
+      "kyc_status": {
+        "pending": {
+          "title": "Verification in Progress",
+          "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card."
+        },
+        "rejected": {
+          "title": "Verification Not Approved",
+          "description": "We were unable to verify your identity. Please contact support for assistance.",
+          "support_description": "We were unable to verify your identity at this time. Please contact our support team at {{email}} for assistance and we'll help you resolve this issue."
+        },
+        "unverified": {
+          "title": "Verification Required",
+          "description": "You need to complete identity verification before enabling your card. Please contact support team at {{email}} for assistance."
+        },
+        "error": {
+          "title": "Verification Status Unavailable",
+          "description": "We couldn't check your verification status. Please try again later or contact support if the issue persists."
+        },
+        "ok_button": "OK"
       },
       "manage_card_options": {
         "manage_spending_limit": "Quản lý hạn mức chi tiêu",
@@ -6359,7 +6548,7 @@
       "email_placeholder": "Nhập địa chỉ email",
       "password_placeholder": "Nhập mật khẩu",
       "login_button": "Đăng nhập",
-      "signup_button": "Đăng ký",
+      "signup_button": "I don't have an account",
       "errors": {
         "invalid_credentials": "Thông tin đăng nhập không hợp lệ",
         "unknown_error": "Lỗi không xác định, vui lòng thử lại sau",
@@ -6396,7 +6585,8 @@
     "report_submitted": "Báo cáo lỗi đã được gửi."
   },
   "pay_with_modal": {
-    "title": "Chọn phương thức thanh toán"
+    "title": "Chọn phương thức thanh toán",
+    "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
     "title": "Kết nối đã bị xóa",
@@ -6486,6 +6676,8 @@
     "activity_empty_link": "Xem các cách để kiếm điểm",
     "events": {
       "to": "đến",
+      "musd_deposit_for": "Cho ngày {{date}}",
+      "for_deposit_period": "Cho kỳ nạp tiền",
       "type": {
         "swap": "Hoán đổi",
         "perps": "Vĩnh cửu",
@@ -6499,6 +6691,8 @@
         "close_position": "Vị thế đã đóng",
         "take_profit": "Chốt lời/Cắt lỗ",
         "stop_loss": "Chốt lời/Cắt lỗ",
+        "predict": "Dự đoán",
+        "musd_deposit": "Nạp mUSD",
         "uncategorized_event": "Sự kiện chưa được phân loại"
       },
       "date": "Ngày",
@@ -6516,13 +6710,13 @@
       "not_supported_hardware_account_title": "Tài khoản không được hỗ trợ",
       "not_supported_hardware_account_description": "Tài khoản ví cứng hiện chưa đủ điều kiện nhận phần thưởng. Vui lòng chuyển sang tài khoản khác để tiếp tục.",
       "not_supported_account_type_title": "Loại tài khoản không được hỗ trợ",
-      "not_supported_account_type_description": "Hiện tại, chỉ các tài khoản Ethereum và Solana nội bộ mới có thể tham gia chương trình Phần thưởng. Vui lòng chuyển sang tài khoản khác để tiếp tục.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Quay lại",
       "not_supported_confirm_retry": "Thử lại",
       "auth_fail_title": "Xác thực thất bại",
       "auth_fail_description": "Không thể xác thực với chương trình phần thưởng. Vui lòng kiểm tra kết nối và thử lại.",
       "geo_check_fail_title": "Không thể xác định tư cách đủ điều kiện tham gia",
-      "geo_check_fail_description": "Chúng tôi không thể xác định liệu quốc gia của bạn có cho phép tham gia chương trình phần thưởng hay không. Vui lòng kiểm tra kết nối và thử lại.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "gtm_title": "Phần thưởng đã sẵn sàng",
       "gtm_description": "Nhận điểm cho các hoạt động của bạn. \nThăng cấp để mở khóa phần thưởng.",
       "gtm_confirm": "Bắt đầu",
@@ -6569,7 +6763,7 @@
       "link_account_success_title": "{{accountName}} đã được thêm thành công",
       "link_account_error_title": "Thêm tài khoản không thành công",
       "link_account_button": "Thêm",
-      "link_account_failed_error": "Liên kết tài khoản không thành công",
+      "link_account_failed_error": "Failed to add account",
       "link_account_unknown_error": "Đã xảy ra lỗi không xác định"
     },
     "optout": {
@@ -6609,10 +6803,10 @@
       "supported_networks": "Mạng được hỗ trợ",
       "swap": {
         "title": "Hoán đổi",
-        "description": "80 điểm cho mỗi $100",
+        "description": "8 điểm cho mỗi $10",
         "sheet": {
           "title": "Hoán đổi token",
-          "points": "80 điểm cho mỗi $100",
+          "points": "8 điểm cho mỗi $10",
           "description": "Hoán đổi token trên các mạng được hỗ trợ để kiếm điểm cho mỗi đô-la mà bạn giao dịch.",
           "cta_label": "Bắt đầu hoán đổi"
         }
@@ -6623,7 +6817,7 @@
         "sheet": {
           "title": "Giao dịch hợp đồng vĩnh cửu",
           "points": "10 điểm cho mỗi giá trị lệnh $100",
-          "description": "Tích lũy điểm trên mọi giao dịch, bao gồm mở và đóng lệnh, lệnh cắt lỗ và chốt lời, cũng như điều chỉnh số tiền ký quỹ. Giá trị lệnh được tính dựa trên kích thước kèm đòn bẩy.",
+          "description": "Tích lũy điểm trên mọi giao dịch, bao gồm mở và đóng lệnh, lệnh cắt lỗ và chốt lời, cũng như điều chỉnh số tiền ký quỹ. Giá trị lệnh được tính dựa trên kích thước kèm đòn bẩy. Nếu bạn được giảm phí, điểm cũng sẽ giảm.",
           "cta_label": "Bắt đầu giao dịch"
         }
       },
@@ -6632,7 +6826,7 @@
         "description": "10 điểm cho mỗi 50 điểm từ bạn bè",
         "sheet": {
           "title": "Giới thiệu bạn bè",
-          "points": "20 điểm cho mỗi 100",
+          "points": "10 điểm cho mỗi 50",
           "cta_label": "Giới thiệu bạn bè"
         }
       },
@@ -6642,8 +6836,18 @@
         "sheet": {
           "title": "Thưởng cho khách hàng thân thiết",
           "points": "250 điểm cho mỗi $1250",
-          "description": "Thêm các tài khoản có giao dịch hoán đổi hoặc cầu nối trước đây trong MetaMask để nhận thưởng cho khách hàng thân thiết. Mỗi tài khoản đủ điều kiện sẽ mở khóa điểm theo bội số của 250, tối đa tổng cộng 50.000 điểm. Điểm thưởng sẽ xuất hiện ngay sau khi bạn thêm tài khoản.",
+          "description": "Thêm các tài khoản có giao dịch hoán đổi hoặc cầu nối trong ví MetaMask trước đây để nhận thưởng cho khách hàng thân thiết. Mỗi tài khoản đủ điều kiện sẽ mở khóa điểm theo bội số của 250, tối đa tổng cộng 50.000 điểm. Điểm thưởng sẽ xuất hiện ngay sau khi bạn thêm tài khoản.",
           "cta_label": "Thêm tài khoản"
+        }
+      },
+      "predict": {
+        "title": "Thị trường dự đoán",
+        "description": "20 điểm cho mỗi dự đoán $10",
+        "sheet": {
+          "title": "Thị trường dự đoán",
+          "points": "20 điểm cho mỗi $10",
+          "description": "Kiếm điểm với mỗi $10 bạn giao dịch.",
+          "cta_label": "Duyệt tìm thị trường"
         }
       },
       "card": {
@@ -6654,6 +6858,16 @@
           "points": "1 điểm cho mỗi $1 chi tiêu",
           "description": "Kiếm điểm mỗi khi bạn sử dụng Thẻ MetaMask để mua sắm, cùng với ưu đãi hoàn tiền 1% (3% cho chủ thẻ Metal).",
           "cta_label": "Quản lý Thẻ"
+        }
+      },
+      "deposit_musd": {
+        "title": "Nạp mUSD",
+        "description": "2 điểm cho mỗi $100 được nạp",
+        "sheet": {
+          "title": "Nạp mUSD",
+          "points": "2 điểm cho mỗi $100",
+          "description": "Kiếm điểm với mỗi $100 mUSD bạn nạp.",
+          "cta_label": "Nạp mUSD"
         }
       }
     },
@@ -6668,14 +6882,17 @@
         "title": "Chia sẻ mã của bạn để nhận thêm điểm",
         "description": "Bạn bè của bạn sẽ nhận 2x điểm thưởng khi đăng ký. Bạn sẽ nhận được 10 điểm cho mỗi 50 điểm mà bạn bè kiếm được từ giao dịch."
       },
-      "referral_code_copied": "Referral code copied to clipboard"
+      "referral_code_copied": "Đã sao chép mã giới thiệu vào bộ nhớ đệm"
     },
     "link_account_group": {
       "link_account": "Thêm tài khoản",
-      "tracked": "Đã theo dõi",
-      "untracked": "Chưa theo dõi",
+      "tracked": "Enrolled",
+      "untracked": "Not enrolled",
+      "unsupported": "Not supported",
+      "tracked_count": "{{optedIn}}/{{total}} enrolled",
       "link_account_success": "Đã thêm thành công {{accountName}}",
-      "link_account_error": "Không thể thêm một hoặc nhiều địa chỉ cho {{accountName}}"
+      "link_account_error": "Không thể thêm một hoặc nhiều địa chỉ cho {{accountName}}",
+      "link_account_address_error": "Failed to add {{address}}"
     },
     "active_boosts_title": "Tính năng tăng cường đang hoạt động",
     "season_1": "Mùa 1",
@@ -6706,7 +6923,9 @@
   "transaction_details": {
     "title": {
       "perps_deposit": "Tài khoản hợp đồng vĩnh cửu đã được nạp tiền",
+      "predict_claim": "Đã nhận tiền thắng",
       "predict_deposit": "Tài khoản Dự đoán đã được nạp tiền",
+      "predict_withdraw": "Withdrawal",
       "default": "Chi tiết giao dịch"
     },
     "label": {
@@ -6714,7 +6933,9 @@
       "network_fee": "Phí mạng",
       "paid_with": "Đã thanh toán bằng",
       "retry_button": "Thử lại",
-      "total": "Tổng cộng"
+      "total": "Tổng cộng",
+      "account": "Tài khoản",
+      "received_total": "Received total"
     },
     "summary_title": {
       "bridge_approval": "Phê duyệt {{approveSymbol}}",
@@ -6751,5 +6972,33 @@
     "update_rpc": "Cập nhật RPC",
     "check_network_connectivity": "Kiểm tra kết nối mạng của bạn.",
     "check_network_connectivity_or": "Kiểm tra kết nối mạng của bạn hoặc"
+  },
+  "trending": {
+    "title": "Explore",
+    "view_all": "View all",
+    "tokens": "Token",
+    "trending_tokens": "Trending Tokens",
+    "price_change": "Price change",
+    "all_networks": "All networks",
+    "24h": "24h",
+    "time": "Time",
+    "24_hours": "24 hours",
+    "6_hours": "6 hours",
+    "1_hour": "1 hour",
+    "5_minutes": "5 minutes",
+    "networks": "Networks",
+    "sort_by": "Sort by",
+    "volume": "Volume",
+    "market_cap": "Market cap",
+    "high_to_low": "High to low",
+    "low_to_high": "Low to high",
+    "apply": "Apply",
+    "search_placeholder": "Search tokens, sites, URLs",
+    "perps": "Vĩnh cửu",
+    "predictions": "Dự đoán",
+    "no_results": "No results found",
+    "sites": "Sites",
+    "popular_sites": "Popular Sites",
+    "search_sites": "Search sites"
   }
 }

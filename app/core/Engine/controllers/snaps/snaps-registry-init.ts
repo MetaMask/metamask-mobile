@@ -1,6 +1,8 @@
 import { JsonSnapsRegistry } from '@metamask/snaps-controllers';
 import { ControllerInitFunction } from '../../types';
 import { SnapsRegistryMessenger } from '../../messengers/snaps';
+import { getVersion } from 'react-native-device-info';
+import { SemVerVersion } from '@metamask/utils';
 
 /**
  * Initialize the Snaps registry controller.
@@ -23,6 +25,10 @@ export const snapsRegistryInit: ControllerInitFunction<
     state: persistedState.SnapsRegistry,
     messenger: controllerMessenger,
     refetchOnAllowlistMiss: requireAllowlist,
+    clientConfig: {
+      type: 'mobile',
+      version: getVersion() as SemVerVersion,
+    },
   });
 
   return {

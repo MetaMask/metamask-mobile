@@ -8,6 +8,7 @@ import StakingClaim from './staking-claim';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
@@ -110,7 +111,7 @@ describe('StakingClaim', () => {
     expect(getByText('Pooled Staking')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
 
     expect(mockGetNavbar).toHaveBeenCalled();
     expect(mockGetNavbar).toHaveBeenCalledWith({

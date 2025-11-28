@@ -20,8 +20,7 @@ const styleSheet = () =>
       flexDirection: 'column',
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
-      width: '100%',
-      flex: 5,
+      flex: 1,
     },
     positionImageContainer: {
       paddingTop: 4,
@@ -36,8 +35,9 @@ const styleSheet = () =>
       flexDirection: 'column',
       justifyContent: 'flex-end',
       alignItems: 'flex-end',
-      width: '100%',
-      flex: 2,
+    },
+    skeletonSpacing: {
+      marginBottom: 4,
     },
     marketEntry: {
       flexDirection: 'column',

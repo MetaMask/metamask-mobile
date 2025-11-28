@@ -3,6 +3,7 @@ import {
   formatChainIdToCaip,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import etherscanLink from '@metamask/etherscan-link';
 import { useSelector } from 'react-redux';
 import {
   createProviderConfig,
@@ -10,7 +11,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { useMemo } from 'react';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import useBlockExplorer from '../../../Swaps/utils/useBlockExplorer';
+import useBlockExplorer from '../../../../hooks/useBlockExplorer';
 import { getTransactionUrl } from '../../../../../core/Multichain/utils';
 import {
   getBlockExplorerName,
@@ -18,8 +19,7 @@ import {
 } from '../../../../../util/networks';
 import { Hex } from '@metamask/utils';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selectors/multichainNetworkController';
-
-const useEvmBlockExplorer = useBlockExplorer;
+import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 
 const getProviderConfigForNetwork = (networkConfig: NetworkConfiguration) => {
   const rpcEndpoint =
@@ -66,10 +66,7 @@ export const useMultichainBlockExplorerTxUrl = ({
     [evmNetworkConfig],
   );
 
-  const evmExplorer = useEvmBlockExplorer(
-    evmNetworkConfigurations,
-    evmProviderConfig,
-  );
+  const blockExplorer = useBlockExplorer();
 
   // Handle undefined cases
   if (!chainId || !txHash) {
@@ -85,7 +82,11 @@ export const useMultichainBlockExplorerTxUrl = ({
     explorerTxUrl = getTransactionUrl(txHash, formatChainIdToCaip(chainId));
   } else {
     // EVM
-    explorerTxUrl = evmExplorer.tx(txHash);
+    const baseUrl =
+      blockExplorer.getEvmBlockExplorerUrl(formatChainIdToHex(chainId)) ??
+      getEtherscanBaseUrl(evmProviderConfig?.type ?? '');
+
+    explorerTxUrl = etherscanLink.createCustomExplorerLink(txHash, baseUrl);
   }
 
   // Get network image source
@@ -97,7 +98,7 @@ export const useMultichainBlockExplorerTxUrl = ({
   const explorerName =
     isNonEvm && explorerTxUrl
       ? getBlockExplorerName(explorerTxUrl)
-      : evmExplorer.name;
+      : blockExplorer.getBlockExplorerName(formatChainIdToCaip(chainId));
 
   const chainName =
     isNonEvm && formattedChainId

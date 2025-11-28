@@ -168,11 +168,13 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 18,
+                  "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": "center",
                 }
               }
+              testID="header-title"
             >
               New quotes are available
             </Text>
@@ -198,25 +200,25 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "borderRadius": 8,
-                    "height": 28,
+                    "height": 32,
                     "justifyContent": "center",
                     "opacity": 1,
-                    "width": 28,
+                    "width": 32,
                   }
                 }
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="Close"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>

@@ -10,15 +10,18 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { CardTokenAllowance, AllowanceState } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
 // Mock hooks first - must be hoisted before imports
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoToDeposit = jest.fn();
 
 // Mock dependencies
+jest.mock('../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
@@ -59,6 +62,18 @@ jest.mock('../../../../../util/theme', () => ({
       },
     },
   })),
+  mockTheme: {
+    colors: {
+      background: {
+        default: '#ffffff',
+      },
+      text: {
+        default: '#000000',
+        alternative: '#666666',
+      },
+    },
+    themeAppearance: 'light',
+  },
 }));
 
 jest.mock('./AddFundsBottomSheet.styles', () => ({
@@ -73,6 +88,17 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (params?: any) => [stackId, { screen: screenName, params }],
   ),
+}));
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -133,6 +159,10 @@ describe('AddFundsBottomSheet', () => {
 
     (useOpenSwaps as jest.Mock).mockReturnValue({
       openSwaps: mockOpenSwaps,
+    });
+
+    (useRampNavigation as jest.Mock).mockReturnValue({
+      goToDeposit: mockGoToDeposit,
     });
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
@@ -211,6 +241,18 @@ describe('AddFundsBottomSheet', () => {
     );
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Deposit',
+        location: 'CardHome',
+        chain_id_destination: '59144',
+        ramp_type: 'DEPOSIT',
+        ramp_routing: undefined,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
+      }),
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith({
@@ -292,9 +334,7 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createDepositNavigationDetails(),
-    );
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
   it('renders component correctly', () => {

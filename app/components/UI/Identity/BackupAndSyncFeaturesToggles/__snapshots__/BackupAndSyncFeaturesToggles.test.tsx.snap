@@ -99,7 +99,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       onChange={[Function]}
       onResponderTerminationRequest={[Function]}
       onStartShouldSetResponder={[Function]}
-      onTintColor="#4459ff"
+      onTintColor="#b7bbc866"
       style={
         [
           {
@@ -169,7 +169,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       onChange={[Function]}
       onResponderTerminationRequest={[Function]}
       onStartShouldSetResponder={[Function]}
-      onTintColor="#4459ff"
+      onTintColor="#b7bbc866"
       style={
         [
           {

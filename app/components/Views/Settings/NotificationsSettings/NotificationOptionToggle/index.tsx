@@ -1,21 +1,11 @@
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Switch, View } from 'react-native';
 import { createStyles } from './styles';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Avatar, {
-  AvatarAccountType,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { formatAddress } from '../../../../../util/address';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { useAccountNotificationsToggle } from '../../../../../util/notifications/hooks/useSwitchNotifications';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell';
 
 const NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID =
   'notification_options_toggle_switch';
@@ -27,9 +17,9 @@ export const NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID = (
 ) => `${testID}:notification_options_toggle--loading`;
 
 interface NotificationOptionsToggleProps {
-  address: string;
-  title: string;
-  icon?: AvatarAccountType | IconName;
+  item: AccountGroupObject;
+  evmAddress?: string;
+  icon: AvatarAccountType;
   testId?: string;
   disabledSwitch?: boolean;
   isLoading?: boolean;
@@ -39,7 +29,7 @@ interface NotificationOptionsToggleProps {
 }
 
 export function useUpdateAccountSetting(
-  address: string,
+  address: string | undefined,
   refetchAccountSettings: () => Promise<void>,
 ) {
   const { onToggle, error } = useAccountNotificationsToggle();
@@ -49,6 +39,9 @@ export function useUpdateAccountSetting(
 
   const toggleAccount = useCallback(
     async (state: boolean) => {
+      if (!address) {
+        return;
+      }
       setLoading(true);
       try {
         await onToggle([address], state);
@@ -69,8 +62,8 @@ export function useUpdateAccountSetting(
  * This component assumes that the parent will manage the state of the toggle. This is because most of the state is global.
  */
 const NotificationOptionToggle = ({
-  address,
-  title,
+  item,
+  evmAddress,
   icon,
   isEnabled,
   disabledSwitch,
@@ -83,7 +76,7 @@ const NotificationOptionToggle = ({
   const styles = createStyles();
 
   const { toggleAccount, loading: isUpdatingAccount } = useUpdateAccountSetting(
-    address,
+    evmAddress,
     refetchNotificationAccounts,
   );
 
@@ -94,48 +87,32 @@ const NotificationOptionToggle = ({
   }, [isEnabled, toggleAccount]);
 
   return (
-    <View
-      style={styles.container}
-      testID={NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(testID)}
-    >
-      <Avatar
-        variant={AvatarVariant.Account}
-        type={icon as AvatarAccountType}
-        accountAddress={address}
-        size={AvatarSize.Md}
-        style={styles.accountAvatar}
+    <View testID={NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(testID)}>
+      <AccountCell
+        accountGroup={item}
+        avatarAccountType={icon}
+        endContainer={
+          loading ? (
+            <ActivityIndicator
+              testID={NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(testID)}
+            />
+          ) : (
+            <Switch
+              style={styles.switch}
+              value={isEnabled}
+              onChange={handleToggleAccountNotifications}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={theme.brandColors.white}
+              disabled={disabledSwitch}
+              ios_backgroundColor={colors.border.muted}
+              testID={testID}
+            />
+          )
+        }
       />
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {title}
-        </Text>
-        {Boolean(address) && (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {formatAddress(address, 'short')}
-          </Text>
-        )}
-      </View>
-      <View style={styles.switchElement}>
-        {loading ? (
-          <ActivityIndicator
-            testID={NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(testID)}
-          />
-        ) : (
-          <Switch
-            style={styles.switch}
-            value={isEnabled}
-            onChange={handleToggleAccountNotifications}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            disabled={disabledSwitch}
-            ios_backgroundColor={colors.border.muted}
-            testID={testID}
-          />
-        )}
-      </View>
     </View>
   );
 };

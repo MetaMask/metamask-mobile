@@ -3,8 +3,6 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -108,10 +106,6 @@ describe('useTokenRatesPolling', () => {
   });
 
   it('should poll only for current network if selected one is not popular', () => {
-    jest
-      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-      .mockReturnValue(false);
-
     const stateToTest = {
       engine: {
         backgroundState: {
@@ -144,6 +138,13 @@ describe('useTokenRatesPolling', () => {
             useTokenDetection: true,
             tokenNetworkFilter: {
               '0x82750': true,
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x82750': true,
+              },
             },
           },
         },
@@ -213,12 +214,8 @@ describe('useTokenRatesPolling', () => {
     });
   });
 
-  describe('Feature flag scenarios', () => {
-    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
+  describe('Network enablement scenarios', () => {
+    it('should poll enabled EVM networks', () => {
       const { unmount } = renderHookWithProvider(() => useTokenRatesPolling(), {
         state,
       });
@@ -239,11 +236,7 @@ describe('useTokenRatesPolling', () => {
       ).toHaveBeenCalledTimes(1);
     });
 
-    it('should poll popular networks when all networks selected and global selector enabled', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(false);
-
+    it('should poll popular networks', () => {
       // Use chain IDs that are actually in PopularList: Ethereum Mainnet (0x1), Polygon (0x89), Optimism (0xa)
       const stateWithPopularNetworks = {
         ...state,
@@ -291,6 +284,16 @@ describe('useTokenRatesPolling', () => {
                 '0xa': true,
               },
             },
+            NetworkEnablementController: {
+              ...state.engine.backgroundState.NetworkEnablementController,
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                  '0x89': true,
+                  '0xa': true,
+                },
+              },
+            },
           },
         },
       };
@@ -315,10 +318,6 @@ describe('useTokenRatesPolling', () => {
     });
 
     it('should handle empty enabled networks gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithEmptyNetworks = {
         ...state,
         engine: {

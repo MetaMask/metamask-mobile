@@ -24,6 +24,7 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
+  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import usePerpsToasts, {
@@ -76,6 +77,10 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     positions: positions || [],
     priceData,
   });
+
+  // Check opt-in status for rewards
+  const { accountOptedIn, account: rewardsAccount } =
+    usePerpsRewardAccountOptedIn(calculations?.totalEstimatedPoints);
 
   // Track screen viewed event
   usePerpsEventTracking({
@@ -334,6 +339,8 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             isLoadingFees={calculations.isLoading}
             isLoadingRewards={calculations.isLoading}
             hasRewardsError={calculations.hasError}
+            accountOptedIn={accountOptedIn}
+            rewardsAccount={rewardsAccount}
             enableTooltips={false}
           />
         )}

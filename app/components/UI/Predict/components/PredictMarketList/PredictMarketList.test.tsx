@@ -7,47 +7,15 @@ import {
 } from '@react-navigation/native';
 import PredictMarketList from './PredictMarketList';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useFocusEffect: jest.fn(),
 }));
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      wrapper: {},
-      tabView: {},
-      tabContent: {},
-    },
-  })),
-}));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: Text,
-    TextVariant: {
-      HeadingLG: 'HeadingLG',
-      BodyMD: 'BodyMD',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Primary: 'Primary',
-      Alternative: 'Alternative',
-      Muted: 'Muted',
-      Success: 'Success',
-      Error: 'Error',
-    },
-  };
-});
-
 jest.mock('../../../../Base/TabBar', () => {
   const { View } = jest.requireActual('react-native');
-  return function MockTabBar({ textStyle }: { textStyle: object }) {
-    return <View testID="tab-bar" style={textStyle} />;
+  return function MockTabBar() {
+    return <View testID="tab-bar" />;
   };
 });
 
@@ -62,170 +30,6 @@ jest.mock('../../components/MarketListContent', () => {
   };
 });
 
-jest.mock('../../components/PredictBalance/PredictBalance', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockPredictBalance() {
-    return (
-      <View testID="predict-balance">
-        <Text>Balance: $100.00</Text>
-      </View>
-    );
-  };
-});
-
-jest.mock('../../components/SearchBox', () => {
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  return function MockSearchBox({
-    isVisible,
-    onCancel,
-    onSearch,
-  }: {
-    isVisible: boolean;
-    onCancel: () => void;
-    onSearch: (query: string) => void;
-  }) {
-    return (
-      <View testID="search-box">
-        <Text>Search Box Visible: {String(isVisible)}</Text>
-        <TouchableOpacity testID="search-cancel-button" onPress={onCancel}>
-          <Text>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID="search-input-button"
-          onPress={() => onSearch('test query')}
-        >
-          <Text>Search</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-});
-
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: ({
-    children,
-    testID,
-    ...props
-  }: {
-    children?: React.ReactNode;
-    testID?: string;
-    [key: string]: unknown;
-  }) => {
-    const { View } = jest.requireActual('react-native');
-    return (
-      <View testID={testID} {...props}>
-        {children}
-      </View>
-    );
-  },
-  BoxFlexDirection: {
-    Row: 'row',
-  },
-  BoxAlignItems: {
-    Center: 'center',
-  },
-  BoxJustifyContent: {
-    Between: 'space-between',
-  },
-}));
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((...args) => args.join(' ')),
-  })),
-}));
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockIcon({
-      name,
-      testID,
-    }: {
-      name: string;
-      testID?: string;
-    }) {
-      return <View testID={testID || `icon-${name}`} />;
-    },
-    IconName: {
-      Search: 'Search',
-      AddSquare: 'AddSquare',
-    },
-    IconSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-    },
-    IconColor: {
-      Default: 'Default',
-      Primary: 'Primary',
-      Alternative: 'Alternative',
-      Muted: 'Muted',
-    },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockAvatar({
-      variant,
-      testID,
-    }: {
-      variant: string;
-      testID?: string;
-    }) {
-      return <View testID={testID || `avatar-${variant}`} />;
-    },
-    AvatarVariant: {
-      Icon: 'Icon',
-    },
-    AvatarSize: {
-      Md: 'Md',
-      Sm: 'Sm',
-    },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockButton({
-      onPress,
-      children,
-      label,
-      testID,
-    }: {
-      onPress?: () => void;
-      children?: React.ReactNode;
-      label?: string;
-      testID?: string;
-    }) {
-      return (
-        <TouchableOpacity onPress={onPress} testID={testID || 'button'}>
-          <Text>{label || children}</Text>
-        </TouchableOpacity>
-      );
-    },
-    ButtonVariants: {
-      Link: 'Link',
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-    },
-    ButtonSize: {
-      Md: 'Md',
-      Sm: 'Sm',
-      Lg: 'Lg',
-    },
-    ButtonWidthTypes: {
-      Auto: 'Auto',
-      Full: 'Full',
-    },
-  };
-});
-
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: jest.fn(() => ({
     balance: 100,
@@ -237,10 +41,9 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   })),
 }));
 
-jest.mock('../../utils/format', () => ({
-  formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
-  formatVolume: jest.fn((value: number) => value.toLocaleString()),
-}));
+let mockOnChangeTab:
+  | ((changeInfo: { i: number; ref: unknown; from?: number }) => void)
+  | undefined;
 
 jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
   const { View } = jest.requireActual('react-native');
@@ -250,11 +53,18 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
       children,
       renderTabBar,
       style,
+      onChangeTab,
     }: {
       children?: React.ReactNode;
       renderTabBar?: false | (() => React.ReactNode);
       style?: object;
+      onChangeTab?: (changeInfo: {
+        i: number;
+        ref: unknown;
+        from?: number;
+      }) => void;
     }) {
+      mockOnChangeTab = onChangeTab;
       return (
         <View testID="scrollable-tab-view" style={style}>
           {renderTabBar && typeof renderTabBar === 'function' && renderTabBar()}
@@ -264,10 +74,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
     },
   };
 });
-
-jest.mock('../../../Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(),
-}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -280,30 +86,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
-}));
-
-jest.mock('../../../../../../e2e/selectors/Predict/Predict.selectors', () => ({
-  PredictMarketListSelectorsIDs: {
-    CONTAINER: 'predict-market-list-container',
-    TRENDING_TAB: 'predict-market-list-trending-tab',
-    NEW_TAB: 'predict-market-list-new-tab',
-    SPORTS_TAB: 'predict-market-list-sports-tab',
-    CRYPTO_TAB: 'predict-market-list-crypto-tab',
-    POLITICS_TAB: 'predict-market-list-politics-tab',
-  },
-}));
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: {
-        default: '#ffffff',
-      },
-      text: {
-        default: '#121314',
-      },
-    },
-  })),
 }));
 
 describe('PredictMarketList', () => {
@@ -327,36 +109,45 @@ describe('PredictMarketList', () => {
     typeof useNavigation
   >;
 
+  const createMockSharedValue = (initialValue: number) => ({
+    value: initialValue,
+    get: jest.fn(() => initialValue),
+    set: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    modify: jest.fn(),
+  });
+
+  const createMockScrollCoordinator = (overrides = {}) => ({
+    balanceCardOffset: createMockSharedValue(0),
+    balanceCardHeight: createMockSharedValue(0),
+    setBalanceCardHeight: jest.fn(),
+    setCurrentCategory: jest.fn(),
+    getTabScrollPosition: jest.fn(() => 0),
+    setTabScrollPosition: jest.fn(),
+    getScrollHandler: jest.fn(),
+    isBalanceCardHidden: jest.fn(() => false),
+    updateBalanceCardHiddenState: jest.fn(),
+    ...overrides,
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
-
+    mockOnChangeTab = undefined;
     mockUseNavigation.mockReturnValue(
       mockNavigation as unknown as NavigationProp<ParamListBase>,
     );
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
-  describe('Component Rendering', () => {
-    it('renders the scrollable tab view when search is not visible', () => {
+  describe('default view (no search)', () => {
+    it('displays scrollable tab view with all market categories', () => {
       render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
       expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
-    });
-
-    it('renders the tab bar when search is not visible', () => {
-      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
-
-      expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Tab Content', () => {
-    it('renders all market list content components for each category', () => {
-      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
-
       expect(
         screen.getByTestId('market-list-content-trending'),
       ).toBeOnTheScreen();
@@ -372,7 +163,7 @@ describe('PredictMarketList', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays correct category labels', () => {
+    it('displays correct category labels for all tabs', () => {
       render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
       expect(screen.getByTestId('category-trending')).toHaveTextContent(
@@ -393,61 +184,117 @@ describe('PredictMarketList', () => {
     });
   });
 
-  describe('Component Structure', () => {
-    it('renders with correct component hierarchy when search is not visible', () => {
-      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
+  describe('search mode', () => {
+    it('hides tab view when search is active without query', () => {
+      render(<PredictMarketList isSearchVisible searchQuery="" />);
 
-      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
-      expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
+      expect(screen.queryByTestId('scrollable-tab-view')).not.toBeOnTheScreen();
     });
 
-    it('renders all required market categories', () => {
-      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
-
-      const categories = ['trending', 'new', 'sports', 'crypto', 'politics'];
-      categories.forEach((category) => {
-        expect(
-          screen.getByTestId(`market-list-content-${category}`),
-        ).toBeOnTheScreen();
-      });
-    });
-  });
-
-  describe('Search Functionality', () => {
-    it('hides main tab view when search is visible without query', () => {
-      const { queryByTestId } = render(
-        <PredictMarketList isSearchVisible searchQuery="" />,
-      );
-
-      // Main tab content should not be visible when search is active
-      expect(queryByTestId('scrollable-tab-view')).not.toBeOnTheScreen();
-    });
-
-    it('shows search results when search query is provided', () => {
+    it('displays search results when query is provided', () => {
       render(<PredictMarketList isSearchVisible searchQuery="test" />);
 
-      // Search results should be displayed
       expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
       expect(
         screen.getByTestId('market-list-content-trending'),
       ).toBeOnTheScreen();
     });
+  });
 
-    it('shows main tab view when search is not visible', () => {
-      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
+  describe('callbacks', () => {
+    it('calls onTabChange when tab changes', () => {
+      const mockOnTabChangeCallback = jest.fn();
 
-      // Main tab content should be visible
-      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
-      expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
-    });
-
-    it('hides tab bar when search is active with query', () => {
-      const { queryByTestId } = render(
-        <PredictMarketList isSearchVisible searchQuery="test" />,
+      render(
+        <PredictMarketList
+          isSearchVisible={false}
+          searchQuery=""
+          onTabChange={mockOnTabChangeCallback}
+        />,
       );
 
-      // Tab bar should not be visible during search
-      expect(queryByTestId('tab-bar')).not.toBeOnTheScreen();
+      mockOnChangeTab?.({ i: 2, ref: null });
+
+      expect(mockOnTabChangeCallback).toHaveBeenCalledWith('sports');
+    });
+
+    it('updates scrollCoordinator when tab changes', () => {
+      const mockSetCurrentCategory = jest.fn();
+      const mockScrollCoordinator = createMockScrollCoordinator({
+        setCurrentCategory: mockSetCurrentCategory,
+      });
+
+      render(
+        <PredictMarketList
+          isSearchVisible={false}
+          searchQuery=""
+          scrollCoordinator={mockScrollCoordinator}
+        />,
+      );
+
+      mockOnChangeTab?.({ i: 1, ref: null });
+
+      expect(mockSetCurrentCategory).toHaveBeenCalledWith('new');
+    });
+
+    it('handles tab change with both scrollCoordinator and onTabChange', () => {
+      const mockOnTabChangeCallback = jest.fn();
+      const mockSetCurrentCategory = jest.fn();
+      const mockScrollCoordinator = createMockScrollCoordinator({
+        setCurrentCategory: mockSetCurrentCategory,
+      });
+
+      render(
+        <PredictMarketList
+          isSearchVisible={false}
+          searchQuery=""
+          scrollCoordinator={mockScrollCoordinator}
+          onTabChange={mockOnTabChangeCallback}
+        />,
+      );
+
+      mockOnChangeTab?.({ i: 4, ref: null });
+
+      expect(mockSetCurrentCategory).toHaveBeenCalledWith('politics');
+      expect(mockOnTabChangeCallback).toHaveBeenCalledWith('politics');
+    });
+
+    it('does not call callbacks when tab index is out of bounds', () => {
+      const mockOnTabChangeCallback = jest.fn();
+      const mockSetCurrentCategory = jest.fn();
+      const mockScrollCoordinator = createMockScrollCoordinator({
+        setCurrentCategory: mockSetCurrentCategory,
+      });
+
+      render(
+        <PredictMarketList
+          isSearchVisible={false}
+          searchQuery=""
+          scrollCoordinator={mockScrollCoordinator}
+          onTabChange={mockOnTabChangeCallback}
+        />,
+      );
+
+      mockOnChangeTab?.({ i: 10, ref: null });
+
+      expect(mockSetCurrentCategory).not.toHaveBeenCalled();
+      expect(mockOnTabChangeCallback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('with scrollCoordinator', () => {
+    it('renders with scrollCoordinator prop', () => {
+      const mockScrollCoordinator = createMockScrollCoordinator();
+
+      render(
+        <PredictMarketList
+          isSearchVisible={false}
+          searchQuery=""
+          scrollCoordinator={mockScrollCoordinator}
+        />,
+      );
+
+      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
     });
   });
 });

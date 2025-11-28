@@ -2,7 +2,7 @@ import React from 'react';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import CustomNetwork from './CustomNetwork';
-import { CustomNetworkProps } from './CustomNetwork.types';
+import { CustomNetworkProps, type Network } from './CustomNetwork.types';
 import { PopularList } from '../../../../../../util/networks/customNetworks';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
 import { toHex } from '@metamask/controller-utils';
@@ -113,5 +113,58 @@ describe('CustomNetwork component', () => {
     expect(queryByText('Avalanche')).toBeOnTheScreen();
     expect(queryByText('Arbitrum')).toBeOnTheScreen();
     expect(queryByText('Base')).toBeOnTheScreen();
+  });
+
+  it('renders or hides "No network fee" label based on sponsorship flag', () => {
+    const customNetworksList: Network[] = [
+      {
+        chainId: '0x38',
+        nickname: 'BNB Chain',
+        rpcPrefs: { blockExplorerUrl: 'https://bscscan.com' },
+        rpcUrl: 'https://bsc-dataseed.binance.org',
+        ticker: 'BNB',
+      },
+      {
+        chainId: '0xa4b1',
+        nickname: 'Arbitrum',
+        rpcPrefs: { blockExplorerUrl: 'https://arbiscan.io' },
+        rpcUrl: 'https://arb1.arbitrum.io/rpc',
+        ticker: 'ETH',
+      },
+    ];
+
+    const props = getMockCustomNetworkProps({
+      showAddedNetworks: true,
+      customNetworksList,
+    });
+
+    // One state with mixed sponsorship flags
+    const state = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            ...backgroundState.RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
+              gasFeesSponsoredNetwork: {
+                '0x38': true,
+                '0xa4b1': false,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByText, getAllByText } = renderWithProvider(
+      <CustomNetwork {...props} />,
+      { state },
+    );
+
+    expect(getByText('BNB Chain')).toBeOnTheScreen();
+    expect(getByText('Arbitrum')).toBeOnTheScreen();
+
+    expect(getAllByText('No network fee').length).toBe(1);
   });
 });

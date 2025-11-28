@@ -1,7 +1,7 @@
 import {
-  selectRewardsEnabledFlag,
   selectRewardsAnnouncementModalEnabledFlag,
   selectRewardsCardSpendFeatureFlags,
+  selectRewardsMusdDepositEnabledFlag,
 } from '.';
 import {
   VersionGatedFeatureFlag,
@@ -28,92 +28,6 @@ describe('Rewards Feature Flag Selectors', () => {
 
   afterEach(() => {
     mockHasMinimumRequiredVersion?.mockRestore();
-  });
-
-  describe('selectRewardsEnabledFlag', () => {
-    it('returns false when basic functionality is disabled', () => {
-      const result = selectRewardsEnabledFlag.resultFunc(
-        {
-          rewardsEnabled: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-        },
-        false,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true when remote flag is valid and enabled and basic functionality is enabled', () => {
-      const result = selectRewardsEnabledFlag.resultFunc(
-        {
-          rewardsEnabled: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-        },
-        true,
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when remote flag is valid but disabled and basic functionality is enabled', () => {
-      const result = selectRewardsEnabledFlag.resultFunc(
-        {
-          rewardsEnabled: {
-            enabled: false,
-            minimumVersion: '1.0.0',
-          },
-        },
-        true,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when version check fails and basic functionality is enabled', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
-
-      const result = selectRewardsEnabledFlag.resultFunc(
-        {
-          rewardsEnabled: {
-            enabled: true,
-            minimumVersion: '99.0.0',
-          },
-        },
-        true,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote flag is invalid and basic functionality is enabled', () => {
-      const result = selectRewardsEnabledFlag.resultFunc(
-        {
-          rewardsEnabled: {
-            enabled: 'invalid',
-            minimumVersion: 123,
-          },
-        },
-        true,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote feature flags are empty and basic functionality is enabled', () => {
-      const result = selectRewardsEnabledFlag.resultFunc({}, true);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote feature flags are empty and basic functionality is disabled', () => {
-      const result = selectRewardsEnabledFlag.resultFunc({}, false);
-
-      expect(result).toBe(false);
-    });
   });
 
   describe('selectRewardsAnnouncementModalEnabledFlag', () => {
@@ -211,6 +125,55 @@ describe('Rewards Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('selectRewardsMusdDepositEnabledFlag', () => {
+    it('returns true when remote flag is valid and enabled', () => {
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({
+        rewardsEnableMusdDeposit: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is valid but disabled', () => {
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({
+        rewardsEnableMusdDeposit: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when version check fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({
+        rewardsEnableMusdDeposit: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is invalid', () => {
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({
+        rewardsEnableMusdDeposit: {
+          enabled: 'invalid',
+          minimumVersion: 123,
+        },
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote feature flags are empty', () => {
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({});
+      expect(result).toBe(false);
+    });
+  });
+
   describe('validatedVersionGatedFeatureFlag', () => {
     const validRemoteFlag: VersionGatedFeatureFlag = {
       enabled: true,

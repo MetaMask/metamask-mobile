@@ -46,11 +46,7 @@ import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  isTestNet,
-  getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
@@ -669,6 +665,8 @@ class PaymentRequest extends PureComponent {
     const { conversionRate, contractExchangeRates, currentCurrency } =
       this.props;
     const currencySymbol = currencySymbols[currentCurrency];
+    // Normalize amount: trim whitespace and replace comma with period
+    amount = amount?.replace(',', '.')?.trim();
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
@@ -682,9 +680,9 @@ class PaymentRequest extends PureComponent {
       conversionRate &&
       (exchangeRate || selectedAsset.isETH)
     ) {
-      res = this.handleFiatPrimaryCurrency(amount?.replace(',', '.'));
+      res = this.handleFiatPrimaryCurrency(amount);
     } else {
-      res = this.handleETHPrimaryCurrency(amount?.replace(',', '.'));
+      res = this.handleETHPrimaryCurrency(amount);
     }
     const { cryptoAmount, symbol } = res;
     if (amount && amount[0] === currencySymbol) amount = amount.substr(1);
@@ -932,15 +930,13 @@ class PaymentRequest extends PureComponent {
 
     return (
       <SafeAreaView style={styles.wrapper}>
-        {isRemoveGlobalNetworkSelectorEnabled() && (
-          <View style={styles.pickerNetworkContainer}>
-            <PickerNetwork
-              onPress={this.handleNetworkPickerPress}
-              label={networkName}
-              imageSource={networkImageSource}
-            />
-          </View>
-        )}
+        <View style={styles.pickerNetworkContainer}>
+          <PickerNetwork
+            onPress={this.handleNetworkPickerPress}
+            label={networkName}
+            imageSource={networkImageSource}
+          />
+        </View>
         <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollViewContainer}
           keyboardShouldPersistTaps="handled"

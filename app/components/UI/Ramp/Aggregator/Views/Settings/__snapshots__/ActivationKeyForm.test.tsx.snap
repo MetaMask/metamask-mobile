@@ -464,6 +464,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,

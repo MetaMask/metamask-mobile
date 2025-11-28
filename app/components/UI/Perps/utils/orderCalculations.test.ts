@@ -2,7 +2,9 @@ import {
   calculatePositionSize,
   calculateMarginRequired,
   getMaxAllowedAmount,
+  buildOrdersArray,
 } from './orderCalculations';
+import { ORDER_SLIPPAGE_CONFIG } from '../constants/perpsConfig';
 
 describe('orderCalculations', () => {
   describe('calculatePositionSize', () => {
@@ -352,6 +354,204 @@ describe('orderCalculations', () => {
       // Assert
       expect(result).toBeGreaterThanOrEqual(0);
       expect(result).toBeLessThanOrEqual(50); // 10 * 5 leverage
+    });
+  });
+
+  describe('buildOrdersArray', () => {
+    describe('Stop Loss Slippage Direction', () => {
+      const baseParams = {
+        assetId: 0,
+        formattedPrice: '50000',
+        formattedSize: '1.0',
+        reduceOnly: false,
+        orderType: 'market' as const,
+        szDecimals: 5,
+      };
+
+      it('should apply slippage BELOW trigger price for long position stop loss (sell to exit)', () => {
+        // Long position: isBuy=true (opening long)
+        // Stop loss: selling to exit at $95,000 trigger
+        // Expected: limit price 10% BELOW trigger = $85,500
+        const result = buildOrdersArray({
+          ...baseParams,
+          isBuy: true, // Long position (buying to open)
+          stopLossPrice: '95000',
+        });
+
+        expect(result.orders).toHaveLength(2); // Main order + SL order
+
+        const slOrder = result.orders[1];
+        expect(slOrder.b).toBe(false); // Selling to close long
+        expect(slOrder.t).toEqual({
+          trigger: {
+            isMarket: true,
+            triggerPx: '95000',
+            tpsl: 'sl',
+          },
+        });
+
+        // Verify limit price is 10% BELOW trigger (85500)
+        const expectedLimitPrice =
+          95000 * (1 - ORDER_SLIPPAGE_CONFIG.DEFAULT_TPSL_SLIPPAGE_BPS / 10000);
+        expect(parseFloat(String(slOrder.p))).toBe(expectedLimitPrice);
+        expect(parseFloat(String(slOrder.p))).toBe(85500); // 95000 * 0.90
+      });
+
+      it('should apply slippage ABOVE trigger price for short position stop loss (buy to exit)', () => {
+        // Short position: isBuy=false (opening short)
+        // Stop loss: buying to exit at $105,000 trigger
+        // Expected: limit price 10% ABOVE trigger = $115,500
+        const result = buildOrdersArray({
+          ...baseParams,
+          isBuy: false, // Short position (selling to open)
+          stopLossPrice: '105000',
+        });
+
+        expect(result.orders).toHaveLength(2); // Main order + SL order
+
+        const slOrder = result.orders[1];
+        expect(slOrder.b).toBe(true); // Buying to close short
+        expect(slOrder.t).toEqual({
+          trigger: {
+            isMarket: true,
+            triggerPx: '105000',
+            tpsl: 'sl',
+          },
+        });
+
+        // Verify limit price is 10% ABOVE trigger (115500)
+        const limitPrice = parseFloat(String(slOrder.p));
+        expect(limitPrice).toBeCloseTo(115500, 0); // 105000 * 1.10 (allow rounding)
+        expect(limitPrice).toBeGreaterThan(105000); // Most importantly: ABOVE trigger
+      });
+
+      it('should use 10% slippage for stop loss orders', () => {
+        // Verify that the 10% slippage (1000 bps) is applied correctly
+        const result = buildOrdersArray({
+          ...baseParams,
+          isBuy: true,
+          stopLossPrice: '100000',
+        });
+
+        const slOrder = result.orders[1];
+        const slippageValue =
+          ORDER_SLIPPAGE_CONFIG.DEFAULT_TPSL_SLIPPAGE_BPS / 10000;
+
+        expect(slippageValue).toBe(0.1); // 10%
+        expect(parseFloat(String(slOrder.p))).toBe(100000 * 0.9); // 90000
+      });
+
+      it('should protect against adverse price movements in volatile conditions', () => {
+        // Real-world scenario: BTC long with SL at $95K during rapid price drop
+        // Slippage protection ensures order can execute even if price drops quickly
+        const result = buildOrdersArray({
+          ...baseParams,
+          isBuy: true,
+          stopLossPrice: '95000',
+        });
+
+        const slOrder = result.orders[1];
+        const limitPrice = parseFloat(String(slOrder.p));
+
+        // SL triggers at $95K, limit allows execution down to $85.5K
+        expect(limitPrice).toBe(85500);
+
+        // This protects against price dropping from $95K to $85.5K
+        const protectionRange = 95000 - limitPrice;
+        expect(protectionRange).toBe(9500); // $9,500 protection range
+      });
+
+      it('should handle fractional trigger prices correctly', () => {
+        // Test with altcoin prices (e.g., $1.50 trigger)
+        const result = buildOrdersArray({
+          ...baseParams,
+          isBuy: false, // Short position
+          stopLossPrice: '1.50',
+        });
+
+        const slOrder = result.orders[1];
+        const limitPrice = parseFloat(String(slOrder.p));
+
+        // For short: limit should be 10% ABOVE trigger
+        // Most importantly: verify direction is correct (ABOVE trigger)
+        expect(limitPrice).toBeGreaterThan(1.5);
+        // Verify it's approximately 10% higher (allowing for price formatting)
+        expect(limitPrice).toBeGreaterThanOrEqual(1.6);
+        expect(limitPrice).toBeLessThanOrEqual(1.75);
+      });
+    });
+
+    describe('Stop Loss Order Structure', () => {
+      const baseParams = {
+        assetId: 0,
+        formattedPrice: '50000',
+        formattedSize: '1.0',
+        reduceOnly: false,
+        orderType: 'market' as const,
+        szDecimals: 5,
+        isBuy: true,
+      };
+
+      it('should create SL order with reduce-only flag', () => {
+        const result = buildOrdersArray({
+          ...baseParams,
+          stopLossPrice: '95000',
+        });
+
+        const slOrder = result.orders[1];
+        expect(slOrder.r).toBe(true); // Reduce-only
+      });
+
+      it('should create SL order with market execution on trigger', () => {
+        const result = buildOrdersArray({
+          ...baseParams,
+          stopLossPrice: '95000',
+        });
+
+        const slOrder = result.orders[1];
+        expect('trigger' in slOrder.t && slOrder.t.trigger?.isMarket).toBe(
+          true,
+        );
+        expect('trigger' in slOrder.t && slOrder.t.trigger?.tpsl).toBe('sl');
+      });
+
+      it('should set SL order direction opposite to main order', () => {
+        // Long position (isBuy=true) → SL sells (b=false)
+        const longResult = buildOrdersArray({
+          ...baseParams,
+          isBuy: true,
+          stopLossPrice: '95000',
+        });
+        expect(longResult.orders[1].b).toBe(false);
+
+        // Short position (isBuy=false) → SL buys (b=true)
+        const shortResult = buildOrdersArray({
+          ...baseParams,
+          isBuy: false,
+          stopLossPrice: '105000',
+        });
+        expect(shortResult.orders[1].b).toBe(true);
+      });
+
+      it('should not create SL order when stopLossPrice is undefined', () => {
+        const result = buildOrdersArray({
+          ...baseParams,
+          stopLossPrice: undefined,
+        });
+
+        expect(result.orders).toHaveLength(1); // Only main order
+      });
+
+      it('should create both TP and SL orders with correct grouping', () => {
+        const result = buildOrdersArray({
+          ...baseParams,
+          takeProfitPrice: '55000',
+          stopLossPrice: '45000',
+        });
+
+        expect(result.orders).toHaveLength(3); // Main + TP + SL
+        expect(result.grouping).toBe('normalTpsl');
+      });
     });
   });
 });

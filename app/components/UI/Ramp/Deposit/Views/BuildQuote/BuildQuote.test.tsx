@@ -9,6 +9,7 @@ import {
   BuyQuote,
   NativeTransakUserDetails,
 } from '@consensys/native-ramps-sdk';
+import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { trace, endTrace } from '../../../../../../util/trace';
 import { useRegions } from '../../hooks/useRegions';
 import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
@@ -141,7 +142,7 @@ jest.mock('react-native', () => {
   };
 });
 
-function render(Component: React.ComponentType) {
+function render(Component: React.ComponentType, orders: FiatOrder[] = []) {
   return renderScreen(
     Component,
     {
@@ -151,6 +152,9 @@ function render(Component: React.ComponentType) {
       state: {
         engine: {
           backgroundState,
+        },
+        fiatOrders: {
+          orders,
         },
       },
     },
@@ -500,7 +504,7 @@ describe('BuildQuote Component', () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
 
-      render(BuildQuote);
+      render(BuildQuote, []);
 
       const continueButton = screen.getByText('Continue');
       fireEvent.press(continueButton);
@@ -518,6 +522,42 @@ describe('BuildQuote Component', () => {
           currency_destination_network: 'Ethereum',
           currency_source: MOCK_US_REGION.currency,
           is_authenticated: false,
+          first_time_order: true,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED event with first_time_order false when orders exist', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+      const mockOrder = {
+        id: 'test-order-id',
+        provider: 'DEPOSIT',
+        account: '0x123',
+        state: 'COMPLETED',
+      } as FiatOrder;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote, [mockOrder]);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+          first_time_order: false,
         });
       });
     });

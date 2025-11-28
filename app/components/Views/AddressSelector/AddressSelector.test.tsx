@@ -19,7 +19,6 @@ import {
   MAINNET_DISPLAY_NAME,
   OPTIMISM_DISPLAY_NAME,
   POLYGON_DISPLAY_NAME,
-  SEI_DISPLAY_NAME,
 } from '../../../core/Engine/constants';
 
 jest.mock('../../../core/Engine', () => ({
@@ -135,15 +134,15 @@ describe('AccountSelector', () => {
       'multichain-address-row-network-name',
     ).map((node) => node.props.children);
 
+    // Networks are sorted: * 1. Ethereum, 2. Bitcoin, 3. Solana, 4. Tron, 5. Linea, 6. Featured networks, 7. Other custom networks, 8. Test networks last
     expect(networkNames).toEqual([
       MAINNET_DISPLAY_NAME,
-      BNB_DISPLAY_NAME,
-      SEI_DISPLAY_NAME,
-      POLYGON_DISPLAY_NAME,
-      OPTIMISM_DISPLAY_NAME,
-      ARBITRUM_DISPLAY_NAME,
       LINEA_MAINNET_DISPLAY_NAME,
+      ARBITRUM_DISPLAY_NAME,
       BASE_DISPLAY_NAME,
+      BNB_DISPLAY_NAME,
+      OPTIMISM_DISPLAY_NAME,
+      POLYGON_DISPLAY_NAME,
     ]);
     expect(networkNames).not.toContain('Solana');
   });

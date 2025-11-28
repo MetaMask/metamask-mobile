@@ -183,10 +183,11 @@ describe('BaseLoginHandler', () => {
         success: true,
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
-        indexes: [1, 2, 3],
-        endpoints: { endpoint1: 'value1' },
-        message: 'Success',
-        jwt_tokens: { token1: 'value1' },
+        revoke_token: 'mock-revoke-token',
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
+        token_type: 'Bearer',
+        expires_in: 3600,
       };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -225,44 +226,16 @@ describe('BaseLoginHandler', () => {
       );
 
       expect(result).toEqual(mockResponse);
-
-      jest
-        .spyOn(global, 'fetch')
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockResponse)));
-
-      const refreshResult = await mockHandler.refreshAuthToken('refresh-token');
-
-      expect(refreshResult).toEqual(mockResponse);
-
-      const mockRevokeResponse = {
-        new_refresh_token: 'refresh-token',
-        new_revoke_token: 'revoke-token',
-      };
-
-      jest
-        .spyOn(global, 'fetch')
-        .mockResolvedValueOnce(
-          new Response(JSON.stringify(mockRevokeResponse)),
-        );
-
-      const revokeResult =
-        await mockHandler.revokeRefreshToken('refresh-token');
-
-      expect(revokeResult).toEqual({
-        refresh_token: 'refresh-token',
-        revoke_token: 'revoke-token',
-      });
     });
 
     it('successfully gets auth tokens with idToken', async () => {
       const mockResponse = {
-        success: true,
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
-        indexes: [1, 2, 3],
-        endpoints: { endpoint1: 'value1' },
-        message: 'Success',
-        jwt_tokens: { token1: 'value1' },
+        revoke_token: 'mock-revoke-token',
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
+        expires_in: 3600,
       };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -361,6 +334,10 @@ describe('BaseLoginHandler', () => {
       const mockResponse = {
         success: true,
         id_token: 'mock-id-token',
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
         message: 'Success',
       };
 
@@ -410,6 +387,10 @@ describe('BaseLoginHandler', () => {
       const mockResponse = {
         success: true,
         id_token: 'mock-id-token',
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
         message: 'Success',
       };
 

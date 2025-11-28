@@ -439,8 +439,6 @@
     "privacy_mode_desc": "Web サイトはアカウント情報を表示するためにアクセスをリクエストする必要があります。",
     "show_hex_data": "16 進データの表示",
     "show_hex_data_desc": "これを選択すると、送信画面に 16 進データフィールドが表示されます。",
-    "show_custom_nonce": "トランザクション ナンスのカスタマイズ",
-    "custom_nonce_desc": "確認画面上でナンス (トランザクション番号) を変更するには、これをオンにします。これは高度な機能であり、慎重に使用してください。",
     "accounts_identicon_title": "アカウントのアイデンティコン",
     "accounts_identicon_desc": "Jazzicon と Blockie は、アカウントを一目で識別するための 2 つの異なるスタイルの一意のアイコンです。",
     "jazzicons": "Jazzicon",

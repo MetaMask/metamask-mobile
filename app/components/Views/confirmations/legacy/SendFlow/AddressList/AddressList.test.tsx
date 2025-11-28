@@ -15,17 +15,6 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
 
-// Mock isRemoveGlobalNetworkSelectorEnabled utility
-const mockIsRemoveGlobalNetworkSelectorEnabled = jest
-  .fn()
-  .mockReturnValue(false);
-
-jest.mock('../../../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: () =>
-    mockIsRemoveGlobalNetworkSelectorEnabled(),
-}));
-
 // Mock isSmartContractAddress to avoid actual network calls during tests
 jest.mock('../../../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../../../util/transactions'),
@@ -119,7 +108,6 @@ const renderComponent = (
 describe('AddressList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
   });
 
   it('renders correctly', () => {
@@ -147,52 +135,26 @@ describe('AddressList', () => {
     });
   });
 
-  it('filters contacts by current chainId when isRemoveGlobalNetworkSelectorEnabled is false', async () => {
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-    const { queryByText } = renderComponent(initialState);
-
-    await waitFor(() => {
-      // Contact from chainId 0x1 should be visible
-      expect(queryByText(textElements.firstContact)).toBeTruthy();
-      // Contact from chainId 0x5 should not be visible
-      expect(queryByText(textElements.secondContact)).toBeNull();
-    });
-  });
-
-  it('shows contacts from all chains when onlyRenderAddressBook is true and isRemoveGlobalNetworkSelectorEnabled is true', async () => {
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+  it('shows contacts from all chains when rendering address book', async () => {
     const { queryByText } = renderComponent(initialState, {
       onlyRenderAddressBook: true,
     });
 
-    // Wait for contacts to be processed
     await waitFor(() => {
-      // Both contacts from different chains should be visible
+      // Both contacts from different chains are visible
       expect(queryByText(textElements.firstContact)).toBeTruthy();
       expect(queryByText(textElements.secondContact)).toBeTruthy();
     });
   });
 
-  it('only shows contacts from current chain when onlyRenderAddressBook is true but isRemoveGlobalNetworkSelectorEnabled is false', async () => {
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-    const { queryByText } = renderComponent(initialState, {
-      onlyRenderAddressBook: true,
-    });
+  it('renders address elements with network badges', async () => {
+    const { findAllByTestId } = renderComponent(initialState);
 
-    await waitFor(() => {
-      // Only contact from current chain should be visible
-      expect(queryByText(textElements.firstContact)).toBeTruthy();
-      expect(queryByText(textElements.secondContact)).toBeNull();
-    });
-  });
+    const addressElements = await findAllByTestId('address-book-account');
+    expect(addressElements.length).toBeGreaterThan(0);
 
-  it('sets displayNetworkBadge to true when rendering address elements', async () => {
-    const { findByTestId } = renderComponent(initialState);
-
-    const addressElement = await findByTestId('address-book-account');
-    expect(addressElement).toBeTruthy();
-
-    // This implicitly tests that renderAddressElementWithNetworkBadge is setting displayNetworkBadge to true
-    // The actual rendering of the badge is tested in AddressElement.test.tsx
+    // Verify network badges are present
+    const networkBadges = await findAllByTestId('badgenetwork');
+    expect(networkBadges.length).toBeGreaterThan(0);
   });
 });

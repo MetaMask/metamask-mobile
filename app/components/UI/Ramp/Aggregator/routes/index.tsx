@@ -1,7 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Quotes from '../Views/Quotes';
-import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
 import TokenSelectModal from '../components/TokenSelectModal/TokenSelectModal';
@@ -15,6 +14,7 @@ import { colors } from '../../../../../styles/common';
 import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
 import RegionSelectorModal from '../components/RegionSelectorModal';
 import UnsupportedRegionModal from '../components/UnsupportedRegionModal';
+import SettingsModal from '../Views/Modals/Settings';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -27,10 +27,9 @@ const clearStackNavigatorOptions = {
 
 const MainRoutes = () => (
   <Stack.Navigator
-    initialRouteName={Routes.RAMP.GET_STARTED}
+    initialRouteName={Routes.RAMP.BUILD_QUOTE}
     headerMode="screen"
   >
-    <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
     <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
     <Stack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
@@ -48,7 +47,17 @@ const MainRoutes = () => (
         detachPreviousScreen: false,
       }}
     />
-    <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
+    <Stack.Screen
+      name={Routes.RAMP.CHECKOUT}
+      component={CheckoutWebView}
+      options={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.transparent },
+        animationEnabled: false,
+        gestureEnabled: false,
+        detachPreviousScreen: false,
+      }}
+    />
   </Stack.Navigator>
 );
 
@@ -82,16 +91,17 @@ const RampModalsRoutes = () => (
       name={Routes.RAMP.MODALS.UNSUPPORTED_REGION}
       component={UnsupportedRegionModal}
     />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.SETTINGS}
+      component={SettingsModal}
+    />
   </ModalsStack.Navigator>
 );
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator
-      initialRouteName={Routes.RAMP.GET_STARTED}
-      headerMode="none"
-    >
-      <Stack.Screen name={Routes.RAMP.GET_STARTED} component={MainRoutes} />
+    <Stack.Navigator initialRouteName={Routes.RAMP.ID} headerMode="none">
+      <Stack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
       <Stack.Screen
         name={Routes.RAMP.MODALS.ID}
         component={RampModalsRoutes}

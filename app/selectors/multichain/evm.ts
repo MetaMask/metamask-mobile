@@ -12,20 +12,13 @@ import {
   selectAccountsByChainId,
 } from '../accountTrackerController';
 import {
-  selectChainId,
   selectEvmNetworkConfigurationsByChainId,
   selectEvmTicker,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
-import {
-  hexToBN,
-  toChecksumHexAddress,
-  toHex,
-} from '@metamask/controller-utils';
+import { hexToBN, toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   selectConversionRate,
   selectCurrencyRates,
@@ -39,10 +32,6 @@ import { selectTokensBalances } from '../tokenBalancesController';
 import { isZero } from '../../util/lodash';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../preferencesController';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
-import {
-  isTestNet,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../util/networks';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
@@ -86,7 +75,7 @@ export const selectedAccountNativeTokenCachedBalanceByChainIdForAddress =
           result[chainId] = {
             balance: account.balance,
             stakedBalance: account.stakedBalance ?? '0x0',
-            isStaked: account.stakedBalance !== '0x0',
+            isStaked: false,
             name: '',
           };
         }
@@ -197,13 +186,7 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
       // Non-staked tokens
       tokensByChain[nativeChainId].push(tokenByChain);
 
-      if (
-        nativeTokenInfoByChainId &&
-        nativeTokenInfoByChainId.isStaked &&
-        nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
-        nativeTokenInfoByChainId.stakedBalance !== toHex(0) &&
-        nativeTokenInfoByChainId.stakedBalance !== '0'
-      ) {
+      if (nativeTokenInfoByChainId && !nativeTokenInfoByChainId.isStaked) {
         // Staked tokens
         tokensByChain[nativeChainId].push({
           ...nativeTokenInfoByChainId,
@@ -406,63 +389,26 @@ export const selectEvmTokensWithZeroBalanceFilter = createDeepEqualSelector(
 
 export const selectEvmTokens = createDeepEqualSelector(
   selectEvmTokensWithZeroBalanceFilter,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-  selectIsEvmNetworkSelected,
-  selectChainId,
   selectEnabledNetworksByNamespace,
-  (
-    tokensToDisplay,
-    isAllNetworks,
-    isPopularNetwork,
-    isEvmSelected,
-    currentChainId,
-    enabledNetworksByNamespace,
-  ) => {
-    // Apply network filtering
-    let filteredTokens: TokenI[];
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      const enabledEip155Networks =
-        enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155];
+  (tokensToDisplay, enabledNetworksByNamespace) => {
+    // Apply network filtering based on enabled networks
+    const enabledEip155Networks =
+      enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155];
 
-      if (!enabledEip155Networks) {
-        // Fall back to default behavior when network enablement data is unavailable
-        filteredTokens =
-          isAllNetworks && isPopularNetwork && isEvmSelected
-            ? tokensToDisplay
-            : tokensToDisplay.filter(
-                (token: TokenI) => token.chainId === currentChainId,
-              );
-      } else {
-        filteredTokens = tokensToDisplay.filter((currentToken: TokenI) => {
+    // Filter tokens to only show those on enabled networks
+    const filteredTokens = enabledEip155Networks
+      ? tokensToDisplay.filter((currentToken: TokenI) => {
           const chainId = currentToken.chainId || '';
           return enabledEip155Networks[chainId as Hex];
-        });
-      }
-    } else {
-      filteredTokens =
-        isAllNetworks && isPopularNetwork && isEvmSelected
-          ? tokensToDisplay
-          : tokensToDisplay.filter(
-              (token: TokenI) => token.chainId === currentChainId,
-            );
-    }
+        })
+      : tokensToDisplay;
 
-    // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
+    // Categorize tokens as native or non-native
     const nativeTokens: TokenI[] = [];
     const nonNativeTokens: TokenI[] = [];
 
     for (const currToken of filteredTokens) {
       const token = currToken as TokenI & { chainId: string };
-
-      // Skip tokens if they are on a test network and the current chain is not a test network
-      if (
-        isTestNet(token.chainId) &&
-        !isTestNet(currentChainId) &&
-        !isRemoveGlobalNetworkSelectorEnabled()
-      ) {
-        continue;
-      }
 
       // Categorize tokens as native or non-native
       if (token.isNative) {

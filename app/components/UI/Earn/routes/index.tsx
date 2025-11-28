@@ -5,6 +5,7 @@ import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepo
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
+import { Confirm } from '../../../Views/confirmations/components/confirm';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -26,6 +27,13 @@ const EarnScreenStack = () => (
     <Stack.Screen
       name={Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION}
       component={EarnLendingWithdrawalConfirmationView}
+    />
+    <Stack.Screen
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+      component={Confirm}
+      options={{
+        headerShown: false,
+      }}
     />
   </Stack.Navigator>
 );

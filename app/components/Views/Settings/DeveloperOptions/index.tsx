@@ -13,8 +13,10 @@ import SentryTest from './SentryTest';
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
 ///: END:ONLY_INCLUDE_IF
 import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
-import { useSelector } from 'react-redux';
-import { selectPerpsEnabledFlag } from '../../../UI/Perps';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../hooks/useFeatureFlag';
 import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
 
 const DeveloperOptions = () => {
@@ -26,7 +28,9 @@ const DeveloperOptions = () => {
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, { theme });
 
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsEnabled = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  ) as boolean;
 
   useEffect(
     () => {

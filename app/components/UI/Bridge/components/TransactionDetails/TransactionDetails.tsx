@@ -41,6 +41,7 @@ import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { StatusResponse } from '@metamask/bridge-status-controller';
+import { toDateFormat } from '../../../../../util/date';
 // import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -166,7 +167,10 @@ export const BridgeTransactionDetails = (
   // Get source chain explorer data for swaps
   const swapSrcExplorerData = useMultichainBlockExplorerTxUrl({
     chainId: bridgeTxHistoryItem?.quote.srcChainId,
-    txHash: evmTxMeta?.hash,
+    // On multi-chain tx, the txHash is the source chain tx hash.
+    // This ensures that swaps on non EVM networks are displayed correctly.
+    // For EVM tx, the txHash is the source chain tx hash.
+    txHash: bridgeTxHistoryItem?.status.srcChain?.txHash || evmTxMeta?.hash,
   });
 
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
@@ -223,12 +227,7 @@ export const BridgeTransactionDetails = (
   ).toFixed(5);
 
   const submissionDate = startTime ? new Date(startTime) : null;
-  const submissionDateString = submissionDate
-    ? submissionDate.toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })
-    : 'N/A';
+  const submissionDateString = startTime ? toDateFormat(startTime) : 'N/A';
 
   const estimatedCompletionDate = submissionDate
     ? new Date(
@@ -237,10 +236,7 @@ export const BridgeTransactionDetails = (
       )
     : null;
   const estimatedCompletionString = estimatedCompletionDate
-    ? estimatedCompletionDate.toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })
+    ? toDateFormat(estimatedCompletionDate)
     : null;
 
   const evmTotalGasFee = evmTxMeta
@@ -249,22 +245,29 @@ export const BridgeTransactionDetails = (
 
   let multiChainTotalGasFee;
   if (multiChainTx) {
-    const { baseFee, priorityFee } = getMultichainTxFees(multiChainTx);
-    multiChainTotalGasFee =
-      baseFee?.asset.fungible && priorityFee?.asset.fungible
-        ? (
-            Number(baseFee?.asset.amount) + Number(priorityFee?.asset.amount)
-          ).toFixed(5)
-        : null;
+    const multichainTxFees = getMultichainTxFees(multiChainTx);
+    const baseFeeIsFungible = multichainTxFees?.baseFee?.asset.fungible;
+    const priorityFeeIsFungible = multichainTxFees?.priorityFee?.asset.fungible;
+
+    // Only calculate total fee if at least one fee is fungible
+    if (baseFeeIsFungible || priorityFeeIsFungible) {
+      const baseFee = baseFeeIsFungible
+        ? multichainTxFees?.baseFee?.asset.amount
+        : 0;
+      const priorityFee = priorityFeeIsFungible
+        ? Number(multichainTxFees?.priorityFee?.asset.amount)
+        : 0;
+      multiChainTotalGasFee = (Number(baseFee) + Number(priorityFee)).toFixed(
+        5,
+      );
+    }
   }
 
   let status;
   if (isBridge) {
     status = bridgeStatus.status;
-  } else if (isSwap) {
-    status = evmTxMeta?.status;
-  } else if (multiChainTx) {
-    status = multiChainTx.status;
+  } else {
+    status = evmTxMeta?.status || multiChainTx?.status;
   }
 
   return (

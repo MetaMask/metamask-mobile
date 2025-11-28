@@ -5,7 +5,6 @@ import ApprovalModal from '../ApprovalModal';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { useDispatch, useSelector } from 'react-redux';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
   NetworkType,
   useNetworksByNamespace,
@@ -54,9 +53,7 @@ const SwitchChainApproval = () => {
     defaultOnConfirm();
 
     // If remove global network selector is enabled should set network filter
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      selectNetwork(chainId);
-    }
+    selectNetwork(chainId);
 
     dispatch(
       networkSwitched({

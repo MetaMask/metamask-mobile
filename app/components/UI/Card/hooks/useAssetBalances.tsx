@@ -9,7 +9,7 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import Engine from '../../../../core/Engine';
 import { balanceToFiatNumber } from '../../../../util/number';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
@@ -46,7 +46,7 @@ export const useAssetBalances = (
 ): Map<string, AssetBalanceInfo> => {
   const { MultichainAssetsRatesController, TokenRatesController } =
     Engine.context;
-  const chainIds = [LINEA_CHAIN_ID, SOLANA_MAINNET.chainId];
+  const chainIds = [CHAIN_IDS.LINEA_MAINNET, SOLANA_MAINNET.chainId];
 
   const tokensWithBalance = useTokensWithBalance({
     chainIds,

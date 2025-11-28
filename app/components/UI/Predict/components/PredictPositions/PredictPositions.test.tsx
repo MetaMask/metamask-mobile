@@ -200,8 +200,11 @@ describe('PredictPositions', () => {
     // Act
     renderWithProvider(<PredictPositions />);
 
-    // Assert
-    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+    // Assert - Check for skeleton loaders instead of activity indicator
+    expect(screen.getByTestId('predict-position-skeleton-1')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-2')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-3')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-4')).toBeOnTheScreen();
   });
 
   it('renders loading state when isRefreshing and no positions', () => {
@@ -220,8 +223,11 @@ describe('PredictPositions', () => {
     // Act
     renderWithProvider(<PredictPositions />);
 
-    // Assert
-    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+    // Assert - Check for skeleton loaders instead of activity indicator
+    expect(screen.getByTestId('predict-position-skeleton-1')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-2')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-3')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-4')).toBeOnTheScreen();
   });
 
   it('renders active positions list when no positions and not loading', () => {
@@ -404,7 +410,7 @@ describe('PredictPositions', () => {
       const positionElement = screen.getAllByTestId('predict-position')[0];
       fireEvent.press(positionElement);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('PredictModals', {
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Predict', {
         screen: 'PredictMarketDetails',
         params: {
           marketId: mockPositions[0].marketId,
@@ -433,7 +439,7 @@ describe('PredictPositions', () => {
       );
       fireEvent.press(resolvedPositionElement);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('PredictModals', {
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Predict', {
         screen: 'PredictMarketDetails',
         params: {
           marketId: claimablePosition.marketId,
@@ -737,7 +743,19 @@ describe('PredictPositions', () => {
         },
       });
 
-      expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+      // Check for skeleton loaders instead of activity indicator
+      expect(
+        screen.getByTestId('predict-position-skeleton-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-2'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-3'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-4'),
+      ).toBeOnTheScreen();
     });
 
     it('applies correct styles for loading state when isHomepageRedesignV1Enabled is false', () => {
@@ -775,7 +793,19 @@ describe('PredictPositions', () => {
         },
       });
 
-      expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+      // Check for skeleton loaders instead of activity indicator
+      expect(
+        screen.getByTestId('predict-position-skeleton-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-2'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-3'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-position-skeleton-4'),
+      ).toBeOnTheScreen();
     });
   });
 

@@ -212,6 +212,7 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
+          accountGroupId: 'group-1',
           accountGroupName: 'Group 1',
           accountName: 'Account 1',
           accountType: 'eip155:eoa',
@@ -273,6 +274,7 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
+          accountGroupId: 'group-2',
           accountGroupName: 'Group 2',
           accountName: 'Solana Account 1',
           accountType: 'solana:data-account',
@@ -317,6 +319,7 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
+          accountGroupId: 'group-3',
           accountGroupName: 'Group 3',
           accountName: 'Bitcoin Account 1',
           accountType: 'bip122:p2wpkh',
@@ -378,6 +381,7 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
+          accountGroupId: 'group-4',
           accountGroupName: 'Group 4',
           accountName: 'Tron Account 1',
           accountType: 'tron:eoa',
@@ -598,6 +602,7 @@ describe('useAccounts', () => {
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
+            accountGroupId: 'group-1',
             accountGroupName: 'Group 1',
             accountName: 'Account 1',
             accountType: 'eip155:eoa',
@@ -605,6 +610,7 @@ describe('useAccounts', () => {
             walletName: 'Wallet 1',
           },
           {
+            accountGroupId: 'group-3',
             accountGroupName: 'Group 3',
             accountName: 'Account 2',
             accountType: 'eip155:eoa',

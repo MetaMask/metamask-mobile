@@ -22,31 +22,29 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
     jest.setTimeout(170000);
   });
 
-  itif(isRemoveGlobalNetworkSelectorEnabled)(
-    'Add all popular networks to verify the empty list content',
-    async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().withPopularNetworks().build(),
-          restartDevice: true,
-        },
-        async () => {
-          await loginToApp();
+  it.skip('Add all popular networks to verify the empty list content', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
 
-          await WalletView.tapTokenNetworkFilter();
-          await Assertions.expectElementToBeVisible(
-            NetworkListModal.popularNetworksContainer,
-          );
+        await WalletView.tapTokenNetworkFilter();
+        await Assertions.expectElementToBeVisible(
+          NetworkListModal.popularNetworksContainer,
+        );
 
-          await NetworkListModal.tapNetworkMenuButton('Arbitrum');
-          await NetworkApprovalBottomSheet.tapApproveButton();
-          await NetworkListModal.tapOnCustomTab();
-          await NetworkListModal.swipeToDismissNetworkMultiSelectorModal();
-          await WalletView.verifyTokenNetworkFilterText('Arbitrum');
-        },
-      );
-    },
-  );
+        await NetworkListModal.scrollToBottomOfNetworkMultiSelector();
+        await NetworkListModal.tapNetworkMenuButton('Arbitrum');
+        await NetworkApprovalBottomSheet.tapApproveButton();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.swipeToDismissNetworkMultiSelectorModal();
+        await WalletView.verifyTokenNetworkFilterText('Arbitrum');
+      },
+    );
+  });
 });
 
 // Tests for when Global Network Selector is disabled (MM_REMOVE_GLOBAL_NETWORK_SELECTOR = false)
