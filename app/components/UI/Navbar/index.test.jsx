@@ -1530,11 +1530,11 @@ describe('getCloseOnlyNavbar', () => {
       const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
 
       const HeaderRight = options.headerRight;
-      const { container } = renderWithProvider(<HeaderRight />, {
+      const { getByTestId } = renderWithProvider(<HeaderRight />, {
         state: { engine: { backgroundState } },
       });
 
-      expect(container).toBeTruthy();
+      expect(getByTestId('button-icon')).toBeOnTheScreen();
     });
 
     it('calls navigation.goBack when close button pressed without onClose callback', () => {
