@@ -12,6 +12,7 @@ import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TransactionType } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 
 /**
  * Configuration for mUSD conversion
@@ -64,6 +65,10 @@ export const useMusdConversion = () => {
   );
 
   const selectedAddress = selectedAccount?.address;
+
+  const hasSeenMusdEducationScreen = useSelector(
+    selectMusdConversionEducationSeen,
+  );
 
   const navigateToConversionScreen = useCallback(
     ({
@@ -201,6 +206,7 @@ export const useMusdConversion = () => {
 
   return {
     initiateConversion,
+    hasSeenMusdEducationScreen,
     error,
   };
 };

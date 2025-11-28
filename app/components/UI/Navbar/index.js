@@ -71,7 +71,6 @@ import {
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
-import { noop } from 'lodash';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -2252,7 +2251,11 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
  * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
  * @returns {Object} - Navigation options
  */
-export function getCloseOnlyNavbar(navigation, themeColors, onClose = noop) {
+export function getCloseOnlyNavbar(
+  navigation,
+  themeColors,
+  onClose = undefined,
+) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -2267,9 +2270,10 @@ export function getCloseOnlyNavbar(navigation, themeColors, onClose = noop) {
   const handleClosePress = () => {
     if (onClose) {
       onClose();
-    } else {
-      navigation.goBack();
+      return;
     }
+
+    navigation.goBack();
   };
 
   return {

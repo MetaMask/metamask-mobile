@@ -46,7 +46,6 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
-import { selectMusdConversionEducationSeen } from '../../../../../reducers/user';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -90,7 +89,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenMusdEducationScreen } =
+    useMusdConversion();
   const { isConversionToken } = useMusdConversionTokens();
 
   const isConvertibleStablecoin =
@@ -98,28 +98,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
-
-  const hasSeenMusdEducationScreen = useSelector(
-    selectMusdConversionEducationSeen,
-  );
-
-  const isConvertibleStablecoin = useMemo(
-    () =>
-      isMusdConversionFlowEnabled &&
-      asset?.chainId &&
-      asset?.address &&
-      isMusdConversionPaymentToken(
-        asset.address,
-        asset.chainId,
-        musdConversionPaymentTokensAllowlist,
-      ),
-    [
-      isMusdConversionFlowEnabled,
-      asset?.chainId,
-      asset?.address,
-      musdConversionPaymentTokensAllowlist,
-    ],
-  );
 
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
