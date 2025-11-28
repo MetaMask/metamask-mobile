@@ -75,7 +75,7 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `screen_type` (required): `'homescreen' | 'markets' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'asset_details' | 'close_all_positions' | 'cancel_all_orders'`
+- `screen_type` (required): `'homescreen' | 'markets' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'asset_details' | 'close_all_positions' | 'cancel_all_orders' | 'order_book' | 'error'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`)
@@ -87,20 +87,18 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed' | 'sort_field_changed' | 'sort_direction_changed' | 'favorite_toggled'` (Note: `favorite_toggled` = watchlist toggle)
+- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed' | 'favorite_toggled'` (Note: `favorite_toggled` = watchlist toggle)
+- `action` (optional): Specific action performed: `'connection_retry' | 'share'`
+- `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading' | 'skip' | 'stop_loss_set' | 'take_profit_set' | 'close_all_positions' | 'cancel_all_orders' | 'learn_more' | 'favorite_market' | 'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `order_size` (optional): Size of the order in tokens (number)
 - `leverage_used` (optional): Leverage value being used (number)
 - `order_type` (optional): `'market' | 'limit'`
-- `setting_type` (optional): Type of setting changed (e.g., `'leverage'`, `'sort_field'`, `'sort_direction'`)
+- `setting_type` (optional): Type of setting changed (e.g., `'leverage'`)
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
-- `component_name` (optional): Name of the component interacted with
-- `sort_field` (optional): Market sort field selected: `'volume' | 'price_change' | 'market_cap' | 'funding_rate' | 'new'`
-- `sort_direction` (optional): Sort direction: `'asc' | 'desc'`
-- `search_query` (optional): Search query text (when search_clicked)
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short button (for engagement tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
@@ -126,41 +124,39 @@ MetaMetrics.getInstance().trackEvent(
 - `stop_loss_price` (optional): Stop loss trigger price (number)
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `limit_price` (optional): Limit order price (for limit orders) (number)
+- `error_message` (optional): Error description when status is 'failed'
 
 ### 4. PERPS_POSITION_CLOSE_TRANSACTION
 
 **Properties:**
 
 - `status` (required): `'submitted' | 'executed' | 'partially_filled' | 'failed'`
-- `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`) - For batch operations, use `'MULTIPLE'`
-- `direction` (required): `'long' | 'short'` - For batch operations with mixed directions, use `'mixed'`
+- `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`)
+- `direction` (required): `'long' | 'short'`
 - `order_type` (required): `'market' | 'limit'`
 - `open_position_size` (required): Size of the open position (number)
 - `order_size` (required): Size being closed (number)
 - `completion_duration` (required): Duration in milliseconds (number)
-- `close_type` (optional): `'full' | 'partial' | 'batch'` - Use `'batch'` for close all operations
+- `close_type` (optional): `'full' | 'partial'`
 - `percentage_closed` (optional): Percentage of position closed (number)
 - `dollar_pnl` (optional): Profit/loss in dollars (number)
 - `percent_pnl` (optional): Profit/loss as percentage (number)
 - `fee` (optional): Fee paid in USDC (number)
 - `received_amount` (optional): Amount received after close (number)
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
-- `positions_count` (optional): Number of positions closed in batch operation (number)
-- `success_count` (optional): Number of positions successfully closed in batch (number)
-- `failure_count` (optional): Number of positions that failed to close in batch (number)
+- `amount_filled` (optional): Amount filled in partially filled orders (number)
+- `remaining_amount` (optional): Amount remaining in partially filled orders (number)
+- `error_message` (optional): Error description when status is 'failed'
 
 ### 5. PERPS_ORDER_CANCEL_TRANSACTION
 
 **Properties:**
 
 - `status` (required): `'submitted' | 'executed' | 'failed'`
-- `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`) - For batch operations, use `'MULTIPLE'`
+- `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `completion_duration` (required): Duration in milliseconds (number)
 - `order_type` (optional): `'market' | 'limit'`
-- `cancel_type` (optional): `'single' | 'batch'` - Use `'batch'` for cancel all operations
-- `orders_count` (optional): Number of orders cancelled in batch operation (number)
-- `success_count` (optional): Number of orders successfully cancelled in batch (number)
-- `failure_count` (optional): Number of orders that failed to cancel in batch (number)
+- `error_message` (optional): Error description when status is 'failed'
 
 ### 6. PERPS_WITHDRAWAL_TRANSACTION
 
@@ -169,10 +165,7 @@ MetaMetrics.getInstance().trackEvent(
 - `status` (required): `'submitted' | 'executed' | 'failed'`
 - `withdrawal_amount` (required): Amount being withdrawn in USDC (number)
 - `completion_duration` (required): Duration in milliseconds (number)
-- `source_chain` (optional): Source blockchain
-- `source_asset` (optional): Asset being withdrawn
-- `destination_amount` (optional): Amount after conversion (number)
-- `network_fee` (optional): Network fee paid (number)
+- `error_message` (optional): Error description when status is 'failed'
 
 ### 7. PERPS_RISK_MANAGEMENT
 
@@ -186,6 +179,7 @@ MetaMetrics.getInstance().trackEvent(
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where TP/SL update originated (e.g., `'tp_sl_view'`, `'position_screen'`)
 - `position_size` (optional): Size of the position (number)
+- `error_message` (optional): Error description when status is 'failed'
 
 ### 8. PERPS_ERROR
 

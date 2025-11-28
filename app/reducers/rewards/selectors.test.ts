@@ -17,6 +17,7 @@ import {
   selectSeasonStartDate,
   selectSeasonEndDate,
   selectSeasonTiers,
+  selectSeasonActivityTypes,
   selectOnboardingActiveStep,
   selectOnboardingReferralCode,
   selectGeoLocation,
@@ -36,11 +37,13 @@ import {
   selectUnlockedRewardError,
   selectSeasonRewardById,
   selectPointsEvents,
+  selectSeasonShouldInstallNewVersion,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
+  SeasonActivityTypeDto,
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
@@ -518,6 +521,42 @@ describe('Rewards selectors', () => {
 
       const { result } = renderHook(() => useSelector(selectSeasonTiers));
       expect(result.current).toEqual(mockTiers);
+    });
+  });
+
+  describe('selectSeasonActivityTypes', () => {
+    it('returns empty array when season activity types are not set', () => {
+      const mockState = { rewards: { seasonActivityTypes: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonActivityTypes),
+      );
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns season activity types when set', () => {
+      const mockActivityTypes: SeasonActivityTypeDto[] = [
+        {
+          type: 'SWAP',
+          title: 'Swap',
+          description: 'Swap tokens',
+          icon: 'SwapVertical',
+        },
+        {
+          type: 'CARD',
+          title: 'Card spend',
+          description: 'Spend with card',
+          icon: 'Card',
+        },
+      ];
+      const mockState = { rewards: { seasonActivityTypes: mockActivityTypes } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonActivityTypes),
+      );
+      expect(result.current).toEqual(mockActivityTypes);
     });
   });
 
@@ -2344,6 +2383,46 @@ describe('Rewards selectors', () => {
 
       expect(result1).toBe(result2); // Same reference
       expect(result1).toEqual(result2); // Same value
+    });
+  });
+
+  describe('selectSeasonShouldInstallNewVersion', () => {
+    it('returns null when season should install new version is not set', () => {
+      const mockState = { rewards: { seasonShouldInstallNewVersion: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonShouldInstallNewVersion),
+      );
+      expect(result.current).toBeNull();
+    });
+
+    it('returns version string when set', () => {
+      const mockState = {
+        rewards: { seasonShouldInstallNewVersion: '1.2.3' },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonShouldInstallNewVersion),
+      );
+      expect(result.current).toBe('1.2.3');
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns null when season should install new version is null', () => {
+        const state = createMockRootState({
+          seasonShouldInstallNewVersion: null,
+        });
+        expect(selectSeasonShouldInstallNewVersion(state)).toBeNull();
+      });
+
+      it('returns version string when set', () => {
+        const state = createMockRootState({
+          seasonShouldInstallNewVersion: '2.0.0',
+        });
+        expect(selectSeasonShouldInstallNewVersion(state)).toBe('2.0.0');
+      });
     });
   });
 });
