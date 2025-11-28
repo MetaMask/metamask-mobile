@@ -29,8 +29,8 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useRewardsAccountOptedIn } from '../../../../../UI/Rewards/hooks/useRewardsAccountOptedIn';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
 import { REWARDS_TAG_SELECTOR } from '../../../../../UI/Rewards/components/RewardsTag';
+import { MUSD_TAG_SELECTOR } from '../../../../../UI/Earn/components/MusdTag';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
@@ -289,7 +289,7 @@ describe('CustomAmountInfo', () => {
   describe('Rewards', () => {
     it('renders RewardsTag for mUSD conversion', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
-        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        type: TransactionType.musdConversion,
         txParams: { from: '0x123' },
       } as never);
 
@@ -311,13 +311,13 @@ describe('CustomAmountInfo', () => {
 
     it('calculates points correctly for $100', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
-        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        type: TransactionType.musdConversion,
         txParams: { from: '0x123' },
       } as never);
       useTransactionCustomAmountMock.mockReturnValue({
         amountFiat: '100',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
+        amountHuman: '100',
+        amountHumanDebounced: '100',
         hasInput: true,
         isInputChanged: false,
         updatePendingAmount: noop,
@@ -332,13 +332,13 @@ describe('CustomAmountInfo', () => {
 
     it('calculates points correctly for $199', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
-        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        type: TransactionType.musdConversion,
         txParams: { from: '0x123' },
       } as never);
       useTransactionCustomAmountMock.mockReturnValue({
         amountFiat: '199',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
+        amountHuman: '199',
+        amountHumanDebounced: '199',
         hasInput: true,
         isInputChanged: false,
         updatePendingAmount: noop,
@@ -353,13 +353,13 @@ describe('CustomAmountInfo', () => {
 
     it('calculates points correctly for $300', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
-        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        type: TransactionType.musdConversion,
         txParams: { from: '0x123' },
       } as never);
       useTransactionCustomAmountMock.mockReturnValue({
         amountFiat: '300',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
+        amountHuman: '300',
+        amountHumanDebounced: '300',
         hasInput: true,
         isInputChanged: false,
         updatePendingAmount: noop,
@@ -374,7 +374,7 @@ describe('CustomAmountInfo', () => {
 
     it('renders 0 points when amount is empty', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
-        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        type: TransactionType.musdConversion,
         txParams: { from: '0x123' },
       } as never);
       useTransactionCustomAmountMock.mockReturnValue({
@@ -395,7 +395,7 @@ describe('CustomAmountInfo', () => {
 
     it('opens rewards tooltip when RewardsTag is pressed', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
-        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        type: TransactionType.musdConversion,
         txParams: { from: '0x123' },
       } as never);
 
@@ -410,6 +410,75 @@ describe('CustomAmountInfo', () => {
       // Note: Modal content isn't testable in React Native tests,
       // but RewardsTooltipBottomSheet has its own comprehensive test coverage
       expect(getByTestId('rewards-tooltip-bottom-sheet')).toBeDefined();
+    });
+  });
+
+  describe('mUSD Tag', () => {
+    it('renders MusdTag for mUSD conversion', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.musdConversion,
+        txParams: { from: '0x123' },
+        chainId: '0x1',
+      } as never);
+
+      const { getByTestId } = render();
+
+      expect(getByTestId(MUSD_TAG_SELECTOR)).toBeDefined();
+    });
+
+    it('displays correct mUSD amount', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.musdConversion,
+        txParams: { from: '0x123' },
+        chainId: '0x1',
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '100',
+        amountHuman: '100',
+        amountHumanDebounced: '100',
+        hasInput: true,
+        isInputChanged: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: noop,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('100 mUSD')).toBeDefined();
+    });
+
+    it('formats amount with 2 decimal places', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.musdConversion,
+        txParams: { from: '0x123' },
+        chainId: '0x1',
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '100.5',
+        amountHuman: '100.5',
+        amountHumanDebounced: '100.5',
+        hasInput: true,
+        isInputChanged: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: noop,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('100.5 mUSD')).toBeDefined();
+    });
+
+    it('does not render MusdTag for non-mUSD transactions', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { queryByTestId } = render();
+
+      expect(queryByTestId(MUSD_TAG_SELECTOR)).toBeNull();
     });
   });
 });
