@@ -66,11 +66,6 @@ export const useUserHistory = ({
     }
   }, [startTime, endTime, accountId]);
 
-  // NOTE: Auto-fetch removed intentionally (TAT-2057)
-  // usePerpsTransactionHistory now controls the fetch flow to ensure
-  // user history is fetched BEFORE fetchAllTransactions reads from it.
-  // This prevents race conditions that caused alternating data on refresh.
-
   return {
     userHistory,
     isLoading,

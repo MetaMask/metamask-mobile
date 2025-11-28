@@ -48,9 +48,7 @@ export const usePerpsTransactionHistory = ({
     refetch: refetchUserHistory,
   } = useUserHistory({ startTime, endTime, accountId });
 
-  // Use ref to avoid userHistory in fetchAllTransactions dependency array
-  // This prevents the callback from being recreated on every userHistory update,
-  // which was causing race conditions and alternating data on refresh (TAT-2057)
+  // Store userHistory in ref to avoid recreating fetchAllTransactions callback
   const userHistoryRef = useRef(userHistory);
   // Track if initial fetch has been done to prevent duplicate fetches
   const initialFetchDone = useRef(false);
@@ -118,7 +116,7 @@ export const usePerpsTransactionHistory = ({
       // Sort by timestamp descending (newest first)
       allTransactions.sort((a, b) => b.timestamp - a.timestamp);
 
-      // Remove duplicates based on ID (simplified - no longer needed for withdrawals since we use single source)
+      // Remove duplicates based on ID
       const uniqueTransactions = allTransactions.reduce((acc, transaction) => {
         const existingIndex = acc.findIndex((t) => t.id === transaction.id);
         if (existingIndex === -1) {
@@ -143,17 +141,12 @@ export const usePerpsTransactionHistory = ({
   }, [startTime, endTime, accountId]);
 
   const refetch = useCallback(async () => {
-    // Fetch user history first and update ref directly with the returned data
-    // This ensures userHistoryRef has fresh data before fetchAllTransactions reads it
+    // Fetch user history first, then fetch all transactions
     const freshUserHistory = await refetchUserHistory();
     userHistoryRef.current = freshUserHistory;
-    // Now fetch all transactions (will use updated userHistoryRef.current)
     await fetchAllTransactions();
   }, [fetchAllTransactions, refetchUserHistory]);
 
-  // Initial fetch: use refetch() to ensure sequential data flow (TAT-2057)
-  // refetch() fetches user history first, updates the ref, then fetches all transactions.
-  // This prevents the race condition where fetchAllTransactions reads empty userHistoryRef.
   useEffect(() => {
     if (!skipInitialFetch && !initialFetchDone.current) {
       initialFetchDone.current = true;
