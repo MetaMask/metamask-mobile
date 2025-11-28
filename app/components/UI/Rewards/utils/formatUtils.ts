@@ -163,3 +163,19 @@ export const formatUrl = (url: string): string => {
     return cleanedUrl;
   }
 };
+
+/**
+ * Resolves templated string in the format of ${placeholder}
+ * @param template - The templated string
+ * @param values - The values to replace the placeholders with
+ * @returns The resolved string
+ */
+
+export const resolveTemplate = (
+  template: string,
+  values: Record<string, string>,
+): string =>
+  template.replace(
+    /\${(\w+)}/g,
+    (match, placeholder) => values[placeholder] || match,
+  );

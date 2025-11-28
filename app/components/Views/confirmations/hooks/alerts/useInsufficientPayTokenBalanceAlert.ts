@@ -70,10 +70,13 @@ export function useInsufficientPayTokenBalanceAlert({
     );
   }, [isLoading, isPayTokenNative, isSourceGasFeeToken, totals]);
 
-  const totalSourceNetworkFeeRaw = useMemo(
-    () => new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0'),
-    [totals],
-  );
+  const totalSourceNetworkFeeRaw = useMemo(() => {
+    if (isLoading) {
+      return new BigNumber(0);
+    }
+
+    return new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0');
+  }, [isLoading, totals]);
 
   const isInsufficientForInput = useMemo(
     () => payToken && totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
