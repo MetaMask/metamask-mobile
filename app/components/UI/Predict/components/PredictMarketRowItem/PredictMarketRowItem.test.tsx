@@ -458,7 +458,7 @@ describe('PredictMarketRowItem', () => {
       groupItemTitle: 'Higher Probability',
     });
     const market = createMockMarket({
-      outcomes: [outcome1, outcome2],
+      outcomes: [outcome2, outcome1], // API returns outcomes sorted descending by price
     });
 
     const { getByText } = renderWithProvider(
@@ -466,7 +466,7 @@ describe('PredictMarketRowItem', () => {
       { state: initialState },
     );
 
-    expect(getByText('30% chance on Lower Probability')).toBeOnTheScreen();
+    expect(getByText('85% chance on Higher Probability')).toBeOnTheScreen();
   });
 
   it('returns null when outcome has no tokens', () => {
