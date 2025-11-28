@@ -122,11 +122,38 @@ jobs:
         timeout-minutes: 3
         run: |
           echo "⏳ Waiting for Android emulator to fully boot..."
+
+          # Wait for any device to appear
+          MAX_WAIT=60
+          WAITED=0
+          while [ $WAITED -lt $MAX_WAIT ]; do
+            DEVICE_COUNT=$(adb devices | grep -c "device$" || echo "0")
+            if [ "$DEVICE_COUNT" -gt 0 ]; then
+              echo "Found $DEVICE_COUNT device(s)"
+              break
+            fi
+            echo "No devices found yet, waiting... ($WAITED/$MAX_WAIT seconds)"
+            sleep 2
+            WAITED=$((WAITED + 2))
+          done
+
+          if [ "$DEVICE_COUNT" -eq 0 ]; then
+            echo "❌ No Android device found after ${MAX_WAIT}s"
+            adb devices -l
+            exit 1
+          fi
+
+          # Wait for device to be fully online
           adb wait-for-device
+
           # Wait for boot to complete (sys.boot_completed = 1)
-          adb shell "while [[ -z \$(getprop sys.boot_completed) ]]; do sleep 1; done"
-          # Additional check for package manager readiness
-          adb shell "while [[ -z \$(getprop init.svc.bootanim) ]]; do sleep 1; done"
+          echo "Waiting for sys.boot_completed..."
+          adb shell "while [[ \$(getprop sys.boot_completed) != '1' ]]; do sleep 1; done"
+
+          # Wait for boot animation to stop (indicates UI is ready)
+          echo "Waiting for boot animation to finish..."
+          adb shell "while [[ \$(getprop init.svc.bootanim) != 'stopped' ]]; do sleep 1; done"
+
           echo "✅ Android emulator boot completed"
           adb devices -l
 
@@ -135,15 +162,30 @@ jobs:
         timeout-minutes: 3
         run: |
           echo "⏳ Waiting for iOS simulator to fully boot..."
-          # Get the UDID of the booted simulator
-          BOOTED_UDID=$(xcrun simctl list devices booted -j | python3 -c "import sys,json; devices=[d for r in json.load(sys.stdin)['devices'].values() for d in r if d['state']=='Booted']; print(devices[0]['udid'] if devices else '')")
-          if [ -n "$BOOTED_UDID" ]; then
-            echo "Found booted simulator: $BOOTED_UDID"
-            xcrun simctl bootstatus "$BOOTED_UDID"
-          else
-            echo "No booted simulator found, waiting for any simulator..."
-            xcrun simctl bootstatus booted
+
+          # Wait for a simulator to start booting (may take a moment after setup-e2e-env)
+          MAX_WAIT=60
+          WAITED=0
+          while [ $WAITED -lt $MAX_WAIT ]; do
+            BOOTED_UDID=$(xcrun simctl list devices -j | python3 -c "import sys,json; devices=[d for r in json.load(sys.stdin)['devices'].values() for d in r if d['state'] in ('Booted', 'Booting')]; print(devices[0]['udid'] if devices else '')" 2>/dev/null || echo "")
+            if [ -n "$BOOTED_UDID" ]; then
+              echo "Found simulator (state: Booted/Booting): $BOOTED_UDID"
+              break
+            fi
+            echo "No simulator booting yet, waiting... ($WAITED/$MAX_WAIT seconds)"
+            sleep 2
+            WAITED=$((WAITED + 2))
+          done
+
+          if [ -z "$BOOTED_UDID" ]; then
+            echo "❌ No simulator found after ${MAX_WAIT}s. Listing all devices:"
+            xcrun simctl list devices
+            exit 1
           fi
+
+          # Wait for full boot completion
+          echo "Waiting for simulator $BOOTED_UDID to fully boot..."
+          xcrun simctl bootstatus "$BOOTED_UDID"
           echo "✅ iOS simulator boot completed"
           xcrun simctl list devices booted
 
