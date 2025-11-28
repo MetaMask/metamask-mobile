@@ -662,7 +662,8 @@ class Onboarding extends PureComponent {
         error.code === OAuthErrorType.UserCancelled ||
         error.code === OAuthErrorType.UserDismissed ||
         error.code === OAuthErrorType.GoogleLoginError ||
-        error.code === OAuthErrorType.AppleLoginError
+        error.code === OAuthErrorType.AppleLoginError ||
+        error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature
       ) {
         // QA: do not show error sheet if user cancelled
         return;
