@@ -15,7 +15,6 @@ import {
   TransactionType,
   TransactionEnvelopeType,
 } from '@metamask/transaction-controller';
-import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
 import { safeToChecksumAddress, toChecksumAddress } from '../address';
@@ -69,6 +68,10 @@ import { handleMethodData } from '../../util/transaction-controller';
 import EthQuery from '@metamask/eth-query';
 import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
 import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
+import {
+  isValidSwapsContractAddress,
+  getSwapsContractAddress,
+} from '@metamask/bridge-controller';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -126,7 +129,6 @@ export const TRANSACTION_TYPES = {
 
 const MULTIPLIER_HEX = 16;
 
-const { getSwapsContractAddress } = swapsUtils;
 /**
  * Utility class with the single responsibility
  * of caching CollectibleAddresses
@@ -1891,10 +1893,10 @@ export const getIsSwapApproveOrSwapTransaction = (
   return (
     (isLegacySwap || isUnifiedSwap) &&
     to &&
-    (swapsUtils.isValidContractAddress(chainId, to) ||
+    (isValidSwapsContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
-          swapsUtils.getSwapsContractAddress(chainId)))
+          getSwapsContractAddress(chainId)))
   );
 };
 
@@ -1911,7 +1913,7 @@ export const getIsSwapApproveTransaction = (data, origin, to, chainId) => {
     data && getFourByteSignature(data) === APPROVE_FUNCTION_SIGNATURE;
   const isSpenderSwapsContract =
     decodeApproveData(data).spenderAddress?.toLowerCase() ===
-    swapsUtils.getSwapsContractAddress(chainId);
+    getSwapsContractAddress(chainId);
 
   return isFromSwaps && to && isApproveFunction && isSpenderSwapsContract;
 };
