@@ -96,7 +96,7 @@ describe('useSitesData', () => {
         json: async () => ({ dapps: [] }),
       });
 
-      renderHook(() => useSitesData({ limit: 50 }));
+      renderHook(() => useSitesData(undefined, 50));
 
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledWith(
@@ -280,9 +280,12 @@ describe('useSitesData', () => {
         json: async () => ({ dapps: [] }),
       });
 
-      const { rerender } = renderHook(({ limit }) => useSitesData({ limit }), {
-        initialProps: { limit: 10 },
-      });
+      const { rerender } = renderHook(
+        ({ limit }) => useSitesData(undefined, limit),
+        {
+          initialProps: { limit: 10 },
+        },
+      );
 
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledTimes(1);

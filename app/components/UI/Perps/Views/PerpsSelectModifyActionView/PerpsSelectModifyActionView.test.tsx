@@ -205,7 +205,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'short',
       asset: 'ETH',
-      size: '2.5',
+      amount: '2.5',
       leverage: 10,
     });
   });
@@ -218,7 +218,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
-      size: '2.5',
+      amount: '2.5',
       leverage: 10,
     });
   });
