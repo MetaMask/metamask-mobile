@@ -24,6 +24,7 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { filterMarketsByQuery } from '../../../UI/Perps/utils/marketUtils';
+import PredictMarketRowItem from '../../../UI/Predict/components/PredictMarketRowItem';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
@@ -39,6 +40,10 @@ interface SectionConfig {
   icon: IconName;
   viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
   RowItem: React.ComponentType<{
+    item: unknown;
+    navigation: NavigationProp<ParamListBase>;
+  }>;
+  OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
     navigation: NavigationProp<ParamListBase>;
   }>;
@@ -150,6 +155,9 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <Box twClassName="py-2">
         <PredictMarket market={item as PredictMarketType} isCarousel />
       </Box>
+    ),
+    OverrideRowItemSearch: ({ item }) => (
+      <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
     Section: ({ refreshTrigger }) => (
