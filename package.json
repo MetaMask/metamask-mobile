@@ -15,7 +15,7 @@
     "clean": "yarn clean:ios && yarn clean:android && yarn install --immutable",
     "lint": "eslint '**/*.{js,ts,tsx}'",
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
-    "lint:tsc": "tsc --project ./tsconfig.json",
+    "lint:tsc": "NODE_OPTIONS='--max-old-space-size=4096' tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "format:check": "prettier '**/*.{js,ts,tsx,json}' --check",
     "format:check:changed": "git diff --name-only --diff-filter=ACM HEAD~1 | { grep -E '\\.(js|ts|tsx|json)$' || true; } | xargs --no-run-if-empty prettier --check",
