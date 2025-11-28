@@ -4,6 +4,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
 import { PerpsTransaction } from '../types/transactionHistory';
 import { useUserHistory } from './useUserHistory';
+import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
@@ -47,6 +48,10 @@ export const usePerpsTransactionHistory = ({
     error: userHistoryError,
     refetch: refetchUserHistory,
   } = useUserHistory({ startTime, endTime, accountId });
+
+  // Subscribe to live WebSocket fills for instant trade updates
+  // This ensures new trades appear immediately without waiting for REST refetch
+  const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
   const fetchAllTransactions = useCallback(async () => {
     try {
@@ -154,8 +159,37 @@ export const usePerpsTransactionHistory = ({
     return null;
   }, [error, userHistoryError]);
 
+  // Merge live WebSocket fills with REST transactions for instant updates
+  // Live fills take precedence for recent trades, deduplicated by ID
+  const mergedTransactions = useMemo(() => {
+    // Transform live fills to PerpsTransaction format
+    const liveTransactions = transformFillsToTransactions(liveFills);
+
+    // If no REST transactions yet, return only live fills
+    if (transactions.length === 0) {
+      return liveTransactions;
+    }
+
+    // Merge: live fills + REST data, keeping only unique transactions by ID
+    // Use Map for efficient deduplication (live fills overwrite REST duplicates)
+    const txMap = new Map<string, PerpsTransaction>();
+
+    // Add REST transactions first
+    for (const tx of transactions) {
+      txMap.set(tx.id, tx);
+    }
+
+    // Add live fills (overwrites any duplicates from REST)
+    for (const tx of liveTransactions) {
+      txMap.set(tx.id, tx);
+    }
+
+    // Convert back to array and sort by timestamp descending
+    return Array.from(txMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+  }, [liveFills, transactions]);
+
   return {
-    transactions,
+    transactions: mergedTransactions,
     isLoading: combinedIsLoading,
     error: combinedError,
     refetch,
