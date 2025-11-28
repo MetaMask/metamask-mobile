@@ -10,11 +10,11 @@ import Logger from '../../util/Logger';
 import type { AnalyticsHelper, AnalyticsDefaults } from './analytics.types';
 import ReduxService from '../redux/ReduxService';
 import {
-  selectAnalyticsId,
   selectAnalyticsEnabled,
   selectAnalyticsOptedInForRegularAccount,
   selectAnalyticsOptedInForSocialAccount,
 } from '../../selectors/analyticsController';
+import { getAnalyticsId as getAnalyticsIdFromStorage } from '../../util/metrics/getAnalyticsId';
 import { v4 as uuidv4 } from 'uuid';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
@@ -229,32 +229,12 @@ const optOutForSocialAccount = (): void => {
 
 /**
  * Get the analytics ID
+ * Uses the shared helper that tries Redux selector first, then falls back to StorageWrapper
  *
  * @returns Promise with the analytics ID (UUID string)
  * Returns empty string if not available
  */
-const getAnalyticsId = async (): Promise<string> => {
-  try {
-    const analyticsId = selectAnalyticsId(ReduxService.store.getState());
-
-    if (!analyticsId) {
-      Logger.error(
-        new Error(
-          `AnalyticsController state has invalid analytics ID: expected UUIDv4 string, got ${JSON.stringify(analyticsId)}`,
-        ),
-        'Analytics: Failed to get analytics ID - state returned invalid value',
-      );
-      return '';
-    }
-    return analyticsId;
-  } catch (error) {
-    Logger.error(
-      new Error(String(error)),
-      'Analytics: Failed to get analytics ID from state',
-    );
-    return '';
-  }
-};
+const getAnalyticsId = async (): Promise<string> => getAnalyticsIdFromStorage();
 
 /**
  * Check if analytics is enabled
