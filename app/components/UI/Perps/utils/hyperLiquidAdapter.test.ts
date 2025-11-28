@@ -1179,5 +1179,139 @@ describe('hyperLiquidAdapter', () => {
         expect(result).toHaveLength(3);
       });
     });
+
+    describe('internalTransfer USDC amount validation', () => {
+      it('includes internalTransfer with positive USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x001',
+            time: 1000,
+            delta: { type: 'internalTransfer', usdc: '100.50' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('excludes internalTransfer with zero USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x002',
+            time: 2000,
+            delta: { type: 'internalTransfer', usdc: '0' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with negative USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x003',
+            time: 3000,
+            delta: { type: 'internalTransfer', usdc: '-50.25' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with invalid USDC value', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x004',
+            time: 4000,
+            delta: { type: 'internalTransfer', usdc: 'invalid' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with missing USDC field', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x005',
+            time: 5000,
+            delta: { type: 'internalTransfer' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with undefined USDC value', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x006',
+            time: 6000,
+            delta: { type: 'internalTransfer', usdc: undefined },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('includes internalTransfer with small positive decimal amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x007',
+            time: 7000,
+            delta: { type: 'internalTransfer', usdc: '0.01' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('filters mixed internalTransfer entries keeping only valid positive amounts', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x008',
+            time: 8000,
+            delta: { type: 'internalTransfer', usdc: '100' },
+          },
+          {
+            hash: '0x009',
+            time: 9000,
+            delta: { type: 'internalTransfer', usdc: '0' },
+          },
+          {
+            hash: '0x010',
+            time: 10000,
+            delta: { type: 'internalTransfer', usdc: '-50' },
+          },
+          {
+            hash: '0x011',
+            time: 11000,
+            delta: { type: 'internalTransfer', usdc: 'invalid' },
+          },
+          {
+            hash: '0x012',
+            time: 12000,
+            delta: { type: 'internalTransfer', usdc: '25.50' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(2);
+      });
+    });
   });
 });

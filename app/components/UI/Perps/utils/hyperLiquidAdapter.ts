@@ -513,12 +513,18 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
   rawLedgerUpdates: RawHyperLiquidLedgerUpdate[],
 ): UserHistoryItem[] {
   return (rawLedgerUpdates || [])
-    .filter(
-      (update) =>
-        // Only include deposits, withdrawals, and internal transfers, skip other types
-        update.delta.type === 'deposit' ||
-        update.delta.type === 'withdraw' ||
-        update.delta.type === 'internalTransfer',
+    .filter((update) =>
+      // Only include deposits, withdrawals, and positive internal transfers, skip other types
+      {
+        if (update.delta.type === 'deposit') return true;
+        if (update.delta.type === 'withdraw') return true;
+        if (update.delta.type === 'internalTransfer') {
+          const usdc = Number.parseFloat(update.delta.usdc ?? '0');
+          if (Number.isNaN(usdc)) return false;
+          return usdc > 0;
+        }
+        return false;
+      },
     )
     .map((update) => {
       // Extract amount and asset based on delta type
