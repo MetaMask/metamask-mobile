@@ -83,7 +83,7 @@ if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
 fi
 
 # Android workflow slug
-ANDROID_WORKFLOW_ID=$(echo $BUILD_RESPONSE | jq -r '.workflows | .[] | select(.name=="build_android_rc_and_upload_sourcemaps") | .external_id')
+ANDROID_WORKFLOW_ID=$(echo "$BUILD_RESPONSE" | jq -r '.workflows | .[] | select(.name=="build_android_rc_and_upload_sourcemaps") | .external_id')
 
 ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
   "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts")
@@ -93,7 +93,7 @@ ANDROID_ARTIFACT_ID=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data | .[] | select(.a
 ANDROID_APK=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
   "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts/$ANDROID_ARTIFACT_ID")
 
-ANDROID_PUBLIC_URL=$(echo $ANDROID_APK | jq -r '.data.public_install_page_url')
+ANDROID_PUBLIC_URL=$(echo "$ANDROID_APK" | jq -r '.data.public_install_page_url')
 
 echo "Build ID: $BUILD_ID"
 echo "Build Slug: $BUILD_SLUG"
