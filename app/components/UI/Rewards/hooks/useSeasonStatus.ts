@@ -11,11 +11,11 @@ import {
   setCandidateSubscriptionId,
   setSeasonStatusLoading,
 } from '../../../../reducers/rewards';
-import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { handleRewardsErrorMessage } from '../utils';
 import { AuthorizationFailedError } from '../../../../core/Engine/controllers/rewards-controller/services/rewards-data-service';
+import { SeasonDtoState } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 interface UseSeasonStatusReturn {
   fetchSeasonStatus: () => Promise<void>;
@@ -48,10 +48,36 @@ export const useSeasonStatus = ({
     dispatch(setSeasonStatusLoading(true));
 
     try {
+      // Check if there is an active season
+      const hasActiveSeason = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
+      );
+
+      let seasonMetadata: SeasonDtoState | null = null;
+
+      if (hasActiveSeason) {
+        // Fetch the current season metadata to get the season ID
+        seasonMetadata = await Engine.controllerMessenger.call(
+          'RewardsController:getSeasonMetadata',
+          'current',
+        );
+      } else {
+        // If no active season, try to get previous season metadata
+        seasonMetadata = await Engine.controllerMessenger.call(
+          'RewardsController:getSeasonMetadata',
+          'previous',
+        );
+      }
+
+      if (!seasonMetadata) {
+        throw new Error('No season metadata found');
+      }
+
+      // Then fetch the season status using the season ID
       const statusData = await Engine.controllerMessenger.call(
         'RewardsController:getSeasonStatus',
         subscriptionId,
-        CURRENT_SEASON_ID,
+        seasonMetadata.id,
       );
 
       dispatch(setSeasonStatus(statusData));

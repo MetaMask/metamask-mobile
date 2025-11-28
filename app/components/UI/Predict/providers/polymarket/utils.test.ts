@@ -10,6 +10,7 @@ import {
   PredictActivitySell,
   PredictActivityEntry,
 } from '../../types';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -63,7 +64,6 @@ import {
   roundDown,
   roundUp,
   roundOrderAmount,
-  roundOrderAmounts,
   previewOrder,
   getAllowanceCalls,
 } from './utils';
@@ -518,6 +518,32 @@ describe('polymarket utils', () => {
         'Network error',
       );
     });
+
+    it('throws PREVIEW_NO_ORDER_BOOK error when orderbook does not exist', async () => {
+      const mockResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({
+          error: 'No orderbook exists for the requested token id',
+        }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
+        PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK,
+      );
+    });
+
+    it('throws error message from response when response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({ error: 'Custom error message' }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
+        'Custom error message',
+      );
+    });
   });
 
   describe('generateSalt', () => {
@@ -685,11 +711,25 @@ describe('polymarket utils', () => {
         response: mockOrderResponse,
       });
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
-          body: JSON.stringify(mockClobOrder),
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
+          body: JSON.stringify({
+            ...mockClobOrder,
+            feeAuthorization: undefined,
+          }),
         },
       );
     });
@@ -698,12 +738,15 @@ describe('polymarket utils', () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
-      await expect(
-        submitClobOrder({
-          headers: mockHeaders,
-          clobOrder: mockClobOrder,
-        }),
-      ).rejects.toThrow('Network error');
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Failed to submit CLOB order: Network error',
+      });
     });
 
     it('includes feeAuthorization in request body when provided', async () => {
@@ -754,12 +797,24 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...mockClobOrder,
+            feeAuthorization: undefined,
           }),
         },
       );
@@ -793,25 +848,37 @@ describe('polymarket utils', () => {
       expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
     });
 
-    it('uses CLOB endpoint when feeAuthorization is not provided for BUY orders', async () => {
+    it('uses CLOB_RELAYER endpoint when feeAuthorization is not provided for BUY orders', async () => {
       await submitClobOrder({
         headers: mockHeaders,
         clobOrder: mockClobOrder,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...mockClobOrder,
+            feeAuthorization: undefined,
           }),
         },
       );
     });
 
-    it('uses CLOB endpoint for SELL orders even with feeAuthorization', async () => {
+    it('uses CLOB_RELAYER endpoint for SELL orders with feeAuthorization', async () => {
       const sellClobOrder: ClobOrderObject = {
         ...mockClobOrder,
         order: {
@@ -840,12 +907,24 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...sellClobOrder,
+            feeAuthorization,
           }),
         },
       );
@@ -882,8 +961,11 @@ describe('polymarket utils', () => {
           status: 'open',
           active: true,
           resolvedBy: '0x0000000000000000000000000000000000000000',
+          umaResolutionStatus: 'unresolved',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     };
 
     it('parse events correctly', () => {
@@ -900,7 +982,8 @@ describe('polymarket utils', () => {
         status: 'open',
         recurrence: 'daily',
         endDate: undefined,
-        categories: [mockCategory],
+        category: mockCategory,
+        tags: [],
         outcomes: [
           {
             id: 'market-1',
@@ -912,6 +995,7 @@ describe('polymarket utils', () => {
             groupItemTitle: 'Weather',
             status: 'open',
             volume: 1000,
+            resolutionStatus: 'unresolved',
             tokens: [
               {
                 id: 'token-1',
@@ -929,6 +1013,8 @@ describe('polymarket utils', () => {
             resolvedBy: '0x0000000000000000000000000000000000000000',
           },
         ],
+        liquidity: 1000000,
+        volume: 1000000,
       });
     });
 
@@ -1276,6 +1362,8 @@ describe('polymarket utils', () => {
             tags: [],
             series: [],
             markets: [],
+            liquidity: 1000000,
+            volume: 1000000,
           },
         ],
       },
@@ -1420,8 +1508,11 @@ describe('polymarket utils', () => {
           status: 'open',
           active: true,
           resolvedBy: '0x0000000000000000000000000000000000000000',
+          umaResolutionStatus: 'unresolved',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     };
 
     it('fetch markets without search parameters', async () => {
@@ -1465,7 +1556,7 @@ describe('polymarket utils', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/public-search?q=weather&type=events&events_status=active&sort=volume_24hr&presets=EventsTitle&presets=Events&limit_per_type=10&page=1',
+        'https://gamma-api.polymarket.com/public-search?q=weather&type=events&events_status=active&sort=volume_24hr&presets=EventsTitle&limit_per_type=10&page=1',
       );
     });
 
@@ -1531,6 +1622,7 @@ describe('polymarket utils', () => {
       status: 'open',
       active: true,
       resolvedBy: '0x0000000000000000000000000000000000000000',
+      umaResolutionStatus: 'unresolved',
     };
 
     it('fetch single market successfully', async () => {
@@ -1844,6 +1936,7 @@ describe('polymarket utils', () => {
         ok: false,
         status: 403,
         statusText: 'Forbidden',
+        json: jest.fn().mockResolvedValue({}),
       });
 
       const result = await submitClobOrder({
@@ -1854,7 +1947,6 @@ describe('polymarket utils', () => {
       expect(result).toEqual({
         success: false,
         error: 'You are unable to access this provider.',
-        errorCode: 403,
       });
     });
 
@@ -1864,7 +1956,7 @@ describe('polymarket utils', () => {
         status: 400,
         statusText: 'Bad Request',
         json: jest.fn().mockResolvedValue({
-          error: 'Invalid order parameters',
+          errorMsg: 'Invalid order parameters',
         }),
       });
 
@@ -1895,6 +1987,25 @@ describe('polymarket utils', () => {
       expect(result).toEqual({
         success: false,
         error: 'Internal Server Error',
+      });
+    });
+
+    it('handle non-JSON error response (HTML body)', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 502,
+        statusText: 'Bad Gateway',
+        json: jest.fn().mockRejectedValue(new Error('Unexpected token <')),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Bad Gateway',
       });
     });
   });
@@ -1973,13 +2084,13 @@ describe('polymarket utils', () => {
       }
     });
 
-    it('maps non-TRADE to claimWinnings entries and handles defaults', () => {
+    it('maps REDEEM with payout to claimWinnings entries', () => {
       const input = [
         {
           type: 'REDEEM' as const,
           side: '' as const,
           timestamp: 3000,
-          usdcSize: 1.23,
+          usdcSize: 1.23, // Winning claim with actual payout
           price: 0,
           conditionId: '',
           outcomeIndex: 0,
@@ -1990,6 +2101,7 @@ describe('polymarket utils', () => {
         },
       ];
       const result = parsePolymarketActivity(input);
+      expect(result).toHaveLength(1);
       expect(result[0].entry.type).toBe('claimWinnings');
       expect(result[0].entry.amount).toBe(1.23);
       expect(result[0].id).toBe('0xhash3');
@@ -2018,102 +2130,102 @@ describe('polymarket utils', () => {
   });
 
   describe('decimalPlaces', () => {
-    it('should return 0 for integers', () => {
+    it('returns 0 for integers', () => {
       expect(decimalPlaces(5)).toBe(0);
       expect(decimalPlaces(100)).toBe(0);
       expect(decimalPlaces(0)).toBe(0);
     });
 
-    it('should return correct decimal places for decimals', () => {
+    it('returns correct decimal places for decimals', () => {
       expect(decimalPlaces(1.5)).toBe(1);
       expect(decimalPlaces(0.123)).toBe(3);
       expect(decimalPlaces(3.14159)).toBe(5);
     });
 
-    it('should return 0 for numbers without decimal part', () => {
+    it('returns 0 for numbers without decimal part', () => {
       expect(decimalPlaces(10.0)).toBe(0);
     });
   });
 
   describe('roundNormal', () => {
-    it('should round numbers to specified decimals', () => {
+    it('rounds numbers to specified decimals', () => {
       expect(roundNormal(1.235, 2)).toBe(1.24);
       expect(roundNormal(1.234, 2)).toBe(1.23);
       expect(roundNormal(1.5, 0)).toBe(2);
     });
 
-    it('should return same number if already at or below target decimals', () => {
+    it('returns same number if already at or below target decimals', () => {
       expect(roundNormal(1.5, 2)).toBe(1.5);
       expect(roundNormal(1, 2)).toBe(1);
     });
 
-    it('should handle zero decimals', () => {
+    it('handles zero decimals', () => {
       expect(roundNormal(1.6, 0)).toBe(2);
       expect(roundNormal(1.4, 0)).toBe(1);
     });
   });
 
   describe('roundDown', () => {
-    it('should round down to specified decimals', () => {
+    it('rounds down to specified decimals', () => {
       expect(roundDown(1.239, 2)).toBe(1.23);
       expect(roundDown(1.999, 2)).toBe(1.99);
       expect(roundDown(1.5, 0)).toBe(1);
     });
 
-    it('should return same number if already at or below target decimals', () => {
+    it('returns same number if already at or below target decimals', () => {
       expect(roundDown(1.5, 2)).toBe(1.5);
       expect(roundDown(1, 2)).toBe(1);
     });
 
-    it('should handle edge cases', () => {
+    it('handles edge cases', () => {
       expect(roundDown(0.999, 2)).toBe(0.99);
       expect(roundDown(100.123456, 3)).toBe(100.123);
     });
   });
 
   describe('roundUp', () => {
-    it('should round up to specified decimals', () => {
+    it('rounds up to specified decimals', () => {
       expect(roundUp(1.231, 2)).toBe(1.24);
       expect(roundUp(1.001, 2)).toBe(1.01);
       expect(roundUp(1.5, 0)).toBe(2);
     });
 
-    it('should return same number if already at or below target decimals', () => {
+    it('returns same number if already at or below target decimals', () => {
       expect(roundUp(1.5, 2)).toBe(1.5);
       expect(roundUp(1, 2)).toBe(1);
     });
 
-    it('should handle edge cases', () => {
+    it('handles edge cases', () => {
       expect(roundUp(0.001, 2)).toBe(0.01);
       expect(roundUp(100.123456, 3)).toBe(100.124);
     });
   });
 
   describe('roundOrderAmount', () => {
-    it('should return same amount if decimal places are within limit', () => {
+    it('returns same amount if decimal places are within limit', () => {
       expect(roundOrderAmount({ amount: 1.5, decimals: 2 })).toBe(1.5);
       expect(roundOrderAmount({ amount: 10.25, decimals: 2 })).toBe(10.25);
       expect(roundOrderAmount({ amount: 5, decimals: 2 })).toBe(5);
     });
 
-    it('should round down amount if it exceeds decimals after rounding up', () => {
+    it('rounds down amount if it exceeds decimals after rounding up', () => {
       expect(roundOrderAmount({ amount: 1.235, decimals: 2 })).toBe(1.23);
       expect(roundOrderAmount({ amount: 10.999, decimals: 2 })).toBe(10.99);
     });
 
-    it('should round down when amount has more decimals than target', () => {
+    it('rounds down when amount has more decimals than target', () => {
       expect(roundOrderAmount({ amount: 1.001, decimals: 2 })).toBe(1);
       expect(roundOrderAmount({ amount: 0.0001, decimals: 2 })).toBe(0);
       expect(roundOrderAmount({ amount: 1.0001, decimals: 2 })).toBe(1);
     });
 
-    it('should handle zero decimals', () => {
+    it('handles zero decimals', () => {
       expect(roundOrderAmount({ amount: 1.5, decimals: 0 })).toBe(1);
       expect(roundOrderAmount({ amount: 1.999, decimals: 0 })).toBe(1);
       expect(roundOrderAmount({ amount: 5, decimals: 0 })).toBe(5);
     });
 
-    it('should handle large decimal precision', () => {
+    it('handles large decimal precision', () => {
       expect(roundOrderAmount({ amount: 1.123456789, decimals: 6 })).toBe(
         1.123456,
       );
@@ -2122,13 +2234,13 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle edge case with very small amounts', () => {
+    it('handles edge case with very small amounts', () => {
       expect(roundOrderAmount({ amount: 0.00001, decimals: 2 })).toBe(0);
       expect(roundOrderAmount({ amount: 0.000001, decimals: 4 })).toBe(0);
       expect(roundOrderAmount({ amount: 0.123456, decimals: 4 })).toBe(0.1234);
     });
 
-    it('should handle edge case with large amounts', () => {
+    it('handles edge case with large amounts', () => {
       expect(roundOrderAmount({ amount: 1000.123456, decimals: 2 })).toBe(
         1000.12,
       );
@@ -2137,7 +2249,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should apply roundUp with extra decimals then roundDown if needed', () => {
+    it('applies roundUp with extra decimals then roundDown if needed', () => {
       const amount = 1.12345678;
       const decimals = 2;
       const result = roundOrderAmount({ amount, decimals });
@@ -2145,77 +2257,21 @@ describe('polymarket utils', () => {
       expect(decimalPlaces(result)).toBeLessThanOrEqual(decimals);
     });
 
-    it('should round up when amount can fit exactly into target decimals', () => {
+    it('rounds up when amount can fit exactly into target decimals', () => {
       expect(roundOrderAmount({ amount: 1.2345, decimals: 2 })).toBe(1.23);
       expect(roundOrderAmount({ amount: 10.1234567, decimals: 4 })).toBe(
         10.1234,
       );
     });
 
-    it('should handle negative amounts', () => {
+    it('handles negative amounts', () => {
       expect(roundOrderAmount({ amount: -1.235, decimals: 2 })).toBe(-1.24);
       expect(roundOrderAmount({ amount: -10.999, decimals: 2 })).toBe(-11);
     });
 
-    it('should handle amounts that round up to exceed decimals', () => {
+    it('handles amounts that round up to exceed decimals', () => {
       expect(roundOrderAmount({ amount: 1.996, decimals: 2 })).toBe(1.99);
       expect(roundOrderAmount({ amount: 0.999999, decimals: 2 })).toBe(0.99);
-    });
-  });
-
-  describe('roundOrderAmounts', () => {
-    const mockRoundConfig = {
-      price: 4,
-      size: 2,
-      amount: 2,
-    };
-
-    it('should round BUY order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('should round SELL order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.SELL,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('should handle price rounding down', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 100,
-        price: 0.456789,
-      });
-
-      expect(result.makerAmount).toBe(100);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('should apply additional rounding when necessary', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 123.456789,
-        price: 0.123456789,
-      });
-
-      expect(result.makerAmount).toBeLessThanOrEqual(123.46);
-      expect(result.takerAmount).toBeGreaterThan(0);
     });
   });
 
@@ -2224,7 +2280,7 @@ describe('polymarket utils', () => {
       mockFetch.mockReset();
     });
 
-    it('should preview BUY order successfully', async () => {
+    it('previews BUY order successfully', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2262,7 +2318,7 @@ describe('polymarket utils', () => {
       expect(result.slippage).toBeDefined();
     });
 
-    it('should preview SELL order successfully', async () => {
+    it('previews SELL order successfully', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2299,7 +2355,7 @@ describe('polymarket utils', () => {
       expect(result.fees).toBeUndefined();
     });
 
-    it('should throw error when orderbook is not available', async () => {
+    it('throws error when orderbook is not available', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => null,
@@ -2313,10 +2369,10 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no orderbook');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_BOOK');
     });
 
-    it('should throw error for BUY when no asks available', async () => {
+    it('throws error for BUY when no asks available', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2339,10 +2395,10 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (buy)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_BUY');
     });
 
-    it('should throw error for SELL when no bids available', async () => {
+    it('throws error for SELL when no bids available', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2365,10 +2421,10 @@ describe('polymarket utils', () => {
           side: Side.SELL,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (sell)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_SELL');
     });
 
-    it('should include fees for BUY orders', async () => {
+    it('includes fees for BUY orders', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2402,7 +2458,7 @@ describe('polymarket utils', () => {
       expect(result.fees?.providerFee).toBeGreaterThanOrEqual(0);
     });
 
-    it('should not include fees for SELL orders', async () => {
+    it('does not include fees for SELL orders', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2433,7 +2489,7 @@ describe('polymarket utils', () => {
       expect(result.fees).toBeUndefined();
     });
 
-    it('should handle negRisk markets', async () => {
+    it('handles negRisk markets', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2466,7 +2522,7 @@ describe('polymarket utils', () => {
   });
 
   describe('getAllowanceCalls', () => {
-    it('should return array of allowance transaction calls', () => {
+    it('returns array of allowance transaction calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
 
       expect(Array.isArray(calls)).toBe(true);
@@ -2481,7 +2537,7 @@ describe('polymarket utils', () => {
       });
     });
 
-    it('should include all necessary approval calls', () => {
+    it('includes all necessary approval calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
       expect(calls.length).toBe(6);
     });

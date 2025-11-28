@@ -1,67 +1,150 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useCardSDK } from '../sdk';
-import { CardDetailsResponse, CardError, CardErrorType } from '../types';
+import {
+  CardDetailsResponse,
+  CardError,
+  CardErrorType,
+  CardStatus,
+  CardWarning,
+} from '../types';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
+import { useWrapWithCache } from './useWrapWithCache';
+import { AUTHENTICATED_CACHE_DURATION } from '../constants';
+
+interface CardDetailsResult {
+  cardDetails: CardDetailsResponse | null;
+  warning: CardWarning | null;
+}
 
 interface State {
-  cardDetails: CardDetailsResponse | null;
-  isLoading: boolean;
-  error: CardErrorType | null;
+  isLoadingPollCardStatusUntilProvisioned: boolean;
 }
 
 const useCardDetails = () => {
   const [state, setState] = useState<State>({
-    cardDetails: null,
-    isLoading: false,
-    error: null,
+    isLoadingPollCardStatusUntilProvisioned: false,
   });
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const { sdk, isLoading: isSDKLoading } = useCardSDK();
+  const { sdk } = useCardSDK();
 
-  const fetchCardDetails = useCallback(async () => {
-    if (!sdk) return;
-    setState((prevState) => ({
-      ...prevState,
-      isLoading: true,
-      error: null,
-    }));
+  const fetchCardDetailsInternal =
+    useCallback(async (): Promise<CardDetailsResult | null> => {
+      if (!sdk || !isAuthenticated) {
+        return null;
+      }
 
-    try {
-      const cardDetailsResponse = await sdk.getCardDetails();
+      try {
+        const cardDetailsResponse = await sdk.getCardDetails();
+        let warning: CardWarning | null = null;
 
+        if (cardDetailsResponse.status === CardStatus.FROZEN) {
+          warning = CardWarning.Frozen;
+        } else if (cardDetailsResponse.status === CardStatus.BLOCKED) {
+          warning = CardWarning.Blocked;
+        }
+
+        return {
+          cardDetails: cardDetailsResponse,
+          warning,
+        };
+      } catch (err) {
+        if (err instanceof CardError) {
+          if (err.type === CardErrorType.NO_CARD) {
+            return {
+              cardDetails: null,
+              warning: CardWarning.NoCard,
+            };
+          }
+        }
+
+        throw err;
+      }
+    }, [sdk, isAuthenticated]);
+
+  // Use cache wrapper for card details
+  const cacheResult = useWrapWithCache(
+    'card-details',
+    fetchCardDetailsInternal,
+    {
+      cacheDuration: AUTHENTICATED_CACHE_DURATION, // 30 seconds cache
+      fetchOnMount: false,
+    },
+  );
+
+  const {
+    data: cardDetailsData,
+    isLoading,
+    error,
+    fetchData: fetchCardDetails,
+  } = cacheResult;
+
+  useEffect(() => {
+    if (sdk && isAuthenticated && !isLoading && !error && !cardDetailsData) {
+      fetchCardDetails();
+    }
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdk, isAuthenticated, isLoading, error, cardDetailsData]);
+
+  // Poll logic to check if card is provisioned
+  // max polling attempts is 10, polling interval is 2 seconds
+  const pollCardStatusUntilProvisioned = useCallback(
+    async (maxAttempts: number = 10, pollingInterval: number = 2000) => {
       setState((prevState) => ({
         ...prevState,
-        cardDetails: cardDetailsResponse,
-        isLoading: false,
+        isLoadingPollCardStatusUntilProvisioned: true,
       }));
-    } catch (err) {
-      if (err instanceof CardError) {
-        if (err.type === CardErrorType.NO_CARD) {
-          // Add Card Provisioning Flow
+      for (let i = 0; i < maxAttempts; i++) {
+        try {
+          const cardDetailsResponse = await sdk?.getCardDetails();
+          if (!cardDetailsResponse) {
+            setState((prevState) => ({
+              ...prevState,
+              isLoadingPollCardStatusUntilProvisioned: false,
+            }));
+            return false;
+          }
+          if (cardDetailsResponse.status === CardStatus.ACTIVE) {
+            setState((prevState) => ({
+              ...prevState,
+              isLoadingPollCardStatusUntilProvisioned: false,
+            }));
+            // Refresh card details after provisioning
+            await fetchCardDetails();
+            return true;
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, pollingInterval));
+        } catch (err) {
           setState((prevState) => ({
             ...prevState,
-            isLoading: false,
+            isLoadingPollCardStatusUntilProvisioned: false,
           }));
-          return;
+          return false;
         }
       }
 
+      // Max polling attempts reached without finding ACTIVE status
       setState((prevState) => ({
         ...prevState,
-        isLoading: false,
-        error: CardErrorType.UNKNOWN_ERROR,
+        isLoadingPollCardStatusUntilProvisioned: false,
       }));
-    }
-  }, [sdk]);
+      return false;
+    },
+    [sdk, fetchCardDetails],
+  );
 
-  useEffect(() => {
-    if (isAuthenticated && !isSDKLoading) {
-      fetchCardDetails();
-    }
-  }, [isAuthenticated, isSDKLoading, fetchCardDetails]);
-
-  return { ...state, fetchCardDetails };
+  return {
+    cardDetails: cardDetailsData?.cardDetails ?? null,
+    warning: cardDetailsData?.warning ?? null,
+    isLoading,
+    error,
+    isLoadingPollCardStatusUntilProvisioned:
+      state.isLoadingPollCardStatusUntilProvisioned,
+    fetchCardDetails,
+    pollCardStatusUntilProvisioned,
+  };
 };
 
 export default useCardDetails;

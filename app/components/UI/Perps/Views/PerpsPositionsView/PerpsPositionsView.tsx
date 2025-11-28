@@ -19,6 +19,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import { usePerpsLivePositions } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
@@ -41,6 +42,7 @@ const PerpsPositionsView: React.FC = () => {
   // Get real-time positions via WebSocket
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update every second
+    useLivePnl: true, // Enable live PnL calculations for position display
   });
 
   const error = null;
@@ -137,7 +139,7 @@ const PerpsPositionsView: React.FC = () => {
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Md}
           onPress={handleBackPress}
-          testID="back-button"
+          testID={PerpsPositionsViewSelectorsIDs.BACK_BUTTON}
         />
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.position.title')}
@@ -157,9 +159,12 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPerpsFiat(account?.totalBalance || '0', {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
+              {account?.totalBalance !== undefined &&
+              account?.totalBalance !== null
+                ? formatPerpsFiat(account.totalBalance, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
 
@@ -168,9 +173,12 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPerpsFiat(account?.availableBalance || '0', {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
+              {account?.availableBalance !== undefined &&
+              account?.availableBalance !== null
+                ? formatPerpsFiat(account.availableBalance, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
 
@@ -179,9 +187,11 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPerpsFiat(account?.marginUsed || '0', {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
+              {account?.marginUsed !== undefined && account?.marginUsed !== null
+                ? formatPerpsFiat(account.marginUsed, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
 

@@ -154,7 +154,7 @@ describe('NftController Selectors', () => {
           },
         },
       },
-    } as unknown as RootState);
+    }) as unknown as RootState;
 
   describe('selectAllNftContracts', () => {
     it('returns all NFT contracts from NftController state', () => {

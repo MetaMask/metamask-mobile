@@ -6,6 +6,7 @@ import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  CaipChainId,
   isCaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
@@ -35,6 +36,8 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   toHexadecimal,
+  addCurrencySymbol,
+  balanceToFiatNumber,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
@@ -60,7 +63,8 @@ import {
   ActionPosition,
 } from '../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import {
@@ -72,7 +76,7 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
@@ -84,10 +88,18 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
-import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
+import parseRampIntent from '../Ramp/utils/parseRampIntent';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+///: END:ONLY_INCLUDE_IF
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { selectTronResourcesBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
+///: END:ONLY_INCLUDE_IF
+import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -110,6 +122,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+  const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -136,6 +149,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
+
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
@@ -143,7 +158,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     multichainAssetsRates?.[asset.address as CaipAssetType];
   ///: END:ONLY_INCLUDE_IF
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+
+  const strxEnergy = tronResources.find(
+    (a) => a.symbol.toLowerCase() === 'strx-energy',
+  );
+  const strxBandwidth = tronResources.find(
+    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
+  );
+  ///: END:ONLY_INCLUDE_IF
+
   const currentAddress = asset.address as Hex;
+  const { goToBuy } = useRampNavigation();
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
@@ -158,7 +185,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     sourcePage: 'MainView',
     sourceToken: {
       ...asset,
-      address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: asset.chainId as Hex,
       decimals: asset.decimals,
       symbol: asset.symbol,
@@ -204,12 +231,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
+    const accountForChain =
+      isNonEvmAsset && asset.chainId
+        ? getAccountByScope(asset.chainId as CaipChainId)
+        : selectedInternalAccount;
+
+    const addressForChain = accountForChain?.address;
+
     // Show QR code for receiving this specific asset
-    if (selectedInternalAccountAddress && selectedAccountGroup && chainId) {
+    if (addressForChain && selectedAccountGroup && chainId) {
       navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
-          address: selectedInternalAccountAddress,
+          address: addressForChain,
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
@@ -221,9 +255,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           'AssetOverview::onReceive - Missing required data for navigation',
         ),
         {
-          hasAddress: !!selectedInternalAccountAddress,
+          hasAddress: !!addressForChain,
           hasAccountGroup: !!selectedAccountGroup,
           hasChainId: !!chainId,
+          isNonEvmAsset,
+          assetChainId: asset.chainId,
         },
       );
     }
@@ -278,7 +314,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       dispatch(newAssetTransaction(asset));
     }
 
-    navigateToSendPage(InitSendLocation.AssetOverview, asset);
+    navigateToSendPage({ location: InitSendLocation.AssetOverview, asset });
   };
 
   const onBuy = () => {
@@ -304,11 +340,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    navigation.navigate(
-      ...createBuyNavigationDetails({
-        assetId,
-      }),
-    );
+    goToBuy({ assetId });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
@@ -316,6 +348,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
+          region: rampGeodetectedRegion,
         })
         .build(),
     );
@@ -448,7 +481,18 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
-  if (isMultichainAccountsState2Enabled) {
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTronNative =
+    asset.ticker === 'TRX' && String(asset.chainId).startsWith('tron:');
+
+  // create Staked TRX derived asset (same as native TRX but with a new name and balance)
+  const stakedTrxAsset = isTronNative
+    ? createStakedTrxAsset(asset, strxEnergy?.balance, strxBandwidth?.balance)
+    : undefined;
+  ///: END:ONLY_INCLUDE_IF
+
+  if (isMultichainAccountsState2Enabled && asset.balance != null) {
+    // When state2 is enabled and asset has balance, use it directly
     balance = asset.balance;
   } else if (isMultichainAsset) {
     balance = asset.balance
@@ -474,19 +518,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     if (
       !isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)
     ) {
-      balance = asset.balance || 0;
+      balance = asset.balance ?? undefined;
     } else {
       balance =
         itemAddress && tokenBalanceHex
           ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-          : 0;
+          : (asset.balance ?? undefined);
     }
   }
-
-  const mainBalance = asset.balanceFiat || '';
-  const secondaryBalance = `${balance} ${
-    asset.isETH ? asset.ticker : asset.symbol
-  }`;
 
   const convertedMultichainAssetRates =
     isNonEvmAsset && multichainAssetRates
@@ -522,6 +561,53 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     comparePrice = calculatedComparePrice;
   }
 
+  // Calculate fiat balance if not provided in asset (e.g., when coming from trending view)
+  let mainBalance = asset.balanceFiat || '';
+  if (!mainBalance && balance != null) {
+    // Convert balance to number for calculations
+    const balanceNumber =
+      typeof balance === 'number' ? balance : parseFloat(String(balance));
+
+    if (balanceNumber > 0 && !isNaN(balanceNumber)) {
+      if (isNonEvmAsset && multichainAssetRates?.rate) {
+        // For non-EVM assets, use multichainAssetRates directly
+        const rate = Number(multichainAssetRates.rate);
+        const balanceFiatNumber = balanceNumber * rate;
+        mainBalance =
+          balanceFiatNumber >= 0.01 || balanceFiatNumber === 0
+            ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
+            : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+      } else if (!isNonEvmAsset) {
+        // For EVM assets, calculate fiat balance directly using balance, market price, and conversion rate
+        const tickerConversionRate =
+          conversionRateByTicker?.[nativeCurrency]?.conversionRate;
+
+        if (
+          tickerConversionRate &&
+          marketDataRate !== undefined &&
+          isFinite(marketDataRate)
+        ) {
+          const balanceFiatNumber = balanceToFiatNumber(
+            balanceNumber,
+            tickerConversionRate,
+            marketDataRate,
+          );
+          if (isFinite(balanceFiatNumber)) {
+            mainBalance =
+              balanceFiatNumber >= 0.01 || balanceFiatNumber === 0
+                ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
+                : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+          }
+        }
+      }
+    }
+  }
+
+  const secondaryBalance =
+    balance != null
+      ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
+      : undefined;
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
@@ -553,7 +639,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               chainId,
             }}
           />
-
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && <TronEnergyBandwidthDetail />
+            ///: END:ONLY_INCLUDE_IF
+          }
           {balance != null && (
             <Balance
               asset={asset}
@@ -562,6 +652,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             />
           )}
 
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakedTrxAsset && (
+              <Balance
+                asset={stakedTrxAsset}
+                mainBalance={stakedTrxAsset.balance}
+                secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>

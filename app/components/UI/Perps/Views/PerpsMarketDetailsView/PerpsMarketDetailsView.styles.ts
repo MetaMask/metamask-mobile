@@ -34,12 +34,20 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       backgroundColor: theme.colors.background.default,
     },
     section: {
-      paddingVertical: 8,
+      paddingVertical: 16,
       paddingHorizontal: 16,
+    },
+    sectionTitle: {
+      marginBottom: 12,
     },
     chartSection: {
       paddingTop: 0,
       marginTop: 16,
+      position: 'relative',
+    },
+    tabsSection: {
+      paddingVertical: 8,
+      // No horizontal padding - TabsList provides its own
     },
     // Fixed actions footer - positioned at bottom of screen
     actionsFooter: {

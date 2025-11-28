@@ -16,6 +16,18 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
 
+export interface OnboardingState {
+  onboardingId: string | null;
+  selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
+  contactVerificationId: string | null;
+  consentSetId: string | null;
+}
+
+export interface CacheState {
+  data: Record<string, unknown>;
+  timestamps: Record<string, number>;
+}
+
 export interface CardSliceState {
   cardholderAccounts: string[];
   priorityTokensByAddress: Record<string, CardTokenAllowance | null>;
@@ -28,6 +40,8 @@ export interface CardSliceState {
   geoLocation: string;
   isAuthenticated: boolean;
   userCardLocation: CardLocation;
+  onboarding: OnboardingState;
+  cache: CacheState;
 }
 
 export const initialState: CardSliceState = {
@@ -42,6 +56,16 @@ export const initialState: CardSliceState = {
   geoLocation: 'UNKNOWN',
   isAuthenticated: false,
   userCardLocation: 'international',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
+    consentSetId: null,
+  },
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 // Async thunk for loading cardholder accounts
@@ -110,6 +134,49 @@ const slice = createSlice({
     ) => {
       state.userCardLocation = action.payload ?? 'international';
     },
+    setOnboardingId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.onboardingId = action.payload;
+    },
+    setSelectedCountry: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.selectedCountry = action.payload;
+    },
+    setContactVerificationId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.contactVerificationId = action.payload;
+    },
+    setConsentSetId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.consentSetId = action.payload;
+    },
+    resetOnboardingState: (state) => {
+      state.onboarding = {
+        onboardingId: null,
+        selectedCountry: null,
+        contactVerificationId: null,
+        consentSetId: null,
+      };
+    },
+    resetAuthenticatedData: (state) => {
+      state.authenticatedPriorityToken = null;
+      state.authenticatedPriorityTokenLastFetched = null;
+      state.userCardLocation = 'international';
+      state.isAuthenticated = false;
+    },
+    setCacheData: (
+      state,
+      action: PayloadAction<{ key: string; data: unknown; timestamp: number }>,
+    ) => {
+      const { key, data, timestamp } = action.payload;
+      state.cache.data[key] = data;
+      state.cache.timestamps[key] = timestamp;
+    },
+    clearCacheData: (state, action: PayloadAction<string>) => {
+      const key = action.payload;
+      delete state.cache.data[key];
+      delete state.cache.timestamps[key];
+    },
+    clearAllCache: (state) => {
+      state.cache.data = {};
+      state.cache.timestamps = {};
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -167,8 +234,8 @@ export const selectCardPriorityToken = (
     authenticated
       ? card.authenticatedPriorityToken
       : address
-      ? card.priorityTokensByAddress[address.toLowerCase()] || null
-      : null,
+        ? card.priorityTokensByAddress[address.toLowerCase()] || null
+        : null,
   );
 
 export const selectCardPriorityTokenLastFetched = (
@@ -179,8 +246,8 @@ export const selectCardPriorityTokenLastFetched = (
     authenticated
       ? card.authenticatedPriorityTokenLastFetched
       : address
-      ? card.lastFetchedByAddress[address.toLowerCase()] || null
-      : null,
+        ? card.lastFetchedByAddress[address.toLowerCase()] || null
+        : null,
   );
 
 export const selectIsCardCacheValid = (
@@ -223,6 +290,11 @@ export const selectAlwaysShowCardButton = createSelector(
 export const selectCardGeoLocation = createSelector(
   selectCardState,
   (card) => card.geoLocation,
+);
+
+export const selectHasCardholderAccounts = createSelector(
+  selectCardholderAccounts,
+  (cardholderAccounts) => cardholderAccounts.length > 0,
 );
 
 export const selectIsCardholder = createSelector(
@@ -284,6 +356,26 @@ export const selectDisplayCardButton = createSelector(
   },
 );
 
+export const selectOnboardingId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.onboardingId,
+);
+
+export const selectSelectedCountry = createSelector(
+  selectCardState,
+  (card) => card.onboarding.selectedCountry,
+);
+
+export const selectContactVerificationId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.contactVerificationId,
+);
+
+export const selectConsentSetId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.consentSetId,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -295,4 +387,13 @@ export const {
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
   setUserCardLocation,
+  setOnboardingId,
+  setSelectedCountry,
+  setContactVerificationId,
+  setConsentSetId,
+  resetOnboardingState,
+  setCacheData,
+  clearCacheData,
+  clearAllCache,
+  resetAuthenticatedData,
 } = actions;

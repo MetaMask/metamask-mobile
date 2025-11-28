@@ -1,19 +1,18 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
-import { useSelector } from 'react-redux';
-import { createSelector } from 'reselect';
+import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import Routes from '../../../../constants/navigation/Routes';
-import { RootState } from '../../../../reducers';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { PredictNavigationParamList } from '../types/navigation';
-import { usePredictEligibility } from './usePredictEligibility';
-import { usePredictTrading } from './usePredictTrading';
+import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { ensureError } from '../utils/predictErrorHandler';
+import { usePredictTrading } from './usePredictTrading';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface UsePredictClaimParams {
   providerId?: string;
@@ -22,37 +21,42 @@ interface UsePredictClaimParams {
 export const usePredictClaim = ({
   providerId = POLYMARKET_PROVIDER_ID,
 }: UsePredictClaimParams = {}) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigateToConfirmation } = useConfirmNavigation();
   const { claim: claimWinnings } = usePredictTrading();
-  const { isEligible } = usePredictEligibility({
-    providerId,
-  });
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-
-  const selectClaimTransaction = createSelector(
-    (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.claimTransaction,
-  );
-  const claimTransaction = useSelector(selectClaimTransaction);
+  const navigation = useNavigation();
 
   const claim = useCallback(async () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
     try {
       navigateToConfirmation({
         headerShown: false,
+        loader: ConfirmationLoader.PredictClaim,
+        // TODO: remove once navigation stack is fixed properly
         stack: Routes.PREDICT.ROOT,
       });
       await claimWinnings({ providerId });
     } catch (err) {
-      console.error('Failed to proceed with claim:', err);
+      // Log error with claim context
+      Logger.error(ensureError(err), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'usePredictClaim',
+        },
+        context: {
+          name: 'usePredictClaim',
+          data: {
+            method: 'claim',
+            action: 'claim_winnings',
+            operation: 'position_management',
+            providerId,
+          },
+        },
+      });
+
+      navigation.goBack();
+
+      // Show error toast with retry option
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -77,7 +81,6 @@ export const usePredictClaim = ({
     }
   }, [
     claimWinnings,
-    isEligible,
     navigateToConfirmation,
     navigation,
     providerId,
@@ -88,6 +91,5 @@ export const usePredictClaim = ({
 
   return {
     claim,
-    status: claimTransaction?.status,
   };
 };

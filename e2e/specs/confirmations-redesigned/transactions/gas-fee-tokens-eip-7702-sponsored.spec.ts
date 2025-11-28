@@ -3,13 +3,16 @@ import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/RedesignedSendView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
-import { Assertions, LocalNodeType } from '../../../framework';
+import { Assertions, LocalNode, LocalNodeType } from '../../../framework';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { Hardfork } from '../../../seeder/anvil-manager';
+import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -96,124 +99,162 @@ const SIMULATION_GAS_SPONSORSHIP_MOCK = {
   },
 };
 
+const setupCommonMocks = async (mockServer: Mockttp) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.urlEndpoint,
+    response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
+    responseCode: 200,
+  });
+
+  await setupMockRequest(mockServer, {
+    ...SIMULATION_GAS_SPONSORSHIP_MOCK,
+    requestMethod: 'POST',
+    url: LOCALHOST_SENTINEL_URL,
+    response: SIMULATION_GAS_SPONSORSHIP_MOCK.response,
+    responseCode: 200,
+  });
+
+  await setupMockRequest(mockServer, {
+    ...SIMULATION_GAS_SPONSORSHIP_MOCK,
+    requestMethod: 'POST',
+    url: `${LOCALHOST_SENTINEL_URL}/`,
+    response: SIMULATION_GAS_SPONSORSHIP_MOCK.response,
+    responseCode: 200,
+  });
+
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...remoteFeatureEip7702),
+  );
+};
+
+const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {
+  const node = localNodes?.[0] as unknown as AnvilManager;
+  const rpcPort =
+    node instanceof AnvilManager ? (node.getPort() ?? AnvilPort()) : undefined;
+  return new FixtureBuilder()
+    .withNetworkController({
+      providerConfig: {
+        chainId: '0x539',
+        rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+        type: 'custom',
+        nickname: 'Local RPC',
+        ticker: 'ETH',
+      },
+    })
+    .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+    .withDisabledSmartTransactions()
+    .build();
+};
+
+const localNodeOptions = [
+  {
+    type: LocalNodeType.anvil,
+    options: {
+      hardfork: 'prague' as Hardfork,
+      loadState:
+        './e2e/specs/confirmations-redesigned/transactions/7702/withUpgradedAccount.json',
+    },
+  },
+];
+
+const performSendTransaction = async () => {
+  await loginToApp();
+  await device.disableSynchronization();
+  await WalletView.tapWalletSendButton();
+  await SendView.selectEthereumToken();
+  await SendView.pressAmountFiveButton();
+  await SendView.pressContinueButton();
+  await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
+  await SendView.pressReviewButton();
+  await Assertions.expectElementToBeVisible(
+    RowComponents.NetworkFeePaidByMetaMask,
+  );
+  await FooterActions.tapConfirmButton();
+  await TabBarComponent.tapActivity();
+};
+
 describe(
-  SmokeConfirmationsRedesigned('Send native asset using EIP-7702'),
+  SmokeConfirmationsRedesigned(
+    'Send native asset using EIP-7702 - Success Case',
+  ),
   () => {
-    const testSpecificMock = async (
-      mockServer: Mockttp,
-      options: { success: boolean } = { success: true },
-    ) => {
-      const { success } = options;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.urlEndpoint,
-        response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
-        responseCode: 200,
-      });
-      await setupMockRequest(mockServer, {
-        ...SIMULATION_GAS_SPONSORSHIP_MOCK,
-        requestMethod: 'POST',
-        url: LOCALHOST_SENTINEL_URL,
-        response: SIMULATION_GAS_SPONSORSHIP_MOCK.response,
-        responseCode: 200,
-      });
-      await setupMockRequest(mockServer, {
-        ...SIMULATION_GAS_SPONSORSHIP_MOCK,
-        requestMethod: 'POST',
-        url: `${LOCALHOST_SENTINEL_URL}/`,
-        response: SIMULATION_GAS_SPONSORSHIP_MOCK.response,
-        responseCode: 200,
-      });
-      await setupRemoteFeatureFlagsMock(
-        mockServer,
-        Object.assign({}, ...remoteFeatureEip7702),
-      );
-      if (success) {
-        await setupMockRequest(mockServer, {
-          requestMethod: 'POST',
-          url: `${LOCALHOST_SENTINEL_URL}/`,
-          response: TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK.response,
-          responseCode: 200,
-        });
-      }
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: `${TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.urlEndpoint}`,
-        response: {
-          transactions: [
-            {
-              hash: TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.response
-                .transactions[0].hash,
-              status: success ? RelayStatus.Success : 'FAILED',
-            },
-          ],
-        },
-        responseCode: 200,
-      });
-    };
-
-    const fixtureBase = {
-      fixture: new FixtureBuilder()
-        .withGanacheNetwork()
-        .withPermissionControllerConnectedToTestDapp(
-          buildPermissions(['0x539']),
-        )
-        .withDisabledSmartTransactions()
-        .build(),
-      restartDevice: true,
-      localNodeOptions: [
-        {
-          type: LocalNodeType.anvil,
-          options: {
-            hardfork: 'prague' as Hardfork,
-            loadState:
-              './e2e/specs/confirmations-redesigned/transactions/7702/withUpgradedAccount.json',
-          },
-        },
-      ],
-      testSpecificMock,
-    };
-
-    it('should send ETH sponsored by MetaMask', async () => {
-      await withFixtures(fixtureBase, async () => {
-        await loginToApp();
-        await device.disableSynchronization();
-        await WalletView.tapWalletSendButton();
-        await SendView.selectEthereumToken();
-        await SendView.pressAmountFiveButton();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
-        await SendView.pressReviewButton();
-        await Assertions.expectElementToBeVisible(
-          RowComponents.NetworkFeePaidByMetaMask,
-        );
-        await FooterActions.tapConfirmButton();
-        await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Confirmed');
-      });
-    });
-
-    it('fails transaction if error', async () => {
+    it('sends ETH sponsored by MetaMask', async () => {
       await withFixtures(
         {
-          ...fixtureBase,
-          testSpecificMock: async (mockServer: Mockttp) =>
-            await testSpecificMock(mockServer, { success: false }),
+          fixture: createFixture,
+          restartDevice: true,
+          localNodeOptions,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupCommonMocks(mockServer);
+
+            // Success-specific mocks
+            await setupMockRequest(mockServer, {
+              requestMethod: 'POST',
+              url: `${LOCALHOST_SENTINEL_URL}/`,
+              response: TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK.response,
+              responseCode: 200,
+            });
+
+            await setupMockRequest(mockServer, {
+              requestMethod: 'GET',
+              url: `${TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.urlEndpoint}`,
+              response: {
+                transactions: [
+                  {
+                    hash: TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.response
+                      .transactions[0].hash,
+                    status: RelayStatus.Success,
+                  },
+                ],
+              },
+              responseCode: 200,
+            });
+          },
         },
         async () => {
-          await loginToApp();
-          await device.disableSynchronization();
-          await WalletView.tapWalletSendButton();
-          await SendView.selectEthereumToken();
-          await SendView.pressAmountFiveButton();
-          await SendView.pressContinueButton();
-          await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
-          await SendView.pressReviewButton();
-          await Assertions.expectElementToBeVisible(
-            RowComponents.NetworkFeePaidByMetaMask,
-          );
-          await FooterActions.tapConfirmButton();
-          await TabBarComponent.tapActivity();
+          await performSendTransaction();
+          await Assertions.expectTextDisplayed('Confirmed');
+        },
+      );
+    });
+  },
+);
+
+describe(
+  SmokeConfirmationsRedesigned(
+    'Send native asset using EIP-7702 - Failure Case',
+  ),
+  () => {
+    it('fails transaction if error occurs on API', async () => {
+      await withFixtures(
+        {
+          fixture: createFixture,
+          restartDevice: true,
+          localNodeOptions,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupCommonMocks(mockServer);
+
+            // Failure-specific mocks - GET returns FAILED status
+            await setupMockRequest(mockServer, {
+              requestMethod: 'GET',
+              url: `${TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.urlEndpoint}`,
+              response: {
+                transactions: [
+                  {
+                    hash: TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.response
+                      .transactions[0].hash,
+                    status: 'FAILED',
+                  },
+                ],
+              },
+              responseCode: 200,
+            });
+          },
+        },
+        async () => {
+          await performSendTransaction();
           await Assertions.expectTextDisplayed('Failed');
         },
       );

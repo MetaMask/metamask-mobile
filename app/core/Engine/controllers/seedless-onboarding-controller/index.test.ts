@@ -1,5 +1,5 @@
 import { seedlessOnboardingControllerInit } from '.';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
 import {
@@ -7,6 +7,7 @@ import {
   SeedlessOnboardingControllerMessenger,
   SeedlessOnboardingControllerState,
 } from '@metamask/seedless-onboarding-controller';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/seedless-onboarding-controller', () => {
   const actualSeedlessOnboardingController = jest.requireActual(
@@ -31,7 +32,9 @@ describe('seedless onboarding controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });

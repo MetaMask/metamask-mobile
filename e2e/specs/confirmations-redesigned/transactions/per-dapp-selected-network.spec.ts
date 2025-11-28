@@ -1,6 +1,9 @@
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils.ts';
+import {
+  buildPermissions,
+  AnvilPort,
+} from '../../../framework/fixtures/FixtureUtils.ts';
 import Browser from '../../../pages/Browser/BrowserView.ts';
 import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions.ts';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes.ts';
@@ -19,6 +22,8 @@ import { DappVariants } from '../../../framework/Constants.ts';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
 import { Mockttp } from 'mockttp';
+import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -40,7 +45,7 @@ async function changeNetworkFromNetworkListModalGNSDisabled(
   await NetworkListModal.changeNetworkTo(networkName);
 }
 
-describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
+describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
@@ -58,7 +63,7 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
   });
 
   itif(isRemoveGlobalNetworkSelectorEnabled)(
-    'submits a transaction to a dApp selected network',
+    'submits a transaction to a dapp-specific selected network',
     async () => {
       await withFixtures(
         {
@@ -67,12 +72,28 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions([LOCAL_CHAIN_ID]),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: LOCAL_CHAIN_ID,
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: LOCAL_CHAIN_NAME,
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions([LOCAL_CHAIN_ID]),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
         },
@@ -120,7 +141,7 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
   );
 });
 
-describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
+describe(RegressionConfirmations('Dapp Network Switching'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
@@ -138,7 +159,7 @@ describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
   });
 
   itif(isRemoveGlobalNetworkSelectorEnabled)(
-    'submits a transaction to a dApp selected network',
+    'submits a transaction to a dapp-specific selected network',
     async () => {
       await withFixtures(
         {
@@ -147,12 +168,28 @@ describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions([LOCAL_CHAIN_ID]),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: LOCAL_CHAIN_ID,
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: LOCAL_CHAIN_NAME,
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions([LOCAL_CHAIN_ID]),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
         },

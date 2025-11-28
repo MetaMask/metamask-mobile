@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
-import Text from '../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -20,7 +18,10 @@ import {
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import {
+  MultichainNetworkConfiguration,
+  SupportedCaipChainId,
+} from '@metamask/multichain-network-controller';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -31,8 +32,8 @@ export default function NetworkListBottomSheet({
   sheetRef,
   displayEvmNetworksOnly = true,
 }: {
-  selectedNetwork: Hex | null;
-  setSelectedNetwork: (network: Hex) => void;
+  selectedNetwork: SupportedCaipChainId | Hex | null;
+  setSelectedNetwork: (network: SupportedCaipChainId | Hex) => void;
   setOpenNetworkSelector: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
   displayEvmNetworksOnly?: boolean;
@@ -69,10 +70,14 @@ export default function NetworkListBottomSheet({
       style={styles.bottomSheetWrapperContent}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <BottomSheetHeader onClose={() => setOpenNetworkSelector(false)}>
-        <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
-          {strings('networks.select_network')}
-        </Text>
+      <BottomSheetHeader
+        onClose={() => {
+          sheetRef.current?.onCloseBottomSheet(() => {
+            setOpenNetworkSelector(false);
+          });
+        }}
+      >
+        {strings('networks.select_network')}
       </BottomSheetHeader>
 
       <ScrollView>
@@ -91,7 +96,9 @@ export default function NetworkListBottomSheet({
               }}
               onPress={() => {
                 setSelectedNetwork(network.chainId as Hex);
-                setOpenNetworkSelector(false);
+                sheetRef.current?.onCloseBottomSheet(() => {
+                  setOpenNetworkSelector(false);
+                });
               }}
               isSelected={selectedNetwork === network.chainId}
             />

@@ -17,18 +17,24 @@ import { useCardholderCheck } from '../hooks/useCardholderCheck';
 import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
 import { removeCardBaanxToken } from '../util/cardTokenVault';
 import {
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  setIsAuthenticatedCard,
   selectUserCardLocation,
-  setUserCardLocation,
+  selectOnboardingId,
+  resetOnboardingState,
+  resetAuthenticatedData,
+  clearAllCache,
+  setContactVerificationId,
 } from '../../../../core/redux/slices/card';
+import { UserResponse } from '../types';
+import { getErrorMessage } from '../util/getErrorMessage';
 
 // Types
 export interface ICardSDK {
   sdk: CardSDK | null;
   isLoading: boolean;
+  user: UserResponse | null;
+  setUser: (user: UserResponse | null) => void;
   logoutFromProvider: () => Promise<void>;
+  fetchUserData: () => Promise<void>;
 }
 
 interface ProviderProps<T> {
@@ -50,17 +56,13 @@ export const CardSDKProvider = ({
 }: ProviderProps<ICardSDK>) => {
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
   const userCardLocation = useSelector(selectUserCardLocation);
+  const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
   const [sdk, setSdk] = useState<CardSDK | null>(null);
   // Start with true to indicate initialization in progress
   const [isLoading, setIsLoading] = useState(true);
-
-  const removeAuthenticatedData = useCallback(() => {
-    dispatch(setIsAuthenticatedCard(false));
-    dispatch(setAuthenticatedPriorityTokenLastFetched(null));
-    dispatch(setAuthenticatedPriorityToken(null));
-    dispatch(setUserCardLocation(null));
-  }, [dispatch]);
+  // Add user state management
+  const [user, setUser] = useState<UserResponse | null>(null);
 
   // Initialize CardSDK when feature flag is enabled
   useEffect(() => {
@@ -79,23 +81,63 @@ export const CardSDKProvider = ({
     setIsLoading(false);
   }, [cardFeatureFlag, userCardLocation]);
 
+  const fetchUserData = useCallback(async () => {
+    if (!sdk || !onboardingId) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const userData = await sdk.getRegistrationStatus(onboardingId);
+
+      if (userData.contactVerificationId) {
+        dispatch(setContactVerificationId(userData.contactVerificationId));
+      }
+
+      setUser(userData);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      if (errorMessage?.includes('Invalid onboarding ID')) {
+        dispatch(resetOnboardingState());
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sdk, onboardingId, dispatch]);
+
+  // Fetch user data on mount if onboardingId exists
+  useEffect(() => {
+    if (!sdk || !onboardingId) {
+      return;
+    }
+
+    fetchUserData();
+  }, [sdk, onboardingId, fetchUserData]);
+
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
       throw new Error('SDK not available for logout');
     }
 
     await removeCardBaanxToken();
-    removeAuthenticatedData();
-  }, [sdk, removeAuthenticatedData]);
+    dispatch(resetAuthenticatedData());
+    dispatch(clearAllCache());
+    dispatch(resetOnboardingState());
+    setUser(null);
+  }, [sdk, dispatch]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     (): ICardSDK => ({
       sdk,
       isLoading,
+      user,
+      setUser,
       logoutFromProvider,
+      fetchUserData,
     }),
-    [sdk, isLoading, logoutFromProvider],
+    [sdk, isLoading, user, setUser, logoutFromProvider, fetchUserData],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;
@@ -117,12 +159,11 @@ export const useCardSDK = () => {
  * Higher-order component that wraps a component with CardSDKProvider.
  */
 export const withCardSDK =
-  (Component: React.ComponentType) => (props: Record<string, unknown>) =>
-    (
-      <CardSDKProvider>
-        <Component {...props} />
-      </CardSDKProvider>
-    );
+  (Component: React.ComponentType) => (props: Record<string, unknown>) => (
+    <CardSDKProvider>
+      <Component {...props} />
+    </CardSDKProvider>
+  );
 
 /**
  * Component that performs cardholder verification.

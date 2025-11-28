@@ -26,8 +26,8 @@ import styleSheet from './transaction-details-status.styles';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useSelector } from 'react-redux';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
-import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
+import { ARBITRUM_USDC } from '../../../constants/perps';
 
 export function TransactionDetailsStatus({
   gap,
@@ -221,7 +221,7 @@ function useHasSuccessfulPerpsBridge() {
         return (
           bridgeItem?.status.status === StatusTypes.COMPLETE &&
           bridgeItem?.quote?.destAsset?.address?.toLowerCase() ===
-            ARBITRUM_USDC_ADDRESS.toLowerCase()
+            ARBITRUM_USDC.address.toLowerCase()
         );
       })) ??
     false

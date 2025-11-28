@@ -50,12 +50,14 @@ describe('bridge slice', () => {
         destAmount: undefined,
         sourceToken: undefined,
         destToken: undefined,
+        gasIncluded: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
         slippage: '0.5',
         isSubmittingTx: false,
         isSelectingRecipient: false,
+        isMaxSourceAmount: false,
       });
     });
   });
@@ -225,8 +227,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toEqual({
@@ -256,8 +257,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toEqual({
@@ -296,8 +296,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         {
           eip155: {

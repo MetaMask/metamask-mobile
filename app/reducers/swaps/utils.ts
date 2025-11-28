@@ -41,7 +41,7 @@ export const getSwapsLiveness = (
   const liveness =
     typeof chainFeatureFlags === 'boolean'
       ? chainFeatureFlags
-      : chainFeatureFlags?.[featureFlagKey] ?? false;
+      : (chainFeatureFlags?.[featureFlagKey] ?? false);
 
   return liveness;
 };

@@ -43,6 +43,9 @@ module.exports = function (baseConfig) {
   const {
     resolver: { assetExts, sourceExts },
   } = defaultConfig;
+  const isE2E =
+    process.env.IS_TEST === 'true' ||
+    process.env.METAMASK_ENVIRONMENT === 'e2e';
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -80,6 +83,29 @@ module.exports = function (baseConfig) {
           buffer: '@craftzdog/react-native-buffer',
           'node:buffer': '@craftzdog/react-native-buffer',
         },
+        resolveRequest: isE2E
+          ? (context, moduleName, platform) => {
+              if (moduleName === '@sentry/react-native') {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'e2e/module-mocking/sentry/react-native.ts',
+                  ),
+                };
+              }
+              if (moduleName === '@sentry/core') {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'e2e/module-mocking/sentry/core.ts',
+                  ),
+                };
+              }
+              return context.resolveRequest(context, moduleName, platform);
+            }
+          : defaultConfig.resolver.resolveRequest,
       },
       transformer: {
         babelTransformerPath: require.resolve('./metro.transform.js'),

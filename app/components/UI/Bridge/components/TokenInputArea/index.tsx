@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -43,12 +43,13 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
+import parseAmount from '../../../../../util/parseAmount';
+import { useTokenAddress } from '../../hooks/useTokenAddress';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -68,7 +69,7 @@ const createStyles = ({
   vars,
   theme,
 }: {
-  vars: { fontSize: number };
+  vars: { fontSize: number; hidden: boolean };
   theme: Theme;
 }) =>
   StyleSheet.create({
@@ -94,6 +95,9 @@ const createStyles = ({
     },
     maxButton: {
       color: theme.colors.text.default,
+    },
+    hidden: {
+      opacity: vars.hidden ? 0 : 1,
     },
   });
 
@@ -146,13 +150,19 @@ const formatWithLocaleSeparators = (value: string): string => {
 export const getDisplayAmount = (
   amount?: string,
   tokenType?: TokenInputAreaType,
+  isMaxAmount?: boolean,
 ) => {
   if (amount === undefined) return amount;
 
-  const displayAmount =
-    tokenType === TokenInputAreaType.Source
-      ? amount
-      : parseAmount(amount, MAX_DECIMALS);
+  // Only truncate for display when:
+  // 1. Amount came from Max button (isMaxAmount = true), OR
+  // 2. Destination token (always truncate)
+  const shouldTruncate =
+    tokenType === TokenInputAreaType.Destination || isMaxAmount;
+
+  const displayAmount = shouldTruncate
+    ? parseAmount(amount, MAX_DECIMALS)
+    : amount;
 
   // Format with locale-appropriate separators
   if (displayAmount && displayAmount !== '0') {
@@ -168,6 +178,7 @@ export interface TokenInputAreaRef {
 
 interface TokenInputAreaProps {
   amount?: string;
+  isMaxAmount?: boolean;
   token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
@@ -183,6 +194,7 @@ interface TokenInputAreaProps {
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
+  isQuoteSponsored?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -192,6 +204,7 @@ export const TokenInputArea = forwardRef<
   (
     {
       amount,
+      isMaxAmount = false,
       token,
       tokenBalance,
       networkImageSource,
@@ -207,6 +220,7 @@ export const TokenInputArea = forwardRef<
       latestAtomicBalance,
       isSourceToken,
       style,
+      isQuoteSponsored = false,
     },
     ref,
   ) => {
@@ -293,20 +307,26 @@ export const TokenInputArea = forwardRef<
           }`
         : undefined;
 
-    const isNativeAsset = isNativeAddress(token?.address);
+    const tokenAddress = useTokenAddress(token);
+
+    const isNativeAsset = isNativeAddress(tokenAddress);
+
+    // Show max button for native tokens if gasless swap is enabled OR quote is sponsored
+    const shouldShowMaxButton = useMemo(() => {
+      if (!isNativeAsset) return true; // Always show for non-native tokens
+      return isGaslessSwapEnabled || isQuoteSponsored;
+    }, [isNativeAsset, isGaslessSwapEnabled, isQuoteSponsored]);
     const formattedAddress =
-      token?.address && !isNativeAsset
-        ? formatAddress(token?.address)
-        : undefined;
+      tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
     const subtitle =
       tokenType === TokenInputAreaType.Source
         ? formattedBalance
         : formattedAddress;
 
-    const displayedAmount = getDisplayAmount(amount, tokenType);
+    const displayedAmount = getDisplayAmount(amount, tokenType, isMaxAmount);
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
-    const { styles } = useStyles(createStyles, { fontSize });
+    const { styles } = useStyles(createStyles, { fontSize, hidden: !subtitle });
 
     let tokenButtonText = 'bridge.swap_to';
     if (isSourceToken) {
@@ -380,41 +400,40 @@ export const TokenInputArea = forwardRef<
                     <Text color={TextColor.Alternative}>{currencyValue}</Text>
                   ) : null}
                 </Box>
-                {subtitle ? (
-                  tokenType === TokenInputAreaType.Source &&
-                  tokenBalance &&
-                  onMaxPress &&
-                  (!isNativeAsset ||
-                    (isNativeAsset && isGaslessSwapEnabled)) ? (
-                    <Box flexDirection={FlexDirection.Row} gap={4}>
-                      <Text
-                        color={
-                          isInsufficientBalance
-                            ? TextColor.Error
-                            : TextColor.Alternative
-                        }
-                      >
-                        {subtitle}
-                      </Text>
+                <Box
+                  flexDirection={
+                    tokenType === TokenInputAreaType.Source &&
+                    tokenBalance &&
+                    onMaxPress &&
+                    shouldShowMaxButton
+                      ? FlexDirection.Row
+                      : FlexDirection.Column
+                  }
+                  gap={4}
+                  style={styles.hidden}
+                >
+                  <Text
+                    color={
+                      isInsufficientBalance
+                        ? TextColor.Error
+                        : TextColor.Alternative
+                    }
+                  >
+                    {subtitle}
+                  </Text>
+                  {tokenType === TokenInputAreaType.Source &&
+                    tokenBalance &&
+                    onMaxPress &&
+                    shouldShowMaxButton && (
                       <Button
                         variant={ButtonVariants.Link}
                         label={strings('bridge.max')}
                         onPress={onMaxPress}
+                        disabled={!subtitle}
+                        testID="token-input-area-max-button"
                       />
-                    </Box>
-                  ) : (
-                    <Text
-                      color={
-                        tokenType === TokenInputAreaType.Source &&
-                        isInsufficientBalance
-                          ? TextColor.Error
-                          : TextColor.Alternative
-                      }
-                    >
-                      {subtitle}
-                    </Text>
-                  )
-                ) : null}
+                    )}
+                </Box>
               </>
             )}
           </Box>
@@ -423,3 +442,5 @@ export const TokenInputArea = forwardRef<
     );
   },
 );
+
+TokenInputArea.displayName = 'TokenInputArea';

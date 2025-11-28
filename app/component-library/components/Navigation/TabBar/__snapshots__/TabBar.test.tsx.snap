@@ -12,6 +12,7 @@ exports[`TabBar renders correctly 1`] = `
           "borderTopWidth": 1,
           "display": "flex",
           "flexDirection": "row",
+          "marginBottom": 4,
           "paddingLeft": 8,
           "paddingRight": 8,
           "paddingTop": 12,

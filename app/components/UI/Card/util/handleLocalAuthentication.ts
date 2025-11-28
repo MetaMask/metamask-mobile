@@ -28,12 +28,43 @@ export const handleLocalAuthentication = async ({
       return { isAuthenticated: false };
     }
 
-    const { refreshToken, refreshTokenExpiresAt, location } =
-      tokenResult.tokenData;
+    const {
+      accessTokenExpiresAt,
+      refreshToken,
+      refreshTokenExpiresAt,
+      location,
+    } = tokenResult.tokenData;
 
+    // CASE 1: Access-only token (from onboarding flow)
+    // Check if we have an access token but no refresh token
+    if (!refreshToken) {
+      // Check if access token is still valid (not expired in the next 5 minutes)
+      // Using 5 minutes as buffer to avoid edge cases where token expires during requests
+      if (Date.now() + 5 * 60 * 1000 > accessTokenExpiresAt) {
+        Logger.log(
+          'handleLocalAuthentication: Access token expired, clearing storage',
+        );
+        await removeCardBaanxToken();
+        return { isAuthenticated: false };
+      }
+
+      // Access token is still valid, user is authenticated
+      return {
+        isAuthenticated: true,
+        userCardLocation: location,
+      };
+    }
+
+    // CASE 2: Full token pair (access + refresh tokens)
     // Check if refresh token will be expired in the next 1 hour.
     // If so, remove the token and return false.
-    if (Date.now() + 1 * 60 * 60 * 1000 > refreshTokenExpiresAt) {
+    if (
+      refreshTokenExpiresAt &&
+      Date.now() + 1 * 60 * 60 * 1000 > refreshTokenExpiresAt
+    ) {
+      Logger.log(
+        'handleLocalAuthentication: Refresh token expired, clearing storage',
+      );
       await removeCardBaanxToken();
       return { isAuthenticated: false };
     }
@@ -59,11 +90,16 @@ export const handleLocalAuthentication = async ({
         userCardLocation: location,
       };
     } catch (error) {
-      Logger.log('Token refresh failed:', error);
+      Logger.log('handleLocalAuthentication: Token refresh failed:', error);
+      // If refresh fails, clear tokens and require re-authentication
+      await removeCardBaanxToken();
       return { isAuthenticated: false };
     }
   } catch (error) {
-    Logger.log('Authentication verification failed:', error);
+    Logger.log(
+      'handleLocalAuthentication: Authentication verification failed:',
+      error,
+    );
     return {
       isAuthenticated: false,
     };

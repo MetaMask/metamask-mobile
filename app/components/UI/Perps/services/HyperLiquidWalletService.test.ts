@@ -4,6 +4,13 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+// Mock keyring-api to avoid import issues with definePattern
+jest.mock('@metamask/keyring-api', () => ({
+  isEvmAccountType: jest.fn((accountType: string) =>
+    accountType?.startsWith('eip155:'),
+  ),
+}));
+
 // Mock keyring controller to avoid import issues
 enum SignTypedDataVersion {
   V1 = 'V1',
@@ -81,11 +88,21 @@ jest.mock('../../../../core/Engine', () => {
     signTypedMessage: jest.fn().mockResolvedValue('0xSignatureResult'),
   };
 
+  const mockAccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        type: 'eip155:1',
+      },
+    ]),
+  };
+
   return {
     __esModule: true,
     default: {
       context: {
         KeyringController: mockKeyringController,
+        AccountTreeController: mockAccountTreeController,
       },
     },
   };
@@ -103,12 +120,10 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-import { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { store } from '../../../../store';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { HyperLiquidWalletService } from './HyperLiquidWalletService';
 
 describe('HyperLiquidWalletService', () => {
   let service: HyperLiquidWalletService;
@@ -248,13 +263,16 @@ describe('HyperLiquidWalletService', () => {
       });
 
       it('should throw error when no account selected', async () => {
-        jest
-          .mocked(selectSelectedInternalAccountByScope)
-          .mockReturnValueOnce(() => undefined);
+        // Mock AccountTreeController to return empty array (no accounts)
+        (
+          Engine.context.AccountTreeController
+            .getAccountsFromSelectedAccountGroup as jest.Mock
+        ).mockReturnValueOnce([]);
 
-        await expect(
-          walletAdapter.signTypedData(mockTypedDataParams),
-        ).rejects.toThrow('No account selected');
+        // Creating wallet adapter should throw when no account
+        expect(() => service.createWalletAdapter()).toThrow(
+          'No account selected',
+        );
       });
 
       it('should handle keyring controller errors', async () => {
@@ -289,10 +307,11 @@ describe('HyperLiquidWalletService', () => {
     });
 
     it('should throw error when getting account ID with no selected account', async () => {
-      // Mock selector to return null for this test
-      jest
-        .mocked(selectSelectedInternalAccountByScope)
-        .mockReturnValueOnce(() => undefined);
+      // Mock AccountTreeController to return empty array (no accounts)
+      (
+        Engine.context.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValueOnce([]);
 
       await expect(service.getCurrentAccountId()).rejects.toThrow(
         'No account selected',
@@ -362,8 +381,11 @@ describe('HyperLiquidWalletService', () => {
 
   describe('Error Handling', () => {
     it('should handle store state errors gracefully', async () => {
-      // Mock store.getState to throw an error
-      (store.getState as jest.Mock).mockImplementationOnce(() => {
+      // Mock AccountTreeController to throw an error
+      (
+        Engine.context.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockImplementationOnce(() => {
         throw new Error('Store error');
       });
 

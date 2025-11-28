@@ -10,6 +10,7 @@ import StakingWithdrawal from './staking-withdrawal';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
@@ -131,7 +132,7 @@ describe('StakingWithdrawal', () => {
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
 
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
 
     expect(mockGetNavbar).toHaveBeenCalled();
     expect(mockGetNavbar).toHaveBeenCalledWith({

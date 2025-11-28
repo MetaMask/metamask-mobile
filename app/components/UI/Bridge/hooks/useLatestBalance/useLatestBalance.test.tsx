@@ -143,6 +143,146 @@ describe('useLatestBalance', () => {
     expect(result.current).toBeUndefined();
   });
 
+  it('ignores formatted display string like "< 0.00001" and fetches real balance', async () => {
+    // Arrange & Act
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '< 0.00001',
+        }),
+      { state: initialState },
+    );
+
+    // Assert - Cached balance atomicBalance is undefined due to parse error
+    expect(result.current?.displayBalance).toBe('< 0.00001');
+    expect(result.current?.atomicBalance).toBeUndefined();
+
+    // Assert - Real balance is fetched from blockchain
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000000000000000'),
+      });
+    });
+  });
+
+  it('ignores balance with thousands separators and fetches real balance', async () => {
+    // Arrange & Act
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '1,234.56',
+        }),
+      { state: initialState },
+    );
+
+    // Assert - Cached balance atomicBalance is undefined due to parse error
+    expect(result.current?.displayBalance).toBe('1,234.56');
+    expect(result.current?.atomicBalance).toBeUndefined();
+
+    // Assert - Real balance is fetched from blockchain
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000000000000000'),
+      });
+    });
+  });
+
+  it('should parse cache balance', async () => {
+    // Arrange & Act
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '1234.56',
+        }),
+      { state: initialState },
+    );
+
+    // Assert - Cached balance atomicBalance is undefined due to parse error
+    expect(result.current?.displayBalance).toBe('1234.56');
+    expect(result.current?.atomicBalance).not.toBeUndefined();
+  });
+
+  it('returns cached balance with undefined atomicBalance when parseUnits fails', async () => {
+    // Arrange & Act
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: '0x1234567890123456789012345678901234567890',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+          balance: 'invalid balance string',
+        }),
+      { state: initialState },
+    );
+
+    // Assert - Cached balance has undefined atomicBalance due to parse error
+    expect(result.current?.displayBalance).toBe('invalid balance string');
+    expect(result.current?.atomicBalance).toBeUndefined();
+
+    // Assert - Real balance is fetched from blockchain
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000'),
+      });
+    });
+  });
+
+  it('returns undefined atomicBalance when token balance is not provided', async () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: undefined,
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000000000000000'),
+      });
+    });
+  });
+
+  it('handles empty string balance gracefully', async () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '',
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000000000000000'),
+      });
+    });
+  });
+
   it('should return cached balance when latest balance is not yet fetched', async () => {
     const { result } = renderHookWithProvider(
       () =>
@@ -383,6 +523,141 @@ describe('useLatestBalance', () => {
       expect(resultAfterSwitch.current).toEqual({
         displayBalance: '10.0',
         atomicBalance: BigNumber.from('10000000000000000000'),
+      });
+    });
+  });
+
+  describe('cachedBalance memoization', () => {
+    it('returns undefined when decimals is missing during balance parsing', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: undefined,
+            chainId: '0x1' as Hex,
+            balance: '10.0',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toBeUndefined();
+    });
+
+    it('memoizes cached balance when dependencies do not change', () => {
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 18,
+            chainId: '0x1' as Hex,
+            balance: '5.5',
+          }),
+        { state: initialState },
+      );
+
+      const firstResult = result.current;
+      rerender({ state: initialState });
+
+      expect(result.current).toBe(firstResult);
+    });
+
+    it('returns cached balance when token address changes', () => {
+      const firstToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        balance: '5.5',
+      };
+
+      const { result: firstResult } = renderHookWithProvider(
+        () => useLatestBalance(firstToken),
+        { state: initialState },
+      );
+
+      expect(firstResult.current?.displayBalance).toBe('5.5');
+
+      const secondToken = {
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        balance: '10.0',
+      };
+
+      const { result: secondResult } = renderHookWithProvider(
+        () => useLatestBalance(secondToken),
+        { state: initialState },
+      );
+
+      expect(secondResult.current?.displayBalance).toBe('10.0');
+      expect(secondResult.current).not.toBe(firstResult.current);
+    });
+
+    it('returns undefined when balance is provided but decimals is missing', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: undefined,
+            chainId: '0x1' as Hex,
+            balance: '100.0',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toBeUndefined();
+    });
+
+    it('handles zero balance correctly', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 18,
+            chainId: '0x1' as Hex,
+            balance: '0',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('handles very large balance values', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 18,
+            chainId: '0x1' as Hex,
+            balance: '999999999999999999999999.123456789012345678',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current?.displayBalance).toBe(
+        '999999999999999999999999.123456789012345678',
+      );
+      expect(result.current?.atomicBalance).toBeDefined();
+    });
+
+    it('handles very small decimal balance values', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 18,
+            chainId: '0x1' as Hex,
+            balance: '0.000000000000000001',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0.000000000000000001',
+        atomicBalance: BigNumber.from('1'),
       });
     });
   });

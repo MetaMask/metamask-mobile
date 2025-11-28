@@ -1,469 +1,194 @@
 // Third party dependencies.
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { View, Platform } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
 
 // Internal dependencies.
 import ListItemSelect from './ListItemSelect';
+import { VerticalAlignment } from '../ListItem/ListItem.types';
 
-// Create a test version of the TouchableOpacity wrapper to test the uncovered code
-const createTestTouchableOpacity = () => {
-  const TouchableOpacity = ({
-    onPress,
-    disabled,
-    children,
-    ...props
-  }: {
-    onPress?: (event: unknown) => void;
-    disabled?: boolean;
-    children?: React.ReactNode;
-    isDisabled?: boolean;
-    [key: string]: unknown;
-  }) => {
-    const isDisabled =
-      disabled || (props as { isDisabled?: boolean }).isDisabled;
-
-    const handleGestureEnd = (gestureEvent: {
-      x?: number;
-      y?: number;
-      absoluteX?: number;
-      absoluteY?: number;
-    }) => {
-      if (onPress && !isDisabled) {
-        const syntheticEvent = {
-          nativeEvent: {
-            locationX: gestureEvent.x || 0,
-            locationY: gestureEvent.y || 0,
-            pageX: gestureEvent.absoluteX || 0,
-            pageY: gestureEvent.absoluteY || 0,
-            timestamp: Date.now(),
-          },
-          persist: () => {
-            // no-op for synthetic event
-          },
-          preventDefault: () => {
-            // no-op for synthetic event
-          },
-          stopPropagation: () => {
-            // no-op for synthetic event
-          },
-        };
-        onPress(syntheticEvent);
-      }
-    };
-
-    return (
-      <View
-        testID="touchable-wrapper"
-        onTouchEnd={() =>
-          handleGestureEnd({ x: 100, y: 100, absoluteX: 100, absoluteY: 100 })
-        }
-        {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
-      >
-        {children}
-      </View>
-    );
-  };
-
-  return TouchableOpacity;
-};
-
-describe('ListItemSelect TouchableOpacity Wrapper Logic', () => {
-  const TestTouchableOpacity = createTestTouchableOpacity();
-
-  it('should handle isDisabled logic correctly', () => {
-    const mockOnPress = jest.fn();
-
-    const { rerender } = render(
-      <TestTouchableOpacity onPress={mockOnPress} disabled>
-        <View />
-      </TestTouchableOpacity>,
-    );
-
-    rerender(
-      <TestTouchableOpacity onPress={mockOnPress} isDisabled>
-        <View />
-      </TestTouchableOpacity>,
-    );
-
-    expect(mockOnPress).not.toHaveBeenCalled();
-  });
-
-  it('should create synthetic event with correct structure', () => {
-    const mockOnPress = jest.fn();
-    const { getByTestId } = render(
-      <TestTouchableOpacity onPress={mockOnPress}>
-        <View />
-      </TestTouchableOpacity>,
-    );
-
-    const wrapper = getByTestId('touchable-wrapper');
-    fireEvent(wrapper, 'touchEnd');
-
-    expect(mockOnPress).toHaveBeenCalledWith(
-      expect.objectContaining({
-        nativeEvent: expect.objectContaining({
-          locationX: 100,
-          locationY: 100,
-          pageX: 100,
-          pageY: 100,
-          timestamp: expect.any(Number),
-        }),
-        persist: expect.any(Function),
-        preventDefault: expect.any(Function),
-        stopPropagation: expect.any(Function),
-      }),
-    );
-  });
-
-  it('should not call onPress when disabled', () => {
-    const mockOnPress = jest.fn();
-    const { getByTestId } = render(
-      <TestTouchableOpacity onPress={mockOnPress} disabled>
-        <View />
-      </TestTouchableOpacity>,
-    );
-
-    const wrapper = getByTestId('touchable-wrapper');
-    fireEvent(wrapper, 'touchEnd');
-
-    expect(mockOnPress).not.toHaveBeenCalled();
-  });
-});
+// Test the real TempTouchableOpacity component - no mocking needed
 
 describe('ListItemSelect', () => {
-  it('should render snapshot correctly', () => {
-    const wrapper = render(
-      <ListItemSelect>
-        <View />
+  it('renders with basic props', () => {
+    const { getByTestId } = render(
+      <ListItemSelect onPress={() => null} testID="list-item-select">
+        <View testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
-    expect(wrapper).toMatchSnapshot();
+
+    expect(getByTestId('list-item-select')).toBeOnTheScreen();
+    expect(getByTestId('test-content')).toBeOnTheScreen();
   });
 
-  it('should not render the selected view if isSelected is false', () => {
-    const { queryByRole } = render(
-      <ListItemSelect>
-        <View />
+  it('renders when disabled', () => {
+    const { getByTestId } = render(
+      <ListItemSelect onPress={() => null} isDisabled testID="list-item-select">
+        <View testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
-    expect(queryByRole('checkbox')).toBeNull();
+
+    const component = getByTestId('list-item-select');
+    expect(component).toBeOnTheScreen();
+    expect(component.props.disabled).toBe(true);
   });
 
-  it('should render the selected view if isSelected is true', () => {
-    const { queryByRole } = render(
-      <ListItemSelect isSelected>
-        <View />
+  it('calls onPress when pressed', () => {
+    const mockOnPress = jest.fn();
+    const { getByTestId } = render(
+      <ListItemSelect onPress={mockOnPress} testID="list-item-select">
+        <View testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
-    expect(queryByRole('checkbox')).not.toBeNull();
+
+    const component = getByTestId('list-item-select');
+    fireEvent.press(component);
+
+    expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  describe('Android-specific gesture handling', () => {
-    const originalPlatform = Platform.OS;
+  it('renders disabled component with correct props', () => {
+    const mockOnPress = jest.fn();
+    const { getByTestId } = render(
+      <ListItemSelect
+        onPress={mockOnPress}
+        isDisabled
+        testID="list-item-select"
+      >
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-    beforeEach(() => {
-      Platform.OS = 'android';
-    });
-
-    afterEach(() => {
-      Platform.OS = originalPlatform;
-    });
-
-    it('should call onPress when item is pressed on Android', () => {
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect onPress={mockOnPress} testID="list-item-select">
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      fireEvent.press(listItem);
-
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call onPress when item is disabled on Android', () => {
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect
-          onPress={mockOnPress}
-          isDisabled
-          testID="list-item-select"
-        >
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      fireEvent.press(listItem);
-
-      expect(mockOnPress).not.toHaveBeenCalled();
-    });
-
-    it('should call onLongPress when item is long pressed on Android', () => {
-      const mockOnLongPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect onLongPress={mockOnLongPress} testID="list-item-select">
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      fireEvent(listItem, 'longPress');
-
-      expect(mockOnLongPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('should use GestureDetector wrapper on Android', () => {
-      const { getByTestId } = render(
-        <ListItemSelect onPress={() => null} testID="list-item-select">
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      expect(listItem).toBeTruthy();
-      // On Android, the component should be wrapped with GestureDetector
-      // The item should still be accessible and functional
-    });
+    const component = getByTestId('list-item-select');
+    expect(component).toBeOnTheScreen();
+    expect(component.props.disabled).toBe(true);
   });
 
-  describe('iOS behavior (non-Android)', () => {
-    const originalPlatform = Platform.OS;
+  it('calls onLongPress when long pressed', () => {
+    const mockOnLongPress = jest.fn();
+    const { getByTestId } = render(
+      <ListItemSelect
+        onPress={() => null}
+        onLongPress={mockOnLongPress}
+        testID="list-item-select"
+      >
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-    beforeEach(() => {
-      Platform.OS = 'ios';
-    });
+    const component = getByTestId('list-item-select');
+    fireEvent(component, 'longPress');
 
-    afterEach(() => {
-      Platform.OS = originalPlatform;
-    });
-
-    it('should use standard TouchableOpacity on iOS', () => {
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect onPress={mockOnPress} testID="list-item-select">
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      fireEvent.press(listItem);
-
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
-    });
+    expect(mockOnLongPress).toHaveBeenCalledTimes(1);
   });
 
-  describe('TouchableOpacity wrapper gesture handling', () => {
-    const originalPlatform = Platform.OS;
+  it('renders with selected state', () => {
+    const { getByTestId, getByRole } = render(
+      <ListItemSelect onPress={() => null} isSelected testID="list-item-select">
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-    beforeEach(() => {
-      Platform.OS = 'android';
-    });
+    const component = getByTestId('list-item-select');
+    expect(component).toBeOnTheScreen();
 
-    afterEach(() => {
-      Platform.OS = originalPlatform;
-    });
-
-    it('should call onPress when item is pressed (Android wrapper active)', () => {
-      // Override test environment detection to enable Android gesture wrapper
-      const originalEnv = process.env.NODE_ENV;
-      const originalIsTest = process.env.IS_TEST;
-      const originalMetaMaskEnv = process.env.METAMASK_ENVIRONMENT;
-
-      Object.defineProperty(process.env, 'NODE_ENV', {
-        value: 'development',
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      });
-      delete process.env.IS_TEST;
-      delete process.env.METAMASK_ENVIRONMENT;
-
-      try {
-        const mockOnPress = jest.fn();
-        const { getByTestId } = render(
-          <ListItemSelect onPress={mockOnPress} testID="list-item-select">
-            <View />
-          </ListItemSelect>,
-        );
-
-        const listItem = getByTestId('list-item-select');
-        fireEvent.press(listItem);
-
-        expect(mockOnPress).toHaveBeenCalledTimes(1);
-      } finally {
-        Object.defineProperty(process.env, 'NODE_ENV', {
-          value: originalEnv,
-          writable: true,
-          enumerable: true,
-          configurable: true,
-        });
-        if (originalIsTest) process.env.IS_TEST = originalIsTest;
-        if (originalMetaMaskEnv)
-          process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;
-      }
-    });
-
-    it('should handle isDisabled prop in TouchableOpacity wrapper', () => {
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect
-          onPress={mockOnPress}
-          isDisabled
-          testID="list-item-select"
-        >
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      fireEvent.press(listItem);
-
-      expect(mockOnPress).not.toHaveBeenCalled();
-    });
-
-    it('should preserve accessibility onPress when not disabled', () => {
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect onPress={mockOnPress} testID="list-item-select">
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      expect(listItem.props.onPress).toBeDefined();
-    });
-
-    it('should set accessibility onPress to undefined when disabled', () => {
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect
-          onPress={mockOnPress}
-          isDisabled
-          testID="list-item-select"
-        >
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      expect(listItem.props.onPress).toBeUndefined();
-    });
+    // Check for checkbox accessibility role when selected
+    const checkbox = getByRole('checkbox');
+    expect(checkbox).toBeOnTheScreen();
   });
 
-  describe('Environment-specific component selection', () => {
-    const originalPlatform = Platform.OS;
-    const originalEnv = process.env;
+  it('renders without selected state', () => {
+    const { getByTestId, queryByRole } = render(
+      <ListItemSelect
+        onPress={() => null}
+        isSelected={false}
+        testID="list-item-select"
+      >
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-    beforeEach(() => {
-      Platform.OS = 'android';
-      jest.resetModules();
-      process.env = { ...originalEnv };
-    });
+    const component = getByTestId('list-item-select');
+    expect(component).toBeOnTheScreen();
 
-    afterEach(() => {
-      Platform.OS = originalPlatform;
-      process.env = originalEnv;
-    });
+    // Should not have checkbox when not selected
+    const checkbox = queryByRole('checkbox');
+    expect(checkbox).toBeNull();
+  });
 
-    it('should use RNTouchableOpacity in E2E test environment', () => {
-      process.env.IS_TEST = 'true';
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect onPress={mockOnPress} testID="list-item-select">
-          <View />
-        </ListItemSelect>,
-      );
+  it('passes through additional props to TempTouchableOpacity', () => {
+    const { getByTestId } = render(
+      <ListItemSelect
+        onPress={() => null}
+        testID="test-list-item"
+        accessibilityLabel="Test List Item"
+      >
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-      const listItem = getByTestId('list-item-select');
-      fireEvent.press(listItem);
+    const component = getByTestId('test-list-item');
+    expect(component.props.accessibilityLabel).toBe('Test List Item');
+  });
 
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
-    });
+  it('handles custom gap prop', () => {
+    const { getByTestId } = render(
+      <ListItemSelect onPress={() => null} gap={20} testID="list-item-select">
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-    it('should use RNTouchableOpacity in unit test environment', () => {
-      Object.defineProperty(process.env, 'NODE_ENV', {
-        value: 'test',
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      });
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect onPress={mockOnPress} testID="list-item-select">
-          <View />
-        </ListItemSelect>,
-      );
+    const component = getByTestId('list-item-select');
+    expect(component).toBeOnTheScreen();
+  });
 
-      const listItem = getByTestId('list-item-select');
-      fireEvent.press(listItem);
+  it('handles custom vertical alignment', () => {
+    const { getByTestId } = render(
+      <ListItemSelect
+        onPress={() => null}
+        verticalAlignment={VerticalAlignment.Center}
+        testID="list-item-select"
+      >
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
-    });
+    const component = getByTestId('list-item-select');
+    expect(component).toBeOnTheScreen();
+  });
 
-    it('should use RNTouchableOpacity in MetaMask E2E environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'e2e';
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect onPress={mockOnPress} testID="list-item-select">
-          <View />
-        </ListItemSelect>,
-      );
+  it('renders with custom style', () => {
+    const customStyle = { backgroundColor: 'red' };
+    const { getByTestId } = render(
+      <ListItemSelect
+        onPress={() => null}
+        style={customStyle}
+        testID="list-item-select"
+      >
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-      const listItem = getByTestId('list-item-select');
-      fireEvent.press(listItem);
+    const component = getByTestId('list-item-select');
+    expect(component).toBeOnTheScreen();
+  });
 
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
-    });
+  it('passes through custom listItemProps', () => {
+    const { getByTestId } = render(
+      <ListItemSelect
+        onPress={() => null}
+        listItemProps={{
+          accessibilityHint: 'Custom Hint',
+          testID: 'nested-list-item',
+        }}
+      >
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
 
-    it('should set onPress to undefined when disabled in test environment', () => {
-      Object.defineProperty(process.env, 'NODE_ENV', {
-        value: 'test',
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      });
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <ListItemSelect
-          onPress={mockOnPress}
-          isDisabled
-          testID="list-item-select"
-        >
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      fireEvent.press(listItem);
-
-      expect(mockOnPress).not.toHaveBeenCalled();
-    });
-
-    it('should expose disabled prop in test environment', () => {
-      Object.defineProperty(process.env, 'NODE_ENV', {
-        value: 'test',
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      });
-      const { getByTestId } = render(
-        <ListItemSelect
-          onPress={() => null}
-          isDisabled
-          testID="list-item-select"
-        >
-          <View />
-        </ListItemSelect>,
-      );
-
-      const listItem = getByTestId('list-item-select');
-      expect(listItem.props.disabled).toBe(true);
-    });
+    const component = getByTestId('nested-list-item');
+    expect(component.props.accessibilityHint).toBe('Custom Hint');
   });
 });

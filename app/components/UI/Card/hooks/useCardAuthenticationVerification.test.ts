@@ -4,63 +4,43 @@ import { useCardAuthenticationVerification } from './useCardAuthenticationVerifi
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { verifyCardAuthentication } from '../../../../core/redux/slices/card';
 import Logger from '../../../../util/Logger';
-import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 
 jest.mock('react-redux');
 jest.mock('../../../hooks/useThunkDispatch');
 jest.mock('../../../../core/redux/slices/card');
 jest.mock('../../../../util/Logger');
+jest.mock('./isBaanxLoginEnabled');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseThunkDispatch = useThunkDispatch as jest.MockedFunction<
   typeof useThunkDispatch
 >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
+const mockUseIsBaanxLoginEnabled =
+  useIsBaanxLoginEnabled as jest.MockedFunction<typeof useIsBaanxLoginEnabled>;
 
 describe('useCardAuthenticationVerification', () => {
   const mockDispatch = jest.fn();
-
-  const mockCardFeatureFlag: CardFeatureFlag = {
-    isBaanxLoginEnabled: true,
-    constants: {
-      onRampApiUrl: 'https://api.onramp.metamask.io',
-      accountsApiUrl: 'https://api.accounts.metamask.io',
-    },
-    chains: {
-      '1': {
-        enabled: true,
-        tokens: [],
-      },
-    },
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseThunkDispatch.mockReturnValue(mockDispatch);
   });
 
-  const defaultMockState = {
-    userLoggedIn: true,
-    cardFeatureFlag: mockCardFeatureFlag,
+  const setupMocks = (
+    userLoggedIn: boolean,
+    isBaanxLoginEnabled: boolean,
+    isAuthenticated: boolean = false,
+  ) => {
+    mockUseSelector
+      .mockReturnValueOnce(userLoggedIn)
+      .mockReturnValueOnce(isAuthenticated);
+    mockUseIsBaanxLoginEnabled.mockReturnValue(isBaanxLoginEnabled);
   };
 
-  const setupMockSelectors = (overrides = {}) => {
-    const state = { ...defaultMockState, ...overrides };
-
-    mockUseSelector.mockReset();
-
-    const selectorValues = [state.userLoggedIn, state.cardFeatureFlag];
-
-    let callIndex = 0;
-    mockUseSelector.mockImplementation(() => {
-      const value = selectorValues[callIndex % selectorValues.length];
-      callIndex++;
-      return value;
-    });
-  };
-
-  it('dispatches verification when all conditions are met', () => {
-    setupMockSelectors();
+  it('dispatches verification when user is logged in and Baanx login is enabled', () => {
+    setupMocks(true, true);
 
     renderHook(() => useCardAuthenticationVerification());
 
@@ -71,63 +51,24 @@ describe('useCardAuthenticationVerification', () => {
     );
   });
 
-  it('dispatches verification with isBaanxLoginEnabled false', () => {
-    setupMockSelectors({
-      cardFeatureFlag: { ...mockCardFeatureFlag, isBaanxLoginEnabled: false },
-    });
+  it('does not dispatch when user is logged in but Baanx login is disabled', () => {
+    setupMocks(true, false);
 
     renderHook(() => useCardAuthenticationVerification());
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      verifyCardAuthentication({
-        isBaanxLoginEnabled: false,
-      }),
-    );
-  });
-
-  it('dispatches verification when isBaanxLoginEnabled is undefined', () => {
-    const featureFlagWithoutBaanx = { ...mockCardFeatureFlag };
-    delete (featureFlagWithoutBaanx as Partial<CardFeatureFlag>)
-      .isBaanxLoginEnabled;
-    setupMockSelectors({
-      cardFeatureFlag: featureFlagWithoutBaanx,
-    });
-
-    renderHook(() => useCardAuthenticationVerification());
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      verifyCardAuthentication({
-        isBaanxLoginEnabled: false,
-      }),
-    );
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('does not dispatch when user is not logged in', () => {
-    setupMockSelectors({ userLoggedIn: false });
+    setupMocks(false, true);
 
     renderHook(() => useCardAuthenticationVerification());
 
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch when card feature flag is null', () => {
-    setupMockSelectors({ cardFeatureFlag: null });
-
-    renderHook(() => useCardAuthenticationVerification());
-
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch when card feature flag is undefined', () => {
-    setupMockSelectors({ cardFeatureFlag: undefined });
-
-    renderHook(() => useCardAuthenticationVerification());
-
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch when both user is not logged in and card feature flag is not enabled', () => {
-    setupMockSelectors({ userLoggedIn: false, cardFeatureFlag: null });
+  it('does not dispatch when user is not logged in and Baanx login is disabled', () => {
+    setupMocks(false, false);
 
     renderHook(() => useCardAuthenticationVerification());
 
@@ -136,7 +77,7 @@ describe('useCardAuthenticationVerification', () => {
 
   it('logs error when dispatch throws Error instance', () => {
     const testError = new Error('Test dispatch error');
-    setupMockSelectors();
+    setupMocks(true, true);
     mockDispatch.mockImplementation(() => {
       throw testError;
     });
@@ -150,7 +91,7 @@ describe('useCardAuthenticationVerification', () => {
   });
 
   it('logs error when dispatch throws non-Error value', () => {
-    setupMockSelectors();
+    setupMocks(true, true);
     mockDispatch.mockImplementation(() => {
       throw 'String error';
     });
@@ -164,12 +105,12 @@ describe('useCardAuthenticationVerification', () => {
   });
 
   it('dispatches verification when user logs in', () => {
-    setupMockSelectors({ userLoggedIn: false });
+    setupMocks(false, true);
     const { rerender } = renderHook(() => useCardAuthenticationVerification());
 
     expect(mockDispatch).not.toHaveBeenCalled();
 
-    setupMockSelectors({ userLoggedIn: true });
+    setupMocks(true, true);
     rerender();
 
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -179,13 +120,13 @@ describe('useCardAuthenticationVerification', () => {
     );
   });
 
-  it('dispatches verification when card feature flag is enabled', () => {
-    setupMockSelectors({ cardFeatureFlag: null });
+  it('dispatches verification when Baanx login becomes enabled', () => {
+    setupMocks(true, false);
     const { rerender } = renderHook(() => useCardAuthenticationVerification());
 
     expect(mockDispatch).not.toHaveBeenCalled();
 
-    setupMockSelectors({ cardFeatureFlag: mockCardFeatureFlag });
+    setupMocks(true, true);
     rerender();
 
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -195,24 +136,13 @@ describe('useCardAuthenticationVerification', () => {
     );
   });
 
-  it('dispatches verification again when isBaanxLoginEnabled flag changes', () => {
-    setupMockSelectors({
-      cardFeatureFlag: { ...mockCardFeatureFlag, isBaanxLoginEnabled: false },
-    });
+  it('dispatches verification again when isBaanxLoginEnabled flag changes from false to true', () => {
+    setupMocks(true, false);
     const { rerender } = renderHook(() => useCardAuthenticationVerification());
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      verifyCardAuthentication({
-        isBaanxLoginEnabled: false,
-      }),
-    );
-    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalled();
 
-    mockDispatch.mockClear();
-
-    setupMockSelectors({
-      cardFeatureFlag: { ...mockCardFeatureFlag, isBaanxLoginEnabled: true },
-    });
+    setupMocks(true, true);
     rerender();
 
     expect(mockDispatch).toHaveBeenCalledWith(

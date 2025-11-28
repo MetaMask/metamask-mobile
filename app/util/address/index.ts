@@ -148,6 +148,24 @@ export function renderShortAddress(address: string, chars = 5) {
   )}`;
 }
 
+/**
+ * Returns short account name format
+ * @param {String} accountName - String corresponding to an account name
+ * @param {Number} chars - Number of characters to show at the end and beginning.
+ * Defaults to 20.
+ * @returns {String} - String corresponding to short account name format
+ */
+export function renderShortAccountName(
+  accountName: string,
+  chars: number = 20,
+): string {
+  if (!accountName) return accountName;
+  if (accountName.length <= chars) {
+    return accountName;
+  }
+  return `${accountName.substr(0, chars)}...`;
+}
+
 export function renderSlightlyLongAddress(
   address: string,
   chars = 4,
@@ -662,9 +680,10 @@ export async function validateAddressOrENS(
       // Check if it's token contract address on mainnet
       if (isMainnet) {
         try {
-          const symbol = await AssetsContractController.getERC721AssetSymbol(
-            checksummedAddress,
-          );
+          const symbol =
+            await AssetsContractController.getERC721AssetSymbol(
+              checksummedAddress,
+            );
           if (symbol) {
             addressError = SYMBOL_ERROR;
             errorContinue = true;

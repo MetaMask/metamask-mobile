@@ -1,46 +1,38 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import AddAsset, { FilterOption, handleFilterControlsPress } from './AddAsset';
+import AddAsset from './AddAsset';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { fireEvent } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import Engine from '../../../core/Engine';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
-import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-
-const { PreferencesController } = Engine.context;
+import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
 
-// Mock the feature flag and network utilities
-jest.mock('../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
-  getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
-  getNetworkImageSource: jest.fn(() => 'ethereum'),
-  getBlockExplorerAddressUrl: jest.fn(() => ({
-    title: 'View on Etherscan',
-    url: 'https://etherscan.io',
-  })),
-}));
+// Mock network utilities, preserving other exports like getDecimalChainId
+jest.mock('../../../util/networks', () => {
+  const actual = jest.requireActual('../../../util/networks');
 
-// Mock the useNetworksByNamespace hook
-jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
-  useNetworksByNamespace: jest.fn(),
-  NetworkType: {
-    Popular: 'popular',
-    Custom: 'custom',
-  },
-}));
-
-// Mock the useNetworkSelection hook
-jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
-  useNetworkSelection: jest.fn(),
-}));
+  return {
+    ...actual,
+    getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
+    getNetworkImageSource: jest.fn(() => 'ethereum'),
+    getBlockExplorerAddressUrl: jest.fn(() => ({
+      title: 'View on Etherscan',
+      url: 'https://etherscan.io',
+    })),
+    isTestNet: jest.fn(() => false),
+    getTestNetImageByChainId: jest.fn(() => 'testnet-image'),
+    getDefaultNetworkByChainId: jest.fn(() => ({
+      imageSource: 'default-image',
+    })),
+  };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -57,14 +49,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
-  },
-}));
 
 const mockUseParamsValues: {
   assetType: string;
@@ -83,9 +67,68 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 jest.mock(
   '@tommasini/react-native-scrollable-tab-view',
   () =>
-    ({ children }: { children: React.ReactNode }) =>
-      <>{children}</>,
+    ({ children }: { children: React.ReactNode }) => <>{children}</>,
 );
+
+jest.mock('../../UI/Bridge/hooks/useTopTokens', () => ({
+  useTopTokens: jest.fn(() => ({
+    topTokens: [],
+    remainingTokens: [],
+    pending: false,
+  })),
+}));
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
+  isNonEvmChainId: jest.fn(),
+}));
+
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+    NetworkController: {
+      state: {
+        networkConfigurationsByChainId: {},
+      },
+    },
+  },
+}));
+
+const mockEnableNetworkEnablement = {
+  enabledNetworksForCurrentNamespace: {
+    '0x1': true,
+    '0x89': false,
+    '0xa': true,
+  },
+  enabledNetworksForAllNamespaces: {
+    // EVM networks
+    '0x1': true,
+    '0x89': true,
+    '0xa': true,
+    '0xa4b1': true,
+    '0x38': true,
+    // Solana networks
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+    'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': false,
+    'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': false,
+    // Bitcoin networks
+    'bip122:000000000019d6689c085ae165831e93': true,
+    'bip122:000000000933ea01ad0ee984209779ba': false,
+    // Tron networks
+    'tron:728126428': true,
+    'tron:2494104990': false,
+  },
+};
+
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: jest.fn(() => mockEnableNetworkEnablement),
+}));
 
 const initialState = {
   engine: {
@@ -111,40 +154,17 @@ const renderComponent = (component: React.ReactElement) =>
     },
   );
 
+const mockUseTopTokens = jest.mocked(useTopTokens);
+
 describe('AddAsset component', () => {
-  const mockUseNetworksByNamespace =
-    useNetworksByNamespace as jest.MockedFunction<
-      typeof useNetworksByNamespace
-    >;
-  const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
-    typeof useNetworkSelection
-  >;
-  const mockIsRemoveGlobalNetworkSelectorEnabled =
-    isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
-      typeof isRemoveGlobalNetworkSelectorEnabled
-    >;
-
-  const mockSelectNetwork = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseNetworksByNamespace.mockReturnValue({
-      networks: [],
-      selectedNetworks: [],
-      areAllNetworksSelected: false,
-      areAnyNetworksSelected: false,
-      networkCount: 0,
-      selectedCount: 0,
+    mockIsNonEvmChainId.mockReturnValue(false);
+    mockUseTopTokens.mockReturnValue({
+      topTokens: [],
+      remainingTokens: [],
+      pending: false,
     });
-    mockUseNetworkSelection.mockReturnValue({
-      selectCustomNetwork: jest.fn(),
-      selectPopularNetwork: jest.fn(),
-      selectNetwork: mockSelectNetwork,
-      deselectAll: jest.fn(),
-      selectAllPopularNetworks: jest.fn(),
-      customNetworksToReset: [],
-    });
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
   });
 
   it('renders collectible view correctly', () => {
@@ -165,17 +185,6 @@ describe('AddAsset component', () => {
     expect(getByTestId('add-token-screen')).toBeDefined();
   });
 
-  it('handles filter controls press for collectibles', () => {
-    mockUseParamsValues.assetType = 'token';
-    const { getByTestId, debug } = renderComponent(<AddAsset />);
-    debug();
-
-    const filterButton = getByTestId('filter-controls-button');
-    fireEvent.press(filterButton);
-
-    expect(getByTestId('select-network-button')).toBeDefined();
-  });
-
   it('renders display nft warning when displayNftMedia is true', () => {
     mockUseParamsValues.assetType = 'collectible';
     const { getByTestId } = renderWithProvider(<AddAsset />, {
@@ -184,196 +193,13 @@ describe('AddAsset component', () => {
 
     expect(
       getByTestId(AddAssetViewSelectorsIDs.WARNING_ENABLE_DISPLAY_MEDIA),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-      });
-
-      it('calls selectNetwork when AllNetworks filter option is selected', () => {
-        mockUseParamsValues.assetType = 'token';
-        renderComponent(<AddAsset />);
-
-        // Simulate the filter controls press by calling the function directly
-        // Since the component doesn't expose this function directly, we'll test the behavior
-        // by checking that the hook is set up correctly and the function would be called
-        expect(mockUseNetworksByNamespace).toHaveBeenCalledWith({
-          networkType: 'popular',
-        });
-        expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-          networks: [],
-        });
-
-        // The selectNetwork function should be available and ready to be called
-        expect(mockSelectNetwork).toBeDefined();
-      });
-
-      it('calls selectNetwork when CurrentNetwork filter option is selected', () => {
-        mockUseParamsValues.assetType = 'token';
-        renderComponent(<AddAsset />);
-
-        // Verify that the hooks are properly set up for network selection
-        expect(mockUseNetworksByNamespace).toHaveBeenCalledWith({
-          networkType: 'popular',
-        });
-        expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-          networks: [],
-        });
-
-        // The selectNetwork function should be available and ready to be called
-        expect(mockSelectNetwork).toBeDefined();
-      });
-    });
-
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-      });
-
-      it('does not call selectNetwork when filter options are selected', () => {
-        mockUseParamsValues.assetType = 'token';
-        renderComponent(<AddAsset />);
-
-        // Verify that the hooks are still set up but selectNetwork won't be called
-        expect(mockUseNetworksByNamespace).toHaveBeenCalledWith({
-          networkType: 'popular',
-        });
-        expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-          networks: [],
-        });
-
-        // The selectNetwork function should still be available but won't be called
-        expect(mockSelectNetwork).toBeDefined();
-      });
-    });
-
-    describe('filter controls behavior', () => {
-      it('handles AllNetworks filter option correctly', () => {
-        mockUseParamsValues.assetType = 'token';
-        renderComponent(<AddAsset />);
-
-        // Test that the component renders correctly with the filter controls
-        expect(mockUseNetworksByNamespace).toHaveBeenCalledWith({
-          networkType: 'popular',
-        });
-        expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-          networks: [],
-        });
-      });
-
-      it('handles CurrentNetwork filter option correctly', () => {
-        mockUseParamsValues.assetType = 'token';
-        renderComponent(<AddAsset />);
-
-        // Test that the component renders correctly with the filter controls
-        expect(mockUseNetworksByNamespace).toHaveBeenCalledWith({
-          networkType: 'popular',
-        });
-        expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-          networks: [],
-        });
-      });
-    });
-  });
-
-  describe('Navigation interactions', () => {
-    it('renders banner with action button for collectibles when displayNftMedia is false', () => {
-      mockUseParamsValues.assetType = 'collectible';
-
-      // Render with displayNftMedia false to show the action button
-      const { getAllByRole } = renderWithProvider(<AddAsset />, {
-        state: {
-          ...initialState,
-          engine: {
-            ...initialState.engine,
-            backgroundState: {
-              ...initialState.engine.backgroundState,
-              PreferencesController: {
-                ...initialState.engine.backgroundState.PreferencesController,
-                displayNftMedia: false,
-              },
-            },
-          },
-        },
-      });
-
-      // Verify that action buttons exist - this shows the banner with action button is rendered
-      const buttons = getAllByRole('button');
-      expect(buttons.length).toBeGreaterThan(0);
-    });
-
-    it('calls setOptions with correct navbar options for token view', () => {
-      mockUseParamsValues.assetType = 'token';
-      renderComponent(<AddAsset />);
-
-      // The component should call setOptions during useEffect
-      expect(mockSetOptions).toHaveBeenCalled();
-    });
-
-    it('calls setOptions with correct navbar options for collectible view', () => {
-      mockUseParamsValues.assetType = 'collectible';
-      renderComponent(<AddAsset />);
-
-      // The component should call setOptions during useEffect
-      expect(mockSetOptions).toHaveBeenCalled();
-    });
-  });
-
-  describe('State management', () => {
-    it('opens and closes network filter bottom sheet', () => {
-      mockUseParamsValues.assetType = 'token';
-      mockUseNetworksByNamespace.mockReturnValue({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        networks: [{ name: 'Ethereum' } as any],
-        selectedNetworks: [],
-        areAllNetworksSelected: false,
-        areAnyNetworksSelected: false,
-        networkCount: 1,
-        selectedCount: 0,
-      });
-
-      const { getByTestId, queryByText } = renderComponent(<AddAsset />);
-
-      // Initially, network filter should not be visible
-      expect(queryByText('Network Filter')).toBeNull();
-
-      // Click filter button to open network filter
-      const filterButton = getByTestId('filter-controls-button');
-      fireEvent.press(filterButton);
-
-      // Network filter should now be open
-      expect(getByTestId('select-network-button')).toBeDefined();
-    });
-
-    it('handles network selection', () => {
-      mockUseParamsValues.assetType = 'token';
-      const mockSelectNetworkFn = jest.fn();
-      mockUseNetworkSelection.mockReturnValue({
-        selectCustomNetwork: jest.fn(),
-        selectPopularNetwork: jest.fn(),
-        selectNetwork: mockSelectNetworkFn,
-        deselectAll: jest.fn(),
-        selectAllPopularNetworks: jest.fn(),
-        customNetworksToReset: [],
-      });
-
-      renderComponent(<AddAsset />);
-
-      // Test that network selection hooks are properly initialized
-      expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-        networks: [],
-      });
-    });
-  });
-
-  describe('Conditional rendering based on selectors', () => {
+  describe('NFT Display Settings', () => {
     it('renders banner with action button when displayNftMedia is false', () => {
       mockUseParamsValues.assetType = 'collectible';
 
-      // Test with displayNftMedia false - should show enable CTA
       const { getAllByRole } = renderWithProvider(<AddAsset />, {
         state: {
           ...initialState,
@@ -390,9 +216,8 @@ describe('AddAsset component', () => {
         },
       });
 
-      // Should show action button when displayNftMedia is false
       const buttons = getAllByRole('button');
-      expect(buttons.length).toBeGreaterThan(0); // At least one button should exist
+      expect(buttons.length).toBeGreaterThan(0);
     });
 
     it('renders banner warning when displayNftMedia is true', () => {
@@ -415,255 +240,291 @@ describe('AddAsset component', () => {
         },
       });
 
-      // Should show the warning test ID
       expect(
         getByTestId(AddAssetViewSelectorsIDs.WARNING_ENABLE_DISPLAY_MEDIA),
-      ).toBeDefined();
-    });
-
-    it('renders token detection section when supported', () => {
-      mockUseParamsValues.assetType = 'token';
-
-      // Mock token detection as supported by having the component render
-      const { getByTestId } = renderComponent(<AddAsset />);
-
-      // Should render the token screen
-      expect(getByTestId('add-token-screen')).toBeDefined();
-    });
-
-    it('shows correct network information', () => {
-      mockUseParamsValues.assetType = 'token';
-
-      const mockNetworkConfigs = {
-        '0x1': {
-          name: 'Ethereum Mainnet',
-          chainId: '0x1' as const,
-          rpcEndpoints: [
-            {
-              networkClientId: 'mainnet',
-            },
-          ],
-          defaultRpcEndpointIndex: 0,
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
-
-      renderWithProvider(<AddAsset />, {
-        state: {
-          ...initialState,
-          engine: {
-            ...initialState.engine,
-            backgroundState: {
-              ...initialState.engine.backgroundState,
-              NetworkController: {
-                ...initialState.engine.backgroundState.NetworkController,
-                networkConfigurationsByChainId: mockNetworkConfigs,
-              },
-            },
-          },
-        },
-      });
-
-      expect(useNetworksByNamespace).toHaveBeenCalledWith({
-        networkType: 'popular',
-      });
+      ).toBeOnTheScreen();
     });
   });
 
-  describe('Props passing to child components', () => {
-    it('passes correct props to SearchTokenAutocomplete', () => {
-      mockUseParamsValues.assetType = 'token';
-
-      const { getByTestId } = renderComponent(<AddAsset />);
-
-      // Verify that SearchTokenAutocomplete receives expected props
-      const searchTab = getByTestId('add-token-screen');
-      expect(searchTab).toBeDefined();
-    });
-
-    it('passes correct props to AddCustomToken', () => {
-      mockUseParamsValues.assetType = 'token';
-
-      const { getByTestId } = renderComponent(<AddAsset />);
-
-      // Verify that AddCustomToken receives expected props
-      const tokenTab = getByTestId('add-token-screen');
-      expect(tokenTab).toBeDefined();
-    });
-
-    it('passes correct props to AddCustomCollectible', () => {
-      mockUseParamsValues.assetType = 'collectible';
-
-      const { getByTestId } = renderComponent(<AddAsset />);
-
-      // Verify that AddCustomCollectible receives expected props
-      const collectibleScreen = getByTestId('add-collectible-screen');
-      expect(collectibleScreen).toBeDefined();
-    });
-  });
-
-  describe('Edge cases and error scenarios', () => {
+  describe('Edge cases', () => {
     it('handles missing collectibleContract param gracefully', () => {
       mockUseParamsValues.assetType = 'collectible';
       delete mockUseParamsValues.collectibleContract;
 
       expect(() => renderComponent(<AddAsset />)).not.toThrow();
     });
+  });
 
-    it('handles empty network configurations', () => {
+  describe('useTopTokens hook integration', () => {
+    it('displays loading indicator when useTopTokens pending is true', () => {
       mockUseParamsValues.assetType = 'token';
 
-      const { getByTestId } = renderWithProvider(<AddAsset />, {
-        state: {
-          ...initialState,
-          engine: {
-            ...initialState.engine,
-            backgroundState: {
-              ...initialState.engine.backgroundState,
-              NetworkController: {
-                ...initialState.engine.backgroundState.NetworkController,
-                networkConfigurationsByChainId: {},
-              },
-            },
-          },
+      mockUseTopTokens.mockReturnValue({
+        topTokens: [],
+        remainingTokens: [],
+        pending: true,
+      });
+
+      const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      // Verify loading indicator is rendered when pending
+      expect(getByTestId('add-asset-loading-indicator')).toBeOnTheScreen();
+      // Verify tabs container is NOT rendered while loading
+      expect(queryByTestId('add-asset-tabs-container')).toBeNull();
+    });
+
+    it('renders tabs container when tokens are available', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      const mockTopTokens = [
+        {
+          address: '0x123',
+          symbol: 'TOP1',
+          name: 'Top Token 1',
+          decimals: 18,
+          chainId: '0x1' as const,
         },
+      ];
+
+      const mockRemainingTokens = [
+        {
+          address: '0x456',
+          symbol: 'REM1',
+          name: 'Remaining Token 1',
+          decimals: 18,
+          chainId: '0x1' as const,
+        },
+      ];
+
+      mockUseTopTokens.mockReturnValue({
+        topTokens: mockTopTokens,
+        remainingTokens: mockRemainingTokens,
+        pending: false,
       });
 
-      expect(getByTestId('add-token-screen')).toBeDefined();
+      const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      // Verify tabs container is rendered when not pending
+      expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
+      // Verify loading indicator is NOT shown
+      expect(queryByTestId('add-asset-loading-indicator')).toBeNull();
+      // Verify SearchTokenAutocomplete is rendered when tokens are available
+      expect(queryByTestId('add-searched-token-screen')).toBeTruthy();
     });
 
-    it('handles undefined selectedNetwork', () => {
+    it('renders tabs container when only topTokens are available', () => {
       mockUseParamsValues.assetType = 'token';
+
+      const mockTopTokens = [
+        {
+          address: '0x123',
+          symbol: 'TEST',
+          name: 'Test Token',
+          decimals: 18,
+          chainId: '0x1' as const,
+        },
+      ];
+
+      mockUseTopTokens.mockReturnValue({
+        topTokens: mockTopTokens,
+        remainingTokens: [],
+        pending: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
+      // SearchTokenAutocomplete should be rendered when allTokens has items
+      expect(queryByTestId('add-searched-token-screen')).toBeTruthy();
+    });
+
+    it('renders tabs container but not SearchTokenAutocomplete when allTokens is empty', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockUseTopTokens.mockReturnValue({
+        topTokens: [],
+        remainingTokens: [],
+        pending: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      // Tabs container should be rendered even when no tokens
+      expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
+      // SearchTokenAutocomplete tab should NOT be rendered when no tokens available
+      expect(queryByTestId('add-searched-token-screen')).toBeNull();
+    });
+
+    it('calls useTopTokens with selected network chainId', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      renderComponent(<AddAsset />);
+
+      expect(mockUseTopTokens).toHaveBeenCalledWith({
+        chainId: '0x1',
+      });
+    });
+  });
+
+  describe('Non-EVM chain support', () => {
+    it('renders AddCustomToken for EVM chains', () => {
+      mockUseParamsValues.assetType = 'token';
+      mockIsNonEvmChainId.mockReturnValue(false);
+
+      const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      // AddCustomToken input should be present for EVM chains
+      expect(
+        queryByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+      ).toBeTruthy();
+    });
+
+    it('does not render AddCustomToken tab for non-EVM chains', () => {
+      mockUseParamsValues.assetType = 'token';
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      // AddCustomToken input should NOT be present for non-EVM chains
+      expect(
+        queryByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+      ).toBeNull();
+    });
+
+    it('renders AddCustomCollectible for EVM chains', () => {
+      mockUseParamsValues.assetType = 'collectible';
+      mockIsNonEvmChainId.mockReturnValue(false);
 
       const { getByTestId } = renderComponent(<AddAsset />);
 
-      // Should render without crashing when selectedNetwork is null
-      expect(getByTestId('add-token-screen')).toBeDefined();
+      expect(getByTestId('add-collectible-screen')).toBeOnTheScreen();
+      // AddCustomCollectible container should be present
+      expect(getByTestId(NFTImportScreenSelectorsIDs.CONTAINER)).toBeTruthy();
     });
-  });
 
-  describe('Hook interactions', () => {
-    it('responds to different useNetworksByNamespace return values', () => {
+    it('does not render AddCustomCollectible for non-EVM chains', () => {
+      mockUseParamsValues.assetType = 'collectible';
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-collectible-screen')).toBeOnTheScreen();
+      // AddCustomCollectible container should NOT be present for non-EVM chains
+      expect(queryByTestId(NFTImportScreenSelectorsIDs.CONTAINER)).toBeNull();
+    });
+
+    it('conditionally calls fetchTokenList only for EVM chains in network selector', () => {
       mockUseParamsValues.assetType = 'token';
-
-      mockUseNetworksByNamespace.mockReturnValue({
-        networks: [
-          { name: 'Ethereum' },
-          { name: 'Polygon' },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ] as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        selectedNetworks: ['0x1'] as any,
-        areAllNetworksSelected: false,
-        areAnyNetworksSelected: true,
-        networkCount: 2,
-        selectedCount: 1,
-      });
 
       renderComponent(<AddAsset />);
 
-      expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-        networks: [{ name: 'Ethereum' }, { name: 'Polygon' }],
-      });
+      // The fetchTokenList is mocked in the Engine mock at the top of the file
+      // The actual conditional logic happens in the NetworkListBottomSheet setSelectedNetwork callback
+      // This test verifies the component renders correctly with the non-EVM chain logic in place
+      expect(mockIsNonEvmChainId).toHaveBeenCalled();
     });
+  });
 
-    it('handles different provider config values', () => {
+  describe('Enabled Network Selection', () => {
+    it('should select first enabled network from enabledNetworksForCurrentNamespace', () => {
       mockUseParamsValues.assetType = 'token';
 
-      // Test different provider configurations - just test that the component renders
+      // The component should select 0x1 as the first enabled network
       const { getByTestId } = renderComponent(<AddAsset />);
 
-      expect(getByTestId('add-token-screen')).toBeDefined();
-    });
-  });
-
-  describe('Network filter functionality', () => {
-    it('calls selectNetwork when feature flag is enabled and filter option is selected', () => {
-      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-      mockUseParamsValues.assetType = 'token';
-      const mockSelectNetworkFn = jest.fn();
-
-      mockUseNetworkSelection.mockReturnValue({
-        selectCustomNetwork: jest.fn(),
-        selectPopularNetwork: jest.fn(),
-        selectNetwork: mockSelectNetworkFn,
-        deselectAll: jest.fn(),
-        selectAllPopularNetworks: jest.fn(),
-        customNetworksToReset: [],
-      });
-
-      renderComponent(<AddAsset />);
-
-      // Verify that selectNetwork function is available
-      expect(mockSelectNetworkFn).toBeDefined();
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      expect(getByTestId('add-asset-network-selector')).toBeOnTheScreen();
     });
 
-    it('does not call selectNetwork when feature flag is disabled', () => {
-      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+    it('should handle only one enabled network correctly', () => {
       mockUseParamsValues.assetType = 'token';
 
-      const mockSelectNetworkFn = jest.fn();
-      mockUseNetworkSelection.mockReturnValue({
-        selectCustomNetwork: jest.fn(),
-        selectPopularNetwork: jest.fn(),
-        selectNetwork: mockSelectNetworkFn,
-        deselectAll: jest.fn(),
-        selectAllPopularNetworks: jest.fn(),
-        customNetworksToReset: [],
-      });
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': true,
+        '0x89': false,
+        '0xa': false,
+      };
 
-      renderComponent(<AddAsset />);
+      const { getByTestId } = renderComponent(<AddAsset />);
 
-      // Function should be available but not called automatically
-      expect(mockSelectNetworkFn).toBeDefined();
-      expect(mockSelectNetworkFn).not.toHaveBeenCalled();
-    });
-  });
-});
-
-describe('AddAsset utils', () => {
-  const tokenNetworkFilterSpy = jest.spyOn(
-    PreferencesController,
-    'setTokenNetworkFilter',
-  );
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should handle AllNetworks filter option', () => {
-    const allNetworksEnabled = { '0x1': true, '0x2': true };
-
-    handleFilterControlsPress({
-      option: FilterOption.AllNetworks,
-      allNetworksEnabled,
-      chainId: '0x1',
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
     });
 
-    expect(tokenNetworkFilterSpy).toHaveBeenCalledWith(allNetworksEnabled);
-  });
+    it('should handle multiple enabled networks and pick the first one', () => {
+      mockUseParamsValues.assetType = 'token';
 
-  it('should handle CurrentNetwork filter option', () => {
-    const chainId = '0x1';
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': true,
+        '0x89': true,
+        '0xa': true,
+      };
 
-    handleFilterControlsPress({
-      option: FilterOption.CurrentNetwork,
-      allNetworksEnabled: {},
-      chainId,
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      // Network selector should be present
+      expect(getByTestId('add-asset-network-selector')).toBeOnTheScreen();
     });
 
-    expect(tokenNetworkFilterSpy).toHaveBeenCalledWith({ [chainId]: true });
-  });
+    it('should handle no enabled networks gracefully', () => {
+      mockUseParamsValues.assetType = 'token';
 
-  it('should handle invalid filter option', () => {
-    const chainId = '0x1';
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': false,
+        '0x89': false,
+        '0xa': false,
+      };
 
-    handleFilterControlsPress({
-      option: 'test' as unknown as FilterOption,
-      allNetworksEnabled: {},
-      chainId,
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
     });
 
-    expect(tokenNetworkFilterSpy).not.toHaveBeenCalled();
+    it('should filter out disabled networks when finding enabled chain ID', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': false,
+        '0x89': false,
+        '0xa': true,
+      };
+
+      // Should select 0xa (first enabled network)
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+    });
+
+    it('should handle empty enabledNetworksForCurrentNamespace object', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      // @ts-expect-error - mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace is not defined
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {};
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+    });
+
+    it('should only consider networks with value === true as enabled', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': false,
+        '0x89': true,
+        '0xa': false,
+      };
+
+      // Should only select 0x89 as it's the only one with true value
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+    });
   });
 });

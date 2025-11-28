@@ -7,7 +7,17 @@ const styleSheet = (_params: { theme: Theme }) =>
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'space-between',
-      paddingBottom: 22,
+    },
+
+    inputContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 14,
+    },
+
+    disabledButton: {
+      opacity: 0.5,
     },
   });
 

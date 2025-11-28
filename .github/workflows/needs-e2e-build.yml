@@ -26,7 +26,7 @@ on:
 jobs:
   needs-e2e-build:
     name: Check if builds will happen
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-md
+    runs-on: ubuntu-latest
     outputs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
@@ -70,6 +70,18 @@ jobs:
         id: filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
         with:
+          # Path filtering logic:
+          # - android: Files that require Android builds only
+          # - ios: Files that require iOS builds only
+          # - shared: Files that require both Android and iOS builds
+          # - ignore: Files that should not trigger any builds
+          # - catch_all: Fallback that matches everything for conservative handling
+          #
+          # Key points:
+          # - scripts/build.sh is in 'shared' to ensure it triggers rebuilds
+          # - Native code changes (android/**, ios/**) trigger platform-specific builds
+          # - Dependency files (package.json, Podfile, etc.) trigger both platforms
+          # - Documentation and workflow files are ignored
           filters: |
             android:
               - 'android/**'                       # All Android project files
@@ -89,12 +101,12 @@ jobs:
               - 'wdio/**'                          # WebDriver test files
               - 'wdio.conf.js'                     # WebDriver config
               - 'appwright/**'                     # Appwright test files
-              - 'scripts/build.sh'                 # Build.sh
+              - 'scripts/build.sh'                 # Build script triggers rebuilds
 
             ignore:
               - '**/*.md'                          # Documentation files
               - 'docs/**'                          # Documentation directory
-              - '**/*.yml'                         # Workflow files  
+              - '**/*.yml'                         # Workflow files
               - '.github/**'                       # GitHub workflow changes
               - 'LICENSE'                          # License file
               - 'README.md'                        # Main README
@@ -107,11 +119,9 @@ jobs:
               - 'crowdin.yml'                      # Translation config
               - 'bitrise.yml'                      # CI config (non-GitHub)
               - 'sonar-project.properties'         # SonarQube config
-              - 'scripts/*'                        # Build/utility scripts
-              - 'scripts/*/**'                     # Subdirectories in scripts/   
-              - '!scripts/build.sh'                # But NOT build.sh
+              - 'scripts/*'                        # Build/utility scripts (except build.sh which is in shared)
+              - 'scripts/*/**'                     # Subdirectories in scripts/
               - 'patches/**'                       # Dependency patches
-              - 'ppom/**'                          # PPOM sub-project
 
             catch_all:
               - '**/*'                             # Matches everything for conservative fallback

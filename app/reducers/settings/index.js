@@ -9,6 +9,10 @@ const initialState = {
   hideZeroBalanceTokens: false,
   basicFunctionalityEnabled: true,
   deepLinkModalDisabled: false,
+  // Perps chart preferences
+  perpsChartPreferences: {
+    preferredCandlePeriod: '15m', // Default to 15 minutes
+  },
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -27,11 +31,6 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         showHexData: action.showHexData,
-      };
-    case 'SET_SHOW_CUSTOM_NONCE':
-      return {
-        ...state,
-        showCustomNonce: action.showCustomNonce,
       };
     case 'SET_HIDE_ZERO_BALANCE_TOKENS':
       return {
@@ -67,6 +66,14 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         deepLinkModalDisabled: action.deepLinkModalDisabled,
+      };
+    case 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD':
+      return {
+        ...state,
+        perpsChartPreferences: {
+          ...state.perpsChartPreferences,
+          preferredCandlePeriod: action.preferredCandlePeriod,
+        },
       };
     default:
       return state;

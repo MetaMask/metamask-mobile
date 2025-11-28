@@ -26,9 +26,12 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/Aggregator/utils';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { withRampNavigation } from '../Ramp/hooks/withRampNavigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { getRampNetworks } from '../../../reducers/fiatOrders';
+import {
+  getDetectedGeolocation,
+  getRampNetworks,
+} from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
@@ -75,6 +78,10 @@ class ReceiveRequest extends PureComponent {
      */
     showAlert: PropTypes.func,
     /**
+     * Function to navigate to ramp flows
+     */
+    goToBuy: PropTypes.func,
+    /**
      * Network provider chain id
      */
     chainId: PropTypes.string,
@@ -103,6 +110,10 @@ class ReceiveRequest extends PureComponent {
      * Boolean that indicates if the evm network is selected
      */
     isEvmNetworkSelected: PropTypes.bool,
+    /**
+     * Geodetected region for ramp
+     */
+    rampGeodetectedRegion: PropTypes.string,
   };
 
   state = {
@@ -137,14 +148,14 @@ class ReceiveRequest extends PureComponent {
    * Shows an alert message with a coming soon message
    */
   onBuy = async () => {
-    const { navigation, isNetworkBuySupported } = this.props;
+    const { isNetworkBuySupported, goToBuy } = this.props;
     if (!isNetworkBuySupported) {
       Alert.alert(
         strings('fiat_on_ramp.network_not_supported'),
         strings('fiat_on_ramp.switch_network'),
       );
     } else {
-      navigation.navigate(...createBuyNavigationDetails());
+      goToBuy();
 
       this.props.metrics.trackEvent(
         this.props.metrics
@@ -153,6 +164,7 @@ class ReceiveRequest extends PureComponent {
             text: 'Buy Native Token',
             location: 'Receive Modal',
             chain_id_destination: getDecimalChainId(this.props.chainId),
+            region: this.props.rampGeodetectedRegion,
           })
           .build(),
       );
@@ -251,6 +263,7 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   isEvmNetworkSelected: selectIsEvmNetworkSelected(state),
+  rampGeodetectedRegion: getDetectedGeolocation(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -261,4 +274,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(ReceiveRequest));
+)(withRampNavigation(withMetricsAwareness(ReceiveRequest)));

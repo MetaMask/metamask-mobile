@@ -567,10 +567,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
-                                    "borderWidth": 1,
                                     "justifyContent": "center",
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
@@ -894,7 +892,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -946,7 +944,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -998,7 +996,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1064,7 +1062,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1116,7 +1114,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1168,7 +1166,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1234,7 +1232,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1286,7 +1284,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1338,7 +1336,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1404,7 +1402,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1458,7 +1456,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1511,7 +1509,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -1551,6 +1549,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             activeOpacity={1}
                             disabled={true}
                             loading={false}
+                            onPress={[Function]}
                             onPressIn={[Function]}
                             onPressOut={[Function]}
                             style={
@@ -1948,7 +1947,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               "flexGrow": 1,
                             }
                           }
-                          handlerTag={6}
+                          handlerTag={8}
                           handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -2165,10 +2164,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
-                                    "borderWidth": 1,
                                     "justifyContent": "center",
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
@@ -2492,7 +2489,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -2544,7 +2541,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -2596,7 +2593,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -2662,7 +2659,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -2714,7 +2711,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -2766,7 +2763,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -2832,7 +2829,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -2884,7 +2881,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -2936,7 +2933,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -3002,7 +2999,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -3056,7 +3053,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -3109,7 +3106,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 12,
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "paddingHorizontal": 16,
                                     },
@@ -3149,6 +3146,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             activeOpacity={1}
                             disabled={true}
                             loading={false}
+                            onPress={[Function]}
                             onPressIn={[Function]}
                             onPressOut={[Function]}
                             style={

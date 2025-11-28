@@ -1,4 +1,8 @@
-import { Messenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  MockAnyNamespace,
+} from '@metamask/messenger';
 import { BridgeStatusControllerGetStateAction } from '@metamask/bridge-status-controller';
 import { toHex } from '@metamask/controller-utils';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
@@ -9,6 +13,7 @@ import {
 import {
   GasFeeToken,
   TransactionController,
+  TransactionControllerUpdateTransactionAction,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -20,6 +25,8 @@ import {
   waitForRelayResult,
 } from '../transaction-relay';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
+import { NetworkClientId } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../transaction-relay');
 jest.mock('../../../core/Delegation/delegation', () => ({
@@ -62,6 +69,21 @@ const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
   tokenAddress: '0x1234567890123456789012345678901234567890',
 };
 
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  | BridgeStatusControllerGetStateAction
+  | DelegationControllerSignDelegationAction
+  | KeyringControllerSignEip7702AuthorizationAction
+  | KeyringControllerSignTypedMessageAction
+  | TransactionControllerUpdateTransactionAction,
+  never
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
 describe('Delegation 7702 Publish Hook', () => {
   const submitRelayTransactionMock = jest.mocked(submitRelayTransaction);
   const waitForRelayResultMock = jest.mocked(waitForRelayResult);
@@ -80,45 +102,65 @@ describe('Delegation 7702 Publish Hook', () => {
   const signDelegationControllerMock: jest.MockedFn<
     DelegationControllerSignDelegationAction['handler']
   > = jest.fn();
+  const getNextNonceMock: jest.MockedFn<
+    (address: string, networkClientId: NetworkClientId) => Promise<Hex>
+  > = jest.fn();
+  const updateTransactionMock: jest.MockedFn<
+    TransactionControllerUpdateTransactionAction['handler']
+  > = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
 
-    const baseMessenger = new Messenger<
+    const rootMessenger = getRootMessenger();
+
+    messenger = new Messenger<
+      'TransactionController',
       | BridgeStatusControllerGetStateAction
       | DelegationControllerSignDelegationAction
       | KeyringControllerSignEip7702AuthorizationAction
-      | KeyringControllerSignTypedMessageAction,
-      never
-    >();
+      | KeyringControllerSignTypedMessageAction
+      | TransactionControllerUpdateTransactionAction,
+      never,
+      RootMessenger
+    >({
+      namespace: 'TransactionController',
+      parent: rootMessenger,
+    });
 
-    messenger = baseMessenger.getRestricted({
-      name: 'TransactionController',
-      allowedActions: [
+    rootMessenger.delegate({
+      actions: [
         'KeyringController:signEip7702Authorization',
         'KeyringController:signTypedMessage',
         'BridgeStatusController:getState',
         'DelegationController:signDelegation',
+        'TransactionController:updateTransaction',
       ],
-      allowedEvents: [],
-    }) as TransactionControllerInitMessenger;
+      events: [],
+      messenger,
+    });
 
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'KeyringController:signEip7702Authorization',
       signEip7702AuthorizationMock,
     );
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'KeyringController:signTypedMessage',
       signTypedMessageMock,
     );
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'DelegationController:signDelegation',
       signDelegationControllerMock,
+    );
+    rootMessenger.registerActionHandler(
+      'TransactionController:updateTransaction',
+      updateTransactionMock,
     );
 
     hookClass = new Delegation7702PublishHook({
       isAtomicBatchSupported: isAtomicBatchSupportedMock,
       messenger,
+      getNextNonce: getNextNonceMock,
     });
 
     isAtomicBatchSupportedMock.mockResolvedValue([]);

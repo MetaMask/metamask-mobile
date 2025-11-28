@@ -1,54 +1,70 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
-import SetPhoneNumber from './SetPhoneNumber';
-import Routes from '../../../../../constants/navigation/Routes';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { CardError, CardErrorType } from '../../types';
+import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import SetPhoneNumber from './SetPhoneNumber';
 
-// Mock dependencies
+// Mock navigation
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+  })),
 }));
 
-jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: jest.fn(),
+// Mock i18n
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
 }));
 
-jest.mock('./SignUp', () => ({
-  MOCK_COUNTRIES: {
-    countries: [
-      {
-        id: 'us-country-id-001',
-        name: 'United States',
-        iso3166alpha2: 'US',
-        callingCode: '1',
-        canSignUp: true,
-      },
-      {
-        id: 'uk-country-id-002',
-        name: 'United Kingdom',
-        iso3166alpha2: 'GB',
-        callingCode: '44',
-        canSignUp: true,
-      },
-      {
-        id: 'fr-country-id-004',
-        name: 'France',
-        iso3166alpha2: 'FR',
-        callingCode: '33',
-        canSignUp: true,
-      },
-    ],
-    usStates: [],
-    links: { us: {}, intl: {} },
-    config: { us: {}, intl: {} },
-  },
-}));
+// Mock hooks
+jest.mock('../../hooks/usePhoneVerificationSend');
+jest.mock('../../hooks/useRegistrationSettings');
+jest.mock('../../../../hooks/useDebouncedValue');
 
-// Mock OnboardingStep component
+// Mock SelectComponent with proper interaction simulation
+jest.mock('../../../SelectComponent', () => {
+  const React = jest.requireActual('react');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+
+  return (props: {
+    testID?: string;
+    onValueChange?: (value: string) => void;
+    selectedValue?: string;
+    defaultValue?: string;
+    options?: { key: string; value: string; label: string }[];
+    [key: string]: unknown;
+  }) => {
+    const handlePress = () => {
+      // Simulate selecting the first available option
+      if (props.options && props.options.length > 0 && props.onValueChange) {
+        props.onValueChange(props.options[0].value);
+      }
+    };
+
+    return React.createElement(
+      TouchableOpacity,
+      {
+        testID: props.testID,
+        onPress: handlePress,
+        ...props,
+      },
+      React.createElement(
+        Text,
+        {},
+        props.selectedValue || props.defaultValue || 'Select...',
+      ),
+    );
+  };
+});
+
+// Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
   const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
 
   return ({
     title,
@@ -56,17 +72,17 @@ jest.mock('./OnboardingStep', () => {
     formFields,
     actions,
   }: {
-    title: string;
-    description: string;
-    formFields: React.ReactNode;
-    actions: React.ReactNode;
+    title?: React.ReactNode;
+    description?: React.ReactNode;
+    formFields?: React.ReactNode;
+    actions?: React.ReactNode;
   }) =>
     React.createElement(
       View,
       { testID: 'onboarding-step' },
-      React.createElement(Text, { testID: 'onboarding-step-title' }, title),
+      React.createElement(View, { testID: 'onboarding-step-title' }, title),
       React.createElement(
-        Text,
+        View,
         { testID: 'onboarding-step-description' },
         description,
       ),
@@ -79,466 +95,550 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return {
-    Box: ({
-      children,
-      testID,
-      twClassName,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-      twClassName?: string;
-      [key: string]: unknown;
-    }) =>
-      React.createElement(
-        View,
-        { testID: testID || 'box', 'data-tw-class': twClassName, ...props },
-        children,
-      ),
-    Text: ({
-      children,
-      testID,
-      variant,
-      twClassName,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-      variant?: string;
-      twClassName?: string;
-      [key: string]: unknown;
-    }) =>
-      React.createElement(
-        Text,
-        {
-          testID: testID || 'text',
-          'data-variant': variant,
-          'data-tw-class': twClassName,
-          ...props,
+// Create test store
+const createTestStore = (initialState = {}) =>
+  configureStore({
+    reducer: {
+      card: (
+        state = {
+          onboarding: {
+            selectedCountry: 'US',
+            contactVerificationId: 'test-verification-id',
+          },
+          ...initialState,
         },
-        children,
-      ),
-    TextVariant: {
-      BodySm: 'BodySm',
+        action = { type: '', payload: null },
+      ) => {
+        switch (action.type) {
+          default:
+            return state;
+        }
+      },
     },
-  };
-});
-
-// Mock Button component
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const React = jest.requireActual('react');
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  const MockButton = ({
-    label,
-    onPress,
-    isDisabled,
-    testID,
-    size,
-    variant,
-    width,
-    ...props
-  }: {
-    label: string;
-    onPress?: () => void;
-    isDisabled?: boolean;
-    testID?: string;
-    size?: string;
-    variant?: string;
-    width?: string;
-    [key: string]: unknown;
-  }) =>
-    React.createElement(
-      TouchableOpacity,
-      { testID: testID || 'button', onPress, disabled: isDisabled, ...props },
-      React.createElement(Text, { testID: 'button-label' }, label),
-    );
-
-  return {
-    __esModule: true,
-    default: MockButton,
-    ButtonSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-      Sm: 'Sm',
-    },
-    ButtonVariants: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-    },
-    ButtonWidthTypes: {
-      Full: 'Full',
-      Auto: 'Auto',
-    },
-  };
-});
-
-// Mock TextField component and TextFieldSize
-jest.mock('../../../../../component-library/components/Form/TextField', () => {
-  const React = jest.requireActual('react');
-  const { TextInput } = jest.requireActual('react-native');
-
-  const MockTextField = ({
-    onChangeText,
-    placeholder,
-    value,
-    accessibilityLabel,
-    testID,
-    returnKeyType,
-    keyboardType,
-    size,
-    numberOfLines,
-    maxLength,
-    autoCapitalize,
-    ...props
-  }: {
-    onChangeText?: (text: string) => void;
-    placeholder?: string;
-    value?: string;
-    accessibilityLabel?: string;
-    testID?: string;
-    returnKeyType?: string;
-    keyboardType?: string;
-    size?: string;
-    numberOfLines?: number;
-    maxLength?: number;
-    autoCapitalize?: string;
-    [key: string]: unknown;
-  }) =>
-    React.createElement(TextInput, {
-      testID: testID || 'text-field',
-      onChangeText,
-      placeholder,
-      value,
-      accessibilityLabel,
-      returnKeyType,
-      keyboardType,
-      numberOfLines,
-      maxLength,
-      autoCapitalize,
-      ...props,
-    });
-
-  return {
-    __esModule: true,
-    default: MockTextField,
-    TextFieldSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-      Sm: 'Sm',
-    },
-  };
-});
-
-// Mock Label component
-jest.mock('../../../../../component-library/components/Form/Label', () => {
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({
-    children,
-    testID,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-  }) => React.createElement(Text, { testID: testID || 'label' }, children);
-});
-
-// Mock SelectComponent
-jest.mock('../../../SelectComponent', () => {
-  const React = jest.requireActual('react');
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-
-  return ({
-    options,
-    selectedValue,
-    onValueChange,
-    label,
-    testID,
-  }: {
-    options?: { value: string; label: string }[];
-    selectedValue?: string;
-    onValueChange?: (value: string) => void;
-    label?: string;
-    testID?: string;
-  }) =>
-    React.createElement(
-      View,
-      { testID: testID || 'select-component' },
-      React.createElement(Text, { testID: 'select-label' }, label),
-      React.createElement(
-        TouchableOpacity,
-        {
-          testID: 'select-trigger',
-          onPress: () => onValueChange?.('+44'),
-        },
-        React.createElement(
-          Text,
-          { testID: 'select-value' },
-          options?.find((opt) => opt.value === selectedValue)?.label ||
-            selectedValue,
-        ),
-      ),
-    );
-});
-
-// Mock i18n strings
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const mockStrings: { [key: string]: string } = {
-      'card.card_onboarding.set_phone_number.title': 'Set your phone number',
-      'card.card_onboarding.set_phone_number.description':
-        'We need your phone number to verify your identity',
-      'card.card_onboarding.set_phone_number.phone_number_label':
-        'Phone number',
-      'card.card_onboarding.set_phone_number.country_area_code_label':
-        'Country code',
-      'card.card_onboarding.set_phone_number.phone_number_placeholder':
-        'Enter your phone number',
-      'card.card_onboarding.set_phone_number.invalid_phone_number':
-        'Please enter a valid phone number (8-14 digits)',
-      'card.card_onboarding.set_phone_number.legal_terms':
-        'By continuing, you agree to our terms and conditions',
-      'card.card_onboarding.continue_button': 'Continue',
-    };
-
-    return mockStrings[key] || key;
-  }),
-}));
+  });
 
 describe('SetPhoneNumber Component', () => {
-  const mockNavigate = jest.fn();
-  const mockUseNavigation = useNavigation as jest.MockedFunction<
-    typeof useNavigation
-  >;
-  const mockUseDebouncedValue = useDebouncedValue as jest.MockedFunction<
-    typeof useDebouncedValue
-  >;
+  let store: ReturnType<typeof createTestStore>;
+  let mockSendPhoneVerification: jest.Mock;
+  let mockNavigate: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseNavigation.mockReturnValue({
+
+    mockNavigate = jest.fn();
+    jest.requireMock('@react-navigation/native').useNavigation.mockReturnValue({
       navigate: mockNavigate,
-    } as never);
-    mockUseDebouncedValue.mockImplementation((value) => value);
-  });
-
-  describe('Component Rendering', () => {
-    it('should render the SetPhoneNumber component correctly', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
-
-      expect(getByTestId('onboarding-step')).toBeTruthy();
-      expect(getByTestId('onboarding-step-title')).toBeTruthy();
-      expect(getByTestId('onboarding-step-description')).toBeTruthy();
-      expect(getByTestId('onboarding-step-form-fields')).toBeTruthy();
-      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
     });
 
-    it('should display correct title and description', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
+    mockSendPhoneVerification = jest.fn().mockResolvedValue({ success: true });
 
-      expect(getByTestId('onboarding-step-title')).toHaveTextContent(
-        'Set your phone number',
+    (usePhoneVerificationSend as jest.Mock).mockReturnValue({
+      sendPhoneVerification: mockSendPhoneVerification,
+      isLoading: false,
+      isError: false,
+      error: null,
+      reset: jest.fn(),
+    });
+
+    (useRegistrationSettings as jest.Mock).mockReturnValue({
+      data: {
+        countries: [
+          { iso3166alpha2: 'US', name: 'United States', callingCode: '1' },
+          { iso3166alpha2: 'CA', name: 'Canada', callingCode: '1' },
+          { iso3166alpha2: 'GB', name: 'United Kingdom', callingCode: '44' },
+        ],
+      },
+    });
+
+    (useDebouncedValue as jest.Mock).mockImplementation((value) => value);
+
+    store = createTestStore();
+  });
+
+  describe('Initial Render', () => {
+    it('renders all form fields with correct testIDs', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
       );
-      expect(getByTestId('onboarding-step-description')).toHaveTextContent(
-        'We need your phone number to verify your identity',
+
+      expect(
+        getByTestId('set-phone-number-country-area-code-select'),
+      ).toBeTruthy();
+      expect(getByTestId('set-phone-number-phone-number-input')).toBeTruthy();
+      expect(getByTestId('set-phone-number-continue-button')).toBeTruthy();
+      expect(getByTestId('set-phone-number-legal-terms')).toBeTruthy();
+    });
+
+    it('has continue button disabled initially', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
       );
+
+      const continueButton = getByTestId('set-phone-number-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
+    });
+
+    it('does not show error message initially', () => {
+      const { queryByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+    });
+
+    it('displays legal terms text', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      expect(getByTestId('set-phone-number-legal-terms')).toBeTruthy();
     });
   });
 
-  describe('Form Fields', () => {
-    it('should render phone number field with correct properties', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
+  describe('Phone Number Input', () => {
+    it('allows numeric input only', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const textField = getByTestId('text-field');
-      expect(textField).toBeTruthy();
-      expect(textField.props.placeholder).toBe('Enter your phone number');
-      expect(textField.props.keyboardType).toBe('phone-pad');
-      expect(textField.props.maxLength).toBe(255);
-      expect(textField.props.numberOfLines).toBe(1);
-      expect(textField.props.autoCapitalize).toBe('none');
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      fireEvent.changeText(phoneInput, 'abc123def456');
+
+      expect(phoneInput.props.value).toBe('123456');
     });
 
-    it('should render phone number label', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
+    it('accepts valid phone number format', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const label = getByTestId('label');
-      expect(label).toBeTruthy();
-      expect(label).toHaveTextContent('Phone number');
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      fireEvent.changeText(phoneInput, '1234567890');
+
+      expect(phoneInput.props.value).toBe('1234567890');
     });
 
-    it('should render country area code selector', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
+    it('displays error for phone number with fewer than 4 digits', async () => {
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const selectComponent = getByTestId('select-component');
-      expect(selectComponent).toBeTruthy();
-      expect(getByTestId('select-label')).toHaveTextContent('Country code');
-    });
-
-    it('should update phone number value when text changes', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
-
-      const textField = getByTestId('text-field');
-      fireEvent.changeText(textField, '1234567890');
-
-      expect(textField.props.value).toBe('1234567890');
-    });
-
-    it('should clean non-numeric characters from phone number input', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
-
-      const textField = getByTestId('text-field');
-      fireEvent.changeText(textField, '123-456-7890');
-
-      expect(textField.props.value).toBe('1234567890');
-    });
-
-    it('should handle country area code selection', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
-
-      const selectTrigger = getByTestId('select-trigger');
-      fireEvent.press(selectTrigger);
-
-      const selectValue = getByTestId('select-value');
-      expect(selectValue).toHaveTextContent('+44');
-    });
-  });
-
-  describe('Phone Number Validation', () => {
-    it('should show error message for invalid phone number', async () => {
-      mockUseDebouncedValue.mockReturnValue('123'); // Too short
-
-      const { getByTestId, queryByText } = render(<SetPhoneNumber />);
-
-      const textField = getByTestId('text-field');
-      fireEvent.changeText(textField, '123');
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '123');
+      });
 
       await waitFor(() => {
         expect(
-          queryByText('Please enter a valid phone number (8-14 digits)'),
+          queryByTestId('set-phone-number-phone-number-error'),
         ).toBeTruthy();
       });
     });
 
-    it('should not show error message for valid phone number', async () => {
-      mockUseDebouncedValue.mockReturnValue('1234567890'); // Valid length
+    it('displays error for phone number with more than 15 digits', async () => {
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const { getByTestId, queryByText } = render(<SetPhoneNumber />);
-
-      const textField = getByTestId('text-field');
-      fireEvent.changeText(textField, '1234567890');
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890123456');
+      });
 
       await waitFor(() => {
         expect(
-          queryByText('Please enter a valid phone number (8-14 digits)'),
-        ).toBeFalsy();
+          queryByTestId('set-phone-number-phone-number-error'),
+        ).toBeTruthy();
+      });
+    });
+
+    it('does not display error for valid phone number length', async () => {
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
       });
     });
   });
 
-  describe('Continue Button', () => {
-    it('should render continue button and legal terms', () => {
-      const { getByTestId, getByText } = render(<SetPhoneNumber />);
+  describe('Country Area Code Selection', () => {
+    it('allows country area code selection', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const button = getByTestId('button');
-      expect(button).toBeTruthy();
-      expect(getByTestId('button-label')).toHaveTextContent('Continue');
-      expect(
-        getByText('By continuing, you agree to our terms and conditions'),
-      ).toBeTruthy();
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+      fireEvent.press(countrySelect);
+
+      expect(countrySelect).toBeTruthy();
     });
 
-    it('should be disabled when phone number is empty', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
+    it('displays initial area code based on selected country', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const button = getByTestId('button');
-      expect(button.props.disabled).toBe(true);
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+      // Should show +1 for US (initial selected country)
+      expect(countrySelect.props.selectedValue).toBe('1');
     });
 
-    it('should be disabled when phone number is invalid', () => {
-      mockUseDebouncedValue.mockReturnValue('123'); // Too short
+    it('updates area code when different country is selected', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const { getByTestId } = render(<SetPhoneNumber />);
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
 
-      const textField = getByTestId('text-field');
-      fireEvent.changeText(textField, '123');
+      // Mock selecting UK (+44)
+      fireEvent.press(countrySelect);
 
-      const button = getByTestId('button');
-      expect(button.props.disabled).toBe(true);
+      expect(countrySelect).toBeTruthy();
+    });
+  });
+
+  describe('Continue Button State Management', () => {
+    it('enables continue button when all fields are valid', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
     });
 
-    it('should be enabled when phone number is valid', () => {
-      mockUseDebouncedValue.mockReturnValue('1234567890'); // Valid
+    it('keeps continue button disabled when phone number is invalid', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const { getByTestId } = render(<SetPhoneNumber />);
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
 
-      const textField = getByTestId('text-field');
-      fireEvent.changeText(textField, '1234567890');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '123');
+      });
 
-      const button = getByTestId('button');
-      expect(button.props.disabled).toBe(false);
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(true);
+      });
     });
 
-    it('should navigate to CONFIRM_PHONE_NUMBER when continue button is pressed', () => {
-      mockUseDebouncedValue.mockReturnValue('1234567890');
+    it('keeps continue button disabled when phone number is empty', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const { getByTestId } = render(<SetPhoneNumber />);
+      const continueButton = getByTestId('set-phone-number-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
+    });
 
-      const textField = getByTestId('text-field');
-      fireEvent.changeText(textField, '1234567890');
+    it('disables continue button when phone verification is loading', () => {
+      (usePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: jest.fn(),
+        isLoading: true,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
 
-      const button = getByTestId('button');
-      fireEvent.press(button);
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER,
-        {
-          phoneNumber: '+1 1234567890',
+      const continueButton = getByTestId('set-phone-number-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
+    });
+
+    it('disables continue button when phone verification has error', () => {
+      (usePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: jest.fn(),
+        isLoading: false,
+        isError: true,
+        error: 'Verification failed',
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const continueButton = getByTestId('set-phone-number-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
+    });
+  });
+
+  describe('Form Submission and Navigation', () => {
+    it('calls sendPhoneVerification when continue button is pressed', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockSendPhoneVerification).toHaveBeenCalledWith({
+        phoneCountryCode: '1',
+        phoneNumber: '1234567890',
+        contactVerificationId: 'test-verification-id',
+      });
+    });
+
+    it('navigates to confirm phone number screen on successful verification', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingConfirmPhoneNumber',
+          {
+            phoneCountryCode: '1',
+            phoneNumber: '1234567890',
+          },
+        );
+      });
+    });
+
+    it('does not call sendPhoneVerification when continue button is disabled', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockSendPhoneVerification).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('shows phone verification error when present', async () => {
+      (usePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: jest.fn(),
+        isLoading: false,
+        isError: true,
+        error: 'Phone verification failed',
+        reset: jest.fn(),
+      });
+
+      const { getByTestId, findByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      const errorText = await findByTestId(
+        'set-phone-number-phone-number-error',
+      );
+      expect(errorText).toBeTruthy();
+    });
+
+    it('navigates to sign up when invalid contact verification ID error occurs', async () => {
+      const mockSendPhoneVerification = jest
+        .fn()
+        .mockRejectedValue(
+          new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            'Invalid or expired contact verification ID',
+          ),
+        );
+
+      const mockReset = jest.fn();
+
+      (usePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        reset: mockReset,
+        isLoading: false,
+        isError: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockSendPhoneVerification).toHaveBeenCalled();
+      });
+
+      await waitFor(
+        () => {
+          expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingSignUp');
         },
+        { timeout: 3000 },
       );
     });
   });
 
-  describe('MOCK_COUNTRIES Integration', () => {
-    it('should use MOCK_COUNTRIES data for area code options', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
+  describe('Edge Cases', () => {
+    it('handles missing contact verification ID', () => {
+      const storeWithoutVerificationId = createTestStore({
+        onboarding: {
+          selectedCountry: 'US',
+          contactVerificationId: null,
+        },
+      });
 
-      const selectComponent = getByTestId('select-component');
-      expect(selectComponent).toBeTruthy();
+      const { getByTestId } = render(
+        <Provider store={storeWithoutVerificationId}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      // Default area code should be +1
-      const selectValue = getByTestId('select-value');
-      expect(selectValue).toHaveTextContent('+1');
-    });
-  });
-
-  describe('Component Integration', () => {
-    it('should integrate properly with OnboardingStep component', () => {
-      const { getByTestId } = render(<SetPhoneNumber />);
-
-      const onboardingStep = getByTestId('onboarding-step');
-      expect(onboardingStep).toBeTruthy();
-
-      // Check that form fields and actions are properly passed
-      expect(getByTestId('onboarding-step-form-fields')).toBeTruthy();
-      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
+      const continueButton = getByTestId('set-phone-number-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
     });
 
-    it('should handle debounced phone number updates correctly', () => {
-      mockUseDebouncedValue.mockReturnValue('1234567890');
+    it('handles missing registration settings', () => {
+      (useRegistrationSettings as jest.Mock).mockReturnValue({
+        data: null,
+      });
 
-      const { getByTestId } = render(<SetPhoneNumber />);
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
 
-      const textField = getByTestId('text-field');
-      fireEvent.changeText(textField, '1234567890');
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+      expect(countrySelect.props.options).toEqual([]);
+    });
 
-      expect(mockUseDebouncedValue).toHaveBeenCalledWith('1234567890', 1000);
+    it('handles missing selected country in registration settings', () => {
+      const storeWithUnknownCountry = createTestStore({
+        onboarding: {
+          selectedCountry: 'XX', // Unknown country code
+          contactVerificationId: 'test-verification-id',
+        },
+      });
+
+      const { getByTestId } = render(
+        <Provider store={storeWithUnknownCountry}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+      // Should default to +1
+      expect(countrySelect.props.selectedValue).toBe('1');
     });
   });
 });

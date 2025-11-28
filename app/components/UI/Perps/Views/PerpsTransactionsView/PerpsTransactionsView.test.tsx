@@ -3,10 +3,8 @@ import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsTransactionsView from './PerpsTransactionsView';
 import {
   usePerpsConnection,
-  usePerpsFunding,
-  usePerpsOrderFills,
-  usePerpsOrders,
-  usePerpsTrading,
+  usePerpsTransactionHistory,
+  usePerpsEventTracking,
 } from '../../hooks';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
@@ -14,6 +12,14 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  FillType,
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
+} from '../../types/transactionHistory';
+import type { CaipAccountId } from '@metamask/utils';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -25,10 +31,8 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
-  usePerpsTrading: jest.fn(),
-  usePerpsOrderFills: jest.fn(),
-  usePerpsOrders: jest.fn(),
-  usePerpsFunding: jest.fn(),
+  usePerpsTransactionHistory: jest.fn(),
+  usePerpsEventTracking: jest.fn(),
 }));
 
 // Mock the asset metadata hook to avoid network calls
@@ -47,45 +51,61 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-const mockFillsData = [
+const mockTransactions = [
   {
-    orderId: 'fill-1',
-    symbol: 'ETH',
-    side: 'buy',
-    size: '1.5',
-    price: '2000',
-    fee: '5.00',
-    feeToken: 'USDC',
+    id: 'fill-1',
+    type: 'trade' as const,
+    category: 'position_open' as const,
+    title: 'Opened Long Position',
+    subtitle: '1.5 ETH',
     timestamp: 1640995200000,
-    pnl: '0',
-    direction: 'Open Long',
-    success: true,
+    asset: 'ETH',
+    fill: {
+      shortTitle: 'Opened long',
+      amount: '+$150.75',
+      amountNumber: 150.75,
+      isPositive: true,
+      size: '1.5',
+      entryPrice: '2000',
+      points: '0',
+      pnl: '0',
+      fee: '5.00',
+      action: 'open',
+      feeToken: 'USDC',
+      fillType: FillType.Standard,
+    },
   },
-];
-
-const mockOrdersData = [
   {
-    orderId: 'order-1',
-    symbol: 'BTC',
-    side: 'buy' as const,
-    orderType: 'limit' as const,
-    size: '0.5',
-    originalSize: '1.0',
-    price: '45000',
-    filledSize: '0.5',
-    remainingSize: '0.5',
-    status: 'open' as const,
+    id: 'order-1',
+    type: 'order' as const,
+    category: 'limit_order' as const,
+    title: 'Limit Order',
+    subtitle: '0.5 BTC',
     timestamp: 1640995200000,
-    lastUpdated: 1640995200000,
+    asset: 'BTC',
+    order: {
+      text: PerpsOrderTransactionStatus.Filled,
+      statusType: PerpsOrderTransactionStatusType.Filled,
+      type: 'limit' as const,
+      size: '0.5',
+      limitPrice: '45000',
+      filled: '0.5',
+    },
   },
-];
-
-const mockFundingData = [
   {
-    symbol: 'ETH',
-    amountUsd: '12.50',
-    rate: '0.0001',
+    id: 'funding-1',
+    type: 'funding' as const,
+    category: 'funding_fee' as const,
+    title: 'Funding Fee',
+    subtitle: 'ETH',
     timestamp: 1640995200000,
+    asset: 'ETH',
+    fundingAmount: {
+      isPositive: false,
+      fee: '-$25.00',
+      feeNumber: -25,
+      rate: '0.0001',
+    },
   },
 ];
 
@@ -93,18 +113,12 @@ describe('PerpsTransactionsView', () => {
   const mockUsePerpsConnection = usePerpsConnection as jest.MockedFunction<
     typeof usePerpsConnection
   >;
-  const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
-    typeof usePerpsTrading
-  >;
-  const mockUsePerpsOrderFills = usePerpsOrderFills as jest.MockedFunction<
-    typeof usePerpsOrderFills
-  >;
-  const mockUsePerpsOrders = usePerpsOrders as jest.MockedFunction<
-    typeof usePerpsOrders
-  >;
-  const mockUsePerpsFunding = usePerpsFunding as jest.MockedFunction<
-    typeof usePerpsFunding
-  >;
+  const mockUsePerpsTransactionHistory =
+    usePerpsTransactionHistory as jest.MockedFunction<
+      typeof usePerpsTransactionHistory
+    >;
+  const mockUsePerpsEventTracking =
+    usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -121,54 +135,15 @@ describe('PerpsTransactionsView', () => {
       reconnectWithNewContext: jest.fn(),
     });
 
-    mockUsePerpsTrading.mockReturnValue({
-      getOrderFills: jest.fn(),
-      getOrders: jest.fn(),
-      getFunding: jest.fn(),
-      placeOrder: jest.fn(),
-      cancelOrder: jest.fn(),
-      closePosition: jest.fn(),
-      getMarkets: jest.fn(),
-      getPositions: jest.fn(),
-      getAccountState: jest.fn(),
-      subscribeToPrices: jest.fn(),
-      subscribeToPositions: jest.fn(),
-      subscribeToOrderFills: jest.fn(),
-      depositWithConfirmation: jest.fn(),
-      clearDepositResult: jest.fn(),
-      withdraw: jest.fn(),
-      calculateLiquidationPrice: jest.fn(),
-      calculateMaintenanceMargin: jest.fn(),
-      getMaxLeverage: jest.fn(),
-      updatePositionTPSL: jest.fn(),
-      calculateFees: jest.fn(),
-      validateOrder: jest.fn(),
-      validateClosePosition: jest.fn(),
-      validateWithdrawal: jest.fn(),
-    });
-
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: mockFillsData,
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: mockTransactions,
       isLoading: false,
       error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+      refetch: jest.fn(),
     });
 
-    mockUsePerpsOrders.mockReturnValue({
-      orders: mockOrdersData,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsFunding.mockReturnValue({
-      funding: mockFundingData,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+    mockUsePerpsEventTracking.mockReturnValue({
+      track: jest.fn(),
     });
   });
 
@@ -188,17 +163,8 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      // The hooks are called with skipInitialFetch: false when connected
-      expect(mockUsePerpsOrderFills).toHaveBeenCalledWith({
-        skipInitialFetch: false,
-      });
-      expect(mockUsePerpsOrders).toHaveBeenCalledWith({
-        skipInitialFetch: false,
-      });
-      expect(mockUsePerpsFunding).toHaveBeenCalledWith({
-        params: {
-          startTime: expect.any(Number),
-        },
+      // The hook is called with skipInitialFetch: false when connected
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
         skipInitialFetch: false,
       });
     });
@@ -220,17 +186,8 @@ describe('PerpsTransactionsView', () => {
       state: mockInitialState,
     });
 
-    // The hooks are called with skipInitialFetch: true when not connected
-    expect(mockUsePerpsOrderFills).toHaveBeenCalledWith({
-      skipInitialFetch: true,
-    });
-    expect(mockUsePerpsOrders).toHaveBeenCalledWith({
-      skipInitialFetch: true,
-    });
-    expect(mockUsePerpsFunding).toHaveBeenCalledWith({
-      params: {
-        startTime: expect.any(Number),
-      },
+    // The hook is called with skipInitialFetch: true when not connected
+    expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
       skipInitialFetch: true,
     });
   });
@@ -242,7 +199,7 @@ describe('PerpsTransactionsView', () => {
 
     // Wait for initial load
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
     // Switch to Orders tab
@@ -261,7 +218,7 @@ describe('PerpsTransactionsView', () => {
 
     // Wait for initial load
     await waitFor(() => {
-      expect(mockUsePerpsFunding).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
     // Switch to Funding tab
@@ -274,71 +231,33 @@ describe('PerpsTransactionsView', () => {
   });
 
   it('should handle refresh correctly', async () => {
-    const mockRefreshFills = jest.fn();
-    const mockRefreshOrders = jest.fn();
-    const mockRefreshFunding = jest.fn();
+    const mockRefetch = jest.fn();
 
-    // Set up mocks with refresh functions
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: mockFillsData,
+    // Set up mock with refetch function
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: mockTransactions,
       isLoading: false,
       error: null,
-      refresh: mockRefreshFills,
-      isRefreshing: false,
-    });
-
-    mockUsePerpsOrders.mockReturnValue({
-      orders: mockOrdersData,
-      isLoading: false,
-      error: null,
-      refresh: mockRefreshOrders,
-      isRefreshing: false,
-    });
-
-    mockUsePerpsFunding.mockReturnValue({
-      funding: mockFundingData,
-      isLoading: false,
-      error: null,
-      refresh: mockRefreshFunding,
-      isRefreshing: false,
+      refetch: mockRefetch,
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
-    // Simulate pull-to-refresh would call the refresh functions
+    // Simulate pull-to-refresh would call the refetch function
     // The actual testing of RefreshControl would require more complex setup
-    // but we can verify the refresh functions are available
-    expect(mockRefreshFills).toBeDefined();
-    expect(mockRefreshOrders).toBeDefined();
-    expect(mockRefreshFunding).toBeDefined();
+    // but we can verify the refetch function is available
+    expect(mockRefetch).toBeDefined();
   });
 
   it('should handle empty state correctly', async () => {
-    // Mock hooks to return empty data
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: [],
+    // Mock hook to return empty data
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [],
       isLoading: false,
       error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsOrders.mockReturnValue({
-      orders: [],
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsFunding.mockReturnValue({
-      funding: [],
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+      refetch: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -346,37 +265,21 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
       expect(
-        component.getByText('Your trading history will appear here'),
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
       ).toBeTruthy();
     });
   });
 
   it('should handle API errors gracefully', async () => {
-    // Mock hooks to return error state
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: [],
+    // Mock hook to return error state
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [],
       isLoading: false,
       error: 'API Error',
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsOrders.mockReturnValue({
-      orders: [],
-      isLoading: false,
-      error: 'API Error',
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsFunding.mockReturnValue({
-      funding: [],
-      isLoading: false,
-      error: 'API Error',
-      refresh: jest.fn(),
-      isRefreshing: false,
+      refetch: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -385,7 +288,11 @@ describe('PerpsTransactionsView', () => {
 
     await waitFor(() => {
       // Should show empty state when API fails
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
+      expect(
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
+      ).toBeTruthy();
     });
   });
 
@@ -395,7 +302,7 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
     // This would require the actual transaction items to be rendered
@@ -408,30 +315,29 @@ describe('PerpsTransactionsView', () => {
     const mockNow = new Date('2024-01-15T12:00:00Z').getTime();
     jest.spyOn(Date, 'now').mockReturnValue(mockNow);
 
-    const todayFill = {
-      ...mockFillsData[0],
+    const todayTransaction = {
+      ...mockTransactions[0],
       timestamp: mockNow, // Today's timestamp
     };
 
-    const yesterdayFill = {
-      ...mockFillsData[0],
-      orderId: 'fill-2',
+    const yesterdayTransaction = {
+      ...mockTransactions[0],
+      id: 'fill-2',
       timestamp: mockNow - 24 * 60 * 60 * 1000, // Exactly 24 hours ago
     };
 
-    const oldFill = {
-      ...mockFillsData[0],
-      orderId: 'fill-3',
+    const oldTransaction = {
+      ...mockTransactions[0],
+      id: 'fill-3',
       timestamp: mockNow - 3 * 24 * 60 * 60 * 1000, // 3 days ago
     };
 
-    // Mock hooks to return fills with different dates
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: [todayFill, yesterdayFill, oldFill],
+    // Mock hook to return transactions with different dates
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [todayTransaction, yesterdayTransaction, oldTransaction],
       isLoading: false,
       error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+      refetch: jest.fn(),
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -439,49 +345,32 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
-    // The component should have processed the date formatting logic (lines 244, 246)
+    // The component should have processed the date formatting logic
     // Even if we can't see "Today"/"Yesterday" in the UI due to transform functions,
     // the formatDateSection code paths have been executed
-    expect(todayFill.timestamp).toBe(mockNow);
-    expect(yesterdayFill.timestamp).toBe(mockNow - 24 * 60 * 60 * 1000);
+    expect(todayTransaction.timestamp).toBe(mockNow);
+    expect(yesterdayTransaction.timestamp).toBe(mockNow - 24 * 60 * 60 * 1000);
 
     // Restore Date.now
     jest.restoreAllMocks();
   });
 
   it('should handle transaction sorting correctly', async () => {
-    // Test that covers lines 334, 337-343 where transactions are sorted
-    const unsortedFills = [
-      { ...mockFillsData[0], orderId: 'old-fill', timestamp: 1000000 },
-      { ...mockFillsData[0], orderId: 'new-fill', timestamp: 2000000 },
+    // Test that covers transaction sorting logic
+    const unsortedTransactions = [
+      { ...mockTransactions[0], id: 'old-transaction', timestamp: 1000000 },
+      { ...mockTransactions[0], id: 'new-transaction', timestamp: 2000000 },
     ];
 
-    // Mock hooks to return unsorted fills
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: unsortedFills,
+    // Mock hook to return unsorted transactions
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: unsortedTransactions,
       isLoading: false,
       error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsOrders.mockReturnValue({
-      orders: [],
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsFunding.mockReturnValue({
-      funding: [],
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+      refetch: jest.fn(),
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -489,34 +378,17 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
   });
 
   it('should handle API errors and set empty arrays', async () => {
-    // This covers lines 339-343 where errors trigger fallback to empty arrays
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: [],
+    // This covers error handling where errors trigger fallback to empty arrays
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [],
       isLoading: false,
       error: 'Network error',
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsOrders.mockReturnValue({
-      orders: mockOrdersData,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsFunding.mockReturnValue({
-      funding: mockFundingData,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+      refetch: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -524,34 +396,21 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
+      expect(
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
+      ).toBeTruthy();
     });
   });
 
   it('should handle mixed API errors correctly', async () => {
-    // This test covers lines 334,337-343 by causing some APIs to fail during sorting
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: mockFillsData,
+    // This test covers error handling with partial data
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: mockTransactions,
       isLoading: false,
       error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsOrders.mockReturnValue({
-      orders: [],
-      isLoading: false,
-      error: 'Orders failed',
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsFunding.mockReturnValue({
-      funding: [],
-      isLoading: false,
-      error: 'Funding failed',
-      refresh: jest.fn(),
-      isRefreshing: false,
+      refetch: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -559,18 +418,18 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
-    // The component should still function with partial data
-    // This exercises the sorting logic (lines 334,337-343) and error handling
+    // The component should still function with data
+    // This exercises the sorting logic and error handling
     expect(component.getByText('Trades')).toBeTruthy();
     expect(component.getByText('Orders')).toBeTruthy();
     expect(component.getByText('Funding')).toBeTruthy();
   });
 
   it('should handle refresh with connection check', async () => {
-    // This test covers lines 378-380 by testing the refresh behavior
+    // This test covers the refresh behavior
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
       isConnecting: false,
@@ -587,27 +446,27 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
     // Force a re-render to trigger useEffect and refresh logic
-    // This indirectly tests the onRefresh callback (lines 378-380)
+    // This indirectly tests the onRefresh callback
     component.rerender(<PerpsTransactionsView />);
 
     expect(component.getByText('Trades')).toBeTruthy();
   });
 
   it('should handle tab switching with scroll behavior', async () => {
-    // This covers lines 393-406 in handleTabPress with flashListRef scroll logic
+    // This covers handleTabPress with flashListRef scroll logic
     const component = renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
-    // Test switching tabs with onPressIn - this triggers the scroll behavior (lines 393-406)
+    // Test switching tabs with onPressIn - this triggers the scroll behavior
     const ordersTab = component.getByText('Orders');
     const fundingTab = component.getByText('Funding');
     const tradesTab = component.getByText('Trades');
@@ -632,13 +491,13 @@ describe('PerpsTransactionsView', () => {
   });
 
   it('should handle transaction press navigation for all types', async () => {
-    // This covers lines 436-454 in handleTransactionPress for different transaction types
+    // This covers handleTransactionPress for different transaction types
     const component = renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
     // Look for transaction items that should be rendered
@@ -652,7 +511,7 @@ describe('PerpsTransactionsView', () => {
         fireEvent.press(transactionItems[0]);
       });
 
-      // This should trigger navigation (lines 436-454) based on transaction type
+      // This should trigger navigation based on transaction type
       expect(mockNavigate).toHaveBeenCalled();
     } else {
       // Fallback - ensure navigation function exists even if no items rendered
@@ -661,29 +520,12 @@ describe('PerpsTransactionsView', () => {
   });
 
   it('should render null for transactions without fill, order, or funding', async () => {
-    // Mock hooks to return empty data
-    mockUsePerpsOrderFills.mockReturnValue({
-      orderFills: [],
+    // Mock hook to return empty data
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [],
       isLoading: false,
       error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsOrders.mockReturnValue({
-      orders: [],
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    mockUsePerpsFunding.mockReturnValue({
-      funding: [],
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
+      refetch: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -691,11 +533,11 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
     });
 
     // The renderRightContent function should handle transactions without
-    // fill/order/fundingAmount and return null (line 501)
+    // fill/order/fundingAmount and return null
     expect(component.getByText('Trades')).toBeTruthy();
   });
 
@@ -765,5 +607,234 @@ describe('PerpsTransactionsView', () => {
     ];
 
     expect(testTransactions).toHaveLength(6);
+  });
+
+  describe('accountId handling', () => {
+    const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
+    const mockChainId = '0xa4b1'; // 42161 in hex (Arbitrum)
+    const expectedAccountId =
+      'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
+
+    beforeEach(() => {
+      // Reset mocks
+      mockUsePerpsTransactionHistory.mockClear();
+    });
+
+    it('computes and passes accountId when address and chainId are available', async () => {
+      const stateWithAccount = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [mockSelectedAddress],
+              mockSelectedAddress,
+            ),
+            NetworkController: mockNetworkState({
+              chainId: mockChainId,
+              id: 'arbitrum',
+              nickname: 'Arbitrum',
+              ticker: 'ETH',
+            }),
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithAccount,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify accountId was passed to the hook
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: expectedAccountId,
+      });
+    });
+
+    it('passes undefined accountId when address is missing', async () => {
+      const stateWithoutAccount = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {},
+                selectedAccount: 'non-existent-account-id',
+              },
+            },
+            NetworkController: mockNetworkState({
+              chainId: mockChainId,
+              id: 'arbitrum',
+              nickname: 'Arbitrum',
+              ticker: 'ETH',
+            }),
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithoutAccount,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: undefined,
+      });
+    });
+
+    it('passes undefined accountId when chainId is missing', async () => {
+      const stateWithoutChainId = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [mockSelectedAddress],
+              mockSelectedAddress,
+            ),
+            NetworkController: {
+              selectedNetworkClientId: 'no-network',
+              networkConfigurationsByChainId: {},
+              networksMetadata: {},
+            },
+            MultichainNetworkController: {
+              isEvmSelected: false,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithoutChainId,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: undefined,
+      });
+    });
+
+    it('computes accountId with different address', async () => {
+      const secondAddress = '0x9876543210987654321098765432109876543210';
+      const secondAccountId =
+        'eip155:42161:0x9876543210987654321098765432109876543210' as CaipAccountId;
+
+      const stateWithSecondAddress = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [secondAddress],
+              secondAddress,
+            ),
+            NetworkController: mockNetworkState({
+              chainId: mockChainId,
+              id: 'arbitrum',
+              nickname: 'Arbitrum',
+              ticker: 'ETH',
+            }),
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithSecondAddress,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify second accountId was used
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: secondAccountId,
+      });
+    });
+
+    it('computes accountId with different chainId', async () => {
+      const secondChainId = '0x1'; // Ethereum mainnet (1)
+      const secondAccountId =
+        'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId;
+
+      const stateWithSecondChainId = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [mockSelectedAddress],
+              mockSelectedAddress,
+            ),
+            NetworkController: mockNetworkState({
+              chainId: secondChainId,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+            MultichainNetworkController: {
+              isEvmSelected: true,
+              selectedMultichainNetworkChainId: undefined,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: stateWithSecondChainId,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify second accountId was used
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: secondAccountId,
+      });
+    });
   });
 });

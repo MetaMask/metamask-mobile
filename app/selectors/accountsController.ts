@@ -12,6 +12,7 @@ import {
   EthMethod,
   SolAccountType,
   SolMethod,
+  TrxMethod,
   isEvmAccountType,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -22,6 +23,7 @@ import {
 import { CaipAccountId, CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
 import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
+import { defaultAccountsControllerState } from '../core/Engine/controllers/accounts-controller/constants';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -33,7 +35,8 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  * @returns - AccountsController state
  */
 export const selectAccountsControllerState = (state: RootState) =>
-  state.engine.backgroundState.AccountsController;
+  state.engine?.backgroundState?.AccountsController ??
+  defaultAccountsControllerState;
 
 /**
  * A memoized selector that returns internal accounts from the AccountsController.
@@ -221,6 +224,7 @@ export const selectCanSignTransactions = createSelector(
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
       selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
+      selectedAccount?.methods?.includes(TrxMethod.SignMessageV2) ||
       selectedAccount?.methods?.includes(BtcMethod.SignPsbt)) ??
     false,
 );

@@ -12,7 +12,11 @@ const createStyles = (theme: Theme) =>
     container: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
-      paddingHorizontal: 16,
+    },
+    containerSpaceAround: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
+      justifyContent: 'space-around',
     },
     title: {
       marginTop: 24,
@@ -62,9 +66,10 @@ const createStyles = (theme: Theme) =>
       transform: [{ rotate: '1.9deg' }],
       height: 80,
     },
-    button: {
+    buttonsContainer: {
       marginTop: 28,
       marginBottom: 32,
+      gap: 8,
     },
     buttonDisabled: {
       opacity: 0.5,

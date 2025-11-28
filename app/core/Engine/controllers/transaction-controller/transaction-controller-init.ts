@@ -42,10 +42,15 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
-import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
+import {
+  TransactionPayControllerMessenger,
+  TransactionPayPublishHook,
+} from '@metamask/transaction-pay-controller';
 import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import { NetworkClientId } from '@metamask/network-controller';
+import { toHex } from '@metamask/controller-utils';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -90,6 +95,7 @@ export const TransactionControllerInit: ControllerInitFunction<
         getGasFeeEstimates: (...args) =>
           gasFeeController.fetchGasFeeEstimates(...args),
         getNetworkClientRegistry: (...args) =>
+          // @ts-expect-error - NetworkController registry type mismatch between peer dependencies
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
         hooks: {
@@ -117,16 +123,33 @@ export const TransactionControllerInit: ControllerInitFunction<
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
+          beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
+            beforeSign(_request, request),
         },
         incomingTransactions: {
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
-          const { chainId } = transactionMeta;
+          const { chainId, isExternalSign } = transactionMeta;
           const state = getState();
 
-          return !selectShouldUseSmartTransaction(state, chainId);
+          const isSmartTransactionEnabled = selectShouldUseSmartTransaction(
+            state,
+            chainId,
+          );
+          const isSendBundleSupportedChain =
+            await isSendBundleSupported(chainId);
+
+          // EIP7702 gas fee tokens are enabled when:
+          // - Smart transactions are NOT enabled, OR
+          // - Send bundle is NOT supported, OR
+          // - Gas fee token was provided when creating transaction
+          return (
+            !isSmartTransactionEnabled ||
+            !isSendBundleSupportedChain ||
+            Boolean(isExternalSign)
+          );
         },
         isSimulationEnabled: () =>
           preferencesController.state.useTransactionSimulations,
@@ -148,6 +171,19 @@ export const TransactionControllerInit: ControllerInitFunction<
     throw error;
   }
 };
+
+async function getNextNonce(
+  transactionController: TransactionController,
+  address: string,
+  networkClientId: NetworkClientId,
+): Promise<Hex> {
+  const nonceLock = await transactionController.getNonceLock(
+    address,
+    networkClientId,
+  );
+  nonceLock.releaseLock();
+  return toHex(nonceLock.nextNonce);
+}
 
 async function publishHook({
   transactionMeta,
@@ -174,20 +210,25 @@ async function publishHook({
     transactionMeta.chainId,
   );
 
-  await new PayHook({
-    messenger: initMessenger,
+  const payResult = await new TransactionPayPublishHook({
+    isSmartTransaction: () => shouldUseSmartTransaction,
+    messenger: initMessenger as TransactionPayControllerMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
-  if (
-    !shouldUseSmartTransaction ||
-    !sendBundleSupport ||
-    transactionMeta.isGasFeeSponsored
-  ) {
+  if (payResult?.transactionHash) {
+    return payResult;
+  }
+
+  const { isExternalSign } = transactionMeta;
+
+  if (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
         transactionController,
       ),
       messenger: initMessenger,
+      getNextNonce: (address: string, networkClientId: NetworkClientId) =>
+        getNextNonce(transactionController, address, networkClientId),
     }).getHook();
 
     const result = await hook(transactionMeta, signedTransactionInHex);
@@ -306,6 +347,17 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
+}
+
+function beforeSign(
+  hookRequest: { transactionMeta: TransactionMeta },
+  request: ControllerInitRequest<
+    TransactionControllerMessenger,
+    TransactionControllerInitMessenger
+  >,
+) {
+  const predictController = request.getController('PredictController');
+  return predictController.beforeSign(hookRequest);
 }
 
 function addTransactionControllerListeners(

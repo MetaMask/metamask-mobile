@@ -24,9 +24,9 @@ export const refreshCardToken = async (
   location: CardLocation,
 ): Promise<CardExchangeTokenResponse> => {
   const apiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
-  const baseUrl = getDefaultBaanxApiBaseUrlForMetaMaskEnv(
-    process.env.METAMASK_ENVIRONMENT,
-  );
+  const baseUrl =
+    process.env.BAANX_API_URL ||
+    getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT);
 
   if (!apiKey) {
     throw new CardError(

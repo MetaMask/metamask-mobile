@@ -4,10 +4,24 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictFeedHeader from './PredictFeedHeader';
 
+// Mock navigation
+const mockNavigate = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    canGoBack: mockCanGoBack,
+    goBack: mockGoBack,
+  }),
+}));
+
 // Mock SearchBox component
 jest.mock('../SearchBox', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const ReactLocal = require('react');
+  const ReactLocal = jest.requireActual('react');
   return {
     __esModule: true,
     default: jest.fn(({ isVisible, onCancel, onSearch }) => {
@@ -42,6 +56,14 @@ describe('PredictFeedHeader', () => {
   const mockOnSearch = jest.fn();
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    mockNavigate.mockClear();
+    mockCanGoBack.mockClear();
+    mockGoBack.mockClear();
+    mockCanGoBack.mockReturnValue(true);
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -671,6 +693,134 @@ describe('PredictFeedHeader', () => {
       // Assert
       expect(mockOnSearchCancel).toHaveBeenCalledTimes(1);
       expect(mockOnSearchCancel).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('back button', () => {
+    it('displays back button when search is not visible', () => {
+      // Arrange & Act
+      const { getByTestId } = renderWithProvider(
+        <PredictFeedHeader
+          isSearchVisible={false}
+          onSearchToggle={mockOnSearchToggle}
+          onSearchCancel={mockOnSearchCancel}
+          onSearch={mockOnSearch}
+        />,
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByTestId('back-button')).toBeOnTheScreen();
+    });
+
+    it('does not display back button when search is visible', () => {
+      // Arrange & Act
+      const { queryByTestId } = renderWithProvider(
+        <PredictFeedHeader
+          isSearchVisible
+          onSearchToggle={mockOnSearchToggle}
+          onSearchCancel={mockOnSearchCancel}
+          onSearch={mockOnSearch}
+        />,
+        { state: initialState },
+      );
+
+      // Assert
+      expect(queryByTestId('back-button')).toBeNull();
+    });
+
+    it('calls goBack when back button is pressed and navigation can go back', () => {
+      // Arrange
+      mockCanGoBack.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(
+        <PredictFeedHeader
+          isSearchVisible={false}
+          onSearchToggle={mockOnSearchToggle}
+          onSearchCancel={mockOnSearchCancel}
+          onSearch={mockOnSearch}
+        />,
+        { state: initialState },
+      );
+
+      // Act
+      const backButton = getByTestId('back-button');
+      fireEvent.press(backButton);
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to Wallet when back button is pressed and navigation cannot go back', () => {
+      // Arrange
+      mockCanGoBack.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(
+        <PredictFeedHeader
+          isSearchVisible={false}
+          onSearchToggle={mockOnSearchToggle}
+          onSearchCancel={mockOnSearchCancel}
+          onSearch={mockOnSearch}
+        />,
+        { state: initialState },
+      );
+
+      // Act
+      const backButton = getByTestId('back-button');
+      fireEvent.press(backButton);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome', {
+        screen: 'WalletTabStackFlow',
+        params: {
+          screen: 'WalletView',
+        },
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('handles multiple back button presses', () => {
+      // Arrange
+      mockCanGoBack.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(
+        <PredictFeedHeader
+          isSearchVisible={false}
+          onSearchToggle={mockOnSearchToggle}
+          onSearchCancel={mockOnSearchCancel}
+          onSearch={mockOnSearch}
+        />,
+        { state: initialState },
+      );
+
+      // Act
+      const backButton = getByTestId('back-button');
+      fireEvent.press(backButton);
+      fireEvent.press(backButton);
+      fireEvent.press(backButton);
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not interfere with search toggle when back button is pressed', () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(
+        <PredictFeedHeader
+          isSearchVisible={false}
+          onSearchToggle={mockOnSearchToggle}
+          onSearchCancel={mockOnSearchCancel}
+          onSearch={mockOnSearch}
+        />,
+        { state: initialState },
+      );
+
+      // Act
+      const backButton = getByTestId('back-button');
+      fireEvent.press(backButton);
+
+      // Assert
+      expect(mockOnSearchToggle).not.toHaveBeenCalled();
+      expect(mockOnSearchCancel).not.toHaveBeenCalled();
+      expect(mockOnSearch).not.toHaveBeenCalled();
     });
   });
 });

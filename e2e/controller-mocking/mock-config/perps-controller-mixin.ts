@@ -17,6 +17,8 @@ import type {
   PriceUpdate,
   ClosePositionParams,
   LiquidationPriceParams,
+  Funding,
+  UpdatePositionTPSLParams,
 } from '../../../app/components/UI/Perps/controllers/types';
 import type { PerpsControllerState } from '../../../app/components/UI/Perps/controllers/PerpsController';
 
@@ -40,7 +42,7 @@ export class E2EControllerOverrides {
   // Mock order placement
   async placeOrder(params: OrderParams): Promise<OrderResult> {
     console.log('E2E Mock: Intercepted placeOrder:', params.coin);
-    const result = await this.mockService.mockPlaceOrder(params);
+    const result = this.mockService.mockPlaceOrder(params);
 
     // Update Redux state to reflect the new position/balance
     const mockAccount = this.mockService.getMockAccountState();
@@ -63,10 +65,14 @@ export class E2EControllerOverrides {
     params: LiquidationPriceParams,
   ): Promise<string> {
     const entry = Number(params.entryPrice);
-    if (Number.isFinite(entry)) {
-      return entry.toFixed(2);
+    if (!Number.isFinite(entry)) {
+      return '0.00';
     }
-    return '0.00';
+    // Provide deterministic, realistic liquidation distance for E2E:
+    // Long: 20% below entry, Short: 20% above entry
+    const isLong = params.direction === 'long';
+    const liq = isLong ? entry * 0.8 : entry * 1.2;
+    return liq.toFixed(2);
   }
 
   // Mock account state with Redux update
@@ -84,6 +90,26 @@ export class E2EControllerOverrides {
     );
 
     return mockAccount;
+  }
+
+  // Mock historical orders
+  async getOrders(): Promise<Order[]> {
+    // Return combined open orders and historical (canceled/filled) orders
+    const openOrders = this.mockService.getMockOrders();
+    const historicalOrders = this.mockService.getMockOrdersHistory();
+    return [...openOrders, ...historicalOrders];
+  }
+
+  // Mock historical order fills (trades)
+  async getOrderFills(): Promise<OrderFill[]> {
+    const fills = this.mockService.getMockOrderFills();
+    return fills;
+  }
+
+  // Mock funding history
+  async getFunding(): Promise<Funding[]> {
+    const funding = this.mockService.mockGetFunding();
+    return funding;
   }
 
   // Mock positions with Redux update
@@ -111,10 +137,7 @@ export class E2EControllerOverrides {
       orderType: params.orderType,
     });
 
-    const result = await this.mockService.mockClosePosition(
-      params.coin,
-      params.size,
-    );
+    const result = this.mockService.mockClosePosition(params.coin, params.size);
 
     // Update Redux state to reflect the position closure
     const mockAccount = this.mockService.getMockAccountState();
@@ -129,6 +152,32 @@ export class E2EControllerOverrides {
       },
     );
 
+    return result;
+  }
+
+  // Mock cancel order
+  async cancelOrder(params: {
+    orderId: string;
+    coin: string;
+  }): Promise<OrderResult> {
+    const result = this.mockService.mockCancelOrder(params.orderId);
+    return result;
+  }
+
+  // Mock TP/SL update creating trigger orders
+  async updatePositionTPSL(
+    params: UpdatePositionTPSLParams,
+  ): Promise<OrderResult> {
+    const result = this.mockService.mockUpdatePositionTPSL(params);
+    // Refresh Redux positions after TP/SL changes
+    const mockPositions = this.mockService.getMockPositions();
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.positions = mockPositions;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
     return result;
   }
 
@@ -209,10 +258,15 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   // Override key methods with E2E mocks
   const methodsToOverride = [
     'placeOrder',
+    'cancelOrder',
     'getAccountState',
     'getPositions',
     'closePosition',
+    'updatePositionTPSL',
     'calculateLiquidationPrice',
+    'getOrders',
+    'getOrderFills',
+    'getFunding',
     'subscribeToAccount',
     'subscribeToPositions',
     'subscribeToOrders',
@@ -235,6 +289,37 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       console.log(`Mocked ${method} method`);
     }
   });
+
+  // Wrap getActiveProvider so history calls made via provider use mocks too
+  const controllerRecord = controller as unknown as Record<string, unknown>;
+  const originalGetActiveProvider = controllerRecord.getActiveProvider as
+    | (() => unknown)
+    | undefined;
+  controllerRecord._original_getActiveProvider = originalGetActiveProvider;
+  controllerRecord.getActiveProvider = function getActiveProviderMocked() {
+    const provider = originalGetActiveProvider
+      ? originalGetActiveProvider.call(controller)
+      : {};
+    const providerRecord = provider as Record<string, unknown>;
+
+    // Patch only the methods we need for Activity history
+    providerRecord.getOrders = (
+      overrides.getOrders as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.getOrderFills = (
+      overrides.getOrderFills as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.getFunding = (
+      overrides.getFunding as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.getUserHistory = () => {
+      const service = PerpsE2EMockService.getInstance();
+      return service.getMockUserHistory();
+    };
+
+    // Pass-through others unchanged
+    return providerRecord;
+  };
 
   // Initialize Redux state with mock data immediately
   const mockService = PerpsE2EMockService.getInstance();

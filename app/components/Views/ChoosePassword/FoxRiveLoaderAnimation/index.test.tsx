@@ -67,7 +67,7 @@ jest.mock('./index.styles', () =>
   })),
 );
 
-import FoxRiveLoaderAnimation from './index';
+import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation';
 
 describe('FoxRiveLoaderAnimation', () => {
   beforeEach(() => {

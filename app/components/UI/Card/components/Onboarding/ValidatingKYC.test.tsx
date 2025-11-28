@@ -1,15 +1,14 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
-import ValidatingKYC from './ValidatingKYC';
-import Routes from '../../../../../constants/navigation/Routes';
-
-// Mock dependencies
+// Mock dependencies first
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useRoute: jest.fn(),
 }));
 
-// Mock OnboardingStep component
+jest.mock('../../hooks/useUserRegistrationStatus', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 jest.mock('./OnboardingStep', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -43,123 +42,376 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
-// Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
-  const { View, Text: RNText } = jest.requireActual('react-native');
-
-  const Box = ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) =>
-    React.createElement(View, { testID: 'box', ...props }, children);
-
-  const Text = ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) =>
-    React.createElement(RNText, { testID: 'text', ...props }, children);
+  const { View, Text } = jest.requireActual('react-native');
 
   return {
-    Box,
-    Text,
+    Box: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(View, props, children),
+    Text: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(Text, props, children),
   };
 });
 
-// Mock Button component
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+jest.mock('../../../Button', () => {
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
-  const ButtonSize = {
-    Sm: 'sm',
-    Md: 'md',
-    Lg: 'lg',
-  };
-
-  const ButtonVariants = {
-    Primary: 'primary',
-    Secondary: 'secondary',
-    Link: 'link',
-  };
-
-  const ButtonWidthTypes = {
-    Auto: 'auto',
-    Full: 'full',
-  };
-
   const MockButton = ({
-    label,
+    children,
     onPress,
-    variant,
-    size,
-    width,
+    disabled,
+    testID,
     ...props
   }: {
-    label: string;
+    children: React.ReactNode;
     onPress: () => void;
-    variant: string;
-    size: string;
-    width: string;
+    disabled?: boolean;
+    testID?: string;
+    [key: string]: unknown;
   }) =>
     React.createElement(
       TouchableOpacity,
       {
-        testID: 'continue-button',
+        testID: testID || 'validating-kyc-continue-button',
         onPress,
+        disabled,
         ...props,
       },
-      React.createElement(Text, { testID: 'button-text' }, label),
+      React.createElement(Text, {}, children),
     );
 
-  MockButton.Size = ButtonSize;
-  MockButton.Variants = ButtonVariants;
-  MockButton.WidthTypes = ButtonWidthTypes;
-
-  return {
-    __esModule: true,
-    default: MockButton,
-    ButtonSize,
-    ButtonVariants,
-    ButtonWidthTypes,
-  };
+  return MockButton;
 });
 
-// Mock ActivityIndicator
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   const React = jest.requireActual('react');
 
   return {
     ...RN,
-    ActivityIndicator: ({ ...props }) =>
-      React.createElement(RN.View, { testID: 'activity-indicator', ...props }),
+    ActivityIndicator: ({
+      testID,
+      ...props
+    }: {
+      testID?: string;
+      [key: string]: unknown;
+    }) =>
+      React.createElement(RN.View, {
+        testID: testID || 'activity-indicator',
+        ...props,
+      }),
   };
 });
 
-// Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'card.card_onboarding.validating_kyc.title': 'Validating your identity',
+      'card.card_onboarding.validating_kyc.description':
+        'Please wait while we validate your identity.',
       'card.card_onboarding.continue_button': 'Continue',
     };
     return translations[key] || key;
   }),
 }));
 
+import React from 'react';
+import { render, waitFor } from '@testing-library/react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import ValidatingKYC from './ValidatingKYC';
+import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
+
 describe('ValidatingKYC Component', () => {
-  const mockNavigate = jest.fn();
+  let mockNavigate: jest.Mock;
+  let mockUseUserRegistrationStatus: jest.Mock;
+  let mockStartPolling: jest.Mock;
+  let mockStopPolling: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate = jest.fn();
+    mockStartPolling = jest.fn();
+    mockStopPolling = jest.fn();
+
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
+
+    (useRoute as jest.Mock).mockReturnValue({
+      params: { sessionUrl: 'https://example.com/session' },
+    });
+
+    // Default mock for useUserRegistrationStatus
+    mockUseUserRegistrationStatus = jest.fn().mockReturnValue({
+      verificationState: 'PENDING',
+      userResponse: null,
+      isLoading: false,
+      isError: false,
+      error: null,
+      clearError: jest.fn(),
+      startPolling: mockStartPolling,
+      stopPolling: mockStopPolling,
+    });
+    (useUserRegistrationStatus as jest.Mock).mockImplementation(
+      mockUseUserRegistrationStatus,
+    );
   });
 
-  describe('Component Rendering', () => {
-    it('should render the component correctly', () => {
+  describe('Initial Render', () => {
+    it('renders onboarding step with correct testID', () => {
+      const { getByTestId } = render(<ValidatingKYC />);
+      expect(getByTestId('onboarding-step')).toBeTruthy();
+    });
+
+    it('renders title with correct text', () => {
+      const { getByTestId } = render(<ValidatingKYC />);
+      const title = getByTestId('onboarding-step-title');
+      expect(title).toBeTruthy();
+      expect(title.props.children).toBe('Validating your identity');
+    });
+
+    it('renders description with correct text', () => {
+      const { getByTestId } = render(<ValidatingKYC />);
+      const description = getByTestId('onboarding-step-description');
+      expect(description).toBeTruthy();
+    });
+
+    it('renders activity indicator when loading', () => {
+      const { getByTestId } = render(<ValidatingKYC />);
+      const formFields = getByTestId('onboarding-step-form-fields');
+      expect(formFields.children).toHaveLength(1);
+      // ActivityIndicator is rendered in the form fields
+      expect(formFields).toBeTruthy();
+    });
+
+    it('renders no actions (null)', () => {
+      const { getByTestId } = render(<ValidatingKYC />);
+      const actions = getByTestId('onboarding-step-actions');
+      expect(actions).toBeTruthy();
+      expect(actions.children).toHaveLength(0);
+    });
+  });
+
+  describe('Error States', () => {
+    it('shows error state when isError is true', () => {
+      mockUseUserRegistrationStatus.mockReturnValue({
+        verificationState: null,
+        userResponse: null,
+        isLoading: false,
+        isError: true,
+        error: 'Verification failed',
+        clearError: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
+      });
+
+      const { getByTestId } = render(<ValidatingKYC />);
+
+      // Component should still render but in error state
+      expect(getByTestId('onboarding-step')).toBeTruthy();
+      // No buttons are rendered in error state
+      const actions = getByTestId('onboarding-step-actions');
+      expect(actions.children).toHaveLength(0);
+    });
+
+    it('handles error state with null error message', () => {
+      mockUseUserRegistrationStatus.mockReturnValue({
+        verificationState: null,
+        userResponse: null,
+        isLoading: false,
+        isError: true,
+        error: null,
+        clearError: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
+      });
+
+      const { getByTestId } = render(<ValidatingKYC />);
+      expect(getByTestId('onboarding-step')).toBeTruthy();
+    });
+  });
+
+  describe('Loading States', () => {
+    it('shows loading state when isLoading is true', () => {
+      mockUseUserRegistrationStatus.mockReturnValue({
+        verificationState: null,
+        userResponse: null,
+        isLoading: true,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
+      });
+
+      const { getByTestId } = render(<ValidatingKYC />);
+      const formFields = getByTestId('onboarding-step-form-fields');
+      expect(formFields.children).toHaveLength(1);
+      // ActivityIndicator is rendered in the form fields
+      expect(formFields).toBeTruthy();
+    });
+
+    it('handles loading state with verification pending', () => {
+      mockUseUserRegistrationStatus.mockReturnValue({
+        verificationState: 'PENDING',
+        userResponse: null,
+        isLoading: true,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
+      });
+
+      const { getByTestId } = render(<ValidatingKYC />);
+      const formFields = getByTestId('onboarding-step-form-fields');
+      expect(formFields.children).toHaveLength(1);
+      // ActivityIndicator is rendered in the form fields
+      expect(formFields).toBeTruthy();
+    });
+  });
+
+  describe('User States - Verification Status Navigation', () => {
+    it('navigates to PERSONAL_DETAILS when verificationState is VERIFIED', async () => {
+      mockUseUserRegistrationStatus.mockReturnValue({
+        verificationState: 'VERIFIED',
+        userResponse: { verificationState: 'VERIFIED' },
+        isLoading: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
+      });
+
+      render(<ValidatingKYC />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingPersonalDetails',
+        );
+      });
+    });
+
+    it('navigates to KYC_FAILED when verificationState is REJECTED', async () => {
+      mockUseUserRegistrationStatus.mockReturnValue({
+        verificationState: 'REJECTED',
+        userResponse: { verificationState: 'REJECTED' },
+        isLoading: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
+      });
+
+      render(<ValidatingKYC />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingKYCFailed');
+      });
+    });
+
+    it('does not navigate when verificationState is PENDING', async () => {
+      mockUseUserRegistrationStatus.mockReturnValue({
+        verificationState: 'PENDING',
+        userResponse: { verificationState: 'PENDING' },
+        isLoading: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
+      });
+
+      render(<ValidatingKYC />);
+
+      // Wait a bit to ensure no navigation occurs
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Button Interaction and Navigation', () => {
+    it('does not render any buttons', () => {
+      const { queryByTestId } = render(<ValidatingKYC />);
+      const button = queryByTestId('validating-kyc-continue-button');
+      expect(button).toBeNull();
+    });
+  });
+
+  describe('Navigation Integration', () => {
+    it('uses useNavigation hook', () => {
+      render(<ValidatingKYC />);
+      expect(useNavigation).toHaveBeenCalled();
+    });
+
+    it('calls navigate with correct route for automatic navigation', async () => {
+      mockUseUserRegistrationStatus.mockReturnValue({
+        verificationState: 'VERIFIED',
+        userResponse: { verificationState: 'VERIFIED' },
+        isLoading: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
+      });
+
+      render(<ValidatingKYC />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingPersonalDetails',
+        );
+      });
+    });
+  });
+
+  describe('Polling Lifecycle', () => {
+    it('starts polling when component mounts', () => {
+      render(<ValidatingKYC />);
+
+      expect(mockStartPolling).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops polling when component unmounts', () => {
+      const { unmount } = render(<ValidatingKYC />);
+
+      unmount();
+
+      expect(mockStopPolling).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls startPolling before stopPolling', () => {
+      const callOrder: string[] = [];
+
+      mockStartPolling.mockImplementation(() => {
+        callOrder.push('start');
+      });
+
+      mockStopPolling.mockImplementation(() => {
+        callOrder.push('stop');
+      });
+
+      const { unmount } = render(<ValidatingKYC />);
+      unmount();
+
+      expect(callOrder).toEqual(['start', 'stop']);
+    });
+  });
+
+  describe('Component Integration', () => {
+    it('passes correct props to OnboardingStep', () => {
       const { getByTestId } = render(<ValidatingKYC />);
 
       expect(getByTestId('onboarding-step')).toBeTruthy();
@@ -169,129 +421,17 @@ describe('ValidatingKYC Component', () => {
       expect(getByTestId('onboarding-step-actions')).toBeTruthy();
     });
 
-    it('should display the correct title', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const titleElement = getByTestId('onboarding-step-title');
-      expect(titleElement.props.children).toBe('Validating your identity');
-    });
-
-    it('should display empty description', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const descriptionElement = getByTestId('onboarding-step-description');
-      expect(descriptionElement.props.children).toBe('');
-    });
-  });
-
-  describe('Form Fields', () => {
-    it('should render activity indicator in form fields', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const formFields = getByTestId('onboarding-step-form-fields');
-
-      expect(formFields).toBeTruthy();
-      expect(formFields.children).toBeTruthy();
-    });
-  });
-
-  describe('Continue Button', () => {
-    it('should render the continue button', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const continueButton = getByTestId('continue-button');
-      expect(continueButton).toBeTruthy();
-    });
-
-    it('should display correct button text', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const buttonText = getByTestId('button-text');
-      expect(buttonText.props.children).toBe('Continue');
-    });
-
-    it('should navigate to KYC_FAILED when continue button is pressed', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const continueButton = getByTestId('continue-button');
-      fireEvent.press(continueButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ONBOARDING.KYC_FAILED,
-      );
-    });
-
-    it('should handle multiple button presses', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const continueButton = getByTestId('continue-button');
-      fireEvent.press(continueButton);
-      fireEvent.press(continueButton);
-
-      expect(mockNavigate).toHaveBeenCalledTimes(2);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ONBOARDING.KYC_FAILED,
-      );
-    });
-  });
-
-  describe('Navigation Integration', () => {
-    it('should use navigation hook', () => {
+    it('integrates with useUserRegistrationStatus hook', () => {
       render(<ValidatingKYC />);
-
-      expect(useNavigation).toHaveBeenCalled();
-    });
-
-    it('should call navigate with correct route', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const continueButton = getByTestId('continue-button');
-      fireEvent.press(continueButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ONBOARDING.KYC_FAILED,
-      );
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('Component Integration', () => {
-    it('should pass correct props to OnboardingStep', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const onboardingStep = getByTestId('onboarding-step');
-      const title = getByTestId('onboarding-step-title');
-      const description = getByTestId('onboarding-step-description');
-      const formFields = getByTestId('onboarding-step-form-fields');
-      const actions = getByTestId('onboarding-step-actions');
-
-      expect(onboardingStep).toBeTruthy();
-      expect(title.props.children).toBe('Validating your identity');
-      expect(description.props.children).toBe('');
-      expect(formFields).toBeTruthy();
-      expect(actions).toBeTruthy();
-    });
-
-    it('should render actions section with continue button', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const actionsSection = getByTestId('onboarding-step-actions');
-      const continueButton = getByTestId('continue-button');
-
-      expect(actionsSection).toBeTruthy();
-      expect(continueButton).toBeTruthy();
+      expect(useUserRegistrationStatus).toHaveBeenCalled();
     });
   });
 
   describe('i18n Integration', () => {
-    it('should use correct i18n keys for text content', () => {
+    it('uses correct i18n keys for title', () => {
       const { getByTestId } = render(<ValidatingKYC />);
-
       const title = getByTestId('onboarding-step-title');
-      const buttonText = getByTestId('button-text');
-
       expect(title.props.children).toBe('Validating your identity');
-      expect(buttonText.props.children).toBe('Continue');
     });
   });
 });

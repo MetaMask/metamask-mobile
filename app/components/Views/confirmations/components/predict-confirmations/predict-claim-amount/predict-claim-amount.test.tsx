@@ -23,7 +23,7 @@ describe('PredictClaimAmount', () => {
     const { getByText } = render();
 
     // Then the formatted winnings amount is displayed
-    expect(getByText('$2,250.00')).toBeDefined();
+    expect(getByText('$2,250')).toBeDefined();
   });
 
   it('renders formatted change and percentage', () => {
@@ -31,6 +31,6 @@ describe('PredictClaimAmount', () => {
     const { getByText } = render();
 
     // Then the formatted change and percentage is displayed
-    expect(getByText('+$750.00 (+33.33%)')).toBeDefined();
+    expect(getByText('+$750 (33.33%)')).toBeDefined();
   });
 });

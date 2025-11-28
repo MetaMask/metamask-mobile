@@ -1,12 +1,15 @@
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
 import {
   PerpsController,
   PerpsControllerMessenger,
   PerpsControllerState,
+  InitializationState,
 } from '../../../../components/UI/Perps/controllers';
+import { MARKET_SORTING_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
 import { perpsControllerInit } from '.';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../../../../components/UI/Perps/controllers', () => {
   const actualPerpsController = jest.requireActual(
@@ -17,6 +20,7 @@ jest.mock('../../../../components/UI/Perps/controllers', () => {
     controllerName: actualPerpsController.controllerName,
     getDefaultPerpsControllerState:
       actualPerpsController.getDefaultPerpsControllerState,
+    InitializationState: actualPerpsController.InitializationState,
     PerpsController: jest.fn(),
   };
 });
@@ -29,9 +33,28 @@ describe('perps controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+
+    // Mock getState to return proper Redux state structure for feature flags
+    // Using Partial since we only need RemoteFeatureFlagController for this test
+    initRequestMock.getState.mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        } as Partial<
+          ReturnType<
+            typeof initRequestMock.getState
+          >['engine']['backgroundState']
+        >,
+      },
+    } as ReturnType<typeof initRequestMock.getState>);
   });
 
   it('returns controller instance', () => {
@@ -84,7 +107,6 @@ describe('perps controller init', () => {
       ],
       accountState: null,
       perpsBalances: {},
-      pendingOrders: [],
       depositInProgress: false,
       lastDepositTransactionId: null,
       lastDepositResult: null,
@@ -99,8 +121,28 @@ describe('perps controller init', () => {
         testnet: false,
         mainnet: false,
       },
+      watchlistMarkets: {
+        testnet: [],
+        mainnet: [],
+      },
+      tradeConfigurations: {
+        testnet: {},
+        mainnet: {},
+      },
+      marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+      hip3ConfigVersion: 0,
       withdrawInProgress: false,
       lastWithdrawResult: null,
+      withdrawalRequests: [],
+      withdrawalProgress: {
+        progress: 0,
+        lastUpdated: Date.now(),
+        activeWithdrawalId: null,
+      },
+      depositRequests: [],
+      initializationState: InitializationState.UNINITIALIZED,
+      initializationError: null,
+      initializationAttempts: 0,
     };
 
     initRequestMock.persistedState = {

@@ -110,7 +110,7 @@ describe('usePerpsClosePositionValidation', () => {
     expect(result.current.errors).toHaveLength(0);
   });
 
-  it('should return error when user will receive negative amount', async () => {
+  it('returns warning (not error) when user will receive negative amount', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 
     const params = {
@@ -126,9 +126,12 @@ describe('usePerpsClosePositionValidation', () => {
       expect(result.current.isValidating).toBe(false);
     });
 
-    expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(
-      strings('perps.close_position.negative_receive_amount'),
+    expect(result.current.isValid).toBe(true);
+    expect(result.current.errors).toHaveLength(0);
+    expect(result.current.warnings).toContain(
+      strings('perps.close_position.negative_receive_warning', {
+        amount: '100.00',
+      }),
     );
   });
 

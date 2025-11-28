@@ -28,18 +28,20 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectDestAddress,
-  selectIsSwap,
 } from '../../../../../core/redux/slices/bridge';
-import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
-import { areAddressesEqual } from '../../../../../util/address';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
+import QuoteCountdownTimer from '../QuoteCountdownTimer';
+import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
+import { toSentenceCase } from '../../../../../util/string';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../hooks/useLatestBalance';
 
 if (
   Platform.OS === 'android' &&
@@ -55,7 +57,7 @@ const QuoteDetailsCard: React.FC = () => {
 
   const locale = I18n.locale;
   const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumFractionDigits: 6,
+    maximumSignificantDigits: 8,
   });
 
   const {
@@ -67,56 +69,60 @@ const QuoteDetailsCard: React.FC = () => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const destAddress = useSelector(selectDestAddress);
-  const isSwap = useSelector(selectIsSwap);
-  const internalAccounts = useSelector(selectInternalAccounts);
-  const accountToGroupMap = useSelector(selectAccountToGroupMap);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
     shouldShowRewardsRow,
     hasError: hasRewardsError,
+    accountOptedIn,
+    rewardsAccountScope,
   } = useRewards({
     activeQuote,
     isQuoteLoading,
   });
 
-  // Get the display name for the destination account
-  const destinationDisplayName = useMemo(() => {
-    if (!destAddress) return undefined;
+  const gasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
 
-    const internalAccount = internalAccounts.find((account) =>
-      areAddressesEqual(account.address, destAddress),
-    );
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+  });
 
-    if (!internalAccount) return undefined;
+  const insufficientBal = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
 
-    // Use account group name if available, otherwise use account name
-    if (isMultichainAccountsState2Enabled) {
-      const accountGroup = accountToGroupMap[internalAccount.id];
-      return accountGroup?.metadata.name || internalAccount.metadata.name;
+  const nativeTokenName = useMemo(() => {
+    const chainId = sourceToken?.chainId;
+    if (!chainId) return undefined;
+    const native = getNativeSourceToken(chainId);
+    return native?.symbol ?? sourceToken?.symbol ?? '';
+  }, [sourceToken?.chainId, sourceToken?.symbol]);
+
+  const isCurrentNetworkGasSponsored = useMemo(() => {
+    if (!sourceToken?.chainId || !gasFeesSponsoredNetworkEnabled) {
+      return false;
     }
+    return gasFeesSponsoredNetworkEnabled(sourceToken.chainId);
+  }, [sourceToken?.chainId, gasFeesSponsoredNetworkEnabled]);
 
-    return internalAccount.metadata.name;
+  const shouldShowGasSponsored = useMemo(() => {
+    const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
+    return gasSponsored || (insufficientBal && isCurrentNetworkGasSponsored);
   }, [
-    destAddress,
-    internalAccounts,
-    accountToGroupMap,
-    isMultichainAccountsState2Enabled,
+    activeQuote?.quote?.gasSponsored,
+    insufficientBal,
+    isCurrentNetworkGasSponsored,
   ]);
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
-    });
-  };
-
-  const handleRecipientPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL,
     });
   };
 
@@ -143,14 +149,26 @@ const QuoteDetailsCard: React.FC = () => {
       <Box style={styles.container}>
         <KeyValueRow
           field={{
-            label: {
-              text: strings('bridge.rate'),
-              variant: TextVariant.BodyMDMedium,
-            },
+            label: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('bridge.rate')}
+                </Text>
+                <QuoteCountdownTimer />
+              </Box>
+            ),
             tooltip: {
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
+              iconName: IconName.Info,
             },
           }}
           value={{
@@ -160,38 +178,14 @@ const QuoteDetailsCard: React.FC = () => {
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
+                color={TextColor.Alternative}
               >
                 {rate}
               </Text>
             ),
           }}
         />
-        {activeQuote?.quote.gasIncluded ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Text variant={TextVariant.BodyMDMedium}>
-              {strings('bridge.network_fee')}
-            </Text>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={8}
-            >
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.strikethroughText}
-              >
-                {networkFee}
-              </Text>
-              <Text variant={TextVariant.BodyMD}>
-                {strings('bridge.included')}
-              </Text>
-            </Box>
-          </Box>
-        ) : (
+        {shouldShowGasSponsored ? (
           <KeyValueRow
             field={{
               label: {
@@ -200,41 +194,65 @@ const QuoteDetailsCard: React.FC = () => {
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content_sponsored', {
+                  nativeToken: nativeTokenName,
+                }),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: strings('bridge.gas_fees_sponsored'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        ) : activeQuote?.quote.gasIncluded ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {toSentenceCase(strings('bridge.network_fee'))}
+            </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              <Text
+                variant={TextVariant.BodyMD}
+                style={styles.strikethroughText}
+                color={TextColor.Alternative}
+              >
+                {networkFee}
+              </Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('bridge.included')}
+              </Text>
+            </Box>
+          </Box>
+        ) : (
+          <KeyValueRow
+            field={{
+              label: {
+                text: toSentenceCase(strings('bridge.network_fee')),
+                variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
               label: {
                 text: networkFee,
                 variant: TextVariant.BodyMD,
-              },
-            }}
-          />
-        )}
-
-        {priceImpact && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('bridge.price_impact'),
-                variant: TextVariant.BodyMDMedium,
-              },
-              tooltip: {
-                title: strings('bridge.price_impact_info_title'),
-                content: gasIncluded
-                  ? strings('bridge.price_impact_info_gasless_description')
-                  : strings('bridge.price_impact_info_description'),
-                size: TooltipSizes.Sm,
-              },
-            }}
-            value={{
-              label: {
-                text: priceImpact,
-                variant: TextVariant.BodyMD,
-                color: shouldShowPriceImpactWarning
-                  ? TextColor.Error
-                  : undefined,
+                color: TextColor.Alternative,
               },
             }}
           />
@@ -244,12 +262,14 @@ const QuoteDetailsCard: React.FC = () => {
           field={{
             label: {
               text: strings('bridge.slippage'),
-              variant: TextVariant.BodyMDMedium,
+              variant: TextVariant.BodyMD,
+              color: TextColor.Alternative,
             },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
+              iconName: IconName.Info,
             },
           }}
           value={{
@@ -260,122 +280,136 @@ const QuoteDetailsCard: React.FC = () => {
                 testID="edit-slippage-button"
                 style={styles.slippageButton}
               >
-                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {slippage}
+                </Text>
                 <Icon
                   name={IconName.Edit}
                   size={IconSize.Sm}
-                  color={IconColor.Muted}
+                  color={IconColor.Alternative}
                 />
               </TouchableOpacity>
             ),
           }}
         />
 
-        {!isSwap && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('bridge.recipient'),
-                variant: TextVariant.BodyMDMedium,
-              },
-            }}
-            value={{
-              label: (
-                <TouchableOpacity
-                  onPress={handleRecipientPress}
-                  activeOpacity={0.6}
-                  testID="recipient-selector-button"
-                  style={styles.slippageButton}
-                >
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={styles.recipientText}
-                  >
-                    {destAddress
-                      ? destinationDisplayName ||
-                        strings('bridge.external_account')
-                      : strings('bridge.select_recipient')}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.Muted}
-                  />
-                </TouchableOpacity>
-              ),
-            }}
-          />
-        )}
-
         {activeQuote?.minToTokenAmount && (
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.minimum_received'),
-                variant: TextVariant.BodyMDMedium,
+                text: toSentenceCase(strings('bridge.minimum_received')),
+                variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
             }}
           />
         )}
 
-        {/* Estimated Points */}
-        {shouldShowRewardsRow && (
+        {priceImpact && (
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.points'),
-                variant: TextVariant.BodyMDMedium,
+                text: toSentenceCase(strings('bridge.price_impact')),
+                variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
               tooltip: {
-                title: strings('bridge.points_tooltip'),
-                content: `${strings(
-                  'bridge.points_tooltip_content_1',
-                )}\n\n${strings('bridge.points_tooltip_content_2')}`,
+                title: strings('bridge.price_impact_info_title'),
+                content: gasIncluded
+                  ? strings('bridge.price_impact_info_gasless_description')
+                  : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
-              label: (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  gap={1}
-                >
-                  <RewardsAnimations
-                    value={estimatedPoints ?? 0}
-                    state={
-                      isRewardsLoading
-                        ? RewardAnimationState.Loading
-                        : hasRewardsError
-                        ? RewardAnimationState.ErrorState
-                        : RewardAnimationState.Idle
-                    }
-                  />
-                </Box>
-              ),
-              ...(hasRewardsError && {
-                tooltip: {
-                  title: strings('bridge.points_error'),
-                  content: strings('bridge.points_error_content'),
-                  size: TooltipSizes.Sm,
-                },
-              }),
+              label: {
+                text: priceImpact,
+                variant: TextVariant.BodyMD,
+                color: shouldShowPriceImpactWarning
+                  ? TextColor.Error
+                  : TextColor.Alternative,
+              },
             }}
           />
+        )}
+
+        <QuoteDetailsRecipientKeyValueRow />
+
+        {/* Estimated Points */}
+        {shouldShowRewardsRow && (
+          <Box testID="bridge-rewards-row">
+            <KeyValueRow
+              field={{
+                label: {
+                  text: toSentenceCase(strings('bridge.points')),
+                  variant: TextVariant.BodyMD,
+                },
+                tooltip: {
+                  title: strings('bridge.points_tooltip'),
+                  content: `${strings(
+                    'bridge.points_tooltip_content_1',
+                  )}\n\n${strings('bridge.points_tooltip_content_2')}`,
+                  size: TooltipSizes.Sm,
+                  iconName: IconName.Info,
+                },
+              }}
+              value={{
+                label: (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Center}
+                    gap={1}
+                  >
+                    {accountOptedIn ? (
+                      <RewardsAnimations
+                        value={estimatedPoints ?? 0}
+                        state={
+                          isRewardsLoading
+                            ? RewardAnimationState.Loading
+                            : hasRewardsError
+                              ? RewardAnimationState.ErrorState
+                              : RewardAnimationState.Idle
+                        }
+                      />
+                    ) : rewardsAccountScope ? (
+                      <AddRewardsAccount
+                        testID="bridge-add-rewards-account"
+                        account={rewardsAccountScope}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </Box>
+                ),
+                ...(hasRewardsError && {
+                  tooltip: {
+                    title: strings('bridge.points_error'),
+                    content: strings('bridge.points_error_content'),
+                    size: TooltipSizes.Sm,
+                    iconName: IconName.Info,
+                  },
+                }),
+              }}
+            />
+          </Box>
         )}
       </Box>
     </Box>

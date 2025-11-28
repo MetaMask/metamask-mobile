@@ -27,6 +27,13 @@ export type ToastLabelOptions = {
 }[];
 
 /**
+ * Options for the description text in the toast.
+ */
+export interface ToastDescriptionOptions {
+  description: string;
+}
+
+/**
  * Options for displaying a Link in the toast.
  */
 export interface ToastLinkButtonOptions {
@@ -40,6 +47,7 @@ export interface ToastLinkButtonOptions {
 interface BaseToastVariants {
   hasNoTimeout: boolean;
   labelOptions: ToastLabelOptions;
+  descriptionOptions?: ToastDescriptionOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
   closeButtonOptions?: ButtonProps;
   startAccessory?: ReactElement;

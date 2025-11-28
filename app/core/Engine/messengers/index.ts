@@ -34,10 +34,6 @@ import { getMultichainAssetsControllerMessenger } from './multichain-assets-cont
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import {
-  getRatesControllerInitMessenger,
-  getRatesControllerMessenger,
-} from './rates-controller-messenger';
-import {
   getSnapKeyringBuilderInitMessenger,
   getSnapKeyringBuilderMessenger,
 } from './snap-keyring-builder-messenger';
@@ -52,6 +48,9 @@ import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
+///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import { getBridgeControllerMessenger } from './bridge-controller-messenger';
@@ -111,10 +110,6 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import {
-  getPPOMControllerInitMessenger,
-  getPPOMControllerMessenger,
-} from './ppom-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
@@ -123,6 +118,10 @@ import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
 } from './multichain-router-messenger';
+import {
+  getTransactionPayControllerInitMessenger,
+  getTransactionPayControllerMessenger,
+} from './transaction-pay-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -175,6 +174,10 @@ export const CONTROLLER_MESSENGERS = {
   TransactionController: {
     getMessenger: getTransactionControllerMessenger,
     getInitMessenger: getTransactionControllerInitMessenger,
+  },
+  TransactionPayController: {
+    getMessenger: getTransactionPayControllerMessenger,
+    getInitMessenger: getTransactionPayControllerInitMessenger,
   },
   CurrencyRateController: {
     getMessenger: getCurrencyRateControllerMessenger,
@@ -287,10 +290,6 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
   },
-  RatesController: {
-    getMessenger: getRatesControllerMessenger,
-    getInitMessenger: getRatesControllerInitMessenger,
-  },
   SnapKeyringBuilder: {
     getMessenger: getSnapKeyringBuilderMessenger,
     getInitMessenger: getSnapKeyringBuilderInitMessenger,
@@ -304,6 +303,12 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SamplePetnamesController: {
+    getMessenger: getSamplePetnamesControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ///: END:ONLY_INCLUDE_IF
   SelectedNetworkController: {
     getMessenger: getSelectedNetworkControllerMessenger,
     getInitMessenger: noop,
@@ -343,10 +348,6 @@ export const CONTROLLER_MESSENGERS = {
   PhishingController: {
     getMessenger: getPhishingControllerMessenger,
     getInitMessenger: noop,
-  },
-  PPOMController: {
-    getMessenger: getPPOMControllerMessenger,
-    getInitMessenger: getPPOMControllerInitMessenger,
   },
   RemoteFeatureFlagController: {
     getMessenger: getRemoteFeatureFlagControllerMessenger,

@@ -1,26 +1,27 @@
-import { Messenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { RootMessenger } from '../types';
+import { PhishingControllerMessenger } from '@metamask/phishing-controller';
 
-type AllowedActions = never;
-
-type AllowedEvents = never;
-
-export type PhishingControllerMessenger = ReturnType<
-  typeof getPhishingControllerMessenger
->;
-
-/**
- * Get a messenger restricted to the actions and events that the
- * phishing controller is allowed to handle.
- *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
- */
 export function getPhishingControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'PhishingController',
-    allowedActions: [],
-    allowedEvents: [],
+  rootMessenger: RootMessenger,
+): PhishingControllerMessenger {
+  const messenger = new Messenger<
+    'PhishingController',
+    MessengerActions<PhishingControllerMessenger>,
+    MessengerEvents<PhishingControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'PhishingController',
+    parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: [],
+    events: ['TransactionController:stateChange'],
+    messenger,
+  });
+  return messenger;
 }

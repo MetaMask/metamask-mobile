@@ -17,6 +17,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsAuthenticatedCard,
@@ -24,8 +25,19 @@ import {
 } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
+import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
+import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import { colors } from '../../../../styles/common';
+import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
 
 const Stack = createStackNavigator();
+const ModalsStack = createStackNavigator();
+
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: { backgroundColor: colors.transparent },
+  animationEnabled: false,
+};
 
 export const headerStyle = StyleSheet.create({
   icon: { marginHorizontal: 16 },
@@ -82,7 +94,42 @@ export const cardAuthenticationNavigationOptions = ({
   headerRight: () => <View />,
 });
 
-const CardRoutes = () => {
+export const cardSpendingLimitNavigationOptions = ({
+  navigation,
+  route,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+  route: { params?: { flow?: 'manage' | 'enable' } };
+}): StackNavigationOptions => {
+  const flow = route.params?.flow || 'manage';
+  const titleKey =
+    flow === 'enable'
+      ? 'card.card_spending_limit.title_enable_token'
+      : 'card.card_spending_limit.title_change_token';
+
+  return {
+    headerLeft: () => (
+      <ButtonIcon
+        style={headerStyle.icon}
+        size={ButtonIconSizes.Md}
+        iconName={IconName.ArrowLeft}
+        onPress={() => navigation.goBack()}
+      />
+    ),
+    headerTitle: () => (
+      <Text
+        variant={TextVariant.HeadingSM}
+        style={headerStyle.title}
+        testID={'spending-limit-title'}
+      >
+        {strings(titleKey)}
+      </Text>
+    ),
+    headerRight: () => <View />,
+  };
+};
+
+const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isCardholder = useSelector(selectIsCardholder);
 
@@ -110,12 +157,52 @@ const CardRoutes = () => {
         options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
+        name={Routes.CARD.SPENDING_LIMIT}
+        component={SpendingLimit}
+        options={cardSpendingLimitNavigationOptions}
+      />
+      <Stack.Screen
         name={Routes.CARD.ONBOARDING.ROOT}
         component={OnboardingNavigator}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name={Routes.CARD.VERIFYING_REGISTRATION}
+        component={VerifyingRegistration}
+        options={cardAuthenticationNavigationOptions}
+      />
     </Stack.Navigator>
   );
 };
+
+const CardModalsRoutes = () => (
+  <ModalsStack.Navigator
+    mode="modal"
+    screenOptions={clearStackNavigatorOptions}
+  >
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.ADD_FUNDS}
+      component={AddFundsBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.ASSET_SELECTION}
+      component={AssetSelectionBottomSheet}
+    />
+  </ModalsStack.Navigator>
+);
+
+const CardRoutes = () => (
+  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="none">
+    <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+    <Stack.Screen
+      name={Routes.CARD.MODALS.ID}
+      component={CardModalsRoutes}
+      options={{
+        ...clearStackNavigatorOptions,
+        detachPreviousScreen: false,
+      }}
+    />
+  </Stack.Navigator>
+);
 
 export default withCardSDK(CardRoutes);

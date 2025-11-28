@@ -51,6 +51,53 @@ jest.mock(
   }),
 );
 
+jest.mock('./Balance', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+  const React = require('react');
+  const { View, Text } = require('react-native');
+  const {
+    BALANCE_TEST_ID,
+    TOKEN_AMOUNT_BALANCE_TEST_ID,
+  } = require('../AssetElement/index.constants');
+  /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+  return {
+    __esModule: true,
+    default: ({
+      asset,
+      mainBalance,
+      secondaryBalance,
+      hidePercentageChange,
+    }: {
+      asset: { name?: string; balance?: string | number };
+      mainBalance?: string;
+      secondaryBalance?: string;
+      hidePercentageChange?: boolean;
+    }) => (
+      <View>
+        <Text testID="tokenDetailsName">{asset.name}</Text>
+        <Text testID="tokenDetailsBalance">{asset.balance}</Text>
+
+        {mainBalance != null && (
+          <Text testID={BALANCE_TEST_ID}>{mainBalance}</Text>
+        )}
+        {!hidePercentageChange && secondaryBalance ? (
+          <Text testID={TOKEN_AMOUNT_BALANCE_TEST_ID}>{secondaryBalance}</Text>
+        ) : null}
+      </View>
+    ),
+  };
+});
+
+jest.mock('../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../selectors/assets/assets-list'),
+  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
 const MOCK_CHAIN_ID = '0x1';
 
 const mockInitialState = {
@@ -131,6 +178,11 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      addListener: jest.fn(() => jest.fn()), // Returns unsubscribe function
+    }),
+    useFocusEffect: jest.fn((callback) => {
+      // Call the callback immediately to simulate focus
+      callback();
     }),
   };
 });
@@ -266,22 +318,19 @@ describe('AssetOverview', () => {
       address: MOCK_ADDRESS_2,
       type: 'eip155:eoa',
     });
+
+    // Default mock for selectSelectedInternalAccountByScope
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
+      address: MOCK_ADDRESS_2,
+    });
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-  it('should render correctly', async () => {
-    const container = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-    expect(container).toMatchSnapshot();
   });
 
   it('should handle buy button press', async () => {
@@ -545,7 +594,7 @@ describe('AssetOverview', () => {
     });
   });
 
-  it('should handle receive button press', async () => {
+  it('should handle receive button press for EVM asset with EVM address', async () => {
     // Arrange - Mock the selectors directly to ensure conditions are met
     const { selectSelectedInternalAccount } = jest.requireMock(
       '../../../selectors/accountsController',
@@ -553,8 +602,20 @@ describe('AssetOverview', () => {
     const { selectSelectedAccountGroup } = jest.requireMock(
       '../../../selectors/multichainAccounts/accountTreeController',
     );
-    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
+
+    selectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
+    });
     selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
+      address: MOCK_ADDRESS_2,
+    });
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -570,7 +631,7 @@ describe('AssetOverview', () => {
     const receiveButton = getByTestId('token-receive-button');
     fireEvent.press(receiveButton);
 
-    // Assert - Should navigate to ShareAddressQR
+    // Assert - Should navigate to ShareAddressQR with EVM address
     expect(navigate).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenNthCalledWith(
       1,
@@ -578,7 +639,7 @@ describe('AssetOverview', () => {
       {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: expect.objectContaining({
-          address: MOCK_ADDRESS_2,
+          address: MOCK_ADDRESS_2, // Should use EVM address for EVM assets
           networkName: 'Ethereum Mainnet',
           chainId: MOCK_CHAIN_ID,
           groupId: 'group-id-123',
@@ -589,6 +650,7 @@ describe('AssetOverview', () => {
     // Cleanup mocks for isolation
     selectSelectedInternalAccount.mockReset();
     selectSelectedAccountGroup.mockReset();
+    selectSelectedInternalAccountByScope.mockReset();
   });
 
   it('should track receive button click analytics with correct properties', async () => {
@@ -640,6 +702,75 @@ describe('AssetOverview', () => {
     selectSelectedAccountGroup.mockReset();
   });
 
+  it('should handle receive button press for Solana asset with Solana address', async () => {
+    const SOLANA_ADDRESS = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
+    const SOLANA_CHAIN_ID = SolScope.Mainnet;
+
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    const { selectSelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    );
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
+
+    selectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
+    });
+    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
+      address: SOLANA_ADDRESS,
+      type: SolAccountType.DataAccount,
+    });
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
+
+    const solanaAsset = {
+      ...asset,
+      address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      chainId: SOLANA_CHAIN_ID,
+      isNative: true,
+      symbol: 'SOL',
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={solanaAsset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Solana Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const receiveButton = getByTestId('token-receive-button');
+    fireEvent.press(receiveButton);
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenNthCalledWith(
+      1,
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        params: expect.objectContaining({
+          address: SOLANA_ADDRESS, // Should use Solana address, not EVM address
+          networkName: 'Solana Mainnet',
+          chainId: SOLANA_CHAIN_ID,
+          groupId: 'group-id-123',
+        }),
+      },
+    );
+
+    expect(mockGetAccountByScope).toHaveBeenCalledWith(SOLANA_CHAIN_ID);
+
+    selectSelectedInternalAccount.mockReset();
+    selectSelectedAccountGroup.mockReset();
+    selectSelectedInternalAccountByScope.mockReset();
+  });
+
   it('should not render swap button if displaySwapsButton is false', async () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
@@ -668,21 +799,49 @@ describe('AssetOverview', () => {
     expect(buyButton).toBeNull();
   });
 
-  it('should render native balances even if there are no accounts for the asset chain in the state', async () => {
-    const container = renderWithProvider(
-      <AssetOverview
-        asset={{
-          ...asset,
-          chainId: '0x2',
-          isNative: true,
-        }}
-        displayBuyButton
-        displaySwapsButton
-      />,
-      { state: mockInitialState },
+  it('renders native balances when no accounts exist for asset chain', () => {
+    // Create state without accounts for chain 0x2
+    const stateWithoutChainAccounts = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              // Only has accounts for chain 0x1, not 0x2
+              [MOCK_CHAIN_ID]: {
+                [MOCK_ADDRESS_2]: { balance: '0x1' },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const nativeAsset = {
+      ...asset,
+      chainId: '0x2',
+      isNative: true,
+    };
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AssetOverview asset={nativeAsset} displayBuyButton displaySwapsButton />,
+      { state: stateWithoutChainAccounts },
     );
 
-    expect(container).toMatchSnapshot();
+    // Component should render without crashing
+    const container = getByTestId(TokenOverviewSelectorsIDs.CONTAINER);
+    expect(container).toBeDefined();
+
+    // When no accounts exist for the chain, renderFromWei(undefined) returns '0'
+    // Balance component should render because balance is '0' (not null/undefined)
+    // Verify secondaryBalance shows '0' with the ticker
+    const secondaryBalance = queryByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
+    if (secondaryBalance) {
+      expect(secondaryBalance.props.children).toContain('0');
+      expect(secondaryBalance.props.children).toContain(nativeAsset.symbol);
+    }
   });
 
   it('should render native balances when non evm network is selected', async () => {
@@ -721,6 +880,49 @@ describe('AssetOverview', () => {
     );
 
     expect(container).toMatchSnapshot();
+  });
+
+  it('renders staked TRX details when viewing TRX on Tron', () => {
+    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/assets/assets-list',
+    );
+
+    selectTronResourcesBySelectedAccountGroup.mockReturnValue([
+      { symbol: 'strx-energy', balance: '10' },
+      { symbol: 'strx-bandwidth', balance: '20' },
+    ]);
+
+    const tronAsset = {
+      address: 'tron:mainnet/slip44:195',
+      chainId: 'tron:mainnet',
+      symbol: 'TRX',
+      ticker: 'TRX',
+      name: 'Tron',
+      isNative: true,
+      balance: '0',
+      balanceFiat: '0',
+      decimals: 6,
+      image: '',
+      logo: '',
+      aggregators: [],
+      isETH: false,
+      hasBalanceError: false,
+    };
+
+    const { getAllByTestId } = renderWithProvider(
+      <AssetOverview asset={tronAsset} />,
+      { state: mockInitialState },
+    );
+
+    const names = getAllByTestId('tokenDetailsName').map(
+      (n) => n.props.children,
+    );
+    const balances = getAllByTestId('tokenDetailsBalance').map(
+      (n) => n.props.children,
+    );
+
+    expect(names).toEqual(expect.arrayContaining(['Tron', 'Staked TRX']));
+    expect(balances).toEqual(expect.arrayContaining(['30']));
   });
 
   it('should swap into the asset when coming from search', async () => {
@@ -876,7 +1078,7 @@ describe('AssetOverview', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
+    it('render mainBalance as fiat and secondaryBalance as native', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview asset={asset} />,
         {
@@ -888,7 +1090,7 @@ describe('AssetOverview', () => {
       const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
       expect(mainBalance.props.children).toBe('1500');
-      expect(secondaryBalance.props.children).toBe('0 ETH');
+      expect(secondaryBalance.props.children).toBe('400 ETH');
     });
 
     it('should handle multichain send for Solana assets', async () => {

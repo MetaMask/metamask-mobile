@@ -24,28 +24,31 @@ const mockInfoClient = {
 const mockSubscriptionClient = {
   initialized: true,
 };
-const mockTransport = {
+const mockWsTransport = {
   url: 'ws://mock',
   close: jest.fn().mockResolvedValue(undefined),
+};
+const mockHttpTransport = {
+  url: 'http://mock',
 };
 
 jest.mock('@nktkas/hyperliquid', () => ({
   ExchangeClient: jest.fn(() => mockExchangeClient),
   InfoClient: jest.fn(() => mockInfoClient),
   SubscriptionClient: jest.fn(() => mockSubscriptionClient),
-  WebSocketTransport: jest.fn(() => mockTransport),
+  WebSocketTransport: jest.fn(() => mockWsTransport),
+  HttpTransport: jest.fn(() => mockHttpTransport),
 }));
 
 // Mock configuration
 jest.mock('../constants/hyperLiquidConfig', () => ({
-  getWebSocketEndpoint: jest.fn((isTestnet: boolean) =>
-    isTestnet
-      ? 'wss://api.hyperliquid-testnet.xyz/ws'
-      : 'wss://api.hyperliquid.xyz/ws',
-  ),
   HYPERLIQUID_TRANSPORT_CONFIG: {
-    reconnectAttempts: 5,
-    reconnectInterval: 1000,
+    timeout: 10_000,
+    keepAlive: { interval: 30_000 },
+    reconnect: {
+      maxRetries: 5,
+      connectionTimeout: 10_000,
+    },
   },
 }));
 
@@ -92,7 +95,7 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Client Initialization', () => {
-    it('should initialize clients successfully', () => {
+    it('should initialize clients successfully with dual transports', () => {
       service.initialize(mockWallet);
 
       expect(service.isInitialized()).toBe(true);
@@ -102,23 +105,39 @@ describe('HyperLiquidClientService', () => {
         InfoClient,
         SubscriptionClient,
         WebSocketTransport,
+        HttpTransport,
       } = require('@nktkas/hyperliquid');
 
-      expect(WebSocketTransport).toHaveBeenCalledWith({
-        url: 'wss://api.hyperliquid.xyz/ws',
-        reconnectAttempts: 5,
-        reconnectInterval: 1000,
-        reconnect: {
-          WebSocket: expect.any(Function),
-        },
+      // Verify HTTP transport uses isTestnet flag (SDK handles endpoint selection)
+      expect(HttpTransport).toHaveBeenCalledWith({
+        isTestnet: false,
+        timeout: 10_000,
       });
+
+      // Verify WebSocket transport uses isTestnet flag (SDK handles endpoint selection)
+      expect(WebSocketTransport).toHaveBeenCalledWith({
+        isTestnet: false,
+        timeout: 10_000,
+        keepAlive: { interval: 30_000 },
+        reconnect: expect.objectContaining({
+          WebSocket: expect.any(Function),
+          maxRetries: 5,
+          connectionTimeout: 10_000,
+        }),
+      });
+
+      // ExchangeClient uses HTTP transport
       expect(ExchangeClient).toHaveBeenCalledWith({
         wallet: mockWallet,
-        transport: mockTransport,
+        transport: mockHttpTransport,
       });
-      expect(InfoClient).toHaveBeenCalledWith({ transport: mockTransport });
+
+      // InfoClient uses HTTP transport
+      expect(InfoClient).toHaveBeenCalledWith({ transport: mockHttpTransport });
+
+      // SubscriptionClient uses WebSocket transport
       expect(SubscriptionClient).toHaveBeenCalledWith({
-        transport: mockTransport,
+        transport: mockWsTransport,
       });
     });
 
@@ -140,19 +159,28 @@ describe('HyperLiquidClientService', () => {
       const {
         ExchangeClient,
         WebSocketTransport,
+        HttpTransport,
       } = require('@nktkas/hyperliquid');
 
-      expect(WebSocketTransport).toHaveBeenCalledWith({
-        url: 'wss://api.hyperliquid-testnet.xyz/ws',
-        reconnectAttempts: 5,
-        reconnectInterval: 1000,
-        reconnect: {
-          WebSocket: expect.any(Function),
-        },
+      // Verify testnet flag is passed (SDK auto-selects testnet endpoints)
+      expect(HttpTransport).toHaveBeenCalledWith({
+        isTestnet: true,
+        timeout: 10_000,
       });
+
+      expect(WebSocketTransport).toHaveBeenCalledWith({
+        isTestnet: true,
+        timeout: 10_000,
+        keepAlive: { interval: 30_000 },
+        reconnect: expect.objectContaining({
+          WebSocket: expect.any(Function),
+        }),
+      });
+
+      // ExchangeClient uses HTTP transport
       expect(ExchangeClient).toHaveBeenCalledWith({
         wallet: mockWallet,
-        transport: mockTransport,
+        transport: mockHttpTransport,
       });
     });
   });
@@ -269,21 +297,24 @@ describe('HyperLiquidClientService', () => {
       service.initialize(mockWallet);
     });
 
-    it('should disconnect successfully', async () => {
+    it('should disconnect successfully and close only WebSocket transport', async () => {
       await service.disconnect();
 
-      expect(mockTransport.close).toHaveBeenCalled();
+      // Only WebSocket transport should be closed (HTTP is stateless)
+      expect(mockWsTransport.close).toHaveBeenCalled();
       expect(service.getSubscriptionClient()).toBeUndefined();
     });
 
     it('should handle disconnect errors gracefully', async () => {
-      mockTransport.close.mockRejectedValueOnce(new Error('Disconnect failed'));
+      mockWsTransport.close.mockRejectedValueOnce(
+        new Error('Disconnect failed'),
+      );
 
       // Should not throw, error is caught and logged
       await expect(service.disconnect()).resolves.not.toThrow();
 
       // Verify the error was attempted to be handled
-      expect(mockTransport.close).toHaveBeenCalled();
+      expect(mockWsTransport.close).toHaveBeenCalled();
     });
 
     it('should clear all client references after disconnect', async () => {
@@ -348,8 +379,8 @@ describe('HyperLiquidClientService', () => {
         'HyperLiquid SDK clients initialized',
         expect.objectContaining({
           testnet: false,
-          endpoint: 'wss://api.hyperliquid.xyz/ws',
           timestamp: expect.any(String),
+          connectionState: 'connected',
         }),
       );
     });
@@ -366,7 +397,6 @@ describe('HyperLiquidClientService', () => {
         'HyperLiquid: Disconnecting SDK clients',
         expect.objectContaining({
           isTestnet: false,
-          endpoint: 'wss://api.hyperliquid.xyz/ws',
           timestamp: expect.any(String),
         }),
       );
@@ -380,9 +410,8 @@ describe('HyperLiquidClientService', () => {
       service.initialize(mockWallet);
 
       expect(DevLogger.log).toHaveBeenCalledWith(
-        'HyperLiquid: Creating WebSocket transport',
+        'HyperLiquid: Creating transports',
         expect.objectContaining({
-          endpoint: 'wss://api.hyperliquid.xyz/ws',
           isTestnet: false,
           timestamp: expect.any(String),
         }),
@@ -568,6 +597,503 @@ describe('HyperLiquidClientService', () => {
           100,
         ),
       ).rejects.toThrow('HyperLiquid SDK clients not properly initialized');
+    });
+  });
+
+  describe('subscribeToCandles', () => {
+    beforeEach(() => {
+      service.initialize(mockWallet);
+      jest.clearAllMocks();
+    });
+
+    it('should throw error when service not initialized', () => {
+      // Arrange
+      const uninitializedService = new HyperLiquidClientService();
+
+      // Act & Assert
+      expect(() =>
+        uninitializedService.subscribeToCandles({
+          coin: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          callback: jest.fn(),
+        }),
+      ).toThrow('HyperLiquid SDK clients not properly initialized');
+    });
+
+    it('throws error when subscription client unavailable', () => {
+      // Arrange
+      const serviceWithNoSubClient = new HyperLiquidClientService();
+      serviceWithNoSubClient.initialize(mockWallet);
+      // Force subscription client to be undefined
+      (serviceWithNoSubClient as any).subscriptionClient = undefined;
+
+      // Act & Assert
+      expect(() =>
+        serviceWithNoSubClient.subscribeToCandles({
+          coin: 'BTC',
+          interval: '1h' as ValidCandleInterval,
+          callback: jest.fn(),
+        }),
+      ).toThrow('HyperLiquid SDK clients not properly initialized');
+    });
+
+    it('should fetch historical data and setup WebSocket subscription', async () => {
+      // Arrange
+      const mockHistoricalData = [
+        {
+          t: 1700000000000,
+          o: 50000,
+          h: 51000,
+          l: 49000,
+          c: 50500,
+          v: 100,
+        },
+        {
+          t: 1700003600000,
+          o: 50500,
+          h: 52000,
+          l: 50000,
+          c: 51500,
+          v: 120,
+        },
+      ];
+
+      mockInfoClient.candleSnapshot = jest
+        .fn()
+        .mockResolvedValue(mockHistoricalData);
+
+      const mockUnsubscribe = jest.fn();
+      const mockCandleSubscription = Promise.resolve({
+        unsubscribe: mockUnsubscribe,
+      });
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockReturnValue(mockCandleSubscription);
+
+      const callback = jest.fn();
+
+      // Act
+      const unsubscribe = service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - should have fetched historical data
+      expect(mockInfoClient.candleSnapshot).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coin: 'BTC',
+          interval: '1h',
+        }),
+      );
+
+      // Assert - callback invoked with historical data
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coin: 'BTC',
+          interval: '1h',
+          candles: expect.arrayContaining([
+            expect.objectContaining({
+              time: 1700000000000,
+              open: '50000',
+              high: '51000',
+              low: '49000',
+              close: '50500',
+              volume: '100',
+            }),
+          ]),
+        }),
+      );
+
+      // Assert - WebSocket subscription created
+      expect((mockSubscriptionClient as any).candle).toHaveBeenCalled();
+
+      // Assert - unsubscribe function returned
+      expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('should transform historical candle data correctly', async () => {
+      // Arrange
+      const mockHistoricalData = [
+        {
+          t: 1700000000000,
+          o: 50000.5,
+          h: 51000.75,
+          l: 49000.25,
+          c: 50500.5,
+          v: 100.123,
+        },
+      ];
+
+      mockInfoClient.candleSnapshot = jest
+        .fn()
+        .mockResolvedValue(mockHistoricalData);
+
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockResolvedValue({ unsubscribe: jest.fn() });
+
+      const callback = jest.fn();
+
+      // Act
+      service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - numbers converted to strings
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          candles: [
+            {
+              time: 1700000000000,
+              open: '50000.5',
+              high: '51000.75',
+              low: '49000.25',
+              close: '50500.5',
+              volume: '100.123',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('should handle WebSocket updates for existing candle', async () => {
+      // Arrange
+      const mockHistoricalData = [
+        {
+          t: 1700000000000,
+          o: 50000,
+          h: 51000,
+          l: 49000,
+          c: 50500,
+          v: 100,
+        },
+      ];
+
+      mockInfoClient.candleSnapshot = jest
+        .fn()
+        .mockResolvedValue(mockHistoricalData);
+
+      let wsCallback: any;
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockImplementation((_params, callback) => {
+          wsCallback = callback;
+          return Promise.resolve({ unsubscribe: jest.fn() });
+        });
+
+      const callback = jest.fn();
+
+      // Act
+      service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Clear previous callback invocations
+      callback.mockClear();
+
+      // Simulate WebSocket update for existing candle (same timestamp)
+      const updatedCandle = {
+        t: 1700000000000, // Same timestamp
+        o: 50000,
+        h: 51500, // Updated high
+        l: 49000,
+        c: 51000, // Updated close
+        v: 150, // Updated volume
+      };
+
+      wsCallback(updatedCandle);
+
+      // Assert - callback invoked with updated candle
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          candles: [
+            {
+              time: 1700000000000,
+              open: '50000',
+              high: '51500',
+              low: '49000',
+              close: '51000',
+              volume: '150',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('should handle WebSocket updates for new candle', async () => {
+      // Arrange
+      const mockHistoricalData = [
+        {
+          t: 1700000000000,
+          o: 50000,
+          h: 51000,
+          l: 49000,
+          c: 50500,
+          v: 100,
+        },
+      ];
+
+      mockInfoClient.candleSnapshot = jest
+        .fn()
+        .mockResolvedValue(mockHistoricalData);
+
+      let wsCallback: any;
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockImplementation((_params, callback) => {
+          wsCallback = callback;
+          return Promise.resolve({ unsubscribe: jest.fn() });
+        });
+
+      const callback = jest.fn();
+
+      // Act
+      service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Clear previous callback invocations
+      callback.mockClear();
+
+      // Simulate WebSocket update for new candle (different timestamp)
+      const newCandle = {
+        t: 1700003600000, // Different timestamp
+        o: 50500,
+        h: 52000,
+        l: 50000,
+        c: 51500,
+        v: 120,
+      };
+
+      wsCallback(newCandle);
+
+      // Assert - callback invoked with appended candle
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          candles: [
+            {
+              time: 1700000000000,
+              open: '50000',
+              high: '51000',
+              low: '49000',
+              close: '50500',
+              volume: '100',
+            },
+            {
+              time: 1700003600000,
+              open: '50500',
+              high: '52000',
+              low: '50000',
+              close: '51500',
+              volume: '120',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('should create immutable candles array for React re-renders', async () => {
+      // Arrange
+      const mockHistoricalData = [
+        {
+          t: 1700000000000,
+          o: 50000,
+          h: 51000,
+          l: 49000,
+          c: 50500,
+          v: 100,
+        },
+      ];
+
+      mockInfoClient.candleSnapshot = jest
+        .fn()
+        .mockResolvedValue(mockHistoricalData);
+
+      let wsCallback: any;
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockImplementation((_params, callback) => {
+          wsCallback = callback;
+          return Promise.resolve({ unsubscribe: jest.fn() });
+        });
+
+      const callback = jest.fn();
+
+      // Act
+      service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const firstCallCandles = callback.mock.calls[0][0].candles;
+
+      // Simulate WebSocket update
+      wsCallback({
+        t: 1700000000000,
+        o: 50000,
+        h: 51500,
+        l: 49000,
+        c: 51000,
+        v: 150,
+      });
+
+      const secondCallCandles = callback.mock.calls[1][0].candles;
+
+      // Assert - different array references (immutable)
+      expect(firstCallCandles).not.toBe(secondCallCandles);
+    });
+
+    it('should handle empty historical data', async () => {
+      // Arrange
+      mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockResolvedValue({ unsubscribe: jest.fn() });
+
+      const callback = jest.fn();
+
+      // Act
+      service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - callback invoked with empty candles
+      expect(callback).toHaveBeenCalledWith({
+        coin: 'BTC',
+        interval: '1h',
+        candles: [],
+      });
+    });
+
+    it('should invoke unsubscribe when cleanup function called', async () => {
+      // Arrange
+      mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      const mockWsUnsubscribe = jest.fn();
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockResolvedValue({ unsubscribe: mockWsUnsubscribe });
+
+      const callback = jest.fn();
+
+      // Act
+      const unsubscribe = service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      // Wait for subscription to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Call unsubscribe
+      unsubscribe();
+
+      // Assert - WebSocket unsubscribe called
+      expect(mockWsUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('should handle unsubscribe before WebSocket established', async () => {
+      // Arrange - delay the promise resolution to simulate slow network
+      let resolveSnapshot: (value: any) => void = () => {
+        /* noop */
+      };
+      const delayedPromise = new Promise((resolve) => {
+        resolveSnapshot = resolve;
+      });
+
+      mockInfoClient.candleSnapshot = jest.fn().mockReturnValue(delayedPromise);
+
+      const mockCandleSubscription = jest.fn();
+      (mockSubscriptionClient as any).candle = mockCandleSubscription;
+
+      const callback = jest.fn();
+
+      // Act - subscribe and immediately unsubscribe
+      const unsubscribe = service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      // Call unsubscribe immediately before WebSocket establishes
+      expect(() => unsubscribe()).not.toThrow();
+
+      // Now resolve the snapshot to let the async chain continue
+      resolveSnapshot([]);
+
+      // Wait for async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - WebSocket subscription should not be created because
+      // we already unsubscribed before the async chain completed
+      expect(mockCandleSubscription).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled(); // Callback should not be invoked after unsubscribe
+    });
+
+    it('should cleanup WebSocket when unsubscribed during subscription establishment', async () => {
+      // Arrange - fast snapshot, slow WebSocket subscription
+      mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      let resolveWsSubscription: (value: any) => void = () => {
+        /* noop */
+      };
+      const delayedWsPromise = new Promise((resolve) => {
+        resolveWsSubscription = resolve;
+      });
+
+      const mockWsUnsubscribe = jest.fn();
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockReturnValue(delayedWsPromise);
+
+      const callback = jest.fn();
+
+      // Act - subscribe
+      const unsubscribe = service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      // Wait for snapshot to complete
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Unsubscribe while WebSocket is still being established
+      unsubscribe();
+
+      // Now resolve the WebSocket subscription
+      resolveWsSubscription({ unsubscribe: mockWsUnsubscribe });
+
+      // Wait for async cleanup to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - WebSocket should be cleaned up immediately after establishing
+      expect(mockWsUnsubscribe).toHaveBeenCalled();
     });
   });
 });

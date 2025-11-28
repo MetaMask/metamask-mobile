@@ -86,9 +86,8 @@ describe('backupVault file', () => {
         dummyPassword,
       );
 
-      const primaryVaultCredentials = await getInternetCredentials(
-        VAULT_BACKUP_KEY,
-      );
+      const primaryVaultCredentials =
+        await getInternetCredentials(VAULT_BACKUP_KEY);
 
       const temporaryVaultCredentials = await getInternetCredentials(
         VAULT_BACKUP_TEMP_KEY,
@@ -106,9 +105,8 @@ describe('backupVault file', () => {
 
       await clearAllVaultBackups();
 
-      const primaryVaultCredentialsAfterReset = await getInternetCredentials(
-        VAULT_BACKUP_KEY,
-      );
+      const primaryVaultCredentialsAfterReset =
+        await getInternetCredentials(VAULT_BACKUP_KEY);
 
       const temporaryVaultCredentialsAfterReset = await getInternetCredentials(
         VAULT_BACKUP_TEMP_KEY,
@@ -197,9 +195,8 @@ describe('backupVault file', () => {
         dummyPassword,
       );
 
-      const internetCredentialsBeforeReset = await getInternetCredentials(
-        VAULT_BACKUP_KEY,
-      );
+      const internetCredentialsBeforeReset =
+        await getInternetCredentials(VAULT_BACKUP_KEY);
 
       expect(internetCredentialsBeforeReset).toEqual({
         username: VAULT_BACKUP_KEY,

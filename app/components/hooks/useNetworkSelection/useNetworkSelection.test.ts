@@ -13,7 +13,10 @@ import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnableme
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from './useNetworkSelection';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import {
+  selectPopularNetworkConfigurationsByCaipChainId,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../../selectors/networkController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Engine from '../../../core/Engine';
 import NavigationService from '../../../core/NavigationService';
@@ -61,6 +64,14 @@ jest.mock('@metamask/keyring-api', () => ({
   SolAccountType: {
     DataAccount: 'solana:data-account',
   },
+  TrxScope: {
+    Mainnet: 'tron:0x2b6653dc',
+    Nile: 'tron:0xcd8690dc',
+    Shasta: 'tron:0x94a9059e',
+  },
+  TrxAccountType: {
+    Eoa: 'tron:eoa',
+  },
 }));
 jest.mock('@metamask/rpc-errors', () => ({}));
 jest.mock('@metamask/network-controller', () => ({}));
@@ -100,6 +111,9 @@ jest.mock('../../../core/Engine', () => ({
     },
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
+    },
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
     },
   },
   setSelectedAddress: jest.fn(), // Add this line
@@ -154,6 +168,7 @@ jest.mock('../../../selectors/accountsController', () => ({
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
   selectPopularNetworkConfigurationsByCaipChainId: jest.fn(),
+  selectNetworkConfigurationsByCaipChainId: jest.fn(),
 }));
 
 jest.mock('../../../core/NavigationService', () => {
@@ -174,6 +189,16 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   WalletClientType: {
     Bitcoin: 'bitcoin',
   },
+}));
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn(
+    (chainId: string) =>
+      // Check if the chain ID is a non-EVM chain (Solana, Bitcoin, Tron)
+      chainId.startsWith('solana:') ||
+      chainId.startsWith('bip122:') ||
+      chainId.startsWith('tron:'),
+  ),
 }));
 
 jest.mock('../../../constants/navigation/Routes', () => ({
@@ -237,6 +262,48 @@ describe('useNetworkSelection', () => {
     },
   ];
 
+  const mockNetworkConfigurations = {
+    'eip155:1': {
+      caipChainId: 'eip155:1' as CaipChainId,
+      chainId: '0x1' as Hex,
+      name: 'Ethereum Mainnet',
+      rpcEndpoints: [
+        {
+          networkClientId: 'mainnet-client-id',
+          url: 'https://mainnet.infura.io',
+          type: 'infura',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    },
+    'eip155:137': {
+      caipChainId: 'eip155:137' as CaipChainId,
+      chainId: '0x89' as Hex,
+      name: 'Polygon',
+      rpcEndpoints: [
+        {
+          networkClientId: 'polygon-client-id',
+          url: 'https://polygon-rpc.com',
+          type: 'custom',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    },
+    'eip155:13881': {
+      caipChainId: 'eip155:13881' as CaipChainId,
+      chainId: '0x13881' as Hex,
+      name: 'Mumbai Testnet',
+      rpcEndpoints: [
+        {
+          networkClientId: 'mumbai-client-id',
+          url: 'https://mumbai.polygonscan.com',
+          type: 'custom',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnableNetwork.mockReset();
@@ -248,6 +315,9 @@ describe('useNetworkSelection', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
         return mockPopularNetworkConfigurations;
+      }
+      if (selector === selectNetworkConfigurationsByCaipChainId) {
+        return mockNetworkConfigurations;
       }
       if (selector === selectMultichainAccountsState2Enabled) {
         return false;
@@ -284,6 +354,11 @@ describe('useNetworkSelection', () => {
       hasOneEnabledNetwork: false,
       enableAllPopularNetworks: mockEnableAllPopularNetworks,
       tryEnableEvmNetwork: jest.fn(),
+      enabledNetworksForAllNamespaces: {
+        '0x1': true,
+        '0x89': false,
+        '0x13881': true,
+      },
     });
 
     mockToHex.mockImplementation((value) => {
@@ -415,6 +490,11 @@ describe('useNetworkSelection', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0x13881': true,
+        },
       });
 
       const { result } = renderHook(() =>
@@ -481,6 +561,11 @@ describe('useNetworkSelection', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0x13881': true,
+        },
       });
 
       const { result } = renderHook(() =>
@@ -568,6 +653,11 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0x13881': true,
+        },
       });
     });
 
@@ -591,13 +681,7 @@ describe('useNetworkSelection', () => {
       expect(mockCallback).toHaveBeenCalled();
     });
 
-    it('selectPopularNetwork with Solana mainnet calls MultichainNetworkController.setActiveNetwork', async () => {
-      // Mock multichain enabled
-      mockUseSelector
-        .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
-
+    it('selectPopularNetwork with Solana mainnet calls enableNetwork', async () => {
       const solanaMainnet =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
 
@@ -610,27 +694,9 @@ describe('useNetworkSelection', () => {
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
     });
 
-    it('selectPopularNetwork with Solana mainnet handles MultichainNetworkController errors gracefully', async () => {
-      // Mock multichain enabled
-      mockUseSelector
-        .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
-
-      // Mock setActiveNetwork to throw an error
-      const mockSetActiveNetwork = jest
-        .fn()
-        .mockRejectedValue(new Error('Network error'));
-      jest.doMock('../../../core/Engine', () => ({
-        context: {
-          MultichainNetworkController: {
-            setActiveNetwork: mockSetActiveNetwork,
-          },
-          NetworkController: {
-            findNetworkClientIdByChainId: jest.fn(),
-          },
-        },
-      }));
+    it('selectPopularNetwork handles enableNetwork errors gracefully', async () => {
+      // Mock enableNetwork to throw an error
+      mockEnableNetwork.mockRejectedValueOnce(new Error('Network error'));
 
       const solanaMainnet =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
@@ -639,21 +705,15 @@ describe('useNetworkSelection', () => {
         useNetworkSelection({ networks: mockNetworks }),
       );
 
-      // Should not throw error
+      // Should throw error since enableNetwork throws
       await expect(
         result.current.selectPopularNetwork(solanaMainnet),
-      ).resolves.toBeUndefined();
+      ).rejects.toThrow('Network error');
 
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
     });
 
-    it('selectPopularNetwork with EVM network and multichain enabled calls NetworkController', async () => {
-      // Mock multichain enabled
-      mockUseSelector
-        .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
-
+    it('selectPopularNetwork with EVM network calls enableNetwork', async () => {
       const evmChainId = 'eip155:1' as CaipChainId;
 
       const { result } = renderHook(() =>
@@ -740,7 +800,7 @@ describe('useNetworkSelection', () => {
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaChainId);
     });
 
-    it('selectPopularNetwork with Solana resets custom networks', async () => {
+    it('selectPopularNetwork with Solana enables the network', async () => {
       const networksWithSolana: ProcessedNetwork[] = [
         ...mockNetworks,
         {
@@ -751,11 +811,6 @@ describe('useNetworkSelection', () => {
           imageSource: { uri: 'solana.png' },
         },
       ];
-
-      mockUseSelector
-        .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
 
       const { result } = renderHook(() =>
         useNetworkSelection({ networks: networksWithSolana }),
@@ -791,6 +846,7 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
       });
 
       const { result } = renderHook(() =>
@@ -825,6 +881,10 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x2': false,
+        },
       });
 
       renderHook(() => useNetworkSelection({ networks: mockNetworks }));
@@ -868,6 +928,16 @@ describe('useNetworkSelection', () => {
       await expect(
         result.current.selectAllPopularNetworks(),
       ).resolves.toBeUndefined();
+
+      expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+    });
+
+    it('enables all popular networks', async () => {
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      await result.current.selectAllPopularNetworks();
 
       expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
     });
@@ -940,7 +1010,8 @@ describe('useNetworkSelection', () => {
         reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       });
 
-      const solanaChainId = '' as CaipChainId;
+      const solanaChainId =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
       result.current.selectNetwork(solanaChainId);
 
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaChainId);
@@ -1116,6 +1187,9 @@ describe('useNetworkSelection', () => {
             },
           ];
         }
+        if (selector === selectNetworkConfigurationsByCaipChainId) {
+          return mockNetworkConfigurations;
+        }
         if (selector === selectMultichainAccountsState2Enabled) {
           return false;
         }
@@ -1147,6 +1221,9 @@ describe('useNetworkSelection', () => {
               name: 'Bitcoin Mainnet',
             },
           ];
+        }
+        if (selector === selectNetworkConfigurationsByCaipChainId) {
+          return mockNetworkConfigurations;
         }
         if (selector === selectMultichainAccountsState2Enabled) {
           return false;
@@ -1184,21 +1261,6 @@ describe('useNetworkSelection', () => {
       );
 
       await result.current.selectCustomNetwork(bitcoinMainnet);
-
-      expect(setSelectedAddressSpy).toHaveBeenCalledWith(
-        mockBitcoinAccount.address,
-      );
-      expect(mockEnableNetwork).toHaveBeenCalledWith(bitcoinMainnet);
-    });
-
-    it('selectPopularNetwork sets selected address for Bitcoin networks', async () => {
-      const setSelectedAddressSpy = jest.spyOn(Engine, 'setSelectedAddress');
-
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: mockNetworks }),
-      );
-
-      await result.current.selectPopularNetwork(bitcoinMainnet);
 
       expect(setSelectedAddressSpy).toHaveBeenCalledWith(
         mockBitcoinAccount.address,
@@ -1411,6 +1473,7 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
       });
 
       const { result } = renderHook(() =>
@@ -1441,6 +1504,7 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
       });
 
       const { result } = renderHook(() =>

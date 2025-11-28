@@ -8,6 +8,7 @@ import { getNavbar } from '../../UI/navbar/navbar';
 import Transfer from './transfer';
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
@@ -131,7 +132,7 @@ describe('Transfer', () => {
 
     expect(mockUseClearConfirmationOnBackSwipe).toHaveBeenCalled();
     expect(getByText('0xDc477...0c164')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getNavbar).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({

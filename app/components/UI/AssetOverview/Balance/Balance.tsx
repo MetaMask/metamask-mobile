@@ -48,11 +48,17 @@ import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesCont
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
+import Tag from '../../../../component-library/components/Tags/Tag';
+import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
+
+export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 interface BalanceProps {
   asset: TokenI;
   mainBalance: string;
   secondaryBalance?: string;
+  hideTitleHeading?: boolean;
+  hidePercentageChange?: boolean;
 }
 
 export const NetworkBadgeSource = (chainId: Hex) => {
@@ -91,7 +97,13 @@ export const NetworkBadgeSource = (chainId: Hex) => {
   }
 };
 
-const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
+const Balance = ({
+  asset,
+  mainBalance,
+  secondaryBalance,
+  hideTitleHeading,
+  hidePercentageChange,
+}: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
@@ -111,6 +123,13 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   );
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
   const getPricePercentChange1d = () => {
+    // First check if asset has pricePercentChange1d from navigation params (e.g., from trending view)
+    if (
+      asset?.pricePercentChange1d !== undefined &&
+      asset?.pricePercentChange1d !== null
+    ) {
+      return asset.pricePercentChange1d;
+    }
     if (isEvmNetworkSelected) {
       return evmPricePercentChange1d;
     }
@@ -187,17 +206,25 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
     [asset.address, asset.chainId, asset.isNative, navigation],
   );
 
+  const label = asset.accountType
+    ? ACCOUNT_TYPE_LABELS[asset.accountType]
+    : undefined;
+
   return (
     <View style={styles.wrapper}>
-      <Text variant={TextVariant.HeadingMD}>
-        {strings('asset_overview.your_balance')}
-      </Text>
+      {!hideTitleHeading && (
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('asset_overview.your_balance')}
+        </Text>
+      )}
       <AssetElement
         disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
-        secondaryBalance={percentageText}
-        secondaryBalanceColor={percentageColor}
+        secondaryBalance={hidePercentageChange ? undefined : percentageText}
+        secondaryBalanceColor={
+          hidePercentageChange ? undefined : percentageColor
+        }
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
         onPress={handlePress}
@@ -217,7 +244,12 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         </BadgeWrapper>
 
         <View style={styles.percentageChange}>
-          <Text variant={TextVariant.BodyMD}>{asset.name || asset.symbol}</Text>
+          <View style={styles.assetName}>
+            <Text variant={TextVariant.BodyMD}>
+              {asset.name || asset.symbol}
+            </Text>
+            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
+          </View>
 
           {secondaryBalance && (
             <SensitiveText

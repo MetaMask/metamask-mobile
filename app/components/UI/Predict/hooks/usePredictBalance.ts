@@ -2,9 +2,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
 import { usePredictTrading } from './usePredictTrading';
+import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { selectPredictBalanceByAddress } from '../selectors/predictController';
+import { ensureError } from '../utils/predictErrorHandler';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictBalanceOptions {
   /**
@@ -47,17 +52,24 @@ export function usePredictBalance(
   } = options;
 
   const { getBalance } = usePredictTrading();
+  const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
-  const [balance, setBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isInitialMount = useRef(true);
   const isLoadingRef = useRef(false);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
+
+  const balance =
+    useSelector(
+      selectPredictBalanceByAddress({
+        providerId,
+        address: selectedInternalAccountAddress || '',
+      }),
+    ) || 0;
 
   const hasNoBalance = useMemo(
     () => !isLoading && !isRefreshing && balance === 0,
@@ -83,13 +95,23 @@ export function usePredictBalance(
         }
         setError(null);
 
+        // Ensure Polygon network exists before fetching balance
+        try {
+          await ensurePolygonNetworkExists();
+        } catch (networkError) {
+          // Error already logged to Sentry in usePredictNetworkManagement
+          DevLogger.log(
+            'usePredictBalance: Failed to ensure Polygon network exists',
+            networkError,
+          );
+          // Continue with balance fetch - network might already exist
+        }
+
         // Get balance from Predict controller
         const balanceData = await getBalance({
           address: selectedInternalAccountAddress,
           providerId,
         });
-
-        setBalance(balanceData);
 
         DevLogger.log('usePredictBalance: Loaded balance', {
           balance: balanceData,
@@ -100,12 +122,31 @@ export function usePredictBalance(
           err instanceof Error ? err.message : 'Failed to load balance';
         setError(errorMessage);
         DevLogger.log('usePredictBalance: Error loading balance', err);
+
+        // Log error with balance loading context (no user address)
+        Logger.error(ensureError(err), {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            component: 'usePredictBalance',
+          },
+          context: {
+            name: 'usePredictBalance',
+            data: {
+              method: 'loadBalance',
+              action: 'balance_load',
+              operation: 'data_fetching',
+              providerId,
+            },
+          },
+        });
       } finally {
         isLoadingRef.current = false;
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [getBalance, selectedInternalAccountAddress, providerId],
   );
 
@@ -114,8 +155,7 @@ export function usePredictBalance(
     if (loadOnMount) {
       loadBalance();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadOnMount]);
+  }, [loadOnMount, loadBalance]);
 
   // Refresh balance when screen comes into focus if enabled
   useFocusEffect(
@@ -134,8 +174,6 @@ export function usePredictBalance(
       isInitialMount.current = false;
       return;
     }
-
-    setBalance(0);
     setError(null);
     loadBalance();
   }, [selectedInternalAccountAddress, loadBalance]);

@@ -1,19 +1,37 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Messenger } from '@metamask/base-controller';
+import {
+  MOCK_ANY_NAMESPACE,
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import type { NetworkState } from '@metamask/network-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
+import Engine from '../../../../core/Engine';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   addTransaction,
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { PredictClaimStatus, PredictDepositStatus, Side } from '../types';
+import type { OrderPreview } from '../providers/types';
+import {
+  PredictBalance,
+  PredictClaimStatus,
+  PredictPosition,
+  PredictPositionStatus,
+  PredictWithdrawStatus,
+  Side,
+} from '../types';
 import {
   getDefaultPredictControllerState,
   PredictController,
+  PredictControllerMessenger,
   type PredictControllerState,
 } from './PredictController';
-import type { OrderPreview } from '../providers/types';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -37,11 +55,29 @@ jest.mock('../../../../core/Engine', () => ({
         metadata: { name: 'Test Account' },
       }),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'mock-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
     NetworkController: {
       getState: jest.fn().mockReturnValue({
         selectedNetworkClientId: 'mainnet',
       }),
       findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      getNetworkClientById: jest.fn().mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: jest.fn().mockResolvedValue(undefined),
+        },
+      }),
     },
   },
 }));
@@ -64,11 +100,59 @@ jest.mock('@metamask/controller-utils', () => {
   };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UnrestrictedMessenger = Messenger<any, any>;
+type AllPredictControllerMessengerActions =
+  MessengerActions<PredictControllerMessenger>;
+
+type AllPredictControllerMessengerEvents =
+  MessengerEvents<PredictControllerMessenger>;
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  AllPredictControllerMessengerActions,
+  AllPredictControllerMessengerEvents
+>;
+
+/**
+ * Creates and returns a root messenger for testing
+ *
+ * @returns A messenger instance
+ */
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+}
 
 describe('PredictController', () => {
   let mockPolymarketProvider: jest.Mocked<PolymarketProvider>;
+
+  function createMockPosition(
+    overrides?: Partial<PredictPosition>,
+  ): PredictPosition {
+    return {
+      id: 'position-1',
+      providerId: 'polymarket',
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcome: 'Yes',
+      outcomeTokenId: 'token-1',
+      currentValue: 100,
+      title: 'Test Market',
+      icon: 'https://example.com/icon.png',
+      amount: 10,
+      price: 0.5,
+      status: PredictPositionStatus.OPEN,
+      size: 10,
+      outcomeIndex: 0,
+      percentPnl: 0,
+      cashPnl: 0,
+      claimable: false,
+      initialValue: 100,
+      avgPrice: 0.5,
+      endDate: '2025-12-31T23:59:59Z',
+      ...overrides,
+    };
+  }
 
   function createMockOrderPreview(
     overrides?: Partial<OrderPreview>,
@@ -86,6 +170,16 @@ describe('PredictController', () => {
       tickSize: 0.01,
       minOrderSize: 0.01,
       negRisk: false,
+      ...overrides,
+    };
+  }
+
+  function createMockPredictBalance(
+    overrides?: Partial<PredictBalance>,
+  ): PredictBalance {
+    return {
+      balance: 1000,
+      validUntil: Date.now() + 1000,
       ...overrides,
     };
   }
@@ -108,8 +202,12 @@ describe('PredictController', () => {
       getBalance: jest.fn(),
       isEligible: jest.fn(),
       providerId: 'polymarket',
+      name: 'Polymarket',
+      chainId: 137,
       getUnrealizedPnL: jest.fn(),
       previewOrder: jest.fn(),
+      prepareWithdraw: jest.fn(),
+      prepareWithdrawConfirmation: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Mock the PolymarketProvider constructor
@@ -120,28 +218,32 @@ describe('PredictController', () => {
     ).mockImplementation(() => mockPolymarketProvider);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   /**
    * Helper function to create a PredictController with proper messenger setup
    */
   function withController<ReturnValue>(
     fn: (args: {
       controller: PredictController;
-      messenger: UnrestrictedMessenger;
+      messenger: RootMessenger;
     }) => ReturnValue,
     options: {
       state?: Partial<PredictControllerState>;
       mocks?: {
-        getSelectedAccount?: jest.MockedFunction<() => unknown>;
-        getNetworkState?: jest.MockedFunction<() => unknown>;
+        getSelectedAccount?: jest.MockedFunction<() => InternalAccount>;
+        getNetworkState?: jest.MockedFunction<() => NetworkState>;
       };
     } = {},
   ): ReturnValue {
     const { state = {}, mocks = {} } = options;
 
-    const messenger = new Messenger<any, any>();
+    const rootMessenger = getRootMessenger();
 
     // Register mock external actions
-    messenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'AccountsController:getSelectedAccount',
       mocks.getSelectedAccount ??
         jest.fn().mockReturnValue({
@@ -151,7 +253,7 @@ describe('PredictController', () => {
         }),
     );
 
-    messenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'NetworkController:getState',
       mocks.getNetworkState ??
         jest.fn().mockReturnValue({
@@ -159,28 +261,44 @@ describe('PredictController', () => {
         }),
     );
 
-    const restrictedMessenger = messenger.getRestricted({
-      name: 'PredictController',
-      allowedActions: [
-        'AccountsController:getSelectedAccount' as never,
-        'NetworkController:getState' as never,
+    rootMessenger.registerActionHandler(
+      'TransactionController:estimateGas',
+      jest.fn().mockResolvedValue({
+        gas: '0x5208',
+      }),
+    );
+
+    const messenger = new Messenger<
+      'PredictController',
+      AllPredictControllerMessengerActions,
+      AllPredictControllerMessengerEvents,
+      RootMessenger
+    >({
+      namespace: 'PredictController',
+      parent: rootMessenger,
+    });
+
+    rootMessenger.delegate({
+      actions: [
+        'AccountsController:getSelectedAccount',
+        'NetworkController:getState',
+        'TransactionController:estimateGas',
       ],
-      allowedEvents: [
-        'AccountsController:selectedAccountChange' as never,
-        'NetworkController:stateChange' as never,
-        'TransactionController:transactionSubmitted' as never,
-        'TransactionController:transactionConfirmed' as never,
-        'TransactionController:transactionFailed' as never,
-        'TransactionController:transactionRejected' as never,
+      events: [
+        'TransactionController:transactionSubmitted',
+        'TransactionController:transactionConfirmed',
+        'TransactionController:transactionFailed',
+        'TransactionController:transactionRejected',
       ],
+      messenger,
     });
 
     const controller = new PredictController({
-      messenger: restrictedMessenger,
+      messenger,
       state,
     });
 
-    return fn({ controller, messenger });
+    return fn({ controller, messenger: rootMessenger });
   }
 
   describe('constructor', () => {
@@ -188,17 +306,20 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
         expect(controller.state.eligibility).toEqual({});
+        expect(controller.state.accountMeta).toEqual({});
       });
     });
 
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        eligibility: { polymarket: false },
+        eligibility: { polymarket: { eligible: false, country: undefined } },
       };
 
       withController(
         ({ controller }) => {
-          expect(controller.state.eligibility).toEqual({ polymarket: false });
+          expect(controller.state.eligibility).toEqual({
+            polymarket: { eligible: false, country: undefined },
+          });
         },
         { state: customState },
       );
@@ -432,9 +553,9 @@ describe('PredictController', () => {
             marketId: 'market-1',
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
 
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
@@ -463,9 +584,11 @@ describe('PredictController', () => {
 
         await expect(
           controller.getMarket({ marketId: 'market-1' }),
-        ).rejects.toThrow('MARKET_DETAILS_FAILED');
+        ).rejects.toThrow('PREDICT_MARKET_DETAILS_FAILED');
 
-        expect(controller.state.lastError).toBe('MARKET_DETAILS_FAILED');
+        expect(controller.state.lastError).toBe(
+          'PREDICT_MARKET_DETAILS_FAILED',
+        );
       });
     });
 
@@ -599,9 +722,9 @@ describe('PredictController', () => {
             marketId: 'market-1',
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
 
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
@@ -632,7 +755,7 @@ describe('PredictController', () => {
           controller.getPriceHistory({ marketId: 'market-1' }),
         ).rejects.toBe('String error');
 
-        expect(controller.state.lastError).toBe('PRICE_HISTORY_FAILED');
+        expect(controller.state.lastError).toBe('PREDICT_PRICE_HISTORY_FAILED');
       });
     });
 
@@ -660,9 +783,259 @@ describe('PredictController', () => {
     });
   });
 
+  describe('getPrices', () => {
+    const mockPrices = {
+      'token-1': { BUY: 0.65, SELL: 0.64 },
+      'token-2': { BUY: 0.35, SELL: 0.34 },
+    };
+
+    it('get prices successfully with single provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        const result = await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockPrices);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(mockPolymarketProvider.getPrices).toHaveBeenCalledWith({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
+        });
+      });
+    });
+
+    it('default to polymarket provider when providerId is not specified', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        const result = await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockPrices);
+        expect(mockPolymarketProvider.getPrices).toHaveBeenCalled();
+      });
+    });
+
+    it('handle empty bookParams array', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue({ providerId: 'polymarket', results: [] });
+
+        const result = await controller.getPrices({
+          queries: [],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual({ providerId: 'polymarket', results: [] });
+        expect(controller.state.lastError).toBeNull();
+      });
+    });
+
+    it('handle prices with only BUY side', async () => {
+      const mockBuyPrices = {
+        'token-1': { BUY: 0.65 },
+        'token-2': { BUY: 0.35 },
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockBuyPrices);
+
+        const result = await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockBuyPrices);
+      });
+    });
+
+    it('handle prices with only SELL side', async () => {
+      const mockSellPrices = {
+        'token-1': { SELL: 0.64 },
+        'token-2': { SELL: 0.34 },
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockSellPrices);
+
+        const result = await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockSellPrices);
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('Provider not available');
+
+        expect(controller.state.lastError).toBe('Provider not available');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle error when getPrices throws', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Failed to fetch prices';
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.getPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle non-Error objects thrown by getPrices', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockRejectedValue('String error');
+
+        await expect(
+          controller.getPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            providerId: 'polymarket',
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe('PREDICT_UNKNOWN_ERROR');
+      });
+    });
+
+    it('clear previous errors on successful call', async () => {
+      await withController(async ({ controller }) => {
+        // First, set an error state
+        controller.updateStateForTesting((state) => {
+          state.lastError = 'Previous error';
+        });
+
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(controller.state.lastError).toBeNull();
+      });
+    });
+  });
+
   describe('placeOrder', () => {
     it('place order successfully via provider', async () => {
-      const mockResult = { success: true, response: 'order-placed' };
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
       await withController(async ({ controller }) => {
         mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
 
@@ -701,13 +1074,62 @@ describe('PredictController', () => {
 
         const preview = createMockOrderPreview({ side: Side.SELL });
 
-        const result = await controller.placeOrder({
+        await expect(
+          controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          }),
+        ).rejects.toThrow('Order placement failed');
+
+        expect(controller.state.lastError).toBe('Order placement failed');
+      });
+    });
+
+    it('updates state with lastError when place order fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockImplementation(() =>
+          Promise.reject(new Error('Network error')),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await expect(
+          controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          }),
+        ).rejects.toThrow('Network error');
+
+        expect(controller.state.lastError).toBe('Network error');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('logs error details when place order fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockImplementation(() =>
+          Promise.reject(new Error('Provider error')),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.SELL });
+        const params = {
           providerId: 'polymarket',
           preview,
-        });
+        };
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('Order placement failed');
+        await expect(controller.placeOrder(params)).rejects.toThrow(
+          'Provider error',
+        );
+
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Place order failed',
+          expect.objectContaining({
+            error: 'Provider error',
+            timestamp: expect.any(String),
+            providerId: 'polymarket',
+            params,
+          }),
+        );
       });
     });
 
@@ -720,13 +1142,14 @@ describe('PredictController', () => {
 
         const preview = createMockOrderPreview({ side: Side.SELL });
 
-        const result = await controller.placeOrder({
-          providerId: 'polymarket',
-          preview,
-        });
+        await expect(
+          controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          }),
+        ).rejects.toThrow('PREDICT_PLACE_ORDER_FAILED');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('PLACE_ORDER_FAILED');
+        expect(controller.state.lastError).toBe('PREDICT_PLACE_ORDER_FAILED');
       });
     });
 
@@ -734,13 +1157,14 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         const preview = createMockOrderPreview({ side: Side.BUY });
 
-        const result = await controller.placeOrder({
-          providerId: 'nonexistent',
-          preview,
-        });
+        await expect(
+          controller.placeOrder({
+            providerId: 'nonexistent',
+            preview,
+          }),
+        ).rejects.toThrow('Provider not available');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -748,26 +1172,13 @@ describe('PredictController', () => {
       const mockTxMeta = { id: 'tx-signer-sell' } as any;
       await withController(async ({ controller }) => {
         mockPolymarketProvider.placeOrder.mockResolvedValue({
-          id: 'sell-order-signer',
-          providerId: 'polymarket',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'outcome-token-1',
-          isBuy: false,
-          size: 2,
-          price: 0.8,
-          status: 'idle',
-          timestamp: Date.now(),
-          lastUpdated: Date.now(),
-          onchainTradeParams: [
-            {
-              data: '0xsell-data',
-              to: '0x000000000000000000000000000000000000sell',
-              value: '0x0',
-            },
-          ],
-          offchainTradeParams: {},
-          chainId: 1,
-        } as any);
+          success: true as const,
+          response: {
+            id: 'sell-order-signer',
+            spentAmount: '100',
+            receivedAmount: '200',
+          },
+        });
 
         (addTransaction as jest.Mock).mockResolvedValue({
           transactionMeta: mockTxMeta,
@@ -795,6 +1206,28 @@ describe('PredictController', () => {
         );
       });
     });
+
+    it('skips analytics tracking when analyticsProperties not provided', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true,
+          response: {
+            id: 'order-789',
+            spentAmount: '1.0',
+            receivedAmount: '2.0',
+          },
+        } as any);
+
+        const preview = createMockOrderPreview({ side: Side.SELL });
+
+        await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
+        });
+
+        expect(mockPolymarketProvider.getAccountState).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('provider error handling', () => {
@@ -802,13 +1235,14 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         const preview = createMockOrderPreview({ side: Side.BUY });
 
-        const result = await controller.placeOrder({
-          providerId: 'nonexistent',
-          preview,
-        });
+        await expect(
+          controller.placeOrder({
+            providerId: 'nonexistent',
+            preview,
+          }),
+        ).rejects.toThrow('Provider not available');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -818,8 +1252,8 @@ describe('PredictController', () => {
           controller.getMarkets({
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -830,8 +1264,8 @@ describe('PredictController', () => {
             address: '0x1234567890123456789012345678901234567890',
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
   });
@@ -839,11 +1273,17 @@ describe('PredictController', () => {
   describe('refreshEligibility', () => {
     it('update eligibility for all providers successfully', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.isEligible.mockResolvedValue(true);
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'PT',
+        });
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(true);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: true,
+          country: 'PT',
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
@@ -857,7 +1297,10 @@ describe('PredictController', () => {
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: false,
+          country: undefined,
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
@@ -868,7 +1311,10 @@ describe('PredictController', () => {
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: false,
+          country: undefined,
+        });
       });
     });
 
@@ -877,7 +1323,10 @@ describe('PredictController', () => {
         // Add a second mock provider to the internal providers map
         const mockSecondProvider = {
           ...mockPolymarketProvider,
-          isEligible: jest.fn().mockResolvedValue(false),
+          isEligible: jest.fn().mockResolvedValue({
+            isEligible: false,
+            country: 'US',
+          }),
         };
 
         // Manually add second provider to test multiple providers scenario
@@ -887,14 +1336,216 @@ describe('PredictController', () => {
           providers.set('second-provider', mockSecondProvider);
         });
 
-        mockPolymarketProvider.isEligible.mockResolvedValue(true);
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'PT',
+        });
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(true);
-        expect(controller.state.eligibility['second-provider']).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: true,
+          country: 'PT',
+        });
+        expect(controller.state.eligibility['second-provider']).toEqual({
+          eligible: false,
+          country: 'US',
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         expect(mockSecondProvider.isEligible).toHaveBeenCalled();
+      });
+    });
+
+    describe('local geoblocking', () => {
+      it('sets eligibility to false when provider returns eligible but country is DE', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: 'DE',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: false,
+            country: 'DE',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to false when provider returns eligible but country is RO', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: 'RO',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: false,
+            country: 'RO',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to true when provider returns eligible and country is US', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: 'US',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: true,
+            country: 'US',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to false when provider returns ineligible regardless of country', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: false,
+            country: 'US',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: false,
+            country: 'US',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to true when provider returns eligible without country', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: undefined,
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: true,
+            country: undefined,
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to true when provider returns eligible with null country', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: null as any,
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: true,
+            country: null,
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to true when provider returns eligible with empty string country', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: '',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: true,
+            country: '',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+    });
+  });
+
+  describe('isLocallyGeoblocked', () => {
+    it('returns true for blocked country DE', () => {
+      withController(({ controller }) => {
+        const region = { country: 'DE' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(true);
+      });
+    });
+
+    it('returns true for blocked country RO', () => {
+      withController(({ controller }) => {
+        const region = { country: 'RO' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(true);
+      });
+    });
+
+    it('returns false for non-blocked country US', () => {
+      withController(({ controller }) => {
+        const region = { country: 'US' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
+
+    it('returns false for empty string country code', () => {
+      withController(({ controller }) => {
+        const region = { country: '' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
+
+    it('returns false for lowercase blocked country code de', () => {
+      withController(({ controller }) => {
+        const region = { country: 'de' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
+
+    it('returns false for country code with extra spaces', () => {
+      withController(({ controller }) => {
+        const region = { country: ' DE ' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
+
+    it('returns false for partial match DES', () => {
+      withController(({ controller }) => {
+        const region = { country: 'DES' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
       });
     });
   });
@@ -950,7 +1601,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('get positions from multiple providers when no providerId specified', async () => {
+    it('defaults to polymarket provider when no providerId specified', async () => {
       await withController(async ({ controller }) => {
         const polymarketPositions = [
           {
@@ -988,17 +1639,16 @@ describe('PredictController', () => {
 
         const result = await controller.getPositions({
           address: '0x1234567890123456789012345678901234567890',
-        }); // No providerId
+        }); // No providerId - should default to polymarket
 
-        expect(result).toHaveLength(2);
+        expect(result).toHaveLength(1);
         expect(result).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ providerId: 'polymarket' }),
-            expect.objectContaining({ providerId: 'second-provider' }),
           ]),
         );
         expect(mockPolymarketProvider.getPositions).toHaveBeenCalled();
-        expect(mockSecondProvider.getPositions).toHaveBeenCalled();
+        expect(mockSecondProvider.getPositions).not.toHaveBeenCalled();
       });
     });
 
@@ -1096,7 +1746,7 @@ describe('PredictController', () => {
           controller.getMarkets({
             providerId: 'nonexistent-provider',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
   });
@@ -1105,29 +1755,35 @@ describe('PredictController', () => {
     it('update state using provided updater function', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.eligibility = { polymarket: false };
+          state.eligibility = {
+            polymarket: { eligible: false, country: undefined },
+          };
           state.lastError = 'Test error';
         });
         expect(controller.state.eligibility).toEqual({
-          polymarket: false,
+          polymarket: { eligible: false, country: undefined },
         });
         expect(controller.state.lastError).toBe('Test error');
       });
     });
 
-    it('handle complex state updates', () => {
+    it('handles complex state updates', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            batchId: 'test-tx',
-            chainId: 1,
-            status: PredictClaimStatus.PENDING,
+          state.accountMeta = {
+            polymarket: {
+              '0x123': {
+                isOnboarded: true,
+              },
+            },
           };
-          state.isOnboarded = { '0x123': true };
+          state.lastError = null;
         });
 
-        expect(controller.state.claimTransaction?.batchId).toBe('test-tx');
-        expect(controller.state.isOnboarded['0x123']).toBe(true);
+        expect(
+          controller.state.accountMeta.polymarket['0x123'].isOnboarded,
+        ).toBe(true);
+        expect(controller.state.lastError).toBeNull();
       });
     });
   });
@@ -1194,47 +1850,6 @@ describe('PredictController', () => {
         }).not.toThrow();
       });
     });
-
-    it('handle transaction submitted for claim transaction', () => {
-      withController(({ controller, messenger }) => {
-        const txId = 'tx1';
-
-        // Set up claim transaction
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            batchId: txId,
-            chainId: 1,
-            status: PredictClaimStatus.PENDING,
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            id: txId,
-            hash: '0xabc123',
-            status: 'submitted',
-            txParams: {
-              from: '0x1',
-              to: '0xclaim',
-              data: '0xdata',
-              value: '0x0',
-            },
-          },
-        };
-
-        // Currently handleTransactionSubmitted is a TODO, so it should not modify state
-        const initialState = { ...controller.state };
-
-        messenger.publish(
-          'TransactionController:transactionSubmitted',
-          // @ts-ignore
-          event,
-        );
-
-        // State should remain unchanged (since method is not implemented yet)
-        expect(controller.state).toEqual(initialState);
-      });
-    });
   });
 
   describe('claim', () => {
@@ -1252,22 +1867,33 @@ describe('PredictController', () => {
     };
 
     it('claim a single position successfully', async () => {
+      // Arrange
       const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockResolvedValue(mockClaim);
         (addTransactionBatch as jest.Mock).mockResolvedValue({
           batchId: mockBatchId,
         });
+        await controller.getPositions({ claimable: true });
 
+        // Act
         const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
+        // Assert
         expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
-        expect(controller.state.claimTransaction?.batchId).toBe(mockBatchId);
         expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith({
           positions: expect.any(Array),
           signer: expect.objectContaining({
@@ -1279,8 +1905,23 @@ describe('PredictController', () => {
     });
 
     it('claim multiple positions successfully using batch transaction', async () => {
+      // Arrange
       const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market-1',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome-1',
+            balance: '100',
+          },
+          {
+            marketId: 'test-market-2',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome-2',
+            balance: '200',
+          },
+        ]);
         const mockMultipleClaims = {
           chainId: 1,
           transactions: [
@@ -1306,14 +1947,16 @@ describe('PredictController', () => {
         (addTransactionBatch as jest.Mock).mockResolvedValue({
           batchId: mockBatchId,
         });
+        await controller.getPositions({ claimable: true });
 
+        // Act
         const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
+        // Assert
         expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
-        expect(controller.state.claimTransaction?.batchId).toBe(mockBatchId);
         expect(addTransactionBatch).toHaveBeenCalled();
       });
     });
@@ -1324,23 +1967,310 @@ describe('PredictController', () => {
           controller.claimWithConfirmation({
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 
     it('handle general claim error', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockImplementation(() => {
             throw new Error('Claim preparation failed');
           });
+        await controller.getPositions({ claimable: true });
 
+        // Act & Assert
         await expect(
           controller.claimWithConfirmation({
             providerId: 'polymarket',
           }),
         ).rejects.toThrow('Claim preparation failed');
+      });
+    });
+
+    it('return CANCELLED status when user denies transaction signature', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const mockClaimablePositions = [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            balance: '100',
+            providerId: 'polymarket',
+          },
+        ];
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          mockClaimablePositions as any,
+        );
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockImplementation(() => {
+            throw new Error('User denied transaction signature');
+          });
+        await controller.getPositions({ claimable: true });
+
+        // Act
+        const result = await controller.claimWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Assert
+        expect(result.batchId).toBe('NA');
+        expect(result.chainId).toBe(0);
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+      });
+    });
+
+    it('return CANCELLED status when user denial error is wrapped', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const mockClaimablePositions = [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            balance: '100',
+            providerId: 'polymarket',
+          },
+        ];
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          mockClaimablePositions as any,
+        );
+        (addTransactionBatch as jest.Mock).mockRejectedValue(
+          new Error(
+            'Error occurred during transaction batch: User denied transaction signature',
+          ),
+        );
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        await controller.getPositions({ claimable: true });
+
+        // Act
+        const result = await controller.claimWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Assert
+        expect(result.batchId).toBe('NA');
+        expect(result.chainId).toBe(0);
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+      });
+    });
+
+    it('throws error when no claimable positions found', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([]);
+        await controller.getPositions({ claimable: true });
+
+        // Act & Assert
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('No claimable positions found');
+      });
+    });
+
+    it('updates error state when claim fails', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        const errorMessage = 'Claim preparation failed';
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+        await controller.getPositions({ claimable: true });
+
+        // Act & Assert
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('throws error when network client not found', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue(undefined);
+
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        await controller.getPositions({ claimable: true });
+
+        // Act & Assert
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Network client not found for chain ID');
+      });
+    });
+
+    it('throws error when transaction batch returns no batchId', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue('mainnet');
+
+        (addTransactionBatch as jest.Mock).mockResolvedValue({});
+        await controller.getPositions({ claimable: true });
+
+        // Act & Assert
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Failed to get batch ID from claim transaction submission',
+        );
+      });
+    });
+
+    it('throws error when prepareClaim returns no transactions', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
+          chainId: 1,
+          transactions: [],
+        });
+        await controller.getPositions({ claimable: true });
+
+        // Act & Assert
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('No transactions returned from claim preparation');
+      });
+    });
+
+    it('throws error when prepareClaim returns no chainId', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
+          transactions: [
+            {
+              params: {
+                to: '0xclaim' as `0x${string}`,
+                data: '0xclaimdata' as `0x${string}`,
+              },
+            },
+          ],
+        });
+        await controller.getPositions({ claimable: true });
+
+        // Act & Assert
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Chain ID not provided by claim preparation');
+      });
+    });
+
+    it('clears error state on successful claim', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-1';
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.lastError = 'Previous error';
+        });
+
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue('mainnet');
+
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+
+        // Act
+        const result = await controller.claimWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Assert
+        expect(result.batchId).toBe(mockBatchId);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
   });
@@ -1399,9 +2329,9 @@ describe('PredictController', () => {
             address: '0x1234567890123456789012345678901234567890',
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
 
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
@@ -1479,45 +2409,141 @@ describe('PredictController', () => {
     });
   });
 
-  describe('clearClaimTransactions', () => {
-    it('clear all claim transactions from state', () => {
-      withController(({ controller }) => {
-        // Set up initial claim transaction
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            batchId: 'test-tx',
-            chainId: 1,
-            status: PredictClaimStatus.PENDING,
-          };
+  describe('getActivity', () => {
+    const mockActivity = [
+      {
+        id: 'activity-1',
+        providerId: 'polymarket',
+        entry: {
+          type: 'buy' as const,
+          timestamp: Date.now(),
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 1,
+          amount: 10,
+          price: 0.5,
+        },
+        title: 'Test Market 1',
+      },
+      {
+        id: 'activity-2',
+        providerId: 'polymarket',
+        entry: {
+          type: 'claimWinnings' as const,
+          timestamp: Date.now(),
+          amount: 100,
+        },
+        title: 'Test Market 2',
+      },
+    ];
+
+    it('fetches activity successfully with default address', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+
+        const result = await controller.getActivity({});
+
+        expect(result).toEqual(mockActivity);
+        expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
         });
-
-        // Verify transaction exists
-        expect(controller.state.claimTransaction).toEqual({
-          batchId: 'test-tx',
-          chainId: 1,
-          status: PredictClaimStatus.PENDING,
-        });
-
-        // Clear claim transaction
-        controller.clearClaimTransaction();
-
-        // Verify transaction is cleared
-        expect(controller.state.claimTransaction).toBeNull();
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
 
-    it('handle clearing empty claim transaction', () => {
-      withController(({ controller }) => {
-        // Ensure claim transaction is null
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = null;
+    it('fetches activity successfully with custom address', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        const customAddress = '0xCustomAddress';
+
+        const result = await controller.getActivity({
+          address: customAddress,
         });
 
-        // Clear should work without error
-        expect(() => controller.clearClaimTransaction()).not.toThrow();
+        expect(result).toEqual(mockActivity);
+        expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
+          address: customAddress,
+        });
+      });
+    });
 
-        // Should remain null
-        expect(controller.state.claimTransaction).toBeNull();
+    it('fetches activity with specific provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+
+        const result = await controller.getActivity({
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockActivity);
+        expect(mockPolymarketProvider.getActivity).toHaveBeenCalled();
+      });
+    });
+
+    it('filters out undefined activity entries', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue([
+          mockActivity[0],
+          undefined,
+          mockActivity[1],
+        ] as any);
+
+        const result = await controller.getActivity({});
+
+        expect(result).toEqual(mockActivity);
+        expect(result.length).toBe(2);
+      });
+    });
+
+    it('throws error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getActivity({
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('Provider not available');
+
+        expect(controller.state.lastError).toBe('Provider not available');
+      });
+    });
+
+    it('handles error when getActivity throws', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockRejectedValue(
+          new Error('Failed to fetch activity'),
+        );
+
+        await expect(controller.getActivity({})).rejects.toThrow(
+          'Failed to fetch activity',
+        );
+
+        expect(controller.state.lastError).toBe('Failed to fetch activity');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles non-Error objects thrown by getActivity', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockRejectedValue('String error');
+
+        await expect(controller.getActivity({})).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe(
+          'PREDICT_ACTIVITY_NOT_AVAILABLE',
+        );
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('returns empty array when no activity found', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue([]);
+
+        const result = await controller.getActivity({});
+
+        expect(result).toEqual([]);
+        expect(controller.state.lastError).toBeNull();
       });
     });
   });
@@ -1579,6 +2605,8 @@ describe('PredictController', () => {
           networkClientId: 'mainnet',
           disableHook: true,
           disableSequential: true,
+          disableUpgrade: true,
+          skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
       });
@@ -1593,7 +2621,7 @@ describe('PredictController', () => {
           controller.depositWithConfirmation({
             providerId: 'invalid-provider',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 
@@ -1724,16 +2752,23 @@ describe('PredictController', () => {
       });
     });
 
-    it('handle empty transaction array from prepareDeposit', async () => {
-      // Given prepareDeposit returns empty transactions
+    it('returns success when user denies transaction signature', async () => {
+      // Given prepareDeposit succeeds but user denies the transaction
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
-        transactions: [],
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
         chainId: '0x89',
       });
 
-      (addTransactionBatch as jest.Mock).mockResolvedValue({
-        batchId: 'batch-empty',
-      });
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error('User denied transaction signature'),
+      );
 
       await withController(async ({ controller }) => {
         // When calling depositWithConfirmation
@@ -1741,60 +2776,221 @@ describe('PredictController', () => {
           providerId: 'polymarket',
         });
 
-        // Then it should still succeed
+        // Then it should return success with NA batchId instead of throwing
         expect(result.success).toBe(true);
+        expect(result.response?.batchId).toBe('NA');
+      });
+    });
 
-        // And addTransactionBatch should be called with empty array
-        expect(addTransactionBatch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            transactions: [],
+    it('returns success when user denies transaction signature with additional context', async () => {
+      // Given prepareDeposit succeeds but user denies with additional error context
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error(
+          'Transaction failed: User denied transaction signature - cancelled in wallet',
+        ),
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        const result = await controller.depositWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Then it should return success with NA batchId
+        expect(result.success).toBe(true);
+        expect(result.response?.batchId).toBe('NA');
+      });
+    });
+
+    it('throw error when prepareDeposit returns empty transactions', async () => {
+      // Given prepareDeposit returns empty transactions
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
           }),
-        );
+        ).rejects.toThrow('No transactions returned from deposit preparation');
+
+        // And addTransactionBatch should not be called
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    // Note: Tests for account validation errors require mocking AccountsController
+    // at the module level, which is complex with the current test setup.
+    // These error paths are indirectly tested through integration tests.
+
+    it('throw error when prepareDeposit returns undefined', async () => {
+      // Given prepareDeposit returns undefined
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue(
+        undefined as never,
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Deposit preparation returned undefined');
+      });
+    });
+
+    it('throw error when chainId is not provided', async () => {
+      // Given prepareDeposit returns result without chainId
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: null as unknown as `0x${string}`,
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Chain ID not provided by deposit preparation');
+      });
+    });
+
+    // Note: Tests for NetworkController validation errors require mocking
+    // at the module level, which is complex with the current test setup.
+    // These error paths are indirectly tested through integration tests.
+
+    it('throw error when addTransactionBatch returns no batchId', async () => {
+      // Given addTransactionBatch returns empty result
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({});
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Failed to get batch ID from transaction submission');
+      });
+    });
+
+    it('throw error when chainId format is invalid', async () => {
+      // Given prepareDeposit returns invalid hex chainId
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: 'not-a-hex' as `0x${string}`,
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-123',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Value must be a hexadecimal string.');
       });
     });
   });
 
   describe('clearDepositTransaction', () => {
-    it('clear deposit transaction from state', () => {
+    it('clears deposit transaction from state', () => {
       withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address = '0x1234567890123456789012345678901234567890';
+
         // Set up initial deposit transaction
         controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId: 'batch-123',
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
+          state.pendingDeposits = {
+            [providerId]: {
+              [address]: 'batch-id-123',
+            },
           };
         });
 
         // Verify transaction exists
-        expect(controller.state.depositTransaction).toEqual({
-          batchId: 'batch-123',
-          chainId: 137,
-          status: PredictDepositStatus.PENDING,
-          providerId: 'polymarket',
-        });
+        expect(controller.state.pendingDeposits[providerId][address]).toBe(
+          'batch-id-123',
+        );
 
         // Clear deposit transaction
-        controller.clearDepositTransaction();
+        controller.clearPendingDeposit({ providerId });
 
-        // Verify transaction is cleared
-        expect(controller.state.depositTransaction).toBeNull();
+        // Verify transaction is cleared (deleted, not set to false)
+        expect(controller.state.pendingDeposits[providerId]?.[address]).toBe(
+          undefined,
+        );
       });
     });
 
-    it('handle clearing empty deposit transaction', () => {
+    it('handles clearing empty deposit transaction', () => {
       withController(({ controller }) => {
-        // Ensure deposit transaction is null
+        const providerId = 'polymarket';
+
+        // Ensure deposit transaction is empty
         controller.updateStateForTesting((state) => {
-          state.depositTransaction = null;
+          state.pendingDeposits = {};
         });
 
         // Clear should work without error
-        expect(() => controller.clearDepositTransaction()).not.toThrow();
+        expect(() =>
+          controller.clearPendingDeposit({ providerId }),
+        ).not.toThrow();
 
-        // Should remain null
-        expect(controller.state.depositTransaction).toBeNull();
+        // Verify deposit transaction remains undefined
+        const address = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingDeposits[providerId]?.[address]).toBe(
+          undefined,
+        );
       });
     });
   });
@@ -1803,17 +2999,18 @@ describe('PredictController', () => {
     // Deposit transaction status updates are now handled by usePredictDepositToasts hook
     // rather than the controller's event handlers
 
-    it('not modify deposit state when different batchId', () => {
+    it('does not modify deposit state when different batchId', () => {
       withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-1';
+        const providerId = 'polymarket';
+        const address = '0x1234567890123456789012345678901234567890';
+        const existingBatchId = 'existing-batch-id';
 
         // Set up deposit transaction
         controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
+          state.pendingDeposits = {
+            [providerId]: {
+              [address]: existingBatchId,
+            },
           };
         });
 
@@ -1843,8 +3040,10 @@ describe('PredictController', () => {
       });
     });
 
-    it('update deposit transaction in depositWithConfirmation', async () => {
+    it('updates deposit transaction in depositWithConfirmation', async () => {
       const mockBatchId = 'batch-store-test';
+      const providerId = 'polymarket';
+      const address = '0x1234567890123456789012345678901234567890';
 
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: [
@@ -1863,26 +3062,25 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
-        // Ensure depositTransaction is null initially
-        expect(controller.state.depositTransaction).toBeNull();
+        // Ensure depositTransaction is empty initially
+        expect(controller.state.pendingDeposits).toEqual({});
 
         await controller.depositWithConfirmation({
-          providerId: 'polymarket',
+          providerId,
         });
 
-        // Verify depositTransaction was stored with correct structure
-        expect(controller.state.depositTransaction).toEqual({
-          batchId: mockBatchId,
-          chainId: 137,
-          status: PredictDepositStatus.PENDING,
-          providerId: 'polymarket',
-        });
+        // Verify depositTransaction was stored with batch ID
+        expect(controller.state.pendingDeposits[providerId][address]).toBe(
+          mockBatchId,
+        );
       });
     });
 
-    it('clear previous deposit transaction when starting new deposit', async () => {
+    it('clears previous deposit transaction when starting new deposit', async () => {
       const oldBatchId = 'old-batch';
       const newBatchId = 'new-batch';
+      const providerId = 'polymarket';
+      const address = '0x1234567890123456789012345678901234567890';
 
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: [
@@ -1903,23 +3101,26 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         // Set up old deposit transaction
         controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId: oldBatchId,
-            chainId: 137,
-            status: PredictDepositStatus.CONFIRMED,
-            providerId: 'polymarket',
+          state.pendingDeposits = {
+            [providerId]: {
+              [address]: oldBatchId,
+            },
           };
         });
 
-        // Start new deposit
+        // Verify old transaction exists
+        expect(controller.state.pendingDeposits[providerId][address]).toBe(
+          oldBatchId,
+        );
+
+        // Start new deposit (should clear old batch and set to new batch ID)
         await controller.depositWithConfirmation({
-          providerId: 'polymarket',
+          providerId,
         });
 
-        // Verify old transaction was replaced with new one
-        expect(controller.state.depositTransaction?.batchId).toBe(newBatchId);
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.PENDING,
+        // Verify new transaction is set with new batch ID
+        expect(controller.state.pendingDeposits[providerId][address]).toBe(
+          newBatchId,
         );
       });
     });
@@ -1929,7 +3130,7 @@ describe('PredictController', () => {
     it('successfully retrieve account state', async () => {
       // Given a valid account state
       const mockAccountState = {
-        address: '0xProxyAddress',
+        address: '0xProxyAddress' as `0x${string}`,
         isDeployed: true,
         hasAllowances: true,
         balance: 100.5,
@@ -1965,7 +3166,7 @@ describe('PredictController', () => {
           controller.getAccountState({
             providerId: 'invalid-provider',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
   });
@@ -2024,7 +3225,7 @@ describe('PredictController', () => {
           controller.getBalance({
             providerId: 'invalid-provider',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 
@@ -2047,7 +3248,7 @@ describe('PredictController', () => {
   });
 
   describe('previewOrder', () => {
-    it('should preview order successfully', async () => {
+    it('previews order successfully', async () => {
       const mockOrderPreview = createMockOrderPreview({
         marketId: 'market-1',
         outcomeId: 'outcome-1',
@@ -2075,11 +3276,16 @@ describe('PredictController', () => {
           outcomeTokenId: 'token-1',
           side: Side.BUY,
           size: 100,
+          signer: expect.objectContaining({
+            address: '0x1234567890123456789012345678901234567890',
+            signTypedMessage: expect.any(Function),
+            signPersonalMessage: expect.any(Function),
+          }),
         });
       });
     });
 
-    it('should throw error when provider is not available', async () => {
+    it('throws error when provider is not available', async () => {
       await withController(async ({ controller }) => {
         await expect(
           controller.previewOrder({
@@ -2090,11 +3296,11 @@ describe('PredictController', () => {
             side: Side.BUY,
             size: 100,
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 
-    it('should handle preview errors', async () => {
+    it('handles preview errors', async () => {
       mockPolymarketProvider.previewOrder.mockRejectedValue(
         new Error('Preview failed'),
       );
@@ -2111,6 +3317,1530 @@ describe('PredictController', () => {
           }),
         ).rejects.toThrow('Preview failed');
       });
+    });
+  });
+
+  describe('prepareWithdraw', () => {
+    const mockWithdrawResponse = {
+      chainId: '0x89' as `0x${string}`,
+      transaction: {
+        params: {
+          to: '0xWithdrawAddress' as `0x${string}`,
+          data: '0xwithdrawdata' as `0x${string}`,
+        },
+      },
+      predictAddress: '0xPredictAddress' as `0x${string}`,
+    };
+
+    it('successfully prepare withdraw transaction', async () => {
+      const mockBatchId = 'withdraw-batch-1';
+
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: mockBatchId,
+      });
+
+      await withController(async ({ controller }) => {
+        const result = await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.response).toBe(mockBatchId);
+        expect(controller.state.withdrawTransaction).toEqual({
+          chainId: 137,
+          status: PredictWithdrawStatus.IDLE,
+          providerId: 'polymarket',
+          predictAddress: '0xPredictAddress',
+          transactionId: mockBatchId,
+          amount: 0,
+        });
+      });
+    });
+
+    it('updates state with lastError when prepare withdraw fails', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
+        new Error('Provider error'),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.prepareWithdraw({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Provider error');
+
+        expect(controller.state.lastError).toBe('Provider error');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(controller.state.withdrawTransaction).toBeNull();
+      });
+    });
+
+    it('logs error details when prepare withdraw fails', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.prepareWithdraw({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Network error');
+
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Prepare withdraw failed',
+          expect.objectContaining({
+            error: 'Network error',
+            timestamp: expect.any(String),
+            providerId: 'polymarket',
+          }),
+        );
+      });
+    });
+
+    it('returns error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.prepareWithdraw({
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('Provider not available');
+
+        expect(controller.state.lastError).toBe('Provider not available');
+      });
+    });
+
+    it('call provider prepareWithdraw with correct signer', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-test',
+      });
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(mockPolymarketProvider.prepareWithdraw).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          signer: expect.objectContaining({
+            address: '0x1234567890123456789012345678901234567890',
+            signTypedMessage: expect.any(Function),
+            signPersonalMessage: expect.any(Function),
+          }),
+        });
+      });
+    });
+
+    it('call addTransactionBatch with correct parameters', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-tx',
+      });
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            from: '0x1234567890123456789012345678901234567890',
+            origin: 'metamask',
+            networkClientId: expect.any(String),
+            disableHook: true,
+            disableSequential: true,
+            requireApproval: true,
+            transactions: [mockWithdrawResponse.transaction],
+          }),
+        );
+      });
+    });
+
+    it('update transaction ID when batch ID is returned', async () => {
+      const mockBatchId = 'tx-batch-update';
+
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: mockBatchId,
+      });
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(controller.state.withdrawTransaction?.transactionId).toBe(
+          mockBatchId,
+        );
+      });
+    });
+
+    it('returns error when addTransactionBatch fails', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error('Transaction batch submission failed'),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.prepareWithdraw({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Transaction batch submission failed');
+
+        expect(controller.state.lastError).toBe(
+          'Transaction batch submission failed',
+        );
+      });
+    });
+
+    it('store withdraw transaction state before creating batch', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-123',
+      });
+
+      await withController(async ({ controller }) => {
+        expect(controller.state.withdrawTransaction).toBeNull();
+
+        await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(controller.state.withdrawTransaction).toBeDefined();
+        expect(controller.state.withdrawTransaction?.status).toBe(
+          PredictWithdrawStatus.IDLE,
+        );
+        expect(controller.state.withdrawTransaction?.chainId).toBe(137);
+      });
+    });
+
+    it('convert hex chainId to number in state', async () => {
+      const customChainId = '0x1' as `0x${string}`;
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue({
+        ...mockWithdrawResponse,
+        chainId: customChainId,
+      });
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-chain',
+      });
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(controller.state.withdrawTransaction?.chainId).toBe(1);
+      });
+    });
+
+    it('return success when user denies transaction signature', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
+          new Error('User denied transaction signature'),
+        );
+
+        const result = await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.response).toBe('User cancelled transaction');
+      });
+    });
+
+    it('return success when user denial error is wrapped in message', async () => {
+      await withController(async ({ controller }) => {
+        (addTransactionBatch as jest.Mock).mockRejectedValue(
+          new Error(
+            'Transaction failed: User denied transaction signature - action cancelled',
+          ),
+        );
+        mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+          mockWithdrawResponse,
+        );
+
+        const result = await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.response).toBe('User cancelled transaction');
+      });
+    });
+
+    it('not update state when user cancels transaction', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
+          new Error('User denied transaction signature'),
+        );
+
+        await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.withdrawTransaction).toBeNull();
+      });
+    });
+  });
+
+  describe('beforeSign', () => {
+    const mockTransactionMeta = {
+      id: 'tx-1',
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+        to: '0xTarget',
+        data: '0xdata',
+        value: '0x0',
+      },
+      nestedTransactions: [
+        {
+          id: 'nested-1',
+          type: 'predictWithdraw' as const,
+          data: '0xoriginaldata' as `0x${string}`,
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockPolymarketProvider.signWithdraw = jest.fn();
+    });
+
+    it('return undefined when no withdraw transaction in state', async () => {
+      await withController(async ({ controller }) => {
+        const result = await controller.beforeSign({
+          transactionMeta: mockTransactionMeta as any,
+        });
+
+        expect(result).toBeUndefined();
+      });
+    });
+
+    it('return undefined when transaction is not a withdraw transaction', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        const nonWithdrawTx = {
+          ...mockTransactionMeta,
+          nestedTransactions: [
+            {
+              id: 'nested-1',
+              type: 'otherType' as const,
+              data: '0xdata' as `0x${string}`,
+            },
+          ],
+        };
+
+        const result = await controller.beforeSign({
+          transactionMeta: nonWithdrawTx as any,
+        });
+
+        expect(result).toBeUndefined();
+      });
+    });
+
+    it('return undefined when provider does not support signWithdraw', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        delete (mockPolymarketProvider as any).signWithdraw;
+
+        const result = await controller.beforeSign({
+          transactionMeta: mockTransactionMeta as any,
+        });
+
+        expect(result).toBeUndefined();
+      });
+    });
+
+    it('call prepareWithdrawConfirmation with correct parameters', async () => {
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
+        callData: '0xnewdata' as `0x${string}`,
+        amount: 100,
+      });
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        await controller.beforeSign({
+          transactionMeta: mockTransactionMeta as any,
+        });
+
+        expect(mockPolymarketProvider.signWithdraw).toHaveBeenCalledWith({
+          callData: '0xoriginaldata',
+          signer: expect.objectContaining({
+            address: '0x1234567890123456789012345678901234567890',
+            signTypedMessage: expect.any(Function),
+            signPersonalMessage: expect.any(Function),
+          }),
+        });
+      });
+    });
+
+    it('update withdraw transaction amount and status', async () => {
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
+        callData: '0xnewdata' as `0x${string}`,
+        amount: 250.5,
+      });
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        await controller.beforeSign({
+          transactionMeta: mockTransactionMeta as any,
+        });
+
+        expect(controller.state.withdrawTransaction?.amount).toBe(250.5);
+        expect(controller.state.withdrawTransaction?.status).toBe(
+          PredictWithdrawStatus.PENDING,
+        );
+      });
+    });
+
+    it('return updateTransaction function that modifies transaction data', async () => {
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
+        callData: '0xmodifieddata' as `0x${string}`,
+        amount: 100,
+      });
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredictAddress' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        const result = await controller.beforeSign({
+          transactionMeta: mockTransactionMeta as any,
+        });
+
+        expect(result).toBeDefined();
+        expect(result?.updateTransaction).toBeDefined();
+
+        const testTransaction = {
+          txParams: {
+            from: '0xFrom',
+            to: '0xOldTarget',
+            data: '0xolddata',
+          },
+        };
+
+        result?.updateTransaction?.(testTransaction as any);
+
+        expect(testTransaction.txParams.data).toBe('0xmodifieddata');
+        expect(testTransaction.txParams.to).toBe('0xPredictAddress');
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'nonexistent',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        await expect(
+          controller.beforeSign({
+            transactionMeta: mockTransactionMeta as any,
+          }),
+        ).rejects.toThrow('Provider not available');
+      });
+    });
+
+    it('throw error when prepareWithdrawConfirmation fails', async () => {
+      mockPolymarketProvider.signWithdraw?.mockRejectedValue(
+        new Error('Confirmation preparation failed'),
+      );
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        await expect(
+          controller.beforeSign({
+            transactionMeta: mockTransactionMeta as any,
+          }),
+        ).rejects.toThrow('Confirmation preparation failed');
+      });
+    });
+
+    it('return undefined when nestedTransactions is undefined', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        const txWithoutNested = {
+          ...mockTransactionMeta,
+          nestedTransactions: undefined,
+        };
+
+        const result = await controller.beforeSign({
+          transactionMeta: txWithoutNested as any,
+        });
+
+        expect(result).toBeUndefined();
+      });
+    });
+
+    it('return undefined when nestedTransactions is empty array', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        const txWithEmptyNested = {
+          ...mockTransactionMeta,
+          nestedTransactions: [],
+        };
+
+        const result = await controller.beforeSign({
+          transactionMeta: txWithEmptyNested as any,
+        });
+
+        expect(result).toBeUndefined();
+      });
+    });
+  });
+
+  describe('clearWithdrawTransaction', () => {
+    it('clear withdraw transaction from state', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-123',
+            amount: 100,
+          };
+        });
+
+        expect(controller.state.withdrawTransaction).toEqual({
+          chainId: 137,
+          status: PredictWithdrawStatus.IDLE,
+          providerId: 'polymarket',
+          predictAddress: '0xPredict',
+          transactionId: 'tx-123',
+          amount: 100,
+        });
+
+        controller.clearWithdrawTransaction();
+
+        expect(controller.state.withdrawTransaction).toBeNull();
+      });
+    });
+
+    it('handle clearing when withdraw transaction is already null', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = null;
+        });
+
+        expect(() => controller.clearWithdrawTransaction()).not.toThrow();
+
+        expect(controller.state.withdrawTransaction).toBeNull();
+      });
+    });
+
+    it('clear withdraw transaction with pending status', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.PENDING,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-456',
+            amount: 500,
+          };
+        });
+
+        controller.clearWithdrawTransaction();
+
+        expect(controller.state.withdrawTransaction).toBeNull();
+      });
+    });
+
+    it('clear withdraw transaction does not affect other state properties', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: 'polymarket',
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-789',
+            amount: 200,
+          };
+          state.eligibility = {
+            polymarket: { eligible: true, country: 'PT' },
+          };
+          state.lastError = 'Some error';
+        });
+
+        const originalEligibility = controller.state.eligibility;
+        const originalLastError = controller.state.lastError;
+
+        controller.clearWithdrawTransaction();
+
+        expect(controller.state.withdrawTransaction).toBeNull();
+        expect(controller.state.eligibility).toEqual(originalEligibility);
+        expect(controller.state.lastError).toBe(originalLastError);
+      });
+    });
+  });
+
+  describe('confirmClaim', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('clears claimable positions from state after confirmation', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+        const mockPositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+          createMockPosition({
+            id: 'position-2',
+            status: PredictPositionStatus.WON,
+            currentValue: 200,
+            cashPnl: 100,
+          }),
+        ];
+
+        // Set up state with claimable positions
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[testAddress] = mockPositions;
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert
+        expect(controller.state.claimablePositions[testAddress]).toEqual([]);
+      });
+    });
+
+    it('calls provider confirmClaim with correct positions', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+        const mockPositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+        ];
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[testAddress] = mockPositions;
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert
+        expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith({
+          positions: mockPositions,
+          signer: expect.objectContaining({
+            address: testAddress,
+          }),
+        });
+      });
+    });
+
+    it('returns early when no claimable positions exist', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[testAddress] = [];
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert
+        expect(mockPolymarketProvider.confirmClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('returns early when claimable positions undefined for address', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {};
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert
+        expect(mockPolymarketProvider.confirmClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('throws error when provider not available', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        // Act & Assert
+        expect(() =>
+          controller.confirmClaim({ providerId: 'invalid-provider' }),
+        ).toThrow('Provider not available');
+      });
+    });
+
+    it('handles provider without confirmClaim method', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+        const mockPositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+        ];
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[testAddress] = mockPositions;
+        });
+
+        // Remove confirmClaim method from provider
+        delete (mockPolymarketProvider as { confirmClaim?: unknown })
+          .confirmClaim;
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert - should not throw, state should still be cleared
+        expect(controller.state.claimablePositions[testAddress]).toEqual([]);
+      });
+    });
+  });
+
+  describe('getPositions', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('defaults to polymarket provider when no providerId specified', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const mockPositions = [
+          {
+            id: 'position-1',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+            status: PredictPositionStatus.OPEN,
+            currentValue: 100,
+            cashPnl: 0,
+          },
+        ];
+
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue(mockPositions);
+
+        // Act
+        const result = await controller.getPositions({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+
+        // Assert
+        expect(result).toEqual(mockPositions);
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalled();
+      });
+    });
+
+    it('stores claimable positions keyed by address', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+        const mockClaimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+          createMockPosition({
+            id: 'position-2',
+            status: PredictPositionStatus.WON,
+            currentValue: 200,
+            cashPnl: 100,
+          }),
+        ];
+
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue(mockClaimablePositions);
+
+        // Act
+        await controller.getPositions({
+          address: testAddress,
+          claimable: true,
+        });
+
+        // Assert
+        expect(controller.state.claimablePositions[testAddress]).toHaveLength(
+          2,
+        );
+        expect(controller.state.claimablePositions[testAddress]).toEqual(
+          mockClaimablePositions,
+        );
+      });
+    });
+  });
+
+  describe('invalidateQueryCache', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('calls NetworkController.findNetworkClientIdByChainId with hex chain ID', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const chainId = 137;
+
+        // Act
+        // eslint-disable-next-line dot-notation
+        await controller['invalidateQueryCache'](chainId);
+
+        // Assert
+        expect(
+          Engine.context.NetworkController.findNetworkClientIdByChainId,
+        ).toHaveBeenCalledWith('0x89');
+      });
+    });
+
+    it('calls NetworkController.getNetworkClientById with network client ID', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const chainId = 137;
+
+        // Act
+        // eslint-disable-next-line dot-notation
+        await controller['invalidateQueryCache'](chainId);
+
+        // Assert
+        expect(
+          Engine.context.NetworkController.getNetworkClientById,
+        ).toHaveBeenCalledWith('mainnet');
+      });
+    });
+
+    it('calls blockTracker.checkForLatestBlock to invalidate cache', async () => {
+      const mockCheckForLatestBlock = jest.fn().mockResolvedValue(undefined);
+      // @ts-expect-error - Mocking Engine for test
+      Engine.context.NetworkController.getNetworkClientById.mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: mockCheckForLatestBlock,
+        },
+      });
+
+      await withController(async ({ controller }) => {
+        // Arrange
+        const chainId = 137;
+
+        // Act
+        // eslint-disable-next-line dot-notation
+        await controller['invalidateQueryCache'](chainId);
+
+        // Assert
+        expect(mockCheckForLatestBlock).toHaveBeenCalledWith();
+      });
+    });
+
+    it('logs error when blockTracker.checkForLatestBlock fails', async () => {
+      const mockError = new Error('Block tracker error');
+      const mockCheckForLatestBlock = jest.fn().mockRejectedValue(mockError);
+      // @ts-expect-error - Mocking Engine for test
+      Engine.context.NetworkController.getNetworkClientById.mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: mockCheckForLatestBlock,
+        },
+      });
+
+      await withController(async ({ controller }) => {
+        // Arrange
+        const chainId = 137;
+
+        // Act
+        // eslint-disable-next-line dot-notation
+        await controller['invalidateQueryCache'](chainId);
+
+        // Assert
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Error invalidating query cache',
+          expect.objectContaining({
+            error: 'Block tracker error',
+            timestamp: expect.any(String),
+          }),
+        );
+      });
+    });
+
+    it('continues execution when invalidation fails', async () => {
+      const mockError = new Error('Block tracker error');
+      const mockCheckForLatestBlock = jest.fn().mockRejectedValue(mockError);
+      // @ts-expect-error - Mocking Engine for test
+      Engine.context.NetworkController.getNetworkClientById.mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: mockCheckForLatestBlock,
+        },
+      });
+
+      await withController(async ({ controller }) => {
+        // Arrange
+        const chainId = 137;
+
+        // Act & Assert - should not throw
+        await expect(
+          // eslint-disable-next-line dot-notation
+          controller['invalidateQueryCache'](chainId),
+        ).resolves.not.toThrow();
+      });
+    });
+  });
+
+  describe('placeOrder - optimistic balance updates', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('decreases balance by spent amount for BUY orders', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100.50',
+          receivedAmount: '200',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          });
+
+          // Assert
+          const updatedBalance =
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBe(1000 - 100.5);
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({ balance: 1000 }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('sets validUntil to 5 seconds in future for BUY orders', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+      const now = Date.now();
+      jest.setSystemTime(now);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          });
+
+          // Assert
+          const updatedBalance =
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.validUntil).toBe(now + 5000);
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance(),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('increases balance by received amount for SELL orders', async () => {
+      const preview = createMockOrderPreview({ side: Side.SELL });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '95.50',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          });
+
+          // Assert
+          const updatedBalance =
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBe(500 + 95.5);
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({ balance: 500 }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('sets validUntil to 5 seconds in future for SELL orders', async () => {
+      const preview = createMockOrderPreview({ side: Side.SELL });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '50',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+      const now = Date.now();
+      jest.setSystemTime(now);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          });
+
+          // Assert
+          const updatedBalance =
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.validUntil).toBe(now + 5000);
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance(),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('results in NaN balance when parsing invalid spentAmount', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: 'invalid',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          });
+
+          // Assert - parseFloat('invalid') returns NaN
+          const updatedBalance =
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBeNaN();
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({ balance: 1000 }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('does not update balance when provider.placeOrder fails', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      mockPolymarketProvider.placeOrder.mockRejectedValue(
+        new Error('Order failed'),
+      );
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await expect(
+            controller.placeOrder({
+              providerId: 'polymarket',
+              preview,
+            }),
+          ).rejects.toThrow('Order failed');
+
+          // Assert - balance should remain unchanged
+          const updatedBalance =
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBe(1000);
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({ balance: 1000 }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('results in NaN balance when spentAmount is empty for BUY orders', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          });
+
+          // Assert - parseFloat('') returns NaN, so balance becomes NaN
+          const updatedBalance =
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBeNaN();
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({ balance: 1000 }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('results in NaN balance when receivedAmount is empty for SELL orders', async () => {
+      const preview = createMockOrderPreview({ side: Side.SELL });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          });
+
+          // Assert - parseFloat('') returns NaN, so balance becomes NaN
+          const updatedBalance =
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBeNaN();
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({ balance: 500 }),
+              },
+            },
+          },
+        },
+      );
+    });
+  });
+
+  describe('getBalance - caching behavior', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('returns cached balance when validUntil is in future', async () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          const result = await controller.getBalance({
+            providerId: 'polymarket',
+          });
+
+          // Assert
+          expect(result).toBe(1500);
+          expect(mockPolymarketProvider.getBalance).not.toHaveBeenCalled();
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({
+                    balance: 1500,
+                    validUntil: now + 500,
+                  }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('fetches fresh balance when cache expired', async () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+      mockPolymarketProvider.getBalance.mockResolvedValue(2000);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          const result = await controller.getBalance({
+            providerId: 'polymarket',
+          });
+
+          // Assert
+          expect(result).toBe(2000);
+          expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({
+                    balance: 1500,
+                    validUntil: now - 100,
+                  }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('fetches fresh balance when no cached balance exists', async () => {
+      mockPolymarketProvider.getBalance.mockResolvedValue(1000);
+
+      await withController(async ({ controller }) => {
+        // Act
+        const result = await controller.getBalance({
+          providerId: 'polymarket',
+        });
+
+        // Assert
+        expect(result).toBe(1000);
+        expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
+      });
+    });
+
+    it('updates cache with validUntil 1 second in future after fetch', async () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+      mockPolymarketProvider.getBalance.mockResolvedValue(2500);
+
+      await withController(async ({ controller }) => {
+        // Act
+        await controller.getBalance({
+          providerId: 'polymarket',
+        });
+
+        // Assert
+        const updatedBalance =
+          controller.state.balances.polymarket[
+            '0x1234567890123456789012345678901234567890'
+          ];
+        expect(updatedBalance.balance).toBe(2500);
+        expect(updatedBalance.validUntil).toBe(now + 1000);
+      });
+    });
+
+    it('calls invalidateQueryCache before fetching fresh balance', async () => {
+      const mockCheckForLatestBlock = jest.fn().mockResolvedValue(undefined);
+      // @ts-expect-error - Mocking Engine for test
+      Engine.context.NetworkController.getNetworkClientById.mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: mockCheckForLatestBlock,
+        },
+      });
+      mockPolymarketProvider.getBalance.mockResolvedValue(1000);
+
+      await withController(async ({ controller }) => {
+        // Act
+        await controller.getBalance({
+          providerId: 'polymarket',
+        });
+
+        // Assert
+        expect(mockCheckForLatestBlock).toHaveBeenCalled();
+        expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
+      });
+    });
+
+    it('fetches balance when validUntil equals current time', async () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+      mockPolymarketProvider.getBalance.mockResolvedValue(1800);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          const result = await controller.getBalance({
+            providerId: 'polymarket',
+          });
+
+          // Assert
+          expect(result).toBe(1800);
+          expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({
+                    balance: 1500,
+                    validUntil: now,
+                  }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('caches balance per providerId and address combination', async () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+      mockPolymarketProvider.getBalance.mockResolvedValue(3000);
+
+      await withController(
+        async ({ controller }) => {
+          // Act - fetch for different address
+          const result = await controller.getBalance({
+            providerId: 'polymarket',
+            address: '0xdifferentaddress000000000000000000000000',
+          });
+
+          // Assert
+          expect(result).toBe(3000);
+          expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
+          // Original cached balance should still exist
+          expect(
+            controller.state.balances.polymarket[
+              '0x1234567890123456789012345678901234567890'
+            ].balance,
+          ).toBe(1500);
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({
+                    balance: 1500,
+                    validUntil: now + 500,
+                  }),
+              },
+            },
+          },
+        },
+      );
     });
   });
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Button, {
   ButtonVariants,
@@ -33,7 +33,7 @@ const CardWarningBox = ({
 
   const warningTexts: Record<
     CardWarningType,
-    { title: string; description: string; confirmButtonLabel: string }
+    { title: string; description: string; confirmButtonLabel?: string }
   > = {
     [CardWarningType.CloseSpendingLimit]: {
       title: strings('card.card_home.warnings.close_spending_limit.title'),
@@ -53,7 +53,31 @@ const CardWarningBox = ({
         'card.card_home.warnings.need_delegation.confirm_button_label',
       ),
     },
+    [CardWarningType.Frozen]: {
+      title: strings('card.card_home.warnings.frozen.title'),
+      description: strings('card.card_home.warnings.frozen.description'),
+    },
+    [CardWarningType.Blocked]: {
+      title: strings('card.card_home.warnings.blocked.title'),
+      description: strings('card.card_home.warnings.blocked.description'),
+    },
+    [CardWarningType.NoCard]: {
+      title: strings('card.card_home.warnings.no_card.title'),
+      description: strings('card.card_home.warnings.no_card.description'),
+    },
   };
+
+  const isWarningWithoutBox = useMemo(
+    () =>
+      [CardWarningType.NoCard, CardWarningType.NeedDelegation].includes(
+        warning,
+      ),
+    [warning],
+  );
+
+  if (isWarningWithoutBox) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -73,16 +97,21 @@ const CardWarningBox = ({
           </Text>
         </View>
 
-        <View style={styles.buttonsContainer}>
+        <View
+          style={[
+            styles.buttonsContainer,
+            !(onConfirm || onDismiss) ? styles.isHidden : undefined,
+          ]}
+        >
           {onDismiss && (
             <Button
               variant={ButtonVariants.Secondary}
               onPress={onDismiss}
-              label="Dismiss"
+              label={strings('card.card_spending_limit.dismiss')}
               testID="dismiss-button"
             />
           )}
-          {onConfirm && (
+          {warningTexts[warning].confirmButtonLabel && onConfirm ? (
             <Button
               variant={ButtonVariants.Primary}
               onPress={onConfirm}
@@ -90,7 +119,7 @@ const CardWarningBox = ({
               label={warningTexts[warning].confirmButtonLabel}
               testID="confirm-button"
             />
-          )}
+          ) : null}
         </View>
       </View>
     </View>

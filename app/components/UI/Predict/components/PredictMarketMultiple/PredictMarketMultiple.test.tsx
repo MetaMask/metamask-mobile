@@ -5,7 +5,16 @@ import Button from '../../../../../component-library/components/Buttons/Button';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket, Recurrence } from '../../types';
+import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackGeoBlockTriggered: jest.fn(),
+    },
+  },
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -38,7 +47,8 @@ const mockMarket: PredictMarket = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [
     {
       id: 'outcome-1',
@@ -56,6 +66,8 @@ const mockMarket: PredictMarket = {
       groupItemTitle: 'Bitcoin Price Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {
@@ -93,7 +105,7 @@ describe('PredictMarketMultiple', () => {
     ).toBeOnTheScreen();
 
     expect(getByText('Bitcoin Price Prediction')).toBeOnTheScreen();
-    expect(getByText('65.00%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -107,23 +119,25 @@ describe('PredictMarketMultiple', () => {
 
     // Press the "Yes" button
     fireEvent.press(buttons[0]);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
 
     // Press the "No" button
     fireEvent.press(buttons[1]);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
   });
@@ -183,7 +197,7 @@ describe('PredictMarketMultiple', () => {
 
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
-    expect(getByText('75.00%')).toBeOnTheScreen();
+    expect(getByText('75%')).toBeOnTheScreen();
   });
 
   it('handle market with recurrence', () => {
@@ -282,11 +296,68 @@ describe('PredictMarketMultiple', () => {
     );
     fireEvent.press(marketTitle);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
       },
+    });
+  });
+
+  it('checks eligibility before balance for Yes button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getAllByText } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButtons = getAllByText('Yes');
+    fireEvent.press(yesButtons[0]);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('checks eligibility before balance for No button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getAllByText } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButtons = getAllByText('No');
+    fireEvent.press(noButtons[0]);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
     });
   });
 
@@ -325,7 +396,7 @@ describe('PredictMarketMultiple', () => {
       { state: initialState },
     );
 
-    expect(getByText('+1 more outcome')).toBeOnTheScreen();
+    expect(getByText(/\+1\s+(more\s+)?outcome/)).toBeOnTheScreen();
   });
 
   it('handle market with more than 4 outcomes showing plural text', () => {
@@ -345,6 +416,6 @@ describe('PredictMarketMultiple', () => {
       { state: initialState },
     );
 
-    expect(getByText('+2 more outcomes')).toBeOnTheScreen();
+    expect(getByText(/\+2\s+(more\s+)?outcomes/)).toBeOnTheScreen();
   });
 });

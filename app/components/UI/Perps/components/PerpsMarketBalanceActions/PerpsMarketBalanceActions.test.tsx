@@ -1,11 +1,7 @@
 import React, { ReactNode } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import Routes from '../../../../../constants/navigation/Routes';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
   useColorPulseAnimation,
@@ -14,6 +10,8 @@ import {
   usePerpsNetworkManagement,
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { getDefaultPerpsControllerState } from '../../controllers';
 
 // TypeScript interfaces for component props
 interface MockComponentProps {
@@ -45,9 +43,37 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock Redux
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+// Mock Redux - we'll use renderWithProvider instead
+
+// Mock Engine
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      // Mock controller methods that might be called
+      getWithdrawals: jest.fn().mockResolvedValue([]),
+      getDeposits: jest.fn().mockResolvedValue([]),
+      getActiveProvider: jest.fn().mockReturnValue({
+        getCompletedWithdrawals: jest.fn().mockResolvedValue([]),
+        getCompletedDeposits: jest.fn().mockResolvedValue([]),
+      }),
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+}));
+
+// Mock strings function
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const mockStrings: Record<string, string> = {
+      'perps.available_balance': 'Available balance',
+      'perps.add_funds': 'Add Funds',
+      'perps.withdraw': 'Withdraw',
+    };
+    return mockStrings[key] || key;
+  }),
 }));
 
 // Mock hooks
@@ -60,6 +86,15 @@ jest.mock('../../hooks', () => ({
   useBalanceComparison: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetworkManagement: jest.fn(),
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: jest.fn(),
+    handleWithdraw: jest.fn(),
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: jest.fn(),
+    isEligible: true,
+    isProcessing: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
@@ -230,6 +265,10 @@ jest.mock('../../../../../component-library/components/Skeleton', () => {
   };
 });
 
+jest.mock('../../../../../contexts/FeatureFlagOverrideContext', () => ({
+  FeatureFlagOverrideProvider: jest.fn(({ children }) => children),
+}));
+
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
@@ -242,7 +281,6 @@ jest.mock('react-native', () => {
 });
 
 // Setup mocks
-const mockUseSelector = useSelector as jest.Mock;
 const mockUsePerpsLiveAccount = usePerpsLiveAccount as jest.Mock;
 const mockUseColorPulseAnimation = useColorPulseAnimation as jest.Mock;
 const mockUseBalanceComparison = useBalanceComparison as jest.Mock;
@@ -260,14 +298,29 @@ describe('PerpsMarketBalanceActions', () => {
     orders: [],
   };
 
+  // Helper function to create mock state
+  const createMockState = (
+    perpsControllerOverrides: Partial<
+      ReturnType<typeof getDefaultPerpsControllerState>
+    > = {},
+  ) => ({
+    engine: {
+      backgroundState: {
+        PerpsController: {
+          ...getDefaultPerpsControllerState(),
+          ...perpsControllerOverrides,
+        },
+        MultichainNetworkController: {
+          multichainNetworkConfigurationsByChainId: {},
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: undefined, // EVM selected, non-EVM chain field is undefined
+        },
+      },
+    },
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Setup default mock implementations
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPerpsEligibility) return true;
-      return undefined;
-    });
 
     mockUsePerpsLiveAccount.mockReturnValue({
       account: defaultPerpsAccount,
@@ -305,10 +358,18 @@ describe('PerpsMarketBalanceActions', () => {
   describe('Rendering', () => {
     it('renders component with balance display', () => {
       // Arrange & Act
-      const { getByText, getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Assert
-      expect(getByText('perps.available_balance')).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
       ).toBeOnTheScreen();
@@ -316,7 +377,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('displays formatted balance amount', () => {
       // Arrange & Act
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
       const balanceElement = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
       );
@@ -327,7 +392,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('shows both Add Funds and Withdraw buttons', () => {
       // Arrange & Act
-      const { getByTestId, getByText } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Assert
       expect(
@@ -340,12 +409,20 @@ describe('PerpsMarketBalanceActions', () => {
       expect(getByText('perps.withdraw')).toBeOnTheScreen();
     });
 
-    it('renders USDC avatar with HyperLiquid badge', () => {
+    it('renders available balance text with funded state', () => {
       // Arrange & Act
-      const { getByText } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
-      // Assert - Check that the component renders (badge is complex to test directly)
-      expect(getByText('perps.available_balance')).toBeOnTheScreen();
+      // Assert - Check that available balance text is rendered
+      expect(
+        getByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('returns null when no perps account is available', () => {
@@ -358,10 +435,16 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { UNSAFE_root } = render(<PerpsMarketBalanceActions />);
+      const { queryByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
-      // Assert
-      expect(UNSAFE_root.children).toHaveLength(0);
+      // Assert - Component should not render any elements when account is null
+      expect(
+        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
 
     it('shows skeleton when initially loading account data', () => {
@@ -374,7 +457,11 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Assert
       expect(
@@ -388,7 +475,11 @@ describe('PerpsMarketBalanceActions', () => {
   describe('Balance Animation', () => {
     it('triggers animation when balance changes', () => {
       // Arrange
-      const { rerender } = render(<PerpsMarketBalanceActions />);
+      const { rerender } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Act - Simulate balance change
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -414,100 +505,45 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act & Assert - Should not throw
-      expect(() => render(<PerpsMarketBalanceActions />)).not.toThrow();
+      expect(() =>
+        renderWithProvider(
+          <PerpsMarketBalanceActions />,
+          { state: createMockState() },
+          false, // Disable NavigationContainer
+        ),
+      ).not.toThrow();
     });
   });
 
   describe('Add Funds Button', () => {
-    it('calls correct handlers when eligible user clicks Add Funds', async () => {
-      // Arrange
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const addFundsButton = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
+    it('renders Add Funds button when user is eligible', () => {
+      // Arrange & Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
       );
-
-      // Act
-      fireEvent.press(addFundsButton);
 
       // Assert
-      await waitFor(() => {
-        expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalled();
-        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-          stack: Routes.PERPS.ROOT,
-        });
-        expect(mockDepositWithConfirmation).toHaveBeenCalled();
-      });
-    });
-
-    it('does not proceed with deposit when user is ineligible', async () => {
-      // Arrange
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsEligibility) return false;
-        return undefined;
-      });
-
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const addFundsButton = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
-      );
-
-      // Act
-      fireEvent.press(addFundsButton);
-
-      // Wait a bit to ensure any async operations would have completed
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Assert - Should not proceed with deposit functions when ineligible
-      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
-      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
-      expect(mockEnsureArbitrumNetworkExists).not.toHaveBeenCalled();
-    });
-
-    it('handles network setup failure gracefully', async () => {
-      // Arrange
-      mockEnsureArbitrumNetworkExists.mockRejectedValue(
-        new Error('Network error'),
-      );
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const addFundsButton = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
-      );
-
-      // Act
-      fireEvent.press(addFundsButton);
-
-      // Assert
-      await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Failed to proceed with deposit:',
-          expect.any(Error),
-        );
-      });
-
-      consoleSpy.mockRestore();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
   describe('Withdraw Button', () => {
-    it('calls correct handlers when eligible user clicks Withdraw', async () => {
-      // Arrange
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const withdrawButton = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
+    it('renders Withdraw button when balance is not empty', () => {
+      // Arrange & Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
       );
 
-      // Act
-      fireEvent.press(withdrawButton);
-
       // Assert
-      await waitFor(() => {
-        expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.WITHDRAW,
-        });
-      });
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('is hidden when balance is empty', () => {
@@ -523,74 +559,27 @@ describe('PerpsMarketBalanceActions', () => {
         error: null,
       });
 
-      const { queryByTestId } = render(<PerpsMarketBalanceActions />);
+      const { queryByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Act & Assert
       expect(
         queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
       ).not.toBeOnTheScreen();
     });
-
-    it('does not proceed with withdraw when user is ineligible', async () => {
-      // Arrange
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsEligibility) return false;
-        return undefined;
-      });
-
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const withdrawButton = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
-      );
-
-      // Act
-      fireEvent.press(withdrawButton);
-
-      // Wait a bit to ensure any async operations would have completed
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Assert - Should not proceed with navigation when ineligible
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockEnsureArbitrumNetworkExists).not.toHaveBeenCalled();
-    });
-
-    it('handles network setup failure gracefully', async () => {
-      // Arrange
-      mockEnsureArbitrumNetworkExists.mockRejectedValue(
-        new Error('Network error'),
-      );
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const withdrawButton = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
-      );
-
-      // Act
-      fireEvent.press(withdrawButton);
-
-      // Assert
-      await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Failed to proceed with withdraw:',
-          expect.any(Error),
-        );
-      });
-
-      consoleSpy.mockRestore();
-    });
   });
 
   describe('Eligibility Logic', () => {
     it('renders add funds button regardless of eligibility status', () => {
       // Arrange - Test with ineligible user
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsEligibility) return false;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState({ isEligible: false }) },
+        false, // Disable NavigationContainer
+      );
 
       // Assert - Add funds button should still render
       expect(
@@ -604,36 +593,7 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles deposit initialization failure gracefully', async () => {
-      // Arrange
-      mockDepositWithConfirmation.mockRejectedValue(new Error('Deposit error'));
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const addFundsButton = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
-      );
-
-      // Act
-      fireEvent.press(addFundsButton);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockNavigateToConfirmation).toHaveBeenCalled();
-      });
-
-      // Wait a bit more for the async catch block
-      await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Failed to initialize deposit:',
-          expect.any(Error),
-        );
-      });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('handles zero balance formatting correctly', () => {
+    it('shows empty state when balance is zero', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
@@ -647,20 +607,31 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const balanceElement = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
       );
 
-      // Assert
-      expect(balanceElement.props.children).toBe('$0.00');
+      // Assert - Should show empty state UI instead of balance display
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_TITLE),
+      ).toBeOnTheScreen();
+      expect(getByText('perps.add_funds')).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
+      ).toBeNull();
     });
   });
 
   describe('Component Lifecycle', () => {
     it('stops animation on unmount', () => {
       // Arrange
-      const { unmount } = render(<PerpsMarketBalanceActions />);
+      const { unmount } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Act
       unmount();

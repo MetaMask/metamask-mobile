@@ -141,6 +141,7 @@ export interface PolymarketApiMarket {
   resolvedBy: string;
   orderPriceMinTickSize: number;
   events?: PolymarketApiEvent[];
+  umaResolutionStatus: string;
 }
 
 export interface PolymarketApiSeries {
@@ -171,6 +172,8 @@ export interface PolymarketApiEvent {
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
   tags: PolymarketApiTag[];
+  liquidity: number;
+  volume: number;
 }
 
 export interface PolymarketApiActivity {
@@ -299,13 +302,13 @@ export interface L2HeaderArgs {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OrderResponse = {
-  errorMsg: string;
-  makingAmount: string;
-  orderID: string;
-  status: string;
+  errorMsg?: string;
+  makingAmount?: string;
+  orderID?: string;
+  status?: string;
   success: boolean;
-  takingAmount: string;
-  transactionsHashes: string[];
+  takingAmount?: string;
+  transactionsHashes?: string[];
 };
 
 export interface TickSizeResponse {

@@ -1,24 +1,27 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import {
-  getTokenSearchDiscoveryDataControllerMessenger,
-  type TokenSearchDiscoveryDataControllerMessenger,
-} from '../messengers/token-search-discovery-data-controller-messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getTokenSearchDiscoveryDataControllerMessenger } from '../messengers/token-search-discovery-data-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { tokenSearchDiscoveryDataControllerInit } from './token-search-discovery-data-controller-init';
-import { TokenSearchDiscoveryDataController } from '@metamask/assets-controllers';
+import {
+  TokenSearchDiscoveryDataController,
+  type TokenSearchDiscoveryDataControllerMessenger,
+} from '@metamask/assets-controllers';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/assets-controllers');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<TokenSearchDiscoveryDataControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const rootMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildControllerInitRequestMock(rootMessenger),
     controllerMessenger:
-      getTokenSearchDiscoveryDataControllerMessenger(baseMessenger),
+      getTokenSearchDiscoveryDataControllerMessenger(rootMessenger),
     initMessenger: undefined,
   };
 
@@ -27,9 +30,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('TokenSearchDiscoveryDataControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = tokenSearchDiscoveryDataControllerInit(
-      getInitRequestMock(),
-    );
+    const { controller } =
+      tokenSearchDiscoveryDataControllerInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(TokenSearchDiscoveryDataController);
   });
 
