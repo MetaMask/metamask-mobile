@@ -89,7 +89,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion, hasSeenMusdEducationScreen } =
+  const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
   const { isConversionToken } = useMusdConversionTokens();
 
@@ -231,7 +231,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         navigationStack: Routes.EARN.ROOT,
       };
 
-      if (!hasSeenMusdEducationScreen) {
+      if (!hasSeenConversionEducationScreen) {
         navigation.navigate(config.navigationStack, {
           screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
           params: {
@@ -260,7 +260,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   }, [
     asset.address,
     asset.chainId,
-    hasSeenMusdEducationScreen,
+    hasSeenConversionEducationScreen,
     initiateConversion,
     navigation,
   ]);

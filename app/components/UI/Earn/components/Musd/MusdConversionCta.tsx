@@ -25,6 +25,8 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { strings } from '../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../constants/testIds';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const MusdConversionCta = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -32,19 +34,27 @@ const MusdConversionCta = () => {
   const { goToBuy } = useRampNavigation();
 
   const { tokens } = useMusdConversionTokens();
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
+
+  const navigation = useNavigation();
+
+  const canConvert = useMemo(
+    () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
+    [tokens],
+  );
 
   const ctaText = useMemo(() => {
-    if (tokens.length === 0) {
+    if (!canConvert) {
       return strings('earn.musd_conversion.buy_musd');
     }
 
     return strings('earn.musd_conversion.get_musd');
-  }, [tokens]);
+  }, [canConvert]);
 
   const handlePress = () => {
     // Redirect users to deposit flow if they don't have any stablecoins to convert.
-    if (tokens.length === 0) {
+    if (!canConvert) {
       const rampIntent: RampIntent = {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
       };
@@ -52,13 +62,27 @@ const MusdConversionCta = () => {
       return;
     }
 
-    const { address, chainId = MUSD_CONVERSION_DEFAULT_CHAIN_ID } = tokens[0];
+    const { address, chainId } = tokens[0];
+
+    if (!hasSeenConversionEducationScreen) {
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          preferredPaymentToken: {
+            address: toHex(address),
+            chainId: toHex(chainId as string),
+          },
+          outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        },
+      });
+      return;
+    }
 
     initiateConversion({
-      outputChainId: toHex(chainId),
+      outputChainId: toHex(chainId as string),
       preferredPaymentToken: {
         address: toHex(address),
-        chainId: toHex(chainId),
+        chainId: toHex(chainId as string),
       },
     });
   };

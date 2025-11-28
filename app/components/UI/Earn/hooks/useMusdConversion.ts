@@ -66,7 +66,7 @@ export const useMusdConversion = () => {
 
   const selectedAddress = selectedAccount?.address;
 
-  const hasSeenMusdEducationScreen = useSelector(
+  const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
   );
 
@@ -206,7 +206,7 @@ export const useMusdConversion = () => {
 
   return {
     initiateConversion,
-    hasSeenMusdEducationScreen,
+    hasSeenConversionEducationScreen,
     error,
   };
 };
