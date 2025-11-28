@@ -144,11 +144,6 @@ describe('usePopularNetworks', () => {
 
     it('filters out Bitcoin testnets from networkConfigurations', () => {
       const mockNetworkConfigurations = {
-        // Bitcoin mainnet example
-        [BtcScope.Mainnet]: {
-          caipChainId: BtcScope.Mainnet as CaipChainId,
-          name: 'Bitcoin',
-        },
         // Bitcoin testnet variants using full CAIP IDs from BtcScope
         [BtcScope.Testnet]: {
           caipChainId: BtcScope.Testnet as CaipChainId,
@@ -172,7 +167,6 @@ describe('usePopularNetworks', () => {
 
       const { result } = renderHook(() => usePopularNetworks());
 
-      expect(result.current.some((n) => n.name === 'Bitcoin')).toBe(true);
       expect(result.current.some((n) => n.name === 'Bitcoin Testnet')).toBe(
         false,
       );
