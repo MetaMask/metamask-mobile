@@ -12,6 +12,8 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
   calculatePositionSize,
+  adaptHyperLiquidLedgerUpdateToUserHistoryItem,
+  type RawHyperLiquidLedgerUpdate,
 } from './hyperLiquidAdapter';
 import type { OrderParams } from '../controllers/types';
 import type {
@@ -1112,6 +1114,113 @@ describe('hyperLiquidAdapter', () => {
       });
 
       expect(result).toBe(100000000000); // (1000000 * 100) / 0.001
+    });
+  });
+
+  describe('adaptHyperLiquidLedgerUpdateToUserHistoryItem', () => {
+    it('includes deposit type in filtered results', () => {
+      const rawLedgerUpdates: RawHyperLiquidLedgerUpdate[] = [
+        {
+          hash: '0x001',
+          time: 1000,
+          delta: { type: 'deposit', usdc: '100' },
+        },
+      ];
+
+      const result =
+        adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
+
+      expect(result).toHaveLength(1);
+    });
+
+    it('includes withdraw type in filtered results', () => {
+      const rawLedgerUpdates: RawHyperLiquidLedgerUpdate[] = [
+        {
+          hash: '0x002',
+          time: 2000,
+          delta: { type: 'withdraw', usdc: '-50' },
+        },
+      ];
+
+      const result =
+        adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
+
+      expect(result).toHaveLength(1);
+    });
+
+    it('includes internalTransfer type in filtered results', () => {
+      const rawLedgerUpdates: RawHyperLiquidLedgerUpdate[] = [
+        {
+          hash: '0x003',
+          time: 3000,
+          delta: { type: 'internalTransfer', usdc: '25' },
+        },
+      ];
+
+      const result =
+        adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
+
+      expect(result).toHaveLength(1);
+    });
+
+    it('excludes unsupported types from filtered results', () => {
+      const rawLedgerUpdates: RawHyperLiquidLedgerUpdate[] = [
+        {
+          hash: '0x004',
+          time: 4000,
+          delta: { type: 'trade', usdc: '10' },
+        },
+        {
+          hash: '0x005',
+          time: 5000,
+          delta: { type: 'liquidation', usdc: '20' },
+        },
+        {
+          hash: '0x006',
+          time: 6000,
+          delta: { type: 'funding', usdc: '5' },
+        },
+      ];
+
+      const result =
+        adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('filters mixed types keeping only supported ones', () => {
+      const rawLedgerUpdates: RawHyperLiquidLedgerUpdate[] = [
+        {
+          hash: '0x007',
+          time: 7000,
+          delta: { type: 'deposit', usdc: '100' },
+        },
+        {
+          hash: '0x008',
+          time: 8000,
+          delta: { type: 'trade', usdc: '50' },
+        },
+        {
+          hash: '0x009',
+          time: 9000,
+          delta: { type: 'withdraw', usdc: '-75' },
+        },
+        {
+          hash: '0x010',
+          time: 10000,
+          delta: { type: 'liquidation', usdc: '25' },
+        },
+        {
+          hash: '0x011',
+          time: 11000,
+          delta: { type: 'internalTransfer', usdc: '30' },
+        },
+      ];
+
+      const result =
+        adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
+
+      expect(result).toHaveLength(3);
     });
   });
 });
