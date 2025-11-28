@@ -26,6 +26,7 @@ import {
   TP_SL_CONFIG,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -1173,7 +1174,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         // Provide user-friendly error for insufficient funds
         if (transferResult.error?.includes('Insufficient balance')) {
           throw new Error(
-            `Insufficient USDC balance. Need $${swapAmount.toFixed(2)} for USDH swap but transfer failed. Please deposit more USDC to your HyperLiquid account.`,
+            `Insufficient USDC balance. Need $${swapAmount.toFixed(
+              2,
+            )} for USDH swap but transfer failed. Please deposit more USDC to your HyperLiquid account.`,
           );
         }
         throw new Error(
@@ -2547,7 +2550,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
           // Size-based order: calculate USD from size and adjust
           const sizeValue = parseFloat(params.size);
           const estimatedUsd = sizeValue * params.currentPrice;
-          originalValue = `${estimatedUsd.toFixed(2)} (calculated from size ${params.size})`;
+          originalValue = `${estimatedUsd.toFixed(2)} (calculated from size ${
+            params.size
+          })`;
           adjustedUsdAmount = (estimatedUsd * 1.015).toFixed(2);
         } else {
           // No price information available - cannot retry
@@ -3982,9 +3987,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
+      // HyperLiquid API requires startTime to be a number (not undefined)
+      // Default to configured days ago to get recent funding payments
+      // Using 0 (epoch) would return oldest 500 records, missing latest payments
+      const defaultStartTime =
+        Date.now() -
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
+          24 *
+          60 *
+          60 *
+          1000;
       const rawFunding = await infoClient.userFunding({
         user: userAddress,
-        startTime: params?.startTime || 0,
+        startTime: params?.startTime ?? defaultStartTime,
         endTime: params?.endTime,
       });
 
