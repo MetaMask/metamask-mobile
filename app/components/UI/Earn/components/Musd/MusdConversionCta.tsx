@@ -24,6 +24,7 @@ import { toHex } from '@metamask/controller-utils';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { strings } from '../../../../../../locales/i18n';
+import { EARN_TEST_IDS } from '../../constants/testIds';
 
 const MusdConversionCta = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -63,7 +64,7 @@ const MusdConversionCta = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID={EARN_TEST_IDS.MUSD.CONVERSION_CTA}>
       <View style={styles.assetInfo}>
         <AvatarToken
           name={MUSD_TOKEN.symbol}
