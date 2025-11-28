@@ -30,7 +30,6 @@ export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 interface SectionData {
   data: unknown[];
   isLoading: boolean;
-  refetch?: () => void;
 }
 
 interface SectionConfig {
@@ -47,7 +46,7 @@ interface SectionConfig {
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
-    refetch: () => void;
+    refetch: () => Promise<void> | void;
   };
 }
 
