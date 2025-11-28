@@ -17,12 +17,15 @@ import {
 } from '../../../../../../../components/hooks/useFeatureFlag';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
+import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
+import { toCaipAssetType } from '@metamask/utils';
+import { getDecimalChainId } from '../../../../../../../util/networks';
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockGoToSwaps = jest.fn();
-const mockGoToSwapsForHoldMusd = jest.fn();
+const mockGoToBuy = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 let mockIsFirstTimePerpsUser = false;
@@ -48,6 +51,31 @@ jest.mock('../../../../../Bridge/hooks/useSwapBridgeNavigation', () =>
     useSwapBridgeNavigation: jest.fn(),
   }),
 );
+
+// Mock useRampNavigation hook
+jest.mock('../../../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(),
+}));
+
+// Mock @metamask/utils
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  toCaipAssetType: jest.fn(),
+}));
+
+// Mock network utilities
+jest.mock('../../../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../../../util/networks'),
+  getDecimalChainId: jest.fn(),
+}));
+
+// Mock NETWORKS_CHAIN_ID constant
+jest.mock('../../../../../../../constants/network', () => ({
+  ...jest.requireActual('../../../../../../../constants/network'),
+  NETWORKS_CHAIN_ID: {
+    LINEA_MAINNET: '0xe708',
+  },
+}));
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -93,6 +121,18 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 
 const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
   typeof useFeatureFlag
+>;
+
+const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
+  typeof useRampNavigation
+>;
+
+const mockToCaipAssetType = toCaipAssetType as jest.MockedFunction<
+  typeof toCaipAssetType
+>;
+
+const mockGetDecimalChainId = getDecimalChainId as jest.MockedFunction<
+  typeof getDecimalChainId
 >;
 
 // Mock i18n strings
@@ -261,17 +301,29 @@ describe('WaysToEarn', () => {
     const { useSwapBridgeNavigation } = jest.requireMock(
       '../../../../../Bridge/hooks/useSwapBridgeNavigation',
     );
-    (useSwapBridgeNavigation as jest.Mock).mockImplementation((params) => {
-      // Return different goToSwaps function based on whether sourceToken is provided
-      if (params?.sourceToken) {
-        return {
-          goToSwaps: mockGoToSwapsForHoldMusd,
-        };
-      }
-      return {
-        goToSwaps: mockGoToSwaps,
-      };
-    });
+    (useSwapBridgeNavigation as jest.Mock).mockImplementation(() => ({
+      goToSwaps: mockGoToSwaps,
+    }));
+
+    // Configure useRampNavigation mock implementation
+    mockUseRampNavigation.mockReturnValue({
+      goToBuy: mockGoToBuy,
+      goToAggregator: jest.fn(),
+      goToSell: jest.fn(),
+      goToDeposit: jest.fn(),
+    } as ReturnType<typeof useRampNavigation>);
+
+    // Configure toCaipAssetType mock
+    mockToCaipAssetType.mockImplementation(
+      (chainNamespace, chainId, assetNamespace, assetReference) =>
+        `${chainNamespace}:${chainId}/${assetNamespace}:${assetReference}`,
+    );
+
+    // Configure getDecimalChainId mock
+    mockGetDecimalChainId.mockImplementation((chainId) =>
+      // Convert hex to decimal for LINEA_MAINNET (0xe708 = 59144)
+      chainId === '0xe708' ? '59144' : chainId,
+    );
   });
 
   it('renders the component title', () => {
@@ -792,7 +844,7 @@ describe('WaysToEarn', () => {
       );
     });
 
-    it('navigates to swaps with sourceToken when hold mUSD CTA is pressed', () => {
+    it('calls goToBuy with correct assetId when hold mUSD CTA is pressed', () => {
       // Arrange
       mockIsMusdHoldingEnabled = true;
       const { getByText } = render(<WaysToEarn />);
@@ -812,7 +864,10 @@ describe('WaysToEarn', () => {
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockGoToSwapsForHoldMusd).toHaveBeenCalled();
+      expect(mockGoToBuy).toHaveBeenCalledWith({
+        assetId:
+          'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      });
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
@@ -836,27 +891,25 @@ describe('WaysToEarn', () => {
         sourcePage: 'rewards_overview',
       });
     });
+  });
 
-    it('configures the hook with sourceToken for hold mUSD', () => {
-      // Get the mock from jest.requireMock
-      const { useSwapBridgeNavigation } = jest.requireMock(
-        '../../../../../Bridge/hooks/useSwapBridgeNavigation',
-      );
+  describe('useRampNavigation integration', () => {
+    it('creates correct mUSD assetId using toCaipAssetType and getDecimalChainId', () => {
+      // Arrange
+      mockIsMusdHoldingEnabled = true;
 
-      // Render the component to trigger the hook
+      // Act
       render(<WaysToEarn />);
 
-      // Assert the hook was called with sourceToken for hold mUSD
-      expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
-        location: SwapBridgeNavigationLocation.Rewards,
-        sourcePage: 'rewards_overview',
-        sourceToken: expect.objectContaining({
-          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-          symbol: 'MUSD',
-          name: 'MUSD',
-          decimals: 6,
-        }),
-      });
+      // Assert
+      expect(mockGetDecimalChainId).toHaveBeenCalledWith('0xe708');
+      expect(mockToCaipAssetType).toHaveBeenCalledWith(
+        'eip155',
+        '59144',
+        'erc20',
+        '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      );
+      expect(mockUseRampNavigation).toHaveBeenCalled();
     });
   });
 

@@ -25,6 +25,8 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
+import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
+import { toCaipAssetType } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
 import {
@@ -272,26 +274,16 @@ export const WaysToEarn = () => {
     location: SwapBridgeNavigationLocation.Rewards,
     sourcePage: 'rewards_overview',
   });
-  const musdSourceToken = useMemo(() => {
+
+  // Create CAIP-19 assetId for mUSD to use with buy page
+  const musdAssetId = useMemo(() => {
     const chainId = NETWORKS_CHAIN_ID.LINEA_MAINNET;
     const address = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
     const decimalChainId = getDecimalChainId(chainId);
-    const image = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/${decimalChainId}/erc20/${address}.png`;
-
-    return {
-      address,
-      chainId,
-      symbol: 'MUSD',
-      name: 'MUSD',
-      decimals: 6,
-      image,
-    };
+    return toCaipAssetType('eip155', decimalChainId, 'erc20', address);
   }, []);
-  const { goToSwaps: goToSwapsForHoldMusd } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.Rewards,
-    sourcePage: 'rewards_overview',
-    sourceToken: musdSourceToken,
-  });
+
+  const { goToBuy } = useRampNavigation();
 
   const goToPerps = useCallback(() => {
     if (isFirstTimePerpsUser) {
@@ -337,7 +329,7 @@ export const WaysToEarn = () => {
         Linking.openURL('https://go.metamask.io/turtle-musd');
         break;
       case WayToEarnType.HOLD_MUSD:
-        goToSwapsForHoldMusd();
+        goToBuy({ assetId: musdAssetId });
         break;
     }
   };
