@@ -2,6 +2,8 @@ import { act } from '@testing-library/react-hooks';
 import { renderHookWithProvider } from '../../../test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as actions from '../../../../actions/onboarding';
+// eslint-disable-next-line import/no-namespace
+import * as userActions from '../../../../actions/user';
 import { useCompletedOnboardingEffect } from './useCompletedOnboardingEffect';
 
 interface ArrangeMocksMetamaskStateOverrides {
@@ -25,7 +27,6 @@ const arrangeMockState = (
 });
 
 const arrangeMocks = (stateOverrides: ArrangeMocksMetamaskStateOverrides) => {
-  jest.clearAllMocks();
   const state = arrangeMockState(stateOverrides);
 
   const mockSetCompletedOnboarding = jest.spyOn(
@@ -33,78 +34,109 @@ const arrangeMocks = (stateOverrides: ArrangeMocksMetamaskStateOverrides) => {
     'setCompletedOnboarding',
   );
 
+  const mockCheckForDeeplink = jest.spyOn(userActions, 'checkForDeeplink');
+
   return {
     state,
     mockSetCompletedOnboarding,
+    mockCheckForDeeplink,
   };
 };
 
 describe('useCompletedOnboardingEffect', () => {
-  it('sets completedOnboarding to true if conditions are met', async () => {
-    const { state, mockSetCompletedOnboarding } = arrangeMocks({
-      vault: 'mock-vault-data',
-      completedOnboarding: false,
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('sets completedOnboarding to true and dispatches checkForDeeplink when vault exists and onboarding not completed', async () => {
+    // Arrange
+    const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
+      arrangeMocks({
+        vault: 'mock-vault-data',
+        completedOnboarding: false,
+      });
+
+    // Act
     const { rerender } = renderHookWithProvider(
       () => useCompletedOnboardingEffect(),
       { state },
     );
-
     await act(async () => {
       rerender({});
     });
 
+    // Assert
     expect(mockSetCompletedOnboarding).toHaveBeenCalledWith(true);
+    expect(mockCheckForDeeplink).toHaveBeenCalled();
   });
 
-  it('does not set completedOnboarding if vault is empty', async () => {
-    const { state, mockSetCompletedOnboarding } = arrangeMocks({
-      vault: undefined,
-      completedOnboarding: false,
-    });
+  it('does not dispatch actions when vault is empty', async () => {
+    // Arrange
+    const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
+      arrangeMocks({
+        vault: undefined,
+        completedOnboarding: false,
+      });
+
+    // Act
     const { rerender } = renderHookWithProvider(
       () => useCompletedOnboardingEffect(),
       { state },
     );
-
     await act(async () => {
       rerender({});
     });
 
+    // Assert
     expect(mockSetCompletedOnboarding).not.toHaveBeenCalled();
+    expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
-  it('does not set completedOnboarding if it is already true', async () => {
-    const { state, mockSetCompletedOnboarding } = arrangeMocks({
-      vault: 'mock-vault-data',
-      completedOnboarding: true,
-    });
+  it('does not dispatch actions when onboarding already completed', async () => {
+    // Arrange
+    const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
+      arrangeMocks({
+        vault: 'mock-vault-data',
+        completedOnboarding: true,
+      });
+
+    // Act
     const { rerender } = renderHookWithProvider(
       () => useCompletedOnboardingEffect(),
       { state },
     );
-
     await act(async () => {
       rerender({});
     });
 
+    // Assert
     expect(mockSetCompletedOnboarding).not.toHaveBeenCalled();
+    expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
-  it('does not set completedOnboarding if vault is undefined and completedOnboarding is true', async () => {
-    const { state, mockSetCompletedOnboarding } = arrangeMocks({
-      vault: undefined,
-      completedOnboarding: true,
-    });
+  it('does not dispatch actions when vault is empty and onboarding already completed', async () => {
+    // Arrange
+    const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
+      arrangeMocks({
+        vault: undefined,
+        completedOnboarding: true,
+      });
+
+    // Act
     const { rerender } = renderHookWithProvider(
       () => useCompletedOnboardingEffect(),
       { state },
     );
-
     await act(async () => {
       rerender({});
     });
 
+    // Assert
     expect(mockSetCompletedOnboarding).not.toHaveBeenCalled();
+    expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 });
