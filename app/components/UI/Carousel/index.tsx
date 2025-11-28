@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { Dimensions, Animated } from 'react-native';
+import { Dimensions, Animated, Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
@@ -42,8 +42,9 @@ import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
-import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { isInternalDeepLink } from '../../../util/deeplinks';
+import AppConstants from '../../../core/AppConstants';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
@@ -362,13 +363,26 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   const openUrl =
     (href: string): (() => Promise<boolean>) =>
-    () =>
-      SharedDeeplinkManager.parse(href, {
-        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-      }).catch((error) => {
-        console.error('Failed to open URL:', error);
-        return false;
-      });
+    () => {
+      // Check if this is an internal MetaMask deeplink
+      if (isInternalDeepLink(href)) {
+        // Handle internal deeplinks through SharedDeeplinkManager
+        return SharedDeeplinkManager.parse(href, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+        }).catch((error) => {
+          console.error('Failed to handle internal deeplink:', error);
+          return false;
+        });
+      }
+
+      // For external URLs, use the OS linking system
+      return Linking.openURL(href)
+        .then(() => true)
+        .catch((error) => {
+          console.error('Failed to open external URL:', error);
+          return false;
+        });
+    };
 
   const handleSlideClick = useCallback(
     (slideId: string, navigation: NavigationAction) => {

@@ -1,8 +1,6 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useTokenListPolling from './useTokenListPolling';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import { RootState } from '../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 
@@ -94,38 +92,7 @@ describe('useTokenListPolling', () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it('Should poll all networks when global selector is enabled', async () => {
-    jest
-      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-      .mockReturnValue(false);
-
-    const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
-      state,
-    });
-
-    const mockedTokenListController = jest.mocked(
-      Engine.context.TokenListController,
-    );
-
-    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(2);
-    expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
-      chainId: selectedChainId,
-    });
-    expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
-      chainId: '0x89',
-    });
-
-    unmount();
-    expect(
-      mockedTokenListController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(2);
-  });
-
   it('should poll only for current network if selected one is not popular', () => {
-    jest
-      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-      .mockReturnValue(false);
-
     const stateToTest = {
       engine: {
         backgroundState: {
@@ -155,6 +122,13 @@ describe('useTokenListPolling', () => {
               '0x82750': true,
             },
           },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x82750': true,
+              },
+            },
+          },
         },
       },
     } as unknown as RootState;
@@ -168,9 +142,6 @@ describe('useTokenListPolling', () => {
     );
 
     expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(1);
-    expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
-      chainId: '0x82750',
-    });
     expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
       chainId: '0x82750',
     });
@@ -225,12 +196,8 @@ describe('useTokenListPolling', () => {
     });
   });
 
-  describe('Feature flag scenarios', () => {
-    it('should poll enabled EVM networks when global network selector is removed', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
+  describe('Network enablement scenarios', () => {
+    it('should poll enabled EVM stateWithEmptyNetworks', () => {
       const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
         state,
       });
@@ -253,12 +220,7 @@ describe('useTokenListPolling', () => {
         mockedTokenListController.stopPollingByPollingToken,
       ).toHaveBeenCalledTimes(2);
     });
-
-    it('should poll popular networks when all networks selected and global selector enabled', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(false);
-
+    it('should poll popular networks', () => {
       // Use chain IDs that are actually in PopularList: Ethereum Mainnet (0x1), Polygon (0x89), Optimism (0xa)
       const stateWithPopularNetworks = {
         ...state,
@@ -306,6 +268,16 @@ describe('useTokenListPolling', () => {
                 '0xa': true,
               },
             },
+            NetworkEnablementController: {
+              ...state.engine.backgroundState.NetworkEnablementController,
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                  '0x89': true,
+                  '0xa': true,
+                },
+              },
+            },
           },
         },
       };
@@ -336,10 +308,6 @@ describe('useTokenListPolling', () => {
     });
 
     it('should handle empty enabled networks gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithEmptyNetworks = {
         ...state,
         engine: {

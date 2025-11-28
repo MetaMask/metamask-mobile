@@ -1,3 +1,4 @@
+import BN from 'bnjs4';
 import {
   hexToBN,
   weiToFiat,
@@ -23,6 +24,7 @@ import {
   isCollectibleAddress,
   getActionKey,
   TRANSACTION_TYPES,
+  isTransactionIncomplete,
 } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
@@ -34,6 +36,13 @@ import {
 } from '../Bridge/utils/transaction-history';
 import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
+import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+
+const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 const { getSwapsContractAddress } = swapsUtils;
 
@@ -41,6 +50,7 @@ function getTokenTransfer(args) {
   const {
     tx: {
       txParams: { from, nonce },
+      status,
     },
     tx,
     txChainId,
@@ -56,13 +66,45 @@ function getTokenTransfer(args) {
   } = args;
 
   const { data, to } = getTokenTransferData(tx) ?? {};
+
+  // Try to decode amount from transaction data
   const [, , encodedAmount] = decodeTransferData('transfer', data);
-  const amount = hexToBN(encodedAmount);
+  let amount = hexToBN(encodedAmount);
+
+  // If data is incomplete/truncated, use transferInformation if available
+  if ((!encodedAmount || amount.isZero()) && tx.transferInformation?.amount) {
+    // transferInformation.amount is a decimal string, not hex
+    amount = new BN(tx.transferInformation.amount, 10);
+  }
+
   const userHasToken = toFormattedAddress(to) in tokens;
-  const token = userHasToken ? tokens[toFormattedAddress(to)] : null;
-  const renderActionKey = token
-    ? `${strings('transactions.sent')} ${token.symbol}`
-    : actionKey;
+  let token = userHasToken ? tokens[toFormattedAddress(to)] : null;
+
+  // If token not in user's list but transferInformation exists, use that
+  if (!token && tx.transferInformation) {
+    token = {
+      symbol: tx.transferInformation.symbol,
+      decimals: tx.transferInformation.decimals,
+      address: tx.transferInformation.contractAddress,
+    };
+  }
+
+  const isIncomplete = isTransactionIncomplete(status);
+  const isSent =
+    renderFullAddress(from)?.toLowerCase() === selectedAddress?.toLowerCase();
+
+  let actionVerb;
+  if (isSent) {
+    actionVerb = isIncomplete
+      ? strings('transactions.send')
+      : strings('transactions.sent');
+  } else {
+    actionVerb = isIncomplete
+      ? strings('transactions.receive')
+      : strings('transactions.received');
+  }
+
+  const renderActionKey = token ? `${actionVerb} ${token.symbol}` : actionKey;
   const renderTokenAmount = token
     ? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
     : undefined;
@@ -126,14 +168,22 @@ function getTokenTransfer(args) {
   }
 
   const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
-  const transactionType =
-    renderFullAddress(from) === selectedAddress ? SENT_TOKEN : RECEIVED_TOKEN;
+  const transactionType = isSent ? SENT_TOKEN : RECEIVED_TOKEN;
+
+  const isPositive = hasTransactionType(
+    tx,
+    POSITIVE_TRANSFER_TRANSACTION_TYPES,
+  );
+
+  const signPrefix = isPositive ? '' : '- ';
+
   const transactionElement = {
     actionKey: renderActionKey,
     value: !renderTokenAmount
       ? strings('transaction.value_not_available')
       : renderTokenAmount,
-    fiatValue: !!renderTokenFiatAmount && `- ${renderTokenFiatAmount}`,
+    fiatValue:
+      !!renderTokenFiatAmount && `${signPrefix}${renderTokenFiatAmount}`,
     transactionType,
     nonce,
   };
@@ -145,6 +195,7 @@ function getCollectibleTransfer(args) {
   const {
     tx: {
       txParams: { from, to, data },
+      status,
     },
     txChainId,
     collectibleContracts,
@@ -155,15 +206,36 @@ function getCollectibleTransfer(args) {
     selectedAddress,
     ticker,
   } = args;
+
+  const isIncomplete = isTransactionIncomplete(status);
+  const isSent = renderFullAddress(from) === selectedAddress;
+
+  let actionVerb;
+  if (isSent) {
+    actionVerb = isIncomplete
+      ? strings('transactions.send')
+      : strings('transactions.sent');
+  } else {
+    actionVerb = isIncomplete
+      ? strings('transactions.receive')
+      : strings('transactions.received');
+  }
+
   let actionKey;
   const [, tokenId] = decodeTransferData('transfer', data);
   const collectible = collectibleContracts.find((collectible) =>
     areAddressesEqual(collectible.address, to),
   );
   if (collectible) {
-    actionKey = `${strings('transactions.sent')} ${collectible.name}`;
+    actionKey = `${actionVerb} ${collectible.name}`;
+  } else if (isSent) {
+    actionKey = isIncomplete
+      ? strings('transactions.send_collectible')
+      : strings('transactions.sent_collectible');
   } else {
-    actionKey = strings('transactions.sent_collectible');
+    actionKey = isIncomplete
+      ? strings('transactions.receive_collectible')
+      : strings('transactions.received_collectible');
   }
 
   const renderCollectible = collectible
@@ -200,10 +272,9 @@ function getCollectibleTransfer(args) {
     };
   }
 
-  let transactionType;
-  if (renderFullAddress(from) === selectedAddress)
-    transactionType = TRANSACTION_TYPES.SENT_COLLECTIBLE;
-  else transactionType = TRANSACTION_TYPES.RECEIVED_COLLECTIBLE;
+  const transactionType = isSent
+    ? TRANSACTION_TYPES.SENT_COLLECTIBLE
+    : TRANSACTION_TYPES.RECEIVED_COLLECTIBLE;
 
   const transactionElement = {
     actionKey,
@@ -219,9 +290,10 @@ function decodeIncomingTransfer(args) {
   const {
     tx: {
       txParams: { to, from, value },
-      transferInformation: { symbol, decimals, contractAddress },
+      transferInformation,
       hash,
     },
+    tx,
     txChainId,
     conversionRate,
     currentCurrency,
@@ -232,6 +304,21 @@ function decodeIncomingTransfer(args) {
     selectedAddress,
     ticker,
   } = args;
+
+  const { symbol, decimals, contractAddress } = transferInformation;
+
+  // For ERC20 transfers, decode the actual recipient from the data field
+  // The "to" in txParams is the token contract address, not the final recipient
+  const data = tx.txParams?.data;
+  const decodedData =
+    data && data.length > 138 ? decodeTransferData('transfer', data) : [];
+
+  // Determine the actual recipient:
+  // 1. If we can decode from data, use that
+  // 2. If transaction is incoming (from !== selectedAddress), recipient is selectedAddress
+  // 3. If transaction is outgoing but data is incomplete, we fall back to txParams.to (contract address) - this is the bug!
+  const isIncoming = from?.toLowerCase() !== selectedAddress?.toLowerCase();
+  const actualRecipient = decodedData[0] || (isIncoming ? selectedAddress : to);
 
   const amount = hexToBN(value);
   const token = { symbol, decimals, address: contractAddress };
@@ -269,13 +356,15 @@ function decodeIncomingTransfer(args) {
 
   const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
   const transactionType =
-    renderFullAddress(from) === selectedAddress ? SENT_TOKEN : RECEIVED_TOKEN;
+    renderFullAddress(from)?.toLowerCase() === selectedAddress?.toLowerCase()
+      ? SENT_TOKEN
+      : RECEIVED_TOKEN;
 
   let transactionDetails = {
     renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
     renderValue: renderToken,
     renderFrom: renderFullAddress(from),
-    renderTo: renderFullAddress(to),
+    renderTo: renderFullAddress(actualRecipient),
     hash,
     transactionType,
     txChainId,
@@ -311,7 +400,7 @@ function decodeIncomingTransfer(args) {
   const transactionElement = {
     actionKey,
     renderFrom: renderFullAddress(from),
-    renderTo: renderFullAddress(to),
+    renderTo: renderFullAddress(actualRecipient),
     value: !renderTokenAmount
       ? strings('transaction.value_not_available')
       : renderTokenAmount,
@@ -589,13 +678,17 @@ function decodeConfirmTx(args) {
   else if (
     actionKey === strings('transactions.smart_contract_interaction') ||
     (!actionKey.includes(strings('transactions.sent')) &&
-      !actionKey.includes(strings('transactions.received')))
+      !actionKey.includes(strings('transactions.send')) &&
+      !actionKey.includes(strings('transactions.received')) &&
+      !actionKey.includes(strings('transactions.receive')))
   )
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
-  else if (renderFrom === selectedAddress)
+  else if (renderFrom?.toLowerCase() === selectedAddress?.toLowerCase())
     transactionType = TRANSACTION_TYPES.SENT;
-  else if (renderTo === selectedAddress)
+  else if (renderTo?.toLowerCase() === selectedAddress?.toLowerCase())
     transactionType = TRANSACTION_TYPES.RECEIVED;
+  else transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
+
   const transactionElement = {
     renderTo,
     renderFrom,
@@ -903,17 +996,17 @@ export default async function decodeTransaction(args) {
     });
   } else {
     switch (actionKey) {
-      case strings('transactions.sent_tokens'):
       case strings('transactions.tx_review_perps_deposit'):
       case strings('transactions.tx_review_predict_deposit'):
+      case strings('transactions.tx_review_predict_withdraw'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,
-          useOriginalActionKey:
-            actionKey !== strings('transactions.sent_tokens'),
+          useOriginalActionKey: true,
         });
         break;
       case strings('transactions.sent_collectible'):
+      case strings('transactions.received_collectible'):
         [transactionElement, transactionDetails] = decodeTransferFromTx({
           ...args,
           actionKey,
@@ -925,11 +1018,32 @@ export default async function decodeTransaction(args) {
           actionKey,
         });
         break;
-      default:
-        [transactionElement, transactionDetails] = decodeConfirmTx({
-          ...args,
-          actionKey,
-        });
+      default: {
+        // Check if it's a token transfer transaction (has token transfer data)
+        const tokenTransferData = getTokenTransferData(tx);
+        const hasTokenTransferData = !!tokenTransferData?.data;
+
+        // Covers: "Sent {{unit}}", "Sent Ether", "Send {{unit}}", "Send Ether", "Received {{unit}}", "Received Ether", "Receive {{unit}}", "Receive Ether"
+        if (
+          hasTokenTransferData &&
+          (actionKey.startsWith(strings('transactions.sent')) ||
+            actionKey.startsWith(strings('transactions.send')) ||
+            actionKey.startsWith(strings('transactions.received')) ||
+            actionKey.startsWith(strings('transactions.receive')))
+        ) {
+          [transactionElement, transactionDetails] = await decodeTransferTx({
+            ...args,
+            actionKey,
+            useOriginalActionKey: false,
+          });
+        } else {
+          [transactionElement, transactionDetails] = decodeConfirmTx({
+            ...args,
+            actionKey,
+          });
+        }
+        break;
+      }
     }
   }
   return [transactionElement, transactionDetails];

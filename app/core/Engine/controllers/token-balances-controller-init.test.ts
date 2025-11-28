@@ -52,7 +52,7 @@ describe('TokenBalancesControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       state: undefined,
-      interval: 180_000,
+      interval: 30_000,
       allowExternalServices: expect.any(Function),
       queryMultipleAccounts: expect.any(Boolean),
       accountsApiChainIds: expect.any(Function),

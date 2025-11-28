@@ -118,7 +118,7 @@ describe('GasFeesDetailsRow', () => {
     const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
       state: createStateWithSimulationData(),
     });
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('$0.34')).toBeDefined();
     expect(getByText('ETH')).toBeDefined();
   });

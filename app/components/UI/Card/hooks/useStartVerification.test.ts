@@ -46,11 +46,8 @@ describe('useStartVerification', () => {
 
     // Default mocks
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
     });
     mockUseSelector.mockReturnValue('US'); // selectedCountry
     mockGetErrorMessage.mockReturnValue('Mocked error message');
@@ -60,11 +57,8 @@ describe('useStartVerification', () => {
     it('should initialize with correct default values', () => {
       // Prevent auto-triggering by not providing SDK initially
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useStartVerification());
@@ -82,11 +76,8 @@ describe('useStartVerification', () => {
   describe('startVerification function', () => {
     it('should handle SDK not initialized error', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useStartVerification());
@@ -188,11 +179,8 @@ describe('useStartVerification', () => {
     it('should reset states when starting new verification', async () => {
       // First, set up an error state
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
       const { result, rerender } = renderHook(() => useStartVerification());
 
@@ -205,11 +193,8 @@ describe('useStartVerification', () => {
 
       // Now provide SDK and start verification again
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: mockSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
       mockStartUserVerification.mockResolvedValue(
         mockStartUserVerificationResponse,
@@ -231,11 +216,8 @@ describe('useStartVerification', () => {
   describe('clearError function', () => {
     it('should clear error state', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useStartVerification());
@@ -287,11 +269,8 @@ describe('useStartVerification', () => {
   describe('auto-triggering on mount', () => {
     it('should not auto-trigger when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
       mockUseSelector.mockReturnValue('US');
 
@@ -415,11 +394,8 @@ describe('useStartVerification', () => {
     it('should maintain state consistency across multiple operations', async () => {
       // Mock to prevent auto-triggering on mount
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
       mockUseSelector.mockReturnValue(null);
 
@@ -432,11 +408,8 @@ describe('useStartVerification', () => {
 
       // Provide SDK for successful operation
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: mockSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
       mockStartUserVerification.mockResolvedValue(
         mockStartUserVerificationResponse,

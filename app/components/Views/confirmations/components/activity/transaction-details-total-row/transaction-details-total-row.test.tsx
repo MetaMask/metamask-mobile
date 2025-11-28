@@ -1,12 +1,18 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { TransactionDetailsTotalRow } from './transaction-details-total-row';
+import { useTokenAmount } from '../../../hooks/useTokenAmount';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/useTokenAmount');
 
-const TOTAL_FIAT_MOCK = '$123.45';
+const PAY_TOTAL = '123.45';
+const TOKEN_TOTAL = '234.56';
 
 function render() {
   return renderWithProvider(<TransactionDetailsTotalRow />, {});
@@ -14,6 +20,7 @@ function render() {
 
 describe('TransactionDetailsTotalRow', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
+  const useTokenAmountMock = jest.mocked(useTokenAmount);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -21,26 +28,43 @@ describe('TransactionDetailsTotalRow', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         metamaskPay: {
-          totalFiat: TOTAL_FIAT_MOCK,
+          totalFiat: PAY_TOTAL,
         },
       } as unknown as TransactionMeta,
     });
+
+    useTokenAmountMock.mockReturnValue({
+      amount: TOKEN_TOTAL,
+    } as ReturnType<typeof useTokenAmount>);
   });
 
-  it('renders total fiat', () => {
+  it('renders total from pay metadata', () => {
     const { getByText } = render();
-    expect(getByText(TOTAL_FIAT_MOCK)).toBeDefined();
+    expect(getByText(`$${PAY_TOTAL}`)).toBeDefined();
   });
 
-  it('renders nothing if no total fiat', () => {
+  it('renders total from token amount', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        metamaskPay: {},
+        type: TransactionType.predictWithdraw,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText(`$${TOKEN_TOTAL}`)).toBeDefined();
+  });
+
+  it('renders nothing if no total fiat and type not supported', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         metamaskPay: {},
       } as unknown as TransactionMeta,
     });
 
-    const { queryByText } = render();
+    const { toJSON } = render();
 
-    expect(queryByText(TOTAL_FIAT_MOCK)).toBeNull();
+    expect(toJSON()).toBeNull();
   });
 });

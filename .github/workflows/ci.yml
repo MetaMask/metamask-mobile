@@ -227,34 +227,35 @@ jobs:
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
 
-  ai-e2e-analysis:
-    name: 'AI E2E Analysis'
+  smart-e2e-selection:
+    name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
     continue-on-error: true
     permissions:
       contents: read
       pull-requests: write
     outputs:
-      test-matrix: ${{ steps.ai-analysis.outputs.test-matrix }}
+      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
+      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
     steps:
       - name: Checkout for action definition
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            .github/actions/ai-e2e-analysis
+            .github/actions/smart-e2e-selection
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
-      - name: Run AI E2E Analysis
-        id: ai-analysis
-        uses: ./.github/actions/ai-e2e-analysis
+      - name: Run Smart E2E Selection
+        id: e2e-selection
+        uses: ./.github/actions/smart-e2e-selection
         with:
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number }}
+          pr-number: ${{ github.event.pull_request.number}}
           repository: ${{ github.repository }}
-          post-comment: 'false'
+          post-comment: 'true'
 
   build-android-apks:
     name: 'Build Android APKs'
@@ -335,7 +336,7 @@ jobs:
         run: yarn gen-bundle:ios
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 50
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4

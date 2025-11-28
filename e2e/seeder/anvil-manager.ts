@@ -1,12 +1,12 @@
 /* eslint-disable import/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
-import { createServer } from 'net';
 import fs from 'fs';
 import path from 'path';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils';
 import { AnvilNodeOptions, ServerStatus, Resource } from '../framework/types';
 import { createLogger } from '../framework/logger';
+import PortManager, { ResourceType } from '../framework/PortManager';
 
 const logger = createLogger({
   name: 'AnvilManager',
@@ -77,57 +77,8 @@ class AnvilManager implements Resource {
   private server: AnvilType | undefined;
   private serverPort: number | undefined;
   private anvilBinary: string | undefined;
+  private startOptions: AnvilNodeOptions = {};
   serverStatus: ServerStatus = ServerStatus.STOPPED;
-
-  // Using shared port utilities from FixtureUtils
-
-  /**
-   * Check if a port is available
-   * @param {number} port - Port to check
-   * @returns {Promise<boolean>} True if port is available
-   */
-  private async isPortAvailable(port: number): Promise<boolean> {
-    return new Promise((resolve) => {
-      const server = createServer();
-
-      server.listen(port, '127.0.0.1', () => {
-        server.once('close', () => {
-          resolve(true);
-        });
-        server.close();
-      });
-
-      server.on('error', () => {
-        resolve(false);
-      });
-    });
-  }
-
-  /**
-   * Find an available port starting from the given port
-   * @param {number} startPort - Starting port to check
-   * @param {number} maxRetries - Maximum number of ports to try
-   * @returns {Promise<number>} Available port number
-   */
-  private async findAvailablePort(
-    startPort: number,
-    maxRetries: number = 100,
-  ): Promise<number> {
-    for (let i = 0; i < maxRetries; i++) {
-      const port = startPort + i;
-      if (port > 65535) {
-        break; // Port number too high
-      }
-
-      if (await this.isPortAvailable(port)) {
-        return port;
-      }
-    }
-
-    throw new Error(
-      `No available port found starting from ${startPort} after ${maxRetries} attempts`,
-    );
-  }
 
   /**
    * Start the Anvil server with the specified options
@@ -145,6 +96,18 @@ class AnvilManager implements Resource {
    * @throws {Error} If mnemonic is not provided
    * @throws {Error} If server fails to start
    */
+  setServerPort(port: number): void {
+    this.serverPort = port;
+  }
+
+  /**
+   * Set start options that will be used when start() is called
+   * @param opts - Anvil node options
+   */
+  setStartOptions(opts: AnvilNodeOptions): void {
+    this.startOptions = opts;
+  }
+
   async start(opts: AnvilNodeOptions = {}): Promise<void> {
     // Resolve local anvil binary if available; fallback to system PATH
     const localAnvil = path.resolve(
@@ -155,77 +118,22 @@ class AnvilManager implements Resource {
     );
     this.anvilBinary = fs.existsSync(localAnvil) ? localAnvil : 'anvil';
 
-    // First try the configured port, then find an available one if it fails
-    const initialPort = opts.port || AnvilPort();
-    let port = initialPort;
+    // Use stored options if no options provided, otherwise use provided opts
+    const optsToUse = Object.keys(opts).length > 0 ? opts : this.startOptions;
+    const options = { ...defaultOptions, ...optsToUse, port: this.serverPort };
 
-    // If the initial port is busy, find an available one
-    if (!(await this.isPortAvailable(initialPort))) {
-      logger.debug(
-        `Port ${initialPort} is not available, searching for alternative...`,
-      );
-      port = await this.findAvailablePort(initialPort);
-      logger.debug(`Found available port: ${port}`);
-    }
+    logger.debug(`Starting Anvil server on port ${this.serverPort}...`);
 
-    const options = { ...defaultOptions, ...opts, port };
-    this.serverPort = port;
+    // Create and start the server instance
+    this.server = createAnvil({
+      ...options,
+      anvilBinary: this.anvilBinary,
+      startTimeout: 20_000,
+    });
 
-    try {
-      logger.debug(`Starting Anvil server on port ${port}...`);
-
-      // Create and start the server instance
-      this.server = createAnvil({
-        ...options,
-        anvilBinary: this.anvilBinary,
-        startTimeout: 20_000,
-      });
-
-      await this.server.start();
-      logger.debug(`Server started successfully on port ${port}`);
-      this.serverStatus = ServerStatus.STARTED;
-    } catch (error) {
-      logger.error(`Failed to start server on port ${port}:`, error);
-
-      // If the error is about address already in use, try to find another port
-      if (
-        error instanceof Error &&
-        error.message.includes('Address already in use')
-      ) {
-        logger.debug(
-          'Attempting to find alternative port due to address conflict...',
-        );
-        try {
-          const alternativePort = await this.findAvailablePort(port + 1);
-          logger.debug(`Retrying with port ${alternativePort}...`);
-
-          const retryOptions = { ...options, port: alternativePort };
-          this.serverPort = alternativePort;
-
-          this.server = createAnvil({
-            ...retryOptions,
-            anvilBinary: this.anvilBinary,
-            startTimeout: 20_000,
-          });
-          await this.server.start();
-          logger.debug(
-            `Server started successfully on alternative port ${alternativePort}`,
-          );
-          this.serverStatus = ServerStatus.STARTED;
-          return;
-        } catch (retryError) {
-          logger.error(
-            'Failed to start server with alternative port:',
-            retryError,
-          );
-        }
-      }
-
-      this.server = undefined;
-      this.serverPort = undefined;
-      this.serverStatus = ServerStatus.STOPPED;
-      throw error;
-    }
+    await this.server.start();
+    logger.debug(`Server started successfully on port ${this.serverPort}`);
+    this.serverStatus = ServerStatus.STARTED;
   }
 
   /**
@@ -322,6 +230,10 @@ class AnvilManager implements Resource {
       await this.server?.stop();
       logger.debug(`Anvil server stopped on port ${port}`);
       this.serverStatus = ServerStatus.STOPPED;
+      // Release the port after server is stopped
+      if (this.serverPort !== undefined) {
+        PortManager.getInstance().releasePort(ResourceType.ANVIL);
+      }
     } catch (e) {
       logger.error(`Error stopping server: ${e}`);
       throw e;

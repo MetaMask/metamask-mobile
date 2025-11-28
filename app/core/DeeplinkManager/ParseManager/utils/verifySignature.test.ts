@@ -157,6 +157,30 @@ describe('verifySignature', () => {
       expect(result).toBe(INVALID);
     });
 
+    it('sorts parameters alphabetically regardless of input order', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      // Parameters in REVERSE alphabetical order
+      const url = new URL(
+        `https://link.metamask.io/perps?utm_source=carousel&utm_medium=in-product&utm_campaign=cmp123&sig_params=utm_campaign,utm_medium,utm_source&sig=${validSignature}`,
+      );
+
+      mockSubtle.verify.mockResolvedValue(true);
+      await verifyDeeplinkSignature(url);
+
+      const verifyCall = mockSubtle.verify.mock.calls[0];
+      const canonicalUrl = new TextDecoder().decode(
+        verifyCall[3] as Uint8Array,
+      );
+
+      // sig_params (s) should come BEFORE utm_* (u) alphabetically
+      // This is the exact bug that broke the marketing links!
+      expect(canonicalUrl).toBe(
+        'https://link.metamask.io/perps?sig_params=utm_campaign%2Cutm_medium%2Cutm_source&utm_campaign=cmp123&utm_medium=in-product&utm_source=carousel',
+      );
+    });
+
     it('canonicalizes URL by removing sig parameter and sorting others', async () => {
       const validSignature = Buffer.from(new Array(64).fill(0)).toString(
         'base64',
@@ -262,6 +286,29 @@ describe('verifySignature', () => {
       expect(canonicalUrl).toBe(
         'https://example.com:8080/deep/path?a=1&b=2&c=3',
       );
+    });
+
+    it('includes only sig_params when sig_params is empty string', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      // sig_params is EMPTY - means "sign only the base path"
+      // UTMs are added AFTER signing and should be ignored
+      const url = new URL(
+        `https://link.metamask.io/perps?sig_params=&sig=${validSignature}&utm_source=carousel&utm_medium=in-product`,
+      );
+
+      mockSubtle.verify.mockResolvedValue(true);
+      await verifyDeeplinkSignature(url);
+
+      const verifyCall = mockSubtle.verify.mock.calls[0];
+      const canonicalUrl = new TextDecoder().decode(
+        verifyCall[3] as Uint8Array,
+      );
+
+      // ONLY sig_params should be in canonical URL
+      // UTMs should be EXCLUDED (they were added after signing)
+      expect(canonicalUrl).toBe('https://link.metamask.io/perps?sig_params=');
     });
 
     describe('with sig_params', () => {
@@ -421,29 +468,6 @@ describe('verifySignature', () => {
         // Should include all params except sig (old behavior)
         expect(canonicalUrl).toBe(
           'https://example.com/?param1=value1&param2=value2',
-        );
-      });
-
-      it('handles parameters with special characters in sig_params', async () => {
-        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
-          'base64',
-        );
-        const url = new URL(
-          `https://example.com?param%20name=value%20here&other=test&sig_params=param%20name&sig=${validSignature}`,
-        );
-
-        mockSubtle.verify.mockResolvedValue(true);
-
-        const result = await verifyDeeplinkSignature(url);
-
-        expect(result).toBe(VALID);
-        const verifyCall = mockSubtle.verify.mock.calls[0];
-        const dataBuffer = verifyCall[3] as Uint8Array;
-        const canonicalUrl = new TextDecoder().decode(dataBuffer);
-
-        // Should handle URL encoding properly
-        expect(canonicalUrl).toBe(
-          'https://example.com/?param+name=value+here&sig_params=param+name',
         );
       });
 

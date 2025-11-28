@@ -452,7 +452,7 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?user=0x[a-fA-F0-9]{40}$/.test(
+          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
             url,
           ),
       );
@@ -1003,7 +1003,7 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?user=0x[a-fA-F0-9]{40}$/.test(
+          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
             url,
           ),
       );

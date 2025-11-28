@@ -1,8 +1,10 @@
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   CONTRACT_CREATION_SIGNATURE,
   TRANSACTION_TYPES,
 } from '../../../util/transactions';
 import decodeTransaction from './utils';
+import { strings } from '../../../../locales/i18n';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -76,6 +78,10 @@ const TX_PARAMS_MOCK = {
 };
 
 describe('Transaction Element Utils', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('decodeTransaction', () => {
     it('if set approval for all', async () => {
       const args = {
@@ -222,7 +228,7 @@ describe('Transaction Element Utils', () => {
 
       // Assert
       expect(transactionElement).toEqual({
-        actionKey: 'Sent USDT',
+        actionKey: 'Received USDT',
         renderFrom: '0x1440ec793aE50fA046B95bFeCa5aF475b6003f9e',
         renderTo: '0x77648F1407986479fb1fA5Cc3597084B5dbDB057',
         value: '5.43 USDT',
@@ -280,7 +286,7 @@ describe('Transaction Element Utils', () => {
 
       // Assert
       expect(transactionElement).toEqual({
-        actionKey: 'Sent USDT',
+        actionKey: 'Received USDT',
         renderFrom: '0x1440ec793aE50fA046B95bFeCa5aF475b6003f9e',
         renderTo: '0x77648F1407986479fb1fA5Cc3597084B5dbDB057',
         value: '1000 USDT',
@@ -343,7 +349,8 @@ describe('Transaction Element Utils', () => {
         renderTo: '0x1234567890abcdef1234567890abcdef12345678',
         value: '5.43 USDC',
         fiatValue: false,
-        transactionType: 'transaction_received_token',
+        nonce: undefined,
+        transactionType: 'transaction_sent_token',
       });
 
       expect(transactionDetails).toEqual({
@@ -358,6 +365,85 @@ describe('Transaction Element Utils', () => {
         summaryFee: '0.0038 POL',
         summaryTotalAmount: '5.43 USDC / 0.0038 POL',
         summarySecondaryTotalAmount: undefined,
+        txChainId: '0x89',
+      });
+    });
+
+    it.each([
+      [
+        TransactionType.perpsDeposit,
+        strings('transactions.tx_review_perps_deposit'),
+      ],
+      [
+        TransactionType.predictDeposit,
+        strings('transactions.tx_review_predict_deposit'),
+      ],
+      [
+        TransactionType.predictWithdraw,
+        strings('transactions.tx_review_predict_withdraw'),
+      ],
+    ])('if %s', async (transactionType, title) => {
+      const args = {
+        tx: {
+          txParams: {
+            to: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+            from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+            value: '52daf0',
+            data: '0xa9059cbb0000000000000000000000001234567890abcdef1234567890abcdef1234567800000000000000000000000000000000000000000000000000000000052daf0',
+            gas: '0x12345',
+            maxFeePerGas: '0x123456789',
+            maxPriorityFeePerGas: '0x123456789',
+            estimatedBaseFee: '0xABCDEF123',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+          type: transactionType,
+        },
+        currentCurrency: 'usd',
+        contractExchangeRates: {
+          '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359': {
+            price: 2.0,
+          },
+        },
+        conversionRate: 2.0,
+        totalGas: '0x64',
+        actionKey: 'key',
+        primaryCurrency: 'ETH',
+        selectedAddress: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+        ticker: 'POL',
+        txChainId: '0x89',
+        tokens: {
+          '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359': {
+            address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+            symbol: 'USDC',
+            decimals: 6,
+          },
+        },
+      };
+
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
+
+      expect(transactionElement).toEqual({
+        actionKey: title,
+        renderTo: '0x1234567890abcdef1234567890abcdef12345678',
+        value: '5.43 USDC',
+        fiatValue: '$21.72',
+        nonce: undefined,
+        transactionType: 'transaction_sent_token',
+      });
+
+      expect(transactionDetails).toEqual({
+        renderTotalGas: '0.0038 POL',
+        renderValue: '5.43 USDC',
+        renderFrom: '0x1440ec793aE50fA046B95bFeCa5aF475b6003f9e',
+        renderTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        renderGas: '74565',
+        renderGasPrice: 51,
+        hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        summaryAmount: '5.43 USDC',
+        summaryFee: '0.0038 POL',
+        summaryTotalAmount: '5.43 USDC / 0.0038 POL',
+        summarySecondaryTotalAmount: '$21.73',
         txChainId: '0x89',
       });
     });

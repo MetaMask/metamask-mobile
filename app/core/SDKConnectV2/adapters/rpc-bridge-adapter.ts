@@ -25,6 +25,7 @@ export class RPCBridgeAdapter
     super();
     this.connInfo = connInfo;
     this.processQueue = this.processQueue.bind(this);
+    this.ensureInitialized();
   }
 
   /**

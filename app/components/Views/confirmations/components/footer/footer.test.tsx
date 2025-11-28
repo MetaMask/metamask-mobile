@@ -17,13 +17,9 @@ import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { merge } from 'lodash';
-import {
-  simpleSendTransactionControllerMock,
-  transactionIdMock,
-} from '../../__mocks__/controllers/transaction-controller-mock';
+import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import { TransactionType } from '@metamask/transaction-controller';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -68,7 +64,7 @@ jest.mock('../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: jest.fn(),
 }));
 
-jest.mock('../../hooks/pay/useIsTransactionPayLoading');
+jest.mock('../../hooks/pay/useTransactionPayData');
 
 const mockTrackAlertMetrics = jest.fn();
 
@@ -99,8 +95,10 @@ describe('Footer', () => {
 
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: true,
+      isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
       setIsFooterVisible: jest.fn(),
+      setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
 
@@ -113,7 +111,7 @@ describe('Footer', () => {
       hasUnconfirmedDangerAlerts: false,
     });
 
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: false });
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
   });
 
   it('should render correctly', () => {
@@ -204,7 +202,9 @@ describe('Footer', () => {
   it('disables confirm button if isTransactionValueUpdating', () => {
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: true,
+      isTransactionDataUpdating: true,
       isTransactionValueUpdating: true,
+      setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
       setIsFooterVisible: jest.fn(),
     });
@@ -217,19 +217,12 @@ describe('Footer', () => {
   });
 
   it('disables confirm button if quotes are loading', () => {
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
 
     const state = merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
-      {
-        confirmationMetrics: {
-          isTransactionBridgeQuotesLoadingById: {
-            [transactionIdMock]: true,
-          },
-        },
-      },
     );
 
     const { getByTestId } = renderWithProvider(<Footer />, {
@@ -244,7 +237,9 @@ describe('Footer', () => {
   it('hides footer when isFooterVisible is false', () => {
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: false,
+      isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
       setIsFooterVisible: jest.fn(),
     });
@@ -256,26 +251,6 @@ describe('Footer', () => {
     expect(
       queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeNull();
-  });
-
-  it('renders predict claim footer if transaction type matches', () => {
-    const { getByTestId } = renderWithProvider(<Footer />, {
-      state: merge({}, stakingDepositConfirmationState, {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                {
-                  type: TransactionType.predictClaim,
-                },
-              ],
-            },
-          },
-        },
-      }),
-    });
-
-    expect(getByTestId('predict-claim-footer')).toBeDefined();
   });
 
   describe('Confirm Alert Modal', () => {
@@ -399,7 +374,7 @@ describe('Footer', () => {
         hasUnconfirmedDangerAlerts: true,
       });
 
-      useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
 
       const { getByText } = renderWithProvider(<Footer />, {
         state: merge(

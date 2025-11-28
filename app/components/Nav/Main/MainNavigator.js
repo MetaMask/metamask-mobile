@@ -50,7 +50,7 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
-import TrendingView from '../../Views/TrendingView';
+import TrendingView from '../../Views/TrendingView/TrendingView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -60,6 +60,7 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
+import RampTokenSelection from '../../UI/Ramp/components/TokenSelection';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -128,6 +129,13 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { getImportTokenNavbarOptions } from '../../UI/Navbar';
+import {
+  TOKEN_TITLE,
+  NFT_TITLE,
+  TOKEN,
+} from '../../Views/AddAsset/AddAsset.constants';
+import { strings } from '../../../../locales/i18n';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -270,6 +278,15 @@ const RewardsHome = () => (
     />
   </Stack.Navigator>
 );
+
+// Persist the last trending screen across unmounts
+export const lastTrendingScreenRef = { current: 'TrendingFeed' };
+
+// Callback to update the last trending screen (outside component to persist)
+export const updateLastTrendingScreen = (screenName) => {
+  // eslint-disable-next-line react-compiler/react-compiler
+  lastTrendingScreenRef.current = screenName;
+};
 
 const TrendingHome = () => (
   <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
@@ -667,23 +684,26 @@ const HomeTabs = () => {
         options={options.home}
         component={WalletTabModalFlow}
       />
-      {isAssetsTrendingTokensEnabled && (
+      {isAssetsTrendingTokensEnabled ? (
         <Tab.Screen
           name={Routes.TRENDING_VIEW}
           options={options.trending}
           component={TrendingHome}
           layout={({ children }) => UnmountOnBlurComponent(children)}
         />
+      ) : (
+        <Tab.Screen
+          name={Routes.BROWSER.HOME}
+          options={{
+            ...options.browser,
+            tabBarButton: isAssetsTrendingTokensEnabled
+              ? () => null
+              : undefined,
+          }}
+          component={BrowserFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
       )}
-      <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={{
-          ...options.browser,
-          tabBarButton: isAssetsTrendingTokensEnabled ? () => null : undefined,
-        }}
-        component={BrowserFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
       <Tab.Screen
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
@@ -922,8 +942,8 @@ const MainNavigator = () => {
   // Get feature flag state for conditional Predict screen registration
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
-    () => predictEnabledFlag && isEvmSelected,
-    [predictEnabledFlag, isEvmSelected],
+    () => predictEnabledFlag,
+    [predictEnabledFlag],
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
@@ -973,7 +993,15 @@ const MainNavigator = () => {
       <Stack.Screen
         name="AddAsset"
         component={AddAsset}
-        options={{ headerShown: false }}
+        options={({ route, navigation }) => ({
+          ...getImportTokenNavbarOptions(
+            navigation,
+            strings(
+              `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
+            ),
+          ),
+          headerShown: true,
+        })}
       />
       <Stack.Screen
         name="ConfirmAddAsset"
@@ -1035,6 +1063,10 @@ const MainNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
+      <Stack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={RampTokenSelection}
+      />
       <Stack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}
       </Stack.Screen>

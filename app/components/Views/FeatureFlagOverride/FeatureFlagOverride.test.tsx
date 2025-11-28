@@ -1,11 +1,16 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FeatureFlagOverride from './FeatureFlagOverride';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { FeatureFlagInfo } from '../../../util/feature-flags';
+import {
+  FeatureFlagInfo,
+  isMinimumRequiredVersionSupported,
+} from '../../../util/feature-flags';
+import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
 
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -61,6 +66,16 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
+// Mock Alert
+const mockAlert = jest.fn();
+jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
+
+// Mock feature flags utility
+jest.mock('../../../util/feature-flags', () => ({
+  ...jest.requireActual('../../../util/feature-flags'),
+  isMinimumRequiredVersionSupported: jest.fn(),
+}));
+
 describe('FeatureFlagOverride', () => {
   let mockNavigation: ReturnType<typeof useNavigation>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,6 +127,7 @@ describe('FeatureFlagOverride', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAlert.mockClear();
 
     mockNavigation = {
       setOptions: jest.fn(),
@@ -127,6 +143,9 @@ describe('FeatureFlagOverride', () => {
       clearAllOverrides: jest.fn(),
       featureFlagsList: createMockFeatureFlags(),
     });
+
+    // Default mock for version support
+    (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
   });
 
   describe('Component Rendering', () => {
@@ -576,6 +595,334 @@ describe('FeatureFlagOverride', () => {
       // Note: The actual state reset would be handled by the useFeatureFlagOverride hook
       // This test verifies that the reset button is accessible and can be pressed
       expect(resetButton).toBeTruthy();
+    });
+  });
+
+  describe('Boolean with MinimumVersion Flag', () => {
+    it('disables switch when version is not supported and flag is not in FeatureFlagNames', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
+
+      const versionFlag = createMockFeatureFlag(
+        'unsupportedVersionFlag',
+        'boolean with minimumVersion',
+        {
+          enabled: true,
+          minimumVersion: '2.0.0',
+        },
+      );
+
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [versionFlag],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const switches = screen.getAllByRole('switch');
+      const versionSwitch = switches.find(
+        (switchElement) => switchElement.props.value === true,
+      );
+      expect(versionSwitch?.props.disabled).toBe(true);
+    });
+
+    it('enables switch when version is supported even if flag is not in FeatureFlagNames', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
+
+      const versionFlag = createMockFeatureFlag(
+        'supportedVersionFlag',
+        'boolean with minimumVersion',
+        {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      );
+
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [versionFlag],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const switches = screen.getAllByRole('switch');
+      const versionSwitch = switches.find(
+        (switchElement) => switchElement.props.value === true,
+      );
+      expect(versionSwitch?.props.disabled).toBe(false);
+    });
+
+    it('enables switch when flag is in FeatureFlagNames even if version is not supported', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
+
+      const versionFlag = createMockFeatureFlag(
+        FeatureFlagNames.rewardsEnabled,
+        'boolean with minimumVersion',
+        {
+          enabled: true,
+          minimumVersion: '2.0.0',
+        },
+      );
+
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [versionFlag],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const switches = screen.getAllByRole('switch');
+      const versionSwitch = switches.find(
+        (switchElement) => switchElement.props.value === true,
+      );
+      expect(versionSwitch?.props.disabled).toBe(false);
+    });
+
+    it('handles toggle for boolean with minimumVersion flag', () => {
+      const mockSetOverride = jest.fn();
+      const versionFlagValue = {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      };
+
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: mockSetOverride,
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [
+          createMockFeatureFlag(
+            'versionFlag',
+            'boolean with minimumVersion',
+            versionFlagValue,
+          ),
+        ],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const switches = screen.getAllByRole('switch');
+      const versionSwitch = switches[0];
+      fireEvent(versionSwitch, 'valueChange', true);
+
+      expect(mockSetOverride).toHaveBeenCalledWith('versionFlag', {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('displays version support indicator correctly when version is supported', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
+
+      const versionFlag = createMockFeatureFlag(
+        'versionFlag',
+        'boolean with minimumVersion',
+        {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      );
+
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [versionFlag],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      expect(screen.getByText('Minimum Version: 1.0.0')).toBeTruthy();
+    });
+
+    it('displays version support indicator correctly when version is not supported', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
+
+      const versionFlag = createMockFeatureFlag(
+        'versionFlag',
+        'boolean with minimumVersion',
+        {
+          enabled: true,
+          minimumVersion: '2.0.0',
+        },
+      );
+
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [versionFlag],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      expect(screen.getByText('Minimum Version: 2.0.0')).toBeTruthy();
+    });
+  });
+
+  describe('Boolean Flag Disabled State', () => {
+    it('disables boolean switch when flag is not in FeatureFlagNames', () => {
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [
+          createMockFeatureFlag('unknownBooleanFlag', 'boolean', false),
+        ],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const switches = screen.getAllByRole('switch');
+      const booleanSwitch = switches[0];
+      expect(booleanSwitch.props.disabled).toBe(true);
+    });
+
+    it('enables boolean switch when flag is in FeatureFlagNames', () => {
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [
+          createMockFeatureFlag(
+            FeatureFlagNames.rewardsEnabled,
+            'boolean',
+            false,
+          ),
+        ],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const switches = screen.getAllByRole('switch');
+      const booleanSwitch = switches[0];
+      expect(booleanSwitch.props.disabled).toBe(false);
+    });
+  });
+
+  describe('Empty State Messages', () => {
+    it('shows correct message when search and type filter both active with no results', () => {
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [
+          createMockFeatureFlag('onlyString', 'string', 'value'),
+        ],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const searchInput = screen.getByPlaceholderText(
+        'Search feature flags...',
+      );
+      fireEvent.changeText(searchInput, 'nonexistent');
+
+      const filterButton = screen.getByText('All (1)');
+      fireEvent.press(filterButton);
+
+      expect(
+        screen.getByText('No boolean feature flags match your search.'),
+      ).toBeTruthy();
+    });
+
+    it('shows correct message when only type filter is active with no results', () => {
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [
+          createMockFeatureFlag('onlyString', 'string', 'value'),
+        ],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const filterButton = screen.getByText('All (1)');
+      fireEvent.press(filterButton);
+
+      expect(
+        screen.getByText('No boolean feature flags available.'),
+      ).toBeTruthy();
+    });
+
+    it('shows correct message when only search is active with no results', () => {
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: createMockFeatureFlags(),
+      });
+
+      render(<FeatureFlagOverride />);
+
+      const searchInput = screen.getByPlaceholderText(
+        'Search feature flags...',
+      );
+      fireEvent.changeText(searchInput, 'nonexistent');
+
+      expect(
+        screen.getByText('No feature flags match your search.'),
+      ).toBeTruthy();
+    });
+  });
+
+  describe('Default Case in renderValueEditor', () => {
+    it('renders default text display for unknown flag types', () => {
+      // Create a flag with a type that doesn't match any case
+      // We'll use 'boolean' type but with a value that might trigger default
+      (useFeatureFlagOverride as jest.Mock).mockReturnValue({
+        setOverride: jest.fn(),
+        removeOverride: jest.fn(),
+        clearAllOverrides: jest.fn(),
+        featureFlagsList: [
+          {
+            key: 'unknownTypeFlag',
+            value: 'some value',
+            originalValue: 'some value',
+            type: 'boolean' as FeatureFlagInfo['type'],
+            description: undefined,
+            isOverridden: false,
+          },
+        ],
+      });
+
+      render(<FeatureFlagOverride />);
+
+      // The component should still render the flag
+      expect(screen.getByText('unknownTypeFlag')).toBeTruthy();
+    });
+  });
+
+  describe('Filtered Count Display', () => {
+    it('shows filtered count when type filter is active', () => {
+      render(<FeatureFlagOverride />);
+
+      const filterButton = screen.getByText('All (6)');
+      fireEvent.press(filterButton);
+
+      expect(screen.getByText('Showing: 2 flags')).toBeTruthy();
+    });
+
+    it('shows filtered count when search is active', () => {
+      render(<FeatureFlagOverride />);
+
+      const searchInput = screen.getByPlaceholderText(
+        'Search feature flags...',
+      );
+      fireEvent.changeText(searchInput, 'boolean');
+
+      expect(screen.getByText('Showing: 1 flags')).toBeTruthy();
+    });
+
+    it('does not show filtered count when no filters are active', () => {
+      render(<FeatureFlagOverride />);
+
+      expect(screen.queryByText(/Showing: \d+ flags/)).toBeNull();
     });
   });
 });

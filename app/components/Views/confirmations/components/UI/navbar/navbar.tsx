@@ -11,7 +11,6 @@ import {
 } from '../../../../../../component-library/components/Texts/Text';
 import Device from '../../../../../../util/device';
 import { Theme } from '../../../../../../util/theme/models';
-import { NetworksViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 
 export function getNavbar({
   title,
@@ -78,25 +77,11 @@ export function getEmptyNavHeader({ theme }: { theme: Theme }) {
   };
 }
 
-export function getModalNavigationOptions({ onBack }: { onBack: () => void }) {
-  const innerStyles = StyleSheet.create({
-    accessories: {
-      marginHorizontal: 16,
-    },
-  });
-
+export function getModalNavigationOptions() {
   return {
     title: '',
     headerLeft: () => null,
     headerTransparent: true,
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSizes.Lg}
-        iconName={IconName.Close}
-        onPress={onBack}
-        style={innerStyles.accessories}
-        testID={NetworksViewSelectorsIDs.CLOSE_ICON}
-      />
-    ),
+    headerRight: () => null,
   };
 }

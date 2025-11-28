@@ -430,9 +430,9 @@ describe('BuildQuote View', () => {
 
   it('navigates and tracks event on cancel button press', async () => {
     render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
     });
@@ -444,9 +444,9 @@ describe('BuildQuote View', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.rampType = RampType.SELL;
     render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });

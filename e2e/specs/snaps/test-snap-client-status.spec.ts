@@ -4,6 +4,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
+import sdkPackageJson from '@metamask/snaps-sdk/package.json';
+import packageJson from '../../../package.json';
 
 jest.setTimeout(150_000);
 
@@ -33,9 +35,11 @@ describe(FlaskBuildTests('Client Status Snap Tests'), () => {
       },
       async () => {
         await TestSnaps.tapButton('sendClientStatusButton');
-        await TestSnaps.checkResultJson('clientStatusResultSpan', {
+        await TestSnaps.checkClientStatus({
           locked: false,
           active: true,
+          clientVersion: packageJson.version,
+          platformVersion: sdkPackageJson.version,
         });
       },
     );

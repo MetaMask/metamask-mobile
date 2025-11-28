@@ -236,6 +236,23 @@ jest.mock('../../../../../core/Engine', () => ({
       updateTransactionGasFees: jest.fn(),
       updatePreviousGasParams: jest.fn(),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'mock-account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1'],
+          methods: ['eth_sendTransaction'],
+        },
+      ]),
+    },
   },
 }));
 
@@ -304,6 +321,12 @@ jest.mock('@shopify/flash-list', () => {
     ),
   };
 });
+
+jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: () => ({
+    navigateToConfirmation: jest.fn(),
+  }),
+}));
 
 import PredictTabView from './PredictTabView';
 import { useSelector } from 'react-redux';

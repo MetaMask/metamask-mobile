@@ -85,6 +85,21 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../../../selectors/earnController/earn', () => {
+  const { EARN_EXPERIENCES } = jest.requireActual(
+    '../../../Earn/constants/experiences',
+  );
+  return {
+    earnSelectors: {
+      selectPrimaryEarnExperienceTypeForAsset: jest.fn((_state, asset) =>
+        asset.symbol === 'USDC'
+          ? EARN_EXPERIENCES.STABLECOIN_LENDING
+          : EARN_EXPERIENCES.POOLED_STAKING,
+      ),
+    },
+  };
+});
+
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
   trackEvent: jest.fn(),
   createEventBuilder: MetricsEventBuilder.createEventBuilder,

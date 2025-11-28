@@ -30,6 +30,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
+import { isHexAddress } from '@metamask/utils';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -65,7 +66,6 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   selectSwapsTransactions,
   selectTransactions,
@@ -216,9 +216,9 @@ class Asset extends PureComponent {
   filter = undefined;
   navSymbol = undefined;
   navAddress = undefined;
-  selectedAddress = toChecksumHexAddress(
-    this.props.selectedInternalAccount?.address,
-  );
+  selectedAddress = isHexAddress(this.props.selectedInternalAccount?.address)
+    ? safeToChecksumAddress(this.props.selectedInternalAccount?.address)
+    : this.props.selectedInternalAccount?.address;
 
   updateNavBar = (contentOffset = 0) => {
     const {
@@ -431,7 +431,8 @@ class Asset extends PureComponent {
         if (
           (this.txs.length === 0 && !this.state.transactionsUpdated) ||
           this.txs.length !== filteredTransactions.length ||
-          this.chainId !== chainId
+          this.chainId !== chainId ||
+          this.state.loading // Ensure loading is reset even if nothing else changed
         ) {
           this.txs = filteredTransactions;
           this.txsPending = [];
@@ -512,7 +513,8 @@ class Asset extends PureComponent {
           (this.txs.length === 0 && !this.state.transactionsUpdated) ||
           this.txs.length !== filteredTransactions.length ||
           this.chainId !== chainId ||
-          this.didTxStatusesChange(newPendingTxs)
+          this.didTxStatusesChange(newPendingTxs) ||
+          this.state.loading // Ensure loading is reset even if nothing else changed
         ) {
           this.txs = filteredTransactions;
           this.txsPending = newPendingTxs;
@@ -525,7 +527,7 @@ class Asset extends PureComponent {
           });
         }
       }
-    } else if (!this.state.transactionsUpdated) {
+    } else if (!this.state.transactionsUpdated || this.state.loading) {
       this.setState({ transactionsUpdated: true, loading: false });
     }
     this.isNormalizing = false;
