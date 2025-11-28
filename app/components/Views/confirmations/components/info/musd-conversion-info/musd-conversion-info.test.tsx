@@ -4,8 +4,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MusdConversionInfo } from './musd-conversion-info';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
-import { MUSD_TOKEN_MAINNET } from '../../../../../UI/Earn/constants/musd';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CustomAmountInfo } from '../custom-amount-info';
 
@@ -27,10 +26,6 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useRoute: jest.fn(() => mockRoute),
-    useNavigation: jest.fn(() => ({
-      navigate: jest.fn(),
-      setOptions: jest.fn(),
-    })),
   };
 });
 
@@ -38,7 +33,6 @@ describe('MusdConversionInfo', () => {
   const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseAddToken = jest.mocked(useAddToken);
   const mockUseRoute = jest.mocked(useRoute);
-  const mockUseNavigation = jest.mocked(useNavigation);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -50,23 +44,12 @@ describe('MusdConversionInfo', () => {
 
   describe('rendering', () => {
     it('renders without errors when all route params provided', () => {
-      const allowedPaymentTokens: Record<Hex, Hex[]> = {
-        '0x1': ['0xabc' as Hex],
-      };
-
       mockRoute.params = {
-        allowedPaymentTokens,
         preferredPaymentToken: {
           address: '0xdef' as Hex,
           chainId: '0x1' as Hex,
         },
-        outputToken: {
-          address: '0x123' as Hex,
-          chainId: '0x1' as Hex,
-          symbol: 'TEST',
-          name: 'Test Token',
-          decimals: 6,
-        },
+        outputChainId: '0x1' as Hex,
       };
 
       mockUseRoute.mockReturnValue(mockRoute);
@@ -83,13 +66,7 @@ describe('MusdConversionInfo', () => {
   describe('navbar title', () => {
     it('calls useNavbar with earn_rewards_with title for mUSD token', () => {
       mockRoute.params = {
-        outputToken: {
-          symbol: 'MUSD',
-          address: MUSD_TOKEN_MAINNET.address,
-          chainId: '0x1' as Hex,
-          name: 'MUSD',
-          decimals: 6,
-        },
+        outputChainId: '0x1' as Hex,
       };
 
       mockUseRoute.mockReturnValue(mockRoute);
@@ -99,25 +76,15 @@ describe('MusdConversionInfo', () => {
       });
 
       expect(mockUseNavbar).toHaveBeenCalledWith(
-        expect.stringContaining(
-          strings('earn.musd_conversion.earn_rewards_with'),
-        ),
+        strings('earn.musd_conversion.earn_rewards_with'),
       );
     });
   });
 
   describe('useAddToken', () => {
-    it('calls useAddToken with outputToken info', () => {
-      const outputToken = {
-        address: '0x123' as Hex,
-        chainId: '0x1' as Hex,
-        symbol: 'TEST',
-        name: 'Test Token',
-        decimals: 6,
-      };
-
+    it('calls useAddToken with mUSD token info', () => {
       mockRoute.params = {
-        outputToken,
+        outputChainId: '0x1' as Hex,
       };
 
       mockUseRoute.mockReturnValue(mockRoute);
@@ -127,98 +94,12 @@ describe('MusdConversionInfo', () => {
       });
 
       expect(mockUseAddToken).toHaveBeenCalledWith({
-        chainId: outputToken.chainId,
-        decimals: outputToken.decimals,
-        name: outputToken.name,
-        symbol: outputToken.symbol,
-        tokenAddress: outputToken.address,
+        chainId: '0x1',
+        decimals: 6,
+        name: 'MUSD',
+        symbol: 'MUSD',
+        tokenAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
       });
-    });
-  });
-
-  describe.skip('allowedPaymentTokens validation', () => {
-    const mockOutputToken = {
-      address: '0x123' as Hex,
-      chainId: '0x1' as Hex,
-      symbol: 'TEST',
-      name: 'Test Token',
-      decimals: 6,
-    };
-
-    it('passes valid allowedPaymentTokens to CustomAmountInfo', () => {
-      const allowedPaymentTokens: Record<Hex, Hex[]> = {
-        '0x1': ['0xabc' as Hex],
-      };
-
-      mockRoute.params = {
-        allowedPaymentTokens,
-        outputToken: mockOutputToken,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          allowedPaymentTokens,
-        }),
-        expect.anything(),
-      );
-    });
-
-    it('warns and passes undefined when allowedPaymentTokens is invalid', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      const invalidAllowedTokens = {
-        notHex: ['0xabc'],
-      };
-
-      mockRoute.params = {
-        allowedPaymentTokens: invalidAllowedTokens,
-        outputToken: mockOutputToken,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid allowedPaymentTokens structure'),
-        invalidAllowedTokens,
-      );
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          allowedPaymentTokens: undefined,
-        }),
-        expect.anything(),
-      );
-
-      consoleWarnSpy.mockRestore();
-    });
-
-    it('passes undefined to CustomAmountInfo when allowedPaymentTokens not provided', () => {
-      mockRoute.params = {
-        outputToken: mockOutputToken,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          allowedPaymentTokens: undefined,
-        }),
-        expect.anything(),
-      );
     });
   });
 
@@ -252,41 +133,6 @@ describe('MusdConversionInfo', () => {
         }),
         expect.anything(),
       );
-    });
-  });
-
-  describe('error handling', () => {
-    it('navigates back and logs error when outputToken missing', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const mockGoBack = jest.fn();
-
-      mockUseNavigation.mockReturnValue({
-        navigate: jest.fn(),
-        goBack: mockGoBack,
-        setOptions: jest.fn(),
-      } as unknown as ReturnType<typeof useNavigation>);
-
-      mockRoute.params = {
-        preferredPaymentToken: {
-          address: '0xdef' as Hex,
-          chainId: '0x1' as Hex,
-        },
-        // outputToken is missing
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      const { toJSON } = renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('outputToken is required but was not provided'),
-      );
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(toJSON()).toBeNull();
-
-      consoleErrorSpy.mockRestore();
     });
   });
 });

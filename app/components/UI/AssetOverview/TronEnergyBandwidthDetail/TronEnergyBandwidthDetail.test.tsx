@@ -14,13 +14,18 @@ jest.mock('./ResourceRing', () => ({
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key, vars) => {
-    if (key === 'asset_overview.tron.sufficient_to_cover_usdt') {
-      return `USDT ${vars?.amount}`;
+    switch (key) {
+      case 'asset_overview.tron.sufficient_to_cover_usdt_transfer':
+        return 'USDT 1';
+      case 'asset_overview.tron.sufficient_to_cover_usdt_transfers':
+        return `USDT ${vars?.amount}`;
+      case 'asset_overview.tron.sufficient_to_cover_trx_transfer':
+        return 'TRX 1';
+      case 'asset_overview.tron.sufficient_to_cover_trx_transfers':
+        return `TRX ${vars?.amount}`;
+      default:
+        return key;
     }
-    if (key === 'asset_overview.tron.sufficient_to_cover_trx') {
-      return `TRX ${vars?.amount}`;
-    }
-    return key;
   }),
 }));
 
@@ -81,11 +86,13 @@ describe('TronEnergyBandwidthDetail', () => {
 
     const energyRingProps = ResourceRingMock.mock.calls[0][0];
     expect(energyRingProps.icon).toBe(IconName.Flash);
-    expect(energyRingProps.progress).toBeCloseTo(130000 / (200000 + 70000), 5);
+    // 130000 current, 200000 max => 65%
+    expect(energyRingProps.progress).toBeCloseTo(0.65, 5);
 
     const bandwidthRingProps = ResourceRingMock.mock.calls[1][0];
     expect(bandwidthRingProps.icon).toBe(IconName.Connect);
-    expect(bandwidthRingProps.progress).toBeCloseTo(560 / (1000 + 500), 5);
+    // 560 current, 1000 max => 56%
+    expect(bandwidthRingProps.progress).toBeCloseTo(0.56, 5);
   });
 
   it('parses balances and caps progress', () => {
