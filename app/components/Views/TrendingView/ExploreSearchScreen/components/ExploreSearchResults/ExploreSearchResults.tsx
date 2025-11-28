@@ -9,7 +9,9 @@ import {
   type SectionId,
 } from '../../../config/sections.config';
 import { useExploreSearch } from './config/useExploreSearch';
+import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
 import SitesSearchFooter from '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useSelector } from 'react-redux';
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
@@ -41,6 +43,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const tw = useTailwind();
   const { data, isLoading } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
 
   const renderSectionHeader = useCallback(
     (title: string) => (
@@ -57,7 +62,10 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const flatData = useMemo(() => {
     const result: FlatListItem[] = [];
 
-    SECTIONS_ARRAY.forEach((section) => {
+    // Filter sections based on basic functionality toggle
+    const sectionsToShow = isBasicFunctionalityEnabled ? SECTIONS_ARRAY : [];
+
+    sectionsToShow.forEach((section) => {
       const items = data[section.id];
       const sectionIsLoading = isLoading[section.id];
 
@@ -92,7 +100,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [data, isLoading]);
+  }, [data, isLoading, isBasicFunctionalityEnabled]);
 
   // Scroll to top when search query changes
   useEffect(() => {
@@ -135,7 +143,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       return `skeleton-${item.sectionId}-${item.index}`;
 
     const section = SECTIONS_CONFIG[item.sectionId];
-    return section ? section.keyExtractor(item.data) : `item-${index}`;
+    return section ? `${section.id}-${index}` : `item-${index}`;
   }, []);
 
   return (
