@@ -29,7 +29,6 @@ import {
   usePerpsNavigation,
 } from '../../hooks';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
-import Engine from '../../../../../core/Engine';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
@@ -334,11 +333,6 @@ const PerpsMarketListView = ({
   const hasPerpBalance =
     livePositions.positions.length > 0 ||
     (perpsAccount?.totalBalance && parseFloat(perpsAccount.totalBalance) > 0);
-  const provider = Engine.context.PerpsController?.getActiveProvider();
-  const perpDex =
-    provider?.protocolId === 'hyperliquid'
-      ? PerpsEventValues.PERP_DEX.HYPERLIQUID
-      : undefined;
 
   // Extract button_clicked and button_location from route params
   const buttonClicked = route.params?.button_clicked;
@@ -352,7 +346,6 @@ const PerpsMarketListView = ({
         PerpsEventValues.SCREEN_TYPE.MARKET_LIST,
       [PerpsEventProperties.SOURCE]: source,
       [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
-      ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
       ...(buttonClicked && {
         [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
       }),

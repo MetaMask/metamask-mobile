@@ -34,7 +34,6 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { BigNumber } from 'bignumber.js';
 import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
-import Engine from '../../../../../core/Engine';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -120,16 +119,11 @@ const PerpsHomeView = () => {
   const source =
     route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
 
-  // Get perp balance status and provider info for tracking
+  // Get perp balance status for tracking
   const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
   const hasPerpBalance =
     livePositions.positions.length > 0 ||
     (perpsAccount?.totalBalance && parseFloat(perpsAccount.totalBalance) > 0);
-  const provider = Engine.context.PerpsController?.getActiveProvider();
-  const perpDex =
-    provider?.protocolId === 'hyperliquid'
-      ? PerpsEventValues.PERP_DEX.HYPERLIQUID
-      : undefined;
 
   // Extract button_clicked and button_location from route params
   const buttonClicked = route.params?.button_clicked;
@@ -143,7 +137,6 @@ const PerpsHomeView = () => {
         PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
       [PerpsEventProperties.SOURCE]: source,
       [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
-      ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
       ...(buttonClicked && {
         [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
       }),

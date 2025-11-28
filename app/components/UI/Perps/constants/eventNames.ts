@@ -115,9 +115,8 @@ export const PerpsEventProperties = {
   BUTTON_CLICKED: 'button_clicked',
   BUTTON_LOCATION: 'button_location',
 
-  // Balance and DEX properties
+  // Balance properties
   HAS_PERP_BALANCE: 'has_perp_balance',
-  PERP_DEX: 'perp_dex',
 
   // TP/SL differentiation properties
   HAS_TAKE_PROFIT: 'has_take_profit',
@@ -288,9 +287,6 @@ export const PerpsEventValues = {
     // Button color test variants
     CONTROL: 'control',
     MONOCHROME: 'monochrome',
-  },
-  PERP_DEX: {
-    HYPERLIQUID: 'hyperliquid',
   },
   BUTTON_CLICKED: {
     DEPOSIT: 'deposit',
