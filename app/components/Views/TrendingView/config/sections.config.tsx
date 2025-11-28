@@ -133,7 +133,9 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       return {
         data: filteredMarkets,
         isLoading: isLoading || isRefreshing,
-        refetch: refresh,
+        refetch: () => {
+          void refresh();
+        },
       };
     },
   },
@@ -165,7 +167,13 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         q: searchQuery || undefined,
       });
 
-      return { data: marketData, isLoading: isFetching, refetch };
+      return {
+        data: marketData,
+        isLoading: isFetching,
+        refetch: () => {
+          void refetch();
+        },
+      };
     },
   },
   sites: {
