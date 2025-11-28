@@ -160,7 +160,9 @@ export const usePerpsTransactionHistory = ({
   }, [error, userHistoryError]);
 
   // Merge live WebSocket fills with REST transactions for instant updates
-  // Live fills take precedence for recent trades, deduplicated by ID
+  // Live fills take precedence for recent trades
+  // IMPORTANT: Deduplicate trades using asset+timestamp, not tx.id, because
+  // the ID includes array index which differs between REST and WebSocket arrays
   const mergedTransactions = useMemo(() => {
     // Transform live fills to PerpsTransaction format
     const liveTransactions = transformFillsToTransactions(liveFills);
@@ -170,22 +172,40 @@ export const usePerpsTransactionHistory = ({
       return liveTransactions;
     }
 
-    // Merge: live fills + REST data, keeping only unique transactions by ID
-    // Use Map for efficient deduplication (live fills overwrite REST duplicates)
-    const txMap = new Map<string, PerpsTransaction>();
+    // Separate trade transactions from non-trade transactions (orders, funding, deposits)
+    // Non-trade transactions use their ID directly (no index issue)
+    const restTradeTransactions = transactions.filter(
+      (tx) => tx.type === 'trade',
+    );
+    const nonTradeTransactions = transactions.filter(
+      (tx) => tx.type !== 'trade',
+    );
 
-    // Add REST transactions first
-    for (const tx of transactions) {
-      txMap.set(tx.id, tx);
+    // Merge trades using asset+timestamp as dedup key (avoids index mismatch in IDs)
+    // This ensures the same fill from REST and WebSocket is deduplicated correctly
+    const tradeMap = new Map<string, PerpsTransaction>();
+
+    // Add REST trade transactions first
+    for (const tx of restTradeTransactions) {
+      // Use asset + timestamp as key (unique per fill, index-independent)
+      const dedupKey = `${tx.asset}-${tx.timestamp}`;
+      tradeMap.set(dedupKey, tx);
     }
 
-    // Add live fills (overwrites any duplicates from REST)
+    // Add live fills (overwrites REST duplicates - live data is fresher)
     for (const tx of liveTransactions) {
-      txMap.set(tx.id, tx);
+      const dedupKey = `${tx.asset}-${tx.timestamp}`;
+      tradeMap.set(dedupKey, tx);
     }
 
-    // Convert back to array and sort by timestamp descending
-    return Array.from(txMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+    // Combine deduplicated trades with non-trade transactions
+    const allTransactions = [
+      ...Array.from(tradeMap.values()),
+      ...nonTradeTransactions,
+    ];
+
+    // Sort by timestamp descending
+    return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
   }, [liveFills, transactions]);
 
   return {
