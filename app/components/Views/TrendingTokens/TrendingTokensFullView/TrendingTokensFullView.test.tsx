@@ -324,13 +324,15 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    const { getByTestId } = renderWithProvider(
+    const { queryAllByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
       false,
     );
 
-    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
+    const skeletons = queryAllByTestId('trending-tokens-skeleton');
+    expect(skeletons.length).toBeGreaterThan(0);
+    expect(skeletons[0]).toBeOnTheScreen();
   });
 
   it('displays skeleton loader when results are empty', () => {
@@ -341,13 +343,15 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    const { getByTestId } = renderWithProvider(
+    const { queryAllByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
       false,
     );
 
-    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
+    const skeletons = queryAllByTestId('trending-tokens-skeleton');
+    expect(skeletons.length).toBeGreaterThan(0);
+    expect(skeletons[0]).toBeOnTheScreen();
   });
 
   it('displays trending tokens list when data is loaded', () => {
