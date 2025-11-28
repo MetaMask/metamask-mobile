@@ -40,6 +40,7 @@ import {
 import { NetworkClientId } from '@metamask/network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { stripSingleLeadingZero } from '../util';
+import { isTest } from '../../test/utils';
 
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
@@ -154,8 +155,10 @@ export class Delegation7702PublishHook {
       throw new Error('Selected gas fee token not found');
     }
 
+    console.log('Gas Fee Token >>>>>>>>>', transactionMeta.chainId);
     const delegationEnvironment = getDeleGatorEnvironment(
-      parseInt(transactionMeta.chainId, 16),
+      parseInt(isTest ? '0xaa36a7' : transactionMeta.chainId, 16),
+      // parseInt(transactionMeta.chainId, 16),
     );
     const delegationManagerAddress = delegationEnvironment.DelegationManager;
     const includeTransfer =
@@ -249,7 +252,8 @@ export class Delegation7702PublishHook {
     const delegationSignature = (await this.#messenger.call(
       'DelegationController:signDelegation',
       {
-        chainId: transactionMeta.chainId,
+        chainId: isTest ? '0xaa36a7' : transactionMeta.chainId,
+        // chainId: transactionMeta.chainId,
         delegation: unsignedDelegation,
       },
     )) as Hex;
