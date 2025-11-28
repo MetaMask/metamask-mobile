@@ -27,6 +27,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import Logger from '../../../../../util/Logger';
 
 const MusdConversionCta = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -52,7 +53,7 @@ const MusdConversionCta = () => {
     return strings('earn.musd_conversion.get_musd');
   }, [canConvert]);
 
-  const handlePress = () => {
+  const handlePress = async () => {
     // Redirect users to deposit flow if they don't have any stablecoins to convert.
     if (!canConvert) {
       const rampIntent: RampIntent = {
@@ -80,13 +81,20 @@ const MusdConversionCta = () => {
 
     // TODO: Reminder to circle back to this when enforcing same-chain conversions.
     // If token[0].chainId isn't guaranteed to match MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-    initiateConversion({
-      outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-      preferredPaymentToken: {
-        address: toHex(address),
-        chainId: toHex(chainId as string),
-      },
-    });
+    try {
+      await initiateConversion({
+        outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        preferredPaymentToken: {
+          address: toHex(address),
+          chainId: toHex(chainId as string),
+        },
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[mUSD Conversion] Failed to initiate conversion from CTA',
+      );
+    }
   };
 
   return (

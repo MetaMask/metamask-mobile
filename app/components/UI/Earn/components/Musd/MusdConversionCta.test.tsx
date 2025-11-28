@@ -1,9 +1,10 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 
 jest.mock('../../hooks/useMusdConversionTokens');
 jest.mock('../../hooks/useMusdConversion');
 jest.mock('../../../Ramp/hooks/useRampNavigation');
+jest.mock('../../../../../util/Logger');
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -37,6 +38,7 @@ import {
 } from '../../constants/musd';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import initialRootState from '../../../../../util/test/initial-root-state';
+import Logger from '../../../../../util/Logger';
 
 const mockToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -54,6 +56,7 @@ const mockToken = {
 describe('MusdConversionCta', () => {
   const mockGoToBuy = jest.fn();
   const mockInitiateConversion = jest.fn();
+  const mockLoggerError = jest.spyOn(Logger, 'error');
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -211,7 +214,7 @@ describe('MusdConversionCta', () => {
   });
 
   describe('button press - with tokens', () => {
-    it('calls initiateConversion with correct parameters', () => {
+    it('calls initiateConversion with correct parameters', async () => {
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -226,18 +229,22 @@ describe('MusdConversionCta', () => {
         state: initialRootState,
       });
 
-      fireEvent.press(getByText('Get mUSD'));
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
 
-      expect(mockInitiateConversion).toHaveBeenCalledWith({
-        outputChainId: '0x1',
-        preferredPaymentToken: {
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          chainId: '0x1',
-        },
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          outputChainId: '0x1',
+          preferredPaymentToken: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+          },
+        });
       });
     });
 
-    it('uses first token from array when multiple tokens available', () => {
+    it('uses first token from array when multiple tokens available', async () => {
       const firstToken = mockToken;
       const secondToken = {
         ...mockToken,
@@ -257,18 +264,22 @@ describe('MusdConversionCta', () => {
         state: initialRootState,
       });
 
-      fireEvent.press(getByText('Get mUSD'));
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
 
-      expect(mockInitiateConversion).toHaveBeenCalledWith({
-        outputChainId: '0x1',
-        preferredPaymentToken: {
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          chainId: '0x1',
-        },
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          outputChainId: '0x1',
+          preferredPaymentToken: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+          },
+        });
       });
     });
 
-    it('does not call goToBuy when tokens available', () => {
+    it('does not call goToBuy when tokens available', async () => {
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -283,9 +294,67 @@ describe('MusdConversionCta', () => {
         state: initialRootState,
       });
 
-      fireEvent.press(getByText('Get mUSD'));
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
 
-      expect(mockGoToBuy).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockGoToBuy).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('error handling', () => {
+    beforeEach(() => {
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [mockToken],
+        tokenFilter: jest.fn(),
+        isConversionToken: jest.fn(),
+      });
+    });
+
+    it('logs error when initiateConversion fails with Error instance', async () => {
+      const testError = new Error('Network error');
+      mockInitiateConversion.mockRejectedValue(testError);
+
+      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          testError,
+          '[mUSD Conversion] Failed to initiate conversion from CTA',
+        );
+      });
+    });
+
+    it('logs error when initiateConversion fails with non-Error value', async () => {
+      const nonErrorValue = 'string error';
+      mockInitiateConversion.mockRejectedValue(nonErrorValue);
+
+      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          nonErrorValue,
+          '[mUSD Conversion] Failed to initiate conversion from CTA',
+        );
+      });
     });
   });
 });
