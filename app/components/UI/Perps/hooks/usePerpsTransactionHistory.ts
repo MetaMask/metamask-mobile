@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
@@ -53,6 +53,14 @@ export const usePerpsTransactionHistory = ({
   // This ensures new trades appear immediately without waiting for REST refetch
   const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
+  // Store userHistory in ref to avoid recreating fetchAllTransactions callback
+  const userHistoryRef = useRef(userHistory);
+  // Track if initial fetch has been done to prevent duplicate fetches
+  const initialFetchDone = useRef(false);
+  useEffect(() => {
+    userHistoryRef.current = userHistory;
+  }, [userHistory]);
+
   const fetchAllTransactions = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -79,7 +87,7 @@ export const usePerpsTransactionHistory = ({
         provider.getOrders({ accountId }),
         provider.getFunding({
           accountId,
-          startTime: startTime || 0,
+          startTime,
           endTime,
         }),
       ]);
@@ -98,8 +106,9 @@ export const usePerpsTransactionHistory = ({
       const fillTransactions = transformFillsToTransactions(enrichedFills);
       const orderTransactions = transformOrdersToTransactions(orders);
       const fundingTransactions = transformFundingToTransactions(funding);
-      const userHistoryTransactions =
-        transformUserHistoryToTransactions(userHistory);
+      const userHistoryTransactions = transformUserHistoryToTransactions(
+        userHistoryRef.current,
+      );
 
       // Combine all transactions (no Arbitrum withdrawals - using user history as single source of truth)
       const allTransactions = [
@@ -112,7 +121,7 @@ export const usePerpsTransactionHistory = ({
       // Sort by timestamp descending (newest first)
       allTransactions.sort((a, b) => b.timestamp - a.timestamp);
 
-      // Remove duplicates based on ID (simplified - no longer needed for withdrawals since we use single source)
+      // Remove duplicates based on ID
       const uniqueTransactions = allTransactions.reduce((acc, transaction) => {
         const existingIndex = acc.findIndex((t) => t.id === transaction.id);
         if (existingIndex === -1) {
@@ -134,17 +143,21 @@ export const usePerpsTransactionHistory = ({
     } finally {
       setIsLoading(false);
     }
-  }, [startTime, endTime, accountId, userHistory]);
+  }, [startTime, endTime, accountId]);
 
   const refetch = useCallback(async () => {
-    await Promise.all([fetchAllTransactions(), refetchUserHistory()]);
+    // Fetch user history first, then fetch all transactions
+    const freshUserHistory = await refetchUserHistory();
+    userHistoryRef.current = freshUserHistory;
+    await fetchAllTransactions();
   }, [fetchAllTransactions, refetchUserHistory]);
 
   useEffect(() => {
-    if (!skipInitialFetch) {
-      fetchAllTransactions();
+    if (!skipInitialFetch && !initialFetchDone.current) {
+      initialFetchDone.current = true;
+      refetch();
     }
-  }, [fetchAllTransactions, skipInitialFetch]);
+  }, [skipInitialFetch, refetch]);
 
   // Combine loading states
   const combinedIsLoading = useMemo(

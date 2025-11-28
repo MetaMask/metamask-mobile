@@ -174,7 +174,7 @@ describe('usePerpsTransactionHistory', () => {
       userHistory: mockUserHistory,
       isLoading: false,
       error: null,
-      refetch: jest.fn().mockResolvedValue(undefined),
+      refetch: jest.fn().mockResolvedValue(mockUserHistory),
     });
 
     // Mock live fills hook (returns empty by default, tests can override)
@@ -193,7 +193,7 @@ describe('usePerpsTransactionHistory', () => {
   });
 
   describe('initial state', () => {
-    it('returns initial state correctly', () => {
+    it('returns initial state correctly', async () => {
       // Override transform mock to return empty for initial state test
       mockTransformFillsToTransactions.mockReturnValue([]);
 
@@ -201,9 +201,15 @@ describe('usePerpsTransactionHistory', () => {
 
       // Initial state: no WebSocket fills, no REST data yet
       expect(result.current.transactions).toEqual([]);
-      expect(result.current.isLoading).toBe(true); // Hook immediately starts fetching
+      // Initial loading state is false, becomes true when fetch starts
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.refetch).toBe('function');
+
+      // Wait for initial fetch to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
     });
 
     it('skips initial fetch when skipInitialFetch is true', () => {
@@ -235,9 +241,10 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrders).toHaveBeenCalledWith({
         accountId: undefined,
       });
+      // startTime default is handled in HyperLiquidProvider, not here
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: undefined,
-        startTime: 0,
+        startTime: undefined,
         endTime: undefined,
       });
 
@@ -319,9 +326,10 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockProvider.getOrders).toHaveBeenCalledWith({
         accountId: undefined,
       });
+      // startTime default is handled in HyperLiquidProvider, not here
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: undefined,
-        startTime: 0,
+        startTime: undefined,
         endTime: undefined,
       });
       expect(mockUseUserHistory).toHaveBeenCalledWith({
