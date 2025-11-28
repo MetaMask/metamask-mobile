@@ -1266,6 +1266,9 @@
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled"
     },
+    "price_deviation_warning": {
+      "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
+    },
     "order_details": {
       "title": "Order Details",
       "cancel_order": "Cancel Order",
