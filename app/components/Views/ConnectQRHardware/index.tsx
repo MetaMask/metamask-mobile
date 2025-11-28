@@ -201,9 +201,6 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     async (accountIndexs: number[]) => {
       resetError();
       setBlockingModalVisible(true);
-      const deviceName = await withQrKeyring(
-        async ({ keyring }) => await keyring.getName(),
-      );
       try {
         const accountToSelect = await withQrKeyring(async ({ keyring }) => {
           let lastAccount: string | undefined;
@@ -214,6 +211,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
           }
           return lastAccount;
         });
+        const deviceName = await withQrKeyring(
+          async ({ keyring }) => await keyring.getName(),
+        );
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ADD_ACCOUNT)
             .addProperties({
