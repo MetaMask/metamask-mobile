@@ -242,7 +242,12 @@ jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
 }));
 
-const mockUsePerpsOrderFillsImpl = jest.fn(() => ({
+const mockUsePerpsOrderFillsImpl = jest.fn<
+  ReturnType<
+    typeof import('../../hooks/usePerpsOrderFills').usePerpsOrderFills
+  >,
+  []
+>(() => ({
   orderFills: [],
   isLoading: false,
   error: null,
@@ -1697,25 +1702,40 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsOrderFillsImpl.mockReturnValue({
         orderFills: [
           {
+            orderId: 'order-1',
             symbol: 'BTC',
+            side: 'buy',
             direction: 'Open Long',
             timestamp: timestamp - 2000,
             size: '0.3',
             price: '43000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
           },
           {
+            orderId: 'order-2',
             symbol: 'BTC',
+            side: 'buy',
             direction: 'Open Long',
             timestamp,
             size: '0.5',
             price: '44000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
           },
           {
+            orderId: 'order-3',
             symbol: 'ETH',
+            side: 'sell',
             direction: 'Open Short',
             timestamp: timestamp - 1000,
             size: '1.0',
             price: '3000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
           },
         ],
         isLoading: false,
