@@ -3,32 +3,14 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { act, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
-import {
-  ProcessedNetwork,
-  useNetworksByNamespace,
-} from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworksToUse } from '../../../../hooks/useNetworksToUse/useNetworksToUse';
+import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { usePopularNetworks } from '../usePopularNetworks/usePopularNetworks';
+import { CaipChainId } from '@metamask/utils';
 
-// Mock the network hooks
-jest.mock(
-  '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
-  () => ({
-    useNetworksByNamespace: jest.fn(),
-    NetworkType: {
-      Popular: 'popular',
-      Custom: 'custom',
-    },
-  }),
-);
+jest.mock('../usePopularNetworks/usePopularNetworks');
 
-jest.mock('../../../../hooks/useNetworksToUse/useNetworksToUse', () => ({
-  useNetworksToUse: jest.fn(),
-}));
-
-const mockUseNetworksByNamespace =
-  useNetworksByNamespace as jest.MockedFunction<typeof useNetworksByNamespace>;
-const mockUseNetworksToUse = useNetworksToUse as jest.MockedFunction<
-  typeof useNetworksToUse
+const mockUsePopularNetworks = usePopularNetworks as jest.MockedFunction<
+  typeof usePopularNetworks
 >;
 
 // Default mock networks
@@ -36,14 +18,14 @@ const mockDefaultNetworks: ProcessedNetwork[] = [
   {
     id: '1',
     name: 'Ethereum Mainnet',
-    caipChainId: 'eip155:1' as const,
+    caipChainId: 'eip155:1' as CaipChainId,
     isSelected: true,
     imageSource: { uri: 'ethereum' },
   },
   {
     id: '137',
     name: 'Polygon',
-    caipChainId: 'eip155:137' as const,
+    caipChainId: 'eip155:137' as CaipChainId,
     isSelected: true,
     imageSource: { uri: 'polygon' },
   },
@@ -52,26 +34,7 @@ const mockDefaultNetworks: ProcessedNetwork[] = [
 describe('useTrendingRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Set up default mocks for network hooks
-    mockUseNetworksByNamespace.mockReturnValue({
-      networks: mockDefaultNetworks,
-      selectedNetworks: mockDefaultNetworks,
-      areAllNetworksSelected: true,
-      areAnyNetworksSelected: true,
-      networkCount: mockDefaultNetworks.length,
-      selectedCount: mockDefaultNetworks.length,
-    });
-    mockUseNetworksToUse.mockReturnValue({
-      networksToUse: mockDefaultNetworks,
-      evmNetworks: mockDefaultNetworks,
-      solanaNetworks: [],
-      selectedEvmAccount: null,
-      selectedSolanaAccount: null,
-      isMultichainAccountsState2Enabled: false,
-      areAllNetworksSelectedCombined: true,
-      areAllEvmNetworksSelected: true,
-      areAllSolanaNetworksSelected: false,
-    } as unknown as ReturnType<typeof useNetworksToUse>);
+    mockUsePopularNetworks.mockReturnValue(mockDefaultNetworks);
   });
 
   it('returns trending tokens results when fetch succeeds', async () => {
@@ -257,13 +220,7 @@ describe('useTrendingRequest', () => {
         expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
       });
 
-      expect(mockUseNetworksByNamespace).toHaveBeenCalledWith({
-        networkType: 'popular',
-      });
-      expect(mockUseNetworksToUse).toHaveBeenCalledWith({
-        networks: mockDefaultNetworks,
-        networkType: 'popular',
-      });
+      expect(mockUsePopularNetworks).toHaveBeenCalled();
       expect(spyGetTrendingTokens).toHaveBeenCalledWith(
         expect.objectContaining({
           chainIds: ['eip155:1', 'eip155:137'],

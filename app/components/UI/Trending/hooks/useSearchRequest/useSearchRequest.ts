@@ -1,18 +1,33 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
+import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { usePopularNetworks } from '../usePopularNetworks/usePopularNetworks';
 
 /**
  * Hook for handling search tokens request
  * @returns {Object} An object containing the search results, loading state, and a function to trigger search
  */
 export const useSearchRequest = (options: {
-  chainIds: CaipChainId[];
+  chainIds?: CaipChainId[];
   query: string;
   limit: number;
 }) => {
-  const { chainIds, query, limit } = options;
+  const { chainIds: providedChainIds = [], query, limit } = options;
+
+  // Get popular networks for filtering
+  const popularNetworks = usePopularNetworks();
+
+  // Use provided chainIds or default to popular networks
+  const chainIds = useMemo((): CaipChainId[] => {
+    if (providedChainIds.length > 0) {
+      return providedChainIds;
+    }
+    return popularNetworks.map(
+      (network: ProcessedNetwork) => network.caipChainId,
+    );
+  }, [providedChainIds, popularNetworks]);
   const [results, setResults] = useState<unknown[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
