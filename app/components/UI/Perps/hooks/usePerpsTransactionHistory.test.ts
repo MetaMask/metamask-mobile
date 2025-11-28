@@ -362,7 +362,11 @@ describe('usePerpsTransactionHistory', () => {
         },
       ];
 
-      mockTransformFillsToTransactions.mockReturnValue(mockTransactions);
+      // Use mockImplementation to return transactions only for non-empty fills
+      // Empty fills (from WebSocket) should return empty array
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? mockTransactions : [],
+      );
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
