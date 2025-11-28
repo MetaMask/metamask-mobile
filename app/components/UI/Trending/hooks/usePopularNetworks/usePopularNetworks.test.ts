@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { isTestNet } from '../../../../../util/networks';
-import { usePopularNetworks } from './usePopularNetworks';
+import { usePopularNetworks, EXCLUDED_NETWORKS } from './usePopularNetworks';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -250,6 +250,50 @@ describe('usePopularNetworks', () => {
       expect(
         result.current.some((network) => network.caipChainId === 'eip155:1'),
       ).toBe(true);
+    });
+  });
+
+  describe('excluded networks filtering', () => {
+    it('filters out all excluded networks from networkConfigurations', () => {
+      const mockNetworkConfigurations = {
+        'eip155:1': {
+          caipChainId: 'eip155:1' as CaipChainId,
+          name: 'Ethereum Mainnet',
+        },
+        'eip155:11297108109': {
+          caipChainId: 'eip155:11297108109' as CaipChainId,
+          name: 'Palm',
+        },
+        'eip155:999': {
+          caipChainId: 'eip155:999' as CaipChainId,
+          name: 'Hyper EVM',
+        },
+        'eip155:143': {
+          caipChainId: 'eip155:143' as CaipChainId,
+          name: 'Monad',
+        },
+        'bip122:000000000019d6689c085ae165831e93': {
+          caipChainId: 'bip122:000000000019d6689c085ae165831e93' as CaipChainId,
+          name: 'Bitcoin Mainnet',
+        },
+        'eip155:137': {
+          caipChainId: 'eip155:137' as CaipChainId,
+          name: 'Polygon',
+        },
+      };
+
+      mockUseSelector.mockReturnValue(mockNetworkConfigurations);
+
+      const { result } = renderHook(() => usePopularNetworks());
+
+      const resultChainIds = result.current.map((n) => n.caipChainId);
+      EXCLUDED_NETWORKS.forEach((excludedChainId) => {
+        expect(resultChainIds).not.toContain(excludedChainId);
+      });
+      expect(result.current.some((n) => n.name === 'Ethereum Mainnet')).toBe(
+        true,
+      );
+      expect(result.current.some((n) => n.name === 'Polygon')).toBe(true);
     });
   });
 

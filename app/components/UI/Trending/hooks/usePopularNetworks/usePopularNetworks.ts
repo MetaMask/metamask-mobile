@@ -16,7 +16,7 @@ import { PopularList } from '../../../../../util/networks/customNetworks';
  * List of CAIP chain IDs to exclude from the popular networks list
  * These networks are not supported for trending/filtering features
  */
-const EXCLUDED_NETWORKS: CaipChainId[] = [
+export const EXCLUDED_NETWORKS: CaipChainId[] = [
   'eip155:11297108109', // Palm
   'eip155:999', // Hyper EVM
   'eip155:143', // Monad
