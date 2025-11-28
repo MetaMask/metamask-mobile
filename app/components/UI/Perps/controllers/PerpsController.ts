@@ -57,6 +57,7 @@ import type {
   EditOrderParams,
   FeeCalculationParams,
   FeeCalculationResult,
+  FlipPositionParams,
   Funding,
   GetAccountStateParams,
   GetAvailableDexsParams,
@@ -68,6 +69,7 @@ import type {
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
+  MarginResult,
   MarketInfo,
   Order,
   OrderFill,
@@ -78,12 +80,14 @@ import type {
   SubscribeAccountParams,
   SubscribeCandlesParams,
   SubscribeOICapsParams,
+  SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
   SubscribePricesParams,
   SwitchProviderResult,
   ToggleTestnetResult,
+  UpdateMarginParams,
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
@@ -1268,6 +1272,43 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Update margin for an existing position (add or remove)
+   */
+  async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
+    const provider = this.getActiveProvider();
+    const { RewardsController, NetworkController } = Engine.context;
+
+    return TradingService.updateMargin({
+      provider,
+      coin: params.coin,
+      amount: params.amount,
+      context: this.createServiceContext('updateMargin', {
+        rewardsController: RewardsController,
+        networkController: NetworkController,
+        messenger: this.messenger,
+      }),
+    });
+  }
+
+  /**
+   * Flip position (reverse direction while keeping size and leverage)
+   */
+  async flipPosition(params: FlipPositionParams): Promise<OrderResult> {
+    const provider = this.getActiveProvider();
+    const { RewardsController, NetworkController } = Engine.context;
+
+    return TradingService.flipPosition({
+      provider,
+      position: params.position,
+      context: this.createServiceContext('flipPosition', {
+        rewardsController: RewardsController,
+        networkController: NetworkController,
+        messenger: this.messenger,
+      }),
+    });
+  }
+
+  /**
    * Simplified deposit method that prepares transaction for confirmation screen
    * No complex state tracking - just sets a loading flag
    */
@@ -1950,6 +1991,29 @@ export class PerpsController extends BaseController<
         ensureError(error),
         this.getErrorContext('subscribeToAccount', {
           accountId: params.accountId,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
+   * Subscribe to full order book updates with multiple depth levels
+   * Creates a dedicated L2Book subscription for real-time order book data
+   */
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOrderBook(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrderBook', {
+          symbol: params.symbol,
+          levels: params.levels,
         }),
       );
       // Return a no-op unsubscribe function

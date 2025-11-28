@@ -9,6 +9,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import PredictMarketDetails from './PredictMarketDetails';
+import { PredictPriceHistoryInterval } from '../../types';
+import type { UsePredictPriceHistoryOptions } from '../../hooks/usePredictPriceHistory';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -44,6 +46,7 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
+  useIsFocused: jest.fn(() => true),
   NavigationContainer: ({ children }: { children: React.ReactNode }) =>
     children,
 }));
@@ -226,6 +229,11 @@ jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
 }));
 
+let mockUsePredictOrderPreview: jest.Mock;
+jest.mock('../../hooks/usePredictOrderPreview', () => ({
+  usePredictOrderPreview: (mockUsePredictOrderPreview = jest.fn()),
+}));
+
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictDetailsChart() {
@@ -248,6 +256,18 @@ jest.mock('../../components/PredictMarketOutcome', () => {
       <View testID="predict-market-outcome">
         <Text>{outcome?.title || 'Outcome'}</Text>
       </View>
+    );
+  };
+});
+
+jest.mock('../../components/PredictShareButton/PredictShareButton', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPredictShareButton({ marketId }: { marketId?: string }) {
+    return (
+      <View
+        testID="predict-share-button"
+        accessibilityHint={`marketId:${marketId ?? 'undefined'}`}
+      />
     );
   };
 });
@@ -519,6 +539,39 @@ function setupPredictMarketDetailsTest(
       claimable ? claimablePositionsHook : activePositionsHook,
   );
 
+  // Set up usePredictOrderPreview mock to return preview data matching position currentValue
+  mockUsePredictOrderPreview.mockImplementation(
+    (params: { outcomeId: string }) => {
+      // Find the position matching this outcomeId from active positions
+      const position = activePositionsHook.positions.find(
+        (p: Record<string, unknown>) => p.outcomeId === params.outcomeId,
+      ) as { currentValue?: number } | undefined;
+
+      // Return preview with minAmountReceived matching position's currentValue
+      // or a default value if no position found
+      const minAmountReceived = position?.currentValue ?? 100;
+
+      return {
+        preview: {
+          marketId: params.outcomeId,
+          outcomeId: params.outcomeId,
+          outcomeTokenId: 'token-1',
+          timestamp: Date.now(),
+          side: 'sell',
+          sharePrice: 0.5,
+          maxAmountSpent: 0,
+          minAmountReceived,
+          slippage: 0,
+          tickSize: 0,
+          minOrderSize: 0,
+          negRisk: false,
+        },
+        error: null,
+        isCalculating: false,
+      };
+    },
+  );
+
   const result = renderWithProvider(<PredictMarketDetails />);
 
   return {
@@ -621,6 +674,33 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(screen.getByTestId('icon-ArrowLeft')).toBeOnTheScreen();
+    });
+
+    it('renders share button in header when market data is loaded', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(screen.getByTestId('predict-share-button')).toBeOnTheScreen();
+    });
+
+    it('passes market.id to share button', () => {
+      setupPredictMarketDetailsTest({ id: 'test-market-id' });
+
+      const shareButton = screen.getByTestId('predict-share-button');
+
+      expect(shareButton.props.accessibilityHint).toBe(
+        'marketId:test-market-id',
+      );
+    });
+
+    it('hides share button when market is not loaded (shows skeleton)', () => {
+      setupPredictMarketDetailsTest({}, {}, { market: { market: null } });
+
+      expect(
+        screen.queryByTestId('predict-share-button'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-header-skeleton-back-button'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -926,7 +1006,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
 
-    it('does not render chart when market has no open outcomes', () => {
+    it('removes chart when closed market lacks open outcomes', () => {
       const emptyOutcomesMarket = createMockMarket({
         status: 'closed',
         outcomes: [
@@ -1181,7 +1261,7 @@ describe('PredictMarketDetails', () => {
     it('uses correct string keys for back button', () => {
       setupPredictMarketDetailsTest();
 
-      expect(strings).toHaveBeenCalledWith('back');
+      expect(strings).toHaveBeenCalledWith('predict.buttons.back');
     });
   });
 
@@ -1390,7 +1470,7 @@ describe('PredictMarketDetails', () => {
           exact: false,
         }),
       ).toBeOnTheScreen();
-      expect(screen.getByText('+7.70%')).toBeOnTheScreen();
+      expect(screen.getByText('+7.69%')).toBeOnTheScreen();
     });
 
     it('renders position with negative PnL correctly', () => {
@@ -1419,7 +1499,7 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
-      expect(screen.getByText('7.70%')).toBeOnTheScreen();
+      expect(screen.getByText('7.69%')).toBeOnTheScreen();
     });
 
     it('renders outcomes tab for multi-outcome markets', () => {
@@ -2095,6 +2175,76 @@ describe('PredictMarketDetails', () => {
       );
 
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    describe('Price history fidelity adjustments', () => {
+      const BASE_TIMESTAMP = 1_700_000_000_000;
+      const SHORT_RANGE_FIDELITY = 240;
+      const MAX_DEFAULT_FIDELITY = 1440;
+
+      const buildPriceHistory = (deltaMs: number) => [
+        [
+          { timestamp: BASE_TIMESTAMP, price: 0.5 },
+          { timestamp: BASE_TIMESTAMP + deltaMs, price: 0.6 },
+        ],
+        [],
+      ];
+
+      it('requests higher fidelity when MAX history span is shorter than a month', async () => {
+        const shortRangeHistory = buildPriceHistory(12 * 60 * 60 * 1000); // 12 hours
+
+        setupPredictMarketDetailsTest(
+          { status: 'closed' },
+          {},
+          { priceHistory: { priceHistories: shortRangeHistory } },
+        );
+
+        const { usePredictPriceHistory } = jest.requireMock(
+          '../../hooks/usePredictPriceHistory',
+        );
+
+        await waitFor(() => {
+          const maxCalls = usePredictPriceHistory.mock.calls.filter(
+            (call: [UsePredictPriceHistoryOptions]) =>
+              call[0]?.interval === PredictPriceHistoryInterval.MAX,
+          );
+          expect(maxCalls.length).toBeGreaterThan(0);
+          expect(
+            maxCalls.some(
+              (call: [UsePredictPriceHistoryOptions]) =>
+                call[0]?.fidelity === SHORT_RANGE_FIDELITY,
+            ),
+          ).toBe(true);
+        });
+      });
+
+      it('keeps default MAX fidelity when history span exceeds the threshold', async () => {
+        const longRangeHistory = buildPriceHistory(45 * 24 * 60 * 60 * 1000); // 45 days
+
+        setupPredictMarketDetailsTest(
+          { status: 'closed' },
+          {},
+          { priceHistory: { priceHistories: longRangeHistory } },
+        );
+
+        const { usePredictPriceHistory } = jest.requireMock(
+          '../../hooks/usePredictPriceHistory',
+        );
+
+        await waitFor(() => {
+          const maxCalls = usePredictPriceHistory.mock.calls.filter(
+            (call: [UsePredictPriceHistoryOptions]) =>
+              call[0]?.interval === PredictPriceHistoryInterval.MAX,
+          );
+          expect(maxCalls.length).toBeGreaterThan(0);
+          expect(
+            maxCalls.every(
+              (call: [UsePredictPriceHistoryOptions]) =>
+                call[0]?.fidelity === MAX_DEFAULT_FIDELITY,
+            ),
+          ).toBe(true);
+        });
+      });
     });
 
     it('handles no balance scenario for Yes button', () => {

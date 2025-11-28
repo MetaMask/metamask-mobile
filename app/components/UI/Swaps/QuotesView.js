@@ -39,7 +39,6 @@ import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../util/networks/engineNetworkUtils';
 import {
@@ -1169,9 +1168,7 @@ function SwapsQuotesView({
     let approvalTransactionMetaId;
 
     // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
-    }
+    tryEnableEvmNetwork(chainId);
 
     if (shouldUseSmartTransaction) {
       try {

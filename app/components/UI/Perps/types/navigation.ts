@@ -1,7 +1,7 @@
 import { ParamListBase } from '@react-navigation/native';
 import type {
   Position,
-  OrderResult,
+  Order,
   OrderType,
   PerpsMarketData,
   TPSLTrackingData,
@@ -20,9 +20,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
     direction: 'long' | 'short';
     asset: string;
     leverage?: number;
-    size?: string;
+    amount?: string;
     price?: string;
     orderType?: OrderType;
+    hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
   };
 
   PerpsOrderSuccess: {
@@ -103,11 +104,31 @@ export interface PerpsNavigationParamList extends ParamListBase {
     position: Position;
   };
 
+  PerpsAdjustMargin: {
+    position: Position;
+    mode: 'add' | 'remove';
+  };
+
+  // Action selection routes
+  PerpsSelectModifyAction: {
+    position: Position;
+  };
+
+  PerpsSelectAdjustMarginAction: {
+    position: Position;
+  };
+
+  PerpsSelectOrderType: {
+    currentOrderType: OrderType;
+    asset: string;
+    direction: 'long' | 'short';
+  };
+
   // Order history routes
   PerpsOrderHistory: undefined;
 
   PerpsOrderDetails: {
-    order: OrderResult;
+    order: Order;
     action?: 'view' | 'edit' | 'cancel';
   };
 
@@ -155,6 +176,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsPnlHeroCard: {
     position: Position;
     marketPrice?: string;
+  };
+
+  // Order Book view - Full depth order book display
+  PerpsOrderBook: {
+    symbol: string;
+    marketData?: PerpsMarketData;
   };
 
   // Activity view - Stack-based for proper back navigation
