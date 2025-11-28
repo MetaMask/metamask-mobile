@@ -193,6 +193,7 @@ import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModa
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
+import { ButtonIconVariant } from '../../../component-library/components/Toast/Toast.types';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -951,8 +952,8 @@ const Wallet = ({
         },
       ],
       closeButtonOptions: {
-        label: 'x', // Hacky solution as there isn't a close icon button variant
-        variant: ButtonVariants.Primary,
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
         onPress: () => {
           storePna25Acknowledged();
           trackEvent(
