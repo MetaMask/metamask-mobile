@@ -13,8 +13,19 @@ import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNe
 import { PopularList } from '../../../../../util/networks/customNetworks';
 
 /**
+ * List of CAIP chain IDs to exclude from the popular networks list
+ * These networks are not supported for trending/filtering features
+ */
+const EXCLUDED_NETWORKS: CaipChainId[] = [
+  'eip155:11297108109', // Palm
+  'eip155:999', // Hyper EVM
+  'eip155:143', // Monad
+  'bip122:000000000019d6689c085ae165831e93', // Bitcoin Mainnet
+];
+
+/**
  * Hook to get popular networks, combining networks from Redux state and PopularList.
- * Filters out testnets and ensures Ethereum Mainnet and Linea Mainnet appear first.
+ * Filters out testnets, excluded networks, and ensures Ethereum Mainnet and Linea Mainnet appear first.
  * The selector selectNetworkConfigurationsByCaipChainId is affected by whether the user has removed or added a network.
  * This hook will return all popular networks regardless of whether the user has removed or added a network.
  *
@@ -105,8 +116,13 @@ export const usePopularNetworks = (): ProcessedNetwork[] => {
       }
     }
 
+    // Filter out excluded networks
+    const filteredNetworks = processedNetworks.filter(
+      (network) => !EXCLUDED_NETWORKS.includes(network.caipChainId),
+    );
+
     // Sort networks so Ethereum Mainnet and Linea Mainnet appear first
-    return processedNetworks.sort((a, b) => {
+    return filteredNetworks.sort((a, b) => {
       const ethereumMainnet = 'eip155:1';
       const lineaMainnet = 'eip155:59144';
 
