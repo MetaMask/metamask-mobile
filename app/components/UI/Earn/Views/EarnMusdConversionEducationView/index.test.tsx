@@ -103,6 +103,7 @@ describe('EarnMusdConversionEducationView', () => {
     mockUseMusdConversion.mockReturnValue({
       initiateConversion: mockInitiateConversion,
       error: null,
+      hasSeenMusdEducationScreen: false,
     });
     mockSetMusdConversionEducationSeen.mockReturnValue({
       type: 'SET_MUSD_CONVERSION_EDUCATION_SEEN' as UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
