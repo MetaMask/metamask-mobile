@@ -143,7 +143,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       return `skeleton-${item.sectionId}-${item.index}`;
 
     const section = SECTIONS_CONFIG[item.sectionId];
-    return section ? section.keyExtractor(item.data) : `item-${index}`;
+    return section ? `${section.id}-${index}` : `item-${index}`;
   }, []);
 
   return (

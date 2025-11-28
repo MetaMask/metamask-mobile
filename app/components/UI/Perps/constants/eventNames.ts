@@ -258,6 +258,7 @@ export const PerpsEventValues = {
     CLOSE_ALL_POSITIONS: 'close_all_positions',
     CANCEL_ALL_ORDERS: 'cancel_all_orders',
     PNL_HERO_CARD: 'pnl_hero_card',
+    ORDER_BOOK: 'order_book',
     ERROR: 'error',
   },
   SETTING_TYPE: {
