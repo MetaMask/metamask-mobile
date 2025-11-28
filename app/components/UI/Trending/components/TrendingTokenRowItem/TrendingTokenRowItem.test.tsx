@@ -348,20 +348,7 @@ describe('TrendingTokenRowItem', () => {
 
     const logo = getByTestId('trending-token-logo-ETH');
     expect(logo).toBeTruthy();
-    expect(logo.props['data-size']).toBe(44);
-  });
-
-  it('renders token logo with custom iconSize', () => {
-    const token = createMockToken({ symbol: 'BTC' });
-
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokenRowItem token={token} iconSize={60} />,
-      { state: mockState },
-      false,
-    );
-
-    const logo = getByTestId('trending-token-logo-BTC');
-    expect(logo.props['data-size']).toBe(60);
+    expect(logo.props['data-size']).toBe(40);
   });
 
   it('renders network badge with default network image source', () => {

@@ -133,7 +133,6 @@ export const getPriceChangeFieldKey = (
 
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
-  iconSize?: number;
   selectedTimeOption?: TimeOption;
 }
 
