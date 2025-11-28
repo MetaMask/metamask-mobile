@@ -90,4 +90,16 @@ describe('RewardsTag', () => {
 
     expect(getByTestId(customTestID)).toBeDefined();
   });
+
+  it('renders without background when showBackground is false', () => {
+    const { getByText } = render(
+      <RewardsTag points={100} showBackground={false} />,
+    );
+    expect(getByText('100 points')).toBeDefined();
+  });
+
+  it('renders with background by default', () => {
+    const { getByText } = render(<RewardsTag points={100} />);
+    expect(getByText('100 points')).toBeDefined();
+  });
 });
