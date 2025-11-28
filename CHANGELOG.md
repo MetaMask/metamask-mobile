@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- update changelog for 7.61.0 (hotfix - no test plan)
+- update changelog for 7.61.0
+- update changelog for 7.61.0 (hotfix - no test plan)
+- Merge main into stable-sync
+- Merge branch 'stable' into release/7.59.0
+- chore: fix unit test from main
+- update changelog
+- [skip ci] Bump version number to 3055
+- [skip ci] Bump version number to 3048
+- [skip ci] Bump version number to 3046
+- release v7.58.3
+- Merge origin/main into stable-sync
+- Merge branch 'main' into stable-main-7.59.0
 - update changelog for 7.61.0
 - update changelog for 7.61.0 (hotfix - no test plan)
 - feat(predict): add skeleton loaders and error handling for order preview ([#23340](https://github.com/MetaMask/metamask-mobile/pull/23340))
