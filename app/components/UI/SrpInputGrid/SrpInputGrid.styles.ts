@@ -19,7 +19,7 @@ export const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.section,
       borderRadius: 10,
       marginTop: 16,
-      minHeight: 264,
+      minHeight: 210,
       maxHeight: 'auto',
     },
     seedPhraseInnerContainer: {
@@ -92,8 +92,8 @@ export const createStyles = (colors: Colors) =>
     },
     pasteText: {
       textAlign: 'right' as const,
-      paddingTop: 12,
-      paddingBottom: 16,
+      paddingTop: 8,
+      paddingBottom: 1,
       alignSelf: 'flex-end' as const,
     } satisfies TextStyle,
 
@@ -104,4 +104,23 @@ export const createStyles = (colors: Colors) =>
       top: 0,
       left: 0,
     } satisfies TextStyle,
+
+    suggestionContainer: {
+      paddingVertical: 1,
+    },
+    suggestionListContent: {
+      alignItems: 'center' as const,
+    },
+    suggestionButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 4,
+      marginRight: 12,
+      borderRadius: 8,
+      minWidth: 60,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    },
+    suggestionPressed: {
+      opacity: 0.7,
+    },
   });
