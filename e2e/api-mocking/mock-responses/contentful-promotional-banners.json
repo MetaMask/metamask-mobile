@@ -43,7 +43,7 @@
         "headline": "Solana is now supported",
         "teaser": "Trade, send, and receive Solana tokens",
         "showInMobile": true,
-        "linkUrl": "https://metamask.io/solana",
+        "linkUrl": "https://metamask.io/news/solana-on-metamask-sol-wallet",
         "undismissable": false,
         "variableName": "solana",
         "priorityPlacement": false,
