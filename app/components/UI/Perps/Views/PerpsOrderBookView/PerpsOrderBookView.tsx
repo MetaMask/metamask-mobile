@@ -33,9 +33,10 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { usePerpsNavigation } from '../../hooks';
+import { usePerpsNavigation, usePerpsMarkets } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
+import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
@@ -56,43 +57,38 @@ import {
   calculateGroupingOptions,
   formatGroupingLabel,
   selectDefaultGrouping,
-  aggregateOrderBookLevels,
 } from '../../utils/orderBookGrouping';
 
+// Maximum API levels to request
+// The Hyperliquid API returns at most ~20 levels per side when using nSigFigs
+// We request more to ensure we get the maximum available
+const MAX_API_LEVELS = 50;
+
 /**
- * Calculate the number of API levels needed to display adequate depth
- * based on the current price and selected grouping.
+ * Calculate optimal nSigFigs based on grouping and price.
+ * nSigFigs controls API price precision:
+ * - nSigFigs: 5 → ~$1 increments for BTC (narrow range, fine detail)
+ * - nSigFigs: 2 → ~$1000 increments for BTC (wide range, coarse)
+ * - nSigFigs: 1 → ~$10000 increments for BTC (widest range)
  *
- * Goal: Request enough levels so that after aggregation, we have
- * at least targetRows rows to show.
- *
- * With nSigFigs: 5, the price increment between levels is approximately:
- * - For BTC at $97,000: ~$1 per level (97001, 97002, etc.)
- * - For ETH at $3,500: ~$0.035 per level
- * - For SOL at $150: ~$0.0015 per level
- *
- * So to get 15 rows with $1000 grouping on BTC, we need 15 * 1000 = 15,000 levels!
- * This is too many - instead we should request fewer levels and accept fewer rows
- * for very large groupings.
+ * Goal: Request data granular enough for the grouping but with enough range
+ * to show ~15+ rows after aggregation.
  */
-const calculateRequiredLevels = (
-  price: number,
-  grouping: number,
-  targetRows: number = 15,
-): number => {
-  // Calculate price increment for nSigFigs: 5
-  // nSigFigs: 5 means 5 significant figures, so increment ≈ price * 10^(floor(log10(price)) - 4)
+const calculateOptimalNSigFigs = (grouping: number, price: number): number => {
+  // Calculate what nSigFigs would give us this grouping size
+  // increment ≈ price * 10^(magnitude - nSigFigs + 1)
+  // So nSigFigs = magnitude - log10(grouping) + 1
   const magnitude = Math.floor(Math.log10(price));
-  const priceIncrement = Math.pow(10, magnitude - 4);
+  const groupingMagnitude = Math.floor(Math.log10(grouping));
 
-  // Required price range for target rows
-  const requiredPriceRange = targetRows * grouping;
+  // We want API granularity at or slightly coarser than grouping
+  // to ensure wide enough price range for many rows
+  // nSigFigs = magnitude - groupingMagnitude + 1
+  const optimalNSigFigs = magnitude - groupingMagnitude + 1;
 
-  // Levels needed = price range / increment
-  const levelsNeeded = Math.ceil(requiredPriceRange / priceIncrement);
-
-  // Clamp between 100 (minimum for decent depth) and 2000 (API limit)
-  return Math.max(100, Math.min(2000, levelsNeeded));
+  // Clamp between 2 (widest, ~$1000 for BTC) and 5 (finest, ~$1 for BTC)
+  // API only supports nSigFigs values 2, 3, 4, 5
+  return Math.max(2, Math.min(5, optimalNSigFigs));
 };
 
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
@@ -105,6 +101,13 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { navigateToOrder } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
+
+  // Get market data for the header
+  const { markets } = usePerpsMarkets();
+  const market = useMemo(
+    () => markets.find((m) => m.symbol === symbol),
+    [markets, symbol],
+  );
 
   // Unit display state (base currency or USD)
   const [unitDisplay, setUnitDisplay] = useState<UnitDisplay>('usd');
@@ -129,37 +132,21 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     }
   }, [savedGrouping, selectedGrouping]);
 
-  // Dynamic levels state - starts with high default to ensure good initial depth
-  const [dynamicLevels, setDynamicLevels] = useState(500);
+  // Get market price for grouping calculations (available immediately from markets data)
+  // market.price is formatted like '$90,000.00' so we need to parse it
+  const marketPrice = useMemo(() => {
+    if (!market?.price) return null;
+    // Remove $ and commas, then parse
+    const cleaned = market.price.replace(/[$,]/g, '');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? null : parsed;
+  }, [market]);
 
-  // Subscribe to live order book data with finest granularity (nSigFigs: 5)
-  // We'll aggregate client-side based on selected grouping
-  const {
-    orderBook: rawOrderBook,
-    isLoading,
-    error,
-  } = usePerpsLiveOrderBook({
-    symbol: symbol || '',
-    levels: dynamicLevels,
-    nSigFigs: 5, // Always use finest granularity
-    throttleMs: 100,
-  });
-
-  // Calculate mid price from order book
-  const midPrice = useMemo(() => {
-    if (!rawOrderBook?.bids?.length || !rawOrderBook?.asks?.length) {
-      return null;
-    }
-    const bestBid = parseFloat(rawOrderBook.bids[0].price);
-    const bestAsk = parseFloat(rawOrderBook.asks[0].price);
-    return (bestBid + bestAsk) / 2;
-  }, [rawOrderBook]);
-
-  // Calculate dynamic grouping options based on mid price
+  // Calculate dynamic grouping options based on market price
   const groupingOptions = useMemo(() => {
-    if (!midPrice) return [];
-    return calculateGroupingOptions(midPrice);
-  }, [midPrice]);
+    if (!marketPrice) return [];
+    return calculateGroupingOptions(marketPrice);
+  }, [marketPrice]);
 
   // Current grouping value (use selected or auto-select default)
   const currentGrouping = useMemo(() => {
@@ -175,58 +162,37 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return null;
   }, [selectedGrouping, groupingOptions]);
 
-  // Update dynamic levels when price and grouping are available
-  useEffect(() => {
-    if (midPrice && currentGrouping) {
-      const requiredLevels = calculateRequiredLevels(midPrice, currentGrouping);
-      // Only update if significantly different (>10% change) to avoid unnecessary re-subscriptions
-      const percentChange =
-        Math.abs(requiredLevels - dynamicLevels) / dynamicLevels;
-      if (percentChange > 0.1) {
-        setDynamicLevels(requiredLevels);
-      }
-    }
-  }, [midPrice, currentGrouping, dynamicLevels]);
+  // Calculate optimal nSigFigs based on grouping to get consistent row count
+  const optimalNSigFigs = useMemo(() => {
+    if (!marketPrice || !currentGrouping) return 5;
+    return calculateOptimalNSigFigs(currentGrouping, marketPrice);
+  }, [currentGrouping, marketPrice]);
 
-  // Maximum levels to display per side
-  const MAX_DISPLAY_LEVELS = 15;
+  // Subscribe to live order book data with dynamic nSigFigs
+  // nSigFigs adjusts based on grouping to ensure we get enough price range
+  const {
+    orderBook: rawOrderBook,
+    isLoading,
+    error,
+  } = usePerpsLiveOrderBook({
+    symbol: symbol || '',
+    levels: MAX_API_LEVELS,
+    nSigFigs: optimalNSigFigs,
+    throttleMs: 100,
+  });
 
-  // Aggregate order book based on current grouping
+  // Process order book data
+  // The API's nSigFigs parameter handles aggregation at the server level,
+  // so we don't need client-side aggregation. Just pass through the raw data.
   const orderBook = useMemo(() => {
-    if (!rawOrderBook || !currentGrouping) {
+    if (!rawOrderBook) {
       return rawOrderBook;
     }
 
-    const aggregatedBids = aggregateOrderBookLevels(
-      rawOrderBook.bids,
-      currentGrouping,
-      'bid',
-    ).slice(0, MAX_DISPLAY_LEVELS);
-
-    const aggregatedAsks = aggregateOrderBookLevels(
-      rawOrderBook.asks,
-      currentGrouping,
-      'ask',
-    ).slice(0, MAX_DISPLAY_LEVELS);
-
-    // Calculate new max total for depth bars
-    const maxBidTotal =
-      aggregatedBids.length > 0
-        ? parseFloat(aggregatedBids[aggregatedBids.length - 1].total)
-        : 0;
-    const maxAskTotal =
-      aggregatedAsks.length > 0
-        ? parseFloat(aggregatedAsks[aggregatedAsks.length - 1].total)
-        : 0;
-    const maxTotal = Math.max(maxBidTotal, maxAskTotal).toString();
-
-    return {
-      ...rawOrderBook,
-      bids: aggregatedBids,
-      asks: aggregatedAsks,
-      maxTotal,
-    };
-  }, [rawOrderBook, currentGrouping]);
+    // No client-side aggregation needed - API handles it via nSigFigs
+    // Just return the raw order book data directly
+    return rawOrderBook;
+  }, [rawOrderBook]);
 
   // Performance measurement
   usePerpsMeasurement({
@@ -332,20 +298,24 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   if (error) {
     return (
       <SafeAreaView style={styles.container} testID={testID}>
-        <View style={styles.header}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            iconColor={IconColor.Default}
-            size={ButtonIconSizes.Lg}
-            onPress={handleBack}
-            testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
-          />
-          <View style={styles.headerTitleContainer}>
-            <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-              {strings('perps.order_book.title')}
-            </Text>
+        {market ? (
+          <PerpsMarketHeader market={market} onBackPress={handleBack} />
+        ) : (
+          <View style={styles.header}>
+            <ButtonIcon
+              iconName={IconName.ArrowLeft}
+              iconColor={IconColor.Default}
+              size={ButtonIconSizes.Lg}
+              onPress={handleBack}
+              testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
+            />
+            <View style={styles.headerTitleContainer}>
+              <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+                {strings('perps.order_book.title')}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
             {strings('perps.order_book.error')}
@@ -357,21 +327,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   return (
     <SafeAreaView style={styles.container} testID={testID}>
-      {/* Header */}
-      <View style={styles.header}>
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          iconColor={IconColor.Default}
-          size={ButtonIconSizes.Lg}
-          onPress={handleBack}
-          style={styles.headerBackButton}
-          testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
-        />
-        <View style={styles.headerTitleContainer}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('perps.order_book.title')}
-          </Text>
-        </View>
+      {/* Market Header */}
+      {market && <PerpsMarketHeader market={market} onBackPress={handleBack} />}
+
+      {/* Controls Row - Unit Toggle and Grouping */}
+      <View style={styles.controlsRow}>
         {/* Unit Toggle (BTC/USD) */}
         <View style={styles.headerUnitToggle}>
           <TouchableOpacity
@@ -409,6 +369,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
+
         {/* Price Grouping Dropdown */}
         <Pressable
           style={({ pressed }) => [
