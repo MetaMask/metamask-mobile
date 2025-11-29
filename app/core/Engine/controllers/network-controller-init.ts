@@ -68,29 +68,6 @@ export function getInitialNetworkControllerState(persistedState: {
     ].rpcEndpoints[0].failoverUrls =
       getFailoverUrlsForInfuraNetwork('polygon-mainnet');
 
-    // Update default popular network names
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId.mainnet
-    ].name = 'Ethereum';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['linea-mainnet']
-    ].name = 'Linea';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['base-mainnet']
-    ].name = 'Base';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['arbitrum-mainnet']
-    ].name = 'Arbitrum';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['bsc-mainnet']
-    ].name = 'BNB Chain';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['optimism-mainnet']
-    ].name = 'OP';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['polygon-mainnet']
-    ].name = 'Polygon';
-
     // Remove Sei from initial state so it appears in Additional Networks section
     // Users can add it manually, and it will be available in FEATURED_RPCS
     delete initialNetworkControllerState.networkConfigurationsByChainId[
