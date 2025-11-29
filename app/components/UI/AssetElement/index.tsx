@@ -20,7 +20,7 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../Tokens/constants';
-import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
+import { SECONDARY_BALANCE_TEST_ID } from './index.constants';
 
 interface AssetElementProps {
   children?: React.ReactNode;
@@ -108,7 +108,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
-            testID={BALANCE_TEST_ID}
+            accessible={false}
           >
             {balance === TOKEN_BALANCE_LOADING ||
             balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
