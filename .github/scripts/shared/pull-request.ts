@@ -2,6 +2,12 @@ import { GitHub } from '@actions/github/lib/utils';
 
 import { LabelableType, Labelable } from './labelable';
 
+export type PullRequestFile = {
+  filename: string;
+  additions: number;
+  deletions: number;
+};
+
 // This function retrieves a pull request on a specific repo
 export async function retrievePullRequest(
   octokit: InstanceType<typeof GitHub>,
@@ -66,4 +72,40 @@ export async function retrievePullRequest(
   };
 
   return pullRequest;
+}
+
+// This function retrieves all files changed in a pull request with their change statistics
+export async function retrievePullRequestFiles(
+  octokit: InstanceType<typeof GitHub>,
+  repoOwner: string,
+  repoName: string,
+  prNumber: number,
+): Promise<PullRequestFile[]> {
+  const files: PullRequestFile[] = [];
+  let page = 1;
+  const perPage = 100;
+  let hasMorePages = true;
+
+  while (hasMorePages) {
+    const response = await octokit.rest.pulls.listFiles({
+      owner: repoOwner,
+      repo: repoName,
+      pull_number: prNumber,
+      per_page: perPage,
+      page,
+    });
+
+    files.push(
+      ...response.data.map((file) => ({
+        filename: file.filename,
+        additions: file.additions,
+        deletions: file.deletions,
+      })),
+    );
+
+    hasMorePages = response.data.length === perPage;
+    page++;
+  }
+
+  return files;
 }
