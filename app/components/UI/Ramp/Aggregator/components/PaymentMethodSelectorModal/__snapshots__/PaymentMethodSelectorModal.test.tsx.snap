@@ -433,7 +433,6 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1579,7 +1578,6 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -2725,7 +2723,6 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,

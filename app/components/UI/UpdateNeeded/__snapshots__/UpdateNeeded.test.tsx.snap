@@ -396,7 +396,6 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "gap": 16,
                               },
