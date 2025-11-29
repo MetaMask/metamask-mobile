@@ -159,7 +159,8 @@ export const getRemovedAuthorization = (
   }
 
   const removedRequiredScopes: InternalScopesObject = {};
-  Object.entries(previousAuthorization.requiredScopes).forEach(
+  const { requiredScopes = {}, optionalScopes = {} } = previousAuthorization ?? {};
+  Object.entries(requiredScopes).forEach(
     ([scope, prevScopeObject]) => {
       const newScopeObject =
         newAuthorization.requiredScopes[scope as InternalScopeString];
@@ -170,7 +171,7 @@ export const getRemovedAuthorization = (
   );
 
   const removedOptionalScopes: InternalScopesObject = {};
-  Object.entries(previousAuthorization.optionalScopes).forEach(
+  Object.entries(optionalScopes).forEach(
     ([scope, prevScopeObject]) => {
       const newScopeObject =
         newAuthorization.optionalScopes[scope as InternalScopeString];
