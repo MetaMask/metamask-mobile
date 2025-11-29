@@ -20,7 +20,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import type { Position, Order } from '../../controllers/types';
+import type { Order, Position } from '../../controllers/types';
 import {
   formatPerpsFiat,
   formatPnl,
