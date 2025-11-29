@@ -152,10 +152,68 @@ const selectEarnTokens = createDeepEqualSelector(
       return emptyEarnTokensData;
     }
 
+    // Create a modified copy of earnState instead of mutating
+    const modifiedEarnState = {
+      ...earnState,
+      lending: {
+        ...earnState.lending,
+        markets: [
+          ...earnState.lending.markets,
+          {
+            ...earnState.lending.markets[0],
+            chainId: 1,
+            netSupplyRate: 5.714126045778324,
+            totalSupplyRate: 5.714126045778324,
+            rewards: [],
+            tvlUnderlying: '1000000',
+            underlying: {
+              address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+              chainId: 1,
+            },
+            outputToken: {
+              address: '0xa700b4eb416be35b2911fd5dee80678ff64ff6c9',
+              chainId: 1,
+            },
+          },
+          {
+            ...earnState.lending.markets[0],
+            chainId: 59144,
+            netSupplyRate: 7.214126045778324,
+            totalSupplyRate: 7.214126045778324,
+            rewards: [],
+            tvlUnderlying: '1000000',
+            underlying: {
+              address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+              chainId: 1,
+            },
+            outputToken: {
+              address: '0xa700b4eb416be35b2911fd5dee80678ff64ff6c9',
+              chainId: 1,
+            },
+          },
+          {
+            ...earnState.lending.markets[0],
+            chainId: 56,
+            netSupplyRate: 6.114126045778324,
+            totalSupplyRate: 6.114126045778324,
+            rewards: [],
+            tvlUnderlying: '1000000',
+            underlying: {
+              address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+              chainId: 1,
+            },
+            outputToken: {
+              address: '0xa700b4eb416be35b2911fd5dee80678ff64ff6c9',
+              chainId: 1,
+            },
+          },
+        ],
+      },
+    };
     const lendingMarketsByChainIdAndTokenAddress =
-      selectLendingMarketsByChainIdAndTokenAddress(earnState);
+      selectLendingMarketsByChainIdAndTokenAddress(modifiedEarnState);
     const lendingMarketsByChainIdAndOutputTokenAddress =
-      selectLendingMarketsByChainIdAndOutputTokenAddress(earnState);
+      selectLendingMarketsByChainIdAndOutputTokenAddress(modifiedEarnState);
 
     const earnTokensData = allTokens.reduce((acc, token) => {
       const experiences: EarnTokenDetails['experiences'] = [];
