@@ -73,25 +73,13 @@ export const VALIDATION_THRESHOLDS = {
 
 /**
  * Order slippage configuration
- * Controls default slippage tolerance for different order types
- * Conservative defaults based on HyperLiquid platform interface
- * See: docs/perps/hyperliquid/ORDER-MATCHING-ERRORS.md
+ * Controls default slippage tolerance for market orders
  */
 export const ORDER_SLIPPAGE_CONFIG = {
-  // Market order slippage (basis points)
-  // 300 basis points = 3% = 0.03 decimal
-  // Conservative default for measured rollout, prevents most IOC failures
-  DEFAULT_MARKET_SLIPPAGE_BPS: 300,
-
-  // TP/SL order slippage (basis points)
-  // 1000 basis points = 10% = 0.10 decimal
-  // Aligns with HyperLiquid platform default for triggered orders
-  DEFAULT_TPSL_SLIPPAGE_BPS: 1000,
-
-  // Limit order slippage (basis points)
+  // Default slippage for all market orders (basis points)
   // 100 basis points = 1% = 0.01 decimal
-  // Kept conservative as limit orders rest on book (not IOC/immediate execution)
-  DEFAULT_LIMIT_SLIPPAGE_BPS: 100,
+  // Used when price moves between calculation and execution
+  DEFAULT_SLIPPAGE_BPS: 100,
 } as const;
 
 /**

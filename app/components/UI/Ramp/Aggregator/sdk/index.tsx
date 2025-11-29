@@ -21,9 +21,13 @@ import { getCaipChainIdFromCryptoCurrency } from '../utils';
 import Logger from '../../../../../util/Logger';
 
 import {
+  fiatOrdersGetStartedAgg,
+  setFiatOrdersGetStartedAGG,
   setFiatOrdersRegionAGG,
   fiatOrdersRegionSelectorAgg,
   networkShortNameSelector,
+  fiatOrdersGetStartedSell,
+  setFiatOrdersGetStartedSell,
 } from '../../../../../reducers/fiatOrders';
 import { RampIntent, RampType, Region } from '../types';
 
@@ -92,6 +96,9 @@ export interface RampSDK {
   selectedFiatCurrencyId: string | null;
   setSelectedFiatCurrencyId: (currencyId: string | null) => void;
 
+  getStarted: boolean;
+  setGetStarted: (getStartedFlag: boolean) => void;
+
   selectedAddress: string | null;
   selectedNetworkName?: string;
 
@@ -154,6 +161,8 @@ export const RampSDKProvider = ({
   const INITIAL_SELECTED_REGION: Region | null = useSelector(
     fiatOrdersRegionSelectorAgg,
   );
+  const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
+  const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
   const selectedNetworkNickname = useSelector(selectNickname);
   const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
@@ -180,6 +189,11 @@ export const RampSDKProvider = ({
   const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState<
     string | null
   >(null);
+  const [getStarted, setGetStarted] = useState(
+    (providerRampType ?? RampType.BUY) === RampType.BUY
+      ? INITIAL_GET_STARTED
+      : INITIAL_GET_STARTED_SELL,
+  );
 
   const isBuy = rampType === RampType.BUY;
   const isSell = rampType === RampType.SELL;
@@ -213,6 +227,18 @@ export const RampSDKProvider = ({
     [],
   );
 
+  const setGetStartedCallback = useCallback(
+    (getStartedFlag: boolean) => {
+      setGetStarted(getStartedFlag);
+      if (rampType === RampType.BUY) {
+        dispatch(setFiatOrdersGetStartedAGG(getStartedFlag));
+      } else {
+        dispatch(setFiatOrdersGetStartedSell(getStartedFlag));
+      }
+    },
+    [dispatch, rampType],
+  );
+
   const contextValue = useMemo(
     (): RampSDK => ({
       sdk,
@@ -238,6 +264,9 @@ export const RampSDKProvider = ({
       selectedFiatCurrencyId,
       setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
 
+      getStarted,
+      setGetStarted: setGetStartedCallback,
+
       selectedAddress,
       selectedNetworkName,
 
@@ -249,6 +278,7 @@ export const RampSDKProvider = ({
       isInternalBuild: isDevelopmentOrInternalBuild,
     }),
     [
+      getStarted,
       isBuy,
       isSell,
       intent,
@@ -262,6 +292,7 @@ export const RampSDKProvider = ({
       selectedNetworkName,
       selectedPaymentMethodId,
       selectedRegion,
+      setGetStartedCallback,
       setSelectedAssetCallback,
       setSelectedFiatCurrencyIdCallback,
       setSelectedPaymentMethodIdCallback,

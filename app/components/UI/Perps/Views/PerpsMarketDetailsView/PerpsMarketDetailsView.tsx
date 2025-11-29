@@ -517,60 +517,38 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const watchlistCount = controller.getWatchlistMarkets().length;
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]: 'watchlist_toggled',
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.FAVORITE_TOGGLED,
       [PerpsEventProperties.ACTION_TYPE]: newWatchlistState
-        ? 'add_to_watchlist'
-        : 'remove_from_watchlist',
+        ? PerpsEventValues.ACTION_TYPE.FAVORITE_MARKET
+        : PerpsEventValues.ACTION_TYPE.UNFAVORITE_MARKET,
       [PerpsEventProperties.ASSET]: market.symbol,
-      [PerpsEventProperties.SOURCE]: 'asset_details',
-      watchlist_count: watchlistCount,
+      [PerpsEventProperties.FAVORITES_COUNT]: watchlistCount,
     });
   }, [market, isWatchlist, track]);
 
-  const handleTradeAction = useCallback(
-    (direction: 'long' | 'short') => {
-      if (!isEligible) {
-        setIsEligibilityModalVisible(true);
-        return;
-      }
-
-      // Check for cross-margin position (MetaMask only supports isolated margin)
-      if (existingPosition?.leverage?.type === 'cross') {
-        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
-        });
-
-        track(MetaMetricsEvents.PERPS_ERROR, {
-          [PerpsEventProperties.ERROR_TYPE]:
-            PerpsEventValues.ERROR_TYPE.VALIDATION,
-          [PerpsEventProperties.ERROR_MESSAGE]:
-            'Cross margin position detected',
-        });
-
-        return;
-      }
-
-      navigateToOrder({
-        direction,
-        asset: market.symbol,
-      });
-    },
-    [
-      isEligible,
-      existingPosition,
-      navigation,
-      track,
-      navigateToOrder,
-      market?.symbol,
-    ],
-  );
-
   const handleLongPress = () => {
-    handleTradeAction('long');
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    navigateToOrder({
+      direction: 'long',
+      asset: market.symbol,
+    });
   };
 
   const handleShortPress = () => {
-    handleTradeAction('short');
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    navigateToOrder({
+      direction: 'short',
+      asset: market.symbol,
+    });
   };
 
   const { navigateToConfirmation } = useConfirmNavigation();

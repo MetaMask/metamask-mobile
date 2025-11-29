@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
-import { colors as importedColors } from '../../../styles/common';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -11,17 +10,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 16,
       marginHorizontal: 16,
     },
-    backdrop: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: colors.overlay.default,
-    },
-    keyboardAvoidingView: {
-      flex: 1,
-      backgroundColor: importedColors.transparent,
-    },
-    container: {
-      flex: 1,
+    bottomSheetContent: {
       backgroundColor: colors.background.default,
+      display: 'flex',
     },
   });
 };

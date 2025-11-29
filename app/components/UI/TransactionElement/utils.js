@@ -36,6 +36,13 @@ import {
 } from '../Bridge/utils/transaction-history';
 import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
+import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+
+const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 const { getSwapsContractAddress } = swapsUtils;
 
@@ -83,7 +90,8 @@ function getTokenTransfer(args) {
   }
 
   const isIncomplete = isTransactionIncomplete(status);
-  const isSent = from?.toLowerCase() === selectedAddress?.toLowerCase();
+  const isSent =
+    renderFullAddress(from)?.toLowerCase() === selectedAddress?.toLowerCase();
 
   let actionVerb;
   if (isSent) {
@@ -161,12 +169,21 @@ function getTokenTransfer(args) {
 
   const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
   const transactionType = isSent ? SENT_TOKEN : RECEIVED_TOKEN;
+
+  const isPositive = hasTransactionType(
+    tx,
+    POSITIVE_TRANSFER_TRANSACTION_TYPES,
+  );
+
+  const signPrefix = isPositive ? '' : '- ';
+
   const transactionElement = {
     actionKey: renderActionKey,
     value: !renderTokenAmount
       ? strings('transaction.value_not_available')
       : renderTokenAmount,
-    fiatValue: !!renderTokenFiatAmount && `- ${renderTokenFiatAmount}`,
+    fiatValue:
+      !!renderTokenFiatAmount && `${signPrefix}${renderTokenFiatAmount}`,
     transactionType,
     nonce,
   };
@@ -191,7 +208,7 @@ function getCollectibleTransfer(args) {
   } = args;
 
   const isIncomplete = isTransactionIncomplete(status);
-  const isSent = from?.toLowerCase() === selectedAddress?.toLowerCase();
+  const isSent = renderFullAddress(from) === selectedAddress;
 
   let actionVerb;
   if (isSent) {
@@ -338,7 +355,10 @@ function decodeIncomingTransfer(args) {
     : weiToFiatNumber(totalGas, conversionRate);
 
   const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
-  const transactionType = !isIncoming ? SENT_TOKEN : RECEIVED_TOKEN;
+  const transactionType =
+    renderFullAddress(from)?.toLowerCase() === selectedAddress?.toLowerCase()
+      ? SENT_TOKEN
+      : RECEIVED_TOKEN;
 
   let transactionDetails = {
     renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
@@ -978,6 +998,7 @@ export default async function decodeTransaction(args) {
     switch (actionKey) {
       case strings('transactions.tx_review_perps_deposit'):
       case strings('transactions.tx_review_predict_deposit'):
+      case strings('transactions.tx_review_predict_withdraw'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,

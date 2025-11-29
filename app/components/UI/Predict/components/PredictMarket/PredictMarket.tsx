@@ -9,14 +9,12 @@ interface PredictMarketProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
-  isCarousel?: boolean;
 }
 
 const PredictMarket: React.FC<PredictMarketProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-  isCarousel = false,
 }) => {
   if (market.outcomes.length === 1) {
     return (
@@ -24,7 +22,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         market={market}
         testID={testID}
         entryPoint={entryPoint}
-        isCarousel={isCarousel}
       />
     );
   }
@@ -34,7 +31,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
       market={market}
       testID={testID}
       entryPoint={entryPoint}
-      isCarousel={isCarousel}
     />
   );
 };
