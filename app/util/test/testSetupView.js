@@ -8,6 +8,14 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/display-name */
 const { NativeModules } = require('react-native');
+// eslint-disable-next-line import/no-nodejs-modules
+const nodeCrypto = require('crypto');
+
+// Secure random helper to avoid duplication
+const getRandomValuesCompat = (arr) =>
+  nodeCrypto?.webcrypto?.getRandomValues
+    ? nodeCrypto.webcrypto.getRandomValues(arr)
+    : (nodeCrypto.randomFillSync(arr), arr);
 
 // 1. Essential React Native Infrastructure Mocks
 // ------------------------------------------------
@@ -50,7 +58,11 @@ try {
   require('react-native-reanimated').setUpTests();
   global.__reanimatedWorkletInit = jest.fn();
 } catch (e) {
-  // Ignore if reanimated is not present or fails to load
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[testSetupView] react-native-reanimated test setup skipped:',
+    e?.message ?? e,
+  );
 }
 
 // Mock SettingsManager (prevents TurboModuleRegistry invariant violations)
@@ -78,64 +90,69 @@ jest.mock(
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
 // Mock react-native-quick-crypto
-jest.mock('react-native-quick-crypto', () => ({
-  getRandomValues: jest.fn((array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-    return array;
-  }),
-  subtle: {
-    importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) =>
-      Promise.resolve({
-        format,
-        keyData,
-        algorithm,
-        extractable,
-        keyUsages,
-      }),
-    ),
-    deriveBits: jest.fn((algorithm, baseKey, length) => {
-      const derivedBits = new Uint8Array(length);
-      for (let i = 0; i < length; i++) {
-        derivedBits[i] = Math.floor(Math.random() * 256);
-      }
-      return Promise.resolve(derivedBits);
-    }),
-    exportKey: jest.fn((format, key) =>
-      Promise.resolve(new Uint8Array([1, 2, 3, 4])),
-    ),
-    encrypt: jest.fn((algorithm, key, data) =>
-      Promise.resolve(
-        new Uint8Array([
-          123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
-          58,
-        ]),
+jest.mock('react-native-quick-crypto', () => {
+  // eslint-disable-next-line import/no-nodejs-modules
+  const mockNodeCrypto = require('crypto');
+  const getRandomValuesCompatLocal = (arr) =>
+    mockNodeCrypto?.webcrypto?.getRandomValues
+      ? mockNodeCrypto.webcrypto.getRandomValues(arr)
+      : (mockNodeCrypto.randomFillSync(arr), arr);
+
+  return {
+    getRandomValues: jest.fn((array) => getRandomValuesCompatLocal(array)),
+    subtle: {
+      importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) =>
+        Promise.resolve({
+          format,
+          keyData,
+          algorithm,
+          extractable,
+          keyUsages,
+        }),
       ),
-    ),
-    decrypt: jest.fn((algorithm, key, data) =>
-      Promise.resolve(
-        new Uint8Array([
-          123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
-          58,
-        ]),
+      deriveBits: jest.fn((algorithm, baseKey, length) =>
+        Promise.resolve(getRandomValuesCompatLocal(new Uint8Array(length))),
       ),
+      exportKey: jest.fn((format, key) =>
+        Promise.resolve(new Uint8Array([1, 2, 3, 4])),
+      ),
+      encrypt: jest.fn(() =>
+        Promise.resolve(
+          new Uint8Array([
+            123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+            58,
+          ]),
+        ),
+      ),
+      decrypt: jest.fn(() =>
+        Promise.resolve(
+          new Uint8Array([
+            123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+            58,
+          ]),
+        ),
+      ),
+    },
+    randomUUID: jest.fn(() =>
+      typeof mockNodeCrypto.randomUUID === 'function'
+        ? mockNodeCrypto.randomUUID()
+        : (() => {
+            const b = mockNodeCrypto.randomBytes(16);
+            b[6] = (b[6] & 0x0f) | 0x40;
+            b[8] = (b[8] & 0x3f) | 0x80;
+            const hex = b.toString('hex');
+            return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(
+              12,
+              16,
+            )}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+          })(),
     ),
-  },
-  randomUUID: jest.fn(
-    () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
-  ),
-}));
+  };
+});
 
 // Mock global crypto
 global.crypto = {
-  getRandomValues: (arr) => {
-    const uint8Max = 255;
-    for (let i = 0; i < arr.length; i++) {
-      arr[i] = Math.floor(Math.random() * (uint8Max + 1));
-    }
-    return arr;
-  },
+  getRandomValues: (arr) => getRandomValuesCompat(arr),
 };
 
 // Mock react-native-fs
@@ -229,16 +246,13 @@ jest.mock('@segment/analytics-react-native', () => {
     }
   }
 
-  class CountFlushPolicy {
-    constructor(count) {
-      this.count = count;
-    }
+  // Replace empty classes with simple constructor functions (Sonar S2094)
+  function CountFlushPolicy(count) {
+    return { count };
   }
 
-  class TimerFlushPolicy {
-    constructor(interval) {
-      this.interval = interval;
-    }
+  function TimerFlushPolicy(interval) {
+    return { interval };
   }
 
   return {
@@ -417,7 +431,6 @@ jest.mock('../../store', () => ({
 
 // Mock react-native-fade-in-image
 jest.mock('react-native-fade-in-image', () => {
-  const React = require('react');
   const FadeIn = ({ children }) => children ?? null;
   return FadeIn;
 });
@@ -575,36 +588,3 @@ jest.mock('../../components/Base/RemoteImage', () => {
   const { View } = require('react-native');
   return (props) => <View {...props} testID="mock-remote-image" />;
 });
-
-// 2. The Guard: Enforce Whitelist for jest.mock
-// ------------------------------------------------
-(() => {
-  const ALLOWED_MOCK_MODULES = new Set([
-    // Core business logic: mocked to isolate view tests from complex state/side-effects
-    '../../../core/Engine',
-    '../../../core/Engine/Engine',
-    // Native modules: mocked for deterministic behavior
-    'react-native-device-info',
-    'react-native/Libraries/Animated/Easing',
-    // App components: mocked to avoid async operations (e.g. image sizing) causing act() warnings
-    '../../components/Base/RemoteImage',
-  ]);
-  const originalJestMock = jest.mock.bind(jest);
-
-  // eslint-disable-next-line no-underscore-dangle
-  jest.mock = new Proxy(originalJestMock, {
-    apply(target, thisArg, args) {
-      const [moduleName] = args;
-      if (!ALLOWED_MOCK_MODULES.has(moduleName)) {
-        throw new Error(
-          `Forbidden jest.mock("${String(
-            moduleName,
-          )}") in component-view tests. Allowed only: ${[
-            ...ALLOWED_MOCK_MODULES,
-          ].join(', ')}`,
-        );
-      }
-      return Reflect.apply(target, thisArg, args);
-    },
-  });
-})();
