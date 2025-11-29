@@ -127,14 +127,17 @@ export const useSwapBridgeNavigation = ({
       });
 
       // Track Swap button click with new consolidated event
+      const isFromNavbar = location === SwapBridgeNavigationLocation.TabBar;
       trackActionButtonClick(trackEvent, createEventBuilder, {
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SECOND_POSITION,
+        // Omit action_position for navbar to avoid confusion with main action buttons
+        ...(isFromNavbar
+          ? {}
+          : { action_position: ActionPosition.SECOND_POSITION }),
         button_label: strings('asset_overview.swap'),
-        location:
-          location === 'TabBar'
-            ? ActionLocation.HOME
-            : ActionLocation.ASSET_DETAILS,
+        location: isFromNavbar
+          ? ActionLocation.NAVBAR
+          : ActionLocation.ASSET_DETAILS,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)

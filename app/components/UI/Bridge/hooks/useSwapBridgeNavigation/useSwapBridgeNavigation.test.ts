@@ -509,11 +509,11 @@ describe('useSwapBridgeNavigation', () => {
         MetaMetricsEvents.ACTION_BUTTON_CLICKED,
       );
 
+      // When location is TabBar, action_position is omitted and location is navbar
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SECOND_POSITION,
         button_label: 'Swap',
-        location: ActionLocation.HOME,
+        location: ActionLocation.NAVBAR,
       });
       expect(mockBuild).toHaveBeenCalled();
 
