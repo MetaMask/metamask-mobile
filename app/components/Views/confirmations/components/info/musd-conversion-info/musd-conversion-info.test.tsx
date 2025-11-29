@@ -103,7 +103,7 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe.skip('preferredPaymentToken', () => {
+  describe('preferredPaymentToken', () => {
     it('passes preferredPaymentToken to CustomAmountInfo when provided', () => {
       const preferredPaymentToken = {
         address: '0xdef' as Hex,
@@ -129,7 +129,7 @@ describe('MusdConversionInfo', () => {
 
       expect(CustomAmountInfo).toHaveBeenCalledWith(
         expect.objectContaining({
-          preferredPaymentToken,
+          preferredToken: preferredPaymentToken,
         }),
         expect.anything(),
       );

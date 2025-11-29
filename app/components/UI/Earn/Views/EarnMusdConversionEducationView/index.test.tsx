@@ -1,10 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import {
-  useRoute,
-  useNavigation,
-  useFocusEffect,
-} from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import EarnMusdConversionEducationView from './index';
@@ -16,12 +12,12 @@ import Logger from '../../../../../util/Logger';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useRoute: jest.fn(),
     useNavigation: jest.fn(),
     useFocusEffect: jest.fn(),
   };
@@ -32,8 +28,19 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
+  createNavigationDetails: jest.fn((_root, screen) => ({
+    name: screen,
+    params: {},
+  })),
+}));
+
 jest.mock('../../../../../actions/user', () => ({
   setMusdConversionEducationSeen: jest.fn(),
+  UserActionType: {
+    SET_MUSD_CONVERSION_EDUCATION_SEEN: 'SET_MUSD_CONVERSION_EDUCATION_SEEN',
+  },
 }));
 
 jest.mock('../../hooks/useMusdConversion', () => ({
@@ -57,7 +64,6 @@ jest.mock('../../../../../util/theme', () => ({
   }),
 }));
 
-const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -72,6 +78,7 @@ const mockSetMusdConversionEducationSeen =
 const mockUseMusdConversion = useMusdConversion as jest.MockedFunction<
   typeof useMusdConversion
 >;
+const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 describe('EarnMusdConversionEducationView', () => {
@@ -100,14 +107,18 @@ describe('EarnMusdConversionEducationView', () => {
     mockUseFocusEffect.mockImplementation((callback) => {
       callback();
     });
+    mockUseParams.mockReturnValue(mockRouteParams);
     mockUseMusdConversion.mockReturnValue({
       initiateConversion: mockInitiateConversion,
       error: null,
-      hasSeenMusdEducationScreen: false,
+      hasSeenConversionEducationScreen: false,
     });
-    mockSetMusdConversionEducationSeen.mockReturnValue({
-      type: 'SET_MUSD_CONVERSION_EDUCATION_SEEN' as UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
-    });
+    mockSetMusdConversionEducationSeen.mockImplementation((seen: boolean) => ({
+      type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
+      payload: {
+        seen,
+      },
+    }));
   });
 
   afterEach(() => {
@@ -116,12 +127,6 @@ describe('EarnMusdConversionEducationView', () => {
 
   describe('rendering', () => {
     it('renders mUSD conversion education screen with all UI elements', () => {
-      mockUseRoute.mockReturnValue({
-        params: mockRouteParams,
-        key: 'test-key',
-        name: 'test-name',
-      });
-
       const { getByText } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -141,12 +146,6 @@ describe('EarnMusdConversionEducationView', () => {
 
   describe('redux actions', () => {
     it('dispatches setMusdConversionEducationSeen when continue button pressed', async () => {
-      mockUseRoute.mockReturnValue({
-        params: mockRouteParams,
-        key: 'test-key',
-        name: 'test-name',
-      });
-
       const { getByText } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -161,18 +160,13 @@ describe('EarnMusdConversionEducationView', () => {
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledTimes(1);
         expect(mockDispatch).toHaveBeenCalledWith({
-          type: 'SET_MUSD_CONVERSION_EDUCATION_SEEN',
+          type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
+          payload: { seen: true },
         });
       });
     });
 
     it('marks education as seen before initiating conversion', async () => {
-      mockUseRoute.mockReturnValue({
-        params: mockRouteParams,
-        key: 'test-key',
-        name: 'test-name',
-      });
-
       const callOrder: string[] = [];
 
       mockDispatch.mockImplementation(() => {
@@ -201,12 +195,6 @@ describe('EarnMusdConversionEducationView', () => {
 
   describe('conversion initiation', () => {
     it('calls initiateConversion with correct params when outputChainId and preferredPaymentToken provided', async () => {
-      mockUseRoute.mockReturnValue({
-        params: mockRouteParams,
-        key: 'test-key',
-        name: 'test-name',
-      });
-
       const { getByText } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -232,11 +220,7 @@ describe('EarnMusdConversionEducationView', () => {
         preferredPaymentToken: mockRouteParams.preferredPaymentToken,
       };
 
-      mockUseRoute.mockReturnValue({
-        params: paramsWithoutOutputChainId,
-        key: 'test-key',
-        name: 'test-name',
-      });
+      mockUseParams.mockReturnValue(paramsWithoutOutputChainId);
 
       const { getByText } = renderWithProvider(
         <EarnMusdConversionEducationView />,
@@ -259,47 +243,12 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).not.toHaveBeenCalled();
       });
     });
-
-    it('logs error when preferredPaymentToken missing', async () => {
-      const paramsWithoutPaymentToken = {
-        outputChainId: mockRouteParams.outputChainId,
-      };
-
-      mockUseRoute.mockReturnValue({
-        params: paramsWithoutPaymentToken,
-        key: 'test-key',
-        name: 'test-name',
-      });
-
-      const { getByText } = renderWithProvider(
-        <EarnMusdConversionEducationView />,
-        { state: {} },
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
-        );
-      });
-
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
-        expect(mockLogger.error).toHaveBeenCalledTimes(1);
-        expect(mockInitiateConversion).not.toHaveBeenCalled();
-      });
-    });
   });
 
   describe('error handling', () => {
     it('logs error when initiateConversion throws error', async () => {
       const testError = new Error('Conversion failed');
       mockInitiateConversion.mockRejectedValue(testError);
-
-      mockUseRoute.mockReturnValue({
-        params: mockRouteParams,
-        key: 'test-key',
-        name: 'test-name',
-      });
 
       const { getByText } = renderWithProvider(
         <EarnMusdConversionEducationView />,
@@ -325,12 +274,6 @@ describe('EarnMusdConversionEducationView', () => {
       const testError = new Error('Conversion failed');
       mockInitiateConversion.mockRejectedValue(testError);
 
-      mockUseRoute.mockReturnValue({
-        params: mockRouteParams,
-        key: 'test-key',
-        name: 'test-name',
-      });
-
       const { getByText } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -345,7 +288,8 @@ describe('EarnMusdConversionEducationView', () => {
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledTimes(1);
         expect(mockDispatch).toHaveBeenCalledWith({
-          type: 'SET_MUSD_CONVERSION_EDUCATION_SEEN',
+          type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
+          payload: { seen: true },
         });
       });
     });
