@@ -41,7 +41,7 @@ function getPRChangedFiles() {
  */
 function hasTestFile(file) {
   const fs = require('fs');
-  const testFile = file.replace(/\.(ts|tsx)$/, '.test.$1');
+  const testFile = file.replace(/\.(ts|tsx)$/, (_, ext) => `.test.${ext}`);
   return fs.existsSync(testFile);
 }
 
