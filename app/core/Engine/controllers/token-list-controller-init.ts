@@ -24,7 +24,12 @@ export const tokenListControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
     onNetworkStateChange: (listener) =>
-      initMessenger.subscribe('NetworkController:stateChange', listener),
+      initMessenger.subscribe(
+        'NetworkController:stateChange',
+        // TODO: remove this once we bump network-controller
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (networkState) => listener(networkState as any),
+      ),
   });
 
   return {
