@@ -184,6 +184,7 @@ class FixtureBuilder {
     this.fixture = {
       state: {
         legalNotices: {
+          isPna25Acknowledged: true,
           newPrivacyPolicyToastClickedOrClosed: true,
           newPrivacyPolicyToastShownDate: Date.now(),
         },
