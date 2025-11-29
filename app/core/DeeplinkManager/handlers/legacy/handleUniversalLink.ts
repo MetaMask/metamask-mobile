@@ -13,6 +13,8 @@ import {
 import { DeepLinkModalLinkType } from '../../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
+import { UniversalRouterIntegration } from '../../router/UniversalRouterIntegration';
+import Logger from '../../../../util/Logger';
 import { capitalize } from '../../../../util/general';
 import handleRampUrl from './handleRampUrl';
 import handleDepositCashUrl from './handleDepositCashUrl';
@@ -94,6 +96,7 @@ async function handleUniversalLink({
   url: string;
   source: string;
 }) {
+  Logger.log('🔗 handleUniversalLink url', url);
   const validatedUrl = new URL(url);
 
   if (
@@ -214,11 +217,26 @@ async function handleUniversalLink({
       });
     }));
 
-  // Universal links
-  handled();
-
   if (!shouldProceed) {
     return false;
+  }
+
+  // 🔥 NEW ROUTER INTEGRATION 🔥
+  const wasHandledByNewRouter =
+    await UniversalRouterIntegration.processWithNewRouter(
+      url,
+      source,
+      instance,
+      browserCallBack,
+    );
+  Logger.log(
+    '🔗 handleUniversalLink wasHandledByNewRouter',
+    wasHandledByNewRouter,
+  );
+
+  if (wasHandledByNewRouter) {
+    handled();
+    return;
   }
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
@@ -251,12 +269,14 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     const homePath = urlObj.href.replace(BASE_URL_ACTION, '');
     navigateToHomeUrl({ homePath });
+    handled();
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
     handleSwapUrl({
       swapPath,
     });
+    handled();
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
     const deeplinkUrl = urlObj.href.replace(
@@ -274,7 +294,6 @@ async function handleUniversalLink({
       .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
-    return;
   } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
     const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
     handleCreateAccountUrl({
@@ -307,13 +326,13 @@ async function handleUniversalLink({
     if (wcURL) {
       instance.parse(wcURL, { origin: source });
     }
-    return;
   } else if (action === SUPPORTED_ACTIONS.ONBOARDING) {
     const onboardingPath = urlObj.href.replace(BASE_URL_ACTION, '');
     handleFastOnboarding({ onboardingPath });
   } else if (action === SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON) {
     handleEnableCardButton();
   }
+  handled();
 }
 
 export default handleUniversalLink;
