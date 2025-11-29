@@ -1189,7 +1189,7 @@ export class HyperLiquidSubscriptionService {
                   : undefined,
               }));
 
-              callback(orderFills);
+              callback(orderFills, data.isSnapshot);
             },
           ),
         )
