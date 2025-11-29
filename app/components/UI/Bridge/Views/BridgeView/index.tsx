@@ -39,7 +39,6 @@ import {
   selectIsSolanaSourced,
   selectBridgeViewMode,
   setBridgeViewMode,
-  selectNoFeeAssets,
   selectIsNonEvmNonEvmBridge,
   selectIsSelectingRecipient,
 } from '../../../../../core/redux/slices/bridge';
@@ -76,7 +75,6 @@ import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
-import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
@@ -127,9 +125,6 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
-  const noFeeDestAssets = useSelector((state: RootState) =>
-    selectNoFeeAssets(state, destToken?.chainId),
-  );
 
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
@@ -361,13 +356,13 @@ const BridgeView = () => {
   };
 
   const handleSourceTokenPress = () =>
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+    navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'source',
     });
 
   const handleDestTokenPress = () =>
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+    navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'dest',
     });
 
   const getButtonLabel = () => {
@@ -433,9 +428,6 @@ const BridgeView = () => {
 
     const hasFee = activeQuote && feePercentage > 0;
 
-    const isNoFeeDestinationAsset =
-      destToken?.address && noFeeDestAssets?.includes(destToken.address);
-
     const approval =
       activeQuote?.approval && sourceAmount && sourceToken
         ? { amount: sourceAmount, symbol: sourceToken.symbol }
@@ -478,11 +470,9 @@ const BridgeView = () => {
                 ? strings('bridge.fee_disclaimer', {
                     feePercentage,
                   })
-                : !hasFee && isNoFeeDestinationAsset
-                  ? strings('bridge.no_mm_fee_disclaimer', {
-                      destTokenSymbol: destToken?.symbol,
-                    })
-                  : ''}
+                : strings('bridge.no_mm_fee_disclaimer', {
+                    destTokenSymbol: destToken?.symbol,
+                  })}
               {approval
                 ? ` ${strings('bridge.approval_needed', approval)}`
                 : ''}{' '}

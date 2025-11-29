@@ -237,6 +237,7 @@ const Routes = {
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
+    TOKEN_SELECTOR: 'BridgeTokenSelector',
     MODALS: {
       ROOT: 'BridgeModals',
       SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
