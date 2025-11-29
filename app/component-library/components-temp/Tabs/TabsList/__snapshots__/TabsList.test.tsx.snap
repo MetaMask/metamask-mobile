@@ -21,36 +21,33 @@ exports[`TabsList Edge Cases handles non-React element children with default val
         {
           "display": "flex",
           "overflow": "hidden",
-          "paddingLeft": 16,
-          "paddingRight": 16,
           "position": "relative",
         },
         undefined,
       ]
     }
   >
-    <View
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexDirection": "row",
+          "gap": 24,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        }
+      }
+      horizontal={true}
+      onContentSizeChange={[Function]}
+      scrollEnabled={false}
+      scrollsToTop={false}
+      showsHorizontalScrollIndicator={false}
       style={
-        [
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "gap": 24,
-            "position": "relative",
-          },
-          undefined,
-        ]
+        {
+          "flexGrow": 0,
+        }
       }
     >
-      <View
-        onLayout={[Function]}
-        style={
-          {
-            "flexShrink": 0,
-          }
-        }
-      >
+      <View>
         <View
           accessibilityState={
             {
@@ -85,6 +82,7 @@ exports[`TabsList Edge Cases handles non-React element children with default val
             {
               "alignItems": "center",
               "flexDirection": "row",
+              "flexShrink": 0,
               "justifyContent": "center",
               "paddingBottom": 4,
               "paddingLeft": 0,
@@ -144,16 +142,25 @@ exports[`TabsList Edge Cases handles non-React element children with default val
           >
             Tab 1
           </Text>
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#121314",
+                "bottom": 0,
+                "height": 2,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "scaleX": 1,
+                  },
+                ],
+              }
+            }
+          />
         </View>
-      </View>
-      <View
-        onLayout={[Function]}
-        style={
-          {
-            "flexShrink": 0,
-          }
-        }
-      >
         <View
           accessibilityState={
             {
@@ -188,6 +195,7 @@ exports[`TabsList Edge Cases handles non-React element children with default val
             {
               "alignItems": "center",
               "flexDirection": "row",
+              "flexShrink": 0,
               "justifyContent": "center",
               "paddingBottom": 4,
               "paddingLeft": 0,
@@ -247,9 +255,27 @@ exports[`TabsList Edge Cases handles non-React element children with default val
           >
             Tab 2
           </Text>
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#121314",
+                "bottom": 0,
+                "height": 2,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "scaleX": 0,
+                  },
+                ],
+              }
+            }
+          />
         </View>
       </View>
-    </View>
+    </RCTScrollView>
   </View>
   <View
     collapsable={false}
@@ -330,28 +356,34 @@ exports[`TabsList handles empty children gracefully 1`] = `
         {
           "display": "flex",
           "overflow": "hidden",
-          "paddingLeft": 16,
-          "paddingRight": 16,
           "position": "relative",
         },
         undefined,
       ]
     }
   >
-    <View
-      style={
-        [
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "gap": 24,
-            "position": "relative",
-          },
-          undefined,
-        ]
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexDirection": "row",
+          "gap": 24,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        }
       }
-    />
+      horizontal={true}
+      onContentSizeChange={[Function]}
+      scrollEnabled={false}
+      scrollsToTop={false}
+      showsHorizontalScrollIndicator={false}
+      style={
+        {
+          "flexGrow": 0,
+        }
+      }
+    >
+      <View />
+    </RCTScrollView>
   </View>
   <View
     collapsable={false}
@@ -396,36 +428,33 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
         {
           "display": "flex",
           "overflow": "hidden",
-          "paddingLeft": 16,
-          "paddingRight": 16,
           "position": "relative",
         },
         undefined,
       ]
     }
   >
-    <View
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexDirection": "row",
+          "gap": 24,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        }
+      }
+      horizontal={true}
+      onContentSizeChange={[Function]}
+      scrollEnabled={false}
+      scrollsToTop={false}
+      showsHorizontalScrollIndicator={false}
       style={
-        [
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "gap": 24,
-            "position": "relative",
-          },
-          undefined,
-        ]
+        {
+          "flexGrow": 0,
+        }
       }
     >
-      <View
-        onLayout={[Function]}
-        style={
-          {
-            "flexShrink": 0,
-          }
-        }
-      >
+      <View>
         <View
           accessibilityState={
             {
@@ -460,6 +489,7 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
+              "flexShrink": 0,
               "justifyContent": "center",
               "paddingBottom": 4,
               "paddingLeft": 0,
@@ -519,16 +549,25 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
           >
             Tab 1
           </Text>
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#121314",
+                "bottom": 0,
+                "height": 2,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "scaleX": 1,
+                  },
+                ],
+              }
+            }
+          />
         </View>
-      </View>
-      <View
-        onLayout={[Function]}
-        style={
-          {
-            "flexShrink": 0,
-          }
-        }
-      >
         <View
           accessibilityState={
             {
@@ -563,6 +602,7 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
+              "flexShrink": 0,
               "justifyContent": "center",
               "paddingBottom": 4,
               "paddingLeft": 0,
@@ -622,9 +662,27 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
           >
             Tab 2
           </Text>
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#121314",
+                "bottom": 0,
+                "height": 2,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "scaleX": 0,
+                  },
+                ],
+              }
+            }
+          />
         </View>
       </View>
-    </View>
+    </RCTScrollView>
   </View>
   <View
     collapsable={false}
@@ -706,36 +764,33 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
         {
           "display": "flex",
           "overflow": "hidden",
-          "paddingLeft": 16,
-          "paddingRight": 16,
           "position": "relative",
         },
         undefined,
       ]
     }
   >
-    <View
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexDirection": "row",
+          "gap": 24,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        }
+      }
+      horizontal={true}
+      onContentSizeChange={[Function]}
+      scrollEnabled={false}
+      scrollsToTop={false}
+      showsHorizontalScrollIndicator={false}
       style={
-        [
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "gap": 24,
-            "position": "relative",
-          },
-          undefined,
-        ]
+        {
+          "flexGrow": 0,
+        }
       }
     >
-      <View
-        onLayout={[Function]}
-        style={
-          {
-            "flexShrink": 0,
-          }
-        }
-      >
+      <View>
         <View
           accessibilityState={
             {
@@ -770,6 +825,7 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
+              "flexShrink": 0,
               "justifyContent": "center",
               "paddingBottom": 4,
               "paddingLeft": 0,
@@ -829,16 +885,25 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
           >
             Tab 1
           </Text>
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#121314",
+                "bottom": 0,
+                "height": 2,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "scaleX": 1,
+                  },
+                ],
+              }
+            }
+          />
         </View>
-      </View>
-      <View
-        onLayout={[Function]}
-        style={
-          {
-            "flexShrink": 0,
-          }
-        }
-      >
         <View
           accessibilityState={
             {
@@ -873,6 +938,7 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
+              "flexShrink": 0,
               "justifyContent": "center",
               "paddingBottom": 4,
               "paddingLeft": 0,
@@ -932,16 +998,25 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
           >
             Tab 2
           </Text>
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#121314",
+                "bottom": 0,
+                "height": 2,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "scaleX": 0,
+                  },
+                ],
+              }
+            }
+          />
         </View>
-      </View>
-      <View
-        onLayout={[Function]}
-        style={
-          {
-            "flexShrink": 0,
-          }
-        }
-      >
         <View
           accessibilityState={
             {
@@ -976,6 +1051,7 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
+              "flexShrink": 0,
               "justifyContent": "center",
               "paddingBottom": 4,
               "paddingLeft": 0,
@@ -1035,9 +1111,27 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
           >
             Tab 3
           </Text>
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#121314",
+                "bottom": 0,
+                "height": 2,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "scaleX": 0,
+                  },
+                ],
+              }
+            }
+          />
         </View>
       </View>
-    </View>
+    </RCTScrollView>
   </View>
   <View
     collapsable={false}
