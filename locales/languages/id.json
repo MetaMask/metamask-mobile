@@ -67,6 +67,10 @@
       "title": "Deposit sedang diproses",
       "message": "Tunggu sampai deposit terakhir selesai sebelum membuat deposit berikutnya."
     },
+    "signed_or_submitted_pay_token": {
+      "title": "Pending transaction",
+      "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
+    },
     "pending_transaction": {
       "title": "Transaksi tertunda",
       "message": "Transaksi ini tidak akan berjalan sampai transaksi sebelumnya selesai.",
@@ -104,6 +108,36 @@
     "burn_address": {
       "message": "Anda mengirimkan aset ke alamat burn. Jika dilanjutkan, aset Anda akan hilang.",
       "title": "Mengirim Aset ke Alamat Burn"
+    },
+    "token_trust_signal": {
+      "malicious": {
+        "message": "This token has been identified as malicious. Interacting with this token may result in a loss of funds.",
+        "title": "Malicious token"
+      },
+      "warning": {
+        "message": "This token shows strong signs of malicious behavior. Continuing may result in loss of funds.",
+        "title": "Suspicious token"
+      }
+    },
+    "address_trust_signal": {
+      "malicious": {
+        "message": "If you confirm this request, you will probably lose your assets to a scammer.",
+        "title": "Malicious address"
+      },
+      "warning": {
+        "message": "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
+        "title": "Address Needs Review"
+      }
+    },
+    "url_trust_signal": {
+      "malicious": {
+        "message": "This has been identified as malicious. We recommend not interacting with this site.",
+        "title": "Malicious site"
+      },
+      "warning": {
+        "message": "This has been identified as suspicious. We recommend not interacting with this site.",
+        "title": "Suspicious site"
+      }
     }
   },
   "blockaid_banner": {
@@ -950,6 +984,20 @@
     "loading_positions": "Memuat posisi...",
     "refreshing_positions": "Menyegarkan posisi...",
     "no_open_orders": "Tidak ada order terbuka",
+    "auto_close": {
+      "title": "Auto close",
+      "description": "Protect your margin, lock in gains",
+      "set_button": "Set",
+      "edit_button": "Edit"
+    },
+    "stop_loss_prompt": {
+      "near_liquidation_title": "You are only {{distance}}% from liquidation",
+      "near_liquidation_subtitle": "Add margin to derisk your position",
+      "add_margin_button": "Add",
+      "protect_losses_title": "Protect against further losses",
+      "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
+      "set_button": "Set"
+    },
     "deposit": {
       "title": "Jumlah yang akan dideposit",
       "get_usdc_hyperliquid": "Dapatkan USDC • Hyperliquid",
@@ -1138,6 +1186,8 @@
       "tp_sl": "Tutup otomatis",
       "tp": "TP",
       "sl": "SL",
+      "long_label": "Long",
+      "short_label": "Short",
       "button": {
         "long": "Panjang {{asset}}",
         "short": "Pendek {{asset}}"
@@ -1216,6 +1266,24 @@
       "your_funds_have_been_returned_to_you": "Dana Anda telah dikembalikan kepada Anda",
       "order_cancelled_success": "Order {{detailedOrderType}} dibatalkan"
     },
+    "price_deviation_warning": {
+      "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
+    },
+    "order_details": {
+      "title": "Order Details",
+      "cancel_order": "Cancel Order",
+      "date": "Date",
+      "fee": "Fee",
+      "limit_buy": "Limit Long",
+      "limit_price": "Limit Price",
+      "limit_sell": "Limit Short",
+      "market_buy": "Market Long",
+      "market_sell": "Market Short",
+      "open": "Open",
+      "size": "Size",
+      "status": "Status",
+      "view_explorer": "View on Explorer"
+    },
     "close_position": {
       "title": "Tutup posisi",
       "button": "Tutup posisi",
@@ -1254,6 +1322,36 @@
       "order_type_reverted_to_market_order": "Diubah ke order pasar",
       "you_need_set_price_limit_order": "Anda perlu mengatur harga untuk order limit.",
       "your_pnl_is": "L&R Anda adalah"
+    },
+    "modify": {
+      "title": "Modify",
+      "add_to_position": "Increase exposure",
+      "add_to_position_description": "Increase the size of your {{direction}} position",
+      "reduce_position": "Reduce exposure",
+      "reduce_position_description": "Decrease the size of your {{direction}} position by closing it partially",
+      "flip_position": "Reverse position",
+      "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
+    },
+    "flip_position": {
+      "title": "Flip Position",
+      "direction": "Direction",
+      "est_size": "Est. Size",
+      "flip": "Flip",
+      "flipping": "Flipping...",
+      "cancel": "Cancel"
+    },
+    "adjust_margin": {
+      "title": "Adjust Margin",
+      "add_margin": "Add Margin",
+      "add_margin_description": "Increase margin to reduce liquidation risk",
+      "reduce_margin": "Reduce Margin",
+      "reduce_margin_description": "Withdraw excess margin from position",
+      "add_title": "Add Margin",
+      "remove_title": "Reduce Margin",
+      "margin_in_position": "Margin in position",
+      "perps_balance": "Perps balance",
+      "liquidation_price": "Liquidation price",
+      "liquidation_distance": "Liquidation distance"
     },
     "tpsl": {
       "title": "Tutup otomatis",
@@ -1294,6 +1392,8 @@
       "minimumDeposit": "Jumlah deposit minimum adalah {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} tidak didukung untuk deposit",
       "unknownError": "Terjadi kesalahan tidak dikenal",
+      "position_not_found": "Position not found",
+      "order_not_found": "Order not found",
       "clientNotInitialized": "Klien SDK HyperLiquid tidak diinisialisasi dengan benar",
       "exchangeClientNotAvailable": "ExchangeClient tidak tersedia setelah inisialisasi",
       "infoClientNotAvailable": "InfoClient tidak tersedia setelah inisialisasi",
@@ -1358,11 +1458,26 @@
         "title": "Terjadi Kesalahan",
         "description": "Terjadi kesalahan tak terduga. Coba lagi nanti.",
         "retry": "Coba lagi"
+      },
+      "marginValidation": {
+        "exceedsMaxRemovable": "Amount exceeds maximum removable margin",
+        "insufficientMargin": "Position does not have sufficient margin for this reduction"
       }
     },
     "position": {
       "title": "Posisi",
       "card": {
+        "position_title": "Position",
+        "pnl_label": "P&L",
+        "return_label": "Return",
+        "size_label": "Size",
+        "margin_label": "Margin",
+        "direction_label": "Direction",
+        "entry_label": "Entry price",
+        "liquidation_price_label": "Liquidation price",
+        "funding_payments_label": "Funding payments",
+        "oracle_price_label": "Oracle price",
+        "details_title": "Details",
         "entry_price": "Harga masuk",
         "funding_cost": "Pendanaan",
         "liquidation_price": "Harga Likuidasi",
@@ -1403,6 +1518,11 @@
       "tpsl": {
         "update_success": "TP/SL berhasil diperbarui",
         "update_failed": "Gagal memperbarui TP/SL"
+      },
+      "margin": {
+        "add_success": "Added ${{amount}} margin to {{asset}} position",
+        "remove_success": "Removed ${{amount}} margin from {{asset}} position",
+        "adjustment_failed": "Margin adjustment failed"
       }
     },
     "markets": {
@@ -1414,16 +1534,22 @@
         "error_message": "Data pasar tidak ditemukan. Kembali dan coba lagi."
       },
       "statistics": "Ikhtisar",
+      "stats": "Stats",
       "24h_high": "Tinggi 24 jam",
       "24h_low": "Rendah 24 jam",
       "24h_volume": "Volume 24 jam",
       "open_interest": "Kontrak terbuka",
       "funding_rate": "Tingkat pendanaan",
+      "oracle_price": "Oracle price",
+      "order_book": "Order book",
       "countdown": "Hitung mundur",
       "long": "Long",
       "short": "Short",
       "long_lowercase": "long",
       "short_lowercase": "short",
+      "modify": "Modify",
+      "close_long": "Close long",
+      "close_short": "Close short",
       "add_funds": "Tambahkan dana",
       "add_funds_to_start_trading_perps": "Tambahkan dana untuk memulai perdagangan perp",
       "position": "Posisi",
@@ -1460,6 +1586,10 @@
         "title": "Harga likuidasi",
         "content": "Jika harga mencapai titik ini, Anda akan dilikuidasi dan kehilangan margin. Leverage yang lebih tinggi meningkatkan kemungkinan hal ini."
       },
+      "liquidation_distance": {
+        "title": "Liquidation distance",
+        "content": "The percentage the price needs to move against your position before liquidation. A higher percentage means more room before liquidation."
+      },
       "margin": {
         "title": "Margin",
         "content": "Margin merupakan uang yang Anda investasikan untuk membuka perdagangan. Margin berfungsi sebagai jaminan dan merupakan kerugian maksimum yang dapat Anda alami dalam perdagangan tersebut."
@@ -1492,6 +1622,10 @@
       "funding_rate": {
         "title": "Tingkat pendanaan",
         "content": "Biaya per jam yang dibayarkan antar trader untuk mempertahankan harga agar sesuai dengan pasar. Jika nilainya positif, pemegang posisi long membayar pemegang posisi short. Jika negatif, pemegang posisi short membayar pemegang posisi long."
+      },
+      "oracle_price": {
+        "title": "Oracle price",
+        "content": "The median of external prices reported by validators, used for computing funding rate."
       },
       "funding_payments": {
         "title": "Pembayaran pendanaan",
@@ -1716,11 +1850,25 @@
       },
       "view_on_explorer": "Lihat di block explorer",
       "empty_state": {
-        "no_transactions": "Belum ada transaksi {{type}}",
-        "history_will_appear": "Riwayat perdagangan Anda akan muncul di sini"
+        "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
     },
     "risk_disclaimer": "Kontrak berjangka sangat berisiko, dan Anda bisa tiba-tiba kehilangan seluruh investasi Anda tanpa pemberitahuan. Anda berdagang dengan risiko yang sepenuhnya ditanggung sendiri. Didukung oleh {{source}}. Grafik harga didukung oleh",
+    "order_book": {
+      "title": "Order Book",
+      "bids": "Bids",
+      "asks": "Asks",
+      "price": "Price",
+      "size": "Size",
+      "total": "Total",
+      "spread": "Spread",
+      "loading": "Loading order book...",
+      "no_data": "No order book data available",
+      "error": "Failed to load order book",
+      "depth_band": {
+        "title": "Select Price Grouping"
+      }
+    },
     "tutorial": {
       "continue": "Lanjutkan",
       "skip": "Lewati",
@@ -1780,6 +1928,13 @@
     "prediction_markets": "Prediksi Pasar",
     "market_list": "Daftar Pasar",
     "loading": "Memuat...",
+    "buttons": {
+      "back": "Back",
+      "share": "Share"
+    },
+    "toasts": {
+      "copied_to_clipboard": "Copied to clipboard"
+    },
     "gtm_content": {
       "title": "PREDIKSI DAN MENANG",
       "title_description": "Berdagang berdasarkan hasil peristiwa dunia nyata, seperti olahraga atau pemilu.",
@@ -1878,12 +2033,15 @@
       "add_funds": "Tambahkan dana",
       "withdraw": "Tarik",
       "in_progress_description": "Akan tersedia sebentar lagi",
+      "available_in_minutes": "Available in {{minutes}} min",
       "account_ready": "Akun Anda sudah siap",
       "account_ready_description": "{{amount}} ditambahkan ke saldo Anda",
       "error_title": "Terjadi kesalahan",
       "error_description": "Akun Anda belum didanai",
       "try_again": "Coba lagi",
-      "in_progress_link": "Lihat"
+      "in_progress_link": "Lihat",
+      "track": "Track",
+      "ready_to_trade": "Ready to trade"
     },
     "add_funds_sheet": {
       "title": "Tambahkan dana",
@@ -3060,12 +3218,14 @@
     "earn": "Dapatkan",
     "convert": "Convert",
     "tron": {
-      "daily_resource": "Sumber daya harian",
+      "daily_resource": "Daily resources",
       "bandwidth": "Bandwidth",
       "energy": "Energi",
       "daily_resource_description": "Ini adalah jatah harian Anda berdasarkan TRX yang Anda stake. Anda mendapatkan 600 bandwidth gratis setiap hari.",
-      "sufficient_to_cover_trx": "Cukup untuk menutupi ~{{amount}} transfer TRX",
-      "sufficient_to_cover_usdt": "Cukup untuk menutupi ~{{amount}} USDT"
+      "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
+      "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
+      "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
+      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer"
     },
     "disabled_button": {
       "buy": "Pembelian tidak didukung untuk akun ini",
@@ -3128,7 +3288,7 @@
       "show_less": "Ciutkan"
     },
     "activity": "Aktivitas {{symbol}}",
-    "disclaimer": "Data pasar disediakan oleh satu atau beberapa sumber data pihak ketiga, termasuk CoinGecko. Konten pihak ketiga tersebut disediakan semata-mata untuk tujuan informasi dan tidak boleh dianggap sebagai saran untuk membeli, menjual, atau menggunakan aset tertentu. MetaMask tidak menyarankan penggunaan konten ini untuk tujuan tertentu dan tidak bertanggung jawab atas keakuratannya."
+    "disclaimer": "Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Detail Akun",
@@ -3518,6 +3678,7 @@
     "interaction": "Interaksi",
     "contract_deploy": "Penempatan Kontrak",
     "to_contract": "Kontrak Baru",
+    "mint": "Mint",
     "tx_details_free": "Gratis",
     "tx_details_not_available": "Tidak tersedia",
     "smart_contract_interaction": "Interaksi kontrak cerdas",
@@ -3728,8 +3889,9 @@
     "show_test_networks": "Tampilkan jaringan pengujian",
     "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
     "network_deprecated_title": "Jaringan ini tidak digunakan lagi",
-    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di MetaMask.",
-    "edit_networks_title": "Edit jaringan"
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on MetaMask.",
+    "edit_networks_title": "Edit jaringan",
+    "no_network_fee": "No network fee"
   },
   "permissions": {
     "title_this_site_wants_to": "Situs ini ingin:",
@@ -5488,6 +5650,11 @@
         "in_progress": "mUSD conversion in progress",
         "success": "mUSD conversion succeeded",
         "failed": "mUSD conversion failed"
+      },
+      "education": {
+        "heading": "Earn rewards with mUSD",
+        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
+        "continue_button": "Continue"
       }
     }
   },
@@ -5692,7 +5859,7 @@
     },
     "estimated_gas_fee": {
       "title": "Estimasi biaya gas",
-      "gas_recipient": "Biaya gas dibayarkan kepada penambang kripto yang memproses transaksi di jaringan Ethereum. MetaMask tidak mengambil keuntungan dari biaya gas.",
+      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
       "gas_fluctuation": "Biaya gas diperkirakan dan akan berfluktuasi berdasarkan lalu lintas jaringan dan kompleksitas transaksi.",
       "gas_learn_more": "Pelajari selengkapnya seputar biaya gas"
     },
@@ -5922,6 +6089,7 @@
     "slippage": "Selip",
     "slippage_info": "Jika harga berubah antara waktu penempatan dan konfirmasi order Anda, ini disebut “selip”. Pertukaran akan otomatis dibatalkan jika selip melebihi toleransi yang Anda tetapkan di sini.",
     "network_fee": "Biaya jaringan",
+    "gas_fees_sponsored": "Paid by MetaMask",
     "included": "Termasuk",
     "estimated_time": "Estimasi Waktu",
     "quote": "Kuotasi",
@@ -5933,6 +6101,7 @@
     "quote_info_title": "Tingkat",
     "network_fee_info_title": "Biaya Jaringan",
     "network_fee_info_content": "Biaya jaringan bergantung pada seberapa sibuk jaringan dan seberapa rumit transaksi Anda.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
     "points": "Estimasi poin",
     "points_tooltip": "Poin",
     "points_tooltip_content_1": "Poin merupakan cara Anda memperoleh MetaMask Rewards untuk menyelesaikan transaksi, seperti saat Anda menukar, menggunakan bridge, atau memperdagangkan perp.",
@@ -6702,7 +6871,17 @@
       "points": "Poin",
       "points_base": "Dasar",
       "points_boost": "Peningkatan",
-      "points_total": "Total"
+      "points_total": "Total",
+      "description": "Description"
+    },
+    "previous_season_summary": {
+      "title": "{{seasonName}} Results",
+      "update_metamask_version": "Update MetaMask to {{version}} to claim your rewards",
+      "update_metamask": "Update MetaMask to claim your rewards",
+      "point_earned": "point earned",
+      "points_earned": "points earned",
+      "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
+      "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
     "onboarding": {
       "not_supported_region_title": "Wilayah tidak didukung",
@@ -6749,7 +6928,17 @@
       "step4_legal_disclaimer_1": "Dengan memilih 'Klaim Poin', Anda menyetujui Reward MetaMask",
       "step4_legal_disclaimer_2": "Ketentuan Penggunaan dan Pemberitahuan Privasi Tambahan",
       "step4_legal_disclaimer_3": ". Kami akan melacak aktivitas onchain untuk memberikan reward secara otomatis –",
-      "step4_legal_disclaimer_4": "selengkapnya"
+      "step4_legal_disclaimer_4": "selengkapnya",
+      "no_active_season": {
+        "title": "Sign up for Rewards",
+        "description": "Get more out of MetaMask with the best loyalty program in crypto.",
+        "sign_up": "Sign up",
+        "sign_up_loading": "Signing up...",
+        "legal_disclaimer_1": "By clicking 'Sign up,' you agree to the MetaMask Rewards",
+        "legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+        "legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+        "legal_disclaimer_4": "learn more"
+      }
     },
     "settings": {
       "title": "Pengaturan Reward",
@@ -6868,6 +7057,16 @@
           "points": "2 poin per $100",
           "description": "Dapatkan poin pada setiap $100 juta Usd yang didepositkan.",
           "cta_label": "Depositkan mUSD"
+        }
+      },
+      "hold_musd": {
+        "title": "Hold mUSD",
+        "description": "2 points per $100 held",
+        "sheet": {
+          "title": "Hold mUSD",
+          "points": "2 points per $100",
+          "description": "Earn points on every $100 mUSD you hold.",
+          "cta_label": "Buy mUSD"
         }
       }
     },
@@ -6994,11 +7193,15 @@
     "low_to_high": "Low to high",
     "apply": "Apply",
     "search_placeholder": "Search tokens, sites, URLs",
+    "cancel": "Cancel",
     "perps": "Perps",
     "predictions": "Prediksi",
     "no_results": "No results found",
     "sites": "Sites",
     "popular_sites": "Popular Sites",
-    "search_sites": "Search sites"
+    "search_sites": "Search sites",
+    "enable_basic_functionality": "Enable basic functionality",
+    "basic_functionality_disabled_title": "Explore is not available",
+    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled."
   }
 }

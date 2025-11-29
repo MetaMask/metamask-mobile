@@ -67,6 +67,10 @@
       "title": "デポジット処理中",
       "message": "前回の入金が完了するのを待ってから、次の入金を行ってください。"
     },
+    "signed_or_submitted_pay_token": {
+      "title": "Pending transaction",
+      "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
+    },
     "pending_transaction": {
       "title": "保留中のトランザクション",
       "message": "前回のトランザクションが完了するまで、このトランザクションは実行されません。",
@@ -104,6 +108,36 @@
     "burn_address": {
       "message": "資産をバーンアドレスに送金しようとしています。続行すると、資産が失われます。",
       "title": "バーンアドレスに送金しようとしています"
+    },
+    "token_trust_signal": {
+      "malicious": {
+        "message": "This token has been identified as malicious. Interacting with this token may result in a loss of funds.",
+        "title": "Malicious token"
+      },
+      "warning": {
+        "message": "This token shows strong signs of malicious behavior. Continuing may result in loss of funds.",
+        "title": "Suspicious token"
+      }
+    },
+    "address_trust_signal": {
+      "malicious": {
+        "message": "If you confirm this request, you will probably lose your assets to a scammer.",
+        "title": "Malicious address"
+      },
+      "warning": {
+        "message": "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
+        "title": "Address Needs Review"
+      }
+    },
+    "url_trust_signal": {
+      "malicious": {
+        "message": "This has been identified as malicious. We recommend not interacting with this site.",
+        "title": "Malicious site"
+      },
+      "warning": {
+        "message": "This has been identified as suspicious. We recommend not interacting with this site.",
+        "title": "Suspicious site"
+      }
     }
   },
   "blockaid_banner": {
@@ -950,6 +984,20 @@
     "loading_positions": "ポジションを読み込み中...",
     "refreshing_positions": "ポジションを更新中...",
     "no_open_orders": "未決済の注文はありません",
+    "auto_close": {
+      "title": "Auto close",
+      "description": "Protect your margin, lock in gains",
+      "set_button": "Set",
+      "edit_button": "Edit"
+    },
+    "stop_loss_prompt": {
+      "near_liquidation_title": "You are only {{distance}}% from liquidation",
+      "near_liquidation_subtitle": "Add margin to derisk your position",
+      "add_margin_button": "Add",
+      "protect_losses_title": "Protect against further losses",
+      "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
+      "set_button": "Set"
+    },
     "deposit": {
       "title": "入金額",
       "get_usdc_hyperliquid": "USDCを入手 • Hyperliquid",
@@ -1138,6 +1186,8 @@
       "tp_sl": "自動クローズ",
       "tp": "利確",
       "sl": "損切",
+      "long_label": "Long",
+      "short_label": "Short",
       "button": {
         "long": "{{asset}}をロング",
         "short": "{{asset}}をショート"
@@ -1216,6 +1266,24 @@
       "your_funds_have_been_returned_to_you": "資金が返金されました",
       "order_cancelled_success": "{{detailedOrderType}}の注文が取り消されました"
     },
+    "price_deviation_warning": {
+      "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
+    },
+    "order_details": {
+      "title": "Order Details",
+      "cancel_order": "Cancel Order",
+      "date": "Date",
+      "fee": "Fee",
+      "limit_buy": "Limit Long",
+      "limit_price": "Limit Price",
+      "limit_sell": "Limit Short",
+      "market_buy": "Market Long",
+      "market_sell": "Market Short",
+      "open": "Open",
+      "size": "Size",
+      "status": "Status",
+      "view_explorer": "View on Explorer"
+    },
     "close_position": {
       "title": "ポジションをクローズ",
       "button": "ポジションをクローズ",
@@ -1254,6 +1322,36 @@
       "order_type_reverted_to_market_order": "成行注文に変更されました",
       "you_need_set_price_limit_order": "リミット注文の価格を設定する必要があります。",
       "your_pnl_is": "現在の損益:"
+    },
+    "modify": {
+      "title": "Modify",
+      "add_to_position": "Increase exposure",
+      "add_to_position_description": "Increase the size of your {{direction}} position",
+      "reduce_position": "Reduce exposure",
+      "reduce_position_description": "Decrease the size of your {{direction}} position by closing it partially",
+      "flip_position": "Reverse position",
+      "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
+    },
+    "flip_position": {
+      "title": "Flip Position",
+      "direction": "Direction",
+      "est_size": "Est. Size",
+      "flip": "Flip",
+      "flipping": "Flipping...",
+      "cancel": "Cancel"
+    },
+    "adjust_margin": {
+      "title": "Adjust Margin",
+      "add_margin": "Add Margin",
+      "add_margin_description": "Increase margin to reduce liquidation risk",
+      "reduce_margin": "Reduce Margin",
+      "reduce_margin_description": "Withdraw excess margin from position",
+      "add_title": "Add Margin",
+      "remove_title": "Reduce Margin",
+      "margin_in_position": "Margin in position",
+      "perps_balance": "Perps balance",
+      "liquidation_price": "Liquidation price",
+      "liquidation_distance": "Liquidation distance"
     },
     "tpsl": {
       "title": "自動クローズ",
@@ -1294,6 +1392,8 @@
       "minimumDeposit": "最低入金額は{{amount}} USDCです",
       "tokenNotSupported": "トークン{{token}}は入金に利用できません",
       "unknownError": "不明なエラーが発生しました",
+      "position_not_found": "Position not found",
+      "order_not_found": "Order not found",
       "clientNotInitialized": "HyperLiquid SDKクライアントが適切に初期化されていません",
       "exchangeClientNotAvailable": "ExchangeClientが初期化後に使用できません",
       "infoClientNotAvailable": "InfoClientが初期化後に使用できません",
@@ -1358,11 +1458,26 @@
         "title": "問題が発生しました",
         "description": "予期せぬエラーが発生しました。後でもう一度お試しください。",
         "retry": "再試行"
+      },
+      "marginValidation": {
+        "exceedsMaxRemovable": "Amount exceeds maximum removable margin",
+        "insufficientMargin": "Position does not have sufficient margin for this reduction"
       }
     },
     "position": {
       "title": "ポジション",
       "card": {
+        "position_title": "Position",
+        "pnl_label": "P&L",
+        "return_label": "Return",
+        "size_label": "Size",
+        "margin_label": "Margin",
+        "direction_label": "Direction",
+        "entry_label": "Entry price",
+        "liquidation_price_label": "Liquidation price",
+        "funding_payments_label": "Funding payments",
+        "oracle_price_label": "Oracle price",
+        "details_title": "Details",
         "entry_price": "エントリー価格",
         "funding_cost": "入金",
         "liquidation_price": "清算価格",
@@ -1403,6 +1518,11 @@
       "tpsl": {
         "update_success": "TP/SLが更新されました",
         "update_failed": "TP/SLを更新できませんでした"
+      },
+      "margin": {
+        "add_success": "Added ${{amount}} margin to {{asset}} position",
+        "remove_success": "Removed ${{amount}} margin from {{asset}} position",
+        "adjustment_failed": "Margin adjustment failed"
       }
     },
     "markets": {
@@ -1414,16 +1534,22 @@
         "error_message": "市場データが見つかりません。前の画面に戻り、もう一度お試しください。"
       },
       "statistics": "概要",
+      "stats": "Stats",
       "24h_high": "24時間の最高値",
       "24h_low": "24時間の最安値",
       "24h_volume": "24時間の取引高",
       "open_interest": "取組高",
       "funding_rate": "資金調達率",
+      "oracle_price": "Oracle price",
+      "order_book": "Order book",
       "countdown": "カウントダウン",
       "long": "ロング",
       "short": "ショート",
       "long_lowercase": "ロング",
       "short_lowercase": "ショート",
+      "modify": "Modify",
+      "close_long": "Close long",
+      "close_short": "Close short",
       "add_funds": "資金を追加",
       "add_funds_to_start_trading_perps": "資金を追加してパーペチュアルの取引を開始します",
       "position": "ポジション",
@@ -1460,6 +1586,10 @@
         "title": "清算価格",
         "content": "価格がこのポイントに達すると清算され、証拠金が失われます。レバレッジが高いほどその可能性が高くなります。"
       },
+      "liquidation_distance": {
+        "title": "Liquidation distance",
+        "content": "The percentage the price needs to move against your position before liquidation. A higher percentage means more room before liquidation."
+      },
       "margin": {
         "title": "証拠金",
         "content": "証拠金は、取引を開始するために投入する資金です。それが担保となり、その取引で失われる可能性がある最大額となります。"
@@ -1492,6 +1622,10 @@
       "funding_rate": {
         "title": "資金調達率",
         "content": "価格を市場に合わせるためにトレーダー間で支払われる、1時間あたりの手数料です。資金調達率がプラスの場合はロングがショートに支払い、マイナスの場合はショートがロングに支払います。"
+      },
+      "oracle_price": {
+        "title": "Oracle price",
+        "content": "The median of external prices reported by validators, used for computing funding rate."
       },
       "funding_payments": {
         "title": "資金調達率の支払い",
@@ -1716,11 +1850,25 @@
       },
       "view_on_explorer": "ブロックエクスプローラーで表示",
       "empty_state": {
-        "no_transactions": "まだ{{type}}のトランザクションはありません",
-        "history_will_appear": "ここに取引履歴が表示されます"
+        "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
     },
     "risk_disclaimer": "パーペチュアルコントラクトは大きなリスクを伴い、予告なく突然、投資額全額を失う可能性があります。取引はすべてお客様の責任で行ってください。サービス提供元: {{source}}。価格チャート提供元: ",
+    "order_book": {
+      "title": "Order Book",
+      "bids": "Bids",
+      "asks": "Asks",
+      "price": "Price",
+      "size": "Size",
+      "total": "Total",
+      "spread": "Spread",
+      "loading": "Loading order book...",
+      "no_data": "No order book data available",
+      "error": "Failed to load order book",
+      "depth_band": {
+        "title": "Select Price Grouping"
+      }
+    },
     "tutorial": {
       "continue": "続行",
       "skip": "スキップ",
@@ -1780,6 +1928,13 @@
     "prediction_markets": "予測市場",
     "market_list": "市場リスト",
     "loading": "読み込み中...",
+    "buttons": {
+      "back": "Back",
+      "share": "Share"
+    },
+    "toasts": {
+      "copied_to_clipboard": "Copied to clipboard"
+    },
     "gtm_content": {
       "title": "予測して当てよう",
       "title_description": "スポーツや選挙など、現実の出来事の結果を取引できます。",
@@ -1878,12 +2033,15 @@
       "add_funds": "資金を追加",
       "withdraw": "出金",
       "in_progress_description": "まもなく利用可能になります",
+      "available_in_minutes": "Available in {{minutes}} min",
       "account_ready": "アカウントの準備ができました",
       "account_ready_description": "残高に{{amount}}を追加しました",
       "error_title": "問題が発生しました",
       "error_description": "アカウントに資金がありません",
       "try_again": "再試行してください",
-      "in_progress_link": "表示"
+      "in_progress_link": "表示",
+      "track": "Track",
+      "ready_to_trade": "Ready to trade"
     },
     "add_funds_sheet": {
       "title": "資金を追加",
@@ -3060,12 +3218,14 @@
     "earn": "獲得",
     "convert": "Convert",
     "tron": {
-      "daily_resource": "1日のリソース",
+      "daily_resource": "Daily resources",
       "bandwidth": "帯域幅",
       "energy": "エネルギー",
       "daily_resource_description": "これは、ステーキングされたTRXに基づく1日の利用可能量です。1日600帯域幅を無料で利用できます。",
-      "sufficient_to_cover_trx": "~{{amount}} TRXの送金に不足しています",
-      "sufficient_to_cover_usdt": "~{{amount}} USDTに対して十分です"
+      "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
+      "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
+      "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
+      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer"
     },
     "disabled_button": {
       "buy": "このアカウントでは購入はサポートされていません",
@@ -3128,7 +3288,7 @@
       "show_less": "表示を戻す"
     },
     "activity": "{{symbol}}のアクティビティ",
-    "disclaimer": "市場データは、CoinGeckoをはじめとする1つまたは複数のサードパーティーデータソースから提供されています。このようなサードパーティーコンテンツは情報提供のみを目的としており、特定資産の購入、売却、または使用の助言として扱われるべきものではありません。MetaMaskはこのコンテンツを特定の目的に使用することを推奨しておらず、その正確性について責任を負いません。"
+    "disclaimer": "Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy."
   },
   "account_details": {
     "title": "アカウント詳細",
@@ -3518,6 +3678,7 @@
     "interaction": "やり取り",
     "contract_deploy": "コントラクトのデプロイ",
     "to_contract": "新しいコントラクト",
+    "mint": "Mint",
     "tx_details_free": "無料",
     "tx_details_not_available": "利用できません",
     "smart_contract_interaction": "スマートコントラクトのインタラクション",
@@ -3728,8 +3889,9 @@
     "show_test_networks": "テストネットワークを表示",
     "deprecated_goerli": "イーサリアムのプロトコルの変更により、Goerliテストネットワークは安定して動作しない可能性があり、近日中に非推奨になります。",
     "network_deprecated_title": "このネットワークはサポートされなくなりました",
-    "network_deprecated_description": "接続しようとしているネットワークは現在MetaMaskによりサポートされていません。",
-    "edit_networks_title": "ネットワークの編集"
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on MetaMask.",
+    "edit_networks_title": "ネットワークの編集",
+    "no_network_fee": "No network fee"
   },
   "permissions": {
     "title_this_site_wants_to": "このサイトが次のことを求めています:",
@@ -5488,6 +5650,11 @@
         "in_progress": "mUSD conversion in progress",
         "success": "mUSD conversion succeeded",
         "failed": "mUSD conversion failed"
+      },
+      "education": {
+        "heading": "Earn rewards with mUSD",
+        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
+        "continue_button": "Continue"
       }
     }
   },
@@ -5692,7 +5859,7 @@
     },
     "estimated_gas_fee": {
       "title": "ガス代の見積もり",
-      "gas_recipient": "ガス代は、イーサリアムネットワークでトランザクションを処理するクリプトマイナーに支払われます。MetaMaskはガス代から利益を得ません。",
+      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
       "gas_fluctuation": "ガス代は、ネットワークトラフィックとトランザクションの複雑さに基づき見積もられ、変動します。",
       "gas_learn_more": "ガス代に関する詳細"
     },
@@ -5922,6 +6089,7 @@
     "slippage": "スリッページ",
     "slippage_info": "発注から確定までの間に価格が変わることを「スリッページ」といいます。スリッページがここで設定された許容範囲を超えた場合、スワップは自動的にキャンセルされます。",
     "network_fee": "ネットワーク手数料",
+    "gas_fees_sponsored": "Paid by MetaMask",
     "included": "込み",
     "estimated_time": "予想時間",
     "quote": "クォート",
@@ -5933,6 +6101,7 @@
     "quote_info_title": "レート",
     "network_fee_info_title": "ネットワーク手数料",
     "network_fee_info_content": "ネットワーク手数料は、ネットワークの混雑状況とトランザクションの複雑さによって異なります。",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
     "points": "推定ポイント数",
     "points_tooltip": "ポイント",
     "points_tooltip_content_1": "ポイントは、スワップ、ブリッジ、パーペチュアル取引など、トランザクションを完了したことによるMetaMaskリワードの獲得状況を示します。",
@@ -6702,7 +6871,17 @@
       "points": "ポイント",
       "points_base": "ベース",
       "points_boost": "ブースト",
-      "points_total": "合計"
+      "points_total": "合計",
+      "description": "Description"
+    },
+    "previous_season_summary": {
+      "title": "{{seasonName}} Results",
+      "update_metamask_version": "Update MetaMask to {{version}} to claim your rewards",
+      "update_metamask": "Update MetaMask to claim your rewards",
+      "point_earned": "point earned",
+      "points_earned": "points earned",
+      "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
+      "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
     "onboarding": {
       "not_supported_region_title": "未対応の地域です",
@@ -6749,7 +6928,17 @@
       "step4_legal_disclaimer_1": "「ポイントを請求」を選択することで、MetaMaskリワードに関する以下の規約に同意したものとみなされます",
       "step4_legal_disclaimer_2": "補足利用規約およびプライバシー通知",
       "step4_legal_disclaimer_3": "オンチェーンアクティビティを自動的に追跡し、リワードを付与します –",
-      "step4_legal_disclaimer_4": "詳細"
+      "step4_legal_disclaimer_4": "詳細",
+      "no_active_season": {
+        "title": "Sign up for Rewards",
+        "description": "Get more out of MetaMask with the best loyalty program in crypto.",
+        "sign_up": "Sign up",
+        "sign_up_loading": "Signing up...",
+        "legal_disclaimer_1": "By clicking 'Sign up,' you agree to the MetaMask Rewards",
+        "legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+        "legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+        "legal_disclaimer_4": "learn more"
+      }
     },
     "settings": {
       "title": "リワード設定",
@@ -6868,6 +7057,16 @@
           "points": "$100ごとに2ポイント",
           "description": "$100相当のmUSDをデポジットするごとにポイントを獲得できます。",
           "cta_label": "mUSDをデポジット"
+        }
+      },
+      "hold_musd": {
+        "title": "Hold mUSD",
+        "description": "2 points per $100 held",
+        "sheet": {
+          "title": "Hold mUSD",
+          "points": "2 points per $100",
+          "description": "Earn points on every $100 mUSD you hold.",
+          "cta_label": "Buy mUSD"
         }
       }
     },
@@ -6994,11 +7193,15 @@
     "low_to_high": "Low to high",
     "apply": "Apply",
     "search_placeholder": "Search tokens, sites, URLs",
+    "cancel": "Cancel",
     "perps": "パーペチュアル",
     "predictions": "予測",
     "no_results": "No results found",
     "sites": "Sites",
     "popular_sites": "Popular Sites",
-    "search_sites": "Search sites"
+    "search_sites": "Search sites",
+    "enable_basic_functionality": "Enable basic functionality",
+    "basic_functionality_disabled_title": "Explore is not available",
+    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled."
   }
 }
