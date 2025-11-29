@@ -81,9 +81,8 @@ jobs:
     outputs:
       build-id: ${{ steps.trigger-build.outputs.build-id }}
       build-slug: ${{ steps.trigger-build.outputs.build-slug }}
-    
+
     steps:
-      
       - name: Trigger Android with-SRP Build on Bitrise
         id: trigger-build
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
@@ -92,7 +91,7 @@ jobs:
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
           echo "Current branch: ${{ github.ref_name }}"
-          
+
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
             echo "Error: BITRISE_APP_ID is not set"
@@ -106,7 +105,7 @@ jobs:
             echo "Error: BITRISE_API_TOKEN is not set"
             exit 1
           fi
-          
+
           # Set environment variables for with-SRP build
           ENV_VARS='[
             {
@@ -123,10 +122,15 @@ jobs:
               "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
               "value": "true",
               "is_expand": true
+            },
+            {
+              "mapped_to": "GENERATE_TEST_APK",
+              "value": "true",
+              "is_expand": true
             }
           ]'
           CUSTOM_ID="MetaMask-Android-With-SRP-${{ github.run_id }}"
-          
+
           # Trigger Android workflow
           BUILD_RESPONSE=$(curl -s -X POST \
             "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
@@ -145,22 +149,22 @@ jobs:
               },
               "triggered_by": "GitHub Actions Android Dual Versions - Build with Predefined-SRP"
             }')
-          
+
           echo "Build response: $BUILD_RESPONSE"
           BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
           echo "Build slug: $BUILD_SLUG"
-          
+
           if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
             echo "Error: Failed to get build slug"
             echo "Full response: $BUILD_RESPONSE"
             exit 1
           fi
-          
+
           # Wait for the workflow to complete
           echo "Waiting for $METAMASK_WORKFLOW to complete..."
           TIMEOUT=1800  # 30 minutes
           ELAPSED=0
-          
+
           while [ $ELAPSED -lt $TIMEOUT ]; do
             BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
               "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
@@ -184,25 +188,25 @@ jobs:
             sleep 30
             ELAPSED=$((ELAPSED + 30))
           done
-          
+
           if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
             echo "Timeout waiting for build to complete"
             echo "Final build status: $BUILD_STATUS"
             echo "Build slug: $BUILD_SLUG"
             exit 1
           fi
-          
+
           # Get the build ID from the completed build
           BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
-          
+
           if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
             echo "Error: Failed to get build ID"
             exit 1
           fi
-          
+
           echo "Build ID: $BUILD_ID"
           echo "Build Slug: $BUILD_SLUG"
-          
+
           # Set outputs
           {
             echo "build-id=$BUILD_ID"
@@ -218,7 +222,7 @@ jobs:
     outputs:
       build-id: ${{ steps.trigger-build.outputs.build-id }}
       build-slug: ${{ steps.trigger-build.outputs.build-slug }}
-    
+
     steps:
       - name: Trigger Android without-SRP Build on Bitrise
         id: trigger-build
@@ -228,7 +232,7 @@ jobs:
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
           echo "Current branch: ${{ github.ref_name }}"
-          
+
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
             echo "Error: BITRISE_APP_ID is not set"
@@ -242,17 +246,22 @@ jobs:
             echo "Error: BITRISE_API_TOKEN is not set"
             exit 1
           fi
-          
+
           # Set environment variables for without-SRP build
           ENV_VARS='[
             {
               "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
               "value": "true", 
               "is_expand": true
+            },
+            {
+              "mapped_to": "GENERATE_TEST_APK",
+              "value": "true",
+              "is_expand": true
             }
           ]'
           CUSTOM_ID="MetaMask-Android-Without-SRP-${{ github.run_id }}"
-          
+
           # Trigger Android workflow
           BUILD_RESPONSE=$(curl -s -X POST \
             "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
@@ -271,22 +280,22 @@ jobs:
               },
               "triggered_by": "GitHub Actions Android Dual Versions - Build without Predefined-SRP"
             }')
-          
+
           echo "Build response: $BUILD_RESPONSE"
           BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
           echo "Build slug: $BUILD_SLUG"
-          
+
           if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
             echo "Error: Failed to get build slug"
             echo "Full response: $BUILD_RESPONSE"
             exit 1
           fi
-          
+
           # Wait for the workflow to complete
           echo "Waiting for $METAMASK_WORKFLOW to complete..."
           TIMEOUT=1800  # 30 minutes
           ELAPSED=0
-          
+
           while [ $ELAPSED -lt $TIMEOUT ]; do
             BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
               "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
@@ -310,25 +319,25 @@ jobs:
             sleep 30
             ELAPSED=$((ELAPSED + 30))
           done
-          
+
           if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
             echo "Timeout waiting for build to complete"
             echo "Final build status: $BUILD_STATUS"
             echo "Build slug: $BUILD_SLUG"
             exit 1
           fi
-          
+
           # Get the build ID from the completed build
           BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
-          
+
           if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
             echo "Error: Failed to get build ID"
             exit 1
           fi
-          
+
           echo "Build ID: $BUILD_ID"
           echo "Build Slug: $BUILD_SLUG"
-          
+
           # Set outputs
           {
             echo "build-id=$BUILD_ID"
@@ -338,7 +347,12 @@ jobs:
   download-and-upload-to-browserstack:
     name: Download APKs and Upload to BrowserStack
     runs-on: ubuntu-latest
-    needs: [check-builds-needed, trigger-android-with-srp-build, trigger-android-without-srp-build]
+    needs:
+      [
+        check-builds-needed,
+        trigger-android-with-srp-build,
+        trigger-android-without-srp-build,
+      ]
     if: (needs.trigger-android-with-srp-build.result == 'success' || needs.trigger-android-with-srp-build.result == 'partial_success') && (needs.trigger-android-without-srp-build.result == 'success' || needs.trigger-android-without-srp-build.result == 'partial_success')
     outputs:
       with-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.with-srp-browserstack-url }}
@@ -347,12 +361,12 @@ jobs:
       without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
       with-srp-version: ${{ steps.browserstack-upload.outputs.with-srp-version }}
       without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
-    
+
     steps:
       - name: Checkout code
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         uses: actions/checkout@v4
-            
+
       - name: Download and Upload APKs to BrowserStack
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         id: browserstack-upload
@@ -364,24 +378,24 @@ jobs:
         run: |
           set +e  # Don't exit on error - continue to try both APKs
           echo "Downloading APKs from Bitrise and uploading to BrowserStack..."
-          
+
           # Initialize variables to avoid undefined references
           WITH_SRP_APP_URL=""
           WITHOUT_SRP_APP_URL=""
-          
+
           # Initialize upload status outputs
           {
             echo "with-srp-apk-uploaded=false"
             echo "without-srp-apk-uploaded=false"
           } >> "$GITHUB_OUTPUT"
-          
+
           # Get build IDs from job outputs
           WITH_SRP_BUILD_ID="${{ needs.trigger-android-with-srp-build.outputs.build-id }}"
           WITHOUT_SRP_BUILD_ID="${{ needs.trigger-android-without-srp-build.outputs.build-id }}"
-          
+
           echo "With-SRP build ID: $WITH_SRP_BUILD_ID"
           echo "Without-SRP build ID: $WITHOUT_SRP_BUILD_ID"
-          
+
           # Download with-SRP APK
           if [ -n "$WITH_SRP_BUILD_ID" ]; then
             echo "Downloading with-SRP APK..."
@@ -492,7 +506,7 @@ jobs:
           else
             echo "With-SRP build ID not available"
           fi
-          
+
           # Download without-SRP APK
           if [ -n "$WITHOUT_SRP_BUILD_ID" ]; then
             echo "Downloading without-SRP APK..."
@@ -603,7 +617,7 @@ jobs:
           else
             echo "Without-SRP build ID not available"
           fi
-          
+
           echo "BrowserStack upload process completed!"
           if [[ -n "$WITH_SRP_APP_URL" ]]; then
             echo "With-SRP URL: $WITH_SRP_APP_URL"

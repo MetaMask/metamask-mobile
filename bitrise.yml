@@ -2368,8 +2368,8 @@ workflows:
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 cp "$OLD_APK" "$NEW_APK"
 
-                # Rename AAB
-                if [ -n "$BUNDLE_DIR" ]; then
+                # Rename AAB (only if it exists - not generated for test builds)
+                if [ -n "$BUNDLE_DIR" ] && [ -f "$OLD_AAB" ]; then
                     NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                     cp "$OLD_AAB" "$NEW_AAB"
                 fi
