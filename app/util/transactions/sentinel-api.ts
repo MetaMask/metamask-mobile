@@ -5,6 +5,20 @@ import { Hex } from '@metamask/utils';
 const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
 const ENDPOINT_NETWORKS = 'networks';
 
+// In-memory cache for network flags (matches server's cache-control: max-age=300)
+const CACHE_TTL_MS = 300_000; // 5 minutes
+let cachedNetworkFlags: SentinelNetworkMap | null = null;
+let cacheTimestamp = 0;
+
+/**
+ * Clears the in-memory cache for network flags.
+ * Exported for testing purposes only.
+ */
+export function clearSentinelNetworkCache(): void {
+  cachedNetworkFlags = null;
+  cacheTimestamp = 0;
+}
+
 export interface SentinelNetwork {
   name: string;
   group: string;
@@ -29,11 +43,28 @@ export type SentinelNetworkMap = Record<string, SentinelNetwork>;
  * Returns all network data.
  * The `/networks` endpoint returns the same data regardless of subdomain,
  * meaning all network subdomains are aliases of the same source.
+ *
+ * Results are cached in-memory for 5 minutes to match the server's
+ * cache-control: max-age=300 header, since React Native's fetch
+ * doesn't automatically respect HTTP caching headers.
  */
 async function getAllSentinelNetworkFlags(): Promise<SentinelNetworkMap> {
+  const now = Date.now();
+
+  // Return cached data if still valid
+  if (cachedNetworkFlags && now - cacheTimestamp < CACHE_TTL_MS) {
+    return cachedNetworkFlags;
+  }
+
   const url = `${buildUrl('ethereum-mainnet')}${ENDPOINT_NETWORKS}`;
   const response = await fetch(url);
-  return response.json();
+  const data: SentinelNetworkMap = await response.json();
+
+  // Update cache
+  cachedNetworkFlags = data;
+  cacheTimestamp = now;
+
+  return data;
 }
 
 /**
