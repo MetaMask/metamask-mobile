@@ -61,6 +61,7 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.stakingClaim,
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
+  TransactionType.lendingDeposit,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
   TransactionType.tokenMethodSafeTransferFrom,
