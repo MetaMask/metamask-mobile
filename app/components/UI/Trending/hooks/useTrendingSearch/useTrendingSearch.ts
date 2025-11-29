@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
+import { SortTrendingBy } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
@@ -52,10 +52,20 @@ export const useTrendingSearch = (
       filteredTrendingResults.map((result) => [result.assetId, result]),
     );
 
-    searchResults.forEach((result) => {
-      const asset = result as TrendingAsset;
+    searchResults.forEach((asset) => {
       if (!resultMap.has(asset.assetId)) {
-        resultMap.set(asset.assetId, asset);
+        resultMap.set(asset.assetId, {
+          assetId: asset.assetId,
+          symbol: asset.symbol,
+          name: asset.name,
+          decimals: asset.decimals,
+          price: asset.price,
+          aggregatedUsdVolume: asset.aggregatedUsdVolume,
+          marketCap: asset.marketCap,
+          priceChangePct: {
+            h24: asset.pricePercentChange1d,
+          },
+        });
       }
     });
 
