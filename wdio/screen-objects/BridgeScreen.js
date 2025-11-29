@@ -56,9 +56,6 @@ class BridgeScreen {
   }
 
   async isQuoteDisplayed() {
-
-      const element = await this.quoteDisplayed; // bridge swap view shows on 
-      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
       const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MM fee");
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
     
@@ -91,9 +88,32 @@ class BridgeScreen {
   }
 
   async selectNetworkAndTokenTo(network, token) {
-      const destinationToken = this.destinationTokenArea;
+    const destinationToken = await this.destinationTokenArea;
+    await AppwrightGestures.tap(destinationToken);
+    const filterNetworkButton = await AppwrightSelectors.getElementByID(this._device, 'See all');
+    await AppwrightGestures.tap(filterNetworkButton);
+    const networkButton = await this.getNetworkButton(network);
+    await AppwrightGestures.tap(networkButton);
+    let tokenNetworkId;
+    if (network == 'Ethereum'){
+      tokenNetworkId = `0x1`;
+    }
+    else if (network == 'Polygon'){
+      tokenNetworkId = `0x89`;
+    }
+    else if (network == 'Solana'){
+      tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
+    }
+    const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+    await AppwrightGestures.tap(tokenButton);
+  }
+
+  async selectNetworkAndTokenToOld(network, token) {
+    await this._device.pause();
+      const destinationToken = await this.destinationTokenArea;
       await AppwrightGestures.tap(destinationToken);
-      await AppwrightGestures.tap(this.getNetworkButton(network));
+      const networkButton = await this.getNetworkButton(network);
+      await AppwrightGestures.tap(networkButton);
       const tokenField = AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
       await AppwrightGestures.typeText(tokenField, token);
       let tokenNetworkId;

@@ -42,7 +42,9 @@ class AccountListComponent {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
-      await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.scrollIntoView(this.device, this.addAccountButton, {scrollParams: {direction: 'down'}});
+      const element = await this.addAccountButton;
+      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
     }
   }
 

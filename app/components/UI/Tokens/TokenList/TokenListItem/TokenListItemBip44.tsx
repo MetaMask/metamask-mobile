@@ -20,6 +20,7 @@ import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
+import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import createStyles from '../../styles';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
@@ -80,6 +81,7 @@ export const TokenListItemBip44 = React.memo(
     const { getEarnToken } = useEarnTokens();
 
     // Earn feature flags
+    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
@@ -121,6 +123,7 @@ export const TokenListItemBip44 = React.memo(
         )}%`
       : undefined;
 
+    const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
     const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
@@ -145,36 +148,28 @@ export const TokenListItemBip44 = React.memo(
       });
     };
 
-    const isStakeable = useSelector((state: RootState) =>
-      selectIsStakeableToken(state, asset as TokenI),
-    );
-
     const renderEarnCta = useCallback(() => {
       if (!asset) {
         return null;
       }
-
-      const shouldShowStakeCta = isStakeable && !asset?.isStaked;
+      const isCurrentAssetEth =
+        asset.isNative && asset.chainId?.startsWith('eip') && !asset.isStaked;
+      const shouldShowPooledStakingCta =
+        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      const shouldShowMusdConvertCta = isConvertibleStablecoin;
-
-      if (
-        shouldShowStakeCta ||
-        shouldShowStablecoinLendingCta ||
-        shouldShowMusdConvertCta
-      ) {
+      if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
     }, [
       asset,
       earnToken,
-      isConvertibleStablecoin,
+      isPooledStakingEnabled,
       isStablecoinLendingEnabled,
-      isStakeable,
+      isStakingSupportedChain,
     ]);
 
     if (!asset || !chainId) {

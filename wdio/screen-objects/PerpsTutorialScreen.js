@@ -31,7 +31,8 @@ class PerpsTutorialScreen {
   }
 
   async tapContinue() {
-    await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
+    const element = await this.continueButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   // Legacy alias for backward compatibility
@@ -40,7 +41,8 @@ class PerpsTutorialScreen {
   }
 
   async tapSkip() {
-    await AppwrightGestures.tap(this.skipButton); // Use static tap method with retry logic
+    const element = await this.skipButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async expectFirstScreenVisible() {
