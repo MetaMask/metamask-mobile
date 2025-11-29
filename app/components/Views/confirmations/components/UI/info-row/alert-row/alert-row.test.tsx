@@ -85,7 +85,7 @@ describe('AlertRow', () => {
     expect(getByText(LABEL_MOCK)).toBeDefined();
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
     const icon = getByTestId('inline-alert-icon');
-    expect(icon.props.name).toBe(IconName.Danger);
+    expect(icon.props.name).toBe(IconName.Info);
   });
 
   it('renders correctly with default alert', () => {
