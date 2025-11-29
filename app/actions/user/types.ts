@@ -111,7 +111,9 @@ export type SetMultichainAccountsIntroModalSeenAction =
   };
 
 export type SetMusdConversionEducationSeenAction =
-  Action<UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN>;
+  Action<UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN> & {
+    payload: { seen: boolean };
+  };
 
 /**
  * User actions union type

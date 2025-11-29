@@ -19,6 +19,11 @@ const styleSheet = (_params: { theme: Theme }) =>
     disabledButton: {
       opacity: 0.5,
     },
+    musdConversionContainer: {
+      alignItems: 'center',
+      gap: 24,
+      marginBottom: 34,
+    },
   });
 
 export default styleSheet;

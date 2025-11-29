@@ -24,6 +24,18 @@ jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
 
+jest.mock('../Earn/components/Musd/MusdConversionCta', () => {
+  const ActualReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ActualReact.createElement(View, {
+        testID: 'musd-conversion-cta',
+      }),
+  };
+});
+
 // We don't need to mock TokenList - the actual implementation is fine for testing
 
 // Mock InteractionManager to execute callbacks immediately
@@ -571,6 +583,14 @@ describe('Tokens', () => {
     const { queryByText } = renderComponent(initialState);
 
     expect(queryByText('Link')).toBeNull(); // Zero balance token should not be visible
+  });
+
+  it('renders MusdConversionCta when tokens are present', async () => {
+    const { queryByTestId } = renderComponent(initialState);
+
+    await waitFor(() => {
+      expect(queryByTestId('musd-conversion-cta')).toBeOnTheScreen();
+    });
   });
 
   describe('Portfolio View', () => {
