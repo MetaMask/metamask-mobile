@@ -20,7 +20,7 @@ describe('useStopLossPrompt', () => {
     },
     liquidationPrice: '45000',
     maxLeverage: 50,
-    returnOnEquity: '-0.20', // -20%
+    returnOnEquity: '-0.05', // -5% (above threshold for most tests)
     cumulativeFunding: {
       allTime: '0',
       sinceOpen: '0',
@@ -107,7 +107,7 @@ describe('useStopLossPrompt', () => {
       // Position with liquidation at 45000, current price 45500 (1.1% away)
       const position = createMockPosition({
         liquidationPrice: '45000',
-        returnOnEquity: '-0.10', // Not at ROE threshold
+        returnOnEquity: '-0.05', // -5% (above -10% ROE threshold)
       });
 
       const { result } = renderHook(() =>
@@ -144,7 +144,7 @@ describe('useStopLossPrompt', () => {
   describe('stop_loss variant', () => {
     it('shows stop_loss variant after ROE debounce period', () => {
       const position = createMockPosition({
-        returnOnEquity: '-0.25', // -25% ROE
+        returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
         liquidationPrice: '40000', // Far from liquidation
       });
 
@@ -169,7 +169,7 @@ describe('useStopLossPrompt', () => {
 
     it('does not show stop_loss variant if ROE recovers before debounce', () => {
       const position = createMockPosition({
-        returnOnEquity: '-0.25', // -25% ROE
+        returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
         liquidationPrice: '40000',
       });
 
@@ -189,7 +189,7 @@ describe('useStopLossPrompt', () => {
 
       // ROE recovers
       const recoveredPosition = createMockPosition({
-        returnOnEquity: '-0.10', // -10% ROE (above threshold)
+        returnOnEquity: '-0.05', // -5% ROE (above threshold)
         liquidationPrice: '40000',
       });
 
@@ -324,7 +324,7 @@ describe('useStopLossPrompt', () => {
 
     it('prioritizes add_margin over stop_loss when both conditions met', () => {
       const position = createMockPosition({
-        returnOnEquity: '-0.30', // Below ROE threshold
+        returnOnEquity: '-0.15', // Below -10% ROE threshold
         liquidationPrice: '49000', // Very close to liquidation
       });
 
