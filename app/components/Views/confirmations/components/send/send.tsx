@@ -11,6 +11,7 @@ import { Amount } from './amount';
 import { Asset } from './asset';
 import { Recipient } from './recipient';
 import { useEmptyNavHeaderForConfirmations } from '../../hooks/ui/useEmptyNavHeaderForConfirmations';
+import SnapDialogApproval from '../../../../Snaps/SnapDialogApproval/SnapDialogApproval';
 
 const Stack = createStackNavigator();
 
@@ -40,6 +41,12 @@ export const Send = () => {
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
             component={Confirm}
+            options={emptyNavHeaderOptions}
+          />
+          <Stack.Screen
+            name={Routes.FULL_SCREEN_CONFIRMATIONS.SNAP_DIALOG_APPROVAL}
+            component={SnapDialogApproval}
+            initialParams={{ isConfirmationSubroute: true }}
             options={emptyNavHeaderOptions}
           />
         </Stack.Navigator>

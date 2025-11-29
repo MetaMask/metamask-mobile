@@ -47,7 +47,8 @@ export const useSendActions = () => {
         );
       } else {
         try {
-          await sendMultichainTransactionForReview(
+          navigation.navigate(Routes.FULL_SCREEN_CONFIRMATIONS.SNAP_DIALOG_APPROVAL);
+          sendMultichainTransactionForReview(
             fromAccount as InternalAccount,
             {
               fromAccountId: fromAccount?.id as string,
@@ -57,7 +58,7 @@ export const useSendActions = () => {
               amount: addLeadingZeroIfNeeded(value) as string,
             },
           );
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          // TODO: Re-route to transactions view
         } catch (error) {
           // Do nothing on rejection - intentionally ignored
           Logger.log('Multichain transaction for review rejected: ', error);
