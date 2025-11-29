@@ -1,4 +1,5 @@
 import { test } from '../../../fixtures/performance-test.js';
+import { type WebdriverIO5Device } from '../../../wdio/type-helpers.js';
 
 import TimerHelper from '../../../utils/TimersHelper.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
@@ -9,87 +10,93 @@ import PredictMarketListScreen from '../../../../wdio/screen-objects/PredictMark
 import PredictDetailsScreen from '../../../../wdio/screen-objects/PredictDetailsScreen.js';
 import { login } from '../../../utils/Flows.js';
 
-/*
- * Scenario: Predict Market Details Performance Test
- *
- * This test measures how long it takes to load the market details page
- * under 4G network conditions (default for e2e tests).
- *
- * The test measures:
- * 1. Time to open predictions tab from wallet
- * 2. Time to load market list
- * 3. Time to open market details
- * 4. Time to load and verify About tab content
- * 5. Time to load and verify Outcomes tab content
+/**
+ * Helper function to inject the device object into all necessary screen objects.
+ * This simplifies the test setup and improves readability (Optimization #1).
  */
-test('Predict Market Details - Load Time Performance', async ({
-  device,
-  performanceTracker,
-}, testInfo) => {
-  // Setup screen objects with device
+function setupScreenObjects(device: WebdriverIO5Device): void {
   LoginScreen.device = device;
   WalletMainScreen.device = device;
   TabBarModal.device = device;
   WalletActionModal.device = device;
   PredictMarketListScreen.device = device;
   PredictDetailsScreen.device = device;
+}
 
-  // Login to the app
+/*
+ * Scenario: Predict Market Details Performance Test
+ *
+ * This test measures the load time for key screens and tabs within the
+ * Prediction Market flow under 4G network conditions.
+ */
+test('Predict Market Details - Load Time Performance', async ({
+  device,
+  performanceTracker,
+}, testInfo) => {
+  // OPTIMIZATION #1: Simplify screen object setup
+  setupScreenObjects(device);
+
+  // --- Initial Flow: Login and Open Action Modal ---
   await login(device);
   await TabBarModal.tapActionButton();
 
-  // Timer 2: Open predictions tab
-  const timer2 = new TimerHelper(
-    'Time since user taps Predict button until Predict Market List is displayed',
+  // --- Timer 1: Open Predictions Tab & Market List Load ---
+  // Measures the time from the button tap until the market list is confirmed displayed.
+  const timer1 = new TimerHelper(
+    '1. Modal to Market List Load Time',
   );
-  timer2.start();
+  timer1.start();
   await WalletActionModal.tapPredictButton();
   await PredictMarketListScreen.isContainerDisplayed();
-  timer2.stop();
+  timer1.stop(); // Stop immediately after the container is displayed
 
-  // Timer 3: Open market details
-  const timer3 = new TimerHelper(
-    'Time since user taps market card until Market Details screen is visible',
+  // --- Timer 2: Market List to Market Details Load ---
+  // Measures the time from tapping a card until the details screen is visible.
+  const timer2 = new TimerHelper(
+    '2. Market List to Details Screen Load Time',
   );
-  timer3.start();
+  timer2.start();
+  // Tapping the first trending market card
   await PredictMarketListScreen.tapMarketCard('trending', 1);
   await PredictDetailsScreen.isVisible();
-  timer3.stop();
+  timer2.stop(); // Stop immediately once the screen is visible
 
-  // Timer 4: Load About tab
-  const timer4 = new TimerHelper(
-    'Time since user taps About tab until About tab content is loaded and Volume text is visible',
+  // --- Timer 3: Load About Tab ---
+  const timer3 = new TimerHelper(
+    '3. About Tab Content Load Time',
   );
-  timer4.start();
+  timer3.start();
   await PredictDetailsScreen.tapAboutTab();
   await PredictDetailsScreen.isAboutTabContentDisplayed();
-  await PredictDetailsScreen.verifyVolumeTextDisplayed();
-  timer4.stop();
-
-  // Timer 5: Load Outcomes tab
-  const timer5 = new TimerHelper(
-    'Time since user taps Outcomes tab until Outcomes tab content is loaded and Yes/No options are visible',
+  timer3.stop(); // Stop after content is confirmed loaded
+  
+  // OPTIMIZATION #2: Move verification out of the measured duration
+  await PredictDetailsScreen.verifyVolumeTextDisplayed(); 
+  
+  // --- Timer 4: Load Outcomes Tab ---
+  const timer4 = new TimerHelper(
+    '4. Outcomes Tab Content Load Time',
   );
-  timer5.start();
+  timer4.start();
   await PredictDetailsScreen.tapOutcomesTab();
   await PredictDetailsScreen.isOutcomesTabContentDisplayed();
-  timer5.stop();
+  timer4.stop(); // Stop after content is confirmed loaded
 
-  // Add all timers to performance tracker
+  // --- Final Reporting ---
+  
+  // The original Timer2/3/4/5 names are now Timer1/2/3/4 for conciseness
+  await performanceTracker.addTimer(timer1); 
   await performanceTracker.addTimer(timer2);
   await performanceTracker.addTimer(timer3);
   await performanceTracker.addTimer(timer4);
-  await performanceTracker.addTimer(timer5);
 
   // Attach performance metrics to test report
   await performanceTracker.attachToTest(testInfo);
 
+  // OPTIMIZATION #3: Simplified console output, let the tracker handle total time.
   console.log('✅ Predict Market Details Performance Test completed');
-  console.log(`📊 Modal to Market List: ${timer2.getDuration()}ms`);
-  console.log(`📊 Market List to Details: ${timer3.getDuration()}ms`);
-  console.log(`📊 About Tab Load: ${timer4.getDuration()}ms`);
-  console.log(`📊 Outcomes Tab Load: ${timer5.getDuration()}ms`);
-  console.log(
-    `📊 Total Time: ${timer2.getDuration() + timer3.getDuration() + timer4.getDuration() + timer5.getDuration()}ms`,
-  );
+  console.log(`📊 1. Modal to Market List: ${timer1.getDuration()}ms`);
+  console.log(`📊 2. Market List to Details: ${timer2.getDuration()}ms`);
+  console.log(`📊 3. About Tab Load: ${timer3.getDuration()}ms`);
+  console.log(`📊 4. Outcomes Tab Load: ${timer4.getDuration()}ms`);
 });
