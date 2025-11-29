@@ -21,6 +21,7 @@ import {
   formatWithSignificantDigits,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
@@ -325,7 +326,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         )}
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
-          {asset}-USD{' '}
+          {getPerpsDisplaySymbol(asset)}-USD{' '}
           {currentPrice !== undefined && currentPrice !== null
             ? formatPerpsFiat(currentPrice, {
                 ranges: PRICE_RANGES_UNIVERSAL,

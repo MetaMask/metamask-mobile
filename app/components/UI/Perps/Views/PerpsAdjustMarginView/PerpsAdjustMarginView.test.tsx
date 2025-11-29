@@ -206,7 +206,10 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByText('perps.adjust_margin.perps_balance'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$1000.00')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.adjust_margin.margin_available_to_add'),
+      ).toBeOnTheScreen();
+      expect(screen.getAllByText('$1000.00')).toHaveLength(2);
     });
 
     it('displays liquidation price label', () => {
@@ -281,6 +284,89 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByText('perps.adjust_margin.add_title'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders error message when position is missing', () => {
+      mockRouteParams = {
+        mode: 'add',
+      };
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByText('perps.errors.position_not_found'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders error message when mode is missing', () => {
+      mockRouteParams = {
+        position: mockPosition,
+      };
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByText('perps.errors.position_not_found'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('loading states', () => {
+    it('does not display button text when isAdjusting is true', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      mockUsePerpsMarginAdjustment.mockReturnValue({
+        handleAddMargin: mockHandleAddMargin,
+        handleRemoveMargin: mockHandleRemoveMargin,
+        isAdjusting: true,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      // When loading, button text is not rendered
+      expect(
+        screen.queryByText('perps.adjust_margin.add_margin'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('displays button text when not adjusting', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      mockUsePerpsMarginAdjustment.mockReturnValue({
+        handleAddMargin: mockHandleAddMargin,
+        handleRemoveMargin: mockHandleRemoveMargin,
+        isAdjusting: false,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByText('perps.adjust_margin.add_margin'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('remove mode calculations', () => {
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'remove',
+      };
+    });
+
+    it('displays margin available to remove', () => {
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByText('perps.adjust_margin.margin_available_to_remove'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('$200.00')).toBeOnTheScreen();
     });
   });
 });
