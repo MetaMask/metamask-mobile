@@ -14,7 +14,7 @@
     "clean:android": "rm -rf android/app/build",
     "clean": "yarn clean:ios && yarn clean:android && yarn install --immutable",
     "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}'",
-    "lint:fix": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --fix",
+    "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "format:check": "prettier '**/*.{js,ts,tsx,json}' --check",
@@ -123,7 +123,7 @@
     "deduplicate": "yarn dedupe",
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher",
-    "gen-bundle:ios": "NODE_OPTIONS='--max-old-space-size=8192' yarn react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
+    "gen-bundle:ios": "yarn react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
     "gen-bundle:android": "yarn react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
     "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false",
     "generate-icons": "yarn ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts"
