@@ -5,6 +5,7 @@ import { Observable, Observer, Subscription } from 'rxjs';
 export interface BluetoothDevice {
   id: string;
   name: string;
+  serviceUUIDs: string[];
 }
 
 // Works with any Bluetooth Interface that provides a listen method
