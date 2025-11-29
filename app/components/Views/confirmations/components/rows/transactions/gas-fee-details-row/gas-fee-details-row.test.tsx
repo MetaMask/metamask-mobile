@@ -105,6 +105,7 @@ describe('GasFeesDetailsRow', () => {
     mockUseIsGaslessSupported.mockReturnValue({
       isSupported: true,
       isSmartTransaction: false,
+      pending: false,
     });
     mockUseInsufficientBalanceAlert.mockReturnValue([]);
     mockUseHideFiatForTestnet.mockReturnValue(false);

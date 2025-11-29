@@ -36,7 +36,7 @@ export function GasFeeTokenToast() {
   });
 
   useEffect(() => {
-    if (!toast || !gasFeeToken) return;
+    if (!toast || !gasFeeToken || !transactionMetadata) return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
@@ -68,7 +68,13 @@ export function GasFeeTokenToast() {
         },
       },
     });
-  }, [gasFeeToken, tokenSelected, toast, networkImageSource]);
+  }, [
+    gasFeeToken,
+    tokenSelected,
+    toast,
+    networkImageSource,
+    transactionMetadata,
+  ]);
 
   return null;
 }

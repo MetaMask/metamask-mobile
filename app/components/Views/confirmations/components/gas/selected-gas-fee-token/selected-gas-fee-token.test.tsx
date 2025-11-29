@@ -45,6 +45,7 @@ describe('SelectedGasFeeToken', () => {
     mockUseIsGaslessSupported.mockReturnValue({
       isSupported: gaslessSupported,
       isSmartTransaction,
+      pending: false,
     });
     mockUseNetworkInfo.mockReturnValue({
       networkNativeCurrency: 'ETH',

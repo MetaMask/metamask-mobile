@@ -88,6 +88,7 @@ describe('useTransactionConfirm', () => {
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: true,
       isSupported: true,
+      pending: false,
     });
 
     useGaslessSupportedSmartTransactionsMock.mockReturnValue({
