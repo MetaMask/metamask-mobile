@@ -114,6 +114,12 @@ import {
   PreferencesState,
 } from '@metamask/preferences-controller';
 import {
+  AnalyticsController,
+  AnalyticsControllerState,
+  AnalyticsControllerActions,
+  AnalyticsControllerEvents,
+} from '@metamask/analytics-controller';
+import {
   TransactionController,
   TransactionControllerActions,
   TransactionControllerEvents,
@@ -235,6 +241,7 @@ import {
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
+import type { AnalyticsDefaults } from '../Analytics/analytics.types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
@@ -486,7 +493,8 @@ type GlobalActions =
   | ErrorReportingServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
-  | NftDetectionControllerActions;
+  | NftDetectionControllerActions
+  | AnalyticsControllerActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -555,7 +563,8 @@ type GlobalEvents =
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   | DelegationControllerEvents
-  | NftDetectionControllerEvents;
+  | NftDetectionControllerEvents
+  | AnalyticsControllerEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -665,6 +674,7 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  AnalyticsController: AnalyticsController;
 };
 
 /**
@@ -739,6 +749,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  AnalyticsController: AnalyticsControllerState;
 };
 
 /** Controller names */
@@ -838,7 +849,8 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController';
+  | 'SelectedNetworkController'
+  | 'AnalyticsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -908,10 +920,19 @@ export type ControllerInitRequest<
   getState: () => RootState;
 
   /**
-   * The MetaMetrics ID to use for tracking.
-   * This is always provided at runtime and should not be undefined.
+   * Pre-loaded analytics defaults from StorageWrapper.
+   * Values are loaded asynchronously in EngineService.start() before Engine.init().
+   *
+   * Controllers receive this state object directly (no StorageWrapper access).
+   * - RemoteFeatureFlagController: uses `analyticsDefaults.analyticsId`
+   * - AnalyticsController: passes `analyticsDefaults` as `state` to constructor
+   *
+   * The object contains:
+   * - analyticsId: UUIDv4 string (generated if missing, already in MMKV)
+   * - optedInForRegularAccount: boolean (defaults to false, already in MMKV)
+   * - optedInForSocialAccount: boolean (defaults to false, already in MMKV)
    */
-  metaMetricsId: string;
+  analyticsDefaults: AnalyticsDefaults;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
@@ -976,7 +997,7 @@ export interface InitModularizedControllersFunctionRequest {
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
-  metaMetricsId: string;
+  analyticsDefaults: AnalyticsDefaults;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;

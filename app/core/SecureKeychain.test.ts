@@ -9,8 +9,6 @@ import {
   PASSCODE_DISABLED,
   TRUE,
 } from '../constants/storage';
-import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import AUTHENTICATION_TYPE from '../constants/userProperties';
 import QuickCrypto from 'react-native-quick-crypto';
 import { STORAGE_TYPE } from 'react-native-keychain';
 
@@ -51,16 +49,6 @@ jest.mock('../store/storage-wrapper', () => ({
   },
 }));
 
-const mockAddTraitsToUser = jest.fn();
-jest.mock('../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(() => ({
-      addTraitsToUser: mockAddTraitsToUser,
-      trackEvent: jest.fn(),
-    })),
-  },
-}));
-
 describe('SecureKeychain - setGenericPassword', () => {
   const mockPassword = 'test_password';
 
@@ -86,12 +74,6 @@ describe('SecureKeychain - setGenericPassword', () => {
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       PASSCODE_DISABLED,
       TRUE,
-    );
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith(
-      expect.objectContaining({
-        [UserProfileProperty.AUTHENTICATION_TYPE]:
-          AUTHENTICATION_TYPE.BIOMETRIC,
-      }),
     );
   });
 
@@ -166,12 +148,6 @@ describe('SecureKeychain - setGenericPassword', () => {
         BIOMETRY_CHOICE_DISABLED,
         TRUE,
       );
-      expect(mockAddTraitsToUser).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          [UserProfileProperty.AUTHENTICATION_TYPE]:
-            AUTHENTICATION_TYPE.PASSWORD,
-        }),
-      );
     });
 
     it('should successfully set up biometric authentication', async () => {
@@ -198,12 +174,6 @@ describe('SecureKeychain - setGenericPassword', () => {
       expect(StorageWrapper.removeItem).toHaveBeenCalledWith(PASSCODE_CHOICE);
       expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
         BIOMETRY_CHOICE_DISABLED,
-      );
-      expect(mockAddTraitsToUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          [UserProfileProperty.AUTHENTICATION_TYPE]:
-            AUTHENTICATION_TYPE.BIOMETRIC,
-        }),
       );
     });
   });

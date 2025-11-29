@@ -24,14 +24,14 @@ import {
 export const remoteFeatureFlagControllerInit: ControllerInitFunction<
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerMessenger
-> = ({ controllerMessenger, persistedState, getState, metaMetricsId }) => {
+> = ({ controllerMessenger, persistedState, getState, analyticsDefaults }) => {
   const disabled = !selectBasicFunctionalityEnabled(getState());
 
   const controller = new RemoteFeatureFlagController({
     messenger: controllerMessenger,
     state: persistedState.RemoteFeatureFlagController,
     disabled,
-    getMetaMetricsId: () => metaMetricsId,
+    getMetaMetricsId: () => analyticsDefaults.analyticsId,
     clientConfigApiService: new ClientConfigApiService({
       fetch,
       config: {

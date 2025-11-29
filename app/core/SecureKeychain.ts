@@ -3,7 +3,6 @@ import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
 import StorageWrapper from '../store/storage-wrapper';
 import { Platform } from 'react-native';
-import { MetaMetricsEvents, MetaMetrics } from './Analytics';
 import {
   BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
@@ -11,7 +10,6 @@ import {
   PASSCODE_DISABLED,
   TRUE,
 } from '../constants/storage';
-import Device from '../util/device';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor({
@@ -26,9 +24,6 @@ const defaultOptions = {
   fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
-import AUTHENTICATION_TYPE from '../constants/userProperties';
-import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 
 enum SecureKeychainTypes {
   BIOMETRICS = 'BIOMETRICS',
@@ -73,14 +68,6 @@ let instance: SecureKeychainEncryptor;
 const SecureKeychain = {
   init(salt: string) {
     instance = SecureKeychainEncryptor.getInstance(salt);
-
-    if (Device.isAndroid() && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE,
-        ).build(),
-      );
-
     Object.freeze(instance);
     return instance;
   },
@@ -152,9 +139,6 @@ const SecureKeychain = {
     await StorageWrapper.removeItem(BIOMETRY_CHOICE);
     await StorageWrapper.removeItem(PASSCODE_CHOICE);
     // This is called to remove other auth types and set the user back to the default password login
-    await MetaMetrics.getInstance().addTraitsToUser({
-      [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
-    });
     return Keychain.resetGenericPassword(options);
   },
 
@@ -185,24 +169,11 @@ const SecureKeychain = {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     };
 
-    const metrics = MetaMetrics.getInstance();
     if (type === this.TYPES.BIOMETRICS) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
-
-      await metrics.addTraitsToUser({
-        [UserProfileProperty.AUTHENTICATION_TYPE]:
-          AUTHENTICATION_TYPE.BIOMETRIC,
-      });
     } else if (type === this.TYPES.PASSCODE) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
-      await metrics.addTraitsToUser({
-        [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
-      });
     } else if (type === this.TYPES.REMEMBER_ME) {
-      await metrics.addTraitsToUser({
-        [UserProfileProperty.AUTHENTICATION_TYPE]:
-          AUTHENTICATION_TYPE.REMEMBER_ME,
-      });
       //Don't need to add any parameter
     } else {
       // Setting a password without a type does not save it
@@ -243,12 +214,6 @@ const SecureKeychain = {
             // Update storage to reflect disabled biometrics
             await StorageWrapper.removeItem(BIOMETRY_CHOICE);
             await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-
-            // Update metrics
-            await metrics.addTraitsToUser({
-              [UserProfileProperty.AUTHENTICATION_TYPE]:
-                AUTHENTICATION_TYPE.PASSWORD,
-            });
 
             return;
           }

@@ -19,6 +19,7 @@ import { ApprovalControllerState } from '@metamask/approval-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { TokenSearchDiscoveryControllerState } from '@metamask/token-search-discovery-controller';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
+import { AnalyticsControllerState } from '@metamask/analytics-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapController } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
@@ -48,6 +49,7 @@ export interface EngineState {
       AccountsController: AccountsControllerState;
       AccountTreeController: AccountTreeControllerState;
       TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
+      AnalyticsController: AnalyticsControllerState;
     };
   };
 }

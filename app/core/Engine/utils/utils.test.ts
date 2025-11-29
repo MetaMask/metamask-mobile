@@ -50,6 +50,11 @@ describe('initModularizedControllers', () => {
         codefiTokenApiV2: jest.fn() as unknown as CodefiTokenPricesServiceV2,
         getGlobalChainId: jest.fn(),
         getState: jest.fn(),
+        analyticsDefaults: {
+          analyticsId: 'f2673eb8-db32-40bb-88a5-97cf5107d31d',
+          optedInForRegularAccount: false,
+          optedInForSocialAccount: false,
+        },
         removeAccount: jest.fn(),
         qrKeyringScanner:
           jest.fn() as unknown as QrKeyringDeferredPromiseBridge,

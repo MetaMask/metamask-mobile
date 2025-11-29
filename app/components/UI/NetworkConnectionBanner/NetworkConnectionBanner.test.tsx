@@ -8,6 +8,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 jest.mock('../../hooks/useNetworkConnectionBanner');
 
 jest.mock('../../../util/theme', () => ({
+  ...jest.requireActual('../../../util/theme'),
   useAppTheme: jest.fn(() => ({
     colors: {
       background: {

@@ -40,6 +40,7 @@ export interface IMetaMetrics {
    * add an user to a specific group
    * @param groupId
    * @param groupTraits
+   * @deprecated method never used in app
    */
   group(groupId: string, groupTraits?: GroupTraits): void;
   /**
@@ -51,11 +52,13 @@ export interface IMetaMetrics {
   trackEvent(event: ITrackingEvent, saveDataRecording?: boolean): void;
   /**
    * clear the internal state of the library for the current user and group.
+   * @deprecated method never used in app
    */
   reset(): Promise<void>;
   /**
    * flush the queue of events
    * triggers the upload of the events
+   * @deprecated method never used in app
    */
   flush(): Promise<void>;
   /**
@@ -66,11 +69,11 @@ export interface IMetaMetrics {
 
   checkDataDeleteStatus(): Promise<IDeleteRegulationStatus>;
 
-  getDeleteRegulationCreationDate(): DataDeleteDate;
+  getDeleteRegulationCreationDate(): Promise<string | undefined>;
 
-  getDeleteRegulationId(): string | undefined;
+  getDeleteRegulationId(): Promise<string | undefined>;
 
-  isDataRecorded(): boolean;
+  isDataRecorded(): Promise<boolean>;
 
   configure(): Promise<boolean>;
 

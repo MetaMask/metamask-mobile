@@ -2,7 +2,9 @@ import { useCallback } from 'react';
 import { AnalyticsEvents as AggregatorEvents } from '../Aggregator/types';
 import { AnalyticsEvents as DepositEvents } from '../Deposit/types';
 
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+// Import directly from source files to avoid circular dependency
+import MetaMetrics from '../../../../core/Analytics/MetaMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 interface MergedRampEvents extends AggregatorEvents, DepositEvents {}

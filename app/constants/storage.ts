@@ -29,6 +29,11 @@ export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
  */
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 
+// New MMKV keys for analytics (separate from legacy keys)
+export const ANALYTICS_ID = `${prefix}AnalyticsId`;
+export const ANALYTICS_OPTED_IN_REGULAR = `${prefix}AnalyticsOptedInRegular`;
+export const ANALYTICS_OPTED_IN_SOCIAL = `${prefix}AnalyticsOptedInSocial`;
+
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 
