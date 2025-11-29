@@ -33,6 +33,7 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../app/constants/error';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../constants/address';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
@@ -646,6 +647,22 @@ export async function validateAddressOrENS(
   let [addressReady, addToAddressToAddressBook] = [false, false];
 
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+    // Check if address is a burn address
+    if (LOWER_CASED_BURN_ADDRESSES.includes(toAccount.toLowerCase())) {
+      addressError = strings('transaction.invalid_address');
+      addressReady = false;
+      return {
+        addressError,
+        toEnsName,
+        addressReady,
+        toEnsAddress,
+        addToAddressToAddressBook,
+        toAddressName,
+        errorContinue,
+        confusableCollection,
+      };
+    }
+
     const contactAlreadySaved = checkIfAddressAlreadySaved(
       toAccount,
       addressBook,
@@ -717,6 +734,22 @@ export async function validateAddressOrENS(
     );
 
     if (resolvedAddress) {
+      // Check if resolved ENS address is a burn address
+      if (LOWER_CASED_BURN_ADDRESSES.includes(resolvedAddress.toLowerCase())) {
+        addressError = strings('transaction.invalid_address');
+        addressReady = false;
+        return {
+          addressError,
+          toEnsName,
+          addressReady,
+          toEnsAddress,
+          addToAddressToAddressBook,
+          toAddressName,
+          errorContinue,
+          confusableCollection,
+        };
+      }
+
       if (!contactAlreadySaved) {
         addToAddressToAddressBook = true;
       } else {
