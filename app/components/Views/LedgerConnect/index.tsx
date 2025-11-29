@@ -90,17 +90,7 @@ const LedgerConnect = ({
   };
 
   const onDeviceSelected = (currentDevice: BluetoothDevice | undefined) => {
-    const getStoredDeviceId = async () => {
-      const storedDeviceId = await getDeviceId();
-      const isMatchingDeviceId =
-        !storedDeviceId || currentDevice?.id === storedDeviceId;
-      setHasMatchingDeviceId(isMatchingDeviceId);
-
-      if (isMatchingDeviceId) {
-        setSelectedDevice(currentDevice);
-      }
-    };
-    getStoredDeviceId();
+    setSelectedDevice(currentDevice);
   };
 
   const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
@@ -282,11 +272,6 @@ const LedgerConnect = ({
               <Text bold>{strings('ledger.open_eth_app_message_two')} </Text>
             </Text>
           )}
-          {!hasMatchingDeviceId && (
-            <Text red small testID={'multiple-devices-error-message'}>
-              {strings('ledger.multiple_devices_error_message')}
-            </Text>
-          )}
         </View>
         <View style={getStylesWithMultipleDevicesErrorMessage()}>
           {!isAppLaunchConfirmationNeeded ? (
@@ -302,9 +287,7 @@ const LedgerConnect = ({
                 type="confirm"
                 onPress={connectLedger}
                 testID={'add-network-button'}
-                disabled={
-                  !hasMatchingDeviceId || loading || isSendingLedgerCommands
-                }
+                disabled={loading || isSendingLedgerCommands}
               >
                 {loading || isSendingLedgerCommands ? (
                   <ActivityIndicator color={styles.loader.color} />

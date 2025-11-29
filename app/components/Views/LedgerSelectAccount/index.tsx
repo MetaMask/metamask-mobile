@@ -14,6 +14,7 @@ import {
   getHDPath,
   getLedgerAccounts,
   getLedgerAccountsByOperation,
+  getLedgerKeyringIdByDeviceId,
   setHDPath,
   unlockLedgerWalletAccount,
 } from '../../../core/Ledger/Ledger';
@@ -149,50 +150,85 @@ const LedgerSelectAccount = () => {
         .build(),
     );
 
+    const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(
+      selectedDevice?.id,
+    );
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_FIRST_PAGE,
+      ledgerKeyringId,
     );
     setAccounts(_accounts);
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, selectedDevice]);
 
   useEffect(() => {
     if (accounts.length > 0 && selectedOption) {
       showLoadingModal();
 
-      getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
-        .then((_accounts) => {
+      const fetchAccounts = async () => {
+        try {
+          const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(
+            selectedDevice?.id,
+          );
+          if (!ledgerKeyringId) {
+            throw new Error('Ledger keyring not found');
+          }
+          const _accounts = await getLedgerAccountsByOperation(
+            PAGINATION_OPERATIONS.GET_FIRST_PAGE,
+            ledgerKeyringId,
+          );
           setAccounts(_accounts);
-        })
-        .catch((e) => {
-          setErrorMsg(e.message);
-        })
-        .finally(() => {
+        } catch (e) {
+          setErrorMsg((e as Error).message);
+        } finally {
           setBlockingModalVisible(false);
-        });
+        }
+      };
+
+      fetchAccounts();
     }
-  }, [accounts.length, selectedOption]);
+  }, [accounts.length, selectedDevice, selectedOption]);
 
   const nextPage = useCallback(async () => {
     showLoadingModal();
+    const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(
+      selectedDevice?.id,
+    );
+    if (!ledgerKeyringId) {
+      throw new Error('Ledger keyring not found');
+    }
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_NEXT_PAGE,
+      ledgerKeyringId,
     );
     setAccounts(_accounts);
     setBlockingModalVisible(false);
-  }, []);
+  }, [selectedDevice?.id]);
 
   const prevPage = useCallback(async () => {
     showLoadingModal();
+    const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(
+      selectedDevice?.id,
+    );
+    if (!ledgerKeyringId) {
+      throw new Error('Ledger keyring not found');
+    }
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+      ledgerKeyringId,
     );
     setAccounts(_accounts);
     setBlockingModalVisible(false);
-  }, []);
+  }, [selectedDevice]);
 
   const updateNewLegacyAccountsLabel = useCallback(async () => {
-    if (LEDGER_LEGACY_PATH === (await getHDPath())) {
-      const ledgerAccounts = await getLedgerAccounts();
+    const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(
+      selectedDevice?.id,
+    );
+    if (!ledgerKeyringId) {
+      throw new Error('Ledger keyring not found');
+    }
+    if (LEDGER_LEGACY_PATH === (await getHDPath(ledgerKeyringId))) {
+      const ledgerAccounts = await getLedgerAccounts(ledgerKeyringId);
       const newAddedAccounts = ledgerAccounts.filter(
         (account) => !existingAccounts.includes(toFormattedAddress(account)),
       );
@@ -210,7 +246,7 @@ const LedgerSelectAccount = () => {
         }
       }
     }
-  }, [accountsController, existingAccounts]);
+  }, [accountsController, existingAccounts, selectedDevice]);
 
   const getPathString = (value: string) => {
     if (value === LEDGER_LIVE_PATH) {
@@ -226,9 +262,15 @@ const LedgerSelectAccount = () => {
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
       showLoadingModal();
+      const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(
+        selectedDevice?.id,
+      );
+      if (!ledgerKeyringId) {
+        throw new Error('Ledger keyring not found');
+      }
       try {
         for (const index of accountIndexes) {
-          await unlockLedgerWalletAccount(index);
+          await unlockLedgerWalletAccount(index, ledgerKeyringId);
         }
 
         await updateNewLegacyAccountsLabel();
@@ -249,17 +291,24 @@ const LedgerSelectAccount = () => {
       }
     },
     [
-      navigation,
-      selectedOption.value,
-      trackEvent,
+      selectedDevice,
       updateNewLegacyAccountsLabel,
+      trackEvent,
       createEventBuilder,
+      selectedOption.value,
+      navigation,
     ],
   );
 
   const onForget = useCallback(async () => {
     showLoadingModal();
-    await forgetLedger();
+    const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(
+      selectedDevice?.id,
+    );
+    if (!ledgerKeyringId) {
+      throw new Error('Ledger keyring not found');
+    }
+    await forgetLedger(ledgerKeyringId);
     dispatch(setReloadAccounts(true));
     trackEvent(
       createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
@@ -270,7 +319,7 @@ const LedgerSelectAccount = () => {
     );
     setBlockingModalVisible(false);
     navigation.dispatch(StackActions.pop(2));
-  }, [dispatch, navigation, trackEvent, createEventBuilder]);
+  }, [selectedDevice, dispatch, trackEvent, createEventBuilder, navigation]);
 
   const onAnimationCompleted = useCallback(async () => {
     if (!blockingModalVisible) {
@@ -297,14 +346,20 @@ const LedgerSelectAccount = () => {
 
   const onSelectedPathChanged = useCallback(
     async (path: string) => {
+      const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(
+        selectedDevice?.id,
+      );
+      if (!ledgerKeyringId) {
+        throw new Error('Ledger keyring not found');
+      }
       const option = ledgerPathOptions.find(
         (pathOption) => pathOption.key === path,
       );
       if (!option) return;
       setSelectedOption(option);
-      await setHDPath(path);
+      await setHDPath(path, ledgerKeyringId);
     },
-    [ledgerPathOptions],
+    [selectedDevice, ledgerPathOptions],
   );
 
   return ledgerError || accounts.length <= 0 ? (
