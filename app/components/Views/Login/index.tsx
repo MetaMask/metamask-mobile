@@ -12,7 +12,7 @@ import {
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -511,11 +511,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
-          resetScrollToCoords={{ x: 0, y: 0 }}
           style={styles.wrapper}
           contentContainerStyle={styles.scrollContentContainer}
-          extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
-          enableResetScrollToCoords={false}
+          bottomOffset={Platform.OS === 'android' ? 50 : 0}
+          enabled={false}
         >
           <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
             <Image

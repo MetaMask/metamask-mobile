@@ -20,6 +20,7 @@ import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverri
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 /**
  * Top level of the component hierarchy
@@ -66,32 +67,34 @@ const Root = ({ foxCode }: RootProps) => {
 
   return (
     <SafeAreaProvider>
-      <Provider store={store}>
-        <PersistGate persistor={persistor}>
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
-            <SnapsExecutionWebView />
-            ///: END:ONLY_INCLUDE_IF
-          }
-          <FeatureFlagOverrideProvider>
-            <ThemeProvider>
-              <NavigationProvider>
-                <ControllersGate>
-                  <ToastContextWrapper>
-                    <ErrorBoundary view="Root">
-                      <FontLoadingGate>
-                        <ReducedMotionConfig mode={ReduceMotion.Never} />
-                        <App />
-                      </FontLoadingGate>
-                    </ErrorBoundary>
-                  </ToastContextWrapper>
-                </ControllersGate>
-              </NavigationProvider>
-            </ThemeProvider>
-          </FeatureFlagOverrideProvider>
-        </PersistGate>
-      </Provider>
+      <KeyboardProvider>
+        <Provider store={store}>
+          <PersistGate persistor={persistor}>
+            {
+              ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+              // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+              <SnapsExecutionWebView />
+              ///: END:ONLY_INCLUDE_IF
+            }
+            <FeatureFlagOverrideProvider>
+              <ThemeProvider>
+                <NavigationProvider>
+                  <ControllersGate>
+                    <ToastContextWrapper>
+                      <ErrorBoundary view="Root">
+                        <FontLoadingGate>
+                          <ReducedMotionConfig mode={ReduceMotion.Never} />
+                          <App />
+                        </FontLoadingGate>
+                      </ErrorBoundary>
+                    </ToastContextWrapper>
+                  </ControllersGate>
+                </NavigationProvider>
+              </ThemeProvider>
+            </FeatureFlagOverrideProvider>
+          </PersistGate>
+        </Provider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 };

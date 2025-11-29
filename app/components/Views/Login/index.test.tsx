@@ -3,7 +3,13 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager, BackHandler, Alert, Image } from 'react-native';
+import {
+  InteractionManager,
+  BackHandler,
+  Alert,
+  Image,
+  Platform,
+} from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
@@ -1376,6 +1382,55 @@ describe('Login', () => {
         expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeDefined();
         expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
         expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
+      });
+    });
+  });
+
+  describe('KeyboardAwareScrollView Configuration', () => {
+    it('sets bottomOffset to 50 on Android', () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      const { UNSAFE_root } = renderWithProvider(<Login />);
+
+      const scrollView = UNSAFE_root.findByProps({ bottomOffset: 50 });
+      expect(scrollView).toBeDefined();
+      expect(scrollView.props.bottomOffset).toBe(50);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    });
+
+    it('sets bottomOffset to 0 on iOS', () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      const { UNSAFE_root } = renderWithProvider(<Login />);
+
+      const scrollView = UNSAFE_root.findByProps({ bottomOffset: 0 });
+      expect(scrollView).toBeDefined();
+      expect(scrollView.props.bottomOffset).toBe(0);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
       });
     });
   });
