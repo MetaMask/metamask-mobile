@@ -5,7 +5,13 @@ import React, {
   useMemo,
   useEffect,
 } from 'react';
-import { View, ScrollView, Pressable, TouchableOpacity } from 'react-native';
+import {
+  View,
+  ScrollView,
+  Pressable,
+  TouchableOpacity,
+  Modal,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -37,6 +43,8 @@ import { usePerpsNavigation, usePerpsMarkets } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
@@ -52,7 +60,10 @@ import type {
   PerpsOrderBookViewProps,
   OrderBookRouteParams,
 } from './PerpsOrderBookView.types';
-import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderBookViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   calculateGroupingOptions,
   formatGroupingLabel,
@@ -124,6 +135,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   );
   const [isDepthBandSheetVisible, setIsDepthBandSheetVisible] = useState(false);
   const depthBandSheetRef = useRef<BottomSheetRef>(null);
+
+  // Tooltip state
+  const [selectedTooltip, setSelectedTooltip] =
+    useState<PerpsTooltipContentKey | null>(null);
 
   // Sync selectedGrouping when savedGrouping loads (on mount)
   useEffect(() => {
@@ -246,6 +261,19 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Handle grouping sheet close
   const handleDepthBandSheetClose = useCallback(() => {
     setIsDepthBandSheetVisible(false);
+  }, []);
+
+  // Handle tooltip press
+  const handleTooltipPress = useCallback(
+    (contentKey: PerpsTooltipContentKey) => {
+      setSelectedTooltip(contentKey);
+    },
+    [],
+  );
+
+  // Handle tooltip close
+  const handleTooltipClose = useCallback(() => {
+    setSelectedTooltip(null);
   }, []);
 
   // Handle unit toggle
@@ -432,6 +460,16 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ({orderBook.spreadPercentage}%)
             </Text>
+            <TouchableOpacity
+              onPress={() => handleTooltipPress('spread')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.Muted}
+              />
+            </TouchableOpacity>
           </View>
         )}
 
@@ -498,6 +536,20 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             ))}
           </View>
         </BottomSheet>
+      )}
+
+      {/* Tooltip Bottom Sheet */}
+      {selectedTooltip && (
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={handleTooltipClose}
+              contentKey={selectedTooltip}
+              testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+            />
+          </Modal>
+        </View>
       )}
     </SafeAreaView>
   );
