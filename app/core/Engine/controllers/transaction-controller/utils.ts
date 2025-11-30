@@ -344,9 +344,9 @@ function getNativeBalance(chainId: string, address: string): BigNumber {
   const state = store.getState();
 
   const accountsByChainId =
-    state.engine.backgroundState.AccountTrackerController.accountsByChainId;
+    state.engine?.backgroundState?.AccountTrackerController?.accountsByChainId;
 
-  const account = accountsByChainId[chainId]?.[address.toLowerCase()];
+  const account = accountsByChainId?.[chainId]?.[address.toLowerCase()];
 
   return new BigNumber((account?.balance as Hex) ?? '0x0');
 }
