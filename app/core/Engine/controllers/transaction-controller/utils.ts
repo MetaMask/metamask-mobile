@@ -30,6 +30,9 @@ import {
   isValidHexAddress,
 } from '../../../../util/address';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { store } from '../../../../store';
+import { BigNumber } from 'bignumber.js';
 
 const BATCHED_MESSAGE_TYPE = {
   WALLET_SEND_CALLS: 'wallet_sendCalls',
@@ -257,11 +260,17 @@ export function generateRPCProperties(chainId: string) {
 
 function getGasMetricProperties(transactionMeta: TransactionMeta) {
   const {
+    chainId,
+    dappSuggestedGasFees,
     gasFeeEstimatesLoaded,
     gasFeeEstimates,
-    dappSuggestedGasFees,
+    gasFeeTokens,
+    selectedGasFeeToken,
+    txParams,
     userFeeLevel,
   } = transactionMeta;
+
+  const { from } = txParams ?? {};
   const { type: gasFeeEstimateType } = gasFeeEstimates ?? {};
 
   // Advanced is always presented
@@ -288,10 +297,30 @@ function getGasMetricProperties(transactionMeta: TransactionMeta) {
     }
   }
 
+  const gas_payment_tokens_available = gasFeeTokens?.map(
+    (token) => token.symbol,
+  );
+
+  let gas_paid_with = gasFeeTokens?.find(
+    (token) =>
+      token.tokenAddress.toLowerCase() === selectedGasFeeToken?.toLowerCase(),
+  )?.symbol;
+
+  if (selectedGasFeeToken?.toLowerCase() === getNativeTokenAddress(chainId)) {
+    gas_paid_with = 'pre-funded_ETH';
+  }
+
+  const gas_insufficient_native_asset = getNativeBalance(chainId, from).lt(
+    getMaxGasCost(transactionMeta),
+  );
+
   return {
     gas_estimation_failed: !gasFeeEstimatesLoaded,
     gas_fee_presented: presentedGasFeeOptions,
     gas_fee_selected: userFeeLevel,
+    gas_insufficient_native_asset,
+    gas_paid_with,
+    gas_payment_tokens_available,
   };
 }
 
@@ -301,4 +330,23 @@ async function getTransactionContractMethod(transactionMeta: TransactionMeta) {
     transactionMeta.networkClientId,
   );
   return methodData?.name ? [methodData.name] : [];
+}
+
+function getMaxGasCost(transactionMeta: TransactionMeta): BigNumber {
+  const { gas, gasPrice, maxFeePerGas } = transactionMeta.txParams ?? {};
+
+  return new BigNumber(gas ?? '0x0').multipliedBy(
+    maxFeePerGas ?? gasPrice ?? '0x0',
+  );
+}
+
+function getNativeBalance(chainId: string, address: string): BigNumber {
+  const state = store.getState();
+
+  const accountsByChainId =
+    state.engine.backgroundState.AccountTrackerController.accountsByChainId;
+
+  const account = accountsByChainId[chainId]?.[address.toLowerCase()];
+
+  return new BigNumber((account?.balance as Hex) ?? '0x0');
 }
