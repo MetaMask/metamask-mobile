@@ -59,108 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: implement eas updates ([#17431](https://github.com/MetaMask/metamask-mobile/pull/17431))
 - feat: add deeplink support for Predict markets ([#22258](https://github.com/MetaMask/metamask-mobile/pull/22258))
 - feat: Add geo-blocking analytics tracking ([#22126](https://github.com/MetaMask/metamask-mobile/pull/22126))
-- Updated perps connection error screen with new design and improved messaging (#22617)
-- Update Current perps chart trading view label (#22599)
-- Feat rewards activity grid predict and deposit musd (#22636)
-- Add generic Platform Notification support (#22539)
-- Added perps section in the trending view (#22611)
-- Update login screen with rive animations. Only local unlock screen to be changed. Welcome back screen during social login (#21138)
-  rehydration to remain the same for now.
-- Rewards earn musd ways to earn cta (#22620)
-- Implement prediction on trending (#22621)
-- Adds hyperevm network in additional networks (#22459)
-- Rewards predict ways to earn cta (#22609)
-- Added EAS updates initial setup (#22467)
-- Added Tron network support in swaps (#21294)
-- Added new trending search functionality (#22535)
-- Updated funding tooltip in position component to show position-specific information (#22512)
-- Added automatic account upgrade support (#22241)
-- Enable automatic updates of preinstalled Snaps (#22383)
-- Fixed order of STX over 7702 for sponsored transactions and improved sponsorship detection in the UI (#21932)
-- Added Gasless bridging for users with STX ON on networks supporting eth_sendBundle (#22223)
-- Added cross-margin position detection to prevent trading when users have unsupported margin types (#22293)
-- Added unified token selection screen for Buy and Deposit ramps (#22184)
-- Add settings modal for Buy and a switcher between Buy and Deposit (#22283)
-- Updated earn input view deposit and withdrawal currency switch events (#22286)
-- Cleanup notification account settings to use BIP-44 designs. (#20307)
-- Support importing and ignoring non-evm tokens (#22103)
-- Added logout button to Transak deposit flow when phone number is already registered (#22183)
-- Improve handling of links originating from in-app browser and carousel (#22012)
-- Updates the Buy Aggregator flow Navigation Bar (#22211)
-- Added EAS updates base (#17431)
-- Added skeleton loading states for amount optimization and fee calculation, fixed rewards points display to prevent undefined (#22248)
-  values
-- Improved perps positions to display live profit/loss based on real-time price updates (#22100)
-- Pump btc snap version to 1.4.4 (#22180)
-- Added smart routing logic to determine appropriate ramp flow based on user region and order history (#22111)
-- Introduces the trending tab on bottom navigation under feature flag. (#21665)
-- Align Import Wallet UI in Add Wallet flow with Import SRP onboarding design for consistency. (#21686)
-- Added market-level whitelisting and blacklisting for Perps HIP-3 markets with wildcard pattern support and automatic (#22086)
-  reconnection on configuration changes
-- Updated Open Interest Cap warning design with improved styling and positioning (#22107)
-- Added metadata to some analytics events (#22078)
-- Enhanced carousel empty state with confetti animation and improved dismissal flow animations (#21897)
-- Adds a unified Buy button behind a feature flag (#22122)
-- Improved buy/sell feature loading time. (#21775)
-- Added new analytics tracking event when user details are fetched (#22000)
-- Changed how DeFi positions are fetch in the client to reduce amount of calls (#21657)
-- Updated toast ui and allow adding description (#21942)
-- NA (#22088)
-- Upgraded HIP-3 support with webData3 migration and performance improvements (#22041)
-- Improved wallet page scrolling performance by consolidating scroll behavior at the page level (#22044)
-- Simplified TabsList component with gesture-based navigation (#21822)
-- Add Ramps Unified Buy feature flag (#22062)
-- Fixed missing periods at the end of settings descriptions (#22053)
-- Changed order of assets when their fiat balances are the same (#22049)
-- Added perps shareable pnl hero card (#21880)
-- Introduce new Perps Home screen UI (#21862)
-- Updating zero balance display to "Add funds" card (#21391)
-- Updated ADL fill tag to be clickable and redirect to the MetaMask ADL support article (#21970)
-  fixed TP/SL tags not appearing
-- Add region to Ramps button pressed events (#21878)
-- Update bitcoin snap version to v1.4.3 (#21606)
-- Updated the description for perps points in Rewards to be more clear. (#21923)
-- NA (#21891)
-- NA (#21857)
-- Added a new Token Insights bottom sheet to enhance token verification accessibility. (#21303)
-- NA (#21863)
-- Added viewable navigator in settings to testers and developers to view release flag (#21639)
-- Added a piece of state for the detected geolocation (#21856)
-- Fixed a bug that would not route users away from OnFido after submitting their KYC documents (#21819)
-- Added account type labels to asset details (#21849)
-- Added RPC selection in network selection (#21425)
-- Update `QuoteDetailsCard` designs to improve UX. (#21656)
-- Added feature flag support to temporarily hide Monad (and other networks) from the “Add Popular Network” list. (#21616)
-- Implement extra validations and alert when sending burn address in EVM transfer transactions (#21772)
-- Remove skip bottomsheet on click of remind me later button (#21766)
-- Adds MONAD network with bridge & swap support (#21491)
-- Add metrics on Card Authentication flow (#21528)
-- Added full-page views for Tokens and NFTs with "View all" navigation buttons (#21647)
-- Enabled phone country selection independent of KYC country. (#21002)
-- Updates multichain accounts intro modal display logic (#21762)
-- Remove AccountBackupStep1 screen and modify manualbackup screens from onboarding flow(SRP flow) (#21510)
-- Support batch points estimation for perps (#21658)
-- Create remote feature flag for trending tokens (#21655)
-- Use SSE to stream swap quotes (#20909)
-- Added onboarding images Added onboarding metrics tracking (#21597)
-  Adjusted Baanx login feature flag configuration
-- Added coverage for edge cases in the Onboarding flow Improved onboarding token management strategy (#21594)
-  Enhanced session reliability and authentication
-  consistency
-- Rewards compatible with basic functionality feature (#21470)
-- Improved Perps market tabs with swipeable navigation and optimized rendering performance (#21561)
-- NA (#21591)
-- Adds network logo and native token (#21291)
-- Add network and token logo for CRONOS network. (#21200)
-- Refinement to Perps deposit and withdraw tracking (#20904)
-- Updated swaps quote details card designs (#21485)
-- Added distinct warnings for BLOCKED and FREEZED card statuses (#21489)
-  Enabled card provisioning flow for eligible users
-- Added adl pill to perps trade history (#21442)
-- Wallet ready screen UI changes (#21302)
 
 ### Fixed
 
+- fix: cp-7.59.1 cp-7.60.0 add mon to the currency list (#23269) ([#23269](https://github.com/MetaMask/metamask-mobile/pull/23269))
 - fix: trim whitespace from amount input in PaymentRequest component ([#22608](https://github.com/MetaMask/metamask-mobile/pull/22608))
 - fix: code cleanup ([#22648](https://github.com/MetaMask/metamask-mobile/pull/22648))
 - fix: asset value metric in metamask pay ([#22645](https://github.com/MetaMask/metamask-mobile/pull/22645))
@@ -220,128 +122,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: 20839 fix the qr name not matched in swap page. ([#22043](https://github.com/MetaMask/metamask-mobile/pull/22043))
 - fix: cp-7.59.0 Return empty contacts for nonEVM send flow ([#22235](https://github.com/MetaMask/metamask-mobile/pull/22235))
 - fix: styling for backup and sync toggle. ([#22128](https://github.com/MetaMask/metamask-mobile/pull/22128))
-- Fixed the way unconfirmed transaction title is displayed (#22109)
-- Fixed a bug with swaps navigation from token view, when the source token is changed to different network. (#22545)
-- Added prediction markets carousel to Trending tab (#22537)
 - fix: invalid QR code showing alert multiple times (#22292)
-- Fix error message when trying to import an SRP with an account that is already imported via private key (#22536)
-- Fix recipient to be shown multi-line in send flow (#22392)
 - fix: correct alignment of header (#22456)
-- Fixed issue with activity list showing blank spaces (#22480)
-- BugFix: https://github.com/MetaMask/metamask-mobile/issues/22375 (#22382)
-- Display < $0.01 for small fees in Perps (#22264)
-- Fixed margin calculation in Close All Positions to exclude P&L (#22391)
-- Negative allowance values displayed on CardHome Token priority not updating after delegation (#22352)
-  Text clipping in Asset BottomSheet
-  Missing address checksum formatting
-  BottomSheet not appearing above header
-- Bugfix: metaMetrics not tracking events for social login users (#22259)
 - fix: skip inserting EAS update config in dev (#22273)
-- Fixed TabsBar not being horizontally scrollable when tabs overflow, especially with increased font size settings (#22208)
-- Implemented Trending view with browser navigation support (#22209)
-- Update Ledger support link to the correct article (#22297)
-- Add load tests for balance (#21912)
-- Fixed funding rate display inconsistency between Perps markets list and asset detail screen (#22243)
-- Fix issue where Solana swaps incorrectly displayed as cross-chain; ensure “View on Block Explorer” redirects to Solscan. (#22048)
-- Various UI fixes on swap component. (#21938)
-- Fixed a bug preventing edit rpc bottom sheet to close (#22098)
-- Change the name of QR in swap page to match the name in account list. (#22043)
-- Fixes the disabled appearance for backup and sync on android. (#22128)
-- Fix to close all positions/orders bottom sheet (#22216)
-- Fixed Perps transaction history to correctly filter by selected account (#22191)
-- Fixed inconsistency where Perps home screen activity list showed different transactions than the Transactions/Trades tab (#22179)
 - fix: Android In-App Browser Crash (#22212)
 - fix: adding spacing for action buttons in token details (#22206)
-- Fixed live trading chart candle to display correct opening price for the live candle (#21850)
-- Dynamically calculate y-axis precision in Perps chart (#22201)
-- Fixed bottom sheet tooltips in Perps appearing behind UI elements like buttons and icons (#22138)
-- Android crash during KYC verification caused by the custom WebView implementation. (#22200)
-  KYC verification flow now opens in the native browser
-  instead of an embedded view.
-  Confirmation alert when closing the KYC verification
-  page.
-- Fixed leverage slider tap and long press gesture not finalizing state updates correctly (#21608)
-- Fixed Perps initialization errors causing CLIENT_NOT_INITIALIZED failures during account and network switches (#22178)
-- Fixed a bug in which data points for price were not being evenly distributed (#22193)
-- Fixed layout issue where the screen was cut off on Android devices with a notch. (#22140)
-  Fixed keyboard overlapping input fields on Android
-  devices.
-  Resolved concurrency issue causing warnings on the Card
-  Home screen.
-- BugFix: https://github.com/MetaMask/metamask-mobile/issues/19495 (#22177)
-- Fixed missing MetaMask referral code display in Perps PnL shareable card for opted-in users (#22175)
-- Fixed Entry price decimal precision on PnL card to match Mark price formatting (#22174)
-- Fixed fee discount not displaying in close all positions view (#22112)
-- Pass order and position subscription data into watchlist navigation params (#22153)
-- Fixed toast background color to improve visibility (#22159)
 - fix: remove padding and border radius from order type bottom sheet (#22143)
 - fix: update copy for perps trade action menu (#22155)
 - fix: convert quotes copy from title case to sentence case (#22146)
 - fix: the network badges for the tokens are missing a border (#22147)
-- Updates Hip3 risk disclaimer. (#22141)
-- Only render perps candlestick chart when historical candles are fetched successfully (#22029)
-- Fixed a bug where corrupted analytics IDs prevented users from receiving remote feature flags (#22093)
-- Added stack based `Routes.PERPS.ACTIVITY` route with conditional back button support in `ActivityView` header. Users can now (#22090)
-  navigate back from Activity view to previous Perps screens while
-  maintaining backward compatibility with existing tab based navigation.
-- Fix the inconsistent size of the close button in the "Swap" page "Select Token" bottom sheet and "Select Network" bottom (#21615)
-  sheet.
-- Fixed a bug causing a flickering when transitioning between views on the dapp connection modal (#22051)
 - fix: order type header should be sentence case (#22080)
 - fix: perps withdraw page copy (#22082)
-- Fixed issue where assets failed to load after opening the Card Home screen. (#22058)
-  Fixed balance display on the Change Asset Bottom Sheet
-  to correctly show availableBalance for enabled tokens and user balance
-  for disabled tokens.
-  Restored missing asset icons on asset bottom sheets.
-  Fixed incorrect Spending Limit title when selecting a
-  token that’s not enabled (now shows “Change token and network”).
-  Fixed incorrect Spending Limit title when pressing
-  “Manage spending limit” on Card Home (now shows “Enable token”).
-  Resolved concurrency and caching issues in
-  useLoadCardData hook.
-- Maintain Perps redux state monitoring throughout app lifecycle (#22068)
-- Fixed inconsistent top padding in networks list (#22052)
-- Bump `@metamask/multichain-account-service` to version 2.0.1 (#22050)
-  Bump `@metamask/tron-wallet-snap` to version 1.6.1
-- Fixed a bug that was preventing blockexplorer links to appear on some networks (ie. Linea) (#21921)
-- Show ENS name in the confirmation after picking ENS recipient in send flow (#21515)
-- Null (#21960)
-
-## **Related issues**
-
-- Fixes search behavior in PerpsHomeScreen (#22013)
-- NA (#21984)
-- fix: remove max button on Polygon native asset (#22002)
-- Null - minor UI change (#21757)
-- Fixed RefreshControl color styling in Perps views to use native system defaults (#21916)
-- Fixed styling on transaction details view (#21998)
-- AccountStatus page UI top padding (#21999)
-- Fixed a bug causing navigation stack up on quickly clicking main page buttons (#21913)
-- Fix broken token import flow (#21911)
-- Fixes an issue where users will see two POL tokens on swap select token screen (#21924)
-- NA (#21859)
-- Updates the create account button to show `Add account` (#21765)
-- Update broken link of ledger connect support tutorial. (#21659)
-- Fix ui bugs (#21841)
-- Make design and copy improvements to degraded/unavailable network banner (#21644)
-- Fixed a bug that was not warning the user when the address input is invalid address. (#21812)
-- Only trigger `onActive` and `onInactive` Snap lifecycle hooks when client is unlocked (#21664)
-- Fixed clipped placeholder header (#21774)
-- Misc formatting (#21743)
-- Fixed a bug that was causing "Create account" button on wallet details to render with wrong background color (#21672)
-- Fix UI Bugs (#21551)
-- TextInput cursor jump to begining when textbox on blur (#21250)
-- Truncates decimals for max balance to fix display issue (#21059)
-- Limit order card text update to respect direction of order (#21586)
-  Removes outdated Limit order error text
-- Improved font rendering consistency by preloading all available font files (#21199)
-- Unit test async fix to Perps domain (#21632)
-- Fixed a bug that was causing app freeze on opening blockexplorer transaction details (#21612)
-- Fixed an issue where some avatars would be out of sync (#21607)
-- Elevates a footer tap bar a little bit (#21562)
-- Added evm native balance updates on transaction events (#21465)
-- Fixed an issue where the add RPC button doesn't show up when adding a custom network in settings (#21389)
 
 ## [7.59.0]
 
@@ -509,6 +300,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.58.3]
 
+### Changed
+
+- chore: Update Spanish strings for Card onboarding flow cp-7.58.3 (#22740)
+
 ### Fixed
 
 - fix(card): cp-7.58.3 physical address consent issue + undefined balances (#22737)
@@ -516,10 +311,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(card): cp-7.59.0 accept other chars on zip code input (#22635)
 - fix(bridge): cp-7.59.0 prevent crash when fetching icons for unsupported chains (#22631)
 - fix(card): cp-7.59.0 delegation refresh issue (#22549)
-
-### Changed
-
-- chore: Update Spanish strings for Card onboarding flow cp-7.58.3 (#22740)
 
 ## [7.58.2]
 
@@ -9328,7 +9119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.0...HEAD
-[7.60.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.3...v7.60.0
+[7.60.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.59.0...v7.60.0
+[7.59.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.3...v7.59.0
 [7.58.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.2...v7.58.3
 [7.58.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.1...v7.58.2
 [7.58.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.0...v7.58.1
