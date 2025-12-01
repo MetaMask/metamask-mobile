@@ -81,10 +81,6 @@ jest.mock('../../../hooks/send/useRouteParams', () => ({
   useRouteParams: jest.fn(),
 }));
 
-jest.mock('../../../hooks/send/useInitialRecipient', () => ({
-  useInitialRecipient: jest.fn(),
-}));
-
 jest.mock('../../../hooks/send/useRecipientPageReset', () => ({
   useRecipientPageReset: jest.fn(),
 }));

@@ -18,7 +18,6 @@ import { RecipientInputMethod } from '../../../context/send-context/send-metrics
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
-import { useInitialRecipient } from '../../../hooks/send/useInitialRecipient';
 import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
@@ -50,8 +49,6 @@ export const Recipient = () => {
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
   useRouteParams();
-  // Pre-populate recipient address from navigation params (e.g., from QR code scan)
-  useInitialRecipient();
   // This submission lifecycle state prevents adding multiple transactions
   const [isSubmittingTransaction, setIsSubmittingTransaction] = useState(false);
   // Reset the submitting state when the user returns to the recipient page
