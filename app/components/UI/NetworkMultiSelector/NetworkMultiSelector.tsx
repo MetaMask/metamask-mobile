@@ -25,7 +25,10 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import { useSelector } from 'react-redux';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import {
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmChainId,
+} from '../../../selectors/networkController';
 import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectIsEvmNetworkSelected,
@@ -35,8 +38,6 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
-import Engine from '../../../core/Engine';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import Logger from '../../../util/Logger';
 
 // internal dependencies
@@ -97,12 +98,7 @@ const NetworkMultiSelector = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
-  const { chainId: currentEvmChainId } = useNetworkInfo();
-
-  // Get the current chain ID - EVM or non-EVM
-  const currentChainId = isEvmSelected
-    ? currentEvmChainId
-    : selectedNonEvmChainId || null;
+  const currentEvmChainId = useSelector(selectEvmChainId);
 
   const {
     networksToUse,
@@ -113,6 +109,40 @@ const NetworkMultiSelector = ({
     networkType: NetworkType.Popular,
     areAllNetworksSelected,
   });
+
+  const currentSelectedNetwork = useMemo(() => {
+    if (areAllNetworksSelectedCombined) {
+      return null;
+    }
+    return networksToUse.find((network) => network.isSelected) || null;
+  }, [networksToUse, areAllNetworksSelectedCombined]);
+
+  const currentChainId = useMemo(() => {
+    if (currentSelectedNetwork) {
+      try {
+        const parsed = parseCaipChainId(currentSelectedNetwork.caipChainId);
+        if (parsed.namespace === KnownCaipNamespace.Eip155) {
+          return toHex(parsed.reference);
+        }
+        return currentSelectedNetwork.caipChainId;
+      } catch {
+        return currentSelectedNetwork.caipChainId;
+      }
+    }
+    // Check selectedNonEvmChainId first to avoid falling back to EVM when on non-EVM
+    if (selectedNonEvmChainId) {
+      return selectedNonEvmChainId;
+    }
+    if (isEvmSelected && currentEvmChainId) {
+      return currentEvmChainId;
+    }
+    return null;
+  }, [
+    currentSelectedNetwork,
+    isEvmSelected,
+    currentEvmChainId,
+    selectedNonEvmChainId,
+  ]);
 
   const { selectPopularNetwork, selectAllPopularNetworks } =
     useNetworkSelection({
@@ -199,16 +229,30 @@ const NetworkMultiSelector = ({
     ],
   );
 
-  const onSelectAllPopularNetworks = useCallback(async () => {
-    await selectAllPopularNetworks(dismissModal);
-  }, [dismissModal, selectAllPopularNetworks]);
-
-  // Helper function to get network name from configurations
   const getNetworkName = useCallback(
-    (chainId: string | null, isEvm: boolean): string => {
+    (chainId: string | null): string => {
       if (!chainId) return strings('network_information.unknown_network');
 
-      if (isEvm) {
+      if (currentSelectedNetwork) {
+        if (currentSelectedNetwork.caipChainId === chainId) {
+          return currentSelectedNetwork.name;
+        }
+
+        try {
+          const parsed = parseCaipChainId(currentSelectedNetwork.caipChainId);
+          if (parsed.namespace === KnownCaipNamespace.Eip155) {
+            const networkHexChainId = toHex(parsed.reference);
+            if (networkHexChainId === chainId) {
+              return currentSelectedNetwork.name;
+            }
+          }
+        } catch {
+          // Continue to fallback logic
+        }
+      }
+
+      const isEvmChainId = chainId.startsWith('0x');
+      if (isEvmChainId) {
         const networkConfig = networkConfigurations[chainId as Hex];
         return (
           networkConfig?.name || strings('network_information.unknown_network')
@@ -216,125 +260,35 @@ const NetworkMultiSelector = ({
       }
 
       const nonEvmConfig = nonEvmNetworkConfigurations[chainId as CaipChainId];
-      return (
-        nonEvmConfig?.name || strings('network_information.unknown_network')
-      );
-    },
-    [networkConfigurations, nonEvmNetworkConfigurations],
-  );
-
-  // Helper function to parse CAIP chain ID
-  const parseCaipChainIdSafe = useCallback(
-    (
-      caipChainId: CaipChainId,
-    ): { namespace: string; reference: string } | null => {
-      try {
-        return parseCaipChainId(caipChainId);
-      } catch (error) {
-        Logger.error(new Error(`Invalid CAIP chain ID: ${caipChainId}`), error);
-        return null;
-      }
-    },
-    [],
-  );
-
-  // Helper function to switch EVM network
-  const switchEvmNetwork = useCallback(
-    async (
-      hexChainId: Hex,
-      networkClientId: string,
-    ): Promise<{
-      success: boolean;
-      networkName: string;
-      chainId: string;
-    } | null> => {
-      const { MultichainNetworkController } = Engine.context;
-      const selectedNetworkConfig = networkConfigurations[hexChainId];
-
-      if (!selectedNetworkConfig) {
-        return null;
-      }
-
-      const { name, rpcEndpoints, defaultRpcEndpointIndex } =
-        selectedNetworkConfig;
-
-      // Validate rpcEndpoints array and index
-      if (!rpcEndpoints?.length) {
-        Logger.error(
-          new Error(`No RPC endpoints found for chain ${hexChainId}`),
+      if (nonEvmConfig) {
+        return (
+          nonEvmConfig.name || strings('network_information.unknown_network')
         );
-        return null;
-      }
-
-      const defaultIndex = defaultRpcEndpointIndex ?? 0;
-      const defaultEndpoint = rpcEndpoints[defaultIndex];
-
-      if (!defaultEndpoint?.networkClientId) {
-        Logger.error(
-          new Error(
-            `Invalid RPC endpoint at index ${defaultIndex} for chain ${hexChainId}`,
-          ),
-        );
-        return null;
       }
 
       try {
-        await MultichainNetworkController.setActiveNetwork(networkClientId);
-        return {
-          success: true,
-          networkName: name,
-          chainId: getDecimalChainId(hexChainId),
-        };
-      } catch (error) {
-        Logger.error(
-          new Error(`Error switching to EVM network: ${error}`),
-          error,
-        );
-        return null;
+        const parsed = parseCaipChainId(chainId as CaipChainId);
+        if (parsed.namespace === KnownCaipNamespace.Eip155) {
+          const hexChainId = toHex(parsed.reference);
+          const networkConfig = networkConfigurations[hexChainId];
+          return (
+            networkConfig?.name ||
+            strings('network_information.unknown_network')
+          );
+        }
+      } catch {
+        // Not a valid CAIP chain ID
       }
+
+      return strings('network_information.unknown_network');
     },
-    [networkConfigurations],
+    [
+      networkConfigurations,
+      nonEvmNetworkConfigurations,
+      currentSelectedNetwork,
+    ],
   );
 
-  // Helper function to switch non-EVM network
-  const switchNonEvmNetwork = useCallback(
-    async (
-      caipChainId: CaipChainId,
-    ): Promise<{
-      success: boolean;
-      networkName: string;
-      chainId: string;
-    } | null> => {
-      const { MultichainNetworkController } = Engine.context;
-      const selectedNonEvmConfig = nonEvmNetworkConfigurations[caipChainId];
-
-      if (!selectedNonEvmConfig) {
-        return null;
-      }
-
-      const toNetworkName =
-        selectedNonEvmConfig.name ||
-        strings('network_information.unknown_network');
-
-      try {
-        await MultichainNetworkController.setActiveNetwork(caipChainId);
-        return {
-          success: true,
-          networkName: toNetworkName,
-          chainId: getDecimalChainId(caipChainId),
-        };
-      } catch (error) {
-        Logger.error(
-          new Error(`Error switching to non-EVM network: ${error}`),
-          error,
-        );
-        return null;
-      }
-    },
-    [nonEvmNetworkConfigurations],
-  );
-
-  // Helper function to track network switched event
   const trackNetworkSwitchedEvent = useCallback(
     (chainId: string, fromNetworkName: string, toNetworkName: string): void => {
       if (toNetworkName === strings('network_information.unknown_network')) {
@@ -357,10 +311,11 @@ const NetworkMultiSelector = ({
 
   const onSelectNetwork = useCallback(
     async (caipChainId: CaipChainId) => {
-      // Parse the selected network's chain ID with error handling
-      const parsed = parseCaipChainIdSafe(caipChainId);
-      if (!parsed) {
-        // Still enable network in filter, but don't switch
+      let parsed: { namespace: string; reference: string };
+      try {
+        parsed = parseCaipChainId(caipChainId);
+      } catch (error) {
+        Logger.error(new Error(`Invalid CAIP chain ID: ${caipChainId}`), error);
         await selectPopularNetwork(caipChainId, dismissModal);
         return;
       }
@@ -369,70 +324,90 @@ const NetworkMultiSelector = ({
       const isEvmNetwork = caipNamespace === KnownCaipNamespace.Eip155;
       const selectedHexChainId = isEvmNetwork ? toHex(reference) : null;
 
-      // Check if we need to switch the active network
-      const shouldSwitchNetwork = isEvmNetwork
+      const isDifferentNetwork = isEvmNetwork
         ? selectedHexChainId && selectedHexChainId !== currentChainId
         : caipChainId !== currentChainId;
 
-      if (shouldSwitchNetwork) {
-        const fromNetworkName = getNetworkName(currentChainId, isEvmSelected);
-        let switchResult: {
-          success: boolean;
-          networkName: string;
-          chainId: string;
-        } | null = null;
+      const isSwitchingFromAllNetworks = areAllNetworksSelectedCombined;
+      if (isDifferentNetwork || isSwitchingFromAllNetworks) {
+        const fromNetworkName = isSwitchingFromAllNetworks
+          ? strings('networks.all_popular_networks')
+          : getNetworkName(currentChainId);
+        let toNetworkName = strings('network_information.unknown_network');
+        let chainIdForAnalytics: string | undefined;
 
         if (isEvmNetwork && selectedHexChainId) {
           const selectedNetworkConfig =
             networkConfigurations[selectedHexChainId];
           if (selectedNetworkConfig) {
-            const defaultEndpoint =
-              selectedNetworkConfig.rpcEndpoints[
-                selectedNetworkConfig.defaultRpcEndpointIndex ?? 0
-              ];
-            if (defaultEndpoint?.networkClientId) {
-              switchResult = await switchEvmNetwork(
-                selectedHexChainId,
-                defaultEndpoint.networkClientId,
-              );
-            }
+            toNetworkName = selectedNetworkConfig.name;
+            chainIdForAnalytics = getDecimalChainId(selectedHexChainId);
           }
         } else {
-          switchResult = await switchNonEvmNetwork(caipChainId);
+          const selectedNonEvmConfig = nonEvmNetworkConfigurations[caipChainId];
+          if (selectedNonEvmConfig) {
+            toNetworkName =
+              selectedNonEvmConfig.name ||
+              strings('network_information.unknown_network');
+            chainIdForAnalytics = getDecimalChainId(caipChainId);
+          }
         }
 
-        // Track event only if switch succeeded
-        if (switchResult?.success) {
+        if (
+          chainIdForAnalytics &&
+          toNetworkName !== strings('network_information.unknown_network')
+        ) {
           trackNetworkSwitchedEvent(
-            switchResult.chainId,
+            chainIdForAnalytics,
             fromNetworkName,
-            switchResult.networkName,
+            toNetworkName,
           );
-        }
-
-        // If switch failed, still enable network in filter but don't track event
-        if (!switchResult?.success) {
-          await selectPopularNetwork(caipChainId, dismissModal);
-          return;
         }
       }
 
-      // Enable the network in the filter
       await selectPopularNetwork(caipChainId, dismissModal);
     },
     [
       selectPopularNetwork,
       dismissModal,
       currentChainId,
-      isEvmSelected,
       networkConfigurations,
-      parseCaipChainIdSafe,
-      switchEvmNetwork,
-      switchNonEvmNetwork,
+      nonEvmNetworkConfigurations,
       trackNetworkSwitchedEvent,
       getNetworkName,
+      areAllNetworksSelectedCombined,
     ],
   );
+
+  const onSelectAllPopularNetworks = useCallback(async () => {
+    if (!areAllNetworksSelectedCombined && currentChainId) {
+      const fromNetworkName = getNetworkName(currentChainId);
+      const chainIdForAnalytics = currentChainId.startsWith('0x')
+        ? getDecimalChainId(currentChainId as Hex)
+        : getDecimalChainId(currentChainId as CaipChainId);
+      const toNetworkName = strings('networks.all_popular_networks');
+
+      if (
+        chainIdForAnalytics &&
+        fromNetworkName !== strings('network_information.unknown_network')
+      ) {
+        trackNetworkSwitchedEvent(
+          chainIdForAnalytics,
+          fromNetworkName,
+          toNetworkName,
+        );
+      }
+    }
+
+    await selectAllPopularNetworks(dismissModal);
+  }, [
+    dismissModal,
+    selectAllPopularNetworks,
+    areAllNetworksSelectedCombined,
+    currentChainId,
+    getNetworkName,
+    trackNetworkSwitchedEvent,
+  ]);
 
   const selectAllNetworksComponent = useMemo(
     () => (
