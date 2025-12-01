@@ -279,6 +279,7 @@ describe('captureSentryFeedback', () => {
   describe('maskObject', () => {
     const rootState: DeepPartial<RootState> = {
       legalNotices: {
+        isPna25Acknowledged: true,
         newPrivacyPolicyToastClickedOrClosed: true,
         newPrivacyPolicyToastShownDate: null,
       },
@@ -647,6 +648,7 @@ describe('captureSentryFeedback', () => {
       const maskedState = maskObject(rootState, { legalNotices: true });
       expect(maskedState).toEqual({
         legalNotices: {
+          isPna25Acknowledged: true,
           newPrivacyPolicyToastClickedOrClosed: true,
           newPrivacyPolicyToastShownDate: null,
         },
