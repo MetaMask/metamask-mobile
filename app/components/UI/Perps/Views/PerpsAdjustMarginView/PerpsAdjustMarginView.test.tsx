@@ -200,11 +200,15 @@ describe('PerpsAdjustMarginView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays perps balance available to add', () => {
+    it('displays current margin and margin available to add', () => {
       render(<PerpsAdjustMarginView />);
 
       expect(
-        screen.getByText('perps.adjust_margin.perps_balance'),
+        screen.getByText('perps.adjust_margin.margin_in_position'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('$500.00')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.adjust_margin.margin_available_to_add'),
       ).toBeOnTheScreen();
       expect(screen.getByText('$1000.00')).toBeOnTheScreen();
     });
@@ -250,13 +254,17 @@ describe('PerpsAdjustMarginView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays current position margin', () => {
+    it('displays current margin and margin available to remove', () => {
       render(<PerpsAdjustMarginView />);
 
       expect(
         screen.getByText('perps.adjust_margin.margin_in_position'),
       ).toBeOnTheScreen();
       expect(screen.getByText('$500.00')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.adjust_margin.margin_available_to_remove'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('$200.00')).toBeOnTheScreen();
     });
 
     it('displays reduce margin button label', () => {
