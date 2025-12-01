@@ -90,7 +90,8 @@ class BridgeScreen {
   async selectNetworkAndTokenTo(network, token) {
     const destinationToken = await this.destinationTokenArea;
     await AppwrightGestures.tap(destinationToken);
-    const filterNetworkButton = await AppwrightSelectors.getElementByID(this._device, 'See all');
+    await this._device.pause();
+    const filterNetworkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'See all');
     await AppwrightGestures.tap(filterNetworkButton);
     const networkButton = await this.getNetworkButton(network);
     await AppwrightGestures.tap(networkButton);

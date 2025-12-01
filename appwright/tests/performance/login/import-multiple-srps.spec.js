@@ -32,7 +32,8 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
 
   const timers = await importSRPFlow(device, process.env.TEST_SRP_2);
 
-  await WalletMainScreen.tapIdenticon();
+  await WalletMainScreen.isTokenVisible('ETH');
+  await WalletMainScreen.isTokenVisible('SOL');
   timers.forEach((timer) => performanceTracker.addTimer(timer));
   await performanceTracker.attachToTest(testInfo);
 });

@@ -96,9 +96,8 @@ export async function importSRPFlow(device, srp) {
     'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
   );
 
-  timer.start();
-
   await WalletMainScreen.tapIdenticon();
+  timer.start();
   await AccountListComponent.isComponentDisplayed();
   timer.stop();
 
@@ -136,7 +135,8 @@ export async function login(device, options = {}) {
 
   if (dismissModals) {
     await AppwrightGestures.wait(5000);
-    await dismissMultichainAccountsIntroModal(device);
+    await dismissMultichainAccountsIntroModal(device, 5000);
+    await dissmissPredictionsModal(device);
   }
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
