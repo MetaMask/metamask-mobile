@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-import React, { useMemo, useEffect } from 'react';
-import { ActivityIndicator, FlatList } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
-=======
 import React, { useMemo, useEffect, useCallback } from 'react';
 import { ActivityIndicator, SectionList } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
->>>>>>> 80d03cf3047b54b35b37f030b3a1fa5d5590a316
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import { PredictActivityType, type PredictActivityItem } from '../../types';
@@ -18,7 +12,6 @@ import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
-import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
@@ -260,11 +253,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         <Box twClassName="items-center justify-center h-full">
           <ActivityIndicator size="small" testID="activity-indicator" />
         </Box>
-<<<<<<< HEAD
-      ) : items.length === 0 ? (
-=======
       ) : sections.length === 0 ? (
->>>>>>> 80d03cf3047b54b35b37f030b3a1fa5d5590a316
         <Box twClassName="items-center justify-center py-10">
           <TabEmptyState
             description={strings('predict.transactions.no_transactions')}

@@ -80,11 +80,7 @@ const createStyles = (params) => {
     },
     controlButton: {
       backgroundColor: colors.background.default,
-<<<<<<< HEAD
       borderColor: colors.border.muted,
-=======
-      borderStyle: 'solid',
->>>>>>> 80d03cf3047b54b35b37f030b3a1fa5d5590a316
       borderWidth: 1,
       borderRadius: 8,
       maxWidth: '80%',
@@ -92,11 +88,7 @@ const createStyles = (params) => {
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
-<<<<<<< HEAD
       borderColor: colors.border.muted,
-=======
-      borderStyle: 'solid',
->>>>>>> 80d03cf3047b54b35b37f030b3a1fa5d5590a316
       marginRight: 4,
       borderWidth: 1,
       borderRadius: 8,
@@ -230,13 +222,6 @@ const ActivityView = () => {
     [isPerpsEnabled],
   );
 
-<<<<<<< HEAD
-=======
-  // Calculate if Perps tab is currently active
-  // Perps is the last tab, so its index depends on what other tabs are shown
-  const perpsTabIndex = 2;
-  const predictTabIndex = isPerpsEnabled ? 3 : 2;
->>>>>>> 80d03cf3047b54b35b37f030b3a1fa5d5590a316
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;
@@ -274,7 +259,6 @@ const ActivityView = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
-<<<<<<< HEAD
       <Box
         twClassName="flex-1 bg-default gap-4"
         style={{ marginTop: insets.top }}
@@ -298,80 +282,6 @@ const ActivityView = () => {
         </HeaderBase>
 
         <TabsList
-=======
-      {showBackButton ? (
-        <View style={[styles.headerWithBackButton, { marginTop: insets.top }]}>
-          <View style={styles.headerBackButton}>
-            <ButtonIcon
-              iconName={IconName.ArrowLeft}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
-              onPress={handleBackPress}
-              testID="activity-view-back-button"
-            />
-          </View>
-          <View style={styles.headerTitleContainer}>
-            <TextComponent variant={TextVariant.HeadingMD}>
-              {strings('transactions_view.title')}
-            </TextComponent>
-          </View>
-        </View>
-      ) : (
-        <View style={[styles.header, { marginTop: insets.top }]}>
-          <Text style={styles.title} variant={TextVariant.HeadingSM}>
-            {strings('transactions_view.title')}
-          </Text>
-        </View>
-      )}
-      <View style={styles.wrapper}>
-        {!(isPerpsTabActive || isOrdersTabActive || isPredictTabActive) && (
-          <View style={styles.controlButtonOuterWrapper}>
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-              label={
-                <View style={styles.networkManagerWrapper}>
-                  {!areAllNetworksSelected && (
-                    <Avatar
-                      variant={AvatarVariant.Network}
-                      size={AvatarSize.Xs}
-                      name={networkName}
-                      imageSource={networkImageSource}
-                    />
-                  )}
-                  <TextComponent
-                    variant={TextVariant.BodyMDMedium}
-                    style={styles.controlButtonText}
-                    numberOfLines={1}
-                  >
-                    {enabledNetworks.length > 1
-                      ? strings('wallet.popular_networks')
-                      : (currentNetworkName ??
-                        strings('wallet.current_network'))}
-                  </TextComponent>
-                </View>
-              }
-              isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
-              onPress={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? showFilterControls
-                  : () => null
-              }
-              endIconName={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? IconName.ArrowDown
-                  : undefined
-              }
-              style={
-                isDisabled && !isMultichainAccountsState2Enabled
-                  ? styles.controlButtonDisabled
-                  : styles.controlButton
-              }
-              disabled={isDisabled && !isMultichainAccountsState2Enabled}
-            />
-          </View>
-        )}
-        <ScrollableTabView
->>>>>>> 80d03cf3047b54b35b37f030b3a1fa5d5590a316
           ref={tabViewRef}
           onChangeTab={({ i }) => setActiveTabIndex(i)}
         >
@@ -385,40 +295,26 @@ const ActivityView = () => {
                 testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
                 label={
                   <>
-                    {isRemoveGlobalNetworkSelectorEnabled() ? (
-                      <View style={styles.networkManagerWrapper}>
-                        {!areAllNetworksSelected && (
-                          <Avatar
-                            variant={AvatarVariant.Network}
-                            size={AvatarSize.Xs}
-                            name={networkName}
-                            imageSource={networkImageSource}
-                          />
-                        )}
-                        <TextComponent
-                          variant={TextVariant.BodyMDMedium}
-                          style={styles.controlButtonText}
-                          numberOfLines={1}
-                        >
-                          {enabledNetworks.length > 1
-                            ? strings('wallet.popular_networks')
-                            : (currentNetworkName ??
-                              strings('wallet.current_network'))}
-                        </TextComponent>
-                      </View>
-                    ) : (
+                    <View style={styles.networkManagerWrapper}>
+                      {!areAllNetworksSelected && (
+                        <Avatar
+                          variant={AvatarVariant.Network}
+                          size={AvatarSize.Xs}
+                          name={networkName}
+                          imageSource={networkImageSource}
+                        />
+                      )}
                       <TextComponent
                         variant={TextVariant.BodyMDMedium}
-                        style={styles.titleText}
+                        style={styles.controlButtonText}
                         numberOfLines={1}
                       >
-                        {isAllNetworks &&
-                        isAllPopularEVMNetworks &&
-                        isEvmSelected
+                        {enabledNetworks.length > 1
                           ? strings('wallet.popular_networks')
-                          : (networkName ?? strings('wallet.current_network'))}
+                          : (currentNetworkName ??
+                            strings('wallet.current_network'))}
                       </TextComponent>
-                    )}
+                    </View>
                   </>
                 }
                 isDisabled={isDisabled && !isMultichainAccountsState2Enabled}

@@ -56,7 +56,6 @@ import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
-import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
