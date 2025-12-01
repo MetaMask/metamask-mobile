@@ -19,6 +19,8 @@ import ApprovalModal from '../../Approvals/ApprovalModal';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../hooks/useStyles';
+import Input from '../../../component-library/components/Form/TextField/foundation/Input';
+import { strings } from '../../../../locales/i18n';
 
 /**
  * The props for the SnapUIDateTimePicker component.
@@ -214,9 +216,8 @@ export const SnapUIDateTimePicker: FunctionComponent<
   const handleBlur = () => setCurrentFocusedInput(null);
 
   return (
-    <Box>
+    <Box testID={'snap-ui-renderer__date-time-picker'}>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
-
       <TextField
         size={TextFieldSize.Lg}
         placeholder={placeholder}
@@ -226,7 +227,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
         onBlur={handleBlur}
         id={name}
         readOnly
-        testID={`${name}-snap-ui-date-time-picker`}
+        pointerEvents="none"
         value={formatDateForDisplay(value, type)}
         inputElement={
           <TouchableOpacity
@@ -237,11 +238,12 @@ export const SnapUIDateTimePicker: FunctionComponent<
             }
             activeOpacity={0.7}
           >
-            <TextInput
+            <Input
+              isStateStylesDisabled
+              readOnly
+              pointerEvents="none"
               value={formatDateForDisplay(value, type)}
               placeholder={placeholder}
-              editable={false}
-              pointerEvents="none"
             />
           </TouchableOpacity>
         }
@@ -281,12 +283,12 @@ export const SnapUIDateTimePicker: FunctionComponent<
             <BottomSheetFooter
               buttonPropsArray={[
                 {
-                  label: 'Cancel',
+                  label: strings('navigation.cancel'),
                   variant: ButtonVariants.Secondary,
                   onPress: handleClosePicker,
                 },
                 {
-                  label: 'OK',
+                  label: strings('navigation.ok'),
                   variant: ButtonVariants.Primary,
                   onPress: submitInternalValue,
                 },
