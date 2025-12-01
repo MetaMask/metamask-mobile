@@ -392,6 +392,7 @@ describe('AccountService', () => {
             success: false,
             amount: '100',
             asset: 'USDC',
+            accountAddress: expect.any(String) as string,
             timestamp: Date.now(),
           },
         ],

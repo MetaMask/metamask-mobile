@@ -57,15 +57,15 @@ export const useWithdrawalRequests = (
   const pendingWithdrawals = usePerpsSelector((state) => {
     const allWithdrawals = state?.withdrawalRequests || [];
 
-    // If no selected address, return all withdrawals (shouldn't happen but be defensive)
+    // If no selected address, return empty array (don't show potentially wrong account's data)
     if (!selectedAddress) {
       DevLogger.log(
-        'useWithdrawalRequests: No selected address, returning all withdrawals',
+        'useWithdrawalRequests: No selected address, returning empty array',
         {
-          count: allWithdrawals.length,
+          totalCount: allWithdrawals.length,
         },
       );
-      return allWithdrawals;
+      return [];
     }
 
     // Filter by current account, normalizing addresses for comparison
@@ -171,6 +171,7 @@ export const useWithdrawalRequests = (
           timestamp: update.time,
           amount: Math.abs(parseFloat(update.delta.usdc)).toString(),
           asset: update.delta.coin || 'USDC', // Default to USDC if coin is not specified
+          accountAddress: selectedAddress || 'unknown', // Use current selected address for historical withdrawals
           txHash: update.hash,
           status: 'completed' as const, // HyperLiquid ledger updates are completed transactions
           destination: undefined, // Not available in ledger updates
@@ -188,7 +189,7 @@ export const useWithdrawalRequests = (
     } finally {
       setIsLoading(false);
     }
-  }, [startTime]);
+  }, [startTime, selectedAddress]);
 
   // Combine pending and completed withdrawals
   const allWithdrawals = useMemo(() => {

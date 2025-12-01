@@ -92,13 +92,13 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     const allWithdrawals =
       state.engine.backgroundState.PerpsController?.withdrawalRequests || [];
 
-    // If no selected address, return all withdrawals (shouldn't happen but be defensive)
+    // If no selected address, return empty array (don't show potentially wrong account's data)
     if (!selectedAddress) {
       DevLogger.log(
-        'PerpsMarketBalanceActions: No selected address, returning all withdrawals',
-        { count: allWithdrawals.length },
+        'PerpsMarketBalanceActions: No selected address, returning empty array',
+        { totalCount: allWithdrawals.length },
       );
-      return allWithdrawals;
+      return [];
     }
 
     // Filter by current account, normalizing addresses for comparison
