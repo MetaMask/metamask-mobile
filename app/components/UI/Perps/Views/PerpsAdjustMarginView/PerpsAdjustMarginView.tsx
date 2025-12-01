@@ -367,21 +367,33 @@ const PerpsAdjustMarginView: React.FC = () => {
 
         {/* Info Section - Always visible */}
         <View style={styles.infoSection}>
-          {/* First row: Perps balance or Margin in position */}
+          {/* First row: Current margin */}
           <View style={styles.infoRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {isAddMode
-                ? strings('perps.adjust_margin.perps_balance')
-                : strings('perps.adjust_margin.margin_in_position')}
+              {strings('perps.adjust_margin.margin_in_position')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {formatPerpsFiat(isAddMode ? availableBalance : currentMargin, {
+              {formatPerpsFiat(currentMargin, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
             </Text>
           </View>
 
-          {/* Second row: Liquidation price with transition */}
+          {/* Second row: Margin available to add/remove */}
+          <View style={styles.infoRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {isAddMode
+                ? strings('perps.adjust_margin.margin_available_to_add')
+                : strings('perps.adjust_margin.margin_available_to_remove')}
+            </Text>
+            <Text variant={TextVariant.BodyMD}>
+              {formatPerpsFiat(maxAmount, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
+            </Text>
+          </View>
+
+          {/* Third row: Liquidation price with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -428,7 +440,7 @@ const PerpsAdjustMarginView: React.FC = () => {
             )}
           </View>
 
-          {/* Third row: Liquidation distance with transition */}
+          {/* Fourth row: Liquidation distance with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

@@ -1351,7 +1351,9 @@
       "margin_in_position": "Margin in position",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
-      "liquidation_distance": "Liquidation distance"
+      "liquidation_distance": "Liquidation distance",
+      "margin_available_to_add": "Margin available to add",
+      "margin_available_to_remove": "Margin available to remove"
     },
     "tpsl": {
       "title": "Auto close",
