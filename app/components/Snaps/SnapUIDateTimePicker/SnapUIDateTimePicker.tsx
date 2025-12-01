@@ -13,7 +13,7 @@ import DateTimePicker, {
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
-import { Platform, TextInput, View } from 'react-native';
+import { Platform, TextInput, TouchableOpacity, View } from 'react-native';
 import stylesheet from './SnapUIDateTimePicker.styles';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -93,6 +93,10 @@ export const SnapUIDateTimePicker: FunctionComponent<
     initialValue ? new Date(initialValue) : null,
   );
 
+  const [androidMode, setAndroidMode] = useState<'date' | 'time' | undefined>(
+    type === 'datetime' ? 'date' : type,
+  );
+
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
@@ -108,7 +112,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
    * @param _event - The date time picker event.
    * @param date - The selected date.
    */
-  const handleInternalValueChange = (
+  const handleIosChange = (
     _event: DateTimePickerEvent,
     date: Date | undefined,
   ) => {
@@ -126,32 +130,65 @@ export const SnapUIDateTimePicker: FunctionComponent<
   };
 
   /**
-   * Handles change event for Android picker.
-   * @param _event - The date time picker event.
+   * Handles value change for Android picker.
+   * Handles the two-step process for datetime type as no native datetime picker is available on Android.
+   * @param event - The date time picker event.
    * @param date - The selected date.
+   * @returns void.
    */
-  const handleChange = (
-    _event: DateTimePickerEvent,
+  const handleAndroidChange = (
+    event: DateTimePickerEvent,
     date: Date | undefined,
   ) => {
     if (!date) return;
 
-    const isoString = DateTime.fromJSDate(date).toISO();
+    if (type === 'datetime' && androidMode === 'date' && event.type === 'set') {
+      setValue(date);
+      setAndroidMode('time');
+      return;
+    }
 
-    setValue(date);
-    handleInputChange(name, isoString, form);
+    if (type === 'datetime' && androidMode === 'time' && event.type === 'set') {
+      const selectedDate = new Date(value ?? new Date());
+      selectedDate.setTime(date.getTime());
+
+      setValue(selectedDate);
+      setAndroidMode('date');
+
+      const isoString = DateTime.fromJSDate(selectedDate).toISO();
+
+      handleInputChange(name, isoString, form);
+      setShowDatePicker(false);
+      return;
+    }
+
+    if (event.type === 'set') {
+      const isoString = DateTime.fromJSDate(date).toISO();
+
+      setValue(date);
+      handleInputChange(name, isoString, form);
+    }
+
+    setShowDatePicker(false);
   };
 
   /**
    * Handles opening the picker.
    */
-  const handleOpenPicker = () => {
+  const handleOpenIosPicker = () => {
     setShowDatePicker(true);
 
     // If no value is set, default to current date/time.
     if (value === null) {
       setValue(new Date());
     }
+  };
+
+  /**
+   * Handles opening the picker.
+   */
+  const handleOpenAndroidPicker = () => {
+    setShowDatePicker(true);
   };
 
   /**
@@ -179,9 +216,9 @@ export const SnapUIDateTimePicker: FunctionComponent<
   return (
     <Box>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
+
       <TextField
         size={TextFieldSize.Lg}
-        onPress={handleOpenPicker}
         placeholder={placeholder}
         isDisabled={disabled}
         ref={inputRef}
@@ -191,6 +228,23 @@ export const SnapUIDateTimePicker: FunctionComponent<
         readOnly
         testID={`${name}-snap-ui-date-time-picker`}
         value={formatDateForDisplay(value, type)}
+        inputElement={
+          <TouchableOpacity
+            onPress={
+              Platform.OS === 'ios'
+                ? handleOpenIosPicker
+                : handleOpenAndroidPicker
+            }
+            activeOpacity={0.7}
+          >
+            <TextInput
+              value={formatDateForDisplay(value, type)}
+              placeholder={placeholder}
+              editable={false}
+              pointerEvents="none"
+            />
+          </TouchableOpacity>
+        }
         // We set a max height of 58px and let the input grow to fill the rest of the height next to a taller sibling element.
         // eslint-disable-next-line react-native/no-inline-styles
         style={{ maxHeight: 58, flexGrow: 1 }}
@@ -200,8 +254,9 @@ export const SnapUIDateTimePicker: FunctionComponent<
         <DateTimePicker
           // Default selection to current date/time.
           value={value ?? new Date()}
-          mode={type}
-          onChange={handleChange}
+          display="default"
+          mode={androidMode}
+          onChange={handleAndroidChange}
           maximumDate={disableFuture ? new Date() : undefined}
           minimumDate={disablePast ? new Date() : undefined}
         />
@@ -219,7 +274,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
               value={value ?? new Date()}
               mode={type}
               display={type === 'datetime' ? 'inline' : 'spinner'}
-              onChange={handleInternalValueChange}
+              onChange={handleIosChange}
               maximumDate={disableFuture ? new Date() : undefined}
               minimumDate={disablePast ? new Date() : undefined}
             />
