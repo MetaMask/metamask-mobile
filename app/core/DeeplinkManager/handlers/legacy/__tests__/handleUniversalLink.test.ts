@@ -134,7 +134,7 @@ describe('handleUniversalLinks', () => {
         const expectedMappedUrl = `metamask://${action}`;
         const { urlObj: mappedUrlObj, params } =
           extractURLParams(expectedMappedUrl);
-        const wcURL = params?.uri || urlObj.href;
+        const wcURL = params?.uri || mappedUrlObj.href;
 
         await handleUniversalLink({
           instance,

@@ -120,8 +120,8 @@ async function handleUniversalLink({
       `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/`,
       `${PROTOCOLS.METAMASK}://`,
     );
-    const { params } = extractURLParams(mappedUrl);
-    const wcURL = params?.uri && params.uri.length > 0 ? params.uri : undefined;
+    const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
+    const wcURL = params?.uri || mappedUrlObj.href;
     handleMetaMaskDeeplink({
       instance,
       handled,
