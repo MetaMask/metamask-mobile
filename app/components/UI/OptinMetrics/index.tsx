@@ -13,15 +13,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { OPTIN_META_METRICS_UI_SEEN, TRUE } from '../../../constants/storage';
-import {
-  MetaMetricsEvents,
-  withMetricsAwareness,
-} from '../../hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { ThemeContext } from '../../../util/theme';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
@@ -48,26 +44,40 @@ import {
 import { setupSentry } from '../../../util/sentry/utils';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
 import createStyles from './OptinMetrics.styles';
+import { OptinMetricsRouteParams, LinkParams } from './OptinMetrics.types';
 import {
-  OptinMetricsProps,
-  OptinMetricsStateProps,
-  OptinMetricsDispatchProps,
-  LinkParams,
-} from './OptinMetrics.types';
+  useNavigation,
+  useRoute,
+  RouteProp,
+  ParamListBase,
+} from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import type { RootState } from '../../../reducers';
 
 /**
  * View that is displayed in the flow to agree to metrics
  */
-const OptinMetrics: React.FC<OptinMetricsProps> = ({
-  navigation,
-  route,
-  events,
-  clearOnboardingEvents: clearEvents,
-  setDataCollectionForMarketing: setMarketingConsent,
-  metrics,
-}) => {
+const OptinMetrics = () => {
   const { colors } = useContext(ThemeContext);
   const styles = createStyles(colors);
+
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const route =
+    useRoute<RouteProp<{ params: OptinMetricsRouteParams }, 'params'>>();
+
+  const dispatch = useDispatch();
+  const events = useSelector((state: RootState) => state.onboarding.events);
+
+  const metrics = useMetrics();
+
+  const clearEvents = useCallback(
+    () => dispatch(clearOnboardingEvents()),
+    [dispatch],
+  );
+  const setMarketingConsent = useCallback(
+    (value: boolean) => dispatch(setDataCollectionForMarketing(value)),
+    [dispatch],
+  );
 
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
     number | undefined
@@ -434,25 +444,4 @@ Object.assign(OptinMetrics, {
   },
 });
 
-interface RootState {
-  onboarding: {
-    events: unknown[];
-  };
-}
-
-const mapStateToProps = (state: RootState): OptinMetricsStateProps => ({
-  events: state.onboarding.events,
-});
-
-const mapDispatchToProps = (dispatch: Dispatch): OptinMetricsDispatchProps => ({
-  clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
-  setDataCollectionForMarketing: (value: boolean) =>
-    dispatch(setDataCollectionForMarketing(value)),
-});
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withMetricsAwareness(OptinMetrics as any));
-/* eslint-enable @typescript-eslint/no-explicit-any */
+export default OptinMetrics;
