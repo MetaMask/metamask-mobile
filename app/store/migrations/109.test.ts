@@ -17,6 +17,65 @@ const mockedEnsureValidState = jest.mocked(ensureValidState);
 
 const migrationVersion = 108;
 const QUICKNODE_MONAD_URL = 'https://failover.com';
+const MONAD_CHAIN_ID = '0x8f';
+
+// Helper functions to reduce duplication
+const createEthereumMainnetConfig = () => ({
+  chainId: '0x1',
+  rpcEndpoints: [
+    {
+      networkClientId: 'mainnet',
+      url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+      type: 'infura',
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+  blockExplorerUrls: ['https://etherscan.io'],
+  defaultBlockExplorerUrlIndex: 0,
+  name: 'Ethereum Mainnet',
+  nativeCurrency: 'ETH',
+});
+
+const createMonadNetworkConfig = (options?: {
+  rpcEndpoints?: {
+    networkClientId: string;
+    url: string;
+    type: string;
+    name?: string;
+    failoverUrls?: string[];
+  }[];
+}) => ({
+  chainId: MONAD_CHAIN_ID,
+  rpcEndpoints: options?.rpcEndpoints || [
+    {
+      networkClientId: 'monad-network',
+      url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+      type: 'custom',
+      name: 'Monad Network',
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+  blockExplorerUrls: ['https://monadscan.com'],
+  defaultBlockExplorerUrlIndex: 0,
+  name: 'Monad Network',
+  nativeCurrency: 'MON',
+});
+
+const createNetworkControllerState = (
+  networkConfigs: Record<string, unknown>,
+) => ({
+  selectedNetworkClientId: 'mainnet',
+  networksMetadata: {},
+  networkConfigurationsByChainId: networkConfigs,
+});
+
+const createState = (networkConfigs: Record<string, unknown>) => ({
+  engine: {
+    backgroundState: {
+      NetworkController: createNetworkControllerState(networkConfigs),
+    },
+  },
+});
 
 describe(`migration #${migrationVersion}`, () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -53,39 +112,25 @@ describe(`migration #${migrationVersion}`, () => {
 
   const invalidStates = [
     {
-      state: {
-        engine: {},
-      },
+      state: { engine: {} },
       errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
       scenario: 'empty engine state',
     },
     {
-      state: {
-        engine: {
-          backgroundState: {},
-        },
-      },
+      state: { engine: { backgroundState: {} } },
       errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
       scenario: 'empty backgroundState',
     },
     {
       state: {
-        engine: {
-          backgroundState: {
-            NetworkController: 'invalid',
-          },
-        },
+        engine: { backgroundState: { NetworkController: 'invalid' } },
       },
       errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: 'string'`,
       scenario: 'invalid NetworkController state',
     },
     {
       state: {
-        engine: {
-          backgroundState: {
-            NetworkController: {},
-          },
-        },
+        engine: { backgroundState: { NetworkController: {} } },
       },
       errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: missing networkConfigurationsByChainId property`,
       scenario: 'missing networkConfigurationsByChainId property',
@@ -94,9 +139,7 @@ describe(`migration #${migrationVersion}`, () => {
       state: {
         engine: {
           backgroundState: {
-            NetworkController: {
-              networkConfigurationsByChainId: 'invalid',
-            },
+            NetworkController: { networkConfigurationsByChainId: 'invalid' },
           },
         },
       },
@@ -109,7 +152,7 @@ describe(`migration #${migrationVersion}`, () => {
           backgroundState: {
             NetworkController: {
               networkConfigurationsByChainId: {
-                '0x8f': 'invalid',
+                [MONAD_CHAIN_ID]: 'invalid',
               },
             },
           },
@@ -124,8 +167,8 @@ describe(`migration #${migrationVersion}`, () => {
           backgroundState: {
             NetworkController: {
               networkConfigurationsByChainId: {
-                '0x8f': {
-                  chainId: '0x8f',
+                [MONAD_CHAIN_ID]: {
+                  chainId: MONAD_CHAIN_ID,
                   defaultRpcEndpointIndex: 0,
                   blockExplorerUrls: ['https://monadscan.com'],
                   defaultBlockExplorerUrlIndex: 0,
@@ -146,8 +189,8 @@ describe(`migration #${migrationVersion}`, () => {
           backgroundState: {
             NetworkController: {
               networkConfigurationsByChainId: {
-                '0x8f': {
-                  chainId: '0x8f',
+                [MONAD_CHAIN_ID]: {
+                  chainId: MONAD_CHAIN_ID,
                   rpcEndpoints: 'not-an-array',
                   defaultRpcEndpointIndex: 0,
                   blockExplorerUrls: ['https://monadscan.com'],
@@ -183,31 +226,9 @@ describe(`migration #${migrationVersion}`, () => {
   );
 
   it('does not modify state and does not capture exception if Monad network is not found', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-            },
-          },
-        },
-      },
-    };
+    const state = createState({
+      '0x1': createEthereumMainnetConfig(),
+    });
     const orgState = cloneDeep(state);
     mockedEnsureValidState.mockReturnValue(true);
 
@@ -219,50 +240,20 @@ describe(`migration #${migrationVersion}`, () => {
   });
 
   it('does not add failover URL if there is already a failover URL', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0x8f': {
-                chainId: '0x8f',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'monad-network',
-                    url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'custom',
-                    name: 'Monad Network',
-                    failoverUrls: ['https://failover.com'],
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://monadscan.com'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Monad Network',
-                nativeCurrency: 'MON',
-              },
-            },
+    const oldState = createState({
+      '0x1': createEthereumMainnetConfig(),
+      [MONAD_CHAIN_ID]: createMonadNetworkConfig({
+        rpcEndpoints: [
+          {
+            networkClientId: 'monad-network',
+            url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+            type: 'custom',
+            name: 'Monad Network',
+            failoverUrls: ['https://failover.com'],
           },
-        },
-      },
-    };
+        ],
+      }),
+    });
 
     mockedEnsureValidState.mockReturnValue(true);
 
@@ -271,49 +262,10 @@ describe(`migration #${migrationVersion}`, () => {
   });
 
   it('does not add failover URL if QUICKNODE_MONAD_URL env variable is not set', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0x8f': {
-                chainId: '0x8f',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'monad-network',
-                    url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'custom',
-                    name: 'Monad Network',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://monadscan.com'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Monad Network',
-                nativeCurrency: 'MON',
-              },
-            },
-          },
-        },
-      },
-    };
+    const oldState = createState({
+      '0x1': createEthereumMainnetConfig(),
+      [MONAD_CHAIN_ID]: createMonadNetworkConfig(),
+    });
 
     mockedEnsureValidState.mockReturnValue(true);
 
@@ -323,55 +275,26 @@ describe(`migration #${migrationVersion}`, () => {
 
   it('adds QuickNode failover URL to all Monad RPC endpoints when no failover URLs exist', async () => {
     process.env.QUICKNODE_MONAD_URL = QUICKNODE_MONAD_URL;
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0x8f': {
-                chainId: '0x8f',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'monad-network',
-                    url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'custom',
-                    name: 'Monad Network',
-                  },
-                  {
-                    networkClientId: 'monad-network-2',
-                    url: 'http://some-monad-rpc.com',
-                    type: 'custom',
-                    name: 'Monad Network',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://monadscan.com'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Monad Network',
-                nativeCurrency: 'MON',
-              },
-            },
-          },
-        },
+    const monadRpcEndpoints = [
+      {
+        networkClientId: 'monad-network',
+        url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+        type: 'custom',
+        name: 'Monad Network',
       },
-    };
+      {
+        networkClientId: 'monad-network-2',
+        url: 'http://some-monad-rpc.com',
+        type: 'custom',
+        name: 'Monad Network',
+      },
+    ];
+    const oldState = createState({
+      '0x1': createEthereumMainnetConfig(),
+      [MONAD_CHAIN_ID]: createMonadNetworkConfig({
+        rpcEndpoints: monadRpcEndpoints,
+      }),
+    });
 
     mockedEnsureValidState.mockReturnValue(true);
 
@@ -383,25 +306,13 @@ describe(`migration #${migrationVersion}`, () => {
             networkConfigurationsByChainId: {
               ...oldState.engine.backgroundState.NetworkController
                 .networkConfigurationsByChainId,
-              '0x8f': {
+              [MONAD_CHAIN_ID]: {
                 ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0x8f'],
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'monad-network',
-                    url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'custom',
-                    name: 'Monad Network',
-                    failoverUrls: [QUICKNODE_MONAD_URL],
-                  },
-                  {
-                    networkClientId: 'monad-network-2',
-                    url: 'http://some-monad-rpc.com',
-                    type: 'custom',
-                    name: 'Monad Network',
-                    failoverUrls: [QUICKNODE_MONAD_URL],
-                  },
-                ],
+                  .networkConfigurationsByChainId[MONAD_CHAIN_ID],
+                rpcEndpoints: monadRpcEndpoints.map((endpoint) => ({
+                  ...endpoint,
+                  failoverUrls: [QUICKNODE_MONAD_URL],
+                })),
               },
             },
           },
