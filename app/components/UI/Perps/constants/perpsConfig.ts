@@ -503,6 +503,11 @@ export const STOP_LOSS_PROMPT_CONFIG = {
   // Prevents banner from appearing during temporary price fluctuations
   ROE_DEBOUNCE_MS: 60_000, // 60 seconds
 
+  // Minimum position age before showing any banner (milliseconds)
+  // Prevents banner from appearing immediately after opening a position
+  // Per TAT-2161: banners should only appear >60s after position is opened
+  POSITION_MIN_AGE_MS: 60_000, // 60 seconds
+
   // Suggested stop loss ROE percentage
   // When suggesting a stop loss, calculate price at this ROE from entry
   SUGGESTED_STOP_LOSS_ROE: -50,

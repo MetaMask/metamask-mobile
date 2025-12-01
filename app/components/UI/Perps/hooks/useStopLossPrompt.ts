@@ -69,6 +69,14 @@ export const useStopLossPrompt = ({
   const roeBelowThresholdSinceRef = useRef<number | null>(null);
   const [roeDebounceComplete, setRoeDebounceComplete] = useState(false);
 
+  // Track when the current position was first detected (client-side)
+  // This is used to enforce the minimum position age requirement (TAT-2161)
+  const positionFirstSeenRef = useRef<{
+    coin: string;
+    timestamp: number;
+  } | null>(null);
+  const [positionAgeCheckPassed, setPositionAgeCheckPassed] = useState(false);
+
   // Calculate liquidation distance
   const liquidationDistance = useMemo(() => {
     // Dev override: provide mock distance for add_margin variant
@@ -95,6 +103,46 @@ export const useStopLossPrompt = ({
     if (isNaN(roeValue)) return null;
     return roeValue * 100;
   }, [position?.returnOnEquity]);
+
+  // Handle position age tracking (TAT-2161)
+  // Track when a position is first detected and enforce minimum age before showing banners
+  useEffect(() => {
+    if (!enabled || !position?.coin) {
+      // Reset when disabled or no position
+      positionFirstSeenRef.current = null;
+      setPositionAgeCheckPassed(false);
+      return;
+    }
+
+    // Check if this is a new position (different coin or first time seeing it)
+    if (
+      !positionFirstSeenRef.current ||
+      positionFirstSeenRef.current.coin !== position.coin
+    ) {
+      positionFirstSeenRef.current = {
+        coin: position.coin,
+        timestamp: Date.now(),
+      };
+      setPositionAgeCheckPassed(false);
+    }
+
+    // Check if minimum age has passed
+    const elapsed = Date.now() - positionFirstSeenRef.current.timestamp;
+    if (elapsed >= STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS) {
+      setPositionAgeCheckPassed(true);
+    } else {
+      // Set up timer to check again when age threshold is reached
+      const remainingTime =
+        STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS - elapsed;
+      const timer = setTimeout(() => {
+        setPositionAgeCheckPassed(true);
+      }, remainingTime);
+
+      return () => clearTimeout(timer);
+    }
+
+    return undefined;
+  }, [enabled, position?.coin]);
 
   // Handle ROE debounce logic
   useEffect(() => {
@@ -234,6 +282,12 @@ export const useStopLossPrompt = ({
       // So we'll NOT suppress just for having TP
     }
 
+    // Suppression check: Position age requirement (TAT-2161)
+    // Don't show any banner until position has been open for at least POSITION_MIN_AGE_MS
+    if (!positionAgeCheckPassed) {
+      return { shouldShowBanner: false, variant: null };
+    }
+
     // Priority 1: Near liquidation → Add margin variant
     if (
       liquidationDistance !== null &&
@@ -244,13 +298,18 @@ export const useStopLossPrompt = ({
     }
 
     // Priority 2: ROE below threshold with debounce → Stop loss variant
-    // Note: Position age check skipped as createdAt not available in Position type
     if (roeDebounceComplete) {
       return { shouldShowBanner: true, variant: 'stop_loss' };
     }
 
     return { shouldShowBanner: false, variant: null };
-  }, [enabled, position, liquidationDistance, roeDebounceComplete]);
+  }, [
+    enabled,
+    position,
+    liquidationDistance,
+    roeDebounceComplete,
+    positionAgeCheckPassed,
+  ]);
 
   return {
     shouldShowBanner,

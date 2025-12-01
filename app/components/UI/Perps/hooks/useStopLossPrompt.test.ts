@@ -100,6 +100,46 @@ describe('useStopLossPrompt', () => {
       expect(result.current.shouldShowBanner).toBe(false);
       expect(result.current.variant).toBeNull();
     });
+
+    it('does not show banner until position age requirement is met (TAT-2161)', () => {
+      // Position that would normally trigger add_margin banner
+      const position = createMockPosition({
+        liquidationPrice: '45000',
+        returnOnEquity: '-0.10',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 45500, // Within 3% of liquidation
+        }),
+      );
+
+      // Should not show immediately due to position age requirement
+      expect(result.current.shouldShowBanner).toBe(false);
+      expect(result.current.variant).toBeNull();
+
+      // Advance halfway through the age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS / 2,
+        );
+      });
+
+      // Still should not show
+      expect(result.current.shouldShowBanner).toBe(false);
+
+      // Advance past the age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS / 2 + 100,
+        );
+      });
+
+      // Now should show
+      expect(result.current.shouldShowBanner).toBe(true);
+      expect(result.current.variant).toBe('add_margin');
+    });
   });
 
   describe('add_margin variant', () => {
@@ -116,6 +156,16 @@ describe('useStopLossPrompt', () => {
           currentPrice: 45500, // 1.1% from liquidation
         }),
       );
+
+      // Initially should not show (position age check not passed)
+      expect(result.current.shouldShowBanner).toBe(false);
+
+      // Fast-forward past position age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+        );
+      });
 
       expect(result.current.shouldShowBanner).toBe(true);
       expect(result.current.variant).toBe('add_margin');
@@ -334,6 +384,13 @@ describe('useStopLossPrompt', () => {
           currentPrice: 49500, // 1% from liquidation
         }),
       );
+
+      // Fast-forward past position age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+        );
+      });
 
       // add_margin takes priority
       expect(result.current.variant).toBe('add_margin');
