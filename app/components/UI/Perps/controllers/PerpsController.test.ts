@@ -95,9 +95,19 @@ jest.mock('../../../../core/Engine', () => {
     }),
   };
 
+  const mockAccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        type: 'eip155:eoa',
+      },
+    ]),
+  };
+
   const mockEngineContext = {
     RewardsController: mockRewardsController,
     NetworkController: mockNetworkController,
+    AccountTreeController: mockAccountTreeController,
     TransactionController: {},
   };
 

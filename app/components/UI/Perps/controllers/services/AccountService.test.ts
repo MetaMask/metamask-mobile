@@ -54,6 +54,11 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
     log: jest.fn(),
   },
 }));
+jest.mock('../../utils/accountUtils', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
+    address: '0x1234567890123456789012345678901234567890',
+  }),
+}));
 
 describe('AccountService', () => {
   let mockProvider: jest.Mocked<IPerpsProvider>;
