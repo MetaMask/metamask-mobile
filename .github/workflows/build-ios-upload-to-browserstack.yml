@@ -73,125 +73,10 @@ jobs:
             echo "iOS builds needed - no BS URLs provided"
           fi
 
-  bump-version-code:
-    name: Bump Version Code on Bitrise
-    runs-on: ubuntu-latest
-    needs: [check-builds-needed]
-    if: needs.check-builds-needed.outputs.builds-needed == 'true'
-    env:
-      METAMASK_WORKFLOW: bump_version_code
-    outputs:
-      build-id: ${{ steps.trigger-bump.outputs.build-id }}
-      build-slug: ${{ steps.trigger-bump.outputs.build-slug }}
-    
-    steps:
-      - name: Trigger Version Bump on Bitrise
-        id: trigger-bump
-        run: |
-          echo "Triggering version bump on Bitrise..."
-          echo "Workflow: $METAMASK_WORKFLOW"
-          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Current branch: ${{ github.ref_name }}"
-          
-          # Validate required environment variables
-          if [[ -z "$BITRISE_APP_ID" ]]; then
-            echo "Error: BITRISE_APP_ID is not set"
-            exit 1
-          fi
-          if [[ -z "$BITRISE_BUILD_TRIGGER_TOKEN" ]]; then
-            echo "Error: BITRISE_BUILD_TRIGGER_TOKEN is not set"
-            exit 1
-          fi
-          if [[ -z "$BITRISE_API_TOKEN" ]]; then
-            echo "Error: BITRISE_API_TOKEN is not set"
-            exit 1
-          fi
-          
-          # Trigger bump_version_code workflow
-          BUILD_RESPONSE=$(curl -s -X POST \
-            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "build_params": {
-                "branch": "${{ github.ref_name }}",
-                "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
-                "commit_message": "Triggered by Performance E2E workflow - Bump version code"
-              },
-              "hook_info": {
-                "type": "bitrise",
-                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
-              },
-              "triggered_by": "GitHub Actions Performance E2E - Bump Version"
-            }')
-          
-          echo "Build response: $BUILD_RESPONSE"
-          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
-          echo "Build slug: $BUILD_SLUG"
-          
-          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
-            echo "Error: Failed to get build slug"
-            echo "Full response: $BUILD_RESPONSE"
-            exit 1
-          fi
-          
-          # Wait for the workflow to complete
-          echo "Waiting for $METAMASK_WORKFLOW to complete..."
-          TIMEOUT=300  # 5 minutes (version bump is quick)
-          ELAPSED=0
-          
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
-            
-            BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
-            echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
-            
-            # Check for successful completion (status 1 or success/succeeded)
-            if [ "$BUILD_STATUS" = "1" ] || [ "$BUILD_STATUS" = "success" ] || [ "$BUILD_STATUS" = "succeeded" ]; then
-              echo "Version bump completed successfully"
-              break
-            elif [ "$BUILD_STATUS" = "0" ] || [ "$BUILD_STATUS" = "in_progress" ] || [ "$BUILD_STATUS" = "running" ]; then
-              echo "Version bump is in progress..."
-            elif [ "$BUILD_STATUS" = "2" ] || [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
-              echo "Version bump failed with status: $BUILD_STATUS"
-              exit 1
-            else
-              echo "Unknown build status: $BUILD_STATUS"
-            fi
-            
-            sleep 20
-            ELAPSED=$((ELAPSED + 20))
-          done
-          
-          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
-            echo "Timeout waiting for version bump to complete"
-            echo "Final build status: $BUILD_STATUS"
-            echo "Build slug: $BUILD_SLUG"
-            exit 1
-          fi
-          
-          # Get the build ID from the completed build
-          BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
-          
-          if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
-            echo "Error: Failed to get build ID"
-            exit 1
-          fi
-          
-          echo "Build ID: $BUILD_ID"
-          echo "Build Slug: $BUILD_SLUG"
-          
-          # Set outputs
-          {
-            echo "build-id=$BUILD_ID"
-            echo "build-slug=$BUILD_SLUG"
-          } >> "$GITHUB_OUTPUT"
-
   trigger-ios-with-srp-build:
     name: Trigger iOS with-SRP Build on Bitrise
     runs-on: ubuntu-latest
-    needs: [check-builds-needed, bump-version-code]
-    if: needs.check-builds-needed.outputs.builds-needed == 'true'
+    needs: [check-builds-needed]
     env:
       METAMASK_WORKFLOW: build_ios_main_rc
     outputs:
@@ -202,11 +87,13 @@ jobs:
       
       - name: Trigger iOS with-SRP Build on Bitrise
         id: trigger-build
+        if: needs.check-builds-needed.outputs.builds-needed == 'true'
         run: |
           echo "Triggering iOS with-SRP build on Bitrise..."
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Current branch: ${{ github.ref_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit SHA: ${{ github.sha }}"
           
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
@@ -249,8 +136,9 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
+                "commit_hash": "${{ github.sha }}",
                 "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
-                "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP",
+                "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP (commit: ${{ github.sha }})",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
               },
@@ -327,8 +215,7 @@ jobs:
   trigger-ios-without-srp-build:
     name: Trigger iOS without-SRP Build on Bitrise
     runs-on: ubuntu-latest
-    needs: [check-builds-needed, bump-version-code]
-    if: needs.check-builds-needed.outputs.builds-needed == 'true'
+    needs: [check-builds-needed]
     env:
       METAMASK_WORKFLOW: build_ios_main_rc
     outputs:
@@ -338,11 +225,13 @@ jobs:
     steps:
       - name: Trigger iOS without-SRP Build on Bitrise
         id: trigger-build
+        if: needs.check-builds-needed.outputs.builds-needed == 'true'
         run: |
           echo "Triggering iOS without-SRP build on Bitrise..."
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Current branch: ${{ github.ref_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit SHA: ${{ github.sha }}"
           
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
@@ -375,8 +264,9 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
+                "commit_hash": "${{ github.sha }}",
                 "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
-                "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP",
+                "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP (commit: ${{ github.sha }})",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
               },
