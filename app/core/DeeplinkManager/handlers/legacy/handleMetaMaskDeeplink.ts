@@ -24,7 +24,7 @@ export function handleMetaMaskDeeplink({
 }: {
   instance: DeeplinkManager;
   handled: () => void;
-  wcURL: string;
+  wcURL: string | undefined;
   origin: string;
   params: ReturnType<typeof extractURLParams>['params'];
   url: string;
