@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const iconSize = 44;
+const iconSize = 40;
 const TrendingTokensSkeleton: React.FC<ViewStyle> = () => (
   <View style={styles.container}>
     <View>
