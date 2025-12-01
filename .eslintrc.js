@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
-  root: tru,
+  root: true,
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: './tsconfig.json',
