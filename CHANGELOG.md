@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Uncategorized
 
 - update changelog for 7.60.1 (hotfix - no test plan)
+- update changelog for 7.60.1 (hotfix - no test plan)
+- [skip ci] Bump version number to 3204
+- update changelog for 7.60.1 (hotfix - no test plan)
 - [skip ci] Bump version number to 3204
 - [skip ci] Bump version number to 3204
 - chore(runway): cherry-pick fix: bump bitcoin ([#23493](https://github.com/MetaMask/metamask-mobile/pull/23493))
