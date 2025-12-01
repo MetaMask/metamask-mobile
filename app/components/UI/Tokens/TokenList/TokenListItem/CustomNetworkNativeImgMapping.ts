@@ -32,6 +32,7 @@ export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.SOPHON_TESTNET]: SophonTestnetImg,
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: ethImg,
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: MegaethTestnetImg,
+  [NETWORK_CHAIN_ID.MEGAETH_TESTNET_V2]: MegaethTestnetImg,
   [NETWORK_CHAIN_ID.LUKSO]: LuksoImg,
   [NETWORK_CHAIN_ID.INJECTIVE]: InjectiveImg,
   [NETWORK_CHAIN_ID.PLASMA]: PlasmaImg,
