@@ -801,11 +801,6 @@ const Onboarding = () => {
     mounted.current = true;
     checkIfExistingUser();
     disableNewPrivacyPolicyToast();
-    // When a new user has onboarded and the PNA25 feature flag is on,
-    // set the PNA25 acknowledgement as true to prevent the toast from showing
-    if (isPna25FlagEnabled) {
-      storePna25Acknowledged();
-    }
 
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
@@ -830,6 +825,14 @@ const Onboarding = () => {
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
+
+  useEffect(() => {
+    // When a new user has onboarded and the PNA25 feature flag is on,
+    // set the PNA25 acknowledgement as true to prevent the toast from showing
+    if (isPna25FlagEnabled) {
+      storePna25Acknowledged();
+    }
+  }, [isPna25FlagEnabled, storePna25Acknowledged]);
 
   const { existingUser, errorToThrow, startFoxAnimation } = state;
   const hasFooter = existingUser && !loading;
