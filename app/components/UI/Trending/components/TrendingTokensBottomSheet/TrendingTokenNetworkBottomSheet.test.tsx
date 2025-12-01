@@ -143,6 +143,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     IconSize: {
       Md: 'Md',
     },
+    IconColor: {
+      Default: 'Default',
+    },
   };
 });
 

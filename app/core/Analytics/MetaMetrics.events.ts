@@ -299,6 +299,7 @@ enum EVENT_NAME {
   SEND_FLOW = 'Send Flow',
   SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
+  TOAST_DISPLAYED = 'Toast Displayed',
 
   // Send Flow
   SEND_ASSET_SELECTED = 'Send Asset Selected',
@@ -1491,6 +1492,9 @@ const events = {
   // QR Scanner
   QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
   QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
+
+  // Toast
+  TOAST_DISPLAYED: generateOpt(EVENT_NAME.TOAST_DISPLAYED),
 };
 
 /**

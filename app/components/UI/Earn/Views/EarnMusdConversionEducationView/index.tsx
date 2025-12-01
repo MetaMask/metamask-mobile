@@ -59,7 +59,7 @@ const EarnMusdConversionEducationView = () => {
   const handleContinue = useCallback(async () => {
     try {
       // Mark education as seen so it won't show again
-      dispatch(setMusdConversionEducationSeen());
+      dispatch(setMusdConversionEducationSeen(true));
 
       // Proceed to conversion flow if we have the required params
       if (outputChainId && preferredPaymentToken) {
