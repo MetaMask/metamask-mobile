@@ -327,7 +327,7 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await metrics.enableSocialLogin?.(false);
+    await metrics.enable(false);
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
@@ -356,7 +356,7 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await metrics.enableSocialLogin?.(false);
+    await metrics.enable(false);
     await hasMetricsConsent();
 
     const action = async () => {
@@ -593,7 +593,7 @@ const Onboarding = () => {
       navigation.navigate('Onboarding');
 
       // Enable metrics for OAuth users
-      await metrics.enableSocialLogin?.(true);
+      await metrics.enable(true);
       discardBufferedTraces();
       await setupSentry();
 

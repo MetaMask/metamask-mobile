@@ -2,9 +2,9 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Text from '../../../Base/Text';
-import Title from '../../../Base/Title';
-import { useTheme } from '../../../../util/theme';
+import Text from './Text';
+import Title from './Title';
+import { useTheme } from '../../util/theme';
 import { Theme } from '@metamask/design-tokens';
 
 const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>

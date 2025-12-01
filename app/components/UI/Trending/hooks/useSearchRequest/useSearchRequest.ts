@@ -5,6 +5,17 @@ import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { usePopularNetworks } from '../usePopularNetworks/usePopularNetworks';
 
+interface SearchResult {
+  assetId: CaipChainId;
+  decimals: number;
+  name: string;
+  symbol: string;
+  marketCap: number;
+  aggregatedUsdVolume: number;
+  price: string;
+  pricePercentChange1d: string;
+}
+
 /**
  * Hook for handling search tokens request
  * @returns {Object} An object containing the search results, loading state, and a function to trigger search
@@ -28,7 +39,8 @@ export const useSearchRequest = (options: {
       (network: ProcessedNetwork) => network.caipChainId,
     );
   }, [providedChainIds, popularNetworks]);
-  const [results, setResults] = useState<unknown[]>([]);
+
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -56,7 +68,7 @@ export const useSearchRequest = (options: {
       });
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
-        setResults(searchResults?.data || []);
+        setResults((searchResults?.data as SearchResult[]) || []);
       }
     } catch (err) {
       // Only update state if this is still the current request

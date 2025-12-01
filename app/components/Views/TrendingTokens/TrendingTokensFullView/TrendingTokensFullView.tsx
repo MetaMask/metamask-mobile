@@ -368,7 +368,7 @@ const TrendingTokensFullView = () => {
 
       {isLoading || (searchResults as TrendingAsset[]).length === 0 ? (
         <View style={styles.listContainer}>
-          {Array.from({ length: 10 }).map((_, index) => (
+          {Array.from({ length: 12 }).map((_, index) => (
             <TrendingTokensSkeleton key={index} />
           ))}
         </View>
