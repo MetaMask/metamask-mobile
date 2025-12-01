@@ -294,6 +294,7 @@ describe('HyperLiquidProvider', () => {
       getNetwork: jest.fn().mockReturnValue('mainnet'),
       ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(),
+      setOnTerminateCallback: jest.fn(),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;
 
     mockWalletService = {
@@ -6394,6 +6395,26 @@ describe('HyperLiquidProvider', () => {
         // With buffer (1.003) = 4212.6
         expect(result).toBeCloseTo(4212.6, 1);
       });
+    });
+  });
+
+  describe('onTerminate', () => {
+    it('delegates to clientService.setOnTerminateCallback', () => {
+      const callback = jest.fn();
+
+      provider.onTerminate(callback);
+
+      expect(mockClientService.setOnTerminateCallback).toHaveBeenCalledWith(
+        callback,
+      );
+    });
+
+    it('clears callback when null passed', () => {
+      provider.onTerminate(null);
+
+      expect(mockClientService.setOnTerminateCallback).toHaveBeenCalledWith(
+        null,
+      );
     });
   });
 });
