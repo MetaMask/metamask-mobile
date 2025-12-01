@@ -57,6 +57,7 @@ import type {
   EditOrderParams,
   FeeCalculationParams,
   FeeCalculationResult,
+  FlipPositionParams,
   Funding,
   GetAccountStateParams,
   GetAvailableDexsParams,
@@ -68,6 +69,7 @@ import type {
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
+  MarginResult,
   MarketInfo,
   Order,
   OrderFill,
@@ -78,17 +80,20 @@ import type {
   SubscribeAccountParams,
   SubscribeCandlesParams,
   SubscribeOICapsParams,
+  SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
   SubscribePricesParams,
   SwitchProviderResult,
   ToggleTestnetResult,
+  UpdateMarginParams,
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
+  OrderType,
 } from './types';
 import type {
   RemoteFeatureFlagControllerState,
@@ -217,11 +222,31 @@ export type PerpsControllerState = {
     testnet: {
       [marketSymbol: string]: {
         leverage?: number; // Last used leverage for this market
+        // Pending trade configuration (temporary, expires after 5 minutes)
+        pendingConfig?: {
+          amount?: string; // Order size in USD
+          leverage?: number; // Leverage
+          takeProfitPrice?: string; // Take profit price
+          stopLossPrice?: string; // Stop loss price
+          limitPrice?: string; // Limit price (for limit orders)
+          orderType?: OrderType; // Market vs limit
+          timestamp: number; // When the config was saved (for expiration check)
+        };
       };
     };
     mainnet: {
       [marketSymbol: string]: {
         leverage?: number;
+        // Pending trade configuration (temporary, expires after 5 minutes)
+        pendingConfig?: {
+          amount?: string; // Order size in USD
+          leverage?: number; // Leverage
+          takeProfitPrice?: string; // Take profit price
+          stopLossPrice?: string; // Stop loss price
+          limitPrice?: string; // Limit price (for limit orders)
+          orderType?: OrderType; // Market vs limit
+          timestamp: number; // When the config was saved (for expiration check)
+        };
       };
     };
   };
@@ -564,6 +589,18 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getMarketFilterPreferences';
       handler: PerpsController['getMarketFilterPreferences'];
+    }
+  | {
+      type: 'PerpsController:savePendingTradeConfiguration';
+      handler: PerpsController['savePendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getPendingTradeConfiguration';
+      handler: PerpsController['getPendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:clearPendingTradeConfiguration';
+      handler: PerpsController['clearPendingTradeConfiguration'];
     };
 
 /**
@@ -1227,6 +1264,43 @@ export class PerpsController extends BaseController<
       provider,
       params,
       context: this.createServiceContext('updatePositionTPSL', {
+        rewardsController: RewardsController,
+        networkController: NetworkController,
+        messenger: this.messenger,
+      }),
+    });
+  }
+
+  /**
+   * Update margin for an existing position (add or remove)
+   */
+  async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
+    const provider = this.getActiveProvider();
+    const { RewardsController, NetworkController } = Engine.context;
+
+    return TradingService.updateMargin({
+      provider,
+      coin: params.coin,
+      amount: params.amount,
+      context: this.createServiceContext('updateMargin', {
+        rewardsController: RewardsController,
+        networkController: NetworkController,
+        messenger: this.messenger,
+      }),
+    });
+  }
+
+  /**
+   * Flip position (reverse direction while keeping size and leverage)
+   */
+  async flipPosition(params: FlipPositionParams): Promise<OrderResult> {
+    const provider = this.getActiveProvider();
+    const { RewardsController, NetworkController } = Engine.context;
+
+    return TradingService.flipPosition({
+      provider,
+      position: params.position,
+      context: this.createServiceContext('flipPosition', {
         rewardsController: RewardsController,
         networkController: NetworkController,
         messenger: this.messenger,
@@ -1927,6 +2001,29 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Subscribe to full order book updates with multiple depth levels
+   * Creates a dedicated L2Book subscription for real-time order book data
+   */
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOrderBook(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrderBook', {
+          symbol: params.symbol,
+          levels: params.levels,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
    * Subscribe to live candle updates
    */
   subscribeToCandles(params: SubscribeCandlesParams): () => void {
@@ -2173,9 +2270,130 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
       state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
         leverage,
       };
+    });
+  }
+
+  /**
+   * Save pending trade configuration for a market
+   * This is a temporary configuration that expires after 5 minutes
+   * @param coin - Market symbol
+   * @param config - Pending trade configuration
+   */
+  savePendingTradeConfiguration(
+    coin: string,
+    config: {
+      amount?: string;
+      leverage?: number;
+      takeProfitPrice?: string;
+      stopLossPrice?: string;
+      limitPrice?: string;
+      orderType?: OrderType;
+    },
+  ): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving pending trade configuration', {
+      coin,
+      network,
+      config,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
+      state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
+        pendingConfig: {
+          ...config,
+          timestamp: Date.now(),
+        },
+      };
+    });
+  }
+
+  /**
+   * Get pending trade configuration for a market
+   * Returns undefined if config doesn't exist or has expired (more than 5 minutes old)
+   * @param coin - Market symbol
+   * @returns Pending trade configuration or undefined
+   */
+  getPendingTradeConfiguration(coin: string):
+    | {
+        amount?: string;
+        leverage?: number;
+        takeProfitPrice?: string;
+        stopLossPrice?: string;
+        limitPrice?: string;
+        orderType?: OrderType;
+      }
+    | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const config =
+      this.state.tradeConfigurations[network]?.[coin]?.pendingConfig;
+
+    if (!config) {
+      return undefined;
+    }
+
+    // Check if config has expired (5 minutes = 300,000 milliseconds)
+    const FIVE_MINUTES_MS = 5 * 60 * 1000;
+    const now = Date.now();
+    const age = now - config.timestamp;
+
+    if (age > FIVE_MINUTES_MS) {
+      DevLogger.log('PerpsController: Pending trade config expired', {
+        coin,
+        network,
+        age,
+        timestamp: config.timestamp,
+      });
+      // Clear expired config
+      this.update((state) => {
+        if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
+          delete state.tradeConfigurations[network][coin].pendingConfig;
+        }
+      });
+      return undefined;
+    }
+
+    DevLogger.log('PerpsController: Retrieved pending trade config', {
+      coin,
+      network,
+      config,
+      age,
+    });
+
+    // Return config without timestamp
+    const { timestamp, ...configWithoutTimestamp } = config;
+    return configWithoutTimestamp;
+  }
+
+  /**
+   * Clear pending trade configuration for a market
+   * @param coin - Market symbol
+   */
+  clearPendingTradeConfiguration(coin: string): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Clearing pending trade configuration', {
+      coin,
+      network,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
+        delete state.tradeConfigurations[network][coin].pendingConfig;
+      }
     });
   }
 
