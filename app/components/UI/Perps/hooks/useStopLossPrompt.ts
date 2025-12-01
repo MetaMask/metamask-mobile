@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import type { Position } from '../controllers/types';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
@@ -37,6 +37,12 @@ export interface UseStopLossPromptResult {
   suggestedStopLossPrice: string | null;
   /** Suggested stop loss as percentage from entry */
   suggestedStopLossPercent: number | null;
+  /** Whether banner is currently visible (includes dismissing state) */
+  isVisible: boolean;
+  /** Whether banner is in fade-out animation state */
+  isDismissing: boolean;
+  /** Callback when fade-out animation completes */
+  onDismissComplete: () => void;
 }
 
 /**
@@ -76,6 +82,11 @@ export const useStopLossPrompt = ({
     timestamp: number;
   } | null>(null);
   const [positionAgeCheckPassed, setPositionAgeCheckPassed] = useState(false);
+
+  // Visibility orchestration state
+  // Tracks fade-out animation when banner conditions no longer met
+  const [isDismissing, setIsDismissing] = useState(false);
+  const prevShouldShowBannerRef = useRef(false);
 
   // Calculate liquidation distance
   const liquidationDistance = useMemo(() => {
@@ -288,6 +299,15 @@ export const useStopLossPrompt = ({
       return { shouldShowBanner: false, variant: null };
     }
 
+    // Suppression check: Minimum loss requirement (TAT-2161)
+    // No banner shown until ROE drops below MIN_LOSS_THRESHOLD (-10%)
+    if (
+      roePercent === null ||
+      roePercent > STOP_LOSS_PROMPT_CONFIG.MIN_LOSS_THRESHOLD
+    ) {
+      return { shouldShowBanner: false, variant: null };
+    }
+
     // Priority 1: Near liquidation → Add margin variant
     if (
       liquidationDistance !== null &&
@@ -309,7 +329,34 @@ export const useStopLossPrompt = ({
     liquidationDistance,
     roeDebounceComplete,
     positionAgeCheckPassed,
+    roePercent,
   ]);
+
+  // Handle visibility orchestration - detect transitions and trigger fade-out
+  // When shouldShowBanner transitions from true → false, trigger dismissing state
+  useEffect(() => {
+    const prevValue = prevShouldShowBannerRef.current;
+    prevShouldShowBannerRef.current = shouldShowBanner;
+
+    // Transition from showing to hidden → trigger fade-out animation
+    if (prevValue && !shouldShowBanner && !isDismissing) {
+      setIsDismissing(true);
+    }
+  }, [shouldShowBanner, isDismissing]);
+
+  // Reset visibility orchestration when position changes
+  useEffect(() => {
+    setIsDismissing(false);
+    prevShouldShowBannerRef.current = false;
+  }, [position?.coin]);
+
+  // Callback when fade-out animation completes
+  const onDismissComplete = useCallback(() => {
+    setIsDismissing(false);
+  }, []);
+
+  // Banner is visible when conditions are met OR when dismissing (for animation)
+  const isVisible = shouldShowBanner || isDismissing;
 
   return {
     shouldShowBanner,
@@ -317,6 +364,9 @@ export const useStopLossPrompt = ({
     liquidationDistance,
     suggestedStopLossPrice,
     suggestedStopLossPercent,
+    isVisible,
+    isDismissing,
+    onDismissComplete,
   };
 };
 

@@ -498,6 +498,11 @@ export const STOP_LOSS_PROMPT_CONFIG = {
   // Shows "Set stop loss" banner when ROE drops below this value
   ROE_THRESHOLD: -20,
 
+  // Minimum loss threshold to show ANY banner (percentage)
+  // No banner shown until ROE drops below this value
+  // Per TAT-2161: banners should only appear when loss >= 10%
+  MIN_LOSS_THRESHOLD: -10,
+
   // Debounce duration for ROE threshold (milliseconds)
   // User must have ROE below threshold for this duration before showing banner
   // Prevents banner from appearing during temporary price fluctuations

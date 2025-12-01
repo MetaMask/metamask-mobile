@@ -328,6 +328,203 @@ describe('useStopLossPrompt', () => {
     });
   });
 
+  describe('minimum loss threshold', () => {
+    it('does not show banner when loss is below MIN_LOSS_THRESHOLD (TAT-2161)', () => {
+      // Position with -5% ROE (above -10% threshold)
+      const position = createMockPosition({
+        returnOnEquity: '-0.05', // -5% loss
+        liquidationPrice: '45000',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 45500, // Within 3% of liquidation
+        }),
+      );
+
+      // Fast-forward past position age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+        );
+      });
+
+      // Should not show because loss is not >= 10%
+      expect(result.current.shouldShowBanner).toBe(false);
+      expect(result.current.variant).toBeNull();
+    });
+
+    it('does not show banner when position is in profit', () => {
+      // Position in profit
+      const position = createMockPosition({
+        returnOnEquity: '0.05', // +5% profit
+        liquidationPrice: '45000',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 45500,
+        }),
+      );
+
+      // Fast-forward past position age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+        );
+      });
+
+      expect(result.current.shouldShowBanner).toBe(false);
+      expect(result.current.variant).toBeNull();
+    });
+
+    it('shows add_margin banner when loss >= 10% AND within 3% of liquidation', () => {
+      // Position with exactly -10% ROE
+      const position = createMockPosition({
+        returnOnEquity: '-0.10', // -10% loss
+        liquidationPrice: '45000',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 45500, // Within 3% of liquidation
+        }),
+      );
+
+      // Fast-forward past position age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+        );
+      });
+
+      expect(result.current.shouldShowBanner).toBe(true);
+      expect(result.current.variant).toBe('add_margin');
+    });
+  });
+
+  describe('visibility orchestration', () => {
+    it('returns isVisible false when no banner should show', () => {
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position: null,
+          currentPrice: 48000,
+        }),
+      );
+
+      expect(result.current.isVisible).toBe(false);
+      expect(result.current.isDismissing).toBe(false);
+    });
+
+    it('returns isVisible true when banner should show', () => {
+      const position = createMockPosition({
+        returnOnEquity: '-0.10',
+        liquidationPrice: '45000',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 45500,
+        }),
+      );
+
+      // Fast-forward past position age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+        );
+      });
+
+      expect(result.current.shouldShowBanner).toBe(true);
+      expect(result.current.isVisible).toBe(true);
+      expect(result.current.isDismissing).toBe(false);
+    });
+
+    it('sets isDismissing when banner transitions from shown to hidden', () => {
+      const position = createMockPosition({
+        returnOnEquity: '-0.10',
+        liquidationPrice: '45000',
+      });
+
+      const { result, rerender } = renderHook(
+        ({ pos }) =>
+          useStopLossPrompt({
+            position: pos,
+            currentPrice: 45500,
+          }),
+        { initialProps: { pos: position } },
+      );
+
+      // Fast-forward past position age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+        );
+      });
+
+      expect(result.current.shouldShowBanner).toBe(true);
+      expect(result.current.isVisible).toBe(true);
+
+      // Position improves (no longer meets conditions)
+      const improvedPosition = createMockPosition({
+        returnOnEquity: '0.05', // +5% profit
+        liquidationPrice: '45000',
+      });
+
+      rerender({ pos: improvedPosition });
+
+      // Banner should be dismissing (fade-out animation state)
+      expect(result.current.shouldShowBanner).toBe(false);
+      expect(result.current.isDismissing).toBe(true);
+      expect(result.current.isVisible).toBe(true); // Still visible during animation
+    });
+
+    it('clears isDismissing when onDismissComplete is called', () => {
+      const position = createMockPosition({
+        returnOnEquity: '-0.10',
+        liquidationPrice: '45000',
+      });
+
+      const { result, rerender } = renderHook(
+        ({ pos }) =>
+          useStopLossPrompt({
+            position: pos,
+            currentPrice: 45500,
+          }),
+        { initialProps: { pos: position } },
+      );
+
+      // Fast-forward past position age requirement
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS + 100,
+        );
+      });
+
+      // Position improves, trigger dismissing
+      const improvedPosition = createMockPosition({
+        returnOnEquity: '0.05',
+        liquidationPrice: '45000',
+      });
+
+      rerender({ pos: improvedPosition });
+
+      expect(result.current.isDismissing).toBe(true);
+
+      // Simulate animation complete
+      act(() => {
+        result.current.onDismissComplete();
+      });
+
+      expect(result.current.isDismissing).toBe(false);
+      expect(result.current.isVisible).toBe(false);
+    });
+  });
+
   describe('edge cases', () => {
     it('handles zero current price', () => {
       const position = createMockPosition();
