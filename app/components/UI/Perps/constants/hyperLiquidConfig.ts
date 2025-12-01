@@ -355,6 +355,24 @@ export const HIP3_MARGIN_CONFIG = {
   REBALANCE_MIN_THRESHOLD: 0.1,
 } as const;
 
+/**
+ * Configuration for USDH collateral handling on HIP-3 DEXs
+ * Per HyperLiquid docs: USDH DEXs pull collateral from spot balance automatically
+ *
+ * USDH is HyperLiquid's native stablecoin pegged 1:1 to USDC
+ */
+export const USDH_CONFIG = {
+  /** Token name for USDH collateral */
+  TOKEN_NAME: 'USDH',
+
+  /**
+   * Maximum slippage for USDC→USDH spot swap in basis points
+   * USDH is pegged 1:1 to USDC so slippage should be minimal
+   * 10 bps (0.1%) provides small buffer for spread
+   */
+  SWAP_SLIPPAGE_BPS: 10,
+} as const;
+
 // Progress bar constants
 export const INITIAL_AMOUNT_UI_PROGRESS = 10;
 export const WITHDRAWAL_PROGRESS_STAGES = [
