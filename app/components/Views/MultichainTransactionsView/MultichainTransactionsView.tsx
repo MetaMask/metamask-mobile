@@ -11,7 +11,6 @@ import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
-import Text from '../../../component-library/components/Texts/Text';
 import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
@@ -27,7 +26,7 @@ import PriceChartContext, {
 import MultichainBridgeTransactionListItem from '../../../components/UI/MultichainBridgeTransactionListItem';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-
+import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 interface MultichainTransactionsViewProps {
   /**
    * Override transactions instead of using selector
@@ -116,9 +115,9 @@ const MultichainTransactionsView = ({
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
-      <Text style={[style.emptyText, { color: colors.text.default }]}>
-        {emptyMessage ?? strings('wallet.no_transactions')}
-      </Text>
+      <TabEmptyState
+        description={emptyMessage ?? strings('wallet.no_transactions')}
+      />
     </View>
   );
 

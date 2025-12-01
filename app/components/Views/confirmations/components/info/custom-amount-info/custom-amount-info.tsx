@@ -14,7 +14,10 @@ import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
-import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import {
+  SetPayTokenRequest,
+  useAutomaticTransactionPayToken,
+} from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -54,12 +57,17 @@ export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
+  hasMax?: boolean;
+  preferredToken?: SetPayTokenRequest;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay }) => {
+  ({ children, currency, disablePay, hasMax, preferredToken }) => {
     useClearConfirmationOnBackSwipe();
-    useAutomaticTransactionPayToken({ disable: disablePay });
+    useAutomaticTransactionPayToken({
+      disable: disablePay,
+      preferredToken,
+    });
     useTransactionPayMetrics();
 
     const { styles } = useStyles(styleSheet, {});
@@ -131,6 +139,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
+              hasMax={hasMax}
             />
           )}
           {!hasTokens && <BuySection />}
