@@ -3,6 +3,7 @@ import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class WalletActionModal {
 
@@ -59,6 +60,15 @@ class WalletActionModal {
     }
   }
 
+
+  async isSendButtonVisible() {
+    if (!this._device) {
+      await expect(this.sendButton).toBeDisplayed();
+    } else {
+      const element = await this.sendButton;
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+    }
+  }
   async tapSendButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.sendButton);

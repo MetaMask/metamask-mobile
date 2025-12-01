@@ -126,15 +126,18 @@ export async function importSRPFlow(device, srp) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { scenarioType = 'login' } = options;
+  const { scenarioType = 'login', dismissModals = true } = options;
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
-  await AppwrightGestures.wait(5000);
-  await dismissMultichainAccountsIntroModal(device);
+
+  if (dismissModals) {
+    await AppwrightGestures.wait(5000);
+    await dismissMultichainAccountsIntroModal(device);
+  }
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;

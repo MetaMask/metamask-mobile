@@ -76,7 +76,7 @@ class LoginScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.TITLE_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.TITLE_ID);
+      return AppwrightSelectors.getElementByID(this._device,'log-in-button');
     }
   }
 

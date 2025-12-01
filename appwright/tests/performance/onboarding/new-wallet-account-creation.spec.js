@@ -47,7 +47,7 @@ test('Account creation after fresh install', async ({
   await CreateNewWalletScreen.inputConfirmPasswordField(
     getPasswordForScenario('onboarding'),
   );
-  await CreatePasswordScreen.tapIUnderstandCheckBox();
+
   await CreatePasswordScreen.tapCreatePasswordButton();
 
   await CreateNewWalletScreen.tapRemindMeLater();
@@ -86,8 +86,8 @@ test('Account creation after fresh install', async ({
   screen2Timer.stop();
   await AccountListComponent.tapOnAccountByName('Account 2');
   screen3Timer.start();
-  await WalletMainScreen.isMainWalletViewVisible();
-  // await WalletMainScreen.isTokenVisible('SOL'); // TODO: skipped since locator is no longer reachable
+  await WalletMainScreen.isTokenVisible('ETH');
+  await WalletMainScreen.isTokenVisible('SOL');
   screen3Timer.stop();
   performanceTracker.addTimer(screen1Timer);
   performanceTracker.addTimer(screen2Timer);
