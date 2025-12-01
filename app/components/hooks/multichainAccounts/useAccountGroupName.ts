@@ -15,7 +15,7 @@ export const useAccountGroupName = () => {
 
   return useMemo(() => {
     if (isMultichainAccountsState2Enabled && selectedAccountGroup) {
-      return selectedAccountGroup.metadata.name;
+      return selectedAccountGroup.metadata?.name ?? null;
     }
     return null;
   }, [isMultichainAccountsState2Enabled, selectedAccountGroup]);
