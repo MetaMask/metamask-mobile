@@ -17,6 +17,7 @@ import styleSheet from './BadgeWrapper.styles';
 import {
   DEFAULT_BADGEWRAPPER_BADGEANCHORELEMENTSHAPE,
   DEFAULT_BADGEWRAPPER_BADGEPOSITION,
+  BADGE_WRAPPER_BADGE_TEST_ID,
 } from './BadgeWrapper.constants';
 
 const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
@@ -40,8 +41,7 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
     <View
       style={styles.base}
       onLayout={onLayoutContainerSize}
-      accessibilityRole="none"
-      accessible={false}
+      testID={BADGE_WRAPPER_BADGE_TEST_ID}
     >
       <View>{children}</View>
       <View style={styles.badge}>{badgeElement}</View>
