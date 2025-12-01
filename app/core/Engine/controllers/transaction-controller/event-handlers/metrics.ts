@@ -3,6 +3,8 @@ import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { merge } from 'lodash';
 
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { selectIsPna25FlagEnabled } from '../../../../../selectors/featureFlagController/legalNotices';
+import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { MetaMetrics } from '../../../../Analytics';
 import { RootExtendedMessenger } from '../../../types';
@@ -226,12 +228,8 @@ function generateHashProperty(
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
   const state = transactionEventHandlerRequest.getState();
-
-  const isExtensionUxPna25Enabled =
-    state?.engine?.backgroundState?.RemoteFeatureFlagController
-      ?.remoteFeatureFlags?.extensionUxPna25;
-
-  const isPna25Acknowledged = state?.legalNotices?.isPna25Acknowledged;
+  const isExtensionUxPna25Enabled = selectIsPna25FlagEnabled(state);
+  const isPna25Acknowledged = selectIsPna25Acknowledged(state);
 
   if (isExtensionUxPna25Enabled && isPna25Acknowledged) {
     return {
