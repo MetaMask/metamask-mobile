@@ -4,7 +4,7 @@ ignores:
   - '@metamask/test-dapp-multichain'
   - 'webpack-cli'
   - '@react-native-community/datetimepicker'
-  - '@react-native-community/slider'
+  - '@react-native-community/slide'
   - 'patch-package'
   - '@lavamoat/allow-scripts'
   - '@lavamoat/git-safe-dependencies'
