@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 export interface DepositRequest {
   id: string;
   timestamp: number;
   amount: string;
   asset: string;
+  accountAddress: string; // Account that initiated this deposit
   txHash?: string;
   status: 'pending' | 'bridging' | 'completed' | 'failed';
   source?: string;
@@ -45,20 +48,48 @@ export const useDepositRequests = (
 ): UseDepositRequestsResult => {
   const { startTime, skipInitialFetch = false } = options;
 
-  // Get pending/bridging deposits from controller state (real-time)
-  const pendingDeposits = usePerpsSelector(
-    (state) => state?.depositRequests || [],
-  );
+  // Get current selected account address
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  )?.address;
 
-  DevLogger.log('Pending deposits from controller state:', {
-    count: pendingDeposits.length,
-    deposits: pendingDeposits.map((d) => ({
-      id: d.id,
-      timestamp: new Date(d.timestamp).toISOString(),
-      amount: d.amount,
-      asset: d.asset,
-      status: d.status,
-    })),
+  // Get pending/bridging deposits from controller state and filter by current account
+  const pendingDeposits = usePerpsSelector((state) => {
+    const allDeposits = state?.depositRequests || [];
+
+    // If no selected address, return empty array (don't show potentially wrong account's data)
+    if (!selectedAddress) {
+      DevLogger.log(
+        'useDepositRequests: No selected address, returning empty array',
+        {
+          totalCount: allDeposits.length,
+        },
+      );
+      return [];
+    }
+
+    // Filter by current account, normalizing addresses for comparison
+    const filtered = allDeposits.filter((req) => {
+      const match =
+        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase();
+      return match;
+    });
+
+    DevLogger.log('useDepositRequests: Filtered deposits by account', {
+      selectedAddress,
+      totalCount: allDeposits.length,
+      filteredCount: filtered.length,
+      deposits: filtered.map((d) => ({
+        id: d.id,
+        timestamp: new Date(d.timestamp).toISOString(),
+        amount: d.amount,
+        asset: d.asset,
+        status: d.status,
+        accountAddress: d.accountAddress,
+      })),
+    });
+
+    return filtered;
   });
 
   const [completedDeposits, setCompletedDeposits] = useState<DepositRequest[]>(

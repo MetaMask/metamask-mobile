@@ -1,4 +1,5 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { act } from '@testing-library/react-native';
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useDepositRequests } from './useDepositRequests';
@@ -31,6 +32,7 @@ describe('useDepositRequests', () => {
       timestamp: 1640995200000,
       amount: '100',
       asset: 'USDC',
+      accountAddress: '0x1234567890123456789012345678901234567890',
       status: 'pending' as const,
       txHash: undefined,
       source: 'arbitrum',
@@ -41,6 +43,7 @@ describe('useDepositRequests', () => {
       timestamp: 1640995201000,
       amount: '200',
       asset: 'USDC',
+      accountAddress: '0x1234567890123456789012345678901234567890',
       status: 'bridging' as const,
       txHash: '0x123',
       source: 'ethereum',
@@ -84,6 +87,27 @@ describe('useDepositRequests', () => {
     },
   ];
 
+  // Helper to create mock Redux state with account
+  const createMockState = () => ({
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              'account-1': {
+                id: 'account-1',
+                address: '0x1234567890123456789012345678901234567890',
+                metadata: { name: 'Account 1' },
+                type: 'eip155:eoa' as const,
+              },
+            },
+            selectedAccount: 'account-1',
+          },
+        },
+      },
+    },
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -112,7 +136,9 @@ describe('useDepositRequests', () => {
 
   describe('initial state', () => {
     it('returns initial state correctly', () => {
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       expect(result.current.depositRequests).toEqual([]);
       expect(result.current.isLoading).toBe(true);
@@ -121,8 +147,11 @@ describe('useDepositRequests', () => {
     });
 
     it('skips initial fetch when skipInitialFetch is true', () => {
-      const { result } = renderHook(() =>
-        useDepositRequests({ skipInitialFetch: true }),
+      const { result } = renderHookWithProvider(
+        () => useDepositRequests({ skipInitialFetch: true }),
+        {
+          state: createMockState(),
+        },
       );
 
       expect(result.current.isLoading).toBe(false);
@@ -134,7 +163,9 @@ describe('useDepositRequests', () => {
 
   describe('fetchCompletedDeposits', () => {
     it('fetches completed deposits successfully', async () => {
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -151,7 +182,9 @@ describe('useDepositRequests', () => {
 
     it('uses provided startTime', async () => {
       const startTime = 1640995200000;
-      renderHook(() => useDepositRequests({ startTime }));
+      renderHookWithProvider(() => useDepositRequests({ startTime }), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -164,7 +197,9 @@ describe('useDepositRequests', () => {
     });
 
     it('uses start of today when no startTime provided', async () => {
-      renderHook(() => useDepositRequests());
+      renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -180,7 +215,9 @@ describe('useDepositRequests', () => {
     });
 
     it('filters only deposit transactions', async () => {
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -192,7 +229,9 @@ describe('useDepositRequests', () => {
     });
 
     it('transforms ledger updates to deposit requests', async () => {
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -213,7 +252,9 @@ describe('useDepositRequests', () => {
         mockEngine.context as unknown as { PerpsController: unknown }
       ).PerpsController = undefined;
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -226,7 +267,9 @@ describe('useDepositRequests', () => {
     it('handles no active provider', async () => {
       mockController.getActiveProvider.mockReturnValue(undefined);
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -240,7 +283,9 @@ describe('useDepositRequests', () => {
       mockProvider = {} as unknown as typeof mockProvider;
       mockController.getActiveProvider.mockReturnValue(mockProvider);
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -257,7 +302,9 @@ describe('useDepositRequests', () => {
         new Error('Provider error'),
       );
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -272,7 +319,9 @@ describe('useDepositRequests', () => {
         'String error',
       );
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -284,10 +333,77 @@ describe('useDepositRequests', () => {
   });
 
   describe('deposit filtering and combining', () => {
+    it('filters deposits by current account address', () => {
+      const depositsFromMultipleAccounts = [
+        {
+          id: 'deposit1',
+          timestamp: 1640995200000,
+          amount: '100',
+          asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890', // Current account
+          status: 'pending' as const,
+          source: 'arbitrum',
+        },
+        {
+          id: 'deposit2',
+          timestamp: 1640995201000,
+          amount: '200',
+          asset: 'USDC',
+          accountAddress: '0xdifferentaccount000000000000000000000000', // Different account
+          status: 'pending' as const,
+          source: 'ethereum',
+        },
+      ];
+
+      mockUsePerpsSelector.mockReturnValue(depositsFromMultipleAccounts);
+
+      renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
+
+      // Should only return deposits for the current account
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'useDepositRequests: Filtered deposits by account',
+        expect.objectContaining({
+          selectedAddress: '0x1234567890123456789012345678901234567890',
+          totalCount: 2,
+          filteredCount: 1,
+        }),
+      );
+    });
+
+    it('returns empty array when no selected address', () => {
+      const stateWithoutAccount = {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {},
+                selectedAccount: undefined,
+              },
+            },
+          },
+        },
+      };
+
+      renderHookWithProvider(() => useDepositRequests(), {
+        state: stateWithoutAccount,
+      });
+
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'useDepositRequests: No selected address, returning empty array',
+        expect.objectContaining({
+          totalCount: 2,
+        }),
+      );
+    });
+
     it('combines pending and completed deposits', async () => {
       mockUsePerpsSelector.mockReturnValue(mockPendingDeposits);
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -300,7 +416,9 @@ describe('useDepositRequests', () => {
     });
 
     it('filters out deposits with zero amounts', async () => {
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -330,7 +448,9 @@ describe('useDepositRequests', () => {
         zeroAmountLedgerUpdates,
       );
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -358,7 +478,9 @@ describe('useDepositRequests', () => {
         noTxHashLedgerUpdates,
       );
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -397,7 +519,9 @@ describe('useDepositRequests', () => {
         multipleDeposits,
       );
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -410,7 +534,9 @@ describe('useDepositRequests', () => {
 
   describe('refetch functionality', () => {
     it('refetches completed deposits when refetch is called', async () => {
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       // Initial fetch
       await act(async () => {
@@ -439,7 +565,9 @@ describe('useDepositRequests', () => {
         new Error('Refetch error'),
       );
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await result.current.refetch();
@@ -451,13 +579,17 @@ describe('useDepositRequests', () => {
   });
 
   describe('logging', () => {
-    it('logs pending deposits from controller state', () => {
-      renderHook(() => useDepositRequests());
+    it('logs filtered deposits by account', () => {
+      renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Pending deposits from controller state:',
+        'useDepositRequests: Filtered deposits by account',
         expect.objectContaining({
-          count: 2,
+          selectedAddress: '0x1234567890123456789012345678901234567890',
+          totalCount: 2,
+          filteredCount: 2,
           deposits: expect.arrayContaining([
             expect.objectContaining({
               id: 'pending1',
@@ -465,6 +597,7 @@ describe('useDepositRequests', () => {
               amount: '100',
               asset: 'USDC',
               status: 'pending',
+              accountAddress: '0x1234567890123456789012345678901234567890',
             }),
           ]),
         }),
@@ -472,7 +605,9 @@ describe('useDepositRequests', () => {
     });
 
     it('logs final combined deposits', async () => {
-      renderHook(() => useDepositRequests());
+      renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -501,7 +636,9 @@ describe('useDepositRequests', () => {
     it('handles empty ledger updates', async () => {
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([]);
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -514,7 +651,9 @@ describe('useDepositRequests', () => {
     it('handles undefined ledger updates', async () => {
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(undefined);
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -527,7 +666,9 @@ describe('useDepositRequests', () => {
     it('handles null ledger updates', async () => {
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -555,7 +696,9 @@ describe('useDepositRequests', () => {
         ledgerUpdatesWithoutCoin,
       );
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -583,7 +726,9 @@ describe('useDepositRequests', () => {
         ledgerUpdatesWithoutNonce,
       );
 
-      const { result } = renderHook(() => useDepositRequests());
+      const { result } = renderHookWithProvider(() => useDepositRequests(), {
+        state: createMockState(),
+      });
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
