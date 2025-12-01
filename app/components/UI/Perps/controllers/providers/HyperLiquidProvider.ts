@@ -6252,10 +6252,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get the client service for WebSocket termination monitoring
-   * Used by PerpsConnectionManager to register termination callbacks
+   * Register callback for WebSocket termination events
+   * Called when the SDK exhausts all reconnection attempts
    */
-  getClientService(): HyperLiquidClientService {
-    return this.clientService;
+  onTerminate(callback: ((error: Error) => void) | null): void {
+    this.clientService.setOnTerminateCallback(callback);
   }
 }

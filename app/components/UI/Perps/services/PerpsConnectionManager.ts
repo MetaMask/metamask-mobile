@@ -242,13 +242,13 @@ class PerpsConnectionManagerClass {
   }
 
   /**
-   * Register WebSocket termination callback with the client service
+   * Register WebSocket termination callback with the provider
    */
   private registerTerminationCallback(): void {
     try {
-      const clientService = Engine.context.PerpsController.getClientService?.();
-      if (clientService) {
-        clientService.setOnTerminateCallback((error: Error) =>
+      const provider = Engine.context.PerpsController.getActiveProvider();
+      if (provider.onTerminate) {
+        provider.onTerminate((error: Error) =>
           this.handleWebSocketTermination(error),
         );
         DevLogger.log(
@@ -268,9 +268,9 @@ class PerpsConnectionManagerClass {
    */
   private clearTerminationCallback(): void {
     try {
-      const clientService = Engine.context.PerpsController.getClientService?.();
-      if (clientService) {
-        clientService.setOnTerminateCallback(null);
+      const provider = Engine.context.PerpsController.getActiveProvider();
+      if (provider.onTerminate) {
+        provider.onTerminate(null);
         DevLogger.log('PerpsConnectionManager: Termination callback cleared');
       }
     } catch (err) {
