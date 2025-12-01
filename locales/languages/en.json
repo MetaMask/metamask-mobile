@@ -1333,22 +1333,24 @@
       "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
     },
     "flip_position": {
-      "title": "Flip Position",
+      "title": "Reverse Position",
       "direction": "Direction",
       "est_size": "Est. Size",
-      "flip": "Flip",
-      "flipping": "Flipping...",
+      "flip": "Reverse",
+      "flipping": "Reversing...",
       "cancel": "Cancel"
     },
     "adjust_margin": {
       "title": "Adjust Margin",
       "add_margin": "Add Margin",
       "add_margin_description": "Increase margin to reduce liquidation risk",
-      "reduce_margin": "Reduce Margin",
+      "reduce_margin": "Remove Margin",
       "reduce_margin_description": "Withdraw excess margin from position",
       "add_title": "Add Margin",
-      "remove_title": "Reduce Margin",
+      "remove_title": "Remove Margin",
       "margin_in_position": "Margin in position",
+      "margin_available_to_add": "Margin available to add",
+      "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance"
