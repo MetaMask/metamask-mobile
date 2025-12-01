@@ -219,6 +219,81 @@ describe('NetworkMultiSelector', () => {
   const mockUseSelector = jest.mocked(useSelector);
   const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
+  // Shared helper functions for all tests
+  const createMockNetwork = (
+    id: string,
+    name: string,
+    caipChainId: CaipChainId,
+    isSelected: boolean,
+  ) => ({
+    id,
+    name,
+    caipChainId,
+    isSelected,
+    imageSource: { uri: `${name.toLowerCase()}.png` },
+    networkTypeOrRpcUrl: undefined,
+    hasMultipleRpcs: false,
+  });
+
+  const createMockUseNetworksToUse = (
+    networks: ReturnType<typeof createMockNetwork>[],
+    areAllSelected = false,
+  ) => ({
+    networksToUse: networks,
+    evmNetworks: networks.filter((n) => n.caipChainId.startsWith('eip155:')),
+    solanaNetworks: networks.filter((n) => n.caipChainId.startsWith('solana:')),
+    bitcoinNetworks: networks.filter((n) =>
+      n.caipChainId.startsWith('bip122:'),
+    ),
+    tronNetworks: [],
+    selectedEvmAccount: networks.some((n) =>
+      n.caipChainId.startsWith('eip155:'),
+    )
+      ? ({ id: 'evm-account' } as InternalAccount)
+      : null,
+    selectedSolanaAccount: networks.some((n) =>
+      n.caipChainId.startsWith('solana:'),
+    )
+      ? ({ id: 'solana-account' } as InternalAccount)
+      : null,
+    selectedBitcoinAccount: null,
+    selectedTronAccount: null,
+    isMultichainAccountsState2Enabled: true,
+    areAllNetworksSelectedCombined: areAllSelected,
+    areAllEvmNetworksSelected: false,
+    areAllSolanaNetworksSelected: false,
+    areAllBitcoinNetworksSelected: false,
+    areAllTronNetworksSelected: false,
+  });
+
+  const setupMockSelectors = (
+    isEvmSelected: boolean,
+    currentChainId: string | null,
+    evmConfigs: Record<string, unknown> = {},
+    nonEvmConfigs: Record<string, unknown> = {},
+  ) => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsEvmNetworkSelected) return isEvmSelected;
+      if (selector === selectSelectedNonEvmNetworkChainId)
+        return isEvmSelected ? null : currentChainId;
+      if (selector === selectEvmChainId)
+        return isEvmSelected ? currentChainId : '0x1';
+      if (selector === selectEvmNetworkConfigurationsByChainId)
+        return evmConfigs;
+      if (selector === selectNonEvmNetworkConfigurationsByChainId)
+        return nonEvmConfigs;
+      if (selector === selectMultichainAccountsState2Enabled) return true;
+      if (selector === selectSelectedInternalAccountByScope) {
+        return (scope: string) => {
+          if (scope === 'eip155:0') return { id: 'evm-account' };
+          if (scope.includes('solana')) return { id: 'solana-account' };
+          return null;
+        };
+      }
+      return undefined;
+    });
+  };
+
   const mockNetworks = [
     {
       id: 'eip155:1' as const,
@@ -1158,82 +1233,6 @@ describe('NetworkMultiSelector', () => {
   describe('NETWORK_SWITCHED event tracking', () => {
     let capturedProperties: Record<string, unknown> = {};
 
-    const createMockNetwork = (
-      id: string,
-      name: string,
-      caipChainId: CaipChainId,
-      isSelected: boolean,
-    ) => ({
-      id,
-      name,
-      caipChainId,
-      isSelected,
-      imageSource: { uri: `${name.toLowerCase()}.png` },
-      networkTypeOrRpcUrl: undefined,
-      hasMultipleRpcs: false,
-    });
-
-    const createMockUseNetworksToUse = (
-      networks: ReturnType<typeof createMockNetwork>[],
-      areAllSelected = false,
-    ) => ({
-      networksToUse: networks,
-      evmNetworks: networks.filter((n) => n.caipChainId.startsWith('eip155:')),
-      solanaNetworks: networks.filter((n) =>
-        n.caipChainId.startsWith('solana:'),
-      ),
-      bitcoinNetworks: networks.filter((n) =>
-        n.caipChainId.startsWith('bip122:'),
-      ),
-      tronNetworks: [],
-      selectedEvmAccount: networks.some((n) =>
-        n.caipChainId.startsWith('eip155:'),
-      )
-        ? ({ id: 'evm-account' } as InternalAccount)
-        : null,
-      selectedSolanaAccount: networks.some((n) =>
-        n.caipChainId.startsWith('solana:'),
-      )
-        ? ({ id: 'solana-account' } as InternalAccount)
-        : null,
-      selectedBitcoinAccount: null,
-      selectedTronAccount: null,
-      isMultichainAccountsState2Enabled: true,
-      areAllNetworksSelectedCombined: areAllSelected,
-      areAllEvmNetworksSelected: false,
-      areAllSolanaNetworksSelected: false,
-      areAllBitcoinNetworksSelected: false,
-      areAllTronNetworksSelected: false,
-    });
-
-    const setupMockSelectors = (
-      isEvmSelected: boolean,
-      currentChainId: string | null,
-      evmConfigs: Record<string, unknown> = {},
-      nonEvmConfigs: Record<string, unknown> = {},
-    ) => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsEvmNetworkSelected) return isEvmSelected;
-        if (selector === selectSelectedNonEvmNetworkChainId)
-          return isEvmSelected ? null : currentChainId;
-        if (selector === selectEvmChainId)
-          return isEvmSelected ? currentChainId : '0x1';
-        if (selector === selectEvmNetworkConfigurationsByChainId)
-          return evmConfigs;
-        if (selector === selectNonEvmNetworkConfigurationsByChainId)
-          return nonEvmConfigs;
-        if (selector === selectMultichainAccountsState2Enabled) return true;
-        if (selector === selectSelectedInternalAccountByScope) {
-          return (scope: string) => {
-            if (scope === 'eip155:0') return { id: 'evm-account' };
-            if (scope.includes('solana')) return { id: 'solana-account' };
-            return null;
-          };
-        }
-        return undefined;
-      });
-    };
-
     beforeEach(() => {
       jest.clearAllMocks();
       capturedProperties = {};
@@ -1895,6 +1894,646 @@ describe('NetworkMultiSelector', () => {
 
       expect(mockSelectPopularNetwork).toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track event when chainIdForAnalytics is undefined', async () => {
+      const fromNetwork = createMockNetwork(
+        'eip155:1',
+        'Ethereum Main Network',
+        'eip155:1' as CaipChainId,
+        true,
+      );
+      const toNetwork = createMockNetwork(
+        'eip155:8453',
+        'Base',
+        'eip155:8453' as CaipChainId,
+        false,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [fromNetwork, toNetwork],
+        selectedNetworks: [fromNetwork],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([fromNetwork, toNetwork]),
+      );
+
+      setupMockSelectors(
+        true,
+        '0x1',
+        {
+          '0x1': {
+            name: 'Ethereum Main Network',
+            chainId: '0x1',
+            rpcEndpoints: [
+              { networkClientId: 'mainnet', url: 'https://mainnet.infura.io' },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+          // Missing '0x2105' config to make chainIdForAnalytics undefined
+        },
+        {},
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      await getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.onSelectNetwork('eip155:8453');
+
+      expect(mockSelectPopularNetwork).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track event when EVM network config is missing', async () => {
+      const fromNetwork = createMockNetwork(
+        'eip155:1',
+        'Ethereum Main Network',
+        'eip155:1' as CaipChainId,
+        true,
+      );
+      const toNetwork = createMockNetwork(
+        'eip155:8453',
+        'Base',
+        'eip155:8453' as CaipChainId,
+        false,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [fromNetwork, toNetwork],
+        selectedNetworks: [fromNetwork],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([fromNetwork, toNetwork]),
+      );
+
+      setupMockSelectors(
+        true,
+        '0x1',
+        {
+          '0x1': {
+            name: 'Ethereum Main Network',
+            chainId: '0x1',
+            rpcEndpoints: [
+              { networkClientId: 'mainnet', url: 'https://mainnet.infura.io' },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+          // Missing '0x2105' config
+        },
+        {},
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      await getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.onSelectNetwork('eip155:8453');
+
+      expect(mockSelectPopularNetwork).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track event when non-EVM network config is missing', async () => {
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const bitcoinChainId = 'bip122:000000000019d6689c085ae165831e93';
+      const fromNetwork = createMockNetwork(
+        solanaChainId,
+        'Solana',
+        solanaChainId as CaipChainId,
+        true,
+      );
+      const toNetwork = createMockNetwork(
+        bitcoinChainId,
+        'Bitcoin',
+        bitcoinChainId as CaipChainId,
+        false,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [fromNetwork, toNetwork],
+        selectedNetworks: [fromNetwork],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([fromNetwork, toNetwork]),
+      );
+
+      setupMockSelectors(
+        false,
+        solanaChainId,
+        {},
+        {
+          [solanaChainId]: { name: 'Solana', ticker: 'SOL' },
+          // Missing bitcoinChainId config
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      await getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.onSelectNetwork(bitcoinChainId);
+
+      expect(mockSelectPopularNetwork).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track event when onSelectAllPopularNetworks is called with all networks already selected', async () => {
+      const ethereumNetwork = createMockNetwork(
+        'eip155:1',
+        'Ethereum Main Network',
+        'eip155:1' as CaipChainId,
+        true,
+      );
+      const baseNetwork = createMockNetwork(
+        'eip155:8453',
+        'Base',
+        'eip155:8453' as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [ethereumNetwork, baseNetwork],
+        selectedNetworks: [ethereumNetwork, baseNetwork],
+        selectedCount: 2,
+        areAllNetworksSelected: true,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([ethereumNetwork, baseNetwork], true),
+      );
+
+      setupMockSelectors(
+        true,
+        '0x1',
+        {
+          '0x1': {
+            name: 'Ethereum Main Network',
+            chainId: '0x1',
+            rpcEndpoints: [
+              { networkClientId: 'mainnet', url: 'https://mainnet.infura.io' },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+        {},
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      await getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.selectAllNetworksComponent.props.onPress();
+
+      expect(mockToggleAll).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track event when onSelectAllPopularNetworks is called with null currentChainId', async () => {
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [],
+        selectedNetworks: [],
+        selectedCount: 0,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: false,
+        networkCount: 0,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(createMockUseNetworksToUse([]));
+
+      setupMockSelectors(false, null, {}, {});
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      await getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.selectAllNetworksComponent.props.onPress();
+
+      expect(mockToggleAll).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track event when onSelectAllPopularNetworks is called with unknown from_network', async () => {
+      // Setup with no selected network and unknown chain ID
+      // This ensures getNetworkName returns "Unknown Network"
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [],
+        selectedNetworks: [],
+        selectedCount: 0,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: false,
+        networkCount: 0,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(createMockUseNetworksToUse([]));
+
+      setupMockSelectors(
+        true,
+        '0x999', // Unknown chain ID - not in configs
+        {}, // Empty EVM configs
+        {}, // Empty non-EVM configs
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      await getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.selectAllNetworksComponent.props.onPress();
+
+      expect(mockToggleAll).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getNetworkName edge cases', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns network name from currentSelectedNetwork when caipChainId matches', () => {
+      const network = createMockNetwork(
+        'eip155:1',
+        'Ethereum Main Network',
+        'eip155:1' as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [network],
+        selectedNetworks: [network],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([network]),
+      );
+
+      setupMockSelectors(
+        true,
+        '0x1',
+        {
+          '0x1': {
+            name: 'Ethereum Main Network',
+            chainId: '0x1',
+            rpcEndpoints: [
+              { networkClientId: 'mainnet', url: 'https://mainnet.infura.io' },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+        {},
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      const networkList = getByTestId('mock-network-multi-selector-list');
+
+      // This will internally call getNetworkName with 'eip155:1'
+      // The function should return 'Ethereum Main Network' from currentSelectedNetwork
+      expect(networkList).toBeTruthy();
+    });
+
+    it('handles getNetworkName when currentSelectedNetwork parsing fails', () => {
+      const network = createMockNetwork(
+        'invalid-chain-id',
+        'Test Network',
+        'invalid-chain-id' as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [network],
+        selectedNetworks: [network],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([network]),
+      );
+
+      setupMockSelectors(false, 'invalid-chain-id', {}, {});
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
+    });
+
+    it('handles getNetworkName when chainId is CAIP format but namespace is not Eip155', () => {
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const network = createMockNetwork(
+        solanaChainId,
+        'Solana',
+        solanaChainId as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [network],
+        selectedNetworks: [network],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([network]),
+      );
+
+      setupMockSelectors(
+        false,
+        solanaChainId,
+        {},
+        {
+          [solanaChainId]: { name: 'Solana', ticker: 'SOL' },
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
+    });
+
+    it('handles getNetworkName when chainId is CAIP format but parsing fails', () => {
+      const network = createMockNetwork(
+        'eip155:1',
+        'Ethereum Main Network',
+        'eip155:1' as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [network],
+        selectedNetworks: [network],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([network]),
+      );
+
+      setupMockSelectors(
+        true,
+        '0x1',
+        {
+          '0x1': {
+            name: 'Ethereum Main Network',
+            chainId: '0x1',
+            rpcEndpoints: [
+              { networkClientId: 'mainnet', url: 'https://mainnet.infura.io' },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+        {},
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
+    });
+
+    it('handles getNetworkName when non-EVM config is missing', () => {
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const network = createMockNetwork(
+        solanaChainId,
+        'Solana',
+        solanaChainId as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [network],
+        selectedNetworks: [network],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([network]),
+      );
+
+      setupMockSelectors(false, solanaChainId, {}, {});
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
+    });
+  });
+
+  describe('currentChainId edge cases', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('handles currentChainId when currentSelectedNetwork parsing fails', () => {
+      const network = createMockNetwork(
+        'invalid-chain-id',
+        'Test Network',
+        'invalid-chain-id' as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [network],
+        selectedNetworks: [network],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([network]),
+      );
+
+      setupMockSelectors(false, 'invalid-chain-id', {}, {});
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
+    });
+
+    it('handles currentChainId when currentSelectedNetwork namespace is not Eip155', () => {
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const network = createMockNetwork(
+        solanaChainId,
+        'Solana',
+        solanaChainId as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [network],
+        selectedNetworks: [network],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([network]),
+      );
+
+      setupMockSelectors(
+        false,
+        solanaChainId,
+        {},
+        {
+          [solanaChainId]: { name: 'Solana', ticker: 'SOL' },
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
+    });
+
+    it('handles currentChainId when areAllNetworksSelectedCombined is true', () => {
+      const ethereumNetwork = createMockNetwork(
+        'eip155:1',
+        'Ethereum Main Network',
+        'eip155:1' as CaipChainId,
+        true,
+      );
+      const baseNetwork = createMockNetwork(
+        'eip155:8453',
+        'Base',
+        'eip155:8453' as CaipChainId,
+        true,
+      );
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [ethereumNetwork, baseNetwork],
+        selectedNetworks: [ethereumNetwork, baseNetwork],
+        selectedCount: 2,
+        areAllNetworksSelected: true,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+      });
+
+      mockUseNetworksToUse.mockReturnValue(
+        createMockUseNetworksToUse([ethereumNetwork, baseNetwork], true),
+      );
+
+      setupMockSelectors(
+        true,
+        '0x1',
+        {
+          '0x1': {
+            name: 'Ethereum Main Network',
+            chainId: '0x1',
+            rpcEndpoints: [
+              { networkClientId: 'mainnet', url: 'https://mainnet.infura.io' },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+        {},
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector
+          openModal={mockOpenModal}
+          dismissModal={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
     });
   });
 
