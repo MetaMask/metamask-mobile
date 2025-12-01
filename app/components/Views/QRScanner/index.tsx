@@ -2,11 +2,15 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { CaipChainId } from '@metamask/utils';
+import {
+  isTronAddress,
+  isBtcMainnetAddress,
+} from '../../../core/Multichain/utils';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
@@ -119,6 +123,21 @@ const QRScanner = ({
 
     checkPermission();
   }, [hasPermission, requestPermission, permissionCheckCompleted]);
+
+  // Reset camera state when screen is focused (e.g., when navigating back from send screen)
+  useFocusEffect(
+    useCallback(() => {
+      mountedRef.current = true;
+      shouldReadBarCodeRef.current = true;
+      setIsCameraActive(true);
+
+      return () => {
+        mountedRef.current = false;
+        shouldReadBarCodeRef.current = false;
+        setIsCameraActive(false);
+      };
+    }, []),
+  );
 
   const end = useCallback(() => {
     mountedRef.current = false;
@@ -266,21 +285,42 @@ const QRScanner = ({
           mountedRef.current = false;
           return;
         }
+        // Check address types once to avoid repeated calls
+        const isSolana = isSolanaAddress(content);
+        const isTron = isTronAddress(content);
+        const isBitcoin = isBtcMainnetAddress(content);
+
+        // Check if it's an Ethereum URL format before parsing
+        let isEthereumUrl = false;
+        const hasEthereumProtocol =
+          content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1;
+        if (hasEthereumProtocol) {
+          try {
+            isEthereumUrl = !parse(content).function_name;
+          } catch {
+            // Invalid ethereum URL format, ignore
+            isEthereumUrl = false;
+          }
+        }
+        const isEthHexAddress =
+          content.startsWith('0x') && isValidAddress(content);
+
         // Handle plain addresses and ethereum: URLs by using home screen send flow
-        // Also handle non-EVM addresses like Solana
+        // Also handle non-EVM addresses like Solana, Tron, and Bitcoin
         if (
-          (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
-            !parse(content).function_name) ||
-          (content.startsWith('0x') && isValidAddress(content)) ||
-          isSolanaAddress(content)
+          isEthereumUrl ||
+          isEthHexAddress ||
+          isSolana ||
+          isTron ||
+          isBitcoin
         ) {
           // Immediately stop barcode scanning to prevent multiple triggers
           shouldReadBarCodeRef.current = false;
           setIsCameraActive(false);
 
           ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          // Try non-EVM first (Solana, Bitcoin, etc.), if handled, return early
-          if (isSolanaAddress(content)) {
+          // Try non-EVM first (Solana, Bitcoin, Tron, etc.), if handled, return early
+          if (isSolana) {
             const wasHandledAsNonEvm = await sendNonEvmAsset(
               InitSendLocation.QRScanner,
             );
@@ -308,11 +348,71 @@ const QRScanner = ({
             end();
             return;
           }
+
+          // Handle Tron addresses
+          if (isTron) {
+            const wasHandledAsNonEvm = await sendNonEvmAsset(
+              InitSendLocation.QRScanner,
+            );
+
+            if (wasHandledAsNonEvm) {
+              // Close QR scanner modal first
+              end();
+
+              // Navigate to send flow after modal closes
+              InteractionManager.runAfterInteractions(() => {
+                navigateToSendPage({
+                  location: InitSendLocation.QRScanner,
+                  predefinedRecipient: {
+                    address: content,
+                    chainType: ChainType.TRON,
+                  },
+                });
+              });
+
+              return;
+            }
+
+            // Tron address was not handled by sendNonEvmAsset, show error
+            showAlertForInvalidAddress();
+            end();
+            return;
+          }
+
+          // Handle Bitcoin addresses
+          if (isBitcoin) {
+            const wasHandledAsNonEvm = await sendNonEvmAsset(
+              InitSendLocation.QRScanner,
+            );
+
+            if (wasHandledAsNonEvm) {
+              // Close QR scanner modal first
+              end();
+
+              // Navigate to send flow after modal closes
+              InteractionManager.runAfterInteractions(() => {
+                navigateToSendPage({
+                  location: InitSendLocation.QRScanner,
+                  predefinedRecipient: {
+                    address: content,
+                    chainType: ChainType.BITCOIN,
+                  },
+                });
+              });
+
+              return;
+            }
+
+            // Bitcoin address was not handled by sendNonEvmAsset, show error
+            showAlertForInvalidAddress();
+            end();
+            return;
+          }
           ///: END:ONLY_INCLUDE_IF
 
-          // Skip Ethereum processing for Solana addresses when keyring-snaps is disabled
-          if (isSolanaAddress(content)) {
-            // Show error for unsupported Solana addresses when keyring-snaps is disabled
+          // Skip Ethereum processing for non-EVM addresses when keyring-snaps is disabled
+          if (isSolana || isTron || isBitcoin) {
+            // Show error for unsupported non-EVM addresses when keyring-snaps is disabled
             showAlertForInvalidAddress();
             end();
             return;

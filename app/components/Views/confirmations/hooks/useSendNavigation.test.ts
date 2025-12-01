@@ -6,6 +6,7 @@ import {
 
 import { AssetType } from '../types/token';
 import { InitSendLocation } from '../constants/send';
+import { ChainType } from '../utils/send';
 import { useSendNavigation } from './useSendNavigation';
 
 const mockNavigate = jest.fn();
@@ -54,35 +55,44 @@ describe('useSendNavigation', () => {
     });
 
     describe('with extraParams', () => {
-      it('passes recipientAddress through extraParams when provided', () => {
+      it('passes recipientAddress through predefinedRecipient when provided', () => {
         const { result } = renderHookWithProvider(() => useSendNavigation(), {
           state: rffSendRedesignEnabledMock,
         });
         const recipientAddress = '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576';
 
-        result.current.navigateToSendPage(
-          InitSendLocation.QRScanner,
-          undefined,
-          { recipientAddress },
-        );
+        result.current.navigateToSendPage({
+          location: InitSendLocation.QRScanner,
+          predefinedRecipient: {
+            address: recipientAddress,
+            chainType: ChainType.EVM,
+          },
+        });
 
         expect(mockNavigate).toHaveBeenCalledWith('Send', {
           screen: 'Asset',
           params: {
             asset: undefined,
-            recipientAddress,
+            location: InitSendLocation.QRScanner,
+            predefinedRecipient: {
+              address: recipientAddress,
+              chainType: ChainType.EVM,
+            },
           },
         });
       });
 
-      it('navigates to send page without extraParams when not provided', () => {
+      it('navigates to send page without predefinedRecipient when not provided', () => {
         const { result } = renderHookWithProvider(() => useSendNavigation(), {
           state: rffSendRedesignEnabledMock,
         });
 
-        result.current.navigateToSendPage(InitSendLocation.AssetOverview, {
-          name: 'ETHEREUM',
-        } as AssetType);
+        result.current.navigateToSendPage({
+          location: InitSendLocation.AssetOverview,
+          asset: {
+            name: 'ETHEREUM',
+          } as AssetType,
+        });
 
         expect(mockNavigate).toHaveBeenCalledWith('Send', {
           screen: 'Amount',
@@ -90,63 +100,80 @@ describe('useSendNavigation', () => {
             asset: {
               name: 'ETHEREUM',
             },
+            location: InitSendLocation.AssetOverview,
+            predefinedRecipient: undefined,
           },
         });
       });
 
-      it('passes both asset and recipientAddress when both provided', () => {
+      it('passes both asset and predefinedRecipient when both provided', () => {
         const { result } = renderHookWithProvider(() => useSendNavigation(), {
           state: rffSendRedesignEnabledMock,
         });
         const recipientAddress = '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576';
         const asset = { name: 'ETHEREUM' } as AssetType;
 
-        result.current.navigateToSendPage(InitSendLocation.QRScanner, asset, {
-          recipientAddress,
+        result.current.navigateToSendPage({
+          location: InitSendLocation.QRScanner,
+          asset,
+          predefinedRecipient: {
+            address: recipientAddress,
+            chainType: ChainType.EVM,
+          },
         });
 
         expect(mockNavigate).toHaveBeenCalledWith('Send', {
           screen: 'Amount',
           params: {
             asset,
-            recipientAddress,
+            location: InitSendLocation.QRScanner,
+            predefinedRecipient: {
+              address: recipientAddress,
+              chainType: ChainType.EVM,
+            },
           },
         });
       });
 
-      it('handles empty recipientAddress in extraParams', () => {
+      it('handles empty recipientAddress in predefinedRecipient', () => {
         const { result } = renderHookWithProvider(() => useSendNavigation(), {
           state: rffSendRedesignEnabledMock,
         });
 
-        result.current.navigateToSendPage(
-          InitSendLocation.QRScanner,
-          undefined,
-          {
-            recipientAddress: '',
+        result.current.navigateToSendPage({
+          location: InitSendLocation.QRScanner,
+          predefinedRecipient: {
+            address: '',
+            chainType: ChainType.EVM,
           },
-        );
+        });
 
         expect(mockNavigate).toHaveBeenCalledWith('Send', {
           screen: 'Asset',
           params: {
             asset: undefined,
-            recipientAddress: '',
+            location: InitSendLocation.QRScanner,
+            predefinedRecipient: {
+              address: '',
+              chainType: ChainType.EVM,
+            },
           },
         });
       });
 
-      it('works with send redesign disabled and extraParams provided', () => {
+      it('works with send redesign disabled and predefinedRecipient provided', () => {
         const { result } = renderHookWithProvider(() => useSendNavigation(), {
           state: mockState,
         });
         const recipientAddress = '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576';
 
-        result.current.navigateToSendPage(
-          InitSendLocation.QRScanner,
-          undefined,
-          { recipientAddress },
-        );
+        result.current.navigateToSendPage({
+          location: InitSendLocation.QRScanner,
+          predefinedRecipient: {
+            address: recipientAddress,
+            chainType: ChainType.EVM,
+          },
+        });
 
         // When send redesign is disabled, it always navigates to SendFlowView
         expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
