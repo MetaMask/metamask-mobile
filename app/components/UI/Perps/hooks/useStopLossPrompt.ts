@@ -115,7 +115,7 @@ export const useStopLossPrompt = ({
     return roeValue * 100;
   }, [position?.returnOnEquity]);
 
-  // Handle position age tracking (TAT-2161)
+  // Handle position age tracking
   // Track when a position is first detected and enforce minimum age before showing banners
   useEffect(() => {
     if (!enabled || !position?.coin) {

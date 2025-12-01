@@ -101,7 +101,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.variant).toBeNull();
     });
 
-    it('does not show banner until position age requirement is met (TAT-2161)', () => {
+    it('does not show banner until position age requirement is met', () => {
       // Position that would normally trigger add_margin banner
       const position = createMockPosition({
         liquidationPrice: '45000',
@@ -329,7 +329,7 @@ describe('useStopLossPrompt', () => {
   });
 
   describe('minimum loss threshold', () => {
-    it('does not show banner when loss is below MIN_LOSS_THRESHOLD (TAT-2161)', () => {
+    it('does not show banner when loss is below MIN_LOSS_THRESHOLD', () => {
       // Position with -5% ROE (above -10% threshold)
       const position = createMockPosition({
         returnOnEquity: '-0.05', // -5% loss

@@ -500,7 +500,6 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // Minimum loss threshold to show ANY banner (percentage)
   // No banner shown until ROE drops below this value
-  // Per TAT-2161: banners should only appear when loss >= 10%
   MIN_LOSS_THRESHOLD: -10,
 
   // Debounce duration for ROE threshold (milliseconds)
@@ -510,7 +509,6 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // Minimum position age before showing any banner (milliseconds)
   // Prevents banner from appearing immediately after opening a position
-  // Per TAT-2161: banners should only appear >60s after position is opened
   POSITION_MIN_AGE_MS: 60_000, // 60 seconds
 
   // Suggested stop loss ROE percentage
