@@ -314,7 +314,7 @@ const ChoosePassword = () => {
       }
       throw Error(strings('choose_password.disable_biometric_error'));
     }
-    setBiometryType(null);
+    setBiometryType(newAuthData.availableBiometryType || null);
   }, [
     password,
     getOauth2LoginSuccess,
@@ -608,11 +608,10 @@ const ChoosePassword = () => {
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
       }
-      updateNavBar();
     };
 
     initBiometrics();
-  }, [route.params?.onboardingTraceCtx, updateNavBar]);
+  }, [route.params?.onboardingTraceCtx]);
 
   useEffect(() => {
     updateNavBar();
@@ -629,13 +628,16 @@ const ChoosePassword = () => {
     }
   }, [loading, navigation]);
 
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       mounted.current = false;
       if (passwordSetupAttemptTraceCtx.current) {
         endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         passwordSetupAttemptTraceCtx.current = null;
       }
-    }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (error && !keyringControllerPasswordSet.current) {
