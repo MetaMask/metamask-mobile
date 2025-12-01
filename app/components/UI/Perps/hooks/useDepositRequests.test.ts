@@ -4,11 +4,24 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useDepositRequests } from './useDepositRequests';
 import { usePerpsSelector } from './usePerpsSelector';
+import type { PerpsControllerState } from '../controllers/PerpsController';
+import type { RootState } from '../../../../reducers';
+import {
+  createMockInternalAccount,
+  createMockUuidFromAddress,
+} from '../../../../util/test/accountsControllerTestUtils';
+import { useSelector } from 'react-redux';
 
 // Mock dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./usePerpsSelector');
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -17,6 +30,13 @@ const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
 >;
 
 describe('useDepositRequests', () => {
+  const mockAddress = '0x1234567890123456789012345678901234567890';
+  const mockAccountId = createMockUuidFromAddress(mockAddress.toLowerCase());
+  const mockInternalAccount = createMockInternalAccount(
+    mockAddress.toLowerCase(),
+    'Account 1',
+  );
+
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
   };
@@ -32,8 +52,9 @@ describe('useDepositRequests', () => {
       timestamp: 1640995200000,
       amount: '100',
       asset: 'USDC',
-      accountAddress: '0x1234567890123456789012345678901234567890',
+      accountAddress: mockAddress,
       status: 'pending' as const,
+      success: false,
       txHash: undefined,
       source: 'arbitrum',
       depositId: 'deposit1',
@@ -43,8 +64,9 @@ describe('useDepositRequests', () => {
       timestamp: 1640995201000,
       amount: '200',
       asset: 'USDC',
-      accountAddress: '0x1234567890123456789012345678901234567890',
+      accountAddress: mockAddress,
       status: 'bridging' as const,
+      success: false,
       txHash: '0x123',
       source: 'ethereum',
       depositId: 'deposit2',
@@ -88,25 +110,40 @@ describe('useDepositRequests', () => {
   ];
 
   // Helper to create mock Redux state with account
-  const createMockState = () => ({
-    engine: {
-      backgroundState: {
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              'account-1': {
-                id: 'account-1',
-                address: '0x1234567890123456789012345678901234567890',
-                metadata: { name: 'Account 1' },
-                type: 'eip155:eoa' as const,
+  const createMockState = () =>
+    ({
+      engine: {
+        backgroundState: {
+          AccountTreeController: {
+            accountTree: {
+              selectedAccountGroup: 'keyring:wallet1/1',
+              wallets: {
+                'keyring:wallet1': {
+                  id: 'keyring:wallet1',
+                  name: 'Wallet 1',
+                  type: 'hd',
+                  groups: [
+                    {
+                      id: 'keyring:wallet1/1',
+                      name: 'Account 1',
+                      accounts: [mockAccountId],
+                    },
+                  ],
+                },
               },
             },
-            selectedAccount: 'account-1',
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [mockAccountId]: mockInternalAccount,
+              },
+              selectedAccount: mockAccountId,
+            },
           },
         },
       },
-    },
-  });
+    }) as unknown as RootState;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -130,8 +167,24 @@ describe('useDepositRequests', () => {
       PerpsController: mockController,
     };
 
-    // Mock usePerpsSelector
-    mockUsePerpsSelector.mockReturnValue(mockPendingDeposits);
+    // Mock usePerpsSelector to execute the selector function with mock state
+    mockUsePerpsSelector.mockImplementation((selector) =>
+      selector({
+        depositRequests: mockPendingDeposits,
+      } as Partial<PerpsControllerState> as PerpsControllerState),
+    );
+
+    // Mock useSelector to return the mock account for selectSelectedInternalAccountByScope
+    mockUseSelector.mockImplementation((selector) => {
+      // Check if this is the selectSelectedInternalAccountByScope selector
+      // It returns a function that takes a scope
+      const result = selector(createMockState());
+      if (typeof result === 'function') {
+        // This is selectSelectedInternalAccountByScope, return the mock account
+        return () => mockInternalAccount;
+      }
+      return result;
+    });
   });
 
   describe('initial state', () => {
@@ -340,8 +393,9 @@ describe('useDepositRequests', () => {
           timestamp: 1640995200000,
           amount: '100',
           asset: 'USDC',
-          accountAddress: '0x1234567890123456789012345678901234567890', // Current account
+          accountAddress: mockAddress, // Current account
           status: 'pending' as const,
+          success: false,
           source: 'arbitrum',
         },
         {
@@ -351,11 +405,16 @@ describe('useDepositRequests', () => {
           asset: 'USDC',
           accountAddress: '0xdifferentaccount000000000000000000000000', // Different account
           status: 'pending' as const,
+          success: false,
           source: 'ethereum',
         },
       ];
 
-      mockUsePerpsSelector.mockReturnValue(depositsFromMultipleAccounts);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          depositRequests: depositsFromMultipleAccounts,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
 
       renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
@@ -365,7 +424,7 @@ describe('useDepositRequests', () => {
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'useDepositRequests: Filtered deposits by account',
         expect.objectContaining({
-          selectedAddress: '0x1234567890123456789012345678901234567890',
+          selectedAddress: mockAddress,
           totalCount: 2,
           filteredCount: 1,
         }),
@@ -386,6 +445,16 @@ describe('useDepositRequests', () => {
         },
       };
 
+      // Override mock to return undefined for this test
+      mockUseSelector.mockImplementation((selector) => {
+        const result = selector(stateWithoutAccount);
+        if (typeof result === 'function') {
+          // This is selectSelectedInternalAccountByScope, return undefined
+          return () => undefined;
+        }
+        return result;
+      });
+
       renderHookWithProvider(() => useDepositRequests(), {
         state: stateWithoutAccount,
       });
@@ -399,7 +468,11 @@ describe('useDepositRequests', () => {
     });
 
     it('combines pending and completed deposits', async () => {
-      mockUsePerpsSelector.mockReturnValue(mockPendingDeposits);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          depositRequests: mockPendingDeposits,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
@@ -587,7 +660,7 @@ describe('useDepositRequests', () => {
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'useDepositRequests: Filtered deposits by account',
         expect.objectContaining({
-          selectedAddress: '0x1234567890123456789012345678901234567890',
+          selectedAddress: mockAddress,
           totalCount: 2,
           filteredCount: 2,
           deposits: expect.arrayContaining([
@@ -597,7 +670,7 @@ describe('useDepositRequests', () => {
               amount: '100',
               asset: 'USDC',
               status: 'pending',
-              accountAddress: '0x1234567890123456789012345678901234567890',
+              accountAddress: mockAddress,
             }),
           ]),
         }),
