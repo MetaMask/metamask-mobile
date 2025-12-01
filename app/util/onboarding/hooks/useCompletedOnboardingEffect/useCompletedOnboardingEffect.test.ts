@@ -52,7 +52,7 @@ describe('useCompletedOnboardingEffect', () => {
     jest.resetAllMocks();
   });
 
-  it('sets completedOnboarding to true and dispatches checkForDeeplink when vault exists and onboarding not completed', async () => {
+  it('completes onboarding when vault exists but onboarding incomplete', async () => {
     // Arrange
     const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
       arrangeMocks({
@@ -74,7 +74,7 @@ describe('useCompletedOnboardingEffect', () => {
     expect(mockCheckForDeeplink).toHaveBeenCalled();
   });
 
-  it('does not dispatch actions when vault is empty', async () => {
+  it('skips onboarding completion when vault is missing', async () => {
     // Arrange
     const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
       arrangeMocks({
@@ -96,7 +96,7 @@ describe('useCompletedOnboardingEffect', () => {
     expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch actions when onboarding already completed', async () => {
+  it('skips onboarding completion when already completed', async () => {
     // Arrange
     const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
       arrangeMocks({
@@ -118,7 +118,7 @@ describe('useCompletedOnboardingEffect', () => {
     expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch actions when vault is empty and onboarding already completed', async () => {
+  it('skips onboarding completion when vault missing with completed status', async () => {
     // Arrange
     const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
       arrangeMocks({
