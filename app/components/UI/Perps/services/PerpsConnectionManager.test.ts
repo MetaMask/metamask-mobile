@@ -883,5 +883,120 @@ describe('PerpsConnectionManager', () => {
 
       jest.useRealTimers();
     });
+
+    it('does not start duplicate auto-reconnect loop if already running', async () => {
+      mockPerpsController.init.mockResolvedValue();
+
+      await PerpsConnectionManager.connect();
+
+      const terminateCallback = mockOnTerminate.mock.calls[0][0] as (
+        error: Error,
+      ) => void;
+
+      const m = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        autoReconnectIntervalRef: ReturnType<typeof setInterval> | null;
+        startAutoReconnect: () => void;
+      };
+      m.isConnected = true;
+
+      terminateCallback(new Error('First termination'));
+      const firstIntervalRef = m.autoReconnectIntervalRef;
+
+      m.isConnected = true;
+      m.startAutoReconnect();
+
+      expect(m.autoReconnectIntervalRef).toBe(firstIntervalRef);
+    });
+
+    it('auto-reconnect interval triggers reconnect attempt', async () => {
+      jest.useFakeTimers();
+      mockPerpsController.init.mockResolvedValue();
+
+      await PerpsConnectionManager.connect();
+
+      const reconnectSpy = jest
+        .spyOn(
+          PerpsConnectionManager as unknown as {
+            reconnectWithNewContext: () => Promise<void>;
+          },
+          'reconnectWithNewContext',
+        )
+        .mockResolvedValue();
+
+      const terminateCallback = mockOnTerminate.mock.calls[0][0] as (
+        error: Error,
+      ) => void;
+
+      const m = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        error: string | null;
+        isConnecting: boolean;
+      };
+      m.isConnected = true;
+
+      terminateCallback(new Error('Connection lost'));
+
+      expect(m.error).toBe('CONNECTION_LOST');
+      reconnectSpy.mockClear();
+
+      jest.advanceTimersByTime(30000);
+
+      expect(reconnectSpy).toHaveBeenCalledWith({ force: true });
+
+      reconnectSpy.mockRestore();
+      jest.useRealTimers();
+    });
+
+    it('handles error when registering termination callback fails', async () => {
+      mockPerpsController.init.mockResolvedValueOnce();
+      mockPerpsController.getActiveProvider.mockImplementationOnce(() => {
+        throw new Error('Provider not available');
+      });
+
+      const m = PerpsConnectionManager as unknown as {
+        registerTerminationCallback: () => void;
+      };
+
+      expect(() => m.registerTerminationCallback()).not.toThrow();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'PerpsConnectionManager: Failed to register termination callback',
+        expect.any(Error),
+      );
+    });
+
+    it('clears termination callback on provider', async () => {
+      mockPerpsController.init.mockResolvedValueOnce();
+
+      await PerpsConnectionManager.connect();
+      mockOnTerminate.mockClear();
+
+      const m = PerpsConnectionManager as unknown as {
+        clearTerminationCallback: () => void;
+      };
+
+      m.clearTerminationCallback();
+
+      expect(mockOnTerminate).toHaveBeenCalledWith(null);
+    });
+
+    it('handles error when clearing termination callback fails', async () => {
+      mockPerpsController.init.mockResolvedValueOnce();
+
+      await PerpsConnectionManager.connect();
+      mockPerpsController.getActiveProvider.mockImplementationOnce(() => {
+        throw new Error('Provider not available');
+      });
+
+      const m = PerpsConnectionManager as unknown as {
+        clearTerminationCallback: () => void;
+      };
+
+      expect(() => m.clearTerminationCallback()).not.toThrow();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'PerpsConnectionManager: Failed to clear termination callback',
+        expect.any(Error),
+      );
+    });
   });
 });
