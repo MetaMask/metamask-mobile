@@ -1443,6 +1443,7 @@
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
+      "connectionLost": "Connection lost. Attempting to reconnect...",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",

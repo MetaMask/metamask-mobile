@@ -20,6 +20,7 @@ export const PERPS_ERROR_CODES = {
   IOC_CANCEL: 'IOC_CANCEL', // Order could not immediately match (insufficient liquidity)
   // Connection errors
   CONNECTION_TIMEOUT: 'CONNECTION_TIMEOUT',
+  CONNECTION_LOST: 'CONNECTION_LOST', // WebSocket terminated after exhausting reconnection attempts
 } as const;
 
 export type PerpsErrorCode =

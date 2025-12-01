@@ -48,6 +48,7 @@ export class HyperLiquidClientService {
   private connectionState: WebSocketConnectionState =
     WebSocketConnectionState.DISCONNECTED;
   private disconnectionPromise: Promise<void> | null = null;
+  private onTerminateCallback: ((error: Error) => void) | null = null;
 
   constructor(options: { isTestnet?: boolean } = {}) {
     this.isTestnet = options.isTestnet || false;
@@ -158,6 +159,27 @@ export class HyperLiquidClientService {
         ...HYPERLIQUID_TRANSPORT_CONFIG.reconnect,
         WebSocket, // Use React Native's global WebSocket
       },
+    });
+
+    // Listen for WebSocket termination (fired when SDK exhausts all reconnection attempts)
+    this.wsTransport.socket.addEventListener('terminate', (event: Event) => {
+      const customEvent = event as CustomEvent;
+      DevLogger.log('HyperLiquid: WebSocket terminated', {
+        reason: customEvent.detail?.code,
+        timestamp: new Date().toISOString(),
+      });
+
+      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+
+      if (this.onTerminateCallback) {
+        const error =
+          customEvent.detail instanceof Error
+            ? customEvent.detail
+            : new Error(
+                `WebSocket terminated: ${customEvent.detail?.code || 'unknown'}`,
+              );
+        this.onTerminateCallback(error);
+      }
     });
   }
 
@@ -642,5 +664,15 @@ export class HyperLiquidClientService {
    */
   public isDisconnected(): boolean {
     return this.connectionState === WebSocketConnectionState.DISCONNECTED;
+  }
+
+  /**
+   * Set callback for WebSocket termination events
+   * Called when the SDK exhausts all reconnection attempts
+   */
+  public setOnTerminateCallback(
+    callback: ((error: Error) => void) | null,
+  ): void {
+    this.onTerminateCallback = callback;
   }
 }

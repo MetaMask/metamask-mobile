@@ -32,6 +32,7 @@ import {
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
 import { MarketDataService } from './services/MarketDataService';
 import { TradingService } from './services/TradingService';
 import { AccountService } from './services/AccountService';
@@ -1129,6 +1130,24 @@ export class PerpsController extends BaseController<
     }
 
     return provider;
+  }
+
+  /**
+   * Get the client service from the active provider
+   * Used by PerpsConnectionManager to register WebSocket termination callbacks
+   * @returns The client service or undefined if not available
+   */
+  getClientService(): HyperLiquidClientService | undefined {
+    try {
+      const provider = this.getActiveProvider();
+      // Type guard: Only HyperLiquidProvider has getClientService
+      if ('getClientService' in provider) {
+        return (provider as HyperLiquidProvider).getClientService();
+      }
+      return undefined;
+    } catch {
+      return undefined;
+    }
   }
 
   /**

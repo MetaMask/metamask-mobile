@@ -6250,4 +6250,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       throw error;
     }
   }
+
+  /**
+   * Get the client service for WebSocket termination monitoring
+   * Used by PerpsConnectionManager to register termination callbacks
+   */
+  getClientService(): HyperLiquidClientService {
+    return this.clientService;
+  }
 }

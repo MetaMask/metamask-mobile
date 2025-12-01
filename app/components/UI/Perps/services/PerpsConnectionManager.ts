@@ -49,6 +49,8 @@ class PerpsConnectionManagerClass {
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+  private autoReconnectIntervalRef: ReturnType<typeof setInterval> | null =
+    null;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -190,6 +192,96 @@ class PerpsConnectionManagerClass {
   }
 
   /**
+   * Handle WebSocket termination (when SDK exhausts all reconnection attempts)
+   * Sets error state and starts auto-reconnect loop
+   */
+  private handleWebSocketTermination(error: Error): void {
+    DevLogger.log('PerpsConnectionManager: WebSocket terminated', {
+      error: error.message,
+    });
+
+    // Only handle if we think we're connected (prevent duplicate handling)
+    if (!this.isConnected || this.error) {
+      return;
+    }
+
+    this.isConnected = false;
+    this.setError(PERPS_ERROR_CODES.CONNECTION_LOST);
+    this.startAutoReconnect();
+  }
+
+  /**
+   * Start auto-reconnect loop when WebSocket terminates
+   */
+  private startAutoReconnect(): void {
+    if (this.autoReconnectIntervalRef) {
+      return;
+    }
+
+    DevLogger.log('PerpsConnectionManager: Starting auto-reconnect loop');
+
+    this.autoReconnectIntervalRef = setInterval(() => {
+      if (this.error && !this.isConnecting) {
+        DevLogger.log('PerpsConnectionManager: Auto-reconnect attempt');
+        this.reconnectWithNewContext({ force: true }).catch((err) => {
+          DevLogger.log('PerpsConnectionManager: Auto-reconnect failed', err);
+        });
+      }
+    }, PERPS_CONSTANTS.AUTO_RECONNECT_INTERVAL_MS);
+  }
+
+  /**
+   * Stop auto-reconnect loop
+   */
+  private stopAutoReconnect(): void {
+    if (this.autoReconnectIntervalRef) {
+      clearInterval(this.autoReconnectIntervalRef);
+      this.autoReconnectIntervalRef = null;
+      DevLogger.log('PerpsConnectionManager: Auto-reconnect stopped');
+    }
+  }
+
+  /**
+   * Register WebSocket termination callback with the client service
+   */
+  private registerTerminationCallback(): void {
+    try {
+      const clientService = Engine.context.PerpsController.getClientService?.();
+      if (clientService) {
+        clientService.setOnTerminateCallback((error: Error) =>
+          this.handleWebSocketTermination(error),
+        );
+        DevLogger.log(
+          'PerpsConnectionManager: Termination callback registered',
+        );
+      }
+    } catch (err) {
+      DevLogger.log(
+        'PerpsConnectionManager: Failed to register termination callback',
+        err,
+      );
+    }
+  }
+
+  /**
+   * Clear WebSocket termination callback
+   */
+  private clearTerminationCallback(): void {
+    try {
+      const clientService = Engine.context.PerpsController.getClientService?.();
+      if (clientService) {
+        clientService.setOnTerminateCallback(null);
+        DevLogger.log('PerpsConnectionManager: Termination callback cleared');
+      }
+    } catch (err) {
+      DevLogger.log(
+        'PerpsConnectionManager: Failed to clear termination callback',
+        err,
+      );
+    }
+  }
+
+  /**
    * Start connection timeout timer
    * If connection takes longer than configured timeout, set error state
    */
@@ -278,6 +370,10 @@ class PerpsConnectionManagerClass {
 
             // Clean up preloaded subscriptions
             this.cleanupPreloadedSubscriptions();
+
+            // Clear termination callback and stop auto-reconnect
+            this.clearTerminationCallback();
+            this.stopAutoReconnect();
 
             // Reset state before disconnecting to prevent race conditions
             this.isConnected = false;
@@ -476,6 +572,9 @@ class PerpsConnectionManagerClass {
         this.isConnecting = false;
         // Clear errors on successful connection
         this.clearError();
+        // Stop auto-reconnect if it was running and register termination callback
+        this.stopAutoReconnect();
+        this.registerTerminationCallback();
 
         // Track WebSocket connection establishment performance (pure connection)
         const connectionDuration = performance.now() - connectionStartTime;
@@ -741,6 +840,9 @@ class PerpsConnectionManagerClass {
       this.isInitialized = true;
       // Clear errors on successful reconnection
       this.clearError();
+      // Stop auto-reconnect if it was running and re-register termination callback
+      this.stopAutoReconnect();
+      this.registerTerminationCallback();
 
       DevLogger.log(
         'PerpsConnectionManager: Successfully reconnected with new context',
