@@ -141,7 +141,7 @@ describe('AlertModal', () => {
     expect(hideAlertModal).toHaveBeenCalled();
   });
 
-  it('closes modal when `Got It` button pressed', async () => {
+  it('closes modal when `Got it` button pressed', async () => {
     const hideAlertModal = jest.fn();
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,

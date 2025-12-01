@@ -518,7 +518,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       infoModal={true}
                       noMargin={true}
                     >
-                      Use Low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.
+                      Use low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.
                     </Text>
                     <Text
                       bold={true}
@@ -538,7 +538,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       infoModal={true}
                       noMargin={true}
                     >
-                      Use Market for fast processing at current market price.
+                      Use market for fast processing at current market price.
                     </Text>
                     <Text
                       bold={true}

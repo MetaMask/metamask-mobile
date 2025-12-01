@@ -79,7 +79,7 @@ describe('EligibilityFailedModal', () => {
 
   it('closes the modal when the got it button is pressed', () => {
     const { getByText } = render(EligibilityFailedModal);
-    const gotItButton = getByText('Got It');
+    const gotItButton = getByText('Got it');
 
     fireEvent.press(gotItButton);
 

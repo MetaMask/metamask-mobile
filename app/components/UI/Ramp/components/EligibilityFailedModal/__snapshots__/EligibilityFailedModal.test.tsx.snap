@@ -356,7 +356,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             }
                           }
                         >
-                          Eligibility Check Failed
+                          Eligibility check failed
                         </Text>
                       </View>
                       <View
@@ -472,7 +472,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             }
                           }
                         >
-                          Contact Support
+                          Contact support
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -508,7 +508,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             }
                           }
                         >
-                          Got It
+                          Got it
                         </Text>
                       </TouchableOpacity>
                     </View>

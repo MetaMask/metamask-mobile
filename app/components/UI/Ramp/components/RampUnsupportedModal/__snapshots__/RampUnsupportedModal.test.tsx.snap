@@ -480,7 +480,7 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
                             }
                           }
                         >
-                          Got It
+                          Got it
                         </Text>
                       </TouchableOpacity>
                     </View>

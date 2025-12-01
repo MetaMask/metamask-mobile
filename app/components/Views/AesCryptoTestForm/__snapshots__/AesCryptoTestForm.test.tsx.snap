@@ -73,7 +73,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             }
           }
         >
-          Generate Random Salt
+          Generate random salt
         </Text>
         <View
           style={
@@ -284,7 +284,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             autoCorrect={false}
             autoFocus={false}
             onChangeText={[Function]}
-            placeholder="Encryption Key"
+            placeholder="Encryption key"
             style={
               {
                 "borderColor": "#f3f5f9",

@@ -94,7 +94,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             }
           >
-            Reset Account
+            Reset account
           </Text>
           <Text
             accessibilityRole="text"
@@ -147,7 +147,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Reset Account
+              Reset account
             </Text>
           </TouchableOpacity>
         </View>
@@ -471,7 +471,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Show Hex Data
+              Show hex data
             </Text>
             <View
               style={
@@ -483,7 +483,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             >
               <RCTSwitch
-                accessibilityLabel="Show Hex Data"
+                accessibilityLabel="Show hex data"
                 accessibilityRole="switch"
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
@@ -718,7 +718,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             }
           >
-            State Logs
+            State logs
           </Text>
           <Text
             accessibilityRole="text"
@@ -771,7 +771,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Download State Logs
+              Download state logs
             </Text>
           </TouchableOpacity>
         </View>

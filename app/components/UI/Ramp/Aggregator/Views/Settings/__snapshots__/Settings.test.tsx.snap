@@ -234,7 +234,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                     }
                   }
                 >
-                  Buy & Sell Crypto
+                  Buy & sell crypto
                 </Text>
               </Text>
             </View>
@@ -511,7 +511,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       }
                                     }
                                   >
-                                    Current Region
+                                    Current region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -622,7 +622,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       }
                                     >
-                                      Reset Region
+                                      Reset region
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
@@ -706,7 +706,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       }
                                     >
-                                      Activation Keys will enable specific features or providers.
+                                      Activation keys will enable specific features or providers.
                                     </Text>
                                   </View>
                                   <View
@@ -1196,7 +1196,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           }
                                         }
                                       >
-                                        Add Activation Key
+                                        Add activation key
                                       </Text>
                                     </TouchableOpacity>
                                   </View>
@@ -1453,7 +1453,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                     }
                   }
                 >
-                  Buy & Sell Crypto
+                  Buy & sell crypto
                 </Text>
               </Text>
             </View>
@@ -1730,7 +1730,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       }
                                     }
                                   >
-                                    Current Region
+                                    Current region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -1841,7 +1841,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         }
                                       }
                                     >
-                                      Reset Region
+                                      Reset region
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
@@ -1922,7 +1922,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         }
                                       }
                                     >
-                                      Activation Keys will enable specific features or providers.
+                                      Activation keys will enable specific features or providers.
                                     </Text>
                                   </View>
                                   <View
@@ -1973,7 +1973,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           }
                                         }
                                       >
-                                        Add Activation Key
+                                        Add activation key
                                       </Text>
                                     </TouchableOpacity>
                                   </View>
@@ -2230,7 +2230,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                     }
                   }
                 >
-                  Buy & Sell Crypto
+                  Buy & sell crypto
                 </Text>
               </Text>
             </View>
@@ -2507,7 +2507,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                       }
                                     }
                                   >
-                                    Current Region
+                                    Current region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -2836,7 +2836,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                     }
                   }
                 >
-                  Buy & Sell Crypto
+                  Buy & sell crypto
                 </Text>
               </Text>
             </View>
@@ -3113,7 +3113,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                       }
                                     }
                                   >
-                                    Current Region
+                                    Current region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -3224,7 +3224,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         }
                                       }
                                     >
-                                      Reset Region
+                                      Reset region
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
@@ -3480,7 +3480,7 @@ exports[`Settings renders correctly 1`] = `
                     }
                   }
                 >
-                  Buy & Sell Crypto
+                  Buy & sell crypto
                 </Text>
               </Text>
             </View>
@@ -3757,7 +3757,7 @@ exports[`Settings renders correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Current Region
+                                    Current region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -3868,7 +3868,7 @@ exports[`Settings renders correctly 1`] = `
                                         }
                                       }
                                     >
-                                      Reset Region
+                                      Reset region
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
@@ -4124,7 +4124,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                     }
                   }
                 >
-                  Buy & Sell Crypto
+                  Buy & sell crypto
                 </Text>
               </Text>
             </View>
@@ -4401,7 +4401,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       }
                                     }
                                   >
-                                    Current Region
+                                    Current region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -4512,7 +4512,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       }
                                     >
-                                      Reset Region
+                                      Reset region
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
@@ -4593,7 +4593,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       }
                                     >
-                                      Activation Keys will enable specific features or providers.
+                                      Activation keys will enable specific features or providers.
                                     </Text>
                                   </View>
                                   <View
@@ -5082,7 +5082,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           }
                                         }
                                       >
-                                        Add Activation Key
+                                        Add activation key
                                       </Text>
                                     </TouchableOpacity>
                                   </View>
