@@ -25,6 +25,7 @@ import { MetaMetrics } from '../../../../core/Analytics';
 import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
@@ -162,6 +163,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this withdrawal
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -185,6 +187,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this deposit
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -730,6 +733,43 @@ export class PerpsController extends BaseController<
     );
 
     this.providers = new Map();
+
+    // Migrate old persisted data without accountAddress
+    this.migrateRequestsIfNeeded();
+  }
+
+  /**
+   * Migrate old withdrawal/deposit requests that don't have accountAddress
+   * This handles backward compatibility with persisted state from before this field was added
+   */
+  private migrateRequestsIfNeeded(): void {
+    this.update((state) => {
+      // Migrate withdrawal requests
+      state.withdrawalRequests = state.withdrawalRequests.map((req) => {
+        if (!req.accountAddress) {
+          // Mark old requests as completed since we don't know which account they belong to
+          return {
+            ...req,
+            accountAddress: 'unknown',
+            status: 'completed' as TransactionStatus,
+          };
+        }
+        return req;
+      });
+
+      // Migrate deposit requests
+      state.depositRequests = state.depositRequests.map((req) => {
+        if (!req.accountAddress) {
+          // Mark old requests as completed since we don't know which account they belong to
+          return {
+            ...req,
+            accountAddress: 'unknown',
+            status: 'completed' as TransactionStatus,
+          };
+        }
+        return req;
+      });
+    });
   }
 
   protected setBlockedRegionList(
@@ -1327,12 +1367,17 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastDepositResult = null;
 
+        // Get current account address
+        const evmAccount = getEvmAccountFromSelectedAccountGroup();
+        const accountAddress = evmAccount?.address || 'unknown';
+
         // Add deposit request to tracking
         const depositRequest = {
           id: currentDepositId,
           timestamp: Date.now(),
           amount: amount || '0', // Use provided amount or default to '0'
           asset: USDC_SYMBOL,
+          accountAddress, // Track which account initiated deposit
           success: false, // Will be updated when transaction completes
           txHash: undefined,
           status: 'pending' as TransactionStatus,

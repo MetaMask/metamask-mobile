@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 export interface WithdrawalRequest {
   id: string;
   timestamp: number;
   amount: string;
   asset: string;
+  accountAddress: string; // Account that initiated this withdrawal
   txHash?: string;
   status: 'pending' | 'bridging' | 'completed' | 'failed';
   destination?: string;
@@ -45,10 +48,46 @@ export const useWithdrawalRequests = (
 ): UseWithdrawalRequestsResult => {
   const { startTime, skipInitialFetch = false } = options;
 
-  // Get pending withdrawals from controller state (real-time)
-  const pendingWithdrawals = usePerpsSelector(
-    (state) => state?.withdrawalRequests || [],
-  );
+  // Get current selected account address
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  )?.address;
+
+  // Get pending withdrawals from controller state and filter by current account
+  const pendingWithdrawals = usePerpsSelector((state) => {
+    const allWithdrawals = state?.withdrawalRequests || [];
+
+    // If no selected address, return all withdrawals (shouldn't happen but be defensive)
+    if (!selectedAddress) {
+      DevLogger.log(
+        'useWithdrawalRequests: No selected address, returning all withdrawals',
+        {
+          count: allWithdrawals.length,
+        },
+      );
+      return allWithdrawals;
+    }
+
+    // Filter by current account, normalizing addresses for comparison
+    const filtered = allWithdrawals.filter((req) => {
+      const match =
+        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase();
+      return match;
+    });
+
+    DevLogger.log('useWithdrawalRequests: Filtered withdrawals by account', {
+      selectedAddress,
+      totalCount: allWithdrawals.length,
+      filteredCount: filtered.length,
+      withdrawals: filtered.map((w) => ({
+        id: w.id,
+        accountAddress: w.accountAddress,
+        status: w.status,
+      })),
+    });
+
+    return filtered;
+  });
 
   DevLogger.log('Pending withdrawals from controller state:', {
     count: pendingWithdrawals.length,
