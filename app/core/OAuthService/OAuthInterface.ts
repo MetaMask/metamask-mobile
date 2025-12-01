@@ -14,6 +14,7 @@ export interface HandleOAuthLoginResult {
 
 export enum AuthConnection {
   Google = 'google',
+  GoogleFallback = 'google-fallback',
   Apple = 'apple',
 }
 

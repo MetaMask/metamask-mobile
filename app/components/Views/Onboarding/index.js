@@ -60,6 +60,7 @@ import Button, {
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
@@ -634,9 +635,9 @@ class Onboarding extends PureComponent {
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
         !createWallet,
-      ).catch((error) => {
+      ).catch(async (error) => {
         this.props.unsetLoading();
-        this.handleLoginError(error, provider);
+        await this.handleLoginError(error, provider, createWallet);
         return { type: 'error', error, existingUser: false };
       });
       this.handlePostSocialLogin(result, createWallet, provider);
@@ -655,8 +656,12 @@ class Onboarding extends PureComponent {
   onPressContinueWithGoogle = async (createWallet) =>
     this.onPressContinueWithSocialLogin(createWallet, 'google');
 
-  handleLoginError = (error, socialConnectionType) => {
+  handleLoginError = async (error, socialConnectionType, createWallet) => {
+    Logger.log(
+      `handleLoginError called: socialConnectionType=${socialConnectionType}, Platform.OS=${Platform.OS}, error.code=${error?.code}`,
+    );
     if (error instanceof OAuthError) {
+      Logger.log(`handleLoginError: error is OAuthError, code=${error.code}`);
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
         error.code === OAuthErrorType.UserCancelled ||
@@ -670,18 +675,55 @@ class Onboarding extends PureComponent {
         error.code === OAuthErrorType.GoogleLoginNoCredential ||
         error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
       ) {
-        // de-escalate google no credential error
-        const errorMessage = 'google_login_no_credential';
-        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: strings(`error_sheet.${errorMessage}_title`),
-            description: strings(`error_sheet.${errorMessage}_description`),
-            descriptionAlign: 'center',
-            buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-            type: 'error',
-          },
-        });
+        Logger.log(
+          `handleLoginError: Detected NoCredential/NoMatchingCredential error. Platform.OS=${Platform.OS}, socialConnectionType=${socialConnectionType}`,
+        );
+        // For Android Google, try browser fallback instead of showing error
+        if (Platform.OS === 'android' && socialConnectionType === 'google') {
+          Logger.log(
+            'handleLoginError: Triggering browser fallback for Android Google',
+          );
+          try {
+            this.props.setLoading();
+            const fallbackHandler = createLoginHandler(
+              Platform.OS,
+              AuthConnection.GoogleFallback,
+            );
+            const result = await OAuthLoginService.handleOAuthLogin(
+              fallbackHandler,
+              !createWallet,
+            );
+            this.handlePostSocialLogin(
+              result,
+              createWallet,
+              socialConnectionType,
+            );
+
+            // delay unset loading to avoid flash of loading state
+            setTimeout(() => {
+              this.props.unsetLoading();
+            }, 1000);
+            return;
+          } catch (fallbackError) {
+            Logger.error(
+              fallbackError,
+              'handleLoginError: Browser fallback also failed',
+            );
+            // Continue to show error below
+          }
+        }
+        // de-escalate google no credential error for other platforms or if fallback failed
+        // const errorMessage = 'google_login_no_credential';
+        // this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        //   screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        //   params: {
+        //     title: strings(`error_sheet.${errorMessage}_title`),
+        //     description: strings(`error_sheet.${errorMessage}_description`),
+        //     descriptionAlign: 'center',
+        //     buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+        //     type: 'error',
+        //   },
+        // });
         return;
       }
       // unexpected oauth login error

@@ -1,4 +1,4 @@
-import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
 import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
@@ -56,10 +56,11 @@ export const AUTH_SERVER_MARKETING_OPT_IN_PATH =
 export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
 export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
 export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
+export const AndroidGoogleClientId = process.env.ANDROID_GOOGLE_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
-// export const AppRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
-// use app deeplink for now, wait for applink to be updated
+// Use universal link for OAuth redirect (works with Google OAuth)
+export const AndroidGoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
 
@@ -84,6 +85,11 @@ export const AuthConnectionConfig: Record<
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
     },
+    [AuthConnection.GoogleFallback]: {
+      authConnectionId: CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        CURRENT_OAUTH_CONFIG.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+    },
     [AuthConnection.Apple]: {
       authConnectionId: CURRENT_OAUTH_CONFIG.ANDROID_APPLE_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
@@ -92,6 +98,11 @@ export const AuthConnectionConfig: Record<
   },
   [SupportedPlatforms.IOS]: {
     [AuthConnection.Google]: {
+      authConnectionId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        CURRENT_OAUTH_CONFIG.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
+    },
+    [AuthConnection.GoogleFallback]: {
       authConnectionId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.GOOGLE_GROUPED_AUTH_CONNECTION_ID,

@@ -1,6 +1,7 @@
 import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../../constants/deeplinks';
 import AppConstants from '../../../AppConstants';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import DeeplinkManager from '../../DeeplinkManager';
 import extractURLParams from '../../utils/extractURLParams';
 import {
@@ -52,6 +53,7 @@ enum SUPPORTED_ACTIONS {
   WC = ACTIONS.WC,
   ONBOARDING = ACTIONS.ONBOARDING,
   ENABLE_CARD_BUTTON = ACTIONS.ENABLE_CARD_BUTTON,
+  OAUTH_REDIRECT = ACTIONS.OAUTH_REDIRECT,
   // MetaMask SDK specific actions
   ANDROID_SDK = ACTIONS.ANDROID_SDK,
   CONNECT = ACTIONS.CONNECT,
@@ -94,6 +96,7 @@ async function handleUniversalLink({
   url: string;
   source: string;
 }) {
+  Logger.log(`handleUniversalLink: Received URL: ${url}, source: ${source}`);
   const validatedUrl = new URL(url);
 
   if (
@@ -110,6 +113,15 @@ async function handleUniversalLink({
   const action: SUPPORTED_ACTIONS = validatedUrl.pathname.split(
     '/',
   )[1] as SUPPORTED_ACTIONS;
+
+  // Skip OAuth redirects - let expo-auth-session handle them via Linking API
+  if (action === SUPPORTED_ACTIONS.OAUTH_REDIRECT) {
+    Logger.log(
+      'handleUniversalLink: Skipping OAuth redirect - expo-auth-session will handle it',
+    );
+    // Don't call handled() - let it fall through to Linking API
+    return false;
+  }
 
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (METAMASK_SDK_ACTIONS.includes(action)) {

@@ -3,6 +3,7 @@ import { AuthConnection } from '../OAuthInterface';
 import { IosGoogleLoginHandler } from './iosHandlers/google';
 import { IosAppleLoginHandler } from './iosHandlers/apple';
 import { AndroidGoogleLoginHandler } from './androidHandlers/google';
+import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallback';
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
 import {
   AuthServerUrl,
@@ -10,6 +11,7 @@ import {
   IosGID,
   IosGoogleRedirectUri,
   AndroidGoogleWebGID,
+  AndroidGoogleRedirectUri,
   AppleWebClientId,
   web3AuthNetwork,
 } from './constants';
@@ -64,6 +66,13 @@ export function createLoginHandler(
         case AuthConnection.Google:
           return new AndroidGoogleLoginHandler({
             clientId: AndroidGoogleWebGID,
+            authServerUrl: AuthServerUrl,
+            web3AuthNetwork,
+          });
+        case AuthConnection.GoogleFallback:
+          return new AndroidGoogleFallbackLoginHandler({
+            clientId: AndroidGoogleWebGID,
+            redirectUri: AndroidGoogleRedirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });
