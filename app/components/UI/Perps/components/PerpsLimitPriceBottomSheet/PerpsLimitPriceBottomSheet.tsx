@@ -27,6 +27,7 @@ import {
   PERPS_CONSTANTS,
   LIMIT_PRICE_CONFIG,
 } from '../../constants/perpsConfig';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { BigNumber } from 'bignumber.js';
 
 interface PerpsLimitPriceBottomSheetProps {
@@ -325,7 +326,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         )}
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
-          {asset}-USD{' '}
+          {getPerpsDisplaySymbol(asset)}-USD{' '}
           {currentPrice !== undefined && currentPrice !== null
             ? formatPerpsFiat(currentPrice, {
                 ranges: PRICE_RANGES_UNIVERSAL,
