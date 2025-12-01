@@ -40,7 +40,6 @@ export const GasFeeControllerInit: ControllerInitFunction<
         );
       },
       getProvider: () =>
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
       legacyAPIEndpoint: LEGACY_GAS_API_ENDPOINT,
       messenger: controllerMessenger,
