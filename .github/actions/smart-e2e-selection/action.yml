@@ -122,6 +122,10 @@ runs:
           SKIP_REASON="skip-smart-e2e-selection label found"
         fi
 
+        # Export skip status and reason for the comment step
+        echo "SKIPPED=$SHOULD_SKIP" >> "$GITHUB_OUTPUT"
+        echo "SKIP_REASON=$SKIP_REASON" >> "$GITHUB_OUTPUT"
+
         if [[ "$SHOULD_SKIP" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
         else
@@ -182,10 +186,11 @@ runs:
         MARKER="<!-- smart-e2e-selection -->"
         COMMENT_BODY=""
 
-        if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
-          COMMENT_BODY="⏭️ **Smart E2E selection disabled due to \`skip-smart-e2e-selection\` label**
+        if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
+          SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
+          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
+
           All E2E tests pre-selected."
-          
         else
           # Read analysis results from file
           if [ -f "$COMMENT_FILE" ]; then
