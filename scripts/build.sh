@@ -643,6 +643,15 @@ buildAndroidReleaseE2E(){
 	cd ..
 }
 
+buildExpoUpdate() {
+		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
+
+		## add validation for expo update variables
+
+		## expo command to build the update
+
+}
+
 buildAndroid() {
 	echo "Build Android $METAMASK_BUILD_TYPE started..."
 	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
@@ -868,6 +877,9 @@ elif [ "$PLATFORM" == "android" ]; then
 	else
 		envFileMissing $ANDROID_ENV_FILE
 	fi
+elif [ "$PLATFORM" == "expo-update" ]; then
+	# we don't care about env file in CI
+	buildExpoUpdate
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
 fi
