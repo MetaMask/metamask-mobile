@@ -369,8 +369,6 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
-        env:
-          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
@@ -557,13 +555,13 @@ jobs:
               echo "Android E2E tests failed (result: $ANDROID_RESULT)"
               exit 1
             fi
-            
+
             IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
             if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
               echo "iOS E2E tests failed (result: $IOS_RESULT)"
               exit 1
             fi
-            
+
             FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
             if [[ "$FLASK_RESULT" == "failure" ]] || [[ "$FLASK_RESULT" == "cancelled" ]]; then
               echo "Android Flask E2E tests failed (result: $FLASK_RESULT)"
