@@ -134,20 +134,20 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-  # prediction-market-android-smoke:
-  #   strategy:
-  #     matrix:
-  #       split: [1]
-  #     fail-fast: false
-  #   uses: ./.github/workflows/run-e2e-workflow.yml
-  #   with:
-  #     test-suite-name: prediction_market_android_smoke-${{ matrix.split }}
-  #     platform: android
-  #     test_suite_tag: 'SmokePredictions'
-  #     split_number: ${{ matrix.split }}
-  #     total_splits: 1
-  #     changed_files: ${{ inputs.changed_files }}
-  #   secrets: inherit
+  prediction-market-android-smoke:
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: prediction_market_android_smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'SmokePredictions'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      changed_files: ${{ inputs.changed_files }}
+    secrets: inherit
 
   rewards-android-smoke:
     strategy:
@@ -177,7 +177,7 @@ jobs:
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
       - confirmations-redesigned-android-smoke
-      # - prediction-market-android-smoke
+      - prediction-market-android-smoke
       - rewards-android-smoke
     steps:
       - name: Checkout

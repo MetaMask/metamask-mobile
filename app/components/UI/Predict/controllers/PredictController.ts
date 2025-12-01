@@ -29,11 +29,17 @@ import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuil
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
-  PredictEventType,
-  PredictEventTypeValue,
+  PredictTradeStatus,
+  PredictTradeStatusValue,
 } from '../constants/eventNames';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
@@ -51,9 +57,10 @@ import {
   Signer,
 } from '../providers/types';
 import {
-  AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
+  GetPriceParams,
+  GetPriceResponse,
   PredictAccountMeta,
   PredictActivity,
   PredictBalance,
@@ -70,6 +77,9 @@ import {
 } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
+import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
 
 /**
  * State shape for PredictController
@@ -77,7 +87,12 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
   // Eligibility (Geo-Blocking) per Provider
-  eligibility: { [key: string]: boolean };
+  eligibility: {
+    [key: string]: {
+      eligible: boolean;
+      country?: string;
+    };
+  };
 
   // Error handling
   lastError: string | null;
@@ -86,11 +101,11 @@ export type PredictControllerState = {
   // Account balances
   balances: { [providerId: string]: { [address: string]: PredictBalance } };
 
-  // Claim management
+  // Claim management (this should always be ALL claimable positions)
   claimablePositions: { [address: string]: PredictPosition[] };
 
   // Deposit management
-  pendingDeposits: { [providerId: string]: { [address: string]: boolean } };
+  pendingDeposits: { [providerId: string]: { [address: string]: string } };
 
   // Withdraw management
   // TODO: change to be per-account basis
@@ -376,9 +391,9 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const { AccountsController, KeyringController } = Engine.context;
+    const { KeyringController } = Engine.context;
     const selectedAddress =
-      address ?? AccountsController.getSelectedAccount().address;
+      address ?? getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
     return {
       address: selectedAddress,
       signTypedMessage: (
@@ -417,6 +432,23 @@ export class PredictController extends BaseController<
    * Get available markets with optional filtering
    */
   async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
+    // Start Sentry trace for get markets operation
+    const traceId = `get-markets-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; marketCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetMarkets,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: params.providerId ?? 'unknown',
+        ...(params.category && { category: params.category }),
+      },
+    });
+
     try {
       const providerIds = params.providerId
         ? [params.providerId]
@@ -443,6 +475,7 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = { success: true, marketCount: markets.length };
       return markets;
     } catch (error) {
       const errorMessage =
@@ -455,6 +488,8 @@ export class PredictController extends BaseController<
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
+
+      traceData = { success: false, error: errorMessage };
 
       // Log to Sentry with market query context
       Logger.error(
@@ -471,6 +506,12 @@ export class PredictController extends BaseController<
 
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetMarkets,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -489,6 +530,20 @@ export class PredictController extends BaseController<
     if (!resolvedMarketId) {
       throw new Error('marketId is required');
     }
+
+    // Start Sentry trace for get market operation
+    const traceId = `get-market-${Date.now()}`;
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    trace({
+      name: TraceName.PredictGetMarket,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: providerId ?? 'unknown',
+      },
+    });
 
     try {
       await this.initializeProviders();
@@ -509,6 +564,7 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = { success: true };
       return market;
     } catch (error) {
       const errorMessage =
@@ -520,6 +576,8 @@ export class PredictController extends BaseController<
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
+
+      traceData = { success: false, error: errorMessage };
 
       // Log to Sentry with market details context
       Logger.error(
@@ -535,6 +593,12 @@ export class PredictController extends BaseController<
       }
 
       throw new Error(PREDICT_ERROR_CODES.MARKET_DETAILS_FAILED);
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetMarket,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -544,6 +608,23 @@ export class PredictController extends BaseController<
   async getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]> {
+    // Start Sentry trace for get price history operation
+    const traceId = `get-price-history-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; pointCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetPriceHistory,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: params.providerId ?? 'unknown',
+        ...(params.interval && { interval: params.interval }),
+      },
+    });
+
     try {
       const providerIds = params.providerId
         ? [params.providerId]
@@ -569,6 +650,7 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = { success: true, pointCount: priceHistory.length };
       return priceHistory;
     } catch (error) {
       const errorMessage =
@@ -580,6 +662,8 @@ export class PredictController extends BaseController<
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
+
+      traceData = { success: false, error: errorMessage };
 
       // Log to Sentry with price history context
       Logger.error(
@@ -593,6 +677,88 @@ export class PredictController extends BaseController<
       );
 
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetPriceHistory,
+        id: traceId,
+        data: traceData,
+      });
+    }
+  }
+
+  /**
+   * Get current prices for multiple tokens
+   *
+   * Fetches BUY (best ask) and SELL (best bid) prices from the provider.
+   * BUY = what you'd pay to buy
+   * SELL = what you'd receive to sell
+   */
+  async getPrices(params: GetPriceParams): Promise<GetPriceResponse> {
+    // Start Sentry trace for get prices operation
+    const traceId = `get-prices-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; priceCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetPrices,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: params.providerId ?? 'unknown',
+      },
+      data: {
+        queryCount: params.queries?.length,
+      },
+    });
+
+    try {
+      const providerId = params.providerId ?? 'polymarket';
+      const provider = this.providers.get(providerId);
+
+      if (!provider) {
+        throw new Error('Provider not available');
+      }
+
+      const response = await provider.getPrices({ queries: params.queries });
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: true, priceCount: response.results?.length ?? 0 };
+      return response;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.UNKNOWN_ERROR;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      traceData = { success: false, error: errorMessage };
+
+      // Log to Sentry with prices context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getPrices', {
+          providerId: params.providerId,
+          queriesCount: params.queries?.length,
+        }),
+      );
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetPrices,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -600,12 +766,27 @@ export class PredictController extends BaseController<
    * Get user positions
    */
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
+    // Start Sentry trace for get positions operation
+    const traceId = `get-positions-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; positionCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetPositions,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: params.providerId ?? 'unknown',
+        claimable: params.claimable ?? false,
+      },
+    });
+
     try {
       const { address, providerId = 'polymarket' } = params;
-      const { AccountsController } = Engine.context;
 
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const provider = this.providers.get(providerId);
 
@@ -627,6 +808,7 @@ export class PredictController extends BaseController<
         }
       });
 
+      traceData = { success: true, positionCount: positions.length };
       return positions;
     } catch (error) {
       const errorMessage =
@@ -640,6 +822,8 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = { success: false, error: errorMessage };
+
       // Log to Sentry with positions query context (no user address)
       Logger.error(
         ensureError(error),
@@ -652,6 +836,12 @@ export class PredictController extends BaseController<
 
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetPositions,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -662,12 +852,25 @@ export class PredictController extends BaseController<
     address?: string;
     providerId?: string;
   }): Promise<PredictActivity[]> {
+    // Start Sentry trace for get activity operation
+    const traceId = `get-activity-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; activityCount?: number }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetActivity,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: params.providerId ?? 'unknown',
+      },
+    });
+
     try {
       const { address, providerId } = params;
-      const { AccountsController } = Engine.context;
-
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const providerIds = providerId
         ? [providerId]
@@ -692,6 +895,7 @@ export class PredictController extends BaseController<
         state.lastError = null;
       });
 
+      traceData = { success: true, activityCount: activity.length };
       return activity;
     } catch (error) {
       this.update((state) => {
@@ -702,6 +906,11 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
       // Log to Sentry with activity query context (no user address)
       Logger.error(
         ensureError(error),
@@ -711,6 +920,12 @@ export class PredictController extends BaseController<
       );
 
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetActivity,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -724,10 +939,22 @@ export class PredictController extends BaseController<
     address?: string;
     providerId?: string;
   }): Promise<UnrealizedPnL> {
+    // Start Sentry trace for get unrealized PnL operation
+    const traceId = `get-unrealized-pnl-${Date.now()}`;
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    trace({
+      name: TraceName.PredictGetUnrealizedPnL,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: providerId ?? 'unknown',
+      },
+    });
+
     try {
-      const { AccountsController } = Engine.context;
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const provider = this.providers.get(providerId);
       if (!provider) {
@@ -744,6 +971,7 @@ export class PredictController extends BaseController<
         state.lastError = null;
       });
 
+      traceData = { success: true };
       return unrealizedPnL;
     } catch (error) {
       const errorMessage =
@@ -757,6 +985,8 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = { success: false, error: errorMessage };
+
       // Log to Sentry with unrealized PnL context (no user address)
       Logger.error(
         ensureError(error),
@@ -766,15 +996,22 @@ export class PredictController extends BaseController<
       );
 
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetUnrealizedPnL,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
   /**
-   * Track Predict order analytics events
+   * Track Predict trade transaction analytics event
+   * Uses a single consolidated event with status discriminator
    * @public
    */
   public async trackPredictOrderEvent({
-    eventType,
+    status,
     amountUsd,
     analyticsProperties,
     providerId,
@@ -783,7 +1020,7 @@ export class PredictController extends BaseController<
     sharePrice,
     pnl,
   }: {
-    eventType: PredictEventTypeValue;
+    status: PredictTradeStatusValue;
     amountUsd?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
     providerId: string;
@@ -796,8 +1033,9 @@ export class PredictController extends BaseController<
       return;
     }
 
-    // Build regular properties (common to all events)
+    // Build regular properties (common to all statuses)
     const regularProperties = {
+      [PredictEventProperties.STATUS]: status,
       [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
       [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
       [PredictEventProperties.MARKET_CATEGORY]:
@@ -816,11 +1054,11 @@ export class PredictController extends BaseController<
       ...(analyticsProperties.outcome && {
         [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
       }),
-      // Add completion duration for COMPLETED and FAILED events
+      // Add completion duration for succeeded and failed status
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
       }),
-      // Add failure reason for FAILED events
+      // Add failure reason for failed status
       ...(failureReason && {
         [PredictEventProperties.FAILURE_REASON]: failureReason,
       }),
@@ -837,37 +1075,16 @@ export class PredictController extends BaseController<
       }),
     };
 
-    // Determine event name based on type
-    let metaMetricsEvent: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
-    let eventLabel: string;
-
-    switch (eventType) {
-      case PredictEventType.INITIATED:
-        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_INITIATED;
-        eventLabel = 'PREDICT_ACTION_INITIATED';
-        break;
-      case PredictEventType.SUBMITTED:
-        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_SUBMITTED;
-        eventLabel = 'PREDICT_ACTION_SUBMITTED';
-        break;
-      case PredictEventType.COMPLETED:
-        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_COMPLETED;
-        eventLabel = 'PREDICT_ACTION_COMPLETED';
-        break;
-      case PredictEventType.FAILED:
-        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_FAILED;
-        eventLabel = 'PREDICT_ACTION_FAILED';
-        break;
-    }
-
-    DevLogger.log(`📊 [Analytics] ${eventLabel}`, {
+    DevLogger.log(`📊 [Analytics] PREDICT_TRADE_TRANSACTION [${status}]`, {
       providerId,
       regularProperties,
       sensitiveProperties,
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(metaMetricsEvent)
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION,
+      )
         .addProperties(regularProperties)
         .addSensitiveProperties(sensitiveProperties)
         .build(),
@@ -964,6 +1181,35 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Track geo-blocking event when user attempts an action but is blocked
+   */
+  public trackGeoBlockTriggered({
+    providerId,
+    attemptedAction,
+  }: {
+    providerId: string;
+    attemptedAction: string;
+  }): void {
+    const eligibilityData = this.state.eligibility[providerId];
+    const analyticsProperties = {
+      [PredictEventProperties.COUNTRY]: eligibilityData?.country,
+      [PredictEventProperties.ATTEMPTED_ACTION]: attemptedAction,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_GEO_BLOCKED_TRIGGERED', {
+      analyticsProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_GEO_BLOCKED_TRIGGERED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
+  /**
    * Track when user views the predict feed
    * Tracks session-based feed interactions with unique session IDs
    * @param sessionId - Unique session identifier
@@ -1048,6 +1294,28 @@ export class PredictController extends BaseController<
         ? preview?.maxAmountSpent
         : preview?.minAmountReceived;
 
+    // Start Sentry trace for place order operation
+    const traceId = `place-order-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; side?: string }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictPlaceOrder,
+      op: TraceOperation.PredictOrderSubmission,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: providerId ?? 'unknown',
+        side: preview.side,
+      },
+      data: {
+        ...(analyticsProperties?.marketId && {
+          marketId: analyticsProperties.marketId,
+        }),
+      },
+    });
+
     try {
       const provider = this.providers.get(providerId);
       if (!provider) {
@@ -1056,9 +1324,9 @@ export class PredictController extends BaseController<
 
       const signer = this.getSigner();
 
-      // Track Predict Action Submitted (fire and forget)
+      // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
-        eventType: PredictEventType.SUBMITTED,
+        status: PredictTradeStatus.SUBMITTED,
         amountUsd,
         analyticsProperties,
         providerId,
@@ -1073,70 +1341,60 @@ export class PredictController extends BaseController<
       // Track Predict Action Completed or Failed
       const completionDuration = performance.now() - startTime;
 
-      if (result.success) {
-        const { spentAmount, receivedAmount } = result.response;
-
-        const cachedBalance =
-          this.state.balances[providerId]?.[signer.address]?.balance ?? 0;
-        let realAmountUsd = amountUsd;
-        let realSharePrice = sharePrice;
-        try {
-          if (preview.side === Side.BUY) {
-            realAmountUsd = parseFloat(spentAmount);
-            realSharePrice =
-              parseFloat(spentAmount) / parseFloat(receivedAmount);
-
-            // Optimistically update balance
-            this.update((state) => {
-              state.balances[providerId] = state.balances[providerId] || {};
-              state.balances[providerId][signer.address] = {
-                balance: cachedBalance - realAmountUsd,
-                // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-                validUntil: Date.now() + 5000,
-              };
-            });
-          } else {
-            realAmountUsd = parseFloat(receivedAmount);
-            realSharePrice =
-              parseFloat(receivedAmount) / parseFloat(spentAmount);
-
-            // Optimistically update balance
-            this.update((state) => {
-              state.balances[providerId] = state.balances[providerId] || {};
-              state.balances[providerId][signer.address] = {
-                balance: cachedBalance + realAmountUsd,
-                // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-                validUntil: Date.now() + 5000,
-              };
-            });
-          }
-        } catch (_e) {
-          // If we can't get real share price, continue without it
-        }
-
-        // Track Predict Action Completed (fire and forget)
-        this.trackPredictOrderEvent({
-          eventType: PredictEventType.COMPLETED,
-          amountUsd: realAmountUsd,
-          analyticsProperties,
-          providerId,
-          completionDuration,
-          sharePrice: realSharePrice,
-        });
-      } else {
-        // Track Predict Action Failed (fire and forget)
-        this.trackPredictOrderEvent({
-          eventType: PredictEventType.FAILED,
-          amountUsd,
-          analyticsProperties,
-          providerId,
-          sharePrice,
-          completionDuration,
-          failureReason: result.error || 'Unknown error',
-        });
+      if (!result.success) {
         throw new Error(result.error);
       }
 
+      const { spentAmount, receivedAmount } = result.response;
+
+      const cachedBalance =
+        this.state.balances[providerId]?.[signer.address]?.balance ?? 0;
+      let realAmountUsd = amountUsd;
+      let realSharePrice = sharePrice;
+      try {
+        if (preview.side === Side.BUY) {
+          const totalFee = params.preview.fees?.totalFee ?? 0;
+          realAmountUsd = parseFloat(spentAmount);
+          realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
+
+          // Optimistically update balance
+          this.update((state) => {
+            state.balances[providerId] = state.balances[providerId] || {};
+            state.balances[providerId][signer.address] = {
+              balance: cachedBalance - (realAmountUsd + totalFee),
+              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
+              validUntil: Date.now() + 5000,
+            };
+          });
+        } else {
+          realAmountUsd = parseFloat(receivedAmount);
+          realSharePrice = parseFloat(receivedAmount) / parseFloat(spentAmount);
+
+          // Optimistically update balance
+          this.update((state) => {
+            state.balances[providerId] = state.balances[providerId] || {};
+            state.balances[providerId][signer.address] = {
+              balance: cachedBalance + realAmountUsd,
+              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
+              validUntil: Date.now() + 5000,
+            };
+          });
+        }
+      } catch (_e) {
+        // If we can't get real share price, continue without it
+      }
+
+      // Track Predict Trade Transaction with succeeded status (fire and forget)
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: realAmountUsd,
+        analyticsProperties,
+        providerId,
+        completionDuration,
+        sharePrice: realSharePrice,
+      });
+
+      traceData = { success: true, side: preview.side };
       return result as unknown as Result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
@@ -1145,8 +1403,9 @@ export class PredictController extends BaseController<
           ? error.message
           : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED;
 
+      // Track Predict Trade Transaction with failed status (fire and forget)
       this.trackPredictOrderEvent({
-        eventType: PredictEventType.FAILED,
+        status: PredictTradeStatus.FAILED,
         amountUsd,
         analyticsProperties,
         providerId,
@@ -1161,14 +1420,7 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
-      // Log error for debugging and future Sentry integration
-      DevLogger.log('PredictController: Place order failed', {
-        error: errorMessage,
-        errorDetails: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString(),
-        providerId,
-        params,
-      });
+      traceData = { success: false, error: errorMessage };
 
       // Log to Sentry with order context (excluding sensitive data like amounts)
       Logger.error(
@@ -1183,13 +1435,49 @@ export class PredictController extends BaseController<
         }),
       );
 
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Place order failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId,
+        params,
+      });
+
       throw new Error(errorMessage);
+    } finally {
+      endTrace({
+        name: TraceName.PredictPlaceOrder,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
   async claimWithConfirmation({
     providerId,
   }: ClaimParams): Promise<PredictClaim> {
+    // Start Sentry trace for claim operation
+    const traceId = `claim-${Date.now()}`;
+    let traceData:
+      | {
+          success: boolean;
+          error?: string;
+          reason?: string;
+          positionCount?: number;
+        }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictClaim,
+      op: TraceOperation.PredictOperation,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: providerId ?? 'unknown',
+      },
+    });
+
     try {
       const provider = this.providers.get(providerId);
       if (!provider) {
@@ -1244,6 +1532,8 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        // Temporarily breaking abstraction, can instead be abstracted via provider.
+        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
         transactions,
       });
 
@@ -1266,10 +1556,13 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = { success: true, positionCount: claimablePositions.length };
       return predictClaim;
     } catch (error) {
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
+        traceData = { success: false, reason: 'user_cancelled' };
+
         // ignore error, as the user cancelled the tx
         return {
           batchId: 'NA',
@@ -1277,6 +1570,14 @@ export class PredictController extends BaseController<
           status: PredictClaimStatus.CANCELLED,
         };
       }
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.CLAIM_FAILED;
+
+      traceData = { success: false, error: errorMessage };
+
       // Log to Sentry with claim context (no user address or amounts)
       Logger.error(
         e,
@@ -1284,16 +1585,6 @@ export class PredictController extends BaseController<
           providerId,
         }),
       );
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : PREDICT_ERROR_CODES.CLAIM_FAILED;
-
-      // Update error state for Sentry integration
-      this.update((state) => {
-        state.lastError = errorMessage;
-        state.lastUpdateTimestamp = Date.now();
-      });
 
       // Log error for debugging and future Sentry integration
       DevLogger.log('PredictController: Claim failed', {
@@ -1303,8 +1594,20 @@ export class PredictController extends BaseController<
         providerId,
       });
 
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
       // Re-throw the error so the hook can handle it and show the toast
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictClaim,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -1333,6 +1636,12 @@ export class PredictController extends BaseController<
     });
   }
 
+  private isLocallyGeoblocked(region: { country: string }): boolean {
+    return GEO_BLOCKED_COUNTRIES.some(
+      ({ country }) => country === region.country,
+    );
+  }
+
   /**
    * Refresh eligibility status
    */
@@ -1343,14 +1652,27 @@ export class PredictController extends BaseController<
         continue;
       }
       try {
-        const isEligible = await provider.isEligible();
+        const geoBlockResponse = await provider.isEligible();
+        if (geoBlockResponse.isEligible && geoBlockResponse.country) {
+          // Check if country is blocked by local geo-blocking
+          const isLocallyGeoblocked = this.isLocallyGeoblocked({
+            country: geoBlockResponse.country,
+          });
+          geoBlockResponse.isEligible = !isLocallyGeoblocked;
+        }
         this.update((state) => {
-          state.eligibility[providerId] = isEligible;
+          state.eligibility[providerId] = {
+            eligible: geoBlockResponse.isEligible,
+            country: geoBlockResponse.country,
+          };
         });
       } catch (error) {
         // Default to false in case of error
         this.update((state) => {
-          state.eligibility[providerId] = false;
+          state.eligibility[providerId] = {
+            eligible: false,
+            country: undefined,
+          };
         });
         DevLogger.log('PredictController: Eligibility refresh failed', {
           error:
@@ -1394,9 +1716,9 @@ export class PredictController extends BaseController<
 
       // Clear any previous deposit transaction
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: false,
-        };
+        if (state.pendingDeposits[params.providerId]?.[signer.address]) {
+          delete state.pendingDeposits[params.providerId][signer.address];
+        }
       });
 
       const depositPreparation = await provider.prepareDeposit({
@@ -1426,12 +1748,20 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
+      this.update((state) => {
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = 'pending';
+      });
+
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
+        skipInitialGasEstimate: true,
         transactions,
       });
 
@@ -1448,9 +1778,9 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: true,
-        };
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = batchId;
       });
 
       return {
@@ -1462,6 +1792,8 @@ export class PredictController extends BaseController<
     } catch (error) {
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
+        // Clear pending state before returning
+        this.clearPendingDeposit({ providerId: params.providerId });
         // ignore error, as the user cancelled the tx
         return {
           success: true,
@@ -1476,6 +1808,8 @@ export class PredictController extends BaseController<
         }),
       );
 
+      this.clearPendingDeposit({ providerId: params.providerId });
+
       throw new Error(
         error instanceof Error
           ? error.message
@@ -1485,31 +1819,51 @@ export class PredictController extends BaseController<
   }
 
   public clearPendingDeposit({ providerId }: { providerId: string }): void {
-    const { AccountsController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
+    const selectedAddress = this.getSigner().address;
     this.update((state) => {
-      state.pendingDeposits[providerId] = {
-        [selectedAddress]: false,
-      };
+      if (state.pendingDeposits[providerId]?.[selectedAddress]) {
+        delete state.pendingDeposits[providerId][selectedAddress];
+      }
     });
   }
 
   public async getAccountState(
     params: GetAccountStateParams,
   ): Promise<AccountState> {
+    // Start Sentry trace for get account state operation
+    const traceId = `get-account-state-${Date.now()}`;
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    trace({
+      name: TraceName.PredictGetAccountState,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: params.providerId ?? 'unknown',
+      },
+    });
+
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
         throw new Error('Provider not available');
       }
-      const { AccountsController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress = this.getSigner().address;
 
-      return provider.getAccountState({
+      const accountState = await provider.getAccountState({
         ...params,
         ownerAddress: selectedAddress,
       });
+
+      traceData = { success: true };
+      return accountState;
     } catch (error) {
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
       // Log to Sentry with account state context (no user address)
       Logger.error(
         ensureError(error),
@@ -1519,21 +1873,43 @@ export class PredictController extends BaseController<
       );
 
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetAccountState,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
   public async getBalance(params: GetBalanceParams): Promise<number> {
+    // Start Sentry trace for get balance operation
+    const traceId = `get-balance-${Date.now()}`;
+    let traceData:
+      | { success: boolean; error?: string; cached?: boolean }
+      | undefined;
+
+    trace({
+      name: TraceName.PredictGetBalance,
+      op: TraceOperation.PredictDataFetch,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        providerId: params.providerId ?? 'unknown',
+      },
+    });
+
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
         throw new Error('Provider not available');
       }
-      const { AccountsController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress = this.getSigner().address;
       const address = params.address ?? selectedAddress;
 
       const cachedBalance = this.state.balances[params.providerId]?.[address];
       if (cachedBalance && cachedBalance.validUntil > Date.now()) {
+        traceData = { success: true, cached: true };
         return cachedBalance.balance;
       }
 
@@ -1546,17 +1922,23 @@ export class PredictController extends BaseController<
       });
 
       this.update((state) => {
-        state.balances[params.providerId] = {
-          ...state.balances[params.providerId],
-          [address]: {
-            balance,
-            // valid for 1 second
-            validUntil: Date.now() + 1000,
-          },
+        state.balances[params.providerId] =
+          state.balances[params.providerId] || {};
+        state.balances[params.providerId][address] = {
+          balance,
+          // valid for 1 second
+          validUntil: Date.now() + 1000,
         };
       });
+
+      traceData = { success: true, cached: false };
       return balance;
     } catch (error) {
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
       // Log to Sentry with balance query context (no user address)
       Logger.error(
         ensureError(error),
@@ -1566,6 +1948,12 @@ export class PredictController extends BaseController<
       );
 
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PredictGetBalance,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -1607,6 +1995,8 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
+        // Temporarily breaking abstraction, can instead be abstracted via provider.
+        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
         transactions: [transaction],
       });
 
@@ -1766,39 +2156,5 @@ export class PredictController extends BaseController<
     this.update((state) => {
       state.withdrawTransaction = null;
     });
-  }
-
-  public acceptAgreement(params: AcceptAgreementParams): boolean {
-    try {
-      const provider = this.providers.get(params.providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
-      this.update((state) => {
-        const accountMeta = state.accountMeta[params.providerId]?.[
-          params.address
-        ] || {
-          isOnboarded: false,
-          acceptedToS: false,
-        };
-
-        state.accountMeta[params.providerId] = {
-          ...(state.accountMeta[params.providerId] || {}),
-          [params.address]: {
-            ...accountMeta,
-            acceptedToS: true,
-          },
-        };
-      });
-      return true;
-    } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('acceptAgreement', {
-          providerId: params.providerId,
-        }),
-      );
-      throw error;
-    }
   }
 }

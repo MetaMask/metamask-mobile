@@ -1,10 +1,5 @@
-import React, { useEffect } from 'react';
-import {
-  BackHandler,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import React, { ReactNode, useEffect } from 'react';
+import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
@@ -31,10 +26,23 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
+
+const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
+
+const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
+  PredictClaim = 'predictClaim',
 }
 
 export interface ConfirmationParams {
@@ -46,30 +54,29 @@ const ConfirmWrapped = ({
   styles,
   route,
 }: {
-  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+  styles: ReturnType<typeof styleSheet>;
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
-  const alerts = useConfirmationAlerts();
+  const isScrollDisabled = useDisableScroll();
 
   return (
     <ConfirmationContextProvider>
       <ConfirmationAssetPollingProvider>
-        <AlertsContextProvider alerts={alerts}>
+        <ConfirmationAlerts>
           <QRHardwareContextProvider>
             <LedgerContextProvider>
               <Title />
               <ScrollView
-                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 style={styles.scrollView}
-                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
+                scrollEnabled={!isScrollDisabled}
               >
                 <TouchableWithoutFeedback>
                   <>
-                    <AlertBanner ignoreTypes={[TransactionType.perpsDeposit]} />
+                    <AlertBanner
+                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                    />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>
@@ -78,7 +85,7 @@ const ConfirmWrapped = ({
               <Splash />
             </LedgerContextProvider>
           </QRHardwareContextProvider>
-        </AlertsContextProvider>
+        </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
   );
@@ -133,9 +140,13 @@ export const Confirm = ({ route }: ConfirmProps) => {
   // Show confirmation in a flat container if the confirmation is full screen
   if (isFullScreenConfirmation) {
     return (
-      <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={styles.flatContainer}
+        testID={ConfirmationUIType.FLAT}
+      >
         <ConfirmWrapped styles={styles} route={route} />
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -153,6 +164,14 @@ export const Confirm = ({ route }: ConfirmProps) => {
   );
 };
 
+function ConfirmationAlerts({ children }: { children: ReactNode }) {
+  const alerts = useConfirmationAlerts();
+
+  return (
+    <AlertsContextProvider alerts={alerts}>{children}</AlertsContextProvider>
+  );
+}
+
 function Loader() {
   const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
   const params = useParams<ConfirmationParams>();
@@ -160,14 +179,17 @@ function Loader() {
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
-      <View style={styles.flatContainer} testID="confirm-loader-custom-amount">
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-        >
-          <CustomAmountInfoSkeleton />
-        </ScrollView>
-      </View>
+      <InfoLoader testId="confirm-loader-custom-amount">
+        <CustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.PredictClaim) {
+    return (
+      <InfoLoader testId="confirm-loader-predict-claim">
+        <PredictClaimInfoSkeleton />
+      </InfoLoader>
     );
   }
 
@@ -176,4 +198,34 @@ function Loader() {
       <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );
+}
+
+function InfoLoader({
+  children,
+  testId,
+}: {
+  children: ReactNode;
+  testId?: string;
+}) {
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+
+  return (
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={styles.flatContainer}
+      testID={testId}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        {children}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function useDisableScroll() {
+  const transaction = useTransactionMetadataRequest();
+  return hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SCROLL);
 }

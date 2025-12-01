@@ -349,7 +349,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
       [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
-      [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
+      [PerpsEventProperties.LEVERAGE_USED]: parseFloat(
+        String(orderForm.leverage),
+      ),
       [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
     },
   });
@@ -693,6 +695,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
         return;
       }
 
+      // Check for cross-margin position (MetaMask only supports isolated margin)
+      if (existingPosition?.leverage?.type === 'cross') {
+        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]:
+            'Cross margin position detected',
+        });
+
+        isSubmittingRef.current = false;
+        return;
+      }
+
       // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
       // Always monitor both orders and positions because:
       // - Market orders: Usually create positions immediately
@@ -750,20 +769,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
         // Add tracking data for MetaMetrics events
         trackingData: {
           marginUsed: Number(marginRequired),
-          totalFee: Number(feeResults.totalFee),
-          marketPrice: Number(currentPrice?.price || assetData.price),
-          metamaskFee: feeResults.metamaskFee
-            ? Number(feeResults.metamaskFee)
-            : undefined,
-          metamaskFeeRate: feeResults.metamaskFeeRate
-            ? Number(feeResults.metamaskFeeRate)
-            : undefined,
-          feeDiscountPercentage: feeResults.feeDiscountPercentage
-            ? Number(feeResults.feeDiscountPercentage)
-            : undefined,
-          estimatedPoints: feeResults.estimatedPoints
-            ? Number(feeResults.estimatedPoints)
-            : undefined,
+          totalFee: feeResults.totalFee,
+          marketPrice: assetData.price,
+          metamaskFee: feeResults.metamaskFee,
+          metamaskFeeRate: feeResults.metamaskFeeRate,
+          feeDiscountPercentage: feeResults.feeDiscountPercentage,
+          estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
         },
       };
@@ -821,7 +832,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
-    currentPrice?.price,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -895,6 +905,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={availableBalance > 0 && !!filteredErrors.length}
+          isLoading={isLoadingAccount}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -1124,53 +1135,54 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <PerpsFeesDisplay
               feeDiscountPercentage={rewardsState.feeDiscountPercentage}
               formatFeeText={
-                hasValidAmount
-                  ? formatPerpsFiat(estimatedFees, {
+                !hasValidAmount || feeResults.isLoadingMetamaskFee
+                  ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+                  : formatPerpsFiat(estimatedFees, {
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })
-                  : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
               }
               variant={TextVariant.BodySM}
             />
           </View>
 
           {/* Rewards Points Estimation */}
-          {rewardsState.shouldShowRewardsRow && (
-            <View style={styles.infoRow}>
-              <View style={styles.detailLeft}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.estimated_points')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => handleTooltipPress('points')}
-                  style={styles.infoIcon}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.Alternative}
+          {rewardsState.shouldShowRewardsRow &&
+            rewardsState.estimatedPoints !== undefined && (
+              <View style={styles.infoRow}>
+                <View style={styles.detailLeft}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.estimated_points')}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleTooltipPress('points')}
+                    style={styles.infoIcon}
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Sm}
+                      color={IconColor.Alternative}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.pointsRightContainer}>
+                  <RewardsAnimations
+                    value={rewardsState.estimatedPoints ?? 0}
+                    bonusBips={rewardsState.bonusBips}
+                    shouldShow={rewardsState.shouldShowRewardsRow}
+                    infoOnPress={() =>
+                      openTooltipModal(
+                        strings('perps.points_error'),
+                        strings('perps.points_error_content'),
+                      )
+                    }
+                    state={rewardAnimationState}
                   />
-                </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.pointsRightContainer}>
-                <RewardsAnimations
-                  value={rewardsState.estimatedPoints ?? 0}
-                  bonusBips={rewardsState.bonusBips}
-                  shouldShow={rewardsState.shouldShowRewardsRow}
-                  infoOnPress={() =>
-                    openTooltipModal(
-                      strings('perps.points_error'),
-                      strings('perps.points_error_content'),
-                    )
-                  }
-                  state={rewardAnimationState}
-                />
-              </View>
-            </View>
-          )}
+            )}
         </View>
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}

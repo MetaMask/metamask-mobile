@@ -151,7 +151,7 @@ describe('Multichain Selectors', () => {
         '0x1': {
           balance: '0x1',
           stakedBalance: '0x2',
-          isStaked: true,
+          isStaked: false,
           name: '',
         },
         '0x89': {
@@ -495,11 +495,13 @@ describe('Multichain Selectors', () => {
       } as unknown as RootState;
 
       const result = selectEvmTokensWithZeroBalanceFilter(testState);
-
       expect(result).toBeDefined();
       expect(result.every((token) => token.isNative === true)).toBeTruthy();
       expect(result.every((token) => token.balance === '0')).toBeTruthy();
-      expect(result.length).toBe(2); // Native tokens should remain
+      expect(
+        result.some((token) => token.name === 'Staked Ethereum'),
+      ).toBeTruthy();
+      expect(result.length).toBe(3); // Native tokens should remain and Staked Ethereum
     });
   });
 
@@ -762,9 +764,7 @@ describe('Multichain Selectors', () => {
     });
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    let flagSpy: jest.SpyInstance;
-
+  describe('Network Manager filtering', () => {
     // Common test configurations
     const createTestStateWithEnabledNetworks = (
       enabledNetworks: Record<string, boolean>,
@@ -819,216 +819,128 @@ describe('Multichain Selectors', () => {
         },
       }) as unknown as RootState;
 
-    const createTestStateWithSelectedNetwork = (selectedNetworkId: string) =>
-      ({
+    it('should filter tokens by enabled networks', () => {
+      const testState = createTestStateWithEnabledNetworks({
+        '0x1': true, // Only Ethereum enabled
+        '0x89': false, // Polygon disabled
+      });
+
+      const result = selectEvmTokens(testState);
+
+      expect(result.every((token) => token.chainId === '0x1')).toBe(true);
+    });
+
+    it('should fall back to default behavior when enabledNetworksByNamespace is undefined', () => {
+      const testState = {
         ...mockState,
         engine: {
           ...mockState.engine,
           backgroundState: {
             ...mockState.engine.backgroundState,
-            NetworkController: {
-              ...mockState.engine.backgroundState.NetworkController,
-              selectedNetworkClientId: selectedNetworkId,
-              networkConfigurationsByChainId: {
-                [selectedNetworkId]:
-                  mockState.engine.backgroundState.NetworkController
-                    .networkConfigurationsByChainId[
-                    selectedNetworkId as `0x${string}`
-                  ] || {},
-              },
+            NetworkEnablementController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(testState);
+
+      // Should return all tokens as fallback behavior (same as when feature flag is disabled)
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+    });
+
+    it('should fall back to default behavior when NetworkEnablementController is missing', () => {
+      const testState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkEnablementController: {},
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(testState);
+
+      // Should return all tokens as fallback behavior
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+    });
+
+    it('should fall back to default behavior when enabledNetworkMap is undefined', () => {
+      const testState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: undefined,
             },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(testState);
+
+      // Should return all tokens as fallback behavior
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+    });
+
+    it('should fall back to default behavior when EIP-155 entry is missing from enabledNetworkMap', () => {
+      const testState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
             NetworkEnablementController: {
               enabledNetworkMap: {
-                eip155: {
-                  '0x1': true,
-                  '0x89': true,
+                // Missing eip155 key
+                bitcoin: {
+                  'bip122:000000000019d6689c085ae165831e93': true,
                 },
-              },
-            },
-            // Ensure only selected network has tokens
-            TokensController: {
-              ...mockState.engine.backgroundState.TokensController,
-              allTokens: {
-                [selectedNetworkId]:
-                  mockState.engine.backgroundState.TokensController.allTokens[
-                    selectedNetworkId as `0x${string}`
-                  ] || {},
-              },
-            },
-            // Ensure only selected network has account balances
-            AccountTrackerController: {
-              ...mockState.engine.backgroundState.AccountTrackerController,
-              accountsByChainId: {
-                [selectedNetworkId]:
-                  mockState.engine.backgroundState.AccountTrackerController
-                    .accountsByChainId[selectedNetworkId as `0x${string}`] ||
-                  {},
               },
             },
           },
         },
-      }) as unknown as RootState;
+      } as unknown as RootState;
 
-    beforeEach(() => {
-      jest.resetModules();
+      const result = selectEvmTokens(testState);
+
+      // Should return all tokens as fallback behavior
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
     });
 
-    afterEach(() => {
-      if (flagSpy) flagSpy.mockRestore();
-    });
-
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        flagSpy = jest
-          .spyOn(
-            jest.requireActual('../../util/networks'),
-            'isRemoveGlobalNetworkSelectorEnabled',
-          )
-          .mockReturnValue(true);
-      });
-
-      it('should filter tokens by enabled networks', () => {
-        const testState = createTestStateWithEnabledNetworks({
-          '0x1': true, // Only Ethereum enabled
-          '0x89': false, // Polygon disabled
-        });
-
-        const result = selectEvmTokens(testState);
-
-        expect(result.every((token) => token.chainId === '0x1')).toBe(true);
-      });
-
-      it('should fall back to default behavior when enabledNetworksByNamespace is undefined', () => {
-        const testState = {
-          ...mockState,
-          engine: {
-            ...mockState.engine,
-            backgroundState: {
-              ...mockState.engine.backgroundState,
-              NetworkEnablementController: undefined,
-            },
-          },
-        } as unknown as RootState;
-
-        const result = selectEvmTokens(testState);
-
-        // Should return all tokens as fallback behavior (same as when feature flag is disabled)
-        expect(result.length).toBeGreaterThan(0);
-        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-      });
-
-      it('should fall back to default behavior when NetworkEnablementController is missing', () => {
-        const testState = {
-          ...mockState,
-          engine: {
-            ...mockState.engine,
-            backgroundState: {
-              ...mockState.engine.backgroundState,
-              NetworkEnablementController: {},
-            },
-          },
-        } as unknown as RootState;
-
-        const result = selectEvmTokens(testState);
-
-        // Should return all tokens as fallback behavior
-        expect(result.length).toBeGreaterThan(0);
-        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-      });
-
-      it('should fall back to default behavior when enabledNetworkMap is undefined', () => {
-        const testState = {
-          ...mockState,
-          engine: {
-            ...mockState.engine,
-            backgroundState: {
-              ...mockState.engine.backgroundState,
-              NetworkEnablementController: {
-                enabledNetworkMap: undefined,
+    it('should fall back to default behavior when EIP-155 entry is null', () => {
+      const testState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: null,
               },
             },
           },
-        } as unknown as RootState;
+        },
+      } as unknown as RootState;
 
-        const result = selectEvmTokens(testState);
+      const result = selectEvmTokens(testState);
 
-        // Should return all tokens as fallback behavior
-        expect(result.length).toBeGreaterThan(0);
-        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-      });
-
-      it('should fall back to default behavior when EIP-155 entry is missing from enabledNetworkMap', () => {
-        const testState = {
-          ...mockState,
-          engine: {
-            ...mockState.engine,
-            backgroundState: {
-              ...mockState.engine.backgroundState,
-              NetworkEnablementController: {
-                enabledNetworkMap: {
-                  // Missing eip155 key
-                  bitcoin: {
-                    'bip122:000000000019d6689c085ae165831e93': true,
-                  },
-                },
-              },
-            },
-          },
-        } as unknown as RootState;
-
-        const result = selectEvmTokens(testState);
-
-        // Should return all tokens as fallback behavior
-        expect(result.length).toBeGreaterThan(0);
-        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-      });
-
-      it('should fall back to default behavior when EIP-155 entry is null', () => {
-        const testState = {
-          ...mockState,
-          engine: {
-            ...mockState.engine,
-            backgroundState: {
-              ...mockState.engine.backgroundState,
-              NetworkEnablementController: {
-                enabledNetworkMap: {
-                  eip155: null,
-                },
-              },
-            },
-          },
-        } as unknown as RootState;
-
-        const result = selectEvmTokens(testState);
-
-        // Should return all tokens as fallback behavior
-        expect(result.length).toBeGreaterThan(0);
-        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-      });
-    });
-
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        flagSpy = jest
-          .spyOn(
-            jest.requireActual('../../util/networks'),
-            'isRemoveGlobalNetworkSelectorEnabled',
-          )
-          .mockReturnValue(false);
-      });
-
-      it('should filter tokens by current network', () => {
-        const testState = createTestStateWithSelectedNetwork('0x89');
-
-        const result = selectEvmTokens(testState);
-
-        expect(result.every((token) => token.chainId === '0x89')).toBe(true);
-      });
+      // Should return all tokens as fallback behavior
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
     });
   });
 

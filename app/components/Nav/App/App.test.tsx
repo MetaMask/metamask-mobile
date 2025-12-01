@@ -30,6 +30,7 @@ import { internalAccount1 as mockAccount } from '../../../util/test/accountsCont
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -140,12 +141,16 @@ const mockMetrics = {
   addTraitsToUser: jest.fn(),
 };
 
+const mockAuthType = AUTHENTICATION_TYPE.BIOMETRIC;
 // Mock Authentication module
 jest.mock('../../../core', () => ({
   Authentication: {
     appTriggeredAuth: jest.fn().mockResolvedValue(undefined),
     lockApp: jest.fn(),
     checkIsSeedlessPasswordOutdated: jest.fn(),
+    getType: jest.fn().mockResolvedValue({
+      currentAuthType: mockAuthType,
+    }),
   },
 }));
 
@@ -309,6 +314,46 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
+      });
+    });
+
+    it('navigates to login screen when authentication type is password', async () => {
+      const mockRoutesOther = [
+        { name: 'SomeOtherRoute' },
+        { name: 'AnotherRoute' },
+      ];
+      jest
+        .spyOn(NavigationNative, 'useNavigationState')
+        .mockImplementation((selector: unknown) =>
+          (selector as (state: { routes: { name: string }[] }) => unknown)({
+            routes: mockRoutesOther,
+          }),
+        );
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
+      jest.spyOn(Authentication, 'getType').mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      });
+
+      const loggedInState = {
+        ...initialState,
+        user: {
+          ...initialState.user,
+          existingUser: true,
+          userLoggedIn: true,
+        },
+      };
+
+      renderScreen(App, { name: 'App' }, { state: loggedInState });
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.LOGIN }],
+        });
+        expect(Authentication.appTriggeredAuth).not.toHaveBeenCalled();
+      });
+
+      jest.spyOn(Authentication, 'getType').mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
       });
     });
 
@@ -852,7 +897,7 @@ describe('App', () => {
     });
   });
 
-  it('should use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
+  it('use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
     jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
       if (key === OPTIN_META_METRICS_UI_SEEN) {
         return false; // OptinMetrics UI has not been seen
@@ -887,6 +932,47 @@ describe('App', () => {
             },
           },
         ],
+      });
+    });
+  });
+
+  describe('route registration', () => {
+    const renderAppWithRouteState = (
+      routeState: PartialState<NavigationState>,
+    ) => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('registers the eligibility failed modal route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.ROOT_MODAL_FLOW,
+            params: {
+              screen: Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('eligibility-failed-modal')).toBeTruthy();
       });
     });
   });

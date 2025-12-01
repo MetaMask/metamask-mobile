@@ -1,0 +1,281 @@
+import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { useExploreSearch } from './useExploreSearch';
+import { SEARCH_SECTION_ARRAY } from './exploreSearchConfig';
+
+const mockTrendingTokens = [
+  { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+  { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+  { assetId: '3', symbol: 'SOL', name: 'Solana' },
+  { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+  { assetId: '5', symbol: 'USDT', name: 'Tether' },
+];
+
+const mockPerpsMarkets = [
+  { symbol: 'BTC-USD', name: 'Bitcoin' },
+  { symbol: 'ETH-USD', name: 'Ethereum' },
+  { symbol: 'SOL-USD', name: 'Solana' },
+  { symbol: 'DOGE-USD', name: 'Dogecoin' },
+];
+
+const mockPredictionMarkets = [
+  { id: '1', title: 'Will Bitcoin reach 100k?' },
+  { id: '2', title: 'Ethereum price prediction' },
+  { id: '3', title: 'Solana network upgrade' },
+  { id: '4', title: 'Trump election results' },
+];
+
+const mockUseTrendingRequest = jest.fn();
+const mockUsePerpsMarkets = jest.fn();
+const mockUsePredictMarketData = jest.fn();
+
+jest.mock('../../../../../../UI/Assets/hooks/useTrendingRequest', () => ({
+  useTrendingRequest: () => mockUseTrendingRequest(),
+}));
+
+jest.mock('../../../../../../UI/Perps/hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: () => mockUsePerpsMarkets(),
+}));
+
+jest.mock('../../../../../../UI/Predict/hooks/usePredictMarketData', () => ({
+  usePredictMarketData: () => mockUsePredictMarketData(),
+}));
+
+describe('useExploreSearch', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+
+    mockUseTrendingRequest.mockReturnValue({
+      results: mockTrendingTokens,
+      isLoading: false,
+    });
+
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: mockPerpsMarkets,
+      isLoading: false,
+    });
+
+    mockUsePredictMarketData.mockReturnValue({
+      marketData: mockPredictionMarkets,
+      isFetching: false,
+    });
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  it('returns top 3 items from each section when query is empty', () => {
+    const { result } = renderHook(() => useExploreSearch(''));
+
+    expect(result.current.data.tokens).toHaveLength(3);
+    expect(result.current.data.perps).toHaveLength(3);
+    expect(result.current.data.predictions).toHaveLength(3);
+  });
+
+  it('returns top 3 items when query contains only whitespace', () => {
+    const { result } = renderHook(() => useExploreSearch('   '));
+
+    expect(result.current.data.tokens).toHaveLength(3);
+    expect(result.current.data.perps).toHaveLength(3);
+    expect(result.current.data.predictions).toHaveLength(3);
+  });
+
+  it('filters tokens by symbol when query matches', async () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useExploreSearch(query),
+      { initialProps: { query: '' } },
+    );
+
+    rerender({ query: 'btc' });
+
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+
+    await waitFor(() => {
+      expect(result.current.data.tokens).toHaveLength(1);
+      expect((result.current.data.tokens[0] as { symbol: string }).symbol).toBe(
+        'BTC',
+      );
+    });
+  });
+
+  it('filters tokens by name when query matches', async () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useExploreSearch(query),
+      { initialProps: { query: '' } },
+    );
+
+    rerender({ query: 'ethereum' });
+
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+
+    await waitFor(() => {
+      expect(result.current.data.tokens).toHaveLength(1);
+      expect((result.current.data.tokens[0] as { name: string }).name).toBe(
+        'Ethereum',
+      );
+    });
+  });
+
+  it('performs case insensitive search', async () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useExploreSearch(query),
+      { initialProps: { query: '' } },
+    );
+
+    rerender({ query: 'BITCOIN' });
+
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+
+    await waitFor(() => {
+      expect(result.current.data.tokens.length).toBeGreaterThan(0);
+      expect((result.current.data.tokens[0] as { name: string }).name).toBe(
+        'Bitcoin',
+      );
+    });
+  });
+
+  it('filters perps markets by symbol', async () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useExploreSearch(query),
+      { initialProps: { query: '' } },
+    );
+
+    rerender({ query: 'doge' });
+
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+
+    await waitFor(() => {
+      expect(result.current.data.perps).toHaveLength(1);
+      expect((result.current.data.perps[0] as { symbol: string }).symbol).toBe(
+        'DOGE-USD',
+      );
+    });
+  });
+
+  it('filters predictions by title', async () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useExploreSearch(query),
+      { initialProps: { query: '' } },
+    );
+
+    rerender({ query: 'trump' });
+
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+
+    await waitFor(() => {
+      expect(result.current.data.predictions).toHaveLength(1);
+      expect(
+        (result.current.data.predictions[0] as { title: string }).title,
+      ).toBe('Trump election results');
+    });
+  });
+
+  it('returns empty arrays when no items match query', async () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useExploreSearch(query),
+      { initialProps: { query: '' } },
+    );
+
+    rerender({ query: 'nonexistent' });
+
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+
+    await waitFor(() => {
+      expect(result.current.data.tokens).toHaveLength(0);
+      expect(result.current.data.perps).toHaveLength(0);
+      expect(result.current.data.predictions).toHaveLength(0);
+    });
+  });
+
+  it('debounces query changes by 200ms', async () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useExploreSearch(query),
+      { initialProps: { query: '' } },
+    );
+
+    const initialTokenCount = result.current.data.tokens.length;
+
+    rerender({ query: 'btc' });
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    expect(result.current.data.tokens.length).toBe(initialTokenCount);
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(result.current.data.tokens.length).toBeLessThan(initialTokenCount);
+    });
+  });
+
+  it('returns loading states for each section', () => {
+    mockUseTrendingRequest.mockReturnValue({
+      results: [],
+      isLoading: true,
+    });
+
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [],
+      isLoading: true,
+    });
+
+    mockUsePredictMarketData.mockReturnValue({
+      marketData: [],
+      isFetching: true,
+    });
+
+    const { result } = renderHook(() => useExploreSearch(''));
+
+    expect(result.current.isLoading.tokens).toBe(true);
+    expect(result.current.isLoading.perps).toBe(true);
+    expect(result.current.isLoading.predictions).toBe(true);
+  });
+
+  it('filters across multiple sections simultaneously', async () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useExploreSearch(query),
+      { initialProps: { query: '' } },
+    );
+
+    rerender({ query: 'sol' });
+
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+
+    await waitFor(() => {
+      const hasTokenMatch = result.current.data.tokens.length > 0;
+      const hasPerpsMatch = result.current.data.perps.length > 0;
+      const hasPredictionsMatch = result.current.data.predictions.length > 0;
+
+      expect(hasTokenMatch || hasPerpsMatch || hasPredictionsMatch).toBe(true);
+    });
+  });
+
+  it('processes all sections defined in SEARCH_SECTION_ARRAY', () => {
+    const { result } = renderHook(() => useExploreSearch(''));
+
+    SEARCH_SECTION_ARRAY.forEach((section) => {
+      expect(result.current.data[section.id]).toBeDefined();
+      expect(result.current.isLoading[section.id]).toBeDefined();
+    });
+  });
+});

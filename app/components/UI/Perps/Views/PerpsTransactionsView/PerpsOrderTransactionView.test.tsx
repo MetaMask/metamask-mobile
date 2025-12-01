@@ -94,7 +94,7 @@ describe('PerpsOrderTransactionView', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 10.5,
       protocolFee: 7.5,
-      metamaskFee: 3.0,
+      metamaskFee: 3,
       protocolFeeRate: 0.1,
       metamaskFeeRate: 0.05,
       isLoadingMetamaskFee: false,
@@ -162,7 +162,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(zeroFees).toHaveLength(3); // All three fees should be $0
   });
 
-  it('should handle small fees correctly', () => {
+  it('should show "< $0.01" for fees less than 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.005,
       protocolFee: 0.003,
@@ -173,11 +173,135 @@ describe('PerpsOrderTransactionView', () => {
       error: null,
     });
 
-    const { getByText } = render(<PerpsOrderTransactionView />);
+    const { getAllByText } = render(<PerpsOrderTransactionView />);
 
-    expect(getByText('$0.002')).toBeTruthy();
-    expect(getByText('$0.003')).toBeTruthy();
-    expect(getByText('$0.005')).toBeTruthy();
+    // All three fees should show "< $0.01" since they're all less than 0.01
+    const smallFeeLabels = getAllByText('< $0.01');
+    expect(smallFeeLabels).toHaveLength(3);
+  });
+
+  it('should format fees normally when they are exactly 0.01', () => {
+    mockUsePerpsOrderFees.mockReturnValue({
+      totalFee: 0.03,
+      protocolFee: 0.01,
+      metamaskFee: 0.01,
+      protocolFeeRate: 0.1,
+      metamaskFeeRate: 0.05,
+      isLoadingMetamaskFee: false,
+      error: null,
+    });
+
+    const { getAllByText, queryByText, getByText } = render(
+      <PerpsOrderTransactionView />,
+    );
+
+    // Fees at exactly 0.01 should be formatted normally, not show "< $0.01"
+    expect(queryByText('< $0.01')).toBeNull();
+    // Both metamask and protocol fees are 0.01
+    const fee01Labels = getAllByText('$0.01');
+    expect(fee01Labels.length).toBeGreaterThanOrEqual(2);
+    expect(getByText('$0.03')).toBeTruthy(); // Total fee
+  });
+
+  it('should format fees normally when they are greater than 0.01', () => {
+    mockUsePerpsOrderFees.mockReturnValue({
+      totalFee: 0.015,
+      protocolFee: 0.012,
+      metamaskFee: 0.003,
+      protocolFeeRate: 0.1,
+      metamaskFeeRate: 0.05,
+      isLoadingMetamaskFee: false,
+      error: null,
+    });
+
+    const { getByText, getAllByText } = render(<PerpsOrderTransactionView />);
+
+    // Metamask fee is less than 0.01, should show "< $0.01"
+    expect(getAllByText('< $0.01')).toHaveLength(1);
+    // Protocol and total fees are >= 0.01, should be formatted normally
+    expect(getByText('$0.01')).toBeTruthy(); // Protocol fee formatted
+    expect(getByText('$0.02')).toBeTruthy(); // Total fee formatted (rounded)
+  });
+
+  it('should handle mixed small and large fees correctly', () => {
+    mockUsePerpsOrderFees.mockReturnValue({
+      totalFee: 0.025,
+      protocolFee: 0.02,
+      metamaskFee: 0.005,
+      protocolFeeRate: 0.1,
+      metamaskFeeRate: 0.05,
+      isLoadingMetamaskFee: false,
+      error: null,
+    });
+
+    const { getByText, getAllByText } = render(<PerpsOrderTransactionView />);
+
+    // Metamask fee is less than 0.01
+    const smallFeeLabels = getAllByText('< $0.01');
+    expect(smallFeeLabels).toHaveLength(1);
+    // Protocol and total fees are >= 0.01, should be formatted
+    expect(getByText('$0.02')).toBeTruthy(); // Protocol fee
+    expect(getByText('$0.03')).toBeTruthy(); // Total fee (rounded)
+  });
+
+  it('should handle edge case: fee just below 0.01 threshold', () => {
+    mockUsePerpsOrderFees.mockReturnValue({
+      totalFee: 0.029,
+      protocolFee: 0.0099,
+      metamaskFee: 0.0099,
+      protocolFeeRate: 0.1,
+      metamaskFeeRate: 0.05,
+      isLoadingMetamaskFee: false,
+      error: null,
+    });
+
+    const { getAllByText } = render(<PerpsOrderTransactionView />);
+
+    // Both metamask and protocol fees are just below 0.01
+    const smallFeeLabels = getAllByText('< $0.01');
+    expect(smallFeeLabels).toHaveLength(2);
+    // Total fee is >= 0.01, should be formatted
+  });
+
+  it('should handle edge case: fee just above 0.01 threshold', () => {
+    mockUsePerpsOrderFees.mockReturnValue({
+      totalFee: 0.0201,
+      protocolFee: 0.0101,
+      metamaskFee: 0.01,
+      protocolFeeRate: 0.1,
+      metamaskFeeRate: 0.05,
+      isLoadingMetamaskFee: false,
+      error: null,
+    });
+
+    const { queryByText, getAllByText, getByText } = render(
+      <PerpsOrderTransactionView />,
+    );
+
+    // All fees are >= 0.01, should be formatted normally
+    expect(queryByText('< $0.01')).toBeNull();
+    // Metamask fee and protocol fee (rounded) both show $0.01
+    const fee01Labels = getAllByText('$0.01');
+    expect(fee01Labels.length).toBeGreaterThanOrEqual(2);
+    expect(getByText('$0.02')).toBeTruthy(); // Total fee (rounded)
+  });
+
+  it('should show "< $0.01" for all fees when all are below threshold', () => {
+    mockUsePerpsOrderFees.mockReturnValue({
+      totalFee: 0.008,
+      protocolFee: 0.005,
+      metamaskFee: 0.003,
+      protocolFeeRate: 0.1,
+      metamaskFeeRate: 0.05,
+      isLoadingMetamaskFee: false,
+      error: null,
+    });
+
+    const { getAllByText } = render(<PerpsOrderTransactionView />);
+
+    // All three fees are below 0.01
+    const smallFeeLabels = getAllByText('< $0.01');
+    expect(smallFeeLabels).toHaveLength(3);
   });
 
   it('should navigate to block explorer in browser tab when button is pressed', () => {

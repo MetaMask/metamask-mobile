@@ -41,10 +41,12 @@ export function Token({ asset, onPress }: TokenProps) {
 
   return (
     <Pressable
+      disabled={asset.disabled}
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2 max-w-full',
           pressed || asset.isSelected ? 'bg-pressed' : 'bg-transparent',
+          asset.disabled && 'opacity-50',
         )
       }
       onPress={handlePress}
@@ -98,7 +100,9 @@ export function Token({ asset, onPress }: TokenProps) {
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {asset.symbol}
+            {!asset.disabled || !asset.disabledMessage
+              ? asset.symbol
+              : asset.disabledMessage}
           </Text>
         </Box>
       </Box>

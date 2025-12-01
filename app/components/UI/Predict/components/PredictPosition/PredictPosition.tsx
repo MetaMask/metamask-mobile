@@ -9,6 +9,8 @@ import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -25,8 +27,9 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     initialValue,
     percentPnl,
     outcome,
-    avgPrice,
     currentValue,
+    size,
+    optimistic,
   } = position;
   const { styles } = useStyles(styleSheet, {});
 
@@ -44,20 +47,36 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           {title}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          ${initialValue.toFixed(2)} on {outcome} •{' '}
-          {(avgPrice * 100).toFixed(0)}¢
+          {strings('predict.position_info', {
+            initialValue: formatPrice(initialValue, {
+              maximumDecimals: 2,
+            }),
+            outcome,
+            shares: formatPrice(size, {
+              maximumDecimals: 2,
+            }),
+          })}
         </Text>
       </View>
       <View style={styles.positionPnl}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {formatPrice(currentValue, { maximumDecimals: 2 })}
-        </Text>
-        <Text
-          variant={TextVariant.BodySMMedium}
-          color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-        >
-          {formatPercentage(percentPnl)}
-        </Text>
+        {optimistic ? (
+          <>
+            <Skeleton width={60} height={20} style={styles.skeletonSpacing} />
+            <Skeleton width={50} height={16} />
+          </>
+        ) : (
+          <>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {formatPrice(currentValue, { maximumDecimals: 2 })}
+            </Text>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+            >
+              {formatPercentage(percentPnl)}
+            </Text>
+          </>
+        )}
       </View>
     </TouchableOpacity>
   );

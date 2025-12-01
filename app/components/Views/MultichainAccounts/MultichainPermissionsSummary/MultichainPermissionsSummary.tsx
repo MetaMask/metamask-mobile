@@ -38,10 +38,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import TabBar from '../../../../component-library/components-temp/TabBar';
-import {
-  getNetworkImageSource,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../../util/networks';
+import { getNetworkImageSource } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import { useSelector } from 'react-redux';
@@ -179,9 +176,7 @@ const MultichainPermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return isPerDappSelectedNetworkEnabled() &&
-      isAlreadyConnected &&
-      !showPermissionsOnly ? (
+    return isAlreadyConnected && !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}

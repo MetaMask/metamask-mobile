@@ -132,10 +132,15 @@ import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
 describe('ValidatingKYC Component', () => {
   let mockNavigate: jest.Mock;
   let mockUseUserRegistrationStatus: jest.Mock;
+  let mockStartPolling: jest.Mock;
+  let mockStopPolling: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate = jest.fn();
+    mockStartPolling = jest.fn();
+    mockStopPolling = jest.fn();
+
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
@@ -152,7 +157,8 @@ describe('ValidatingKYC Component', () => {
       isError: false,
       error: null,
       clearError: jest.fn(),
-      fetchRegistrationStatus: jest.fn(),
+      startPolling: mockStartPolling,
+      stopPolling: mockStopPolling,
     });
     (useUserRegistrationStatus as jest.Mock).mockImplementation(
       mockUseUserRegistrationStatus,
@@ -203,7 +209,8 @@ describe('ValidatingKYC Component', () => {
         isError: true,
         error: 'Verification failed',
         clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
       });
 
       const { getByTestId } = render(<ValidatingKYC />);
@@ -223,7 +230,8 @@ describe('ValidatingKYC Component', () => {
         isError: true,
         error: null,
         clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
       });
 
       const { getByTestId } = render(<ValidatingKYC />);
@@ -240,7 +248,8 @@ describe('ValidatingKYC Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
       });
 
       const { getByTestId } = render(<ValidatingKYC />);
@@ -258,7 +267,8 @@ describe('ValidatingKYC Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
       });
 
       const { getByTestId } = render(<ValidatingKYC />);
@@ -278,7 +288,8 @@ describe('ValidatingKYC Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
       });
 
       render(<ValidatingKYC />);
@@ -298,7 +309,8 @@ describe('ValidatingKYC Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
       });
 
       render(<ValidatingKYC />);
@@ -316,7 +328,8 @@ describe('ValidatingKYC Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
       });
 
       render(<ValidatingKYC />);
@@ -350,7 +363,8 @@ describe('ValidatingKYC Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
+        startPolling: mockStartPolling,
+        stopPolling: mockStopPolling,
       });
 
       render(<ValidatingKYC />);
@@ -360,6 +374,39 @@ describe('ValidatingKYC Component', () => {
           'CardOnboardingPersonalDetails',
         );
       });
+    });
+  });
+
+  describe('Polling Lifecycle', () => {
+    it('starts polling when component mounts', () => {
+      render(<ValidatingKYC />);
+
+      expect(mockStartPolling).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops polling when component unmounts', () => {
+      const { unmount } = render(<ValidatingKYC />);
+
+      unmount();
+
+      expect(mockStopPolling).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls startPolling before stopPolling', () => {
+      const callOrder: string[] = [];
+
+      mockStartPolling.mockImplementation(() => {
+        callOrder.push('start');
+      });
+
+      mockStopPolling.mockImplementation(() => {
+        callOrder.push('stop');
+      });
+
+      const { unmount } = render(<ValidatingKYC />);
+      unmount();
+
+      expect(callOrder).toEqual(['start', 'stop']);
     });
   });
 

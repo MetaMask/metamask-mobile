@@ -11,9 +11,12 @@ export const FEE_COLLECTOR_ADDRESS =
 /**
  * Default slippage for market orders.
  */
-export const SLIPPAGE = 0.015; // 1.5%
+export const SLIPPAGE_BUY = 0.015; // 1.5%
+export const SLIPPAGE_SELL = 0.03; // 3%
 
-export const BUY_ORDER_RATE_LIMIT_MS = 5000;
+export const ORDER_RATE_LIMIT_MS = 5000;
+
+export const MIN_COLLATERAL_BALANCE_FOR_CLAIM = 0.5;
 
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 export const POLYGON_MAINNET_CAIP_CHAIN_ID =

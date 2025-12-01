@@ -78,6 +78,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
       isNative ? nativeBalanceHex : tokenBalanceHex,
     );
 
+    const balanceRaw = balanceRawValue.toString(10);
     const decimals = Number(token?.decimals ?? 18);
     const balanceValue = balanceRawValue.shiftedBy(-decimals);
     const fiatRate = isNative ? conversionRate : tokenFiatRate;
@@ -96,6 +97,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
       address: tokenAddress,
       balance,
       balanceFiat,
+      balanceRaw,
       chainId,
       decimals,
       symbol,
