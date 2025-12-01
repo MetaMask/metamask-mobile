@@ -71,8 +71,6 @@ const RemoteImageBadgeWrapper = (
         bottom: 5,
         right: 5,
       }}
-      accessibilityRole="none"
-      accessible={false}
       anchorElementShape={BadgeAnchorElementShape.Rectangular}
       badgeElement={
         <Badge
@@ -81,8 +79,6 @@ const RemoteImageBadgeWrapper = (
           name={networkName}
           isScaled={false}
           size={props.isFullRatio ? AvatarSize.Md : AvatarSize.Xs}
-          accessibilityRole="none"
-          accessible={false}
         />
       }
     >
