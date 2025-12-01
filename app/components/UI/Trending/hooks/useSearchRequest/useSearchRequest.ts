@@ -1,7 +1,20 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
+import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { usePopularNetworks } from '../usePopularNetworks/usePopularNetworks';
+
+interface SearchResult {
+  assetId: CaipChainId;
+  decimals: number;
+  name: string;
+  symbol: string;
+  marketCap: number;
+  aggregatedUsdVolume: number;
+  price: string;
+  pricePercentChange1d: string;
+}
 
 /**
  * Hook for handling search tokens request
@@ -12,8 +25,22 @@ export const useSearchRequest = (options: {
   query: string;
   limit: number;
 }) => {
-  const { chainIds = [], query, limit } = options;
-  const [results, setResults] = useState<unknown[]>([]);
+  const { chainIds: providedChainIds = [], query, limit } = options;
+
+  // Get popular networks for filtering
+  const popularNetworks = usePopularNetworks();
+
+  // Use provided chainIds or default to popular networks
+  const chainIds = useMemo((): CaipChainId[] => {
+    if (providedChainIds.length > 0) {
+      return providedChainIds;
+    }
+    return popularNetworks.map(
+      (network: ProcessedNetwork) => network.caipChainId,
+    );
+  }, [providedChainIds, popularNetworks]);
+
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -41,7 +68,7 @@ export const useSearchRequest = (options: {
       });
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
-        setResults(searchResults?.data || []);
+        setResults((searchResults?.data as SearchResult[]) || []);
       }
     } catch (err) {
       // Only update state if this is still the current request

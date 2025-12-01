@@ -67,7 +67,7 @@ import Ratio from './components/Ratio';
 import ActionAlert from './components/ActionAlert';
 import ApprovalTransactionEditionModal from './components/ApprovalTransactionEditionModal';
 import GasEditModal from './components/GasEditModal';
-import InfoModal from './components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import { decodeApproveData, getTicker } from '../../../util/transactions';

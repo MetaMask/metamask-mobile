@@ -45,6 +45,16 @@ export interface GetUserHistoryParams {
 // Trade configuration saved per market per network
 export interface TradeConfiguration {
   leverage?: number; // Last used leverage for this market
+  // Pending trade configuration (temporary, expires after 5 minutes)
+  pendingConfig?: {
+    amount?: string; // Order size in USD
+    leverage?: number; // Leverage
+    takeProfitPrice?: string; // Take profit price
+    stopLossPrice?: string; // Stop loss price
+    limitPrice?: string; // Limit price (for limit orders)
+    orderType?: OrderType; // Market vs limit
+    timestamp: number; // When the config was saved (for expiration check)
+  };
 }
 
 // Order type enumeration
@@ -608,7 +618,7 @@ export interface SubscribePositionsParams {
 }
 
 export interface SubscribeOrderFillsParams {
-  callback: (fills: OrderFill[]) => void;
+  callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
   since?: number; // Future: only fills after timestamp
 }

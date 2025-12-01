@@ -89,7 +89,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenMusdEducationScreen } =
+    useMusdConversion();
   const { isConversionToken } = useMusdConversionTokens();
 
   const isConvertibleStablecoin =
@@ -221,14 +222,27 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Asset address or chain ID is not set');
       }
 
-      await initiateConversion({
+      const config = {
         outputChainId: CHAIN_IDS.MAINNET,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
         navigationStack: Routes.EARN.ROOT,
-      });
+      };
+
+      if (!hasSeenMusdEducationScreen) {
+        navigation.navigate(config.navigationStack, {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken: config.preferredPaymentToken,
+            outputChainId: config.outputChainId,
+          },
+        });
+        return;
+      }
+
+      await initiateConversion(config);
     } catch (error) {
       Logger.error(
         error as Error,
@@ -243,7 +257,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [asset.address, asset.chainId, initiateConversion]);
+  }, [
+    asset.address,
+    asset.chainId,
+    hasSeenMusdEducationScreen,
+    initiateConversion,
+    navigation,
+  ]);
 
   const onEarnButtonPress = async () => {
     if (isConvertibleStablecoin) {
