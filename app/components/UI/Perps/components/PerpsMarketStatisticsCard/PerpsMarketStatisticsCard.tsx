@@ -231,11 +231,26 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
         {/* Oracle price (markPrice) - last row without bottom border */}
         <KeyValueRow
           field={{
-            label: {
-              text: strings('perps.market.oracle_price'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
-            },
+            label: (
+              <View style={styles.labelWithIcon}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.market.oracle_price')}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => onTooltipPress('oracle_price')}
+                  testID="perps-market-details-oracle-price-info-icon"
+                >
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                </TouchableOpacity>
+              </View>
+            ),
           }}
           value={{
             label: {

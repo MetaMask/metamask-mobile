@@ -68,6 +68,7 @@ import {
   usePerpsDataMonitor,
   type DataMonitorParams,
 } from '../../hooks/usePerpsDataMonitor';
+import { useIsPriceDeviatedAboveThreshold } from '../../hooks/useIsPriceDeviatedAboveThreshold';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   usePerpsLiveAccount,
@@ -81,6 +82,7 @@ import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
+import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import PerpsNavigationCard, {
   type NavigationItem,
@@ -294,6 +296,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Check if market is at open interest cap
   const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
+
+  // Check if trading is halted due to price deviation
+  const {
+    isDeviatedAboveThreshold: isTradingHalted,
+    isLoading: isLoadingTradingHalted,
+  } = useIsPriceDeviatedAboveThreshold(market?.symbol);
 
   // Handle data-driven monitoring when coming from order success
   // Clear monitoringIntent after processing to allow fresh monitoring next time
@@ -894,21 +902,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               )}
 
               {hasHistoricalData ? (
-                <>
-                  <TradingViewChart
-                    ref={chartRef}
-                    candleData={candleData}
-                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                    visibleCandleCount={visibleCandleCount}
-                    tpslLines={tpslLines}
-                    symbol={market?.symbol}
-                    showOverlay={false}
-                    coloredVolume
-                    onOhlcDataChange={setOhlcData}
-                    onNeedMoreHistory={fetchMoreHistory}
-                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-                  />
-                </>
+                <TradingViewChart
+                  ref={chartRef}
+                  candleData={candleData}
+                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                  visibleCandleCount={visibleCandleCount}
+                  tpslLines={tpslLines}
+                  symbol={market?.symbol}
+                  showOverlay={false}
+                  coloredVolume
+                  onOhlcDataChange={setOhlcData}
+                  onNeedMoreHistory={fetchMoreHistory}
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+                />
               ) : (
                 <Skeleton
                   height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
@@ -925,6 +931,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onMorePress={handleMorePress}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
             />
+
+            {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
+            {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
+              <PerpsPriceDeviationWarning
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
+              />
+            )}
           </View>
 
           {/* OI Cap Warning - Shows when market is at capacity */}
@@ -1035,7 +1048,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       </View>
 
       {/* Fixed Actions Footer */}
-      {(hasAddFundsButton || hasLongShortButtons) && (
+      {(hasAddFundsButton || hasLongShortButtons) && !isTradingHalted && (
         <View style={styles.actionsFooter}>
           {hasAddFundsButton && (
             <View style={styles.singleActionContainer}>
