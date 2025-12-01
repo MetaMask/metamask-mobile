@@ -2,7 +2,7 @@ import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
 
 import { ensureValidState } from './util';
-import migrate from './108';
+import migrate from './109';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
