@@ -282,7 +282,7 @@ class WalletMainScreen {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
-      await appwrightExpect(element).toBeVisible({ timeout: 100000000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
     }
   }
 
