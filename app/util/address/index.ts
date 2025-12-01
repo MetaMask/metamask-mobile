@@ -6,6 +6,10 @@ import {
 } from 'ethereumjs-util';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
+  isBtcMainnetAddress,
+  isTronAddress,
+} from '../../core/Multichain/utils';
+import {
   getChecksumAddress,
   type Hex,
   isCaipAccountId,
@@ -778,7 +782,7 @@ export async function validateAddressOrENS(
     confusableCollection,
   };
 }
-/** Method to evaluate if an input is a valid ethereum address
+/** Method to evaluate if an input is a valid ethereum, solana, bitcoin, or tron address
  * via QR code scanning.
  *
  * @param {string} input - a random string.
@@ -786,6 +790,14 @@ export async function validateAddressOrENS(
  */
 export function isValidAddressInputViaQRCode(input: string) {
   if (isSolanaAddress(input)) {
+    return true;
+  }
+
+  if (isBtcMainnetAddress(input)) {
+    return true;
+  }
+
+  if (isTronAddress(input)) {
     return true;
   }
 
