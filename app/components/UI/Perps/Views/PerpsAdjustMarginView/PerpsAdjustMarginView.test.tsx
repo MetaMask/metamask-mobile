@@ -176,7 +176,7 @@ describe('PerpsAdjustMarginView', () => {
     });
 
     mockUsePerpsMarkets.mockReturnValue({
-      markets: [{ coin: 'ETH', maxLeverage: 50 }],
+      markets: [{ symbol: 'ETH', maxLeverage: '50x' }],
     });
   });
 
