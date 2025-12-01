@@ -68,7 +68,7 @@ describe('BatchApprovalRow', () => {
     expect(getByTestId('edit-spending-cap-button')).toBeTruthy();
   });
 
-  it('displays alert if BatchedApprovals alert is present', () => {
+  it('displays alert icon if BatchedApprovals alert is present', () => {
     jest
       .spyOn(BatchApprovalUtils, 'useBatchApproveBalanceChanges')
       .mockReturnValue({ value: approvalData, pending: false });
@@ -77,10 +77,10 @@ describe('BatchApprovalRow', () => {
       fieldAlerts: [mockBatchedUnusedApprovalAlert],
       isAlertConfirmed: () => false,
     } as unknown as AlertContextFunctions.AlertsContextParams);
-    const { getByText } = renderWithProvider(<BatchApprovalRow />, {
+    const { getByTestId } = renderWithProvider(<BatchApprovalRow />, {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
 
-    expect(getByText('Alert')).toBeTruthy();
+    expect(getByTestId('inline-alert-icon')).toBeTruthy();
   });
 });
