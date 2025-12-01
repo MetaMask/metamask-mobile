@@ -295,7 +295,9 @@ describe('useDepositRequests', () => {
       expect(deposit.timestamp).toBe(1640995202000);
       expect(deposit.amount).toBe('500');
       expect(deposit.asset).toBe('USDC');
+      expect(deposit.accountAddress).toBe(mockAddress);
       expect(deposit.txHash).toBe('0x456');
+      expect(deposit.success).toBe(true);
       expect(deposit.status).toBe('completed');
       expect(deposit.depositId).toBe('123');
     });

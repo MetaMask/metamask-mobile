@@ -12,6 +12,7 @@ export interface DepositRequest {
   asset: string;
   accountAddress: string; // Account that initiated this deposit
   txHash?: string;
+  success: boolean;
   status: 'pending' | 'bridging' | 'completed' | 'failed';
   source?: string;
   depositId?: string;
@@ -142,6 +143,10 @@ export const useDepositRequests = (
       // Handle cases where updates might be undefined or null
       const updatesArray = Array.isArray(updates) ? updates : [];
 
+      // Get current account address for completed deposits
+      // Since we're fetching deposits for the current account, all completed deposits belong to it
+      const currentAccountAddress = selectedAddress || 'unknown';
+
       const depositData = (
         updatesArray as {
           delta: {
@@ -164,7 +169,9 @@ export const useDepositRequests = (
           timestamp: update.time,
           amount: Math.abs(parseFloat(update.delta.usdc)).toString(),
           asset: update.delta.coin || 'USDC', // Default to USDC if coin is not specified
+          accountAddress: currentAccountAddress, // Completed deposits belong to current account
           txHash: update.hash,
+          success: true, // Completed deposits from ledger are successful
           status: 'completed' as const, // HyperLiquid ledger updates are completed transactions
           source: undefined, // Not available in ledger updates
           depositId: update.delta.nonce?.toString(), // Use nonce as deposit ID if available
@@ -181,7 +188,7 @@ export const useDepositRequests = (
     } finally {
       setIsLoading(false);
     }
-  }, [startTime]);
+  }, [selectedAddress, startTime]);
 
   // Combine pending and completed deposits
   const allDeposits = useMemo(() => {
