@@ -298,6 +298,9 @@ describe(`migration #${migrationVersion}`, () => {
 
     mockedEnsureValidState.mockReturnValue(true);
 
+    const monadNetworkConfig = createMonadNetworkConfig({
+      rpcEndpoints: monadRpcEndpoints,
+    });
     const expectedData = {
       engine: {
         backgroundState: {
@@ -307,8 +310,7 @@ describe(`migration #${migrationVersion}`, () => {
               ...oldState.engine.backgroundState.NetworkController
                 .networkConfigurationsByChainId,
               [MONAD_CHAIN_ID]: {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId[MONAD_CHAIN_ID],
+                ...monadNetworkConfig,
                 rpcEndpoints: monadRpcEndpoints.map((endpoint) => ({
                   ...endpoint,
                   failoverUrls: [QUICKNODE_MONAD_URL],
