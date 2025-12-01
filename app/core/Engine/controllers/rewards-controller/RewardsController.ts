@@ -70,7 +70,7 @@ const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Season metadata cache threshold
-const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
@@ -306,6 +306,7 @@ export class RewardsController extends BaseController<
       endDate: season.endDate.getTime(),
       tiers: season.tiers,
       activityTypes: season.activityTypes,
+      shouldInstallNewVersion: season.shouldInstallNewVersion,
     };
   }
 
@@ -324,6 +325,7 @@ export class RewardsController extends BaseController<
         endDate: new Date(seasonMetadata.endDate),
         tiers: seasonMetadata.tiers,
         activityTypes: seasonMetadata.activityTypes,
+        shouldInstallNewVersion: seasonMetadata.shouldInstallNewVersion,
       },
       balance: {
         total: seasonState.balance,
@@ -1641,11 +1643,10 @@ export class RewardsController extends BaseController<
       if (!seasonDto) {
         return false;
       }
-
-      const now = Date.now();
-      const isActive = now >= seasonDto.startDate && now <= seasonDto.endDate;
-
-      return isActive;
+      return (
+        new Date(seasonDto.endDate) >= new Date() &&
+        new Date(seasonDto.startDate) <= new Date()
+      );
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to check active season:',
@@ -1662,7 +1663,7 @@ export class RewardsController extends BaseController<
    * @returns Promise<SeasonDtoState> - The season metadata
    */
   async getSeasonMetadata(
-    type: 'current' | 'next' = 'current',
+    type: 'current' | 'previous' = 'current',
   ): Promise<SeasonDtoState | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
@@ -1688,12 +1689,12 @@ export class RewardsController extends BaseController<
           'RewardsDataService:getDiscoverSeasons',
         )) as DiscoverSeasonsDto;
 
-        // Check if the requested season is either current or next
         let seasonInfo = null;
-        if (type === 'current') {
+
+        if (type === 'previous') {
+          seasonInfo = discoverSeasons.previous;
+        } else if (type === 'current') {
           seasonInfo = discoverSeasons.current;
-        } else if (type === 'next') {
-          seasonInfo = discoverSeasons.next;
         }
 
         // If found with valid start date, fetch metadata and populate cache
@@ -1717,6 +1718,8 @@ export class RewardsController extends BaseController<
             endDate: seasonMetadata.endDate,
             tiers: seasonMetadata.tiers,
             activityTypes: seasonMetadata.activityTypes,
+            shouldInstallNewVersion:
+              seasonMetadata.shouldInstallNewVersion?.mobile,
           });
 
           // Add lastFetched timestamp
@@ -1727,6 +1730,10 @@ export class RewardsController extends BaseController<
 
           return seasonStateWithTimestamp;
         }
+
+        this.update((state: RewardsControllerState) => {
+          delete state.seasons[type];
+        });
 
         throw new Error(
           `No valid season metadata could be found for type: ${type}`,
