@@ -58,11 +58,8 @@ describe('useRegisterUserConsent', () => {
 
     // Default mocks
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
     });
 
     mockUseSelector.mockReturnValue('US'); // selectedCountry
@@ -137,11 +134,8 @@ describe('useRegisterUserConsent', () => {
 
     it('throws error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -187,7 +181,7 @@ describe('useRegisterUserConsent', () => {
         });
 
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith({
-          policyType: 'US',
+          policyType: 'us',
           onboardingId: testOnboardingId,
           consents: [
             {
@@ -336,11 +330,8 @@ describe('useRegisterUserConsent', () => {
     describe('error handling', () => {
       it('throws error when SDK is not available', async () => {
         mockUseCardSDK.mockReturnValue({
+          ...jest.requireMock('../sdk'),
           sdk: null,
-          isLoading: false,
-          user: null,
-          setUser: jest.fn(),
-          logoutFromProvider: jest.fn(),
         });
 
         const { result } = renderHook(() => useRegisterUserConsent());
@@ -482,11 +473,8 @@ describe('useRegisterUserConsent', () => {
     describe('error handling', () => {
       it('throws error when SDK is not available', async () => {
         mockUseCardSDK.mockReturnValue({
+          ...jest.requireMock('../sdk'),
           sdk: null,
-          isLoading: false,
-          user: null,
-          setUser: jest.fn(),
-          logoutFromProvider: jest.fn(),
         });
 
         const { result } = renderHook(() => useRegisterUserConsent());
@@ -729,7 +717,7 @@ describe('useRegisterUserConsent', () => {
     const countryTestCases = [
       {
         country: 'US',
-        expectedPolicy: 'US',
+        expectedPolicy: 'us',
         description: 'US users',
       },
       {
@@ -779,11 +767,8 @@ describe('useRegisterUserConsent', () => {
       } as unknown as CardSDK;
 
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: customSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -805,11 +790,8 @@ describe('useRegisterUserConsent', () => {
       } as unknown as CardSDK;
 
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: customSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -838,11 +820,8 @@ describe('useRegisterUserConsent', () => {
       } as unknown as CardSDK;
 
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: customSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -858,11 +837,8 @@ describe('useRegisterUserConsent', () => {
 
     it('handles SDK loading state', () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: mockSDK,
-        isLoading: true,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -880,11 +856,8 @@ describe('useRegisterUserConsent', () => {
   describe('edge cases', () => {
     it('handles undefined SDK gracefully for createOnboardingConsent', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -898,11 +871,8 @@ describe('useRegisterUserConsent', () => {
 
     it('handles undefined SDK gracefully for linkUserToConsent', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -988,14 +958,11 @@ describe('useRegisterUserConsent', () => {
 
       // Change SDK dependency
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: {
           createOnboardingConsent: jest.fn(),
           linkUserToConsent: jest.fn(),
         } as unknown as CardSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       rerender();
@@ -1013,15 +980,12 @@ describe('useRegisterUserConsent', () => {
 
       // Change SDK dependency
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: {
           createOnboardingConsent: jest.fn(),
           linkUserToConsent: jest.fn(),
           getConsentSetByOnboardingId: jest.fn(),
         } as unknown as CardSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       rerender();
@@ -1038,15 +1002,12 @@ describe('useRegisterUserConsent', () => {
 
       // Change SDK dependency
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: {
           createOnboardingConsent: jest.fn(),
           linkUserToConsent: jest.fn(),
           getConsentSetByOnboardingId: jest.fn(),
         } as unknown as CardSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       rerender();

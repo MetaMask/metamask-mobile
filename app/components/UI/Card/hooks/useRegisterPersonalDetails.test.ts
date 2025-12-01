@@ -35,7 +35,6 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
 
 describe('useRegisterPersonalDetails', () => {
   const mockRegisterPersonalDetails = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
 
   const mockSDK = {
     registerPersonalDetails: mockRegisterPersonalDetails,
@@ -65,12 +64,8 @@ describe('useRegisterPersonalDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
-      userCardLocation: 'us',
     } as ICardSDK);
   });
 
@@ -146,12 +141,8 @@ describe('useRegisterPersonalDetails', () => {
 
     it('handles SDK not available error', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us',
       } as ICardSDK);
 
       const { result } = renderHook(() => useRegisterPersonalDetails());
@@ -350,7 +341,7 @@ describe('useRegisterPersonalDetails', () => {
             mockPersonalDetailsRequest,
           );
         });
-      } catch (error) {
+      } catch (err) {
         // Expected to throw
       }
 
@@ -418,7 +409,7 @@ describe('useRegisterPersonalDetails', () => {
             mockPersonalDetailsRequest,
           );
         });
-      } catch (error) {
+      } catch (err) {
         // Expected to throw
       }
 
@@ -462,15 +453,12 @@ describe('useRegisterPersonalDetails', () => {
     });
 
     it('handles undefined SDK gracefully', async () => {
-      const mockCardSDKUndefined: ICardSDK = {
+      const mockCardSDKNull: ICardSDK = {
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       };
 
-      mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
+      mockUseCardSDK.mockReturnValue(mockCardSDKNull);
 
       const { result } = renderHook(() => useRegisterPersonalDetails());
 

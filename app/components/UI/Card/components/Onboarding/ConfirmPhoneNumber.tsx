@@ -1,6 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, TextInput, StyleSheet } from 'react-native';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  TextInputProps,
+  Platform,
+} from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
@@ -15,6 +21,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   CodeField,
   Cursor,
+  useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -33,6 +40,10 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
+const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+  android: 'sms-otp',
+  default: 'one-time-code',
+});
 
 // Styles for the OTP CodeField
 export const createOTPStyles = (params: { theme: Theme }) => {
@@ -67,7 +78,6 @@ const ConfirmPhoneNumber = () => {
   const dispatch = useDispatch();
   const { setUser } = useCardSDK();
   const { styles } = useStyles(createOTPStyles, {});
-  const inputRef = useRef<TextInput>(null);
   const [resendCooldown, setResendCooldown] = useState(60);
   const [confirmCode, setConfirmCode] = useState('');
   const resendInProgressRef = useRef(false);
@@ -126,7 +136,10 @@ const ConfirmPhoneNumber = () => {
       });
       if (user) {
         setUser(user);
-        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
+        });
       }
     } catch (error) {
       if (
@@ -183,8 +196,6 @@ const ConfirmPhoneNumber = () => {
     }
     try {
       resendInProgressRef.current = true;
-      // Set cooldown immediately to guard against rapid multi-presses
-      setResendCooldown(60);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -198,6 +209,8 @@ const ConfirmPhoneNumber = () => {
         phoneNumber,
         contactVerificationId,
       });
+      // Set cooldown after successful resend
+      setResendCooldown(60);
     } catch {
       // Allow error message to display
     } finally {
@@ -235,6 +248,17 @@ const ConfirmPhoneNumber = () => {
     }
   }, [resendCooldown]);
 
+  const inputRef =
+    useBlurOnFulfill({
+      value: confirmCode,
+      cellCount: CELL_COUNT,
+    }) || null;
+
+  // Focus management
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [inputRef]);
+
   // Auto-submit when all digits are entered
   useEffect(() => {
     if (
@@ -245,11 +269,6 @@ const ConfirmPhoneNumber = () => {
       handleContinue();
     }
   }, [confirmCode, handleContinue, latestValueSubmitted]);
-
-  // Focus management
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value: confirmCode,
@@ -274,7 +293,7 @@ const ConfirmPhoneNumber = () => {
           )}
         </Label>
         <CodeField
-          ref={inputRef}
+          ref={inputRef as React.RefObject<TextInput>}
           {...props}
           value={confirmCode}
           onChangeText={handleValueChange}
@@ -282,7 +301,7 @@ const ConfirmPhoneNumber = () => {
           rootStyle={styles.codeFieldRoot}
           keyboardType="number-pad"
           textContentType="oneTimeCode"
-          autoComplete="one-time-code"
+          autoComplete={autoComplete}
           renderCell={({ index, symbol, isFocused }) => (
             <View
               onLayout={getCellOnLayoutHandler(index)}

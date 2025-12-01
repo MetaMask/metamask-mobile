@@ -173,7 +173,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               ]}
             >
               <Text
-                variant={TextVariant.BodyMDMedium}
+                variant={TextVariant.BodyMD}
                 color={TextColor.Default}
                 testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
               >

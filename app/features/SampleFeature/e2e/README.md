@@ -49,18 +49,15 @@ The `sample-scenarios.feature` file documents test scenarios using Gherkin synta
 > In a production feature, all documented scenarios should be fully implemented to ensure comprehensive test coverage.
 
 1. **Navigation Tests**
-
    - Accessing the Sample Feature through Settings > Developer Options
    - Verifying all UI elements are displayed correctly
 
 2. **Counter Tests**
-
    - Basic increment functionality
    - Multiple increments
    - State persistence during session
 
 3. **Pet Names Tests**
-
    - Creating new pet names with real addresses (Alice, Bob, Charlie)
    - Updating existing pet names
    - Form validation for address and name fields

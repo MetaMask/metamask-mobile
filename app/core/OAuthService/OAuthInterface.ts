@@ -68,6 +68,8 @@ export type AuthRequestParams =
   | AuthRequestCodeParams
   | AuthRequestIdTokenParams;
 
+// return type for auth request with
+// grant type : authorization_code, access_type: offline
 export interface AuthResponse {
   id_token: string;
   access_token: string;
@@ -76,6 +78,17 @@ export interface AuthResponse {
   endpoints: Record<string, string>;
   refresh_token?: string;
   revoke_token?: string;
+}
+
+// return type for auth request with
+// grant type : refresh_token
+// grant type : authorization_code, access_type: online
+export interface AuthRefreshTokenResponse {
+  id_token: string;
+  access_token: string;
+  metadata_access_token: string;
+  indexes: number[];
+  endpoints: Record<string, string>;
 }
 
 export interface LoginHandler {

@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { AssetType, Nft } from '../../../types/token';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useSendTokens } from '../../../hooks/send/useSendTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { useEVMNfts } from '../../../hooks/send/useNfts';
 import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
@@ -66,8 +66,8 @@ const mockNfts: Nft[] = [
   },
 ];
 
-jest.mock('../../../hooks/send/useAccountTokens', () => ({
-  useAccountTokens: jest.fn(),
+jest.mock('../../../hooks/send/useSendTokens', () => ({
+  useSendTokens: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/useTokenSearch', () => ({
@@ -198,7 +198,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   }),
 }));
 
-const mockUseAccountTokens = jest.mocked(useAccountTokens);
+const mockUseSendTokens = jest.mocked(useSendTokens);
 const mockUseTokenSearch = jest.mocked(useTokenSearch);
 const mockUseEVMNfts = jest.mocked(useEVMNfts);
 const mockUseAssetSelectionMetrics = jest.mocked(useAssetSelectionMetrics);
@@ -212,7 +212,7 @@ describe('Asset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseAccountTokens.mockReturnValue(mockTokens);
+    mockUseSendTokens.mockReturnValue(mockTokens);
     mockUseEVMNfts.mockReturnValue(mockNfts);
 
     mockUseTokenSearch.mockReturnValue({
@@ -259,6 +259,11 @@ describe('Asset', () => {
     render(<Asset />);
 
     expect(screen.getByText('NftList with 2 nfts')).toBeOnTheScreen();
+  });
+
+  it('does not render NftList when hideNfts is true', () => {
+    render(<Asset hideNfts />);
+    expect(screen.queryByTestId('nft-list')).toBeNull();
   });
 
   it('handles search input changes', () => {
@@ -666,5 +671,21 @@ describe('Asset', () => {
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
     expect(screen.getByText('TokenList with 2 tokens')).toBeOnTheScreen();
     expect(screen.getByText('NftList with 2 nfts')).toBeOnTheScreen();
+  });
+
+  it('renders only tokens from tokenFilter prop if provided', () => {
+    const tokenFilter = (assets: AssetType[]) =>
+      assets.filter(
+        (asset) =>
+          asset.address === '0x1234567890123456789012345678901234567890',
+      );
+
+    render(<Asset tokenFilter={tokenFilter} />);
+
+    expect(mockUseTokenSearch).toHaveBeenCalledWith(
+      [mockTokens[0]],
+      expect.anything(),
+      expect.anything(),
+    );
   });
 });

@@ -9,32 +9,32 @@ jest.mock('../../../../AppConstants', () => ({
 }));
 
 describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
-  it('returns DEV api url for local or dev env', async () => {
+  it('returns UAT api url for local or dev env', async () => {
     // Act
     let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
 
     // Assert
-    expect(apiUrl).toEqual('https://api.dev');
+    expect(apiUrl).toEqual('https://api.uat');
 
     // Act
     apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('local');
 
     // Assert
-    expect(apiUrl).toEqual('https://api.dev');
+    expect(apiUrl).toEqual('https://api.uat');
   });
 
-  it('returns DEV api url for undefined or unknown env', async () => {
+  it('returns UAT api url for undefined or unknown env', async () => {
     // Act
     let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv(undefined);
 
     // Assert
-    expect(apiUrl).toEqual('https://api.dev');
+    expect(apiUrl).toEqual('https://api.uat');
 
     // Act
     apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('unknown');
 
     // Assert
-    expect(apiUrl).toEqual('https://api.dev');
+    expect(apiUrl).toEqual('https://api.uat');
   });
 
   it('returns UAT api url for e2e or exp env', async () => {

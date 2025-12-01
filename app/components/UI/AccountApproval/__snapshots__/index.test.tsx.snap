@@ -303,6 +303,7 @@ exports[`AccountApproval should render correctly 1`] = `
             {
               "flexDirection": "row",
               "justifyContent": "flex-start",
+              "marginLeft": 8,
               "width": "100%",
             }
           }
@@ -327,9 +328,21 @@ exports[`AccountApproval should render correctly 1`] = `
                 "lineHeight": 24,
               }
             }
+            tooltip="Account 2"
           >
             Account 2
           </Text>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "marginLeft": 8,
+              "width": "100%",
+            }
+          }
+        >
           <Text
             accessibilityRole="text"
             numberOfLines={1}
@@ -350,35 +363,44 @@ exports[`AccountApproval should render correctly 1`] = `
               }
             }
           >
-            (
             0xC4966...4a756
-            )
           </Text>
         </View>
-        <Text
-          accessibilityRole="text"
-          numberOfLines={1}
+        <View
           style={
             {
-              "0": {
-                "alignSelf": "flex-start",
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 14,
-              },
-              "1": undefined,
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "marginLeft": 8,
+              "width": "100%",
             }
           }
         >
-          Balance:
-           
-          0 ETH
-        </Text>
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "0": {
+                  "alignSelf": "flex-start",
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 14,
+                },
+                "1": undefined,
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Balance:
+             
+            0 ETH
+          </Text>
+        </View>
       </View>
     </View>
   </View>

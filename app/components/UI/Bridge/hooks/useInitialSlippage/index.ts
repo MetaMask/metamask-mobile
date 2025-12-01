@@ -8,9 +8,9 @@ import {
   selectSourceToken,
   setSlippage,
 } from '../../../../../core/redux/slices/bridge';
-import { getIsStablecoinPair } from '../../../Swaps/useStablecoinsDefaultSlippage';
 import { isHex } from 'viem';
 import AppConstants from '../../../../../core/AppConstants';
+import { getIsStablecoinPair } from '../useStablecoinsDefaultSlippage';
 
 export const useInitialSlippage = () => {
   const dispatch = useDispatch();

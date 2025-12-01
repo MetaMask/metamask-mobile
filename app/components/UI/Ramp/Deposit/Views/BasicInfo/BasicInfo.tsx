@@ -25,6 +25,7 @@ import {
   createEnterAddressNavDetails,
 } from '../EnterAddress/EnterAddress';
 import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
+import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
 import { VALIDATION_REGEX } from '../../constants/constants';
@@ -48,6 +49,7 @@ import Logger from '../../../../../../util/Logger';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useRegions } from '../../hooks/useRegions';
+import type { AxiosError } from 'axios';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -70,9 +72,10 @@ const BasicInfo = (): JSX.Element => {
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData } = useParams<BasicInfoParams>();
-  const { selectedRegion } = useDepositSDK();
+  const { selectedRegion, logoutFromProvider } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -197,6 +200,7 @@ const BasicInfo = (): JSX.Element => {
 
     // Clear any previous errors when retrying
     setError(null);
+    setIsPhoneRegisteredError(false);
 
     trackEvent('RAMPS_BASIC_INFO_ENTERED', {
       region: selectedRegion?.isoCode || '',
@@ -227,11 +231,37 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     } catch (submissionError) {
-      setError(
+      const axiosError = submissionError as AxiosError;
+      const apiError = (
+        axiosError?.response?.data as {
+          error?: { errorCode?: number; message?: string };
+        }
+      )?.error;
+
+      const isPhoneError = apiError?.errorCode === 2020;
+      setIsPhoneRegisteredError(isPhoneError);
+
+      const errorMessageText =
         submissionError instanceof Error && submissionError.message
           ? submissionError.message
-          : strings('deposit.basic_info.unexpected_error'),
-      );
+          : strings('deposit.basic_info.unexpected_error');
+
+      let errorMessage = errorMessageText;
+      if (isPhoneError && errorMessageText) {
+        // Extract email from message for error code 2020 (phone already registered)
+        const emailMatch = errorMessageText.match(/[\w*]+@[\w*]+(?:\.[\w*]+)*/);
+        const email = emailMatch ? emailMatch[0] : '';
+        if (email) {
+          errorMessage = strings(
+            'deposit.basic_info.phone_already_registered',
+            {
+              email,
+            },
+          );
+        }
+      }
+
+      setError(errorMessage);
       Logger.error(
         submissionError as Error,
         'Unexpected error during basic info form submission',
@@ -240,16 +270,31 @@ const BasicInfo = (): JSX.Element => {
       setLoading(false);
     }
   }, [
-    previousFormData,
     validateFormData,
     formData,
     postKycForm,
     submitSsnDetails,
     navigation,
     quote,
+    previousFormData,
     selectedRegion?.isoCode,
     trackEvent,
   ]);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await logoutFromProvider(false); // false = no server invalidation needed
+
+      // Navigate back to email entry screen
+      navigation.navigate(...createEnterEmailNavDetails());
+    } catch (logoutError) {
+      Logger.error(
+        logoutError as Error,
+        'Error logging out from BasicInfo error banner',
+      );
+      // Keep error visible if logout fails
+    }
+  }, [logoutFromProvider, navigation]);
 
   const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
@@ -262,6 +307,7 @@ const BasicInfo = (): JSX.Element => {
     (field: keyof BasicInfoFormData, nextAction?: () => void) =>
       (value: string) => {
         setError(null);
+        setIsPhoneRegisteredError(false);
         const currentValue = formData[field] || '';
         const isAutofill = value.length - currentValue.length > 1;
 
@@ -298,6 +344,17 @@ const BasicInfo = (): JSX.Element => {
                 <BannerAlert
                   description={error}
                   severity={BannerAlertSeverity.Error}
+                  actionButtonProps={
+                    isPhoneRegisteredError
+                      ? {
+                          variant: ButtonVariants.Link,
+                          label: strings('deposit.basic_info.login_with_email'),
+                          onPress: handleLogout,
+                          labelTextVariant: TextVariant.BodyMD,
+                          testID: 'basic-info-logout-button',
+                        }
+                      : undefined
+                  }
                 />
               </View>
             )}

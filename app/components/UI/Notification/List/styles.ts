@@ -27,23 +27,6 @@ export const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
-    unreadDot: {
-      width: 4,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.info.default,
-      position: 'absolute',
-      marginTop: 16,
-      marginLeft: 8,
-    },
-    readDot: {
-      width: 4,
-      height: 4,
-      borderRadius: 2,
-      position: 'absolute',
-      marginTop: 16,
-      marginLeft: 8,
-    },
     wrapper: {
       flex: 1,
       paddingVertical: 10,
@@ -58,10 +41,6 @@ export const createStyles = ({ colors }: Theme) =>
       height: '100%',
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    menuItemContainer: {
-      flexDirection: 'row',
-      gap: 16,
     },
     loader: {
       backgroundColor: colors.background.default,

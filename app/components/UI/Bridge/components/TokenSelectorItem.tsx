@@ -99,6 +99,13 @@ const createStyles = ({
       marginLeft: 8,
       paddingHorizontal: 6,
     },
+    selectedItemWrapperReset: {
+      marginLeft: -4,
+    },
+    nativeTokenIcon: {
+      width: 32,
+      height: 32,
+    },
   });
 
 interface TokenSelectorItemProps {
@@ -109,7 +116,6 @@ interface TokenSelectorItemProps {
   isSelected?: boolean;
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
-  skipNoFeeBadge?: boolean;
 }
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -120,7 +126,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   isSelected = false,
   shouldShowBalance = true,
   children,
-  skipNoFeeBadge = false,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
   const noFeeAssets = useSelector((state: RootState) =>
@@ -176,6 +181,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
+          style={isSelected ? styles.selectedItemWrapperReset : {}}
         >
           {/* Token Icon */}
           <BadgeWrapper
@@ -194,6 +200,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 symbol={token.symbol}
                 icon={token.image}
                 medium
+                style={styles.nativeTokenIcon}
                 testID={`network-logo-${token.symbol}`}
               />
             ) : (
@@ -218,7 +225,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
               {label && <Tag label={label} />}
-              {!skipNoFeeBadge && isNoFeeAsset && (
+              {isNoFeeAsset && (
                 <TagBase
                   shape={TagShape.Rectangle}
                   severity={TagSeverity.Info}

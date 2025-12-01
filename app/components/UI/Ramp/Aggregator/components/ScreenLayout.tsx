@@ -23,6 +23,7 @@ const createStyles = (colors: Colors) =>
     },
     content: {
       padding: 15,
+      paddingHorizontal: 16,
     },
     grow: {
       flex: 1,

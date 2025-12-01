@@ -1,19 +1,60 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   isFromOrToSelectedAddress,
   isFromCurrentChain,
   sortTransactions,
-  filterByAddress,
-  filterByAddressAndNetwork,
+  filterByAddress as filterByAddressOriginal,
+  filterByAddressAndNetwork as filterByAddressAndNetworkOriginal,
   PAY_TYPES,
+  isTransactionOnChains,
 } from '.';
 import { Token } from '../../components/UI/Swaps/utils/token-list-utils';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
 import { DeepPartial } from '../test/renderWithProvider';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { Hex } from '@metamask/utils';
 
 const TEST_ADDRESS_ONE = '0x5a3ca5cd63807ce5e4d7841ab32ce6b6d9bbba2d';
 const TEST_ADDRESS_TWO = '0x202637daaefbd7f131f90338a4a6c69f6cd5ce91';
 const TEST_ADDRESS_THREE = '0xA9d8520b9F2da2A35df109dAeDf047CD7E10309a';
+
+function filterByAddressAndNetwork(
+  transaction: TransactionMeta,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tokens: any[],
+  selectedAddress: string,
+  tokenNetworkFilter: { [chainId: string]: boolean },
+  allTransactions: TransactionMeta[] = [],
+  bridgeHistory: Record<string, BridgeHistoryItem> = {},
+): boolean {
+  return filterByAddressAndNetworkOriginal(
+    transaction,
+    tokens,
+    selectedAddress,
+    tokenNetworkFilter,
+    allTransactions,
+    bridgeHistory,
+  );
+}
+
+function filterByAddress(
+  transaction: TransactionMeta,
+  tokens: { address: string }[],
+  selectedAddress: string,
+  allTransactions: TransactionMeta[] = [],
+  bridgeHistory: Record<string, BridgeHistoryItem> = {},
+): boolean {
+  return filterByAddressOriginal(
+    transaction,
+    tokens,
+    selectedAddress,
+    allTransactions,
+    bridgeHistory,
+  );
+}
 
 describe('Activity utils :: isFromOrToSelectedAddress', () => {
   const tx = {
@@ -238,7 +279,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     expect(result).toEqual(false);
   });
 
-  it('should return false if the transaction does not meet the token condition for transfers', () => {
+  it('returns true for outgoing transfer even when token is not in list', () => {
     const chainId = '0x1';
     const transaction = {
       chainId,
@@ -246,6 +287,32 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    // Empty tokens array so matching token is not found.
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+    );
+    expect(result).toEqual(true);
+  });
+
+  it('returns false for incoming transfer when token is not in list', () => {
+    const chainId = '0x1';
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_TWO,
+        to: TEST_ADDRESS_ONE,
       },
       isTransfer: true,
       transferInformation: {
@@ -488,6 +555,50 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
 
     expect(result).toEqual(true);
   });
+
+  it('returns false if matches bridge destination hash and source is required transaction', () => {
+    const transaction = {
+      id: '456-123',
+      hash: '0xdef',
+      txParams: { from: TEST_ADDRESS_ONE, to: TEST_ADDRESS_TWO },
+      chainId: '0x1' as Hex,
+      status: TX_SUBMITTED,
+    } as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '123-456',
+        chainId: '0x1',
+        txParams: {},
+      },
+      {
+        requiredTransactionIds: ['123-456'],
+        txParams: {},
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const bridgeHistory = {
+      '123-456': {
+        status: {
+          destChain: {
+            txHash: '0xdef',
+          },
+        },
+        txMetaId: '123-456',
+      } as BridgeHistoryItem,
+    };
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+      bridgeHistory,
+    );
+
+    expect(result).toEqual(false);
+  });
 });
 
 describe('Activity utils :: filterByAddress', () => {
@@ -540,12 +651,31 @@ describe('Activity utils :: filterByAddress', () => {
     expect(result).toEqual(false);
   });
 
-  it('returns false for transfer when token is not in list', () => {
+  it('returns true for outgoing transfer even when token is not in list', () => {
     const transaction = {
       status: TX_SUBMITTED,
       txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddress(transaction, tokens, TEST_ADDRESS_ONE);
+    expect(result).toEqual(true);
+  });
+
+  it('returns false for incoming transfer when token is not in list', () => {
+    const transaction = {
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_TWO,
+        to: TEST_ADDRESS_ONE,
       },
       isTransfer: true,
       transferInformation: {
@@ -699,5 +829,147 @@ describe('Activity utils :: filterByAddress', () => {
     );
 
     expect(result).toEqual(true);
+  });
+
+  it('returns false if matches bridge destination hash and source is required transaction', () => {
+    const transaction = {
+      id: '456-123',
+      hash: '0xdef',
+      txParams: { from: TEST_ADDRESS_ONE, to: TEST_ADDRESS_TWO },
+      chainId: '0x1' as Hex,
+      status: TX_SUBMITTED,
+    } as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '123-456',
+        chainId: '0x1',
+        txParams: {},
+      },
+      {
+        requiredTransactionIds: ['123-456'],
+        txParams: {},
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const bridgeHistory = {
+      '123-456': {
+        status: {
+          destChain: {
+            txHash: '0xdef',
+          },
+        },
+        txMetaId: '123-456',
+      } as BridgeHistoryItem,
+    };
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      allTransactions,
+      bridgeHistory,
+    );
+
+    expect(result).toEqual(false);
+  });
+});
+
+describe('Activity utils :: isTransactionOnChains', () => {
+  it('returns true if transaction chain ID matches', () => {
+    expect(
+      isTransactionOnChains(
+        { chainId: '0x1' as Hex } as TransactionMeta,
+        ['0x1', '0x2'],
+        [],
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true if required transaction has matching chain ID', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x3' as Hex,
+          requiredTransactionIds: ['123'],
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [
+          {
+            id: '123',
+            chainId: '0x1' as Hex,
+          } as TransactionMeta,
+        ],
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false if neither transaction nor required transaction match chain IDs', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x3' as Hex,
+          requiredTransactionIds: ['123'],
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [
+          {
+            id: '123',
+            chainId: '0x4' as Hex,
+          } as TransactionMeta,
+        ],
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false if perps deposit and required transaction chain does not match', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x1' as Hex,
+          type: TransactionType.perpsDeposit,
+          requiredTransactionIds: ['123'],
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [
+          {
+            id: '123',
+            chainId: '0x3' as Hex,
+          } as TransactionMeta,
+        ],
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true if perps deposit and required transaction chain does match', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x1' as Hex,
+          type: TransactionType.perpsDeposit,
+          requiredTransactionIds: ['123'],
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [
+          {
+            id: '123',
+            chainId: '0x2' as Hex,
+          } as TransactionMeta,
+        ],
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true if perps deposit and no required transactions', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x1' as Hex,
+          type: TransactionType.perpsDeposit,
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [],
+      ),
+    ).toBe(true);
   });
 });

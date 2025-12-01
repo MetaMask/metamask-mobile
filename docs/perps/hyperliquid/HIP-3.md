@@ -1,20 +1,24 @@
 # HIP-3: Builder-deployed perpetuals
 
-The Hyperliquid protocol will support builder-deployed perps (HIP-3), a key milestone toward fully decentralizing the perp listing process. An MVP of this feature is live on testnet. Feedback is appreciated during this testing phase. Note that numbers and specifications below are not finalized. Builder-deployed perps share many features with HyperCore spot deployments:
+The Hyperliquid protocol supports permissionless builder-deployed perps (HIP-3), a key milestone toward fully decentralizing the perp listing process.&#x20;
 
-1. Deployments allocate new performant onchain orderbooks on HyperCore.
-2. Deployment gas in HYPE is paid through a Dutch auction every 31 hours. There is a single Dutch auction across all HIP-3 perp DEXs.
-3. Deployers can set a fee share of up to 50%. A difference is that the deployer can configure additional fees on top of the base fee rate. Fee share applies to the total configured fee. The fee share configuration transaction for deployers will be documented once live on testnet.
-4. Deployments are fully permissionless.
-
-The deployer of a perp market is also responsible for
+The deployer of a perp market is responsible for
 
 1. Market definition, including the oracle definition and contract specifications
 2. Market operation, including setting oracle prices, leverage limits, and settling the market if needed
 
-Perp deployment composes with HyperCore multisig to support protocolized market deployment and operation.&#x20;
+HIP-3 inherits the HyperCore stack including its high performance margining and order books. For example, the API to trade HIP-3 perps is unified with other HyperCore actions. To trade HIP-3 assets, the asset ID simply needs to be set using the schema [here](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids).
 
-To ensure high quality markets and protect users, deployers must maintain 500k staked HYPE. In the event of malicious market operation, validators have the authority to slash the deployer’s stake by conducting a stake-weighted vote. Even if the deployer has unstaked and initiated a staking withdrawal, the stake is still slashable during the 7-day unstaking queue.&#x20;
+## Spec
+
+1. The staking requirement for mainnet will be 500k HYPE. This requirement is expected to decrease over time as the infrastructure matures. Any amount staked above the most recent requirement can be unstaked. The staking requirement is maintained for 30 days even after all of the deployer's perps have been halted.
+2. Any deployer that meets the staking requirement can deploy one perp dex. As a reminder, each perp dex features independent margining, order books, and deployer settings. A future upgrade may support multiple dex deployments sharing the same deployer and staking requirement.
+3. Any quote asset can be used as the collateral asset for a dex. As a reminder, assets that fail to meet the permissionless quote asset requirements will lose quote asset status based on onchain validator vote. Such a vote would also disable perp dexs that use this asset as collateral.
+4. HIP-3 deployers are not subject to slashing related to quote assets. On a future upgrade, dexs with disabled quote assets would support migration to a new collateral token. This is not expected to happen on mainnet, as quote token deployers have their separate staking and slashing conditions. In summary, the quote asset choice is important for trading fee and product considerations, but is not an existential risk for HIP-3 deployers.
+5. The first 3 assets deployed in any perp dex do not require auction participation. Additional assets go through a Dutch auction with the same hyperparameters (including frequency and minimum price) as the HIP-1 auction. The HIP-3 auction for additional perps is shared across all perp dexs. Future upgrades will support improved ergonomics around reserving assets for time-sensitive future deployments.
+6. Isolated-only margin mode is required. Cross margin will be supported in a future upgrade.
+7. HIP-3 markets incorporate the usual sources of trading fee discounts, including staking discounts, referral rewards, and aligned collateral discount. From the deployer perspective, the fee share is fixed at 50%. From the user perspective, fees are 2x the usual fees on validator-operated perp markets. The net effect is that the protocol collects the same fee regardless of whether the trade is on an HIP-3 or a validator-operated perp. User rebates are unaffected, and do not interact with the deployer. Deployer configurability of fees will be supported in a future upgrade.
+8. Aligned stablecoin collateral will automatically receive reduced fees once the alignment condition (which is being updated based on user and deployer feedback) is implemented.
 
 ## Settlement
 
@@ -26,28 +30,11 @@ Once all assets are settled, a deployer's required stake is free to be unstaked.
 
 While the oracle is completely general at the protocol level, perps make the most mathematical sense when there is a well-defined underlying asset or data feed which is difficult to manipulate and has underlying economic significance. Most price indices are not amenable as perp oracle sources. Deployers should consider edge cases carefully before listing markets, as they are subject to slashing for all listed markets on their DEX.
 
-## Open interest caps
-
-Builder-deployed perp markets are subject to two types of open interest caps: notional (sum of absolute position size times mark price) and size (sum of absolute position sizes).&#x20;
-
-Notional open interest caps are enforced on the total open interest summed over all assets within the DEX, as well as per-asset. Perp deployers can set a custom open interest cap per asset, which is documented in <https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/hip-3-deployer-actions>.
-
-Size-denominated open interest caps are only enforced per-asset. Size-denominated open interest caps are currently a constant 1B per asset, so a reasonable default would be to set `szDecimals` such that the minimal size increment is $1-10 at the initial mark price.
-
-## Initial mainnet spec
-
-1. The staking requirement for mainnet will be 500k HYPE. This requirement is expected to decrease over time as the infrastructure matures. Any amount staked above the most recent requirement can be unstaked. The staking requirement is maintained for 30 days even after all of the deployer's perps have been halted.
-2. Any deployer that meets the staking requirement can deploy one perp dex. As a reminder, each perp dex features independent margining, order books, and deployer settings. A future upgrade may support multiple dex deployments sharing the same deployer and staking requirement.
-3. Any quote asset can be used as the collateral asset for a dex. As a reminder, assets that fail to meet the permissionless quote asset requirements will lose quote asset status based on onchain validator vote. Such a vote would also disable perp dexs that use this asset as collateral.
-4. HIP-3 deployers are not subject to slashing related to quote assets. On a future upgrade, dexs with disabled quote assets would support migration to a new collateral token. This is not expected to happen on mainnet, as quote token deployers have their separate staking and slashing conditions. In summary, the quote asset choice is important for trading fee and product considerations, but is not an existential risk for HIP-3 deployers.
-5. The first 3 assets deployed in any perp dex do not require auction participation. Additional assets go through a Dutch auction with the same hyperparameters (including frequency and minimum price) as the HIP-1 auction. The HIP-3 auction for additional perps is shared across all perp dexs. Future upgrades will support improved ergonomics around reserving assets for time-sensitive future deployments.
-6. Isolated-only margin mode is required. Cross margin will be supported in a future upgrade.
-7. HIP-3 markets incorporate the usual sources of trading fee discounts, including staking discounts, referral rewards, and aligned collateral discount. From the deployer perspective, the fee share is fixed at 50%. From the user perspective, fees are 2x the usual fees on validator-operated perp markets. The net effect is that the protocol collects the same fee regardless of whether the trade is on an HIP-3 or a validator-operated perp. User rebates are unaffected, and do not interact with the deployer. Deployer configurability of fees will be supported in a future upgrade.
-8. Aligned stablecoin collateral will automatically receive reduced fees once the alignment condition (which is being updated based on user and deployer feedback) is implemented.
-
-## **HIP-3 Slashing**&#x20;
+## **Slashing**&#x20;
 
 Note: in all usages below, "slashing" is only in the context of HIP-3.&#x20;
+
+To ensure high quality markets and protect users, deployers must maintain 500k staked HYPE. In the event of malicious market operation, validators have the authority to slash the deployer’s stake by conducting a stake-weighted vote. Even if the deployer has unstaked and initiated a staking withdrawal, the stake is still slashable during the 7-day unstaking queue.&#x20;
 
 While slashing is ultimately by validator quorum, the protocol guidelines have been distilled from careful testnet analysis, user feedback, and deployer feedback. The guiding principle is that slashing is to prevent behavior that jeopardizes protocol correctness, uptime, or performance. A useful rule of thumb is that any slashable behavior should be accompanied by a bug fix in the protocol implementation. Therefore, HIP-3 should not require slashing in its final state. However, slashing is an important safety mechanism for a practical rollout of this large feature set.&#x20;
 

@@ -115,7 +115,7 @@ export async function importSRPFlow(device, srp) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { skipIntro = false, scenarioType = 'login' } = options;
+  const { scenarioType = 'login' } = options;
 
   const password = getPasswordForScenario(scenarioType);
 
@@ -149,7 +149,7 @@ export async function dismissRewardsBottomSheetModal(device) {
 
 export async function dismissMultichainAccountsIntroModal(
   device,
-  timeout = 5000,
+  timeout = 10000,
 ) {
   MultichainAccountEducationModal.device = device;
   const closeButton = await MultichainAccountEducationModal.closeButton;

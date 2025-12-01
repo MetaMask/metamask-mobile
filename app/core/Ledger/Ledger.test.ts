@@ -38,6 +38,7 @@ jest.mock('../../core/Engine', () => ({
       getAccountByAddress: jest.fn(),
     },
   },
+  setSelectedAddress: jest.fn(),
 }));
 const MockEngine = jest.mocked(Engine);
 
@@ -304,6 +305,13 @@ describe('Ledger core', () => {
       await unlockLedgerWalletAccount(1);
       expect(ledgerKeyring.setAccountToUnlock).toHaveBeenCalled();
       expect(ledgerKeyring.addAccounts).toHaveBeenCalledWith(1);
+    });
+
+    it('sets the newly unlocked account as selected address', async () => {
+      await unlockLedgerWalletAccount(1);
+      expect(MockEngine.setSelectedAddress).toHaveBeenCalledWith(
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+      );
     });
 
     it(`throws an error if the account name has already exists`, async () => {

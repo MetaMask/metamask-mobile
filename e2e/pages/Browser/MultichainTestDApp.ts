@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 import TestHelpers from '../../helpers';
-import { getLocalTestDappPort } from '../../framework/fixtures/FixtureUtils';
+import { getDappPort } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
@@ -23,7 +23,7 @@ const logger = createLogger({
 });
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
-export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
+export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getDappPort(0)}`;
 export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
   'https://metamask.github.io/test-dapp-multichain/';
 

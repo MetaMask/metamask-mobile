@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AssetSearch renders correctly with selected chain 1`] = `
+exports[`AssetSearch renders correctly with allTokens 1`] = `
 <View
   style={
     [
@@ -10,10 +10,8 @@ exports[`AssetSearch renders correctly with selected chain 1`] = `
         "borderRadius": 8,
         "borderWidth": 1,
         "color": "#121314",
-        "flex": 1,
         "flexDirection": "row",
         "justifyContent": "center",
-        "marginTop": 16,
       },
     ]
   }
@@ -62,7 +60,6 @@ exports[`AssetSearch renders correctly with selected chain 1`] = `
       style={
         {
           "color": "#121314",
-          "flex": 1,
           "fontFamily": "Geist Regular",
         }
       }

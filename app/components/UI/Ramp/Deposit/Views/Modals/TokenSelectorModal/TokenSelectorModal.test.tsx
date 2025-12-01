@@ -4,8 +4,9 @@ import TokenSelectorModal from './TokenSelectorModal';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import initialRootState from '../../../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../../testUtils';
+import { UnifiedRampRoutingType } from '../../../../../../../reducers/fiatOrders';
 
 const mockSetCryptoCurrency = jest.fn();
 const mockUseDepositSDK = jest.fn();
@@ -16,7 +17,10 @@ jest.mock('../../../sdk', () => ({
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
-function renderWithProvider(component: React.ComponentType) {
+function renderWithProvider(
+  component: React.ComponentType,
+  rampRoutingDecision: UnifiedRampRoutingType | null = null,
+) {
   return renderScreen(
     component,
     {
@@ -24,8 +28,10 @@ function renderWithProvider(component: React.ComponentType) {
     },
     {
       state: {
-        engine: {
-          backgroundState,
+        ...initialRootState,
+        fiatOrders: {
+          ...initialRootState.fiatOrders,
+          rampRoutingDecision,
         },
       },
     },
@@ -84,5 +90,74 @@ describe('TokenSelectorModal Component', () => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('tracks RAMPS_TOKEN_SELECTED event with new properties when token is selected', () => {
+    const { getAllByText } = renderWithProvider(
+      TokenSelectorModal,
+      UnifiedRampRoutingType.DEPOSIT,
+    );
+
+    const tokenElements = getAllByText('USDC');
+    fireEvent.press(tokenElements[0]);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+      ramp_type: 'DEPOSIT',
+      region: 'US',
+      chain_id: MOCK_CRYPTOCURRENCIES[0].chainId,
+      currency_destination: MOCK_CRYPTOCURRENCIES[0].assetId,
+      currency_destination_symbol: MOCK_CRYPTOCURRENCIES[0].symbol,
+      currency_destination_network: expect.any(String),
+      currency_source: 'USD',
+      is_authenticated: false,
+      token_caip19: MOCK_CRYPTOCURRENCIES[0].assetId,
+      token_symbol: MOCK_CRYPTOCURRENCIES[0].symbol,
+      ramp_routing: 'DEPOSIT',
+    });
+  });
+
+  it('tracks RAMPS_TOKEN_SELECTED event with AGGREGATOR BUY routing when routing decision is AGGREGATOR', () => {
+    const { getAllByText } = renderWithProvider(
+      TokenSelectorModal,
+      UnifiedRampRoutingType.AGGREGATOR,
+    );
+
+    const tokenElements = getAllByText('USDC');
+    fireEvent.press(tokenElements[0]);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+      ramp_type: 'DEPOSIT',
+      region: 'US',
+      chain_id: MOCK_CRYPTOCURRENCIES[0].chainId,
+      currency_destination: MOCK_CRYPTOCURRENCIES[0].assetId,
+      currency_destination_symbol: MOCK_CRYPTOCURRENCIES[0].symbol,
+      currency_destination_network: expect.any(String),
+      currency_source: 'USD',
+      is_authenticated: false,
+      token_caip19: MOCK_CRYPTOCURRENCIES[0].assetId,
+      token_symbol: MOCK_CRYPTOCURRENCIES[0].symbol,
+      ramp_routing: UnifiedRampRoutingType.AGGREGATOR,
+    });
+  });
+
+  it('tracks RAMPS_TOKEN_SELECTED event with undefined ramp_routing when routing decision is null', () => {
+    const { getAllByText } = renderWithProvider(TokenSelectorModal, null);
+
+    const tokenElements = getAllByText('USDC');
+    fireEvent.press(tokenElements[0]);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+      ramp_type: 'DEPOSIT',
+      region: 'US',
+      chain_id: MOCK_CRYPTOCURRENCIES[0].chainId,
+      currency_destination: MOCK_CRYPTOCURRENCIES[0].assetId,
+      currency_destination_symbol: MOCK_CRYPTOCURRENCIES[0].symbol,
+      currency_destination_network: expect.any(String),
+      currency_source: 'USD',
+      is_authenticated: false,
+      token_caip19: MOCK_CRYPTOCURRENCIES[0].assetId,
+      token_symbol: MOCK_CRYPTOCURRENCIES[0].symbol,
+      ramp_routing: undefined,
+    });
   });
 });

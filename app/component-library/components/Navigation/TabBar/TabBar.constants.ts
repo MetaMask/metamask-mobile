@@ -13,7 +13,7 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Activity]: IconName.Activity,
   [TabBarIconKey.Setting]: IconName.Setting,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxOutline,
-  [TabBarIconKey.Trending]: IconName.TrendUp,
+  [TabBarIconKey.Trending]: IconName.Search,
 };
 
 export const LABEL_BY_TAB_BAR_ICON_KEY = {

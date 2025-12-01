@@ -64,7 +64,6 @@ import {
   roundDown,
   roundUp,
   roundOrderAmount,
-  roundOrderAmounts,
   previewOrder,
   getAllowanceCalls,
 } from './utils';
@@ -712,11 +711,25 @@ describe('polymarket utils', () => {
         response: mockOrderResponse,
       });
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
-          body: JSON.stringify(mockClobOrder),
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
+          body: JSON.stringify({
+            ...mockClobOrder,
+            feeAuthorization: undefined,
+          }),
         },
       );
     });
@@ -725,12 +738,15 @@ describe('polymarket utils', () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
-      await expect(
-        submitClobOrder({
-          headers: mockHeaders,
-          clobOrder: mockClobOrder,
-        }),
-      ).rejects.toThrow('Network error');
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Failed to submit CLOB order: Network error',
+      });
     });
 
     it('includes feeAuthorization in request body when provided', async () => {
@@ -781,12 +797,24 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...mockClobOrder,
+            feeAuthorization: undefined,
           }),
         },
       );
@@ -820,25 +848,37 @@ describe('polymarket utils', () => {
       expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
     });
 
-    it('uses CLOB endpoint when feeAuthorization is not provided for BUY orders', async () => {
+    it('uses CLOB_RELAYER endpoint when feeAuthorization is not provided for BUY orders', async () => {
       await submitClobOrder({
         headers: mockHeaders,
         clobOrder: mockClobOrder,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...mockClobOrder,
+            feeAuthorization: undefined,
           }),
         },
       );
     });
 
-    it('uses CLOB endpoint for SELL orders even with feeAuthorization', async () => {
+    it('uses CLOB_RELAYER endpoint for SELL orders with feeAuthorization', async () => {
       const sellClobOrder: ClobOrderObject = {
         ...mockClobOrder,
         order: {
@@ -867,12 +907,24 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...sellClobOrder,
+            feeAuthorization,
           }),
         },
       );
@@ -1504,7 +1556,7 @@ describe('polymarket utils', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/public-search?q=weather&type=events&events_status=active&sort=volume_24hr&presets=EventsTitle&presets=Events&limit_per_type=10&page=1',
+        'https://gamma-api.polymarket.com/public-search?q=weather&type=events&events_status=active&sort=volume_24hr&presets=EventsTitle&limit_per_type=10&page=1',
       );
     });
 
@@ -1884,6 +1936,7 @@ describe('polymarket utils', () => {
         ok: false,
         status: 403,
         statusText: 'Forbidden',
+        json: jest.fn().mockResolvedValue({}),
       });
 
       const result = await submitClobOrder({
@@ -1894,7 +1947,6 @@ describe('polymarket utils', () => {
       expect(result).toEqual({
         success: false,
         error: 'You are unable to access this provider.',
-        errorCode: 403,
       });
     });
 
@@ -1904,7 +1956,7 @@ describe('polymarket utils', () => {
         status: 400,
         statusText: 'Bad Request',
         json: jest.fn().mockResolvedValue({
-          error: 'Invalid order parameters',
+          errorMsg: 'Invalid order parameters',
         }),
       });
 
@@ -1935,6 +1987,25 @@ describe('polymarket utils', () => {
       expect(result).toEqual({
         success: false,
         error: 'Internal Server Error',
+      });
+    });
+
+    it('handle non-JSON error response (HTML body)', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 502,
+        statusText: 'Bad Gateway',
+        json: jest.fn().mockRejectedValue(new Error('Unexpected token <')),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Bad Gateway',
       });
     });
   });
@@ -2013,13 +2084,13 @@ describe('polymarket utils', () => {
       }
     });
 
-    it('maps non-TRADE to claimWinnings entries and handles defaults', () => {
+    it('maps REDEEM with payout to claimWinnings entries', () => {
       const input = [
         {
           type: 'REDEEM' as const,
           side: '' as const,
           timestamp: 3000,
-          usdcSize: 1.23,
+          usdcSize: 1.23, // Winning claim with actual payout
           price: 0,
           conditionId: '',
           outcomeIndex: 0,
@@ -2030,6 +2101,7 @@ describe('polymarket utils', () => {
         },
       ];
       const result = parsePolymarketActivity(input);
+      expect(result).toHaveLength(1);
       expect(result[0].entry.type).toBe('claimWinnings');
       expect(result[0].entry.amount).toBe(1.23);
       expect(result[0].id).toBe('0xhash3');
@@ -2200,62 +2272,6 @@ describe('polymarket utils', () => {
     it('handles amounts that round up to exceed decimals', () => {
       expect(roundOrderAmount({ amount: 1.996, decimals: 2 })).toBe(1.99);
       expect(roundOrderAmount({ amount: 0.999999, decimals: 2 })).toBe(0.99);
-    });
-  });
-
-  describe('roundOrderAmounts', () => {
-    const mockRoundConfig = {
-      price: 4,
-      size: 2,
-      amount: 2,
-    };
-
-    it('rounds BUY order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('rounds SELL order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.SELL,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('handles price rounding down', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 100,
-        price: 0.456789,
-      });
-
-      expect(result.makerAmount).toBe(100);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('applies additional rounding when necessary', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 123.456789,
-        price: 0.123456789,
-      });
-
-      expect(result.makerAmount).toBeLessThanOrEqual(123.46);
-      expect(result.takerAmount).toBeGreaterThan(0);
     });
   });
 

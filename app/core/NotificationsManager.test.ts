@@ -14,6 +14,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
 interface NavigationMock {
   navigate: jest.Mock;
@@ -558,5 +559,45 @@ describe('NotificationManager', () => {
         });
       },
     );
+
+    it('does not show a notification if required transaction', () => {
+      mockTransactionController.state.transactions.push({
+        type: TransactionType.perpsDeposit,
+        requiredTransactionIds: [
+          mockTransactionController.state.transactions[0].id,
+        ],
+      } as TransactionMeta);
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+        },
+        silent: false,
+      });
+
+      expect(showNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not show a notification if in batch with skipped', () => {
+      const batchId = '0x123' as Hex;
+
+      mockTransactionController.state.transactions.push({
+        type: TransactionType.perpsDeposit,
+        batchId,
+      } as TransactionMeta);
+
+      mockTransactionController.state.transactions[0].batchId = batchId;
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+        },
+        silent: false,
+      });
+
+      expect(showNotificationSpy).not.toHaveBeenCalled();
+    });
   });
 });

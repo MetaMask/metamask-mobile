@@ -1,10 +1,16 @@
+import { useSelector } from 'react-redux';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
-import { RootState } from '../../../reducers';
-import { SolScope } from '@metamask/keyring-api';
 import { usePollingNetworks } from './use-polling-networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import initialRootState from '../../../util/test/initial-root-state';
+import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -16,463 +22,215 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('./use-polling-networks');
+jest.mock('../../../selectors/multichainAccounts/accountTreeController');
+
+const createMockNetworkConfig = (
+  chainId: string,
+  networkClientId: string,
+): NetworkConfiguration =>
+  ({
+    chainId,
+    rpcEndpoints: [{ networkClientId }],
+    defaultRpcEndpointIndex: 0,
+  }) as NetworkConfiguration;
+
+const arrangeMocks = () => {
+  const mockUsePollingNetworks = jest
+    .mocked(usePollingNetworks)
+    .mockReturnValue([
+      createMockNetworkConfig('0x1', 'selectedNetworkClientId'),
+    ]);
+  const mockSelectSelectedAccountGroupId = jest
+    .mocked(selectSelectedAccountGroupId)
+    .mockReturnValue('entropy:111-222-333/1');
+  const mockTokenBalancesController = jest.mocked(
+    Engine.context.TokenBalancesController,
+  );
+
+  jest.mocked(useSelector).mockImplementation((selector) => {
+    if (selector === selectSelectedAccountGroupId) {
+      return selector({});
+    }
+    return selector(initialRootState);
+  });
+
+  return {
+    mockUsePollingNetworks,
+    mockSelectSelectedAccountGroupId,
+    mockTokenBalancesController,
+  };
+};
+
+type ArrangedMocks = ReturnType<typeof arrangeMocks>;
+type HookResult = ReturnType<
+  typeof renderHookWithProvider<
+    ReturnType<typeof useTokenBalancesPolling>,
+    unknown
+  >
+>;
+
+interface WithHookAssertionsProps {
+  // can be used to update mock values
+  overrideMocks?: (mocks: ArrangedMocks) => void;
+  // underlying tests fill this and can assert the mocks and hook result
+  testFn: (context: { mocks: ArrangedMocks; hook: HookResult }) => void;
+  // allow custom hook parameters
+  hookParams?: Parameters<typeof useTokenBalancesPolling>[0];
+  opts?: {
+    assertPollingStopped?: boolean;
+  };
+}
+
+const withHookAssertions = (props: WithHookAssertionsProps) => {
+  const {
+    overrideMocks,
+    testFn,
+    hookParams,
+    opts = { assertPollingStopped: true },
+  } = props;
+  const mocks = arrangeMocks();
+  overrideMocks?.(mocks);
+  // create hook
+  const hook = renderHookWithProvider(
+    () => useTokenBalancesPolling(hookParams),
+    {
+      state: initialRootState,
+    },
+  );
+  testFn({ mocks, hook });
+
+  mocks.mockTokenBalancesController.stopPollingByPollingToken.mockClear();
+  hook.unmount();
+
+  // Assert polling behavior based on options
+  if (opts.assertPollingStopped) {
+    expect(
+      mocks.mockTokenBalancesController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
+  } else {
+    expect(
+      mocks.mockTokenBalancesController.stopPollingByPollingToken,
+    ).not.toHaveBeenCalled();
+  }
+};
+
+const withNoPollingAssertions = (
+  props: Omit<WithHookAssertionsProps, 'opts'>,
+) => {
+  withHookAssertions({
+    ...props,
+    opts: { assertPollingStopped: false },
+  });
+};
 
 describe('useTokenBalancesPolling', () => {
-  const mockUsePollingNetworks = usePollingNetworks as jest.MockedFunction<
-    typeof usePollingNetworks
-  >;
-
-  const createMockNetworkConfig = (
-    chainId: string,
-    networkClientId: string,
-  ): NetworkConfiguration =>
-    ({
-      chainId,
-      rpcEndpoints: [{ networkClientId }],
-      defaultRpcEndpointIndex: 0,
-    }) as NetworkConfiguration;
-
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
-  const selectedChainId = '0x1' as const;
-  const state = {
-    engine: {
-      backgroundState: {
-        TokenBalancesController: {
-          tokenBalances: {},
-        },
-        MultichainNetworkController: {
-          isEvmSelected: true,
-          selectedMultichainNetworkChainId: SolScope.Mainnet,
-          multichainNetworkConfigurationsByChainId: {},
-        },
-        NetworkController: {
-          selectedNetworkClientId: 'selectedNetworkClientId',
-          networkConfigurationsByChainId: {
-            [selectedChainId]: {
-              chainId: selectedChainId,
-              rpcEndpoints: [
-                {
-                  networkClientId: 'selectedNetworkClientId',
-                },
-              ],
-              defaultRpcEndpointIndex: 0,
-            },
-            '0x89': {
-              chainId: '0x89',
-              rpcEndpoints: [
-                {
-                  networkClientId: 'selectedNetworkClientId2',
-                },
-              ],
-              defaultRpcEndpointIndex: 0,
-            },
-            '0x5': {
-              chainId: '0x5',
-              rpcEndpoints: [
-                {
-                  networkClientId: 'selectedNetworkClientId3',
-                },
-              ],
-              defaultRpcEndpointIndex: 0,
-            },
-          },
-        },
-        PreferencesController: {
-          tokenNetworkFilter: {
-            [selectedChainId]: true,
-            '0x89': true,
-          },
-        },
-        NetworkEnablementController: {
-          enabledNetworkMap: {
-            eip155: {
-              '0x1': true,
-              '0x89': true,
-              '0x5': true,
-            },
-          },
-        },
-      },
-    },
-  } as unknown as RootState;
-
-  it('should poll by selected chain id when portfolio view is disabled', () => {
-    mockUsePollingNetworks.mockReturnValue([
-      createMockNetworkConfig(selectedChainId, 'selectedNetworkClientId'),
-    ]);
-
-    const { unmount } = renderHookWithProvider(
-      () => useTokenBalancesPolling(),
+  describe('Basic polling behavior', () => {
+    it.each([
       {
-        state,
+        pollingNetworks: [
+          createMockNetworkConfig('0x1', 'selectedNetworkClientId'),
+        ],
+        expectedChainIds: ['0x1'],
       },
-    );
-
-    const mockedTokenBalancesController = jest.mocked(
-      Engine.context.TokenBalancesController,
-    );
-
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(1);
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-      chainIds: [selectedChainId],
-    });
-
-    unmount();
-    expect(
-      mockedTokenBalancesController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  it('should poll all network configurations when portfolio view is enabled and global network selector is not removed', () => {
-    mockUsePollingNetworks.mockReturnValue([
-      createMockNetworkConfig(selectedChainId, 'selectedNetworkClientId'),
-      createMockNetworkConfig('0x89', 'selectedNetworkClientId2'),
-    ]);
-
-    const { unmount } = renderHookWithProvider(
-      () => useTokenBalancesPolling(),
       {
-        state,
+        pollingNetworks: [
+          createMockNetworkConfig('0x1', 'selectedNetworkClientId'),
+          createMockNetworkConfig('0x89', 'selectedNetworkClientId2'),
+          createMockNetworkConfig('0xa', 'selectedNetworkClientId3'),
+        ],
+        expectedChainIds: ['0x1', '0x89', '0xa'],
       },
-    );
-
-    const mockedTokenBalancesController = jest.mocked(
-      Engine.context.TokenBalancesController,
-    );
-
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(1);
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-      chainIds: [selectedChainId, '0x89'],
-    });
-
-    unmount();
-    expect(
-      mockedTokenBalancesController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  it('should use provided chainIds when specified, even with portfolio view enabled', () => {
-    // Mock usePollingNetworks to return some networks, but they should be ignored due to chainIds override
-    mockUsePollingNetworks.mockReturnValue([
-      createMockNetworkConfig(selectedChainId, 'selectedNetworkClientId'),
-    ]);
-
-    const specificChainIds = ['0x5' as const];
-    const { unmount } = renderHookWithProvider(
-      () => useTokenBalancesPolling({ chainIds: specificChainIds }),
-      { state },
-    );
-
-    const mockedTokenBalancesController = jest.mocked(
-      Engine.context.TokenBalancesController,
-    );
-
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(1);
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-      chainIds: ['0x5'],
-    });
-
-    unmount();
-    expect(
-      mockedTokenBalancesController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  it('should poll only for current network if selected one is not popular', () => {
-    mockUsePollingNetworks.mockReturnValue([
-      createMockNetworkConfig('0x82750', 'selectedNetworkClientId'),
-    ]);
-
-    const { unmount } = renderHookWithProvider(
-      () => useTokenBalancesPolling(),
-      {
-        state: {
-          ...state,
-          engine: {
-            ...state.engine,
-            backgroundState: {
-              ...state.engine.backgroundState,
-              AccountsController: {
-                internalAccounts: {
-                  selectedAccount: '1',
-                  accounts: {
-                    '1': {
-                      address: undefined,
-                    },
-                  },
-                },
-              },
-              NetworkController: {
-                selectedNetworkClientId: 'selectedNetworkClientId',
-                networkConfigurationsByChainId: {
-                  '0x82750': {
-                    chainId: '0x82750',
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'selectedNetworkClientId',
-                      },
-                    ],
-                    defaultRpcEndpointIndex: 0,
-                  },
-                },
-              },
-              MultichainNetworkController: {
-                isEvmSelected: true,
-                selectedMultichainNetworkChainId: SolScope.Mainnet,
-                multichainNetworkConfigurationsByChainId: {},
-              },
-            },
+    ])(
+      'should poll with chainIds $expectedChainIds',
+      ({ pollingNetworks, expectedChainIds }) => {
+        withHookAssertions({
+          overrideMocks: (mocks) => {
+            mocks.mockUsePollingNetworks.mockReturnValue(pollingNetworks);
           },
-        },
-      },
-    );
-
-    const mockedTokenBalancesController = jest.mocked(
-      Engine.context.TokenBalancesController,
-    );
-
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(1);
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-      chainIds: ['0x82750'],
-    });
-
-    unmount();
-    expect(
-      mockedTokenBalancesController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  it('Should not poll when evm is not selected', async () => {
-    mockUsePollingNetworks.mockReturnValue([]);
-
-    renderHookWithProvider(() => useTokenBalancesPolling(), {
-      state: {
-        ...state,
-        engine: {
-          ...state.engine,
-          backgroundState: {
-            ...state.engine.backgroundState,
-            MultichainNetworkController: {
-              ...state.engine.backgroundState.MultichainNetworkController,
-              isEvmSelected: false,
-            },
+          testFn: ({ mocks }) => {
+            expect(
+              mocks.mockTokenBalancesController.startPolling,
+            ).toHaveBeenCalledTimes(1);
+            expect(
+              mocks.mockTokenBalancesController.startPolling,
+            ).toHaveBeenCalledWith({
+              chainIds: expectedChainIds,
+              selectedAccountGroupId: expect.any(String),
+            });
           },
-        },
-      },
-    });
-
-    const mockedTokenBalancesController = jest.mocked(
-      Engine.context.TokenBalancesController,
-    );
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(0);
-  });
-
-  it('polls with provided chain ids', () => {
-    // Mock usePollingNetworks to return some networks, but they should be ignored due to chainIds override
-    mockUsePollingNetworks.mockReturnValue([
-      createMockNetworkConfig(selectedChainId, 'selectedNetworkClientId'),
-    ]);
-
-    renderHookWithProvider(
-      () => useTokenBalancesPolling({ chainIds: ['0x1', '0x89'] }),
-      {
-        state,
+        });
       },
     );
 
-    const mockedTokenBalancesController = jest.mocked(
-      Engine.context.TokenBalancesController,
-    );
-
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(1);
-    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-      chainIds: ['0x1', '0x89'],
-    });
-  });
-
-  describe('Feature flag scenarios', () => {
-    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
-      mockUsePollingNetworks.mockReturnValue([
-        createMockNetworkConfig('0x1', 'selectedNetworkClientId'),
-        createMockNetworkConfig('0x89', 'selectedNetworkClientId2'),
-      ]);
-
-      const { unmount } = renderHookWithProvider(
-        () => useTokenBalancesPolling(),
-        {
-          state,
+    it('should not poll when no networks are available', () => {
+      withNoPollingAssertions({
+        overrideMocks: (mocks) => {
+          mocks.mockUsePollingNetworks.mockReturnValue([]);
         },
-      );
-
-      const mockedTokenBalancesController = jest.mocked(
-        Engine.context.TokenBalancesController,
-      );
-
-      // We only poll multiple popular networks, custom networks do not included in multiple polling
-      expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-        chainIds: ['0x1', '0x89'],
+        testFn: ({ mocks }) => {
+          expect(
+            mocks.mockTokenBalancesController.startPolling,
+          ).not.toHaveBeenCalled();
+        },
       });
-
-      unmount();
-      expect(
-        mockedTokenBalancesController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('should poll current chain when portfolio view is disabled', () => {
-      mockUsePollingNetworks.mockReturnValue([
-        createMockNetworkConfig(selectedChainId, 'selectedNetworkClientId'),
-      ]);
-
-      const { unmount } = renderHookWithProvider(
-        () => useTokenBalancesPolling(),
-        {
-          state,
+  describe('ChainIds override behavior', () => {
+    it('should poll with provided chainIds', () => {
+      withHookAssertions({
+        hookParams: { chainIds: ['0x1', '0x89', '0xa'] },
+        testFn: ({ mocks }) => {
+          expect(
+            mocks.mockTokenBalancesController.startPolling,
+          ).toHaveBeenCalledTimes(1);
+          expect(
+            mocks.mockTokenBalancesController.startPolling,
+          ).toHaveBeenCalledWith({
+            chainIds: ['0x1', '0x89', '0xa'],
+            selectedAccountGroupId: expect.any(String),
+          });
         },
-      );
-
-      const mockedTokenBalancesController = jest.mocked(
-        Engine.context.TokenBalancesController,
-      );
-
-      expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-        chainIds: [selectedChainId],
       });
-
-      unmount();
-      expect(
-        mockedTokenBalancesController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('should poll popular networks when all networks selected and global selector enabled', () => {
-      mockUsePollingNetworks.mockReturnValue([
-        createMockNetworkConfig('0x1', 'selectedNetworkClientId'),
-        createMockNetworkConfig('0x89', 'selectedNetworkClientId'),
-        createMockNetworkConfig('0xa', 'selectedNetworkClientId'),
-      ]);
+  describe('Selected account group behavior', () => {
+    it('should restart polling when selectedAccountGroupId changes', () => {
+      withHookAssertions({
+        overrideMocks: (mocks) =>
+          mocks.mockSelectSelectedAccountGroupId
+            .mockReturnValueOnce('entropy:111-222-333/1')
+            .mockReturnValue('entropy:111-222-333/2'),
 
-      // Use chain IDs that are actually in PopularList: Ethereum Mainnet (0x1), Polygon (0x89), Optimism (0xa)
-      const stateWithPopularNetworks = {
-        ...state,
-        engine: {
-          ...state.engine,
-          backgroundState: {
-            ...state.engine.backgroundState,
-            NetworkController: {
-              ...state.engine.backgroundState.NetworkController,
-              networkConfigurationsByChainId: {
-                '0x1': {
-                  chainId: '0x1' as const,
-                  rpcEndpoints: [
-                    {
-                      networkClientId: 'selectedNetworkClientId',
-                    },
-                  ],
-                  defaultRpcEndpointIndex: 0,
-                },
-                '0x89': {
-                  chainId: '0x89' as const,
-                  rpcEndpoints: [
-                    {
-                      networkClientId: 'selectedNetworkClientId',
-                    },
-                  ],
-                  defaultRpcEndpointIndex: 0,
-                },
-                '0xa': {
-                  chainId: '0xa' as const,
-                  rpcEndpoints: [
-                    {
-                      networkClientId: 'selectedNetworkClientId',
-                    },
-                  ],
-                  defaultRpcEndpointIndex: 0,
-                },
-              },
-            },
-            PreferencesController: {
-              ...state.engine.backgroundState.PreferencesController,
-              tokenNetworkFilter: {
-                '0x1': true,
-                '0x89': true,
-                '0xa': true,
-              },
-            },
-          },
+        testFn: ({ mocks, hook }) => {
+          // Assert - 1st render is with first account address
+          expect(
+            mocks.mockTokenBalancesController.startPolling,
+          ).toHaveBeenNthCalledWith(1, {
+            chainIds: ['0x1'],
+            selectedAccountGroupId: 'entropy:111-222-333/1',
+          });
+
+          // Act - rerender to change accounts
+          hook.rerender({});
+
+          // Assert - polling stopped on old data
+          expect(
+            mocks.mockTokenBalancesController.stopPollingByPollingToken,
+          ).toHaveBeenCalled();
+          expect(
+            mocks.mockTokenBalancesController.startPolling,
+          ).toHaveBeenNthCalledWith(2, {
+            chainIds: ['0x1'],
+            selectedAccountGroupId: 'entropy:111-222-333/2',
+          });
         },
-      };
-
-      const { unmount } = renderHookWithProvider(
-        () => useTokenBalancesPolling(),
-        {
-          state: stateWithPopularNetworks,
-        },
-      );
-
-      const mockedTokenBalancesController = jest.mocked(
-        Engine.context.TokenBalancesController,
-      );
-
-      expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-        chainIds: ['0x1', '0x89', '0xa'],
       });
-
-      unmount();
-      expect(
-        mockedTokenBalancesController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle empty enabled networks gracefully', () => {
-      mockUsePollingNetworks.mockReturnValue([]);
-
-      const stateWithEmptyNetworks = {
-        ...state,
-        engine: {
-          ...state.engine,
-          backgroundState: {
-            ...state.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: {
-                eip155: {},
-              },
-            },
-          },
-        },
-      };
-
-      const { unmount } = renderHookWithProvider(
-        () => useTokenBalancesPolling(),
-        {
-          state: stateWithEmptyNetworks,
-        },
-      );
-
-      const mockedTokenBalancesController = jest.mocked(
-        Engine.context.TokenBalancesController,
-      );
-
-      expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(
-        0,
-      );
-
-      unmount();
-      expect(
-        mockedTokenBalancesController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(0);
     });
   });
 });

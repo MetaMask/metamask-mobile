@@ -23,4 +23,5 @@ export interface TokenI {
   isNative?: boolean;
   ticker?: string;
   accountType?: KeyringAccountType;
+  pricePercentChange1d?: number;
 }

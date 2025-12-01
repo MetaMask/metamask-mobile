@@ -7,6 +7,7 @@ import {
 import { uniq } from 'lodash';
 import { Hex } from '@metamask/utils';
 import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
 export const PAY_TYPES = [
   TransactionType.perpsDeposit,
@@ -89,7 +90,8 @@ export const filterByAddressAndNetwork = (
   tokens: any[],
   selectedAddress: string,
   tokenNetworkFilter: { [key: string]: boolean },
-  allTransactions?: TransactionMeta[],
+  allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
 ): boolean => {
   const {
     isTransfer,
@@ -97,7 +99,7 @@ export const filterByAddressAndNetwork = (
     txParams: { from, to },
   } = tx;
 
-  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [])) {
+  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
     return false;
   }
 
@@ -114,14 +116,16 @@ export const filterByAddressAndNetwork = (
     condition &&
     tx.status !== TX_UNAPPROVED
   ) {
-    return isTransfer
+    const result = isTransfer
       ? !!tokens.find(({ address }) =>
           areAddressesEqual(
             address,
             transferInformation?.contractAddress ?? '',
           ),
-        )
+        ) || areAddressesEqual(from, selectedAddress) // Allow if sender is current address
       : true;
+
+    return result;
   }
 
   return false;
@@ -131,7 +135,8 @@ export const filterByAddress = (
   tx: TransactionMeta,
   tokens: { address: string }[],
   selectedAddress: string,
-  allTransactions?: TransactionMeta[],
+  allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
 ): boolean => {
   const {
     isTransfer,
@@ -139,7 +144,7 @@ export const filterByAddress = (
     txParams: { from, to },
   } = tx;
 
-  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [])) {
+  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
     return false;
   }
 
@@ -147,14 +152,16 @@ export const filterByAddress = (
     isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
     tx.status !== TX_UNAPPROVED
   ) {
-    return isTransfer
+    const result = isTransfer
       ? !!tokens.find(({ address }) =>
           areAddressesEqual(
             address,
             transferInformation?.contractAddress ?? '',
           ),
-        )
+        ) || areAddressesEqual(from, selectedAddress) // Allow if sender is current address
       : true;
+
+    return result;
   }
 
   return false;
@@ -165,7 +172,21 @@ export function isTransactionOnChains(
   chainIds: Hex[],
   allTransactions: TransactionMeta[],
 ): boolean {
-  const { chainId, requiredTransactionIds } = transaction;
+  const { chainId, requiredTransactionIds, type } = transaction;
+
+  // Hide Perps deposit transaction if it was funded by a non-selected chain.
+  if (type === TransactionType.perpsDeposit && requiredTransactionIds?.length) {
+    const requiredTransaction = allTransactions.find(
+      (t) => t.id === requiredTransactionIds[0],
+    );
+
+    if (
+      requiredTransaction &&
+      !chainIds.includes(requiredTransaction.chainId)
+    ) {
+      return false;
+    }
+  }
 
   if (chainIds.includes(chainId)) {
     return true;
@@ -183,8 +204,13 @@ export function isTransactionOnChains(
 function isFilteredByMetaMaskPay(
   tx: TransactionMeta,
   allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
 ): boolean {
-  const { batchId, id: transactionId } = tx;
+  const { batchId, id: transactionId, isIntentComplete } = tx;
+
+  if (isIntentComplete) {
+    return false;
+  }
 
   const requiredTransactionIds = allTransactions
     ?.map((t) => t.requiredTransactionIds ?? [])
@@ -193,6 +219,19 @@ function isFilteredByMetaMaskPay(
   const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
 
   if (isRequiredTransaction) {
+    return true;
+  }
+
+  const isBridgeReceive =
+    tx.hash &&
+    Object.values(bridgeHistory).some(
+      (item) =>
+        item.status.destChain?.txHash?.toLowerCase() ===
+          tx.hash?.toLowerCase() &&
+        requiredTransactionIds.includes(item.txMetaId),
+    );
+
+  if (isBridgeReceive) {
     return true;
   }
 

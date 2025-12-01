@@ -469,11 +469,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select token
                               </Text>
@@ -887,11 +889,28 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               </View>
                             </View>
                           </View>
-                          <View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
                             <RCTScrollView
-                              ListEmptyComponent={[Function]}
+                              ListEmptyComponent={
+                                {
+                                  "$$typeof": Symbol(react.memo),
+                                  "compare": null,
+                                  "type": [Function],
+                                }
+                              }
                               bounces={true}
                               collapsable={false}
+                              contentContainerStyle={
+                                {
+                                  "paddingBottom": 0,
+                                }
+                              }
                               data={
                                 [
                                   {
@@ -1019,6 +1038,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               stickyHeaderIndices={[]}
                               style={
                                 {
+                                  "flex": 1,
                                   "marginTop": 10,
                                 }
                               }
@@ -1071,7 +1091,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -1348,7 +1368,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -1625,7 +1645,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -1664,7 +1684,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                     },
                                                     undefined,
                                                     undefined,
-                                                    undefined,
+                                                    {
+                                                      "height": 32,
+                                                      "width": 32,
+                                                    },
                                                   ]
                                                 }
                                                 testID="network-logo-ETH"
@@ -1687,8 +1710,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                     [
                                                       {
                                                         "borderRadius": 18,
-                                                        "height": 36,
-                                                        "width": 36,
+                                                        "height": 32,
+                                                        "width": 32,
                                                       },
                                                       {
                                                         "backgroundColor": "#eee",
@@ -1932,7 +1955,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -2209,7 +2232,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -2486,7 +2509,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -2763,7 +2786,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -2802,7 +2825,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                     },
                                                     undefined,
                                                     undefined,
-                                                    undefined,
+                                                    {
+                                                      "height": 32,
+                                                      "width": 32,
+                                                    },
                                                   ]
                                                 }
                                                 testID="network-logo-ETH"
@@ -2825,8 +2851,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                     [
                                                       {
                                                         "borderRadius": 18,
-                                                        "height": 36,
-                                                        "width": 36,
+                                                        "height": 32,
+                                                        "width": 32,
                                                       },
                                                       {
                                                         "backgroundColor": "#eee",
@@ -3070,7 +3096,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >

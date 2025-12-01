@@ -9,7 +9,7 @@ jest.mock('../../store', () => ({
   },
 }));
 
-jest.mock('../../core/NavigationService', () => ({
+jest.mock('../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },

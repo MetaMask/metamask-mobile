@@ -13,8 +13,6 @@ import {
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { toHex } from 'viem';
-import { setTransactionUpdating } from '../../../../../core/redux/slices/confirmationMetrics';
-import { act } from '@testing-library/react-native';
 
 jest.mock('../../../../../util/transaction-controller');
 
@@ -57,13 +55,11 @@ function runHook({
 describe('useUpdateTokenAmount', () => {
   const updateEditableParamsMock = jest.mocked(updateEditableParams);
   const updateAtomicBatchDataMock = jest.mocked(updateAtomicBatchData);
-  const setTransactionUpdatingMock = jest.mocked(setTransactionUpdating);
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     updateAtomicBatchDataMock.mockResolvedValue('0x0');
-    setTransactionUpdatingMock.mockReturnValue({ type: 'test' } as never);
   });
 
   it('updates all transaction data with new amount', () => {
@@ -117,7 +113,7 @@ describe('useUpdateTokenAmount', () => {
     });
   });
 
-  it('sets updating', async () => {
+  it('does not update amount if new amount is equal to current amount', () => {
     const { result } = runHook({
       transactionMeta: {
         txParams: {
@@ -128,13 +124,9 @@ describe('useUpdateTokenAmount', () => {
       },
     });
 
-    await act(async () => {
-      result.current.updateTokenAmount('1.5');
-    });
+    result.current.updateTokenAmount('0.000000000000000001');
 
-    expect(setTransactionUpdatingMock).toHaveBeenCalledWith({
-      transactionId: expect.any(String),
-      isUpdating: true,
-    });
+    expect(updateEditableParamsMock).not.toHaveBeenCalled();
+    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
   });
 });

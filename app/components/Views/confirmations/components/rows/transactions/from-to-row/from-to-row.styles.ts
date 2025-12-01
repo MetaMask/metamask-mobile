@@ -23,6 +23,12 @@ const styleSheet = () =>
     iconContainer: {
       paddingHorizontal: 8,
     },
+    skeletonBorderRadiusLarge: {
+      borderRadius: 18,
+    },
+    skeletonBorderRadiusSmall: {
+      borderRadius: 4,
+    },
   });
 
 export default styleSheet;
