@@ -150,6 +150,41 @@ describe('AlertRow', () => {
     expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
   });
 
+  it('calls showAlertModal, setAlertKey and trackInlineAlertClicked when label is clicked', () => {
+    const { getByText } = render(<AlertRow {...baseProps} />);
+
+    fireEvent.press(getByText(LABEL_MOCK));
+
+    expect(mockSetAlertKey).toHaveBeenCalledWith(ALERT_KEY_DANGER);
+    expect(mockShowAlertModal).toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(
+      ALERT_FIELD_DANGER,
+    );
+  });
+
+  it('does not trigger alert modal when label is clicked and disableAlertInteraction is true', () => {
+    const { getByText } = render(
+      <AlertRow {...baseProps} disableAlertInteraction />,
+    );
+
+    fireEvent.press(getByText(LABEL_MOCK));
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
+  });
+
+  it('does not trigger alert modal when label is clicked and no alert is selected', () => {
+    const props = { ...baseProps, alertField: 'non_existent_field' };
+    const { getByText } = render(<AlertRow {...props} />);
+
+    fireEvent.press(getByText(LABEL_MOCK));
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
+  });
+
   it('renders with the given style if provided', () => {
     const props = { ...baseProps, style: { backgroundColor: 'red' } };
     const { getByTestId } = render(<AlertRow {...props} />);
