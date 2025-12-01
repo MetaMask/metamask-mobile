@@ -8,7 +8,11 @@ import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountMo
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import SwapScreen from '../../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { importSRPFlow, login } from '../../../utils/Flows.js';
+import {
+  importSRPFlow,
+  login,
+  onboardingFlowImportSRP,
+} from '../../../utils/Flows.js';
 
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
 test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
@@ -22,8 +26,9 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   WalletActionModal.device = device;
   SwapScreen.device = device;
   TabBarModal.device = device;
-
+  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   await login(device);
+  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
 
   const timers = await importSRPFlow(device, process.env.TEST_SRP_2);
 

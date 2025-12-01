@@ -58,7 +58,7 @@ class LoginScreen {
           LoginViewSelectors.PASSWORD_INPUT,
         );
       } else {
-        return AppwrightSelectors.getElementByID(this._device, "textfield");
+        return AppwrightSelectors.getElementByID(this._device, "textfield", true);
       }
     }
   }

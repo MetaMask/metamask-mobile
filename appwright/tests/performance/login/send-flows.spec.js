@@ -13,7 +13,7 @@ import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 
 import { TEST_AMOUNTS } from '../../../utils/TestConstants.js';
-import { login } from '../../../utils/Flows.js';
+import { login, onboardingFlowImportSRP } from '../../../utils/Flows.js';
 import TokenOverviewScreen from '../../../../wdio/screen-objects/TokenOverviewScreen.js';
 
 const ethAddress = '0xbea21b0b30ddd5e04f426ffb0c4c79157fc4047d';

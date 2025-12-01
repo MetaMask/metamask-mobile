@@ -20,7 +20,7 @@ import CommonScreen from '../../../../wdio/screen-objects/CommonScreen.js';
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
-import { login } from '../../../utils/Flows.js';
+import { login, onboardingFlowImportSRP } from '../../../utils/Flows.js';
 
 /* Scenario 8: Asset View, SRP 1 + SRP 2 + SRP 3 */
 test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
@@ -54,13 +54,12 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   TokenOverviewScreen.device = device;
   CommonScreen.device = device;
   WalletActionModal.device = device;
-
+  test.setTimeout(1800000);
   await login(device);
+  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_3, 120000);
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-
-  await WalletMainScreen.isMainWalletViewVisible();
 
   //await WalletMainScreen.tapNetworkNavBar();
   //await NetworksScreen.selectNetwork('Ethereum');
@@ -72,7 +71,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   await WalletMainScreen.tapNetworkNavBar();
   await NetworksScreen.selectNetwork('Ethereum');
 
-  await WalletMainScreen.tapOnToken('Link');
+  await WalletMainScreen.tapOnToken('USDC');
   assetViewScreen.start();
   await TokenOverviewScreen.isTokenOverviewVisible();
   await TokenOverviewScreen.isTodaysChangeVisible();
