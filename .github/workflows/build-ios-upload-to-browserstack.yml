@@ -92,8 +92,7 @@ jobs:
           echo "Triggering iOS with-SRP build on Bitrise..."
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit SHA: ${{ github.sha }}"
+          echo "Current branch: ${{ github.ref_name }}"
           
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
@@ -136,9 +135,8 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
-                "commit_hash": "${{ github.sha }}",
                 "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
-                "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP (commit: ${{ github.sha }})",
+                "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
               },
@@ -230,8 +228,7 @@ jobs:
           echo "Triggering iOS without-SRP build on Bitrise..."
           echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit SHA: ${{ github.sha }}"
+          echo "Current branch: ${{ github.ref_name }}"
           
           # Validate required environment variables
           if [[ -z "$BITRISE_APP_ID" ]]; then
@@ -264,9 +261,8 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
-                "commit_hash": "${{ github.sha }}",
                 "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
-                "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP (commit: ${{ github.sha }})",
+                "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
               },
