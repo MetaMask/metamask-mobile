@@ -2598,8 +2598,6 @@
     "show_fiat_on_testnets_modal_button": "Magpatuloy",
     "show_hex_data": "Ipakita ang Hex na Data",
     "show_hex_data_desc": "Piliin ito para ipakita ang field ng hex na data sa screen ng pagpapadala.",
-    "show_custom_nonce": "I-customize ang nonce ng transaksyon",
-    "custom_nonce_desc": "I-on ito para baguhin ang nonce (numero ng transaksyon) sa mga screen ng kumpirmasyon. Isa itong advanced na feature, gamitin nang may pag-iingat.",
     "accounts_identicon_title": "Icon ng account",
     "accounts_identicon_desc": "Pumili mula sa tatlong iba’t ibang estilo ng kakaibang mga icon na makakatulong para madaling makilala ang mga account sa isang tingin.",
     "jazzicons": "Mga Jazzicon",
@@ -3730,7 +3728,7 @@
     "show_test_networks": "Ipakita ang mga test network",
     "deprecated_goerli": "Dahil sa mga pagbabago sa protocol ng Ethereum: Ang Goerli test network ay maaaring hindi gumana tulad ng inaasahan at malapit nang ihinto ang paggamit.",
     "network_deprecated_title": "Ang network na ito ay hindi na suportado",
-    "network_deprecated_description": "Ang network na sinusubukan mong ikonekta ay hindi na suportado ng Metamask.",
+    "network_deprecated_description": "Ang network na sinusubukan mong ikonekta ay hindi na suportado ng MetaMask.",
     "edit_networks_title": "I-edit ang mga network"
   },
   "permissions": {
@@ -5694,7 +5692,7 @@
     },
     "estimated_gas_fee": {
       "title": "Tinatayang bayad sa gas",
-      "gas_recipient": "Ang mga bayad sa gas ay ibinabayad sa mga minero ng crypto na nagpoproseso ng mga transaksyon sa network ng Ethereum. Ang Metamask ay hindi kumikita mula sa mga bayad sa gas.",
+      "gas_recipient": "Ang mga bayad sa gas ay ibinabayad sa mga minero ng crypto na nagpoproseso ng mga transaksyon sa network ng Ethereum. Ang MetaMask ay hindi kumikita mula sa mga bayad sa gas.",
       "gas_fluctuation": "Ang mga bayad sa gas ay tinatantya at magbabago batay sa trapiko sa network at pagiging kumplikado ng transaksyon.",
       "gas_learn_more": "Matuto pa tungkol sa mga bayad sa gas"
     },

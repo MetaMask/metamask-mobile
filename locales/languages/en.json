@@ -67,6 +67,10 @@
       "title": "Deposit in progress",
       "message": "Wait for the last deposit to finish before making another."
     },
+    "signed_or_submitted_pay_token": {
+      "title": "Pending transaction",
+      "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
+    },
     "pending_transaction": {
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
@@ -986,6 +990,14 @@
       "set_button": "Set",
       "edit_button": "Edit"
     },
+    "stop_loss_prompt": {
+      "near_liquidation_title": "You are only {{distance}}% from liquidation",
+      "near_liquidation_subtitle": "Add margin to derisk your position",
+      "add_margin_button": "Add",
+      "protect_losses_title": "Protect against further losses",
+      "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
+      "set_button": "Set"
+    },
     "deposit": {
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
@@ -1254,6 +1266,9 @@
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled"
     },
+    "price_deviation_warning": {
+      "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
+    },
     "order_details": {
       "title": "Order Details",
       "cancel_order": "Cancel Order",
@@ -1318,22 +1333,24 @@
       "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
     },
     "flip_position": {
-      "title": "Flip Position",
+      "title": "Reverse Position",
       "direction": "Direction",
       "est_size": "Est. Size",
-      "flip": "Flip",
-      "flipping": "Flipping...",
+      "flip": "Reverse",
+      "flipping": "Reversing...",
       "cancel": "Cancel"
     },
     "adjust_margin": {
       "title": "Adjust Margin",
       "add_margin": "Add Margin",
       "add_margin_description": "Increase margin to reduce liquidation risk",
-      "reduce_margin": "Reduce Margin",
+      "reduce_margin": "Remove Margin",
       "reduce_margin_description": "Withdraw excess margin from position",
       "add_title": "Add Margin",
-      "remove_title": "Reduce Margin",
+      "remove_title": "Remove Margin",
       "margin_in_position": "Margin in position",
+      "margin_available_to_add": "Margin available to add",
+      "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance"
@@ -1377,7 +1394,6 @@
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
       "unknownError": "Unknown error occurred",
-      "unknown": "Unknown error occurred",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",
       "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
@@ -1527,6 +1543,7 @@
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
       "oracle_price": "Oracle price",
+      "order_book": "Order book",
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short",
@@ -1607,6 +1624,10 @@
       "funding_rate": {
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "oracle_price": {
+        "title": "Oracle price",
+        "content": "The median of external prices reported by validators, used for computing funding rate."
       },
       "funding_payments": {
         "title": "Funding payments",
@@ -1835,6 +1856,21 @@
       }
     },
     "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Powered by {{source}}. Price chart powered by",
+    "order_book": {
+      "title": "Order Book",
+      "bids": "Bids",
+      "asks": "Asks",
+      "price": "Price",
+      "size": "Size",
+      "total": "Total",
+      "spread": "Spread",
+      "loading": "Loading order book...",
+      "no_data": "No order book data available",
+      "error": "Failed to load order book",
+      "depth_band": {
+        "title": "Select Price Grouping"
+      }
+    },
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -2400,6 +2436,7 @@
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "gather_basic_usage_title": "Gather basic usage data",
     "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
+    "gather_basic_usage_description_updated": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "Learn more",
     "checkbox_marketing": "Marketing updates",
     "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
@@ -2427,7 +2464,8 @@
     "action_description_never_legacy": "Never",
     "toast_message": "We’ve updated our privacy policy",
     "toast_action_button": "Close",
-    "toast_read_more": "Read more"
+    "toast_read_more": "Read more",
+    "pna25_toast_message": "We’re updating MetaMetrics. We'll associate some in-app activity to on-chain data to better understand usage. You can opt out via Settings."
   },
   "template_confirmation": {
     "ok": "OK",
@@ -2722,8 +2760,6 @@
     "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "Show Hex Data",
     "show_hex_data_desc": "Select this to show the hex data field on the send screen.",
-    "show_custom_nonce": "Customize transaction nonce",
-    "custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
     "accounts_identicon_title": "Account icon",
     "accounts_identicon_desc": "Choose from three different styles of unique icons that can help you identify accounts at a glance.",
     "jazzicons": "Jazzicons",
@@ -2814,7 +2850,7 @@
     "clear_history_desc": "Choose this option to clear your entire browsing history.",
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
+    "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
     "data_collection_title": "Data collection for marketing",
     "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
     "batch_balance_requests_title": "Batch account balance requests",
@@ -3184,14 +3220,16 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
-    "convert": "Convert",
+    "convert_to_musd": "Convert to mUSD",
     "tron": {
       "daily_resource": "Daily resources",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
       "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
-      "sufficient_to_cover_trx": "Sufficient to cover ~{{amount}} TRX transfers",
-      "sufficient_to_cover_usdt": "Sufficient to cover ~{{amount}} USDT"
+      "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
+      "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
+      "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
+      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer"
     },
     "disabled_button": {
       "buy": "Buying not supported for this account",
@@ -3855,8 +3893,9 @@
     "show_test_networks": "Show test networks",
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask.",
-    "edit_networks_title": "Edit networks"
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on MetaMask.",
+    "edit_networks_title": "Edit networks",
+    "no_network_fee": "No network fee"
   },
   "permissions": {
     "title_this_site_wants_to": "This site wants to:",
@@ -5615,7 +5654,15 @@
         "in_progress": "mUSD conversion in progress",
         "success": "mUSD conversion succeeded",
         "failed": "mUSD conversion failed"
-      }
+      },
+      "education": {
+        "heading": "Earn rewards with mUSD",
+        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
+        "continue_button": "Continue"
+      },
+      "earn_points_daily": "Earn points daily",
+      "buy_musd": "Buy mUSD",
+      "get_musd": "Get mUSD"
     }
   },
   "stake": {
@@ -5819,7 +5866,7 @@
     },
     "estimated_gas_fee": {
       "title": "Estimated gas fee",
-      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. Metamask does not profit from gas fees.",
+      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
       "gas_fluctuation": "Gas fees are estimated and will fluctuate based on network traffic and transaction complexity.",
       "gas_learn_more": "Learn more about gas fees"
     },
@@ -6049,6 +6096,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network fee",
+    "gas_fees_sponsored": "Paid by MetaMask",
     "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
@@ -6060,6 +6108,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network Fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
     "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
@@ -6832,6 +6881,15 @@
       "points_total": "Total",
       "description": "Description"
     },
+    "previous_season_summary": {
+      "title": "{{seasonName}} Results",
+      "update_metamask_version": "Update MetaMask to {{version}} to claim your rewards",
+      "update_metamask": "Update MetaMask to claim your rewards",
+      "point_earned": "point earned",
+      "points_earned": "points earned",
+      "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
+      "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
+    },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
@@ -6877,7 +6935,17 @@
       "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
       "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
       "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
-      "step4_legal_disclaimer_4": "learn more"
+      "step4_legal_disclaimer_4": "learn more",
+      "no_active_season": {
+        "title": "Sign up for Rewards",
+        "description": "Get more out of MetaMask with the best loyalty program in crypto.",
+        "sign_up": "Sign up",
+        "sign_up_loading": "Signing up...",
+        "legal_disclaimer_1": "By clicking 'Sign up,' you agree to the MetaMask Rewards",
+        "legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+        "legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+        "legal_disclaimer_4": "learn more"
+      }
     },
     "settings": {
       "title": "Rewards Settings",
@@ -6996,6 +7064,16 @@
           "points": "2 points per $100",
           "description": "Earn points on every $100 mUSD you deposit.",
           "cta_label": "Deposit mUSD"
+        }
+      },
+      "hold_musd": {
+        "title": "Hold mUSD",
+        "description": "2 points per $100 held",
+        "sheet": {
+          "title": "Hold mUSD",
+          "points": "2 points per $100",
+          "description": "Earn points on every $100 mUSD you hold.",
+          "cta_label": "Buy mUSD"
         }
       }
     },

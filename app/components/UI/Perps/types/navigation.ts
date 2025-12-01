@@ -20,9 +20,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
     direction: 'long' | 'short';
     asset: string;
     leverage?: number;
-    size?: string;
+    amount?: string;
     price?: string;
     orderType?: OrderType;
+    existingPosition?: Position; // Pass existing position for leverage consistency when adding to position
     hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
   };
 
@@ -176,6 +177,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsPnlHeroCard: {
     position: Position;
     marketPrice?: string;
+  };
+
+  // Order Book view - Full depth order book display
+  PerpsOrderBook: {
+    symbol: string;
+    marketData?: PerpsMarketData;
   };
 
   // Activity view - Stack-based for proper back navigation
