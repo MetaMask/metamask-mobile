@@ -43,7 +43,6 @@ describe('useBuildPortfolioUrl', () => {
       isDataRecorded: jest.fn(),
       getMetaMetricsId: jest.fn(),
       createEventBuilder: jest.fn(),
-      enableSocialLogin: jest.fn(),
     });
   });
 
