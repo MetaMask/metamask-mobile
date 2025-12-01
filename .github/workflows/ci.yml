@@ -276,7 +276,6 @@ jobs:
           repository: ${{ github.repository }}
           post-comment: 'true'
           base-ref: ${{ github.event.pull_request.base.ref }}
-          head-ref: ${{ github.event.pull_request.head.ref }}
 
   # Main E2E tests
 
