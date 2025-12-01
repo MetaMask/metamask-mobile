@@ -15,7 +15,7 @@ const createStyles = (theme: Theme) =>
       marginBottom: 16,
     },
     detailItem: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.section,
       overflow: 'hidden',
     },
     detailItemFirst: {
