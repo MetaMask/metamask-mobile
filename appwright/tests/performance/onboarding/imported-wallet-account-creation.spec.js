@@ -43,17 +43,18 @@ test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on new account created until the Token list is visible',
   );
 
-  screen1Timer.start();
   await WalletMainScreen.tapIdenticon();
+  screen1Timer.start();
   await AccountListComponent.isComponentDisplayed();
   screen1Timer.stop();
-  screen2Timer.start();
+
   await AccountListComponent.tapCreateAccountButton();
   screen2Timer.stop();
   //await AccountListComponent.tapOnAccountByName('Account 4');
 
   screen3Timer.start();
   await WalletMainScreen.isTokenVisible('ETH');
+  await WalletMainScreen.isTokenVisible('SOL');
   screen3Timer.stop();
 
   performanceTracker.addTimer(screen1Timer);
