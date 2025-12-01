@@ -10,6 +10,7 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selecto
 import { isCaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
+import { toLowerCaseEquals } from '../../../../../util/general';
 
 export interface UseCryptoCurrenciesResult {
   cryptoCurrencies: DepositCryptoCurrency[] | null;
@@ -55,8 +56,8 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
   useEffect(() => {
     if (cryptoCurrencies && cryptoCurrencies.length > 0) {
       if (intent?.assetId) {
-        const intentCrypto = cryptoCurrencies.find(
-          (token) => token.assetId === intent.assetId,
+        const intentCrypto = cryptoCurrencies.find((token) =>
+          toLowerCaseEquals(token.assetId, intent.assetId),
         );
 
         setIntent((prevIntent) =>
@@ -73,8 +74,8 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
 
       if (selectedCryptoCurrency) {
         newSelectedCrypto =
-          cryptoCurrencies.find(
-            (crypto) => crypto.assetId === selectedCryptoCurrency.assetId,
+          cryptoCurrencies.find((crypto) =>
+            toLowerCaseEquals(crypto.assetId, selectedCryptoCurrency.assetId),
           ) || null;
       }
 

@@ -38,7 +38,7 @@ const mockNetworks: ProcessedNetwork[] = [
 
 const mockUsePopularNetworks = jest.fn(() => mockNetworks);
 
-jest.mock('../../../../hooks/usePopularNetworks', () => ({
+jest.mock('../../hooks/usePopularNetworks/usePopularNetworks', () => ({
   usePopularNetworks: () => mockUsePopularNetworks(),
 }));
 
@@ -143,6 +143,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     IconSize: {
       Md: 'Md',
     },
+    IconColor: {
+      Default: 'Default',
+    },
   };
 });
 
@@ -227,9 +230,9 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       false,
     );
 
-    expect(getByText('Networks')).toBeTruthy();
-    expect(getByText('All networks')).toBeTruthy();
-    expect(getByTestId('icon-Check')).toBeTruthy();
+    expect(getByText('Networks')).toBeOnTheScreen();
+    expect(getByText('All networks')).toBeOnTheScreen();
+    expect(getByTestId('icon-Check')).toBeOnTheScreen();
   });
 
   it('renders all network options', () => {
@@ -239,9 +242,9 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       false,
     );
 
-    expect(getByText('All networks')).toBeTruthy();
-    expect(getByText('Ethereum Mainnet')).toBeTruthy();
-    expect(getByText('Polygon')).toBeTruthy();
+    expect(getByText('All networks')).toBeOnTheScreen();
+    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
+    expect(getByText('Polygon')).toBeOnTheScreen();
   });
 
   it('calls onNetworkSelect with null when "All networks" is pressed', () => {
@@ -347,8 +350,8 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       false,
     );
 
-    expect(getByText('Ethereum Mainnet')).toBeTruthy();
-    expect(getByTestId('icon-Check')).toBeTruthy();
+    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
+    expect(getByTestId('icon-Check')).toBeOnTheScreen();
   });
 
   it('displays check icon for "All networks" when selected', () => {
@@ -358,8 +361,8 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       false,
     );
 
-    expect(getByText('All networks')).toBeTruthy();
-    expect(getByTestId('icon-Check')).toBeTruthy();
+    expect(getByText('All networks')).toBeOnTheScreen();
+    expect(getByTestId('icon-Check')).toBeOnTheScreen();
   });
 
   it('renders network avatars with correct props', () => {
@@ -370,13 +373,13 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     );
 
     const ethereumAvatar = getByTestId('avatar-Ethereum Mainnet');
-    expect(ethereumAvatar).toBeTruthy();
+    expect(ethereumAvatar).toBeOnTheScreen();
     expect(ethereumAvatar.props['data-image-source']).toEqual({
       uri: 'https://example.com/ethereum.png',
     });
 
     const polygonAvatar = getByTestId('avatar-Polygon');
-    expect(polygonAvatar).toBeTruthy();
+    expect(polygonAvatar).toBeOnTheScreen();
     expect(polygonAvatar.props['data-image-source']).toEqual({
       uri: 'https://example.com/polygon.png',
     });
@@ -389,7 +392,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       false,
     );
 
-    expect(getByTestId('icon-Global')).toBeTruthy();
+    expect(getByTestId('icon-Global')).toBeOnTheScreen();
   });
 
   it('does not render when isVisible is false', () => {

@@ -361,6 +361,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -486,6 +487,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {

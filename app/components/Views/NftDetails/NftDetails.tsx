@@ -56,7 +56,7 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
   const navigation = useNavigation();
-  const { collectible } = useParams<NftDetailsParams>();
+  const { collectible, source } = useParams<NftDetailsParams>();
   const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -106,13 +106,14 @@ const NftDetails = () => {
       createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
         .addProperties({
           chain_id: getDecimalChainId(chainId),
+          ...(source && { source }),
         })
         .build(),
     );
     // The linter wants `trackEvent` to be added as a dependency,
     // But the event fires twice if I do that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId]);
+  }, [chainId, source]);
 
   const viewHighestFloorPriceSource = () => {
     const url =
@@ -189,7 +190,10 @@ const NftDetails = () => {
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
-    navigateToSendPage(InitSendLocation.NftDetails, collectible);
+    navigateToSendPage({
+      location: InitSendLocation.NftDetails,
+      asset: collectible,
+    });
   }, [collectible, chainId, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(

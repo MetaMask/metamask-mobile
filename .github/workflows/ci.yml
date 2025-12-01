@@ -185,6 +185,7 @@ jobs:
   merge-unit-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
+    if: always()
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -223,10 +224,28 @@ jobs:
           else
             echo "No changes detected"
           fi
-
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
-
+  component-view-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - run: yarn test:view --coverage=false --forceExit --silent
+        env:
+          NODE_OPTIONS: --max_old_space_size=20480
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
@@ -258,7 +277,7 @@ jobs:
           post-comment: 'true'
 
   # Main E2E tests
-  
+
   build-android-apks:
     name: 'Build Android APKs'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
@@ -318,27 +337,13 @@ jobs:
 
   # Flask E2E tests
 
-  build-android-flask-apks:
-    name: 'Build Android Flask APKs'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build]
-    uses: ./.github/workflows/build-android-e2e.yml
-    with:
-      build_type: 'flask'
-      metamask_environment: 'e2e'
-      keystore_target: 'flask'
-    secrets: inherit
-
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-flask-apks]
+    needs: [needs_e2e_build, build-android-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -364,8 +369,6 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
-        env:
-          NODE_OPTIONS: --max_old_space_size=8192
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
@@ -398,6 +401,7 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-tests
+    if: always()
     steps:
       - uses: actions/checkout@v3
         with:
@@ -440,6 +444,7 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
+    if: always()
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -542,16 +547,24 @@ jobs:
 
           # Check E2E jobs only if they should have run
           if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
-            if [[ "${{ needs.e2e-smoke-tests-android.result }}" == "failure" ]]; then
-              echo "Android E2E tests failed"
+            # Accept both 'success' and 'skipped' as valid results
+            # 'skipped' occurs during merge_group events or when jobs are intentionally skipped
+            # Only fail on 'failure' or 'cancelled'
+            ANDROID_RESULT="${{ needs.e2e-smoke-tests-android.result }}"
+            if [[ "$ANDROID_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
+              echo "Android E2E tests failed (result: $ANDROID_RESULT)"
               exit 1
             fi
-            if [[ "${{ needs.e2e-smoke-tests-ios.result }}" == "failure" ]]; then
-              echo "iOS E2E tests failed"
+
+            IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
+            if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
+              echo "iOS E2E tests failed (result: $IOS_RESULT)"
               exit 1
             fi
-            if [[ "${{ needs.e2e-smoke-tests-android-flask.result }}" == "failure" ]]; then
-              echo "Android Flask E2E tests failed"
+
+            FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
+            if [[ "$FLASK_RESULT" == "failure" ]] || [[ "$FLASK_RESULT" == "cancelled" ]]; then
+              echo "Android Flask E2E tests failed (result: $FLASK_RESULT)"
               exit 1
             fi
           fi

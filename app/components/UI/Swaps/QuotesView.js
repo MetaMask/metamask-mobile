@@ -39,15 +39,14 @@ import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../util/networks/engineNetworkUtils';
 import {
   getErrorMessage,
   getFetchParams,
   getQuotesNavigationsParams,
-  isSwapsNativeAsset,
 } from './utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
@@ -68,7 +67,7 @@ import Ratio from './components/Ratio';
 import ActionAlert from './components/ActionAlert';
 import ApprovalTransactionEditionModal from './components/ApprovalTransactionEditionModal';
 import GasEditModal from './components/GasEditModal';
-import InfoModal from './components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
@@ -1169,9 +1168,7 @@ function SwapsQuotesView({
     let approvalTransactionMetaId;
 
     // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
-    }
+    tryEnableEvmNetwork(chainId);
 
     if (shouldUseSmartTransaction) {
       try {

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 import { useAppThemeFromContext } from '../../../../../util/theme';
@@ -20,37 +20,45 @@ const createStyles = (theme: Theme) =>
   });
 interface SectionCardProps {
   sectionId: SectionId;
+  refreshTrigger?: number;
 }
 
-const SectionCard: React.FC<SectionCardProps> = ({ sectionId }) => {
+const SectionCard: React.FC<SectionCardProps> = ({
+  sectionId,
+  refreshTrigger,
+}) => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const { data, isLoading } = SECTIONS_CONFIG[sectionId].useSectionData();
+  const section = SECTIONS_CONFIG[sectionId];
+  const { data, isLoading, refetch } = section.useSectionData();
+
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0 && refetch) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
-    ({ item }) => {
-      const section = SECTIONS_CONFIG[sectionId];
-      return section.renderRowItem(item, navigation);
-    },
-    [navigation, sectionId],
+    ({ item }) => <section.RowItem item={item} navigation={navigation} />,
+    [navigation, section],
   );
 
   return (
     <Card style={styles.cardContainer} disabled>
       {isLoading && (
         <>
-          {SECTIONS_CONFIG[sectionId].renderSkeleton()}
-          {SECTIONS_CONFIG[sectionId].renderSkeleton()}
-          {SECTIONS_CONFIG[sectionId].renderSkeleton()}
+          <section.Skeleton />
+          <section.Skeleton />
+          <section.Skeleton />
         </>
       )}
       {!isLoading && (
         <FlashList
           data={data.slice(0, 3)}
           renderItem={renderFlatItem}
-          keyExtractor={(item) => SECTIONS_CONFIG[sectionId].keyExtractor(item)}
+          keyExtractor={(_, index) => `${section.id}-${index}`}
           keyboardShouldPersistTaps="handled"
           testID="perps-tokens-list"
         />

@@ -6,7 +6,7 @@ Maker rebates are paid out continuously on each trade directly to the trading wa
 
 There are separate fee schedules for perps vs spot. Perps and spot volume will be counted together to determine your fee tier, and spot volume will count double toward your fee tier. i.e., `(14d weighted volume) = (14d perps volume) + 2 * (14d spot volume)`.
 
-There is one fee tier across all assets, including perps, HIP-3 perps, and spot. HIP-3 perps have 2x fees and the same rebates.
+For each user, there is one fee tier across all assets, including perps, HIP-3 perps, and spot. When growth mode is activated for an HIP-3 perp, protocol fees, rebates, and volume contributions are reduced by 90%. HIP-3 deployers can configure an additional fee share between 0-300% (0-100% for growth mode). If the share is above 100%, the protocol fee is also increased to be equal to the deployer fee.
 
 Spot pairs between two spot quote assets have 80% lower taker fees, maker rebates, and user volume contribution.
 
@@ -68,3 +68,68 @@ A "staking user" and a "trading user" can be linked so that the staking user's H
 - The staking user will not receive any staking-related fee discount after being linked.
 - Linking requires the trading user to send an action first, and then the staking user to finalize the link. See "Link Staking" at app.hyperliquid.xyz/portfolio for details.&#x20;
 - No action is required if you plan to trade and stake from the same address.&#x20;
+
+### Fee formula for developers
+
+```typescript
+type Args =
+  | {
+      type: 'spot';
+      isStablePair: boolean;
+    }
+  | {
+      type: 'perp';
+      deployerFeeScale: number;
+      growthMode: boolean;
+    };
+
+function feeRates(
+  fees: { makerRate: number; takerRate: number }, // fees from userFees info endpoint
+  activeReferralDiscount: number, // number from userFees info endpoint
+  isAlignedQuoteToken: boolean,
+  args: Args,
+) {
+  const scaleIfStablePair = args.type === 'spot' && args.isStablePair ? 0.2 : 1;
+  let scaleIfHip3 = 1;
+  let growthModeScale = 1;
+  let deployerShare = 0;
+  if (args.type === 'perp') {
+    scaleIfHip3 =
+      args.deployerFeeScale < 1
+        ? args.deployerFeeScale + 1
+        : args.deployerFeeScale * 2;
+    deployerShare =
+      args.deployerFeeScale < 1
+        ? args.deployerFeeScale / (1 + args.deployerFeeScale)
+        : 0.5;
+    growthModeScale = args.growthMode ? 0.1 : 1;
+  }
+
+  let makerPercentage =
+    fees.makerRate * 100 * scaleIfStablePair * growthModeScale;
+  if (makerPercentage > 0) {
+    makerPercentage *= scaleIfHip3 * (1 - activeReferralDiscount);
+  } else {
+    const makerRebateScaleIfAlignedQuoteToken = isAlignedQuoteToken
+      ? (1 - deployerShare) * 1.5 + deployerShare
+      : 1;
+    makerPercentage *= makerRebateScaleIfAlignedQuoteToken;
+  }
+
+  let takerPercentage =
+    fees.takerRate *
+    100 *
+    scaleIfStablePair *
+    scaleIfHip3 *
+    growthModeScale *
+    (1 - activeReferralDiscount);
+  if (isAlignedQuoteToken) {
+    const takerScaleIfAlignedQuoteToken = isAlignedQuoteToken
+      ? (1 - deployerShare) * 0.8 + deployerShare
+      : 1;
+    takerPercentage *= takerScaleIfAlignedQuoteToken;
+  }
+
+  return { makerPercentage, takerPercentage };
+}
+```
