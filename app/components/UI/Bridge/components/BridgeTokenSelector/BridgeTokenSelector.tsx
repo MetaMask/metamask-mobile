@@ -111,6 +111,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Chain IDs to fetch tokens for
   const chainIdsToFetch = useMemo(() => {
+    // @ts-expect-error chainRanking is not yet in the type definition
     if (!bridgeFeatureFlags.chainRanking) {
       return [];
     }
@@ -121,7 +122,10 @@ export const BridgeTokenSelector: React.FC = () => {
     }
 
     // If "All" is selected, use all chains from chainRanking
-    return bridgeFeatureFlags.chainRanking.map((chain) => chain.chainId);
+    // @ts-expect-error chainRanking is not yet in the type definition
+    return bridgeFeatureFlags.chainRanking.map(
+      (chain: { chainId: CaipChainId }) => chain.chainId,
+    );
   }, [selectedChainId, bridgeFeatureFlags]);
 
   // Get balances indexed by assetId for O(1) lookup when merging with API results

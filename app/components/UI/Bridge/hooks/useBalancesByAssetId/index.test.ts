@@ -130,12 +130,12 @@ describe('useBalancesByAssetId', () => {
       const mockTokens = [
         createMockTokenWithBalance({
           address: '0xtoken1',
-          chainId: MOCK_CHAIN_IDS_HEX.ethereum,
+          chainId: MOCK_CHAIN_IDS_HEX.ethereum as Hex,
           balance: '10.0',
         }),
         createMockTokenWithBalance({
           address: '0xtoken2',
-          chainId: '0xa',
+          chainId: '0xa' as Hex,
           balance: '20.0',
         }),
       ];

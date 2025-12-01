@@ -33,6 +33,7 @@ describe('quoteUtils', () => {
           refreshRate: 3000,
         },
       },
+      // @ts-expect-error chainRanking is not yet in the type definition
       chainRanking: [{ chainId: 'eip155:1' }, { chainId: 'eip155:137' }],
     };
 

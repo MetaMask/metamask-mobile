@@ -51,14 +51,18 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   // Extract chainRanking from feature flags
   const chainRanking = useMemo(() => {
     // Use chainRanking from bridge feature flags
+    // @ts-expect-error chainRanking is not yet in the type definition
     if (!bridgeFeatureFlags.chainRanking) {
       return [];
     }
 
-    return bridgeFeatureFlags.chainRanking.map((chain) => ({
-      ...chain,
-      name: getNetworkName(chain.chainId, networkConfigurations),
-    }));
+    // @ts-expect-error chainRanking is not yet in the type definition
+    return bridgeFeatureFlags.chainRanking.map(
+      (chain: { chainId: CaipChainId }) => ({
+        ...chain,
+        name: getNetworkName(chain.chainId, networkConfigurations),
+      }),
+    );
   }, [bridgeFeatureFlags, networkConfigurations]);
 
   // Auto-scroll to selected network on initial layout
@@ -66,7 +70,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
     if (hasScrolledRef.current || !selectedChainId) return;
 
     const selectedIndex = chainRanking.findIndex(
-      (chain) => chain.chainId === selectedChainId,
+      (chain: { chainId: CaipChainId }) => chain.chainId === selectedChainId,
     );
 
     // Only scroll if the selected network is beyond the first 2 visible networks
@@ -91,7 +95,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   };
 
   const renderChainPills = () =>
-    chainRanking.map((chain) => {
+    chainRanking.map((chain: { chainId: CaipChainId; name: string }) => {
       const isSelected = selectedChainId === chain.chainId;
 
       return (
