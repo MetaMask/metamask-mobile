@@ -17,6 +17,17 @@ import { Severity } from '../../../Views/confirmations/types/alerts';
 import { AssetType } from '../types';
 import BatchApprovalRow from './BatchApprovalRow';
 
+jest.mock(
+  '../../../Views/confirmations/hooks/metrics/useConfirmationAlertMetrics',
+  () => ({
+    useConfirmationAlertMetrics: () => ({
+      trackInlineAlertClicked: jest.fn(),
+      trackAlertActionClicked: jest.fn(),
+      trackAlertRendered: jest.fn(),
+    }),
+  }),
+);
+
 const approvalData = [
   {
     asset: {
