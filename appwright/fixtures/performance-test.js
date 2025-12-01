@@ -31,37 +31,9 @@ export const test = base.extend({
         const existsInTracker = performanceTracker.timers.some(
           (t) => t.id === timer.id,
         );
-
-        if (!existsInTracker) {
-          console.log(`🔄 Recovering orphaned timer: "${timer.id}"`);
-
-          try {
-            // Stop the timer if it's still running
-            if (timer.isRunning()) {
-              timer.stopTimer();
-            }
-
-            performanceTracker.addTimer(timer);
-          } catch (error) {
-            console.log(
-              `⚠️ Failed to recover timer ${timer.id}: ${error.message}`,
-            );
-          }
-        }
       }
     } catch (importError) {
       console.log(`⚠️ Timer recovery failed: ${importError.message}`);
-    }
-
-    // Stop any running timers in the tracker
-    for (const timer of performanceTracker.timers) {
-      try {
-        if (timer.isRunning && timer.isRunning() && !timer.isCompleted()) {
-          timer.stopTimer();
-        }
-      } catch (error) {
-        console.log(`⚠️ Error checking timer ${timer.id}: ${error.message}`);
-      }
     }
 
     // Always try to attach performance metrics, even if test failed
@@ -74,32 +46,6 @@ export const test = base.extend({
       );
     } catch (error) {
       console.error('❌ Failed to attach performance metrics:', error.message);
-
-      // Create fallback metrics for failed tests
-      try {
-        const fallbackMetrics = {
-          testFailed: true,
-          failureReason: testInfo?.status || 'unknown',
-          testDuration: testInfo?.duration || 0,
-          message: 'Performance metrics could not be properly attached',
-          timersFound: performanceTracker.timers.length,
-          device: testInfo?.project?.use?.device || {
-            name: 'Unknown',
-            osVersion: 'Unknown',
-          },
-        };
-
-        await testInfo.attach(
-          `performance-metrics-fallback-${testInfo.title}`,
-          {
-            body: JSON.stringify(fallbackMetrics),
-            contentType: 'application/json',
-          },
-        );
-        console.log(`✅ Fallback metrics attached`);
-      } catch (fallbackError) {
-        console.error('❌ Fallback metrics attachment failed');
-      }
     }
 
     console.log('🔍 Looking for session ID...');

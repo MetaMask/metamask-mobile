@@ -49,8 +49,6 @@ test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   screen1Timer.stop();
 
   await AccountListComponent.tapCreateAccountButton();
-  screen2Timer.stop();
-  //await AccountListComponent.tapOnAccountByName('Account 4');
 
   screen3Timer.start();
   await WalletMainScreen.isTokenVisible('ETH');

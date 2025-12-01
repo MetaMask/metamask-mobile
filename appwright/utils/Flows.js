@@ -134,7 +134,6 @@ export async function login(device, options = {}) {
   // Wait for app to settle after unlock
 
   if (dismissModals) {
-    await AppwrightGestures.wait(5000);
     await dismissMultichainAccountsIntroModal(device, 5000);
     await dissmissPredictionsModal(device);
   }
