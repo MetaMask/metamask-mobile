@@ -20,7 +20,11 @@ interface TokenListProps {
 
 export function TokenList({ onSelect, tokens }: TokenListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { updateAsset } = useSendContext();
+  const {
+    updateAsset,
+    asset: existingSelectedAsset,
+    updateTo,
+  } = useSendContext();
   const { captureAssetSelected } = useAssetSelectionMetrics();
   const [visibleTokenCount, setVisibleTokenCount] =
     useState(TOKEN_COUNT_PER_PAGE);
@@ -38,9 +42,23 @@ export function TokenList({ onSelect, tokens }: TokenListProps) {
 
       captureAssetSelected(asset, position.toString());
       updateAsset(asset);
+
+      // Reset the to address when a new asset is selected
+      if (existingSelectedAsset) {
+        updateTo('');
+      }
+
       gotToSendScreen(Routes.SEND.AMOUNT);
     },
-    [captureAssetSelected, gotToSendScreen, onSelect, tokens, updateAsset],
+    [
+      captureAssetSelected,
+      existingSelectedAsset,
+      gotToSendScreen,
+      onSelect,
+      tokens,
+      updateAsset,
+      updateTo,
+    ],
   );
 
   const handleShowMore = useCallback(() => {

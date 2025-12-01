@@ -219,3 +219,17 @@ export async function scanUrl(
     Logger.log(`[scanUrl] Failed to scan URL ${origin}:`, error);
   }
 }
+
+/**
+ * Generate a cache key for address scanning
+ *
+ * @param chainId - The chainId
+ * @param address - The address to scan
+ * @returns The cache key
+ */
+export function generateAddressCacheKey(
+  chainId: string,
+  address: string,
+): string {
+  return `${chainId.toLowerCase()}:${address.toLowerCase()}`;
+}

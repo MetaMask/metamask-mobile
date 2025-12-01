@@ -2,6 +2,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -13,10 +16,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -131,13 +130,16 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           </Box>
           <Box twClassName="flex-1 -mt-1">
             <Text
-              variant={TextVariant.HeadingMD}
-              color={TextColor.Default}
+              variant={TextVariant.HeadingMd}
+              color={TextColor.TextDefault}
               style={tw.style('font-medium')}
             >
               {getTitle()}
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
             </Text>
           </Box>
@@ -149,11 +151,12 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 twClassName="gap-1"
               >
                 <Text
-                  variant={TextVariant.BodyMDMedium}
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
                   color={
                     outcomeToken.price === 1
-                      ? TextColor.Default
-                      : TextColor.Alternative
+                      ? TextColor.TextDefault
+                      : TextColor.TextAlternative
                   }
                 >
                   {outcomeToken.price === 1
@@ -166,8 +169,8 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                     size={IconSize.Md}
                     color={
                       outcomeToken.price === 1
-                        ? TextColor.Success
-                        : TextColor.Muted
+                        ? TextColor.SuccessDefault
+                        : TextColor.TextMuted
                     }
                   />
                 )}
@@ -175,7 +178,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             ) : (
               <Text
                 style={tw.style('text-[20px] font-medium')}
-                color={TextColor.Default}
+                color={TextColor.TextDefault}
               >
                 {getYesPercentage()}
               </Text>
@@ -192,7 +195,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             label={
               <Text
                 style={tw.style('font-medium text-center')}
-                color={TextColor.Success}
+                color={TextColor.SuccessDefault}
               >
                 {outcome.tokens[0].title}
                 {isBiggerLabel ? '\n' : ' • '}
@@ -209,7 +212,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             label={
               <Text
                 style={tw.style('font-medium text-center')}
-                color={TextColor.Error}
+                color={TextColor.ErrorDefault}
               >
                 {outcome.tokens[1].title}
                 {isBiggerLabel ? '\n' : ' • '}

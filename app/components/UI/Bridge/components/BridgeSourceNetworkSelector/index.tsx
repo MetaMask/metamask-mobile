@@ -32,6 +32,7 @@ import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNe
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -90,6 +91,9 @@ export const BridgeSourceNetworkSelector: React.FC<
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
+  );
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
   );
 
   // Local state for candidate network selections
@@ -229,7 +233,13 @@ export const BridgeSourceNetworkSelector: React.FC<
                 onPress={() => toggleChain(chain.chainId)}
                 testID={`checkbox-${chain.chainId}`}
               />
-              <NetworkRow chainId={chain.chainId} chainName={chain.name}>
+              <NetworkRow
+                chainId={chain.chainId}
+                chainName={chain.name}
+                showNoNetworkFeeLabel={isGasFeesSponsoredNetworkEnabled(
+                  chain.chainId as Hex,
+                )}
+              >
                 <Text
                   style={styles.fiatValue}
                   variant={TextVariant.BodyLGMedium}
@@ -247,6 +257,7 @@ export const BridgeSourceNetworkSelector: React.FC<
       styles,
       toggleChain,
       sortedSourceNetworks,
+      isGasFeesSponsoredNetworkEnabled,
     ],
   );
 
