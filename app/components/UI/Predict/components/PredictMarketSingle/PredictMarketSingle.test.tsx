@@ -140,7 +140,7 @@ describe('PredictMarketSingle', () => {
     const noButton = getByText('No');
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
@@ -151,7 +151,7 @@ describe('PredictMarketSingle', () => {
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
@@ -311,7 +311,7 @@ describe('PredictMarketSingle', () => {
     );
     fireEvent.press(marketTitle);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,

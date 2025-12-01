@@ -1,11 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsRewards } from './usePerpsRewards';
 import type { OrderFeesResult } from './usePerpsOrderFees';
-
-// Mock the Redux selector
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock the development config
 jest.mock('../constants/perpsConfig', () => ({
@@ -15,8 +11,16 @@ jest.mock('../constants/perpsConfig', () => ({
   },
 }));
 
-import { useSelector } from 'react-redux';
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+// Mock the usePerpsRewardAccountOptedIn hook
+jest.mock('./usePerpsRewardAccountOptedIn', () => ({
+  usePerpsRewardAccountOptedIn: jest.fn(),
+}));
+
+import { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
+
+const mockUsePerpsRewardAccountOptedIn = jest.mocked(
+  usePerpsRewardAccountOptedIn,
+);
 
 describe('usePerpsRewards', () => {
   // Mock fee results for testing
@@ -37,37 +41,35 @@ describe('usePerpsRewards', () => {
     ...overrides,
   });
 
+  // Mock account for testing
+  const createMockAccount = (): InternalAccount =>
+    ({
+      id: 'test-account-id',
+      address: '0x1234567890123456789012345678901234567890',
+      metadata: {
+        name: 'Test Account',
+        keyring: {
+          type: 'HD Key Tree',
+        },
+      },
+    }) as InternalAccount;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: rewards enabled
-    mockUseSelector.mockReturnValue(true);
+    // Default mock: account opted in, with a mock account
+    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      accountOptedIn: true,
+      account: createMockAccount(),
+    });
   });
 
-  describe('Feature flag scenarios', () => {
-    it('should not show rewards row when feature flag is disabled', () => {
+  describe('Rewards row visibility', () => {
+    it('should show rewards row when has valid amount and account opted in', () => {
       // Arrange
-      mockUseSelector.mockReturnValue(false);
-      const feeResults = createMockFeeResults({ estimatedPoints: 100 });
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsRewards({
-          feeResults,
-          hasValidAmount: true,
-          isFeesLoading: false,
-          orderAmount: '1000',
-        }),
-      );
-
-      // Assert
-      expect(result.current.shouldShowRewardsRow).toBe(false);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasError).toBe(false);
-    });
-
-    it('should show rewards row when feature flag is enabled and has valid amount', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(true);
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: true,
+        account: createMockAccount(),
+      });
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       // Act
@@ -83,11 +85,61 @@ describe('usePerpsRewards', () => {
       // Assert
       expect(result.current.shouldShowRewardsRow).toBe(true);
       expect(result.current.estimatedPoints).toBe(100);
+      expect(result.current.accountOptedIn).toBe(true);
+    });
+
+    it('should show rewards row when has valid amount and account not opted in', () => {
+      // Arrange
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: false,
+        account: createMockAccount(),
+      });
+      const feeResults = createMockFeeResults({ estimatedPoints: 100 });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsRewards({
+          feeResults,
+          hasValidAmount: true,
+          isFeesLoading: false,
+          orderAmount: '1000',
+        }),
+      );
+
+      // Assert
+      expect(result.current.shouldShowRewardsRow).toBe(true);
+      expect(result.current.accountOptedIn).toBe(false);
+    });
+
+    it('should not show rewards row when accountOptedIn is null', () => {
+      // Arrange
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: null,
+        account: null,
+      });
+      const feeResults = createMockFeeResults({ estimatedPoints: 100 });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsRewards({
+          feeResults,
+          hasValidAmount: true,
+          isFeesLoading: false,
+          orderAmount: '1000',
+        }),
+      );
+
+      // Assert
+      expect(result.current.shouldShowRewardsRow).toBe(false);
+      expect(result.current.accountOptedIn).toBeNull();
     });
 
     it('should not show rewards row when hasValidAmount is false', () => {
       // Arrange
-      mockUseSelector.mockReturnValue(true);
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: true,
+        account: createMockAccount(),
+      });
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       // Act
@@ -427,6 +479,11 @@ describe('usePerpsRewards', () => {
   describe('Return values', () => {
     it('should return all expected properties from fee results', () => {
       // Arrange
+      const mockAccount = createMockAccount();
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: true,
+        account: mockAccount,
+      });
       const feeResults = createMockFeeResults({
         estimatedPoints: 1500,
         bonusBips: 250,
@@ -447,10 +504,16 @@ describe('usePerpsRewards', () => {
       expect(result.current.estimatedPoints).toBe(1500);
       expect(result.current.bonusBips).toBe(250);
       expect(result.current.feeDiscountPercentage).toBe(15);
+      expect(result.current.accountOptedIn).toBe(true);
+      expect(result.current.account).toEqual(mockAccount);
     });
 
     it('should handle undefined values gracefully', () => {
       // Arrange
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: false,
+        account: createMockAccount(),
+      });
       const feeResults = createMockFeeResults({
         estimatedPoints: undefined,
         bonusBips: undefined,
@@ -471,12 +534,64 @@ describe('usePerpsRewards', () => {
       expect(result.current.estimatedPoints).toBeUndefined();
       expect(result.current.bonusBips).toBeUndefined();
       expect(result.current.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.accountOptedIn).toBe(false);
+    });
+
+    it('should return accountOptedIn and account from usePerpsRewardAccountOptedIn', () => {
+      // Arrange
+      const mockAccount = createMockAccount();
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: true,
+        account: mockAccount,
+      });
+      const feeResults = createMockFeeResults({ estimatedPoints: 100 });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsRewards({
+          feeResults,
+          hasValidAmount: true,
+          isFeesLoading: false,
+          orderAmount: '1000',
+        }),
+      );
+
+      // Assert
+      expect(result.current.accountOptedIn).toBe(true);
+      expect(result.current.account).toEqual(mockAccount);
+    });
+
+    it('should return null account when accountOptedIn is null', () => {
+      // Arrange
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: null,
+        account: null,
+      });
+      const feeResults = createMockFeeResults({ estimatedPoints: 100 });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsRewards({
+          feeResults,
+          hasValidAmount: true,
+          isFeesLoading: false,
+          orderAmount: '1000',
+        }),
+      );
+
+      // Assert
+      expect(result.current.accountOptedIn).toBeNull();
+      expect(result.current.account).toBeNull();
     });
   });
 
   describe('Edge cases', () => {
     it('should handle empty order amount', () => {
       // Arrange
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: true,
+        account: createMockAccount(),
+      });
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       // Act
@@ -497,6 +612,10 @@ describe('usePerpsRewards', () => {
 
     it('should handle transitions from points to no points', () => {
       // Arrange
+      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+        accountOptedIn: true,
+        account: createMockAccount(),
+      });
       const initialFeeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       const { result, rerender } = renderHook(

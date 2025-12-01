@@ -24,6 +24,9 @@ import type {
   SubscribeOrdersParams,
   SubscribeAccountParams,
   SubscribeOICapsParams,
+  SubscribeOrderBookParams,
+  OrderBookData,
+  OrderBookLevel,
 } from '../controllers/types';
 import {
   adaptPositionFromSDK,
@@ -31,6 +34,7 @@ import {
   adaptAccountStateFromSDK,
   parseAssetName,
 } from '../utils/hyperLiquidAdapter';
+import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
@@ -159,6 +163,7 @@ export class HyperLiquidSubscriptionService {
     this.walletService = walletService;
     this.hip3Enabled = hip3Enabled ?? false;
     this.enabledDexs = enabledDexs ?? [];
+    this.discoveredDexNames = enabledDexs ?? [];
     this.allowlistMarkets = allowlistMarkets ?? [];
     this.blocklistMarkets = blocklistMarkets ?? [];
   }
@@ -475,6 +480,12 @@ export class HyperLiquidSubscriptionService {
     let totalMarginUsed = 0;
     let totalUnrealizedPnl = 0;
 
+    // Collect account states for weighted ROE calculation
+    const accountStatesForROE: {
+      unrealizedPnl: string;
+      returnOnEquity: string;
+    }[] = [];
+
     // Aggregate all cached account states
     Array.from(this.dexAccountCache.entries()).forEach(
       ([currentDex, state]) => {
@@ -487,12 +498,21 @@ export class HyperLiquidSubscriptionService {
         totalBalance += parseFloat(state.totalBalance);
         totalMarginUsed += parseFloat(state.marginUsed);
         totalUnrealizedPnl += parseFloat(state.unrealizedPnl);
+
+        // Collect data for weighted ROE calculation
+        accountStatesForROE.push({
+          unrealizedPnl: state.unrealizedPnl,
+          returnOnEquity: state.returnOnEquity,
+        });
       },
     );
 
     // Use first DEX's account state as base and override aggregated values
     const firstDexAccount =
       this.dexAccountCache.values().next().value || ({} as AccountState);
+
+    // Calculate weighted returnOnEquity across all DEXs
+    const returnOnEquity = calculateWeightedReturnOnEquity(accountStatesForROE);
 
     return {
       ...firstDexAccount,
@@ -501,6 +521,7 @@ export class HyperLiquidSubscriptionService {
       marginUsed: totalMarginUsed.toString(),
       unrealizedPnl: totalUnrealizedPnl.toString(),
       subAccountBreakdown,
+      returnOnEquity,
     };
   }
 
@@ -1168,7 +1189,7 @@ export class HyperLiquidSubscriptionService {
                   : undefined,
               }));
 
-              callback(orderFills);
+              callback(orderFills, data.isSnapshot);
             },
           ),
         )
@@ -1577,7 +1598,12 @@ export class HyperLiquidSubscriptionService {
       // Last subscriber, cleanup subscription
       const subscription = this.globalActiveAssetSubscriptions.get(symbol);
       if (subscription) {
-        subscription.unsubscribe().catch(console.error);
+        subscription.unsubscribe().catch((error: unknown) => {
+          Logger.error(ensureError(error), {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            message: `Failed to cleanup active asset subscription for ${symbol}`,
+          });
+        });
         this.globalActiveAssetSubscriptions.delete(symbol);
         this.symbolSubscriberCounts.delete(symbol);
         DevLogger.log(
@@ -1816,13 +1842,171 @@ export class HyperLiquidSubscriptionService {
   private cleanupL2BookSubscription(symbol: string): void {
     const subscription = this.globalL2BookSubscriptions.get(symbol);
     if (subscription) {
-      subscription.unsubscribe().catch(console.error);
+      subscription.unsubscribe().catch((error: unknown) => {
+        Logger.error(ensureError(error), {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          message: `Failed to cleanup L2 book subscription for ${symbol}`,
+        });
+      });
       this.globalL2BookSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
       DevLogger.log(
         `HyperLiquid: Cleaned up L2 book subscription for ${symbol}`,
       );
     }
+  }
+
+  /**
+   * Subscribe to full order book updates with multiple depth levels
+   * Creates a dedicated L2Book subscription for the requested symbol
+   * and processes data into OrderBookData format for UI consumption
+   *
+   * @param params - Subscription parameters
+   * @returns Cleanup function to unsubscribe
+   */
+  public subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    const { symbol, levels = 10, nSigFigs = 5, callback, onError } = params;
+
+    this.clientService.ensureSubscriptionClient(
+      this.walletService.createWalletAdapter(),
+    );
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      const error = new Error('Subscription client not available');
+      onError?.(error);
+      DevLogger.log('subscribeToOrderBook: Subscription client not available');
+      return () => {
+        // No-op cleanup
+      };
+    }
+
+    let subscription: Subscription | undefined;
+    let cancelled = false;
+
+    subscriptionClient
+      .l2Book({ coin: symbol, nSigFigs }, (data: L2BookResponse) => {
+        if (cancelled || data?.coin !== symbol || !data?.levels) {
+          return;
+        }
+
+        const orderBookData = this.processOrderBookData(data, levels);
+        callback(orderBookData);
+      })
+      .then((sub) => {
+        if (cancelled) {
+          sub.unsubscribe().catch((error: Error) => {
+            Logger.error(
+              ensureError(error),
+              this.getErrorContext('subscribeToOrderBook.cleanup', { symbol }),
+            );
+          });
+        } else {
+          subscription = sub;
+          DevLogger.log(
+            `HyperLiquid: Order book subscription established for ${symbol}`,
+          );
+        }
+      })
+      .catch((error) => {
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('subscribeToOrderBook', { symbol }),
+        );
+        onError?.(ensureError(error));
+      });
+
+    return () => {
+      cancelled = true;
+      if (subscription) {
+        subscription.unsubscribe().catch((error: Error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('subscribeToOrderBook.unsubscribe', {
+              symbol,
+            }),
+          );
+        });
+      }
+    };
+  }
+
+  /**
+   * Process raw L2Book data into OrderBookData format
+   * Calculates cumulative totals, notional values, and spread metrics
+   *
+   * @param data - Raw L2Book response from WebSocket
+   * @param levels - Number of levels to return per side
+   * @returns Processed OrderBookData
+   */
+  private processOrderBookData(
+    data: L2BookResponse,
+    levels: number,
+  ): OrderBookData {
+    const bidsRaw = data?.levels?.[0] || [];
+    const asksRaw = data?.levels?.[1] || [];
+
+    // Process bids (buy orders) - highest price first
+    let bidCumulativeSize = 0;
+    let bidCumulativeNotional = 0;
+    const bids: OrderBookLevel[] = bidsRaw.slice(0, levels).map((level) => {
+      const price = parseFloat(level.px);
+      const size = parseFloat(level.sz);
+      const notional = price * size;
+      bidCumulativeSize += size;
+      bidCumulativeNotional += notional;
+
+      return {
+        price: level.px,
+        size: level.sz,
+        total: bidCumulativeSize.toString(),
+        notional: notional.toFixed(2),
+        totalNotional: bidCumulativeNotional.toFixed(2),
+      };
+    });
+
+    // Process asks (sell orders) - lowest price first
+    let askCumulativeSize = 0;
+    let askCumulativeNotional = 0;
+    const asks: OrderBookLevel[] = asksRaw.slice(0, levels).map((level) => {
+      const price = parseFloat(level.px);
+      const size = parseFloat(level.sz);
+      const notional = price * size;
+      askCumulativeSize += size;
+      askCumulativeNotional += notional;
+
+      return {
+        price: level.px,
+        size: level.sz,
+        total: askCumulativeSize.toString(),
+        notional: notional.toFixed(2),
+        totalNotional: askCumulativeNotional.toFixed(2),
+      };
+    });
+
+    // Calculate spread and mid price
+    const bestBid = bids[0];
+    const bestAsk = asks[0];
+    const bidPrice = bestBid ? parseFloat(bestBid.price) : 0;
+    const askPrice = bestAsk ? parseFloat(bestAsk.price) : 0;
+    const spread = askPrice > 0 && bidPrice > 0 ? askPrice - bidPrice : 0;
+    const midPrice =
+      askPrice > 0 && bidPrice > 0 ? (askPrice + bidPrice) / 2 : 0;
+    const spreadPercentage =
+      midPrice > 0 ? ((spread / midPrice) * 100).toFixed(4) : '0';
+
+    // Calculate max total for depth chart scaling
+    const maxTotal = Math.max(bidCumulativeSize, askCumulativeSize).toString();
+
+    return {
+      bids,
+      asks,
+      spread: spread.toFixed(5),
+      spreadPercentage,
+      midPrice: midPrice.toFixed(5),
+      lastUpdated: Date.now(),
+      maxTotal,
+    };
   }
 
   /**

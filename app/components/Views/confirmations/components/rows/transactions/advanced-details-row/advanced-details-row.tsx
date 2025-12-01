@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -24,9 +25,12 @@ import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonce
 import { use7702TransactionType } from '../../../../hooks/7702/use7702TransactionType';
 import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
+import AlertRow from '../../../UI/info-row/alert-row';
+import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import NestedTransactionData from '../../../nested-transaction-data/nested-transaction-data';
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './advanced-details-row.styles';
 
 const MAX_DATA_LENGTH_FOR_SCROLL = 200;
@@ -48,6 +52,8 @@ const AdvancedDetailsRow = () => {
   const isSTXOptIn = useSelector((state: RootState) =>
     selectSmartTransactionsOptInStatus(state),
   );
+
+  // Nonce is always editable unless smart transactions are enabled
   const isNonceChangeDisabled = isSTXEnabledForChain && isSTXOptIn;
 
   const { styles } = useStyles(styleSheet, {
@@ -73,7 +79,8 @@ const AdvancedDetailsRow = () => {
         testID={ConfirmationRowComponentIDs.ADVANCED_DETAILS}
         collapsedContent={
           <InfoSection>
-            <InfoRow
+            <AlertRow
+              alertField={RowAlertKey.InteractingWith}
               label={strings('stake.advanced_details')}
               style={styles.infoRowOverride}
               withIcon={{
@@ -88,7 +95,11 @@ const AdvancedDetailsRow = () => {
           <>
             {!isDowngrade && to && (
               <InfoSection>
-                <InfoRow label={strings('stake.interacting_with')}>
+                <AlertRow
+                  alertField={RowAlertKey.InteractingWith}
+                  label={strings('stake.interacting_with')}
+                  disableAlertInteraction
+                >
                   {isBatched || isUpgrade ? (
                     <SmartContractWithLogo />
                   ) : (
@@ -98,7 +109,7 @@ const AdvancedDetailsRow = () => {
                       variation={transactionMetadata?.chainId as Hex}
                     />
                   )}
-                </InfoRow>
+                </AlertRow>
               </InfoSection>
             )}
             <InfoSection>
@@ -160,5 +171,20 @@ const AdvancedDetailsRow = () => {
     </>
   );
 };
+
+export function AdvancedDetailsRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {
+    isNonceChangeDisabled: false,
+  });
+
+  return (
+    <InfoSection>
+      <View style={styles.skeletonContainer}>
+        <Skeleton width={130} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={16} height={16} style={styles.skeletonBorderRadius} />
+      </View>
+    </InfoSection>
+  );
+}
 
 export default AdvancedDetailsRow;

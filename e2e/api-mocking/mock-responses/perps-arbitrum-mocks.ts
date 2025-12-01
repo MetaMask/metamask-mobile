@@ -64,9 +64,9 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
   const ARBITRUM_RPC_URL = 'https://arb1.arbitrum.io/rpc';
   const USDC_ARBITRUM_E = '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8'; // USDC.e (legacy)
   const USDC_ARBITRUM = '0xaf88d065e77c8cc2239327c5edb3a432268e5831'; // Native USDC
-  // Encode balanceOf(Account1) result for 100 USDC (6 decimals) => 100000000
-  const HUNDRED_USDC_HEX =
-    '0x0000000000000000000000000000000000000000000000000000000005f5e100';
+  // Encode balanceOf(Account1) result for 200 USDC (6 decimals) => 200000000
+  const TWO_HUNDRED_USDC_HEX =
+    '0x000000000000000000000000000000000000000000000000000000000bebc200';
   // 100 ETH in wei
   const HUNDRED_ETH_WEI_HEX = '0x56bc75e2d63100000';
 
@@ -137,7 +137,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
                 body: JSON.stringify({
                   id: body?.id ?? 1,
                   jsonrpc: '2.0',
-                  result: HUNDRED_USDC_HEX,
+                  result: TWO_HUNDRED_USDC_HEX,
                 }),
               };
             }

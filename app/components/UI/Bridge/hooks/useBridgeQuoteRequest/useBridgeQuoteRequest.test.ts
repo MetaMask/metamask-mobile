@@ -6,6 +6,9 @@ import Engine from '../../../../../core/Engine';
 import { act } from '@testing-library/react-native';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import useIsInsufficientBalance from '../useInsufficientBalance';
+import { useLatestBalance } from '../useLatestBalance';
+import { BigNumber } from 'ethers';
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -56,6 +59,16 @@ jest.mock('../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
+// Mock the balance hooks
+jest.mock('../useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../useLatestBalance', () => ({
+  useLatestBalance: jest.fn(),
+}));
+
 jest.useFakeTimers();
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -67,6 +80,15 @@ const mockSelectSourceWalletAddress =
     typeof selectSourceWalletAddress
   >;
 
+const mockUseIsInsufficientBalance =
+  useIsInsufficientBalance as jest.MockedFunction<
+    typeof useIsInsufficientBalance
+  >;
+
+const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
+  typeof useLatestBalance
+>;
+
 describe('useBridgeQuoteRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -76,6 +98,14 @@ describe('useBridgeQuoteRequest', () => {
     mockSelectSourceWalletAddress.mockReturnValue(
       '0x1234567890123456789012345678901234567890',
     );
+
+    // Mock balance hooks with default values
+    mockUseLatestBalance.mockReturnValue({
+      displayBalance: '10',
+      atomicBalance: BigNumber.from('10000000000000000000'), // 10 ETH in wei
+    });
+
+    mockUseIsInsufficientBalance.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -344,5 +374,202 @@ describe('useBridgeQuoteRequest', () => {
 
     // Reset mock
     (isSolanaChainId as jest.Mock).mockReset();
+  });
+
+  describe('gasIncluded parameter', () => {
+    it('includes gasIncluded true in quote request when STX send bundle is supported', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          isGasIncludedSTXSendBundleSupported: true,
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: true,
+        }),
+        undefined,
+      );
+    });
+
+    it('includes gasIncluded false in quote request when STX send bundle is not supported', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          isGasIncludedSTXSendBundleSupported: false,
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: false,
+        }),
+        undefined,
+      );
+    });
+
+    it('includes gasIncluded7702 true in quote request when 7702 is supported for swap', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          isGasIncluded7702Supported: true,
+          // Need to set up a swap scenario (same chain) for 7702 to be enabled
+          sourceToken: {
+            address: '0xSourceToken',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'SRC',
+          },
+          destToken: {
+            address: '0xDestToken',
+            chainId: '0x1', // Same chain as source for swap
+            decimals: 18,
+            symbol: 'DEST',
+          },
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded7702: true,
+        }),
+        undefined,
+      );
+    });
+
+    it('includes gasIncluded7702 false in quote request when 7702 is not supported', async () => {
+      const testState = createBridgeTestState();
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded7702: false,
+        }),
+        undefined,
+      );
+    });
+  });
+
+  describe('insufficientBal parameter', () => {
+    it('includes insufficientBal false when balance is sufficient', async () => {
+      mockUseIsInsufficientBalance.mockReturnValue(false);
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          insufficientBal: false,
+        }),
+        undefined,
+      );
+    });
+
+    it('includes insufficientBal true when balance is insufficient', async () => {
+      mockUseIsInsufficientBalance.mockReturnValue(true);
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: BigNumber.from('100000000000000000'), // 0.1 ETH in wei
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '1000.0', // More than available balance
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          insufficientBal: true,
+        }),
+        undefined,
+      );
+    });
+
+    it('passes correct parameters to useIsInsufficientBalance hook', async () => {
+      mockUseIsInsufficientBalance.mockReturnValue(false);
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '5.5',
+        },
+      });
+
+      renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
+        amount: '5.5',
+        token: testState.bridge.sourceToken,
+        latestAtomicBalance: BigNumber.from('10000000000000000000'),
+      });
+    });
+
+    it('passes correct token parameters to useLatestBalance hook', async () => {
+      const testState = createBridgeTestState();
+
+      renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      expect(mockUseLatestBalance).toHaveBeenCalledWith({
+        address: testState.bridge.sourceToken?.address,
+        decimals: testState.bridge.sourceToken?.decimals,
+        chainId: testState.bridge.sourceToken?.chainId,
+      });
+    });
   });
 });

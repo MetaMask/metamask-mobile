@@ -51,6 +51,7 @@ import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import { ChainType } from '../confirmations/utils/send';
 ///: END:ONLY_INCLUDE_IF
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
@@ -290,8 +291,12 @@ const QRScanner = ({
 
               // Navigate to send flow after modal closes
               InteractionManager.runAfterInteractions(() => {
-                navigateToSendPage(InitSendLocation.QRScanner, undefined, {
-                  recipientAddress: content,
+                navigateToSendPage({
+                  location: InitSendLocation.QRScanner,
+                  predefinedRecipient: {
+                    address: content,
+                    chainType: ChainType.SOLANA,
+                  },
                 });
               });
 
@@ -331,8 +336,12 @@ const QRScanner = ({
 
           // Navigate to send flow after modal closes
           InteractionManager.runAfterInteractions(() => {
-            navigateToSendPage(InitSendLocation.QRScanner, undefined, {
-              recipientAddress,
+            navigateToSendPage({
+              location: InitSendLocation.QRScanner,
+              predefinedRecipient: {
+                address: recipientAddress,
+                chainType: ChainType.EVM,
+              },
             });
           });
 

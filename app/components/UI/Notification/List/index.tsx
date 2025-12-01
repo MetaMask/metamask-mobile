@@ -1,11 +1,13 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import {
   hasNotificationComponents,
   hasNotificationModal,
+  isValidNotificationComponent,
   NotificationComponentState,
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
@@ -15,16 +17,20 @@ import {
   useListNotifications,
   useMarkNotificationAsRead,
 } from '../../../../util/notifications/hooks/useNotifications';
+import onChainAnalyticProperties from '../../../../util/notifications/methods/notification-analytics';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
 import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
+
+export const TEST_IDS = {
+  loadingContainer: 'notification-list-loading',
+};
+
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
   allNotifications: INotification[];
-  walletNotifications: INotification[];
-  web3Notifications: INotification[];
   loading: boolean;
 }
 
@@ -44,7 +50,7 @@ function Loading() {
   } = useStyles();
 
   return (
-    <View style={styles.loaderContainer}>
+    <View style={styles.loaderContainer} testID={TEST_IDS.loadingContainer}>
       <ActivityIndicator color={colors.primary.default} size="large" />
     </View>
   );
@@ -55,7 +61,8 @@ export function useNotificationOnClick(
 ) {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const onNotificationClick = useCallback(
+
+  const handleNotificationClickMetricsAndUpdates = useCallback(
     (item: INotification) => {
       markNotificationAsRead([
         {
@@ -64,19 +71,6 @@ export function useNotificationOnClick(
           isRead: item.isRead,
         },
       ]);
-      if (hasNotificationModal(item?.type)) {
-        props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
-          notification: item,
-        });
-      }
-
-      NotificationsService.getBadgeCount().then((count) => {
-        if (count > 0) {
-          NotificationsService.decrementBadgeCount(count - 1);
-        } else {
-          NotificationsService.setBadgeCount(0);
-        }
-      });
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
@@ -84,23 +78,46 @@ export function useNotificationOnClick(
             notification_id: item.id,
             notification_type: item.type,
             previously_read: item.isRead,
-            ...('chain_id' in item && { chain_id: item.chain_id }),
+            ...onChainAnalyticProperties(item),
+            data: item, // data blob for feature teams to analyse their notification shapes
           })
           .build(),
       );
     },
-    [markNotificationAsRead, props.navigation, trackEvent, createEventBuilder],
+    [createEventBuilder, markNotificationAsRead, trackEvent],
   );
 
-  return onNotificationClick;
+  const onNavigation = useCallback(
+    (item: INotification) => {
+      if (hasNotificationModal(item?.type)) {
+        props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
+          notification: item,
+        });
+      }
+    },
+    [props.navigation],
+  );
+
+  const onNotificationClick = useCallback(
+    (item: INotification) => {
+      handleNotificationClickMetricsAndUpdates(item);
+      onNavigation(item);
+    },
+    [handleNotificationClickMetricsAndUpdates, onNavigation],
+  );
+
+  return { onNotificationClick, handleNotificationClickMetricsAndUpdates };
 }
 
 export function NotificationsListItem(props: NotificationsListItemProps) {
-  const onNotificationClick = useNotificationOnClick(props);
+  const { onNotificationClick, handleNotificationClickMetricsAndUpdates } =
+    useNotificationOnClick(props);
+  const tw = useTailwind();
 
   const menuItemState = useMemo(() => {
     const notificationState =
       props.notification?.type &&
+      isValidNotificationComponent(props.notification) &&
       hasNotificationComponents(props.notification.type)
         ? NotificationComponentState[props.notification.type]
         : undefined;
@@ -108,7 +125,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
     return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
 
-  if (!hasNotificationComponents(props.notification.type) || !menuItemState) {
+  if (!isValidNotificationComponent(props.notification) || !menuItemState) {
     return null;
   }
 
@@ -117,12 +134,21 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
       handleOnPress={() => onNotificationClick(props.notification)}
       isRead={props.notification.isRead}
       testID={NotificationMenuViewSelectorsIDs.ITEM(props.notification.id)}
+      style={tw`gap-2`}
     >
-      <NotificationMenuItem.Icon
-        isRead={props.notification.isRead}
-        {...menuItemState}
+      <Box style={tw`flex-row gap-4`}>
+        <NotificationMenuItem.Icon
+          isRead={props.notification.isRead}
+          {...menuItemState}
+        />
+        <NotificationMenuItem.Content {...menuItemState} />
+      </Box>
+      <NotificationMenuItem.Cta
+        cta={menuItemState.cta}
+        onClick={() =>
+          handleNotificationClickMetricsAndUpdates(props.notification)
+        }
       />
-      <NotificationMenuItem.Content {...menuItemState} />
     </NotificationMenuItem.Root>
   );
 }

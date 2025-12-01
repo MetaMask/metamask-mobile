@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -66,11 +67,18 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   }, []);
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction }) => {
-      const { item } = props;
+    (props: { item: PerpsTransaction; index: number }) => {
+      const { item, index } = props;
+      const isFirstItem = index === 0;
+      const isLastItem = index === transactions.length - 1;
+
       return (
         <TouchableOpacity
-          style={styles.activityItem}
+          style={[
+            styles.activityItem,
+            isFirstItem && styles.activityItemFirst,
+            isLastItem && styles.activityItemLast,
+          ]}
           onPress={() => handleTransactionPress(item)}
           activeOpacity={0.7}
         >
@@ -95,7 +103,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
                   variant={TextVariant.BodySM}
                   style={styles.activityAmount}
                 >
-                  {item.subtitle}
+                  {getPerpsDisplaySymbol(item.subtitle)}
                 </Text>
               )}
             </View>
@@ -104,14 +112,20 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
         </TouchableOpacity>
       );
     },
-    [styles, handleTransactionPress, iconSize, renderRightContent],
+    [
+      styles,
+      handleTransactionPress,
+      iconSize,
+      renderRightContent,
+      transactions.length,
+    ],
   );
 
   if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
         </View>
@@ -124,7 +138,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
         </View>
@@ -142,7 +156,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
           {strings('perps.home.recent_activity')}
         </Text>
         <TouchableOpacity onPress={handleSeeAll}>
@@ -152,12 +166,14 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={transactions}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.id || index}`}
-        scrollEnabled={false}
-      />
+      <View style={styles.listContainer}>
+        <FlatList
+          data={transactions}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.id || index}`}
+          scrollEnabled={false}
+        />
+      </View>
     </View>
   );
 };

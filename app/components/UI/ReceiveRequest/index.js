@@ -26,7 +26,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/Aggregator/utils';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { withRampNavigation } from '../Ramp/hooks/withRampNavigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
   getDetectedGeolocation,
@@ -77,6 +77,10 @@ class ReceiveRequest extends PureComponent {
      /* Triggers global alert
      */
     showAlert: PropTypes.func,
+    /**
+     * Function to navigate to ramp flows
+     */
+    goToBuy: PropTypes.func,
     /**
      * Network provider chain id
      */
@@ -144,14 +148,14 @@ class ReceiveRequest extends PureComponent {
    * Shows an alert message with a coming soon message
    */
   onBuy = async () => {
-    const { navigation, isNetworkBuySupported } = this.props;
+    const { isNetworkBuySupported, goToBuy } = this.props;
     if (!isNetworkBuySupported) {
       Alert.alert(
         strings('fiat_on_ramp.network_not_supported'),
         strings('fiat_on_ramp.switch_network'),
       );
     } else {
-      navigation.navigate(...createBuyNavigationDetails());
+      goToBuy();
 
       this.props.metrics.trackEvent(
         this.props.metrics
@@ -270,4 +274,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(ReceiveRequest));
+)(withRampNavigation(withMetricsAwareness(ReceiveRequest)));

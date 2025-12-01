@@ -17,7 +17,7 @@ const styleSheet = (_params: { theme: Theme }) =>
 
     change: {
       fontSize: 20,
-      lineHeight: 20,
+      lineHeight: 25,
     },
   });
 

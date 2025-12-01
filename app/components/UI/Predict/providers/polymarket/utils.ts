@@ -26,7 +26,6 @@ import type {
 } from '../types';
 import {
   ClobAuthDomain,
-  SLIPPAGE,
   EIP712Domain,
   FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
@@ -34,6 +33,8 @@ import {
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
   ROUNDING_CONFIG,
+  SLIPPAGE_BUY,
+  SLIPPAGE_SELL,
 } from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
@@ -52,7 +53,6 @@ import {
   PolymarketPosition,
   TickSize,
   OrderBook,
-  RoundConfig,
 } from './types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 
@@ -450,6 +450,7 @@ export const parsePolymarketEvents = (
 /**
  * Normalizes Polymarket /activity entries to PredictActivity[]
  * Keeps essential metadata used by UI (title/outcome/icon)
+ * Note: Lost redeems (activities with no payout) are excluded by the API via excludeLostRedeems parameter
  */
 export const parsePolymarketActivity = (
   activities: PolymarketApiActivity[],
@@ -501,10 +502,15 @@ export const parsePolymarketActivity = (
       title,
       outcome,
       icon,
-    } as PredictActivity & { title?: string; outcome?: string; icon?: string };
+    } as PredictActivity & {
+      title?: string;
+      outcome?: string;
+      icon?: string;
+    };
 
     return parsedActivity;
   });
+
   return parsedActivities;
 };
 
@@ -755,6 +761,9 @@ export async function calculateFees({
   let totalFee = 0;
 
   totalFee = (userBetAmount * FEE_PERCENTAGE) / 100;
+
+  // Round to 4 decimals
+  totalFee = Math.round(totalFee * 10000) / 10000;
 
   // split total 50/50 between metamask and provider
   const metamaskFee = totalFee / 2;
@@ -1110,35 +1119,6 @@ export const roundOrderAmount = ({
   return amount;
 };
 
-export const roundOrderAmounts = ({
-  roundConfig,
-  side,
-  size,
-  price,
-}: {
-  roundConfig: RoundConfig;
-  side: Side;
-  size: number;
-  price: number;
-}): { makerAmount: number; takerAmount: number } => {
-  const rawPrice = roundDown(price, roundConfig.price);
-  const rawMakerAmt = roundDown(size, roundConfig.size);
-  let rawTakerAmt;
-  if (side === Side.BUY) {
-    rawTakerAmt = rawMakerAmt / rawPrice;
-  } else {
-    rawTakerAmt = rawMakerAmt * rawPrice;
-  }
-  rawTakerAmt = roundOrderAmount({
-    amount: rawTakerAmt,
-    decimals: roundConfig.amount,
-  });
-  return {
-    makerAmount: rawMakerAmt,
-    takerAmount: rawTakerAmt,
-  };
-};
-
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'>,
 ): Promise<OrderPreview> => {
@@ -1158,12 +1138,10 @@ export const previewOrder = async (
       asks,
       dollarAmount: size,
     });
-    const avgPrice = size / shareAmount;
-    const { makerAmount, takerAmount } = roundOrderAmounts({
-      roundConfig,
-      side,
-      size,
-      price: avgPrice,
+    const makerAmount = roundDown(size, roundConfig.size);
+    const takerAmount = roundOrderAmount({
+      amount: shareAmount,
+      decimals: roundConfig.amount,
     });
     return {
       marketId,
@@ -1174,7 +1152,7 @@ export const previewOrder = async (
       sharePrice: bestPrice,
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
-      slippage: SLIPPAGE,
+      slippage: SLIPPAGE_BUY,
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
@@ -1192,12 +1170,10 @@ export const previewOrder = async (
     bids,
     shareAmount: size,
   });
-  const avgPrice = dollarAmount / size;
-  const { makerAmount, takerAmount } = roundOrderAmounts({
-    roundConfig,
-    side,
-    size,
-    price: avgPrice,
+  const makerAmount = roundDown(size, roundConfig.size);
+  const takerAmount = roundOrderAmount({
+    amount: dollarAmount,
+    decimals: roundConfig.amount,
   });
   return {
     marketId,
@@ -1209,7 +1185,7 @@ export const previewOrder = async (
     sharePrice: bestPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
-    slippage: SLIPPAGE,
+    slippage: SLIPPAGE_SELL,
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,

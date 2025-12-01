@@ -70,12 +70,19 @@ export const PERPS_CHART_CONFIG = {
   // Chart zoom configuration
   CANDLE_COUNT: {
     MIN: 10, // Minimum candles to display (zoomed in)
-    DEFAULT: 45, // Default candles to display
+    DEFAULT: 30, // Default candles to display (detail view) - reduced from 45 for thicker candle bodies
+    FULLSCREEN: 90, // Candles to display in fullscreen landscape mode
     MAX: 250, // Maximum candles to display (zoomed out)
     TOTAL: 500, // Total candles to load in memory (reduced for better performance)
   },
   // Default candle period settings
   DEFAULT_CANDLE_PERIOD: CandlePeriod.FIFTEEN_MINUTES,
+  // Chart layout constants
+  LAYOUT: {
+    DETAIL_VIEW_HEIGHT: 350, // Height for chart in market detail view
+    FULLSCREEN_INITIAL_HEIGHT_RATIO: 0.7, // Initial height as ratio of screen height
+    HEIGHT_CHANGE_THRESHOLD: 10, // Minimum pixels change to trigger height update (debouncing)
+  },
 } as const;
 
 /**

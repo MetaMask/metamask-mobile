@@ -17,14 +17,12 @@ import {
   fromTokenMinimalUnit,
   isNumberValue,
 } from '../../../../../util/number';
-import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
 
-import { selectTicker } from '../../../../../selectors/networkController';
 import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../locales/i18n';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -51,8 +49,6 @@ export const useBridgeQuoteData = ({
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const locale = I18n.locale;
   const fiatFormatter = useFiatFormatter();
-  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
-  const ticker = useSelector(selectTicker);
   const quotes = useSelector(selectBridgeQuotes);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
@@ -123,20 +119,12 @@ export const useBridgeQuoteData = ({
       return '-';
     }
 
-    const networkFeeFormatter = getIntlNumberFormatter(locale, {
-      maximumFractionDigits: 6,
-    });
-    const formattedAmount = `${networkFeeFormatter.format(
-      Number(amount),
-    )} ${ticker}`;
     const formattedValueInCurrency = fiatFormatter(
       new BigNumber(valueInCurrency),
     );
 
-    return primaryCurrency === 'ETH'
-      ? formattedAmount
-      : formattedValueInCurrency;
-  }, [activeQuote, locale, ticker, fiatFormatter, primaryCurrency]);
+    return formattedValueInCurrency;
+  }, [activeQuote, fiatFormatter]);
 
   const formattedQuoteData = useMemo(() => {
     if (!activeQuote) return undefined;
@@ -194,13 +182,15 @@ export const useBridgeQuoteData = ({
   );
 
   // Check if price impact warning should be shown
+  const isGasless =
+    activeQuote?.quote.gasIncluded || activeQuote?.quote.gasIncluded7702;
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
-      ((activeQuote?.quote.gasIncluded &&
+      ((isGasless &&
         Number(activeQuote?.quote.priceData?.priceImpact) >=
           bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-        (!activeQuote?.quote.gasIncluded &&
+        (!isGasless &&
           Number(activeQuote?.quote.priceData?.priceImpact) >=
             bridgeFeatureFlags.priceImpactThreshold.normal)),
   );
