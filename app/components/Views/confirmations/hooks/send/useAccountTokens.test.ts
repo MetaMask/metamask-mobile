@@ -2,20 +2,15 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 
 import { useAccountTokens } from './useAccountTokens';
-import { useSendScope } from './useSendScope';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { TokenStandard } from '../../types/token';
-import { selectFilteredAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { isTestNet } from '../../../../../util/networks';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('./useSendScope', () => ({
-  useSendScope: jest.fn(),
 }));
 
 jest.mock('../../utils/network', () => ({
@@ -36,7 +31,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectFilteredAssetsBySelectedAccountGroup: jest.fn(),
+  selectAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
@@ -44,11 +39,10 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseSendScope = jest.mocked(useSendScope);
 const mockGetNetworkBadgeSource = jest.mocked(getNetworkBadgeSource);
 const mockGetIntlNumberFormatter = jest.mocked(getIntlNumberFormatter);
 const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
-  selectFilteredAssetsBySelectedAccountGroup,
+  selectAssetsBySelectedAccountGroup,
 );
 const mockSelectCurrentCurrency = jest.mocked(selectCurrentCurrency);
 const mockIsTestNet = jest.mocked(isTestNet);
@@ -94,7 +88,7 @@ describe('useAccountTokens', () => {
     mockSelectCurrentCurrency.mockReturnValue('USD');
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+      if (selector === selectAssetsBySelectedAccountGroup) {
         return mockAssets;
       }
       if (selector === selectCurrentCurrency) {
@@ -103,10 +97,6 @@ describe('useAccountTokens', () => {
       return undefined;
     });
 
-    mockUseSendScope.mockReturnValue({
-      isEvmOnly: false,
-      isSolanaOnly: false,
-    });
     mockGetNetworkBadgeSource.mockReturnValue('network-badge-source');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockGetIntlNumberFormatter.mockReturnValue(mockFormatter as any);
@@ -114,55 +104,27 @@ describe('useAccountTokens', () => {
     mockIsTestNet.mockReturnValue(false);
   });
 
-  describe('when no scope filter is applied', () => {
-    it('returns all assets with balance', () => {
-      const { result } = renderHook(() => useAccountTokens());
+  it('returns all assets with balance', () => {
+    const { result } = renderHook(() => useAccountTokens());
 
-      expect(result.current).toHaveLength(2);
-      expect(result.current[0].symbol).toBe('TOKEN1');
-      expect(result.current[1].symbol).toBe('SOLTOKEN1');
-    });
-
-    it('filters out assets with zero balance', () => {
-      const { result } = renderHook(() => useAccountTokens());
-
-      const symbols = result.current.map((asset) => asset.symbol);
-      expect(symbols).not.toContain('TOKEN2');
-    });
+    expect(result.current).toHaveLength(2);
+    expect(result.current[0].symbol).toBe('TOKEN1');
+    expect(result.current[1].symbol).toBe('SOLTOKEN1');
   });
 
-  describe('when EVM only scope is applied', () => {
-    beforeEach(() => {
-      mockUseSendScope.mockReturnValue({
-        isEvmOnly: true,
-        isSolanaOnly: false,
-      });
-    });
+  it('filters out assets with zero balance', () => {
+    const { result } = renderHook(() => useAccountTokens());
 
-    it('returns only EVM assets', () => {
-      const { result } = renderHook(() => useAccountTokens());
-
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].symbol).toBe('TOKEN1');
-      expect(result.current[0].accountType).toContain('eip155');
-    });
+    const symbols = result.current.map((asset) => asset.symbol);
+    expect(symbols).not.toContain('TOKEN2');
   });
 
-  describe('when Solana only scope is applied', () => {
-    beforeEach(() => {
-      mockUseSendScope.mockReturnValue({
-        isEvmOnly: false,
-        isSolanaOnly: true,
-      });
-    });
+  it('returns all asset types without filtering by account type', () => {
+    const { result } = renderHook(() => useAccountTokens());
 
-    it('returns only Solana assets', () => {
-      const { result } = renderHook(() => useAccountTokens());
-
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].symbol).toBe('SOLTOKEN1');
-      expect(result.current[0].accountType).toContain('solana');
-    });
+    const accountTypes = result.current.map((asset) => asset.accountType);
+    expect(accountTypes).toContain('eip155:1/erc20:0xtoken1');
+    expect(accountTypes).toContain('solana:mainnet/spl:0xsoltoken1');
   });
 
   describe('asset processing', () => {
@@ -209,7 +171,7 @@ describe('useAccountTokens', () => {
         integerAssets as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return integerAssets;
         }
         if (selector === selectCurrentCurrency) {
@@ -245,7 +207,7 @@ describe('useAccountTokens', () => {
         decimalAssets as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return decimalAssets;
         }
         if (selector === selectCurrentCurrency) {
@@ -297,7 +259,7 @@ describe('useAccountTokens', () => {
         sortTestAssets as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return sortTestAssets;
         }
         if (selector === selectCurrentCurrency) {
@@ -318,7 +280,7 @@ describe('useAccountTokens', () => {
     it('handles empty assets object', () => {
       mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return {};
         }
         if (selector === selectCurrentCurrency) {
@@ -349,7 +311,7 @@ describe('useAccountTokens', () => {
         assetsWithoutFiat as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return assetsWithoutFiat;
         }
         if (selector === selectCurrentCurrency) {
@@ -380,7 +342,7 @@ describe('useAccountTokens', () => {
         assetsWithoutFiat as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return assetsWithoutFiat;
         }
         if (selector === selectCurrentCurrency) {
@@ -413,7 +375,7 @@ describe('useAccountTokens', () => {
         assetsWithNullFiat as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return assetsWithNullFiat;
         }
         if (selector === selectCurrentCurrency) {
@@ -445,7 +407,7 @@ describe('useAccountTokens', () => {
         assetsWithNullFiat as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return assetsWithNullFiat;
         }
         if (selector === selectCurrentCurrency) {
@@ -478,7 +440,7 @@ describe('useAccountTokens', () => {
         testNetAssets as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return testNetAssets;
         }
         if (selector === selectCurrentCurrency) {
@@ -512,7 +474,7 @@ describe('useAccountTokens', () => {
         testNetAssets as any,
       );
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return testNetAssets;
         }
         if (selector === selectCurrentCurrency) {
@@ -553,7 +515,7 @@ describe('useAccountTokens', () => {
       );
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectFilteredAssetsBySelectedAccountGroup) {
+        if (selector === selectAssetsBySelectedAccountGroup) {
           return assets;
         }
         if (selector === selectCurrentCurrency) {

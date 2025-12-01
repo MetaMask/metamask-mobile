@@ -75,16 +75,20 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
       priceImpact: '-0.06%',
       slippage: '0.5%',
     },
+    shouldShowPriceImpactWarning: false,
   })),
 }));
 
-// Mock Engine for rewards functionality
-jest.mock('../../../../../core/Engine', () => ({
-  controllerMessenger: {
-    call: jest.fn(),
-    subscribe: jest.fn(),
-    unsubscribe: jest.fn(),
-  },
+// Mock useRewards hook
+jest.mock('../../hooks/useRewards', () => ({
+  useRewards: jest.fn().mockImplementation(() => ({
+    estimatedPoints: null,
+    isLoading: false,
+    shouldShowRewardsRow: false,
+    hasError: false,
+    accountOptedIn: null,
+    rewardsAccountScope: null,
+  })),
 }));
 
 // Mock formatChainIdToCaip for AddRewardsAccount component
@@ -106,6 +110,36 @@ jest.mock('../../../../UI/Rewards/hooks/useLinkAccountAddress', () => ({
     linkAccountAddress: jest.fn(),
     isLoading: false,
     isError: false,
+  })),
+}));
+
+// Mock AddRewardsAccount component
+jest.mock(
+  '../../../../UI/Rewards/components/AddRewardsAccount/AddRewardsAccount',
+  () => {
+    const React = jest.requireActual('react');
+    const { View, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ testID }: { testID?: string }) =>
+        React.createElement(
+          View,
+          { testID },
+          React.createElement(Text, null, 'Add Rewards Account'),
+        ),
+    };
+  },
+);
+
+// Mock token utils to stabilize native token name
+jest.mock('../../utils/tokenUtils', () => ({
+  getNativeSourceToken: jest.fn().mockImplementation((chainId: string) => ({
+    address: 'native',
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18,
+    chainId,
+    image: '',
   })),
 }));
 
@@ -307,6 +341,47 @@ describe('QuoteDetailsCard', () => {
     expect(getByText('0.5%')).toBeDefined();
   });
 
+  it('displays "Included" fee when gasIncluded7702 is true', () => {
+    // Temporarily replace the mock with one that has gasIncluded7702 = true
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: false,
+          gasIncluded7702: true,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      QuoteDetailsCard,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    // Verify "Included" text is displayed
+    expect(getByText(strings('bridge.included'))).toBeDefined();
+
+    // Restore original implementation
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
   it('displays "Included" fee when gasIncluded is true', () => {
     // Temporarily replace the mock with one that has gasIncluded = true
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
@@ -341,6 +416,93 @@ describe('QuoteDetailsCard', () => {
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 
+  it('renders sponsored fee label when gas is sponsored', () => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: true,
+          gasSponsored: true,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByText, queryByText } = renderScreen(
+      QuoteDetailsCard,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    expect(getByText(strings('bridge.network_fee'))).toBeOnTheScreen();
+    expect(getByText(strings('bridge.gas_fees_sponsored'))).toBeOnTheScreen();
+    expect(queryByText('0.01')).toBeNull();
+
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
+  it('opens sponsored fee tooltip with native token in content', () => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: true,
+          gasSponsored: true,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByLabelText } = renderScreen(
+      QuoteDetailsCard,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    const tooltip = getByLabelText(
+      `${strings('bridge.network_fee_info_title')} tooltip`,
+    );
+    fireEvent.press(tooltip);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      params: {
+        title: strings('bridge.network_fee_info_title'),
+        tooltip: strings('bridge.network_fee_info_content_sponsored', {
+          nativeToken: 'ETH',
+        }),
+      },
+      screen: 'tooltipModal',
+    });
+
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
   // Minimal tests to hit missing branches for 80% coverage
   it('handles early return when formattedQuoteData is missing', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
@@ -371,6 +533,7 @@ describe('QuoteDetailsCard', () => {
           ...mockQuotes[0].quote,
           priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '15.0' },
           gasIncluded: false,
+          gasIncluded7702: false,
         },
       },
       destTokenAmount: '24.44',
@@ -433,6 +596,7 @@ describe('QuoteDetailsCard', () => {
           ...mockQuotes[0].quote,
           priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '0.1' },
           gasIncluded: false,
+          gasIncluded7702: false,
         },
       },
       destTokenAmount: '24.44',
@@ -467,6 +631,7 @@ describe('QuoteDetailsCard', () => {
           ...mockQuotes[0].quote,
           priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '25.0' },
           gasIncluded: true,
+          gasIncluded7702: false,
         },
       },
       destTokenAmount: '24.44',
@@ -505,41 +670,34 @@ describe('QuoteDetailsCard', () => {
   });
 
   describe('rewards functionality', () => {
-    const mockEngine = jest.requireMock('../../../../../core/Engine');
+    const { useRewards } = jest.requireMock('../../hooks/useRewards');
 
     beforeEach(() => {
-      // Reset Engine mocks
       jest.clearAllMocks();
       // Default to rewards disabled
-      mockEngine.controllerMessenger.call.mockImplementation(() =>
-        Promise.resolve(false),
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: null,
+        isLoading: false,
+        shouldShowRewardsRow: false,
+        hasError: false,
+        accountOptedIn: null,
+        rewardsAccountScope: null,
+      });
     });
 
     it('displays rewards row when rewards are enabled and user has opted in', async () => {
       // Given rewards feature is enabled and user has opted in
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          // Note: In the actual implementation, these are commented out as TODO
-          // But we'll mock them as if they were working
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            return Promise.resolve({ pointsEstimate: 100 });
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: 100,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
-      const { getByText } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -548,29 +706,20 @@ describe('QuoteDetailsCard', () => {
       // Then the rewards row should be displayed
       await waitFor(() => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
     });
 
     it('displays rewards row without points when estimation fails', async () => {
       // Given rewards estimation fails but feature is enabled and user has opted in
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            // Throw error to simulate failure
-            throw new Error('Estimation failed');
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: null,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: true,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
@@ -591,14 +740,14 @@ describe('QuoteDetailsCard', () => {
 
     it('does not display rewards row when rewards feature is disabled', async () => {
       // Given rewards feature is disabled
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(false);
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: null,
+        isLoading: false,
+        shouldShowRewardsRow: false,
+        hasError: false,
+        accountOptedIn: null,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { queryByText } = renderScreen(
@@ -613,25 +762,27 @@ describe('QuoteDetailsCard', () => {
       });
     });
 
-    it('displays AddRewardsAccount when user has not opted in', async () => {
-      // Given rewards feature is enabled but user has not opted in
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(false);
-          }
-          if (method === 'RewardsController:isOptInSupported') {
-            return Promise.resolve(true);
-          }
-          return Promise.resolve(null);
+    it('displays AddRewardsAccount when user has not opted in but has rewards account scope', async () => {
+      // Given rewards feature is enabled but user has not opted in, but has account scope
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x1234567890123456789012345678901234567890',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        scopes: ['eip155:1'],
+        metadata: {
+          lastSelected: 0,
         },
-      );
+      };
+
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: null,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: false,
+        rewardsAccountScope: mockAccount,
+      });
 
       // When rendering the component
       const { getByText, getByTestId, queryByTestId } = renderScreen(
@@ -652,25 +803,16 @@ describe('QuoteDetailsCard', () => {
       });
     });
 
-    it('displays rewards image when rewards row is shown', async () => {
+    it('displays rewards animation when rewards row is shown', async () => {
       // Given rewards should be shown
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            return Promise.resolve({ pointsEstimate: 150 });
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: 150,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { getByTestId } = renderScreen(
@@ -679,34 +821,22 @@ describe('QuoteDetailsCard', () => {
         { state: testState },
       );
 
-      // Then the MetaMask rewards points image should be displayed
+      // Then the MetaMask rewards points animation should be displayed
       await waitFor(() => {
         expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
     });
 
     it('does not display points value when rewards are loading', async () => {
-      // Given rewards are being estimated (pending promise)
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            // Return a pending promise to simulate loading
-            return new Promise(() => {
-              // Never resolves to simulate loading state
-            });
-          }
-          return Promise.resolve(null);
-        },
-      );
+      // Given rewards are being estimated (loading state)
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: null,
+        isLoading: true,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
@@ -724,25 +854,16 @@ describe('QuoteDetailsCard', () => {
       expect(getByText('0')).toBeOnTheScreen();
     });
 
-    it('displays rewards row but no points when engine returns zero', async () => {
+    it('displays rewards row but no points when estimatedPoints is zero', async () => {
       // Given rewards estimation returns zero with feature enabled and user opted in
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            return Promise.resolve({ pointsEstimate: 0 });
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: 0,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
@@ -756,30 +877,18 @@ describe('QuoteDetailsCard', () => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
         expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
-
-      // When points are 0, we may show "0" or no value at all
-      // This behavior will depend on how useRewards handles the response
     });
 
     it('displays rewards tooltip when rewards row is shown', async () => {
       // Given rewards should be shown
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            return Promise.resolve({ pointsEstimate: 100 });
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: 100,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { getByLabelText } = renderScreen(
@@ -797,23 +906,14 @@ describe('QuoteDetailsCard', () => {
 
     it('displays rewards row when all conditions are met', async () => {
       // Given rewards feature is enabled, user has opted in, and estimation succeeds
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            return Promise.resolve({ pointsEstimate: 500 });
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: 500,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
@@ -831,23 +931,14 @@ describe('QuoteDetailsCard', () => {
 
     it('handles rewards estimation with null estimatedPoints', async () => {
       // Given rewards with null estimated points
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            return Promise.resolve({ pointsEstimate: null });
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: null,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
@@ -879,29 +970,18 @@ describe('QuoteDetailsCard', () => {
           priceImpact: '-0.06%',
           slippage: '0.5%',
         },
+        shouldShowPriceImpactWarning: false,
       }));
 
-      // Mock Engine to simulate rewards loading
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getFirstSubscriptionId') {
-            return Promise.resolve('subscription-id-1');
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            // Return a pending promise to simulate loading
-            return new Promise(() => {
-              // Never resolves to simulate loading state
-            });
-          }
-          return Promise.resolve(null);
-        },
-      );
+      // Mock useRewards to simulate rewards loading
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: null,
+        isLoading: true,
+        shouldShowRewardsRow: true,
+        hasError: false,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
@@ -918,6 +998,33 @@ describe('QuoteDetailsCard', () => {
 
       // RewardPointsAnimation displays 0 while loading (estimatedPoints is null)
       expect(getByText('0')).toBeOnTheScreen();
+    });
+
+    it('displays error tooltip when rewards has error', async () => {
+      // Given rewards has an error
+      (useRewards as jest.Mock).mockReturnValue({
+        estimatedPoints: null,
+        isLoading: false,
+        shouldShowRewardsRow: true,
+        hasError: true,
+        accountOptedIn: true,
+        rewardsAccountScope: null,
+      });
+
+      // When rendering the component
+      const { getByLabelText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the error tooltip should be available
+      await waitFor(() => {
+        const errorTooltip = getByLabelText(
+          new RegExp(`${strings('bridge.points_error')} tooltip`, 'i'),
+        );
+        expect(errorTooltip).toBeOnTheScreen();
+      });
     });
   });
 });

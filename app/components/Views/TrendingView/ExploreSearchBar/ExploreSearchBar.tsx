@@ -15,10 +15,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 
 interface ExploreSearchBarButtonProps {
   type: 'button';
   onPress: () => void;
+  placeholder?: string;
 }
 
 interface ExploreSearchBarInteractiveProps {
@@ -26,6 +29,7 @@ interface ExploreSearchBarInteractiveProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onCancel: () => void;
+  placeholder?: string;
 }
 
 type ExploreSearchBarProps =
@@ -36,8 +40,15 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
   const tw = useTailwind();
   const { colors } = useTheme();
 
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const isInteractiveMode = props.type === 'interactive';
   const isButtonMode = props.type === 'button';
+  const placeholder =
+    props.placeholder || isBasicFunctionalityEnabled
+      ? strings('trending.search_placeholder')
+      : strings('trending.search_sites');
 
   const handleCancel = () => {
     if (isInteractiveMode) {
@@ -68,14 +79,14 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       />
       {isButtonMode ? (
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('trending.search_placeholder')}
+          {placeholder}
         </Text>
       ) : (
         <>
           <TextInput
             value={props.searchQuery}
             onChangeText={props.onSearchChange}
-            placeholder={strings('trending.search_placeholder')}
+            placeholder={placeholder}
             placeholderTextColor={colors.text.alternative}
             style={tw.style('flex-1 text-base text-default py-2.5')}
             testID="explore-view-search-input"

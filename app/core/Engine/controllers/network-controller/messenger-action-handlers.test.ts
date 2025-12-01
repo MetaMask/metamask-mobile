@@ -79,6 +79,7 @@ describe('onRpcEndpointUnavailable', () => {
         properties: {
           chain_id_caip: 'eip155:11155111',
           rpc_endpoint_url: 'example.com',
+          rpc_domain: 'example.com',
         },
       });
       /* eslint-enable @typescript-eslint/naming-convention */
@@ -109,6 +110,7 @@ describe('onRpcEndpointUnavailable', () => {
           chain_id_caip: 'eip155:11155111',
           http_status: 420,
           rpc_endpoint_url: 'example.com',
+          rpc_domain: 'example.com',
         },
       });
       /* eslint-enable @typescript-eslint/naming-convention */
@@ -138,6 +140,7 @@ describe('onRpcEndpointUnavailable', () => {
         properties: {
           chain_id_caip: 'eip155:11155111',
           rpc_endpoint_url: 'custom',
+          rpc_domain: 'custom',
         },
       });
       /* eslint-enable @typescript-eslint/naming-convention */
@@ -236,6 +239,7 @@ describe('onRpcEndpointDegraded', () => {
         properties: {
           chain_id_caip: 'eip155:11155111',
           rpc_endpoint_url: 'example.com',
+          rpc_domain: 'example.com',
         },
       });
       /* eslint-enable @typescript-eslint/naming-convention */
@@ -266,6 +270,7 @@ describe('onRpcEndpointDegraded', () => {
           chain_id_caip: 'eip155:11155111',
           http_status: 420,
           rpc_endpoint_url: 'example.com',
+          rpc_domain: 'example.com',
         },
       });
       /* eslint-enable @typescript-eslint/naming-convention */
@@ -295,6 +300,7 @@ describe('onRpcEndpointDegraded', () => {
         properties: {
           chain_id_caip: 'eip155:11155111',
           rpc_endpoint_url: 'custom',
+          rpc_domain: 'custom',
         },
       });
       /* eslint-enable @typescript-eslint/naming-convention */
