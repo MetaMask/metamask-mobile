@@ -138,7 +138,7 @@ export function handleMetaMaskDeeplink({
     WC2Manager.getInstance()
       .then((WC2ManagerInstance) =>
         WC2ManagerInstance.connect({
-          wcUri: fixedUrl,
+          wcUri: fixedUrl ?? '',
           origin,
           redirectUrl: params?.redirect,
         }),
