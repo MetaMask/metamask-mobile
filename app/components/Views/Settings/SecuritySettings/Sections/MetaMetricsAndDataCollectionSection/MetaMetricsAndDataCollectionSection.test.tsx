@@ -62,7 +62,6 @@ jest.mock('../../../../../../util/identity/hooks/useAuthentication', () => ({
 const mockMetrics = {
   trackEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
-  enableSocialLogin: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   isEnabled: jest.fn(() => false),
 };
@@ -259,7 +258,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(metaMetricsSwitch.props.value).toBe(false);
           expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith(false);
-          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalled();
           expect(mockAlert).toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
           expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
@@ -295,7 +293,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(metaMetricsSwitch.props.value).toBe(true);
           expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith();
-          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalled();
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
             deviceProp: 'Device value',
@@ -338,8 +335,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           fireEvent(metaMetricsSwitch, 'valueChange', true);
 
           await waitFor(() => {
-            expect(mockMetrics.enable).not.toHaveBeenCalledWith();
-            expect(mockMetrics.enableSocialLogin).toHaveBeenCalledWith(true);
+            expect(mockMetrics.enable).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
             expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
             expect(mockMetrics.trackEvent).toHaveBeenCalled();
@@ -374,8 +370,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           await waitFor(() => {
             expect(metaMetricsSwitch.props.value).toBe(false);
             expect(marketingSwitch.props.value).toBe(false);
-            expect(mockMetrics.enable).not.toHaveBeenCalledWith(false);
-            expect(mockMetrics.enableSocialLogin).toHaveBeenCalledWith(false);
+            expect(mockMetrics.enable).toHaveBeenCalledWith(false);
             expect(mockAlert).toHaveBeenCalled();
             expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
             expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
@@ -410,8 +405,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           await waitFor(() => {
             expect(metaMetricsSwitch.props.value).toBe(true);
             expect(marketingSwitch.props.value).toBe(false);
-            expect(mockMetrics.enable).not.toHaveBeenCalledWith();
-            expect(mockMetrics.enableSocialLogin).toHaveBeenCalledWith(true);
+            expect(mockMetrics.enable).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
             expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
             expect(mockMetrics.trackEvent).toHaveBeenCalled();
@@ -591,7 +585,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(marketingSwitch.props.value).toBe(false);
           expect(metaMetricsSwitch.props.value).toBe(true);
           expect(mockMetrics.enable).not.toHaveBeenCalled();
-          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalled();
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
