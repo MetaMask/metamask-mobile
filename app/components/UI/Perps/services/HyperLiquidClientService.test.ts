@@ -27,6 +27,10 @@ const mockSubscriptionClient = {
 const mockWsTransport = {
   url: 'ws://mock',
   close: jest.fn().mockResolvedValue(undefined),
+  socket: {
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  },
 };
 const mockHttpTransport = {
   url: 'http://mock',
@@ -1094,6 +1098,83 @@ describe('HyperLiquidClientService', () => {
 
       // Assert - WebSocket should be cleaned up immediately after establishing
       expect(mockWsUnsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe('WebSocket Termination Handling', () => {
+    it('registers terminate event listener on initialize', () => {
+      service.initialize(mockWallet);
+
+      expect(mockWsTransport.socket.addEventListener).toHaveBeenCalledWith(
+        'terminate',
+        expect.any(Function),
+      );
+    });
+
+    it('calls onTerminateCallback when terminate event fires with Error detail', () => {
+      const terminateCallback = jest.fn();
+      service.initialize(mockWallet);
+      service.setOnTerminateCallback(terminateCallback);
+
+      const terminateHandler = (
+        mockWsTransport.socket.addEventListener as jest.Mock
+      ).mock.calls.find((call) => call[0] === 'terminate')?.[1];
+
+      const testError = new Error('Connection lost');
+      terminateHandler({ detail: testError });
+
+      expect(terminateCallback).toHaveBeenCalledWith(testError);
+    });
+
+    it('creates Error from non-Error detail in terminate event', () => {
+      const terminateCallback = jest.fn();
+      service.initialize(mockWallet);
+      service.setOnTerminateCallback(terminateCallback);
+
+      const terminateHandler = (
+        mockWsTransport.socket.addEventListener as jest.Mock
+      ).mock.calls.find((call) => call[0] === 'terminate')?.[1];
+
+      terminateHandler({ detail: { code: 1006 } });
+
+      expect(terminateCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'WebSocket terminated: 1006',
+        }),
+      );
+    });
+
+    it('handles terminate event without callback set', () => {
+      service.initialize(mockWallet);
+
+      const terminateHandler = (
+        mockWsTransport.socket.addEventListener as jest.Mock
+      ).mock.calls.find((call) => call[0] === 'terminate')?.[1];
+
+      expect(() => terminateHandler({ detail: { code: 1006 } })).not.toThrow();
+    });
+
+    it('sets onTerminateCallback', () => {
+      const callback = jest.fn();
+
+      service.setOnTerminateCallback(callback);
+
+      expect(() => service.setOnTerminateCallback(callback)).not.toThrow();
+    });
+
+    it('clears onTerminateCallback when null passed', () => {
+      const callback = jest.fn();
+      service.setOnTerminateCallback(callback);
+
+      service.setOnTerminateCallback(null);
+
+      service.initialize(mockWallet);
+      const terminateHandler = (
+        mockWsTransport.socket.addEventListener as jest.Mock
+      ).mock.calls.find((call) => call[0] === 'terminate')?.[1];
+      terminateHandler({ detail: { code: 1006 } });
+
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 });

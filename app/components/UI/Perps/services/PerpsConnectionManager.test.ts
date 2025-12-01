@@ -4,6 +4,14 @@ jest.mock('../utils/wait', () => ({
 }));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+
+// Create mock provider with onTerminate
+const mockOnTerminate = jest.fn();
+const mockProvider = {
+  ping: jest.fn().mockResolvedValue(undefined),
+  onTerminate: mockOnTerminate,
+};
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -11,9 +19,7 @@ jest.mock('../../../../core/Engine', () => ({
       getAccountState: jest.fn(),
       disconnect: jest.fn(),
       reconnectWithNewContext: jest.fn(),
-      getActiveProvider: jest.fn(() => ({
-        ping: jest.fn().mockResolvedValue(undefined),
-      })),
+      getActiveProvider: jest.fn(() => mockProvider),
     },
   },
 }));
@@ -107,6 +113,7 @@ const resetManager = (manager: unknown) => {
     hasPreloaded: boolean;
     prewarmCleanups: (() => void)[];
     lastBalanceUpdateTime: number;
+    autoReconnectIntervalRef: ReturnType<typeof setInterval> | null;
   };
   // Call unsubscribe if it exists before resetting
   if (m.unsubscribeFromStore) {
@@ -115,6 +122,12 @@ const resetManager = (manager: unknown) => {
   // Clean up any prewarm subscriptions
   m.prewarmCleanups.forEach((cleanup) => cleanup());
   m.prewarmCleanups = [];
+
+  // Clear auto-reconnect interval if running
+  if (m.autoReconnectIntervalRef) {
+    clearInterval(m.autoReconnectIntervalRef);
+    m.autoReconnectIntervalRef = null;
+  }
 
   // Reset all state properties
   m.isConnected = false;
@@ -133,6 +146,7 @@ const resetManager = (manager: unknown) => {
   m.gracePeriodTimer = null;
   m.hasPreloaded = false;
   m.lastBalanceUpdateTime = 0;
+  m.autoReconnectIntervalRef = null;
 };
 
 describe('PerpsConnectionManager', () => {
@@ -176,6 +190,10 @@ describe('PerpsConnectionManager', () => {
     mockStreamManagerInstance.account.prewarm.mockClear();
     mockStreamManagerInstance.marketData.prewarm.mockClear();
     mockStreamManagerInstance.prices.prewarm.mockClear();
+
+    // Clear provider mock
+    mockOnTerminate.mockClear();
+    mockProvider.ping.mockClear();
 
     // Reset the singleton instance state
     resetManager(PerpsConnectionManager);
@@ -747,6 +765,123 @@ describe('PerpsConnectionManager', () => {
         expect.stringContaining('Reconnection with new context failed'),
         error,
       );
+    });
+  });
+
+  describe('WebSocket Termination Handling', () => {
+    it('registers termination callback with provider on successful connection', async () => {
+      mockPerpsController.init.mockResolvedValueOnce();
+
+      await PerpsConnectionManager.connect();
+
+      expect(mockOnTerminate).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('re-registers termination callback on successful reconnection', async () => {
+      mockPerpsController.init.mockResolvedValue();
+
+      await PerpsConnectionManager.connect();
+      const firstCallCount = mockOnTerminate.mock.calls.length;
+
+      await (
+        PerpsConnectionManager as unknown as {
+          reconnectWithNewContext: () => Promise<void>;
+        }
+      ).reconnectWithNewContext();
+
+      expect(mockOnTerminate.mock.calls.length).toBeGreaterThan(firstCallCount);
+    });
+
+    it('sets CONNECTION_LOST error when termination callback fires', async () => {
+      mockPerpsController.init.mockResolvedValueOnce();
+
+      await PerpsConnectionManager.connect();
+
+      const terminateCallback = mockOnTerminate.mock.calls[0][0] as (
+        error: Error,
+      ) => void;
+
+      const m = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        error: string | null;
+      };
+      m.isConnected = true;
+
+      terminateCallback(new Error('Connection lost'));
+
+      expect(m.error).toBe('CONNECTION_LOST');
+      expect(m.isConnected).toBe(false);
+    });
+
+    it('ignores termination when already disconnected', async () => {
+      mockPerpsController.init.mockResolvedValueOnce();
+
+      await PerpsConnectionManager.connect();
+
+      const terminateCallback = mockOnTerminate.mock.calls[0][0] as (
+        error: Error,
+      ) => void;
+
+      const m = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        error: string | null;
+      };
+      m.isConnected = false;
+      m.error = null;
+
+      terminateCallback(new Error('Connection lost'));
+
+      expect(m.error).toBeNull();
+    });
+
+    it('starts auto-reconnect loop on termination', async () => {
+      jest.useFakeTimers();
+      mockPerpsController.init.mockResolvedValue();
+
+      await PerpsConnectionManager.connect();
+
+      const terminateCallback = mockOnTerminate.mock.calls[0][0] as (
+        error: Error,
+      ) => void;
+
+      const m = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        autoReconnectIntervalRef: ReturnType<typeof setInterval> | null;
+      };
+      m.isConnected = true;
+
+      terminateCallback(new Error('Connection lost'));
+
+      expect(m.autoReconnectIntervalRef).not.toBeNull();
+
+      jest.useRealTimers();
+    });
+
+    it('stops auto-reconnect on successful reconnection', async () => {
+      jest.useFakeTimers();
+      mockPerpsController.init.mockResolvedValue();
+
+      await PerpsConnectionManager.connect();
+
+      const m = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        autoReconnectIntervalRef: ReturnType<typeof setInterval> | null;
+        stopAutoReconnect: () => void;
+      };
+
+      m.autoReconnectIntervalRef = setInterval(() => {
+        /* noop */
+      }, 1000);
+
+      await (
+        PerpsConnectionManager as unknown as {
+          reconnectWithNewContext: () => Promise<void>;
+        }
+      ).reconnectWithNewContext();
+
+      expect(m.autoReconnectIntervalRef).toBeNull();
+
+      jest.useRealTimers();
     });
   });
 });
