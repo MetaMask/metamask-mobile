@@ -1766,7 +1766,7 @@ describe('NetworkMultiSelector', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('handles invalid CAIP chain ID gracefully', async () => {
+    it('calls selectPopularNetwork without tracking event when CAIP chain ID parsing fails', async () => {
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector
           openModal={mockOpenModal}
@@ -1788,7 +1788,7 @@ describe('NetworkMultiSelector', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('handles network switch gracefully', async () => {
+    it('calls selectPopularNetwork and tracks event when switching from Ethereum to Base', async () => {
       const fromNetwork = createMockNetwork(
         'eip155:1',
         'Ethereum Main Network',
@@ -1859,24 +1859,31 @@ describe('NetworkMultiSelector', () => {
 
     it('does not track event when network name is Unknown Network', async () => {
       const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-      const network = createMockNetwork(
+      const bitcoinChainId = 'bip122:000000000019d6689c085ae165831e93';
+      const fromNetwork = createMockNetwork(
         solanaChainId,
         'Solana',
         solanaChainId as CaipChainId,
         true,
       );
+      const toNetwork = createMockNetwork(
+        bitcoinChainId,
+        'Bitcoin',
+        bitcoinChainId as CaipChainId,
+        false,
+      );
 
       mockUseNetworksByNamespace.mockReturnValue({
-        networks: [network],
-        selectedNetworks: [network],
+        networks: [fromNetwork, toNetwork],
+        selectedNetworks: [fromNetwork],
         selectedCount: 1,
         areAllNetworksSelected: false,
         areAnyNetworksSelected: true,
-        networkCount: 1,
+        networkCount: 2,
       });
 
       mockUseNetworksToUse.mockReturnValue(
-        createMockUseNetworksToUse([network]),
+        createMockUseNetworksToUse([fromNetwork, toNetwork]),
       );
 
       setupMockSelectors(
@@ -1884,7 +1891,8 @@ describe('NetworkMultiSelector', () => {
         solanaChainId,
         {},
         {
-          [solanaChainId]: { ticker: 'SOL' }, // No name property
+          [solanaChainId]: { name: 'Solana', ticker: 'SOL' },
+          [bitcoinChainId]: { ticker: 'BTC' }, // No name property - will be Unknown Network
         },
       );
 
@@ -1897,7 +1905,7 @@ describe('NetworkMultiSelector', () => {
 
       await getByTestId(
         'mock-network-multi-selector-list',
-      ).props.onSelectNetwork(solanaChainId);
+      ).props.onSelectNetwork(bitcoinChainId);
 
       expect(mockSelectPopularNetwork).toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
