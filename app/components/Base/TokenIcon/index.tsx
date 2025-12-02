@@ -1,15 +1,19 @@
-import React, { useCallback, useState } from 'react';
+import React, { PropsWithChildren, useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import {
+  ImageSourcePropType,
+  StyleSheet,
+  TextStyle,
+  View,
+  ViewStyle,
+} from 'react-native';
 
-import RemoteImage from '../../../Base/RemoteImage';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
-import imageIcons from '../../../../images/image-icons';
-
-/* eslint-disable import/no-commonjs */
-const ethLogo = require('../../../../images/eth-logo-new.png');
-/* eslint-enable import/no-commonjs */
+import RemoteImage from '../RemoteImage';
+import Text from '../Text';
+import { useTheme } from '../../../util/theme';
+import imageIcons from '../../../images/image-icons';
+import ethLogo from '../../../images/eth-logo-new.png';
+import { ThemeColors } from '@metamask/design-tokens';
 
 const REGULAR_SIZE = 24;
 const REGULAR_RADIUS = 12;
@@ -20,7 +24,7 @@ const BIG_RADIUS = 25;
 const BIGGEST_SIZE = 70;
 const BIGGEST_RADIUS = 35;
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     icon: {
       width: REGULAR_SIZE,
@@ -61,9 +65,23 @@ const createStyles = (colors) =>
       fontSize: 26,
       color: colors.text.default,
     },
+    tokenSymbolBiggest: {},
   });
 
-const EmptyIcon = ({ medium, big, biggest, style, ...props }) => {
+interface EmptyIconProps {
+  medium?: boolean;
+  big?: boolean;
+  biggest?: boolean;
+  style?: ViewStyle;
+}
+
+const EmptyIcon = ({
+  medium,
+  big,
+  biggest,
+  style,
+  ...props
+}: PropsWithChildren<EmptyIconProps>) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -90,6 +108,13 @@ EmptyIcon.propTypes = {
   testID: PropTypes.string,
 };
 
+interface TokenIconProps extends EmptyIconProps {
+  symbol?: string;
+  icon?: string;
+  emptyIconTextStyle?: TextStyle;
+  testID?: string;
+}
+
 function TokenIcon({
   symbol,
   icon,
@@ -99,7 +124,7 @@ function TokenIcon({
   style,
   emptyIconTextStyle,
   testID,
-}) {
+}: TokenIconProps) {
   const [showFallback, setShowFallback] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -113,16 +138,21 @@ function TokenIcon({
       return imageIcons.SOLANA;
     }
 
-    if (Object.keys(imageIcons).includes(symbol)) {
-      return imageIcons[symbol];
+    if (symbol && Object.keys(imageIcons).includes(symbol)) {
+      const imageIcon = imageIcons[symbol as keyof typeof imageIcons];
+      // Skip SVG components (functions) and strings, only return valid image sources
+      if (typeof imageIcon !== 'function' && typeof imageIcon !== 'string') {
+        return imageIcon as ImageSourcePropType;
+      }
     }
 
     if (icon) {
       return { uri: icon };
     }
 
-    return null;
+    return undefined;
   }, [symbol, icon]);
+
   const source = getSource();
 
   if (source && !showFallback) {
