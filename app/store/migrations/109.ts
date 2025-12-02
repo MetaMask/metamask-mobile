@@ -25,7 +25,7 @@ const isValidUUIDv4 = (id: string | null): id is string => {
 };
 
 /**
- * Migration 108: Migrate legacy analytics MMKV storage values to new MMKV keys
+ * Migration 109: Migrate legacy analytics MMKV storage values to new MMKV keys
  *
  * This migration:
  * - Reads legacy storage values (METAMETRICS_ID, METRICS_OPT_IN, METRICS_OPT_IN_SOCIAL_LOGIN)
@@ -37,7 +37,7 @@ const isValidUUIDv4 = (id: string | null): id is string => {
  * The controller will read from MMKV on initialization via generateDefaults().
  */
 const migration = async (state: unknown): Promise<unknown> => {
-  if (!ensureValidState(state, 108)) {
+  if (!ensureValidState(state, 109)) {
     return state;
   }
 
@@ -58,7 +58,7 @@ const migration = async (state: unknown): Promise<unknown> => {
     // If we can't read storage, skip migration - generateDefaults() will handle defaults
     captureException(
       new Error(
-        `Migration 108: Failed to read legacy storage values: ${error}`,
+        `Migration 109: Failed to read legacy storage values: ${error}`,
       ),
     );
     return state;
@@ -123,7 +123,7 @@ const migration = async (state: unknown): Promise<unknown> => {
     // Log error but continue - generateDefaults() will handle defaults
     captureException(
       new Error(
-        `Migration 108: Failed to migrate legacy analytics storage to MMKV: ${error}`,
+        `Migration 109: Failed to migrate legacy analytics storage to MMKV: ${error}`,
       ),
     );
   }

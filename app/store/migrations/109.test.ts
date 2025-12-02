@@ -1,7 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
 import StorageWrapper from '../storage-wrapper';
-import migrate from './108';
+import migrate from './109';
 import {
   AGREED,
   DENIED,
@@ -31,7 +31,7 @@ const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 const mockedStorageWrapper = jest.mocked(StorageWrapper);
 
-const migrationVersion = 108;
+const migrationVersion = 109;
 
 const createValidState = () => ({
   engine: {
@@ -104,7 +104,7 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          'Migration 108: Failed to read legacy storage values',
+          'Migration 109: Failed to read legacy storage values',
         ),
       }),
     );
