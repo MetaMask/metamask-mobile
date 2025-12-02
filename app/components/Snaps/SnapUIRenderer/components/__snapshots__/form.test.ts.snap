@@ -938,7 +938,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "gap": 16,
                                 "padding": 16,
@@ -1669,7 +1668,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "gap": 16,
                                 "padding": 16,

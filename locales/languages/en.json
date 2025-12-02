@@ -1333,22 +1333,24 @@
       "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
     },
     "flip_position": {
-      "title": "Flip Position",
+      "title": "Reverse Position",
       "direction": "Direction",
       "est_size": "Est. Size",
-      "flip": "Flip",
-      "flipping": "Flipping...",
+      "flip": "Reverse",
+      "flipping": "Reversing...",
       "cancel": "Cancel"
     },
     "adjust_margin": {
       "title": "Adjust Margin",
       "add_margin": "Add Margin",
       "add_margin_description": "Increase margin to reduce liquidation risk",
-      "reduce_margin": "Reduce Margin",
+      "reduce_margin": "Remove Margin",
       "reduce_margin_description": "Withdraw excess margin from position",
       "add_title": "Add Margin",
-      "remove_title": "Reduce Margin",
+      "remove_title": "Remove Margin",
       "margin_in_position": "Margin in position",
+      "margin_available_to_add": "Margin available to add",
+      "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance"
@@ -1676,6 +1678,10 @@
         "title": "After-hours trading",
         "reopens_in": "Reopens in {{time}}",
         "content": "You're trading outside of regular market hours (9:30 am to 4pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+      },
+      "spread": {
+        "title": "Spread",
+        "content": "The spread is the difference between the best bid (highest buy price) and best ask (lowest sell price). A smaller spread indicates higher liquidity."
       }
     },
     "connection": {
@@ -2434,6 +2440,7 @@
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "gather_basic_usage_title": "Gather basic usage data",
     "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
+    "gather_basic_usage_description_updated": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "Learn more",
     "checkbox_marketing": "Marketing updates",
     "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
@@ -2461,7 +2468,8 @@
     "action_description_never_legacy": "Never",
     "toast_message": "We’ve updated our privacy policy",
     "toast_action_button": "Close",
-    "toast_read_more": "Read more"
+    "toast_read_more": "Read more",
+    "pna25_toast_message": "We’re updating MetaMetrics. We'll associate some in-app activity to on-chain data to better understand usage. You can opt out via Settings."
   },
   "template_confirmation": {
     "ok": "OK",
@@ -2846,7 +2854,7 @@
     "clear_history_desc": "Choose this option to clear your entire browsing history.",
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
+    "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
     "data_collection_title": "Data collection for marketing",
     "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
     "batch_balance_requests_title": "Batch account balance requests",
@@ -3216,7 +3224,7 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
-    "convert": "Convert",
+    "convert_to_musd": "Convert to mUSD",
     "tron": {
       "daily_resource": "Daily resources",
       "bandwidth": "Bandwidth",
@@ -5655,7 +5663,10 @@
         "heading": "Earn rewards with mUSD",
         "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
         "continue_button": "Continue"
-      }
+      },
+      "earn_points_daily": "Earn points daily",
+      "buy_musd": "Buy mUSD",
+      "get_musd": "Get mUSD"
     }
   },
   "stake": {

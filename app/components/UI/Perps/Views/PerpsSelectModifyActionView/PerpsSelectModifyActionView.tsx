@@ -45,12 +45,13 @@ const PerpsSelectModifyActionView: React.FC<
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
       switch (action) {
         case 'add_to_position':
-          // Open trade screen in same direction
+          // Open trade screen in same direction with existing position context
           {
             const direction = parseFloat(position.size) > 0 ? 'long' : 'short';
             navigateToOrder({
               direction,
               asset: position.coin,
+              existingPosition: position, // Pass position to maintain leverage consistency
               hideTPSL: true, // Hide TP/SL when adding to existing position
             });
           }
