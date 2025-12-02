@@ -129,5 +129,47 @@ describe('Transaction Delegation Utils', () => {
 
       expect(result.authorizationList).toHaveLength(1);
     });
+
+    it('calls DelegationController to sign delegation', async () => {
+      await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
+
+      expect(signDelegationMock).toHaveBeenCalledWith({
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegation: expect.any(Object),
+      });
+    });
+
+    it('calls KeyringController to sign authorization', async () => {
+      await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
+
+      expect(sign7702Mock).toHaveBeenCalledWith({
+        chainId: 1,
+        contractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        from: TRANSACTION_META_MOCK.txParams.from,
+        nonce: NONCE_MOCK,
+      });
+    });
+
+    it('throws if chain does not support EIP-7702', async () => {
+      mockIsAtomicBatchSupported.mockResolvedValue([]);
+
+      await expect(
+        getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK),
+      ).rejects.toThrow('Chain does not support EIP-7702');
+    });
+
+    it('throws if upgrade contract address is not found', async () => {
+      mockIsAtomicBatchSupported.mockResolvedValue([
+        {
+          chainId: TRANSACTION_META_MOCK.chainId,
+          isSupported: false,
+          upgradeContractAddress: undefined,
+        },
+      ]);
+
+      await expect(
+        getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK),
+      ).rejects.toThrow('Upgrade contract address not found');
+    });
   });
 });
