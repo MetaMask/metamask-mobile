@@ -85,6 +85,7 @@ const EarnWithdrawInputView = () => {
     resourceType,
     setResourceType,
     tronWithdrawalToken,
+    validating: isTronUnstakeValidating,
     validate: tronValidateUnstake,
     confirmUnstake: tronConfirmUnstake,
   } = useTronUnstake({ token });
@@ -92,8 +93,10 @@ const EarnWithdrawInputView = () => {
 
   // Flag to conditionally show Tron-specific UI
   let showTronUnstakingUI = false;
+  let isTronValidating = false;
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   showTronUnstakingUI = isTronEnabled;
+  isTronValidating = isTronUnstakeValidating;
   ///: END:ONLY_INCLUDE_IF
 
   // Receipt token represents the staked position (stETH, aUSDC, sTRX)
@@ -849,7 +852,7 @@ const EarnWithdrawInputView = () => {
           loading={isSubmittingStakeWithdrawalTransaction}
           isDisabled={
             (showTronUnstakingUI
-              ? !isNonZeroAmount
+              ? !isNonZeroAmount || isTronValidating
               : isWithdrawingMoreThanAvailableForLendingToken ||
                 isOverMaximum.isOverMaximumToken ||
                 isOverMaximum.isOverMaximumEth ||
