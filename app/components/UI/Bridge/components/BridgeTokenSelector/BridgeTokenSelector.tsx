@@ -424,6 +424,7 @@ export const BridgeTokenSelector: React.FC = () => {
       <FlatList
         ref={flatListRef}
         key={listKey}
+        testID="bridge-token-list"
         style={styles.tokensList}
         contentContainerStyle={styles.tokensListContainer}
         data={displayData}
