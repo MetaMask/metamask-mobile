@@ -223,6 +223,7 @@ class AppInformation extends PureComponent {
             <Text style={styles.versionInfo}>
               {getFullVersion(this.state.appInfo)}
             </Text>
+            <Text style={styles.versionInfo}>This is OTA update v1 text</Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
