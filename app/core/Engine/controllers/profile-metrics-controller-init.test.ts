@@ -57,6 +57,16 @@ describe.each([
     remoteFeatureFlag: false,
     metaMetricsEnabled: false,
   },
+  {
+    metaMetricsId: 'mock-id-3',
+    remoteFeatureFlag: true,
+    metaMetricsEnabled: false,
+  },
+  {
+    metaMetricsId: 'mock-id-4',
+    remoteFeatureFlag: false,
+    metaMetricsEnabled: true,
+  },
 ])(
   'profileMetricsControllerInit',
   ({ metaMetricsId, remoteFeatureFlag, metaMetricsEnabled }) => {
