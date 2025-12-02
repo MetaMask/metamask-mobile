@@ -68,6 +68,26 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 
 ## How to Write component-view Tests
 
+### Selectors and Test IDs (MANDATORY)
+
+- ALWAYS use selector constants from `e2e/selectors/**` instead of hardcoded strings.
+- Centralize all `testID` usage through these selector maps to keep tests stable and refactor-friendly.
+- Prefer `getByTestId` / `queryByTestId` with selector constants; fallback to text queries only when there is no available selector.
+- Do not duplicate or redefine selector IDs in component-view tests.
+
+Example:
+
+```ts
+import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
+
+const { getByTestId, queryByTestId } = renderBridgeView({
+  deterministicFiat: true,
+});
+
+expect(getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA)).toBeTruthy();
+expect(queryByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeNull();
+```
+
 ### Rendering a View
 
 - Preferred: use a view-specific renderer:
