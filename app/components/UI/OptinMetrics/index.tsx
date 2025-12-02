@@ -53,6 +53,7 @@ import {
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import type { RootState } from '../../../reducers';
+import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -67,6 +68,7 @@ const OptinMetrics = () => {
 
   const dispatch = useDispatch();
   const events = useSelector((state: RootState) => state.onboarding.events);
+  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
 
   const metrics = useMetrics();
 
@@ -379,7 +381,12 @@ const OptinMetrics = () => {
                 color={TextColor.Alternative}
                 style={styles.descriptionText}
               >
-                {strings('privacy_policy.gather_basic_usage_description') + ' '}
+                {isPna25FlagEnabled
+                  ? strings(
+                      'privacy_policy.gather_basic_usage_description_updated',
+                    ) + ' '
+                  : strings('privacy_policy.gather_basic_usage_description') +
+                    ' '}
                 <Text
                   color={TextColor.Primary}
                   variant={TextVariant.BodySM}
