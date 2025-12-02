@@ -135,6 +135,7 @@ export interface StateFixtureBuilder {
     overrides: Record<string, unknown>,
   ): StateFixtureBuilder;
   withPreferences(overrides: Record<string, unknown>): StateFixtureBuilder;
+  withSmartTransactionsOptIn(enabled: boolean): StateFixtureBuilder;
   withMinimalAccounts(selectedAddress?: string): StateFixtureBuilder;
   withMinimalMainnetNetwork(): StateFixtureBuilder;
   withMinimalSmartTransactions(): StateFixtureBuilder;
@@ -143,6 +144,8 @@ export interface StateFixtureBuilder {
   withMinimalKeyringController(): StateFixtureBuilder;
   withMinimalMultichainNetwork(isEvmSelected?: boolean): StateFixtureBuilder;
   withMinimalBridgeController(): StateFixtureBuilder;
+  withGaslessSwapEnabled(chainId: string | number): StateFixtureBuilder;
+  withGaslessSwapDisabled(chainId: string | number): StateFixtureBuilder;
   withMinimalTokenRates(): StateFixtureBuilder;
   withMinimalMultichainAssetsRates(): StateFixtureBuilder;
   withMinimalMultichainBalances(): StateFixtureBuilder;
@@ -153,6 +156,13 @@ export interface StateFixtureBuilder {
     srcTokenAddress?: string;
     destTokenAddress?: string;
     chainIdHex?: string;
+  }): StateFixtureBuilder;
+  withBridgeRecommendedQuoteEvmFull(params?: {
+    srcAmount?: string;
+    srcTokenAddress?: string;
+    destTokenAddress?: string;
+    chainIdHex?: string;
+    networkFeeValueUsd?: string;
   }): StateFixtureBuilder;
   withAccountTreeForSelectedAccount(): StateFixtureBuilder;
   withOverrides(overrides: DeepPartial<RootState>): StateFixtureBuilder;
@@ -165,6 +175,21 @@ export function createStateFixture(): StateFixtureBuilder {
     settings: {},
   } as unknown as DeepPartial<RootState>;
   let current: DeepPartial<RootState> = baseState;
+
+  const toCaip = (id: string | number): string => {
+    if (typeof id === 'number') return `eip155:${id}`;
+    if (id.startsWith('eip155:')) return id;
+    if (id.startsWith('0x')) {
+      try {
+        const dec = parseInt(id, 16);
+        return `eip155:${dec}`;
+      } catch {
+        return `eip155:${id}`;
+      }
+    }
+    // assume decimal string
+    return `eip155:${id}`;
+  };
 
   const api: StateFixtureBuilder = {
     withRemoteFeatureFlags(overrides) {
@@ -183,6 +208,27 @@ export function createStateFixture(): StateFixtureBuilder {
                 ...((bg as PlainObject)
                   ?.RemoteFeatureFlagController as PlainObject),
                 remoteFeatureFlags: mergedFlags,
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withSmartTransactionsOptIn(enabled) {
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              PreferencesController: {
+                ...((bg as PlainObject)?.PreferencesController as PlainObject),
+                smartTransactionsOptInStatus: enabled,
               },
             },
           },
@@ -226,13 +272,34 @@ export function createStateFixture(): StateFixtureBuilder {
           destTokenAmount: '1000000', // 1 USDC (6 decimals)
           feeData: {
             metabridge: {
-              amount: '0',
+              amount: {
+                value: '0',
+                usd: '0',
+                amount: '0',
+                valueInCurrency: '0',
+              },
               asset: {
                 address: srcTokenAddress,
                 chainId: numericChainId,
                 decimals: 18,
                 symbol: 'ETH',
                 name: 'Ether',
+              },
+            },
+            relayer: {
+              amount: {
+                value: '0',
+                usd: '0',
+                amount: '0',
+                valueInCurrency: '0',
+              },
+            },
+            partner: {
+              amount: {
+                value: '0',
+                usd: '0',
+                amount: '0',
+                valueInCurrency: '0',
               },
             },
           },
@@ -311,6 +378,273 @@ export function createStateFixture(): StateFixtureBuilder {
                 isInPolling: false,
                 quotesRefreshCount: 0,
                 quoteFetchError: null,
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withBridgeRecommendedQuoteEvmFull(params) {
+      const {
+        srcAmount = '1000000000000000000', // 1 ETH in wei
+        srcTokenAddress = '0x0000000000000000000000000000000000000000',
+        destTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chainIdHex = '0x1',
+        networkFeeValueUsd = '2',
+      } = params ?? {};
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      const now = Date.now();
+      const numericChainId = parseInt(chainIdHex, 16);
+      const quoteResponse = {
+        quote: {
+          requestId: 'req-1',
+          srcChainId: numericChainId,
+          destChainId: numericChainId,
+          srcAsset: {
+            chainId: numericChainId,
+            address: srcTokenAddress,
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ether',
+          },
+          destAsset: {
+            chainId: numericChainId,
+            address: destTokenAddress,
+            decimals: 6,
+            symbol: 'USDC',
+            name: 'USD Coin',
+          },
+          srcTokenAmount: srcAmount,
+          destTokenAmount: '1000000', // 1 USDC (6 decimals)
+          feeData: {
+            metabridge: {
+              amount: {
+                value: '0',
+                usd: '0',
+                amount: '0',
+                valueInCurrency: '0',
+              },
+              asset: {
+                address: srcTokenAddress,
+                chainId: numericChainId,
+                decimals: 18,
+                symbol: 'ETH',
+                name: 'Ether',
+              },
+            },
+            relayer: {
+              amount: {
+                value: '0',
+                usd: '0',
+                amount: '0',
+                valueInCurrency: '0',
+              },
+            },
+            partner: {
+              amount: {
+                value: '0',
+                usd: '0',
+                amount: '0',
+                valueInCurrency: '0',
+              },
+            },
+          },
+          gasIncluded: false,
+          priceData: { priceImpact: '0.01' },
+        },
+        // Fields expected by bridge-controller selectors
+        gasFee: {
+          total: {
+            value: networkFeeValueUsd,
+            usd: networkFeeValueUsd,
+            amount: '0.001',
+            valueInCurrency: networkFeeValueUsd,
+          },
+          max: {
+            value: networkFeeValueUsd,
+            usd: networkFeeValueUsd,
+            amount: '0.001',
+            valueInCurrency: networkFeeValueUsd,
+          },
+          effective: {
+            value: networkFeeValueUsd,
+            usd: networkFeeValueUsd,
+            amount: '0.001',
+            valueInCurrency: networkFeeValueUsd,
+          },
+        },
+        totalNetworkFee: {
+          amount: '0.001',
+          value: networkFeeValueUsd,
+          valueInCurrency: networkFeeValueUsd,
+        },
+        totalMaxNetworkFee: {
+          amount: '0.001',
+          value: networkFeeValueUsd,
+          valueInCurrency: networkFeeValueUsd,
+        },
+        adjustedReturn: {
+          value: '0',
+          usd: '0',
+          amount: '0',
+          valueInCurrency: '0',
+        },
+        cost: {
+          value: networkFeeValueUsd,
+          usd: networkFeeValueUsd,
+          amount: networkFeeValueUsd,
+          valueInCurrency: networkFeeValueUsd,
+        },
+        estimatedProcessingTimeInSeconds: 30,
+      };
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              RemoteFeatureFlagController: {
+                ...((bg as PlainObject)
+                  ?.RemoteFeatureFlagController as PlainObject),
+                remoteFeatureFlags: {
+                  bridgeConfig: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      [`eip155:${parseInt(chainIdHex, 16)}`]: {
+                        isActiveSrc: true,
+                        isActiveDest: true,
+                      },
+                    },
+                  },
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      [`eip155:${parseInt(chainIdHex, 16)}`]: {
+                        isActiveSrc: true,
+                        isActiveDest: true,
+                        isGaslessSwapEnabled: false,
+                      },
+                    },
+                  },
+                },
+              },
+              CurrencyRateController: {
+                currentCurrency: 'USD',
+                currencyRates: {
+                  ETH: { conversionRate: 2000 },
+                  USDC: { conversionRate: 1 },
+                },
+                conversionRate: 2000,
+              },
+              TokenRatesController: {
+                marketData: {},
+              },
+              MultichainAssetsRatesController: {
+                conversionRates: {},
+              },
+              BridgeController: {
+                quoteRequest: {
+                  srcChainId: numericChainId,
+                  srcTokenAddress,
+                  destChainId: numericChainId,
+                  destTokenAddress,
+                  destAddress: '',
+                  srcAmount,
+                  slippage: 0.005,
+                },
+                quotes: [quoteResponse],
+                recommendedQuote: quoteResponse,
+                quotesLastFetched: now,
+                quotesLoadingStatus: 'SUCCEEDED',
+                isInPolling: false,
+                quotesRefreshCount: 0,
+                quoteFetchError: null,
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withGaslessSwapEnabled(chainId) {
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      const caip = toCaip(chainId);
+      const mergedFlags = createFeatureFlags({
+        bridgeConfigV2: {
+          minimumVersion: '0.0.0',
+          maxRefreshCount: 5,
+          refreshRate: 30000,
+          support: true,
+          chains: {
+            [caip]: {
+              isActiveSrc: true,
+              isActiveDest: true,
+              isGaslessSwapEnabled: true,
+            },
+          },
+        },
+      });
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              RemoteFeatureFlagController: {
+                ...((bg as PlainObject)
+                  ?.RemoteFeatureFlagController as PlainObject),
+                remoteFeatureFlags: mergedFlags,
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withGaslessSwapDisabled(chainId) {
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      const caip = toCaip(chainId);
+      const mergedFlags = createFeatureFlags({
+        bridgeConfigV2: {
+          minimumVersion: '0.0.0',
+          maxRefreshCount: 5,
+          refreshRate: 30000,
+          support: true,
+          chains: {
+            [caip]: {
+              isActiveSrc: true,
+              isActiveDest: true,
+              isGaslessSwapEnabled: false,
+            },
+          },
+        },
+      });
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              RemoteFeatureFlagController: {
+                ...((bg as PlainObject)
+                  ?.RemoteFeatureFlagController as PlainObject),
+                remoteFeatureFlags: mergedFlags,
               },
             },
           },

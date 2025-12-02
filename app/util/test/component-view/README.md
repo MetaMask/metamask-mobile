@@ -212,6 +212,17 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<test-name>" --runInBand --s
 - Don’t: Mock hooks, selectors, or component internals
 - Don’t: Depend on non-deterministic values (time, network) without controlling them first
 
+### Selectors (MANDATORY)
+
+- Use selector constants from `e2e/selectors/**` for all `testID` queries.
+- Avoid hardcoded string IDs and prefer `getByTestId`/`queryByTestId` with selector maps.
+- Example:
+  ```ts
+  import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
+  const { getByTestId } = renderBridgeView();
+  expect(getByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeTruthy();
+  ```
+
 ## Enforcement (Allowed mocks only)
 
 To enforce component-view purity, we rely on a static ESLint guard:

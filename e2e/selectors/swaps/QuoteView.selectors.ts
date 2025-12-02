@@ -23,4 +23,5 @@ export const QuoteViewSelectorIDs = {
   SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
   CONFIRM_BUTTON: 'bridge-confirm-button',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  MAX_BUTTON: 'token-input-area-max-button',
 };
