@@ -135,7 +135,7 @@ setMeasurement(
 
 ## Event Catalog
 
-### UI Screen Measurements (14 events)
+### UI Screen Measurements (16 events)
 
 **Purpose:** Track screen load times and user-perceived performance.
 
@@ -146,6 +146,8 @@ setMeasurement(
 | `PerpsPositionDetailsView`  | Position data, market stats, history loaded   | Position details                                         |
 | `PerpsOrderView`            | Current price, market data, account available | Trade entry                                              |
 | `PerpsClosePositionView`    | Position data, current price                  | Position exit                                            |
+| `PerpsAdjustMarginView`     | Position data, balance/max removable (mode)   | Adjust margin (add/remove) - differentiated by mode tag  |
+| `PerpsFlipPositionSheet`    | Position data, fees, current price            | Flip position confirmation bottom sheet                  |
 | `PerpsWithdrawView`         | Account balance, destination token            | Withdrawal form                                          |
 | `PerpsTransactionsView`     | Order fills loaded                            | History view                                             |
 | `PerpsOrderSubmissionToast` | Immediate (shows when toast appears)          | Order feedback                                           |
@@ -168,7 +170,7 @@ setMeasurement(
 | `PERPS_CLOSE_ORDER_CONFIRMATION_TOAST_LOADED` | ms | Close confirmation |
 | `PERPS_LEVERAGE_BOTTOM_SHEET_LOADED` | ms | Leverage picker |
 
-### Trading Operations (7 events)
+### Trading Operations (9 events)
 
 **Purpose:** Track order execution, position management, and transaction completion.
 
@@ -179,6 +181,8 @@ setMeasurement(
 | `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only) | orderId, success, **coinCount** (batch), **successCount** (batch) |
 | `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch) | success, filledSize, **closeAll** (batch), **coinCount** (batch)  |
 | `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                               | takeProfitPrice, stopLossPrice, success                           |
+| `PerpsUpdateMargin`  | `PerpsPositionManagement` | provider, coin, action, isTestnet                         | amount, success                                                   |
+| `PerpsFlipPosition`  | `PerpsPositionManagement` | provider, coin, fromDirection, toDirection, isTestnet     | size, success                                                     |
 | `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                              | success, txHash, withdrawalId                                     |
 | `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                              | success, txHash                                                   |
 

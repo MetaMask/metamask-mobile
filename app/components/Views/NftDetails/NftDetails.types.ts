@@ -3,6 +3,7 @@ import { StyleProp, TextStyle, ViewProps } from 'react-native';
 
 export interface NftDetailsParams {
   collectible: Nft;
+  source?: 'mobile-nft-list' | 'mobile-nft-list-page';
 }
 
 export interface NftDetailsInformationRowProps extends ViewProps {

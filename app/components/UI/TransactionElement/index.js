@@ -14,7 +14,7 @@ import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
 import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import StyledButton from '../StyledButton';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
@@ -34,7 +34,10 @@ import { selectTickerByChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
-import { selectSwapsTransactions } from '../../../selectors/transactionController';
+import {
+  selectSwapsTransactions,
+  selectTransactions,
+} from '../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../reducers/swaps';
 import {
   FINAL_NON_CONFIRMED_STATUSES,
@@ -224,6 +227,10 @@ class TransactionElement extends PureComponent {
      * Whether to render a bottom border for row separation (used in unified list)
      */
     showBottomBorder: PropTypes.bool,
+    /**
+     * All EVM transactions in controller state
+     */
+    transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
   };
 
   state = {
@@ -316,10 +323,7 @@ class TransactionElement extends PureComponent {
     let incoming = false;
     let selfSent = false;
 
-    if (
-      this.props.isMultichainAccountsState2Enabled &&
-      process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true'
-    ) {
+    if (this.props.isMultichainAccountsState2Enabled) {
       const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
         (account) => account.address,
       );
@@ -377,10 +381,12 @@ class TransactionElement extends PureComponent {
     return null;
   };
 
-  renderTxElementIcon = (transactionElement, status, chainId) => {
+  renderTxElementIcon = (transactionElement, tx) => {
+    const { chainId: txChainId, requiredTransactionIds, status, type } = tx;
     const { transactionType } = transactionElement;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
+    const { transactions } = this.props;
 
     const isFailedTransaction = status === 'cancelled' || status === 'failed';
     let icon;
@@ -422,6 +428,14 @@ class TransactionElement extends PureComponent {
           : transactionIconApprove;
         break;
     }
+
+    const perpsDepositChainId =
+      type === TransactionType.perpsDeposit && requiredTransactionIds?.length
+        ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
+        : undefined;
+
+    const chainId = perpsDepositChainId ?? txChainId;
+
     return (
       <BadgeWrapper
         badgeElement={
@@ -448,6 +462,7 @@ class TransactionElement extends PureComponent {
       isLedgerAccount,
       i,
       tx: { time, status, isSmartTransaction, chainId, type },
+      tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
     const isBridgeTransaction = type === TransactionType.bridge;
@@ -478,7 +493,7 @@ class TransactionElement extends PureComponent {
           </ListItem.Date>
           <ListItem.Content style={styles.listItemContent}>
             <ListItem.Icon>
-              {this.renderTxElementIcon(transactionElement, status, chainId)}
+              {this.renderTxElementIcon(transactionElement, tx)}
             </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
@@ -780,9 +795,14 @@ TransactionElement.contextType = ThemeContext;
 // Create a wrapper functional component
 const TransactionElementWithBridge = (props) => {
   const bridgeTxHistoryData = useBridgeTxHistoryData({ evmTxMeta: props.tx });
+  const transactions = useSelector(selectTransactions);
 
   return (
-    <TransactionElement {...props} bridgeTxHistoryData={bridgeTxHistoryData} />
+    <TransactionElement
+      {...props}
+      bridgeTxHistoryData={bridgeTxHistoryData}
+      transactions={transactions}
+    />
   );
 };
 

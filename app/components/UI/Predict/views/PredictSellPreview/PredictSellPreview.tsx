@@ -1,6 +1,9 @@
 import {
   Box,
   ButtonSize as ButtonSizeHero,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -23,10 +26,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
@@ -98,7 +97,11 @@ const PredictSellPreview = () => {
     error: placeOrderError,
   } = usePredictPlaceOrder();
 
-  const { preview } = usePredictOrderPreview({
+  const {
+    preview,
+    error: previewError,
+    isLoading: isPreviewLoading,
+  } = usePredictOrderPreview({
     providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
@@ -142,7 +145,10 @@ const PredictSellPreview = () => {
     }
   }, [dispatch, result]);
 
-  const currentValue = preview?.minAmountReceived ?? 0;
+  // Use preview data if available, fallback to position data on error or when preview is unavailable
+  const currentValue = preview
+    ? preview.minAmountReceived
+    : position.currentValue;
   const currentPrice = preview?.sharePrice ?? 0;
   const { avgPrice } = position;
 
@@ -182,8 +188,9 @@ const PredictSellPreview = () => {
             <Box twClassName="flex-row items-center gap-1">
               <ActivityIndicator size="small" />
               <Text
-                variant={TextVariant.BodyLGMedium}
-                color={TextColor.Inverse}
+                variant={TextVariant.BodyLg}
+                twClassName="font-medium"
+                color={TextColor.PrimaryInverse}
               >
                 {`${strings('predict.order.cashing_out_loading')}`}
               </Text>
@@ -210,7 +217,10 @@ const PredictSellPreview = () => {
         isLoading={isLoading}
         size={ButtonSizeHero.Lg}
       >
-        <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
+        <Text
+          variant={TextVariant.BodyMd}
+          style={tw.style('text-white font-medium')}
+        >
           {strings('predict.cash_out')}
         </Text>
       </ButtonHero>
@@ -220,7 +230,7 @@ const PredictSellPreview = () => {
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <BottomSheetHeader onClose={() => goBack()}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('predict.cash_out')}
         </Text>
       </BottomSheetHeader>
@@ -229,7 +239,7 @@ const PredictSellPreview = () => {
         style={styles.container}
       >
         <View style={styles.cashOutContainer}>
-          {!preview ? (
+          {isPreviewLoading ? (
             <Box twClassName="items-center gap-2">
               <Skeleton
                 width={200}
@@ -254,13 +264,15 @@ const PredictSellPreview = () => {
             <>
               <Text
                 style={styles.currentValue}
-                variant={TextVariant.BodyMDMedium}
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
               >
                 {formatPrice(currentValue, { maximumDecimals: 2 })}
               </Text>
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
+                color={TextColor.TextAlternative}
               >
                 {strings('predict.at_price_per_share', {
                   size: formatPositionSize(size, {
@@ -272,8 +284,13 @@ const PredictSellPreview = () => {
               </Text>
               <Text
                 style={styles.percentPnl}
-                color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-                variant={TextVariant.BodyMDMedium}
+                twClassName="font-medium"
+                color={
+                  percentPnl > 0
+                    ? TextColor.SuccessDefault
+                    : TextColor.ErrorDefault
+                }
+                variant={TextVariant.BodyMd}
               >
                 {`${signal}${formatPrice(Math.abs(cashPnl), {
                   maximumDecimals: 4,
@@ -285,11 +302,20 @@ const PredictSellPreview = () => {
         <View style={styles.bottomContainer}>
           {placeOrderError && (
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Error}
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
               style={tw.style('text-center')}
             >
               {placeOrderError}
+            </Text>
+          )}
+          {previewError && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={tw.style('text-center')}
+            >
+              {previewError}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">
@@ -297,12 +323,13 @@ const PredictSellPreview = () => {
               <Image source={{ uri: icon }} style={styles.positionIcon} />
             </Box>
             <Box twClassName="flex-col gap-1 flex-1">
-              <Text variant={TextVariant.HeadingSM}>{outcomeTitle}</Text>
+              <Text variant={TextVariant.HeadingSm}>{outcomeTitle}</Text>
               <Text
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                twClassName="font-medium"
+                color={TextColor.TextAlternative}
               >
                 {outcomeGroupTitle
                   ? strings('predict.cashout_info_multiple', {
@@ -321,7 +348,7 @@ const PredictSellPreview = () => {
           </Box>
           <View style={styles.cashOutButtonContainer}>
             {renderCashOutButton()}
-            <Text variant={TextVariant.BodyXS} style={styles.cashOutButtonText}>
+            <Text variant={TextVariant.BodyXs} style={styles.cashOutButtonText}>
               {strings('predict.cash_out_info')}
             </Text>
           </View>

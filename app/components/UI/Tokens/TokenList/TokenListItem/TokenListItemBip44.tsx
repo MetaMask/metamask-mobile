@@ -26,7 +26,6 @@ import { ScamWarningIcon } from '../ScamWarningIcon';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
-  selectMusdConversionPaymentTokensAllowlist,
   selectIsMusdConversionFlowEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
@@ -41,7 +40,7 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -51,6 +50,7 @@ interface TokenListItemProps {
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
+  isFullView?: boolean;
 }
 
 export const TokenListItemBip44 = React.memo(
@@ -60,6 +60,7 @@ export const TokenListItemBip44 = React.memo(
     setShowScamWarningModal,
     privacyMode,
     showPercentageChange = true,
+    isFullView = false,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
@@ -86,27 +87,11 @@ export const TokenListItemBip44 = React.memo(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
-    const musdConversionPaymentTokensAllowlist = useSelector(
-      selectMusdConversionPaymentTokensAllowlist,
-    );
 
-    const isConvertibleStablecoin = useMemo(
-      () =>
-        isMusdConversionFlowEnabled &&
-        asset?.chainId &&
-        asset?.address &&
-        isMusdConversionPaymentToken(
-          asset.address,
-          asset.chainId,
-          musdConversionPaymentTokensAllowlist,
-        ),
-      [
-        isMusdConversionFlowEnabled,
-        asset?.chainId,
-        asset?.address,
-        musdConversionPaymentTokensAllowlist,
-      ],
-    );
+    const { isConversionToken } = useMusdConversionTokens();
+
+    const isConvertibleStablecoin =
+      isMusdConversionFlowEnabled && isConversionToken(asset);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -148,7 +133,7 @@ export const TokenListItemBip44 = React.memo(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
           .addProperties({
-            source: 'mobile-token-list',
+            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
             chain_id: token.chainId,
             token_symbol: token.symbol,
           })

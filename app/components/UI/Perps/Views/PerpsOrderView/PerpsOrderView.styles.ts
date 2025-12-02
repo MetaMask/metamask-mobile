@@ -48,6 +48,9 @@ const createStyles = (colors: Colors) =>
       borderTopLeftRadius: 12,
       borderTopRightRadius: 12,
     },
+    detailItemOnly: {
+      borderRadius: 12,
+    },
     detailItemLast: {
       borderBottomLeftRadius: 12,
       borderBottomRightRadius: 12,

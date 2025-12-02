@@ -12,6 +12,8 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
   calculatePositionSize,
+  adaptHyperLiquidLedgerUpdateToUserHistoryItem,
+  type RawHyperLiquidLedgerUpdate,
 } from './hyperLiquidAdapter';
 import type { OrderParams } from '../controllers/types';
 import type {
@@ -811,8 +813,8 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '350.0',
         marginUsed: '150.0',
         unrealizedPnl: '100',
-        returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
-        totalBalance: '1000.5', // Spot (200.0 + 300.5 = 500.5) + Perps (500.0) = 1000.5
+        returnOnEquity: '0.0',
+        totalBalance: '1000.5',
       });
     });
 
@@ -850,7 +852,7 @@ describe('hyperLiquidAdapter', () => {
         marginUsed: '200.0',
         unrealizedPnl: '0',
         returnOnEquity: '0.0',
-        totalBalance: '1000', // Perps only (spot balances array is empty)
+        totalBalance: '1000',
       });
     });
 
@@ -1112,6 +1114,204 @@ describe('hyperLiquidAdapter', () => {
       });
 
       expect(result).toBe(100000000000); // (1000000 * 100) / 0.001
+    });
+  });
+
+  describe('adaptHyperLiquidLedgerUpdateToUserHistoryItem', () => {
+    // Helper function to create test ledger updates
+    const createLedgerUpdate = (
+      type: string,
+      hash = '0x123',
+    ): RawHyperLiquidLedgerUpdate => ({
+      hash,
+      time: 1000,
+      delta: { type, usdc: '100' },
+    });
+
+    describe('filtering by delta type', () => {
+      it('includes deposit type', () => {
+        const updates = [createLedgerUpdate('deposit')];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('includes withdraw type', () => {
+        const updates = [createLedgerUpdate('withdraw')];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('includes internalTransfer type', () => {
+        const updates = [createLedgerUpdate('internalTransfer')];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('excludes unsupported types', () => {
+        const updates = [
+          createLedgerUpdate('trade', '0x001'),
+          createLedgerUpdate('liquidation', '0x002'),
+          createLedgerUpdate('funding', '0x003'),
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('filters mixed array keeping only supported types', () => {
+        const updates = [
+          createLedgerUpdate('deposit', '0x001'),
+          createLedgerUpdate('trade', '0x002'),
+          createLedgerUpdate('withdraw', '0x003'),
+          createLedgerUpdate('liquidation', '0x004'),
+          createLedgerUpdate('internalTransfer', '0x005'),
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(3);
+      });
+    });
+
+    describe('internalTransfer USDC amount validation', () => {
+      it('includes internalTransfer with positive USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x001',
+            time: 1000,
+            delta: { type: 'internalTransfer', usdc: '100.50' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('excludes internalTransfer with zero USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x002',
+            time: 2000,
+            delta: { type: 'internalTransfer', usdc: '0' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with negative USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x003',
+            time: 3000,
+            delta: { type: 'internalTransfer', usdc: '-50.25' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with invalid USDC value', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x004',
+            time: 4000,
+            delta: { type: 'internalTransfer', usdc: 'invalid' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with missing USDC field', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x005',
+            time: 5000,
+            delta: { type: 'internalTransfer' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with undefined USDC value', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x006',
+            time: 6000,
+            delta: { type: 'internalTransfer', usdc: undefined },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('includes internalTransfer with small positive decimal amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x007',
+            time: 7000,
+            delta: { type: 'internalTransfer', usdc: '0.01' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('filters mixed internalTransfer entries keeping only valid positive amounts', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x008',
+            time: 8000,
+            delta: { type: 'internalTransfer', usdc: '100' },
+          },
+          {
+            hash: '0x009',
+            time: 9000,
+            delta: { type: 'internalTransfer', usdc: '0' },
+          },
+          {
+            hash: '0x010',
+            time: 10000,
+            delta: { type: 'internalTransfer', usdc: '-50' },
+          },
+          {
+            hash: '0x011',
+            time: 11000,
+            delta: { type: 'internalTransfer', usdc: 'invalid' },
+          },
+          {
+            hash: '0x012',
+            time: 12000,
+            delta: { type: 'internalTransfer', usdc: '25.50' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(2);
+      });
     });
   });
 });

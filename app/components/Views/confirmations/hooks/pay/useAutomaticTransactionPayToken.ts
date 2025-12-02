@@ -9,12 +9,19 @@ import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 
+export interface SetPayTokenRequest {
+  address: Hex;
+  chainId: Hex;
+}
+
 const log = createProjectLogger('transaction-pay');
 
 export function useAutomaticTransactionPayToken({
   disable = false,
+  preferredToken,
 }: {
   disable?: boolean;
+  preferredToken?: SetPayTokenRequest;
 } = {}) {
   const isUpdated = useRef(false);
   const { setPayToken } = useTransactionPayToken();
@@ -52,6 +59,7 @@ export function useAutomaticTransactionPayToken({
       isHardwareWallet,
       targetToken,
       tokens: tokensWithBalance,
+      preferredToken,
     });
 
     if (!automaticToken) {
@@ -70,6 +78,7 @@ export function useAutomaticTransactionPayToken({
   }, [
     disable,
     isHardwareWallet,
+    preferredToken,
     requiredTokens,
     setPayToken,
     targetToken,
@@ -79,10 +88,12 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
+  preferredToken,
   targetToken,
   tokens,
 }: {
   isHardwareWallet: boolean;
+  preferredToken?: SetPayTokenRequest;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
 }): { address: Hex; chainId: Hex } | undefined {
@@ -97,38 +108,22 @@ function getBestToken({
     return targetTokenFallback;
   }
 
-  const requiredToken = tokens.find(
-    (t) =>
-      t.address.toLowerCase() === targetToken?.address.toLowerCase() &&
-      t.chainId === targetToken?.chainId,
-  );
+  if (preferredToken) {
+    const preferredTokenAvailable = tokens.some(
+      (token) =>
+        token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
+        token.chainId?.toLowerCase() === preferredToken.chainId.toLowerCase(),
+    );
 
-  if (requiredToken) {
-    return {
-      address: requiredToken.address as Hex,
-      chainId: requiredToken.chainId as Hex,
-    };
+    if (preferredTokenAvailable) {
+      return preferredToken;
+    }
   }
 
-  const sameChainHighestBalanceToken = tokens.find(
-    (t) => t.chainId === targetToken?.chainId,
-  );
-
-  if (sameChainHighestBalanceToken) {
+  if (tokens?.length) {
     return {
-      address: sameChainHighestBalanceToken.address as Hex,
-      chainId: sameChainHighestBalanceToken.chainId as Hex,
-    };
-  }
-
-  const alternateChainHighestBalanceToken = tokens.find(
-    (t) => t.chainId !== targetToken?.chainId,
-  );
-
-  if (alternateChainHighestBalanceToken) {
-    return {
-      address: alternateChainHighestBalanceToken.address as Hex,
-      chainId: alternateChainHighestBalanceToken.chainId as Hex,
+      address: tokens[0].address as Hex,
+      chainId: tokens[0].chainId as Hex,
     };
   }
 
