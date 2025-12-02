@@ -73,7 +73,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.sendButton);
     } else {
-      await AppwrightGestures.tap(this.sendButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.sendButton); 
     }
   }
 
@@ -85,7 +85,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.swapButton); 
     }
   }
 
@@ -93,7 +93,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.bridgeButton);
     } else {
-      await AppwrightGestures.tap(this.bridgeButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.bridgeButton); 
     }
   }
 

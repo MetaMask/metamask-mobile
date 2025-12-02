@@ -48,6 +48,8 @@ test('Account creation after fresh install', async ({
     getPasswordForScenario('onboarding'),
   );
 
+  await CreatePasswordScreen.tapIUnderstandCheckBox();
+
   await CreatePasswordScreen.tapCreatePasswordButton();
 
   await CreateNewWalletScreen.tapRemindMeLater();
