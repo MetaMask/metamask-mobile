@@ -45,6 +45,16 @@ export interface GetUserHistoryParams {
 // Trade configuration saved per market per network
 export interface TradeConfiguration {
   leverage?: number; // Last used leverage for this market
+  // Pending trade configuration (temporary, expires after 5 minutes)
+  pendingConfig?: {
+    amount?: string; // Order size in USD
+    leverage?: number; // Leverage
+    takeProfitPrice?: string; // Take profit price
+    stopLossPrice?: string; // Stop loss price
+    limitPrice?: string; // Limit price (for limit orders)
+    orderType?: OrderType; // Market vs limit
+    timestamp: number; // When the config was saved (for expiration check)
+  };
 }
 
 // Order type enumeration
@@ -214,6 +224,21 @@ export type ClosePositionsResult = {
     success: boolean;
     error?: string;
   }[];
+};
+
+export type UpdateMarginParams = {
+  coin: string; // Asset symbol (e.g., 'BTC', 'ETH')
+  amount: string; // Amount to adjust as string (positive = add, negative = remove)
+};
+
+export type MarginResult = {
+  success: boolean;
+  error?: string;
+};
+
+export type FlipPositionParams = {
+  coin: string; // Asset symbol to flip
+  position: Position; // Current position to flip
 };
 
 export interface InitializeResult {
@@ -593,7 +618,7 @@ export interface SubscribePositionsParams {
 }
 
 export interface SubscribeOrderFillsParams {
-  callback: (fills: OrderFill[]) => void;
+  callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
   since?: number; // Future: only fills after timestamp
 }
@@ -619,6 +644,57 @@ export interface SubscribeCandlesParams {
   interval: CandlePeriod;
   duration?: TimeDuration;
   callback: (data: CandleData) => void;
+  onError?: (error: Error) => void;
+}
+
+/**
+ * Single price level in the order book
+ */
+export interface OrderBookLevel {
+  /** Price at this level */
+  price: string;
+  /** Size at this level (in base asset) */
+  size: string;
+  /** Cumulative size up to and including this level */
+  total: string;
+  /** Notional value in USD */
+  notional: string;
+  /** Cumulative notional up to and including this level */
+  totalNotional: string;
+}
+
+/**
+ * Full order book data with multiple price levels
+ */
+export interface OrderBookData {
+  /** Bid levels (buy orders) - highest price first */
+  bids: OrderBookLevel[];
+  /** Ask levels (sell orders) - lowest price first */
+  asks: OrderBookLevel[];
+  /** Spread between best bid and best ask */
+  spread: string;
+  /** Spread as a percentage of mid price */
+  spreadPercentage: string;
+  /** Mid price (average of best bid and best ask) */
+  midPrice: string;
+  /** Timestamp of last update */
+  lastUpdated: number;
+  /** Maximum total size across all levels (for scaling depth bars) */
+  maxTotal: string;
+}
+
+export interface SubscribeOrderBookParams {
+  /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Number of levels to return per side (default: 10) */
+  levels?: number;
+  /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
+  nSigFigs?: 2 | 3 | 4 | 5;
+  /** Mantissa for aggregation when nSigFigs is 5 (2 or 5). Controls finest price increments */
+  mantissa?: 2 | 5;
+  /** Callback function receiving order book updates */
+  callback: (orderBook: OrderBookData) => void;
+  /** Callback for errors */
   onError?: (error: Error) => void;
 }
 
@@ -719,6 +795,7 @@ export interface IPerpsProvider {
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
   closePositions?(params: ClosePositionsParams): Promise<ClosePositionsResult>; // Optional: batch close for protocols that support it
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
+  updateMargin(params: UpdateMarginParams): Promise<MarginResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]>;
@@ -810,6 +887,7 @@ export interface IPerpsProvider {
   subscribeToAccount(params: SubscribeAccountParams): () => void;
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
   subscribeToCandles(params: SubscribeCandlesParams): () => void;
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

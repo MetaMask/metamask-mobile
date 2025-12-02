@@ -264,8 +264,14 @@ const Routes = {
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
+    ADJUST_MARGIN: 'PerpsAdjustMargin',
+    SELECT_MODIFY_ACTION: 'PerpsSelectModifyAction',
+    SELECT_ADJUST_MARGIN_ACTION: 'PerpsSelectAdjustMarginAction',
+    SELECT_ORDER_TYPE: 'PerpsSelectOrderType',
+    ORDER_DETAILS: 'PerpsOrderDetailsView',
     PNL_HERO_CARD: 'PerpsPnlHeroCard',
     ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
+    ORDER_BOOK: 'PerpsOrderBook', // Full order book depth view
     MODALS: {
       ROOT: 'PerpsModals',
       CLOSE_POSITION_MODALS: 'PerpsClosePositionModals',
@@ -324,6 +330,9 @@ const Routes = {
     ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
+    MUSD: {
+      CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+    },
     MODALS: {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',

@@ -2,6 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
 import { useExploreSearch } from './config/useExploreSearch';
+import { useSelector } from 'react-redux';
+import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -10,10 +12,16 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('./config/useExploreSearch');
 const mockUseExploreSearch = useExploreSearch as jest.MockedFunction<
   typeof useExploreSearch
 >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock child components that render individual items
 jest.mock(
@@ -28,6 +36,11 @@ jest.mock(
 
 jest.mock(
   '../../../../../UI/Predict/components/PredictMarket',
+  () => () => null,
+);
+
+jest.mock(
+  '../../../../../UI/Predict/components/PredictMarketRowItem',
   () => () => null,
 );
 
@@ -48,6 +61,14 @@ jest.mock(
 describe('ExploreSearchResults', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock selectBasicFunctionalityEnabled to return true by default
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectBasicFunctionalityEnabled) {
+        return true;
+      }
+      return undefined;
+    });
   });
 
   it('renders section headers for sections with data or loading', () => {
@@ -58,7 +79,19 @@ describe('ExploreSearchResults', () => {
           { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
         ],
         perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
-        predictions: [{ id: '1', title: 'Will Bitcoin reach 100k?' }],
+        predictions: [
+          {
+            id: '1',
+            title: 'Will Bitcoin reach 100k?',
+            outcomes: [
+              {
+                id: 'outcome-1',
+                status: 'open',
+                tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],
+              },
+            ],
+          },
+        ],
         sites: [],
       },
       isLoading: {
