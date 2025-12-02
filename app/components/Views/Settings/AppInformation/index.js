@@ -270,7 +270,7 @@ class AppInformation extends PureComponent {
                 )}
 
                 {this.props.preinstalledSnaps.map((snap) => (
-                  <Text style={styles.branchInfo}>
+                  <Text key={snap.name} style={styles.branchInfo}>
                     {snap.name}: {snap.version} ({snap.status})
                   </Text>
                 ))}
