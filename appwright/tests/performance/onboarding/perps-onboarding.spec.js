@@ -36,7 +36,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   device,
   performanceTracker,
 }, testInfo) => {
-  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
+  test.setTimeout(10 * 60 * 1000); // 10 minutes
   await screensSetup(device);
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_3, 120000);
@@ -52,9 +52,8 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
       await PerpsTutorialScreen.expectFirstScreenVisible();
     },
   );
-
   // Open Tutorial flow
-  await PerpsTutorialScreen.flowTapContinueTutorial(5);
+  await PerpsTutorialScreen.flowTapContinueTutorial(6);
 
   // Open Add Funds flow
   await TimerHelper.withTimer(
@@ -71,7 +70,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
     'Select pay token - 1 click USDC.arb',
     async () => {
       await PerpsDepositScreen.tapPayWith();
-      await PerpsDepositScreen.selectPayTokenByText('0xa4b1', 'USDC');
+      await PerpsDepositScreen.selectPayTokenByText('USDC');
     },
   );
 
@@ -81,7 +80,6 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
     'Fill amount - 10 USD',
     async () => {
       await PerpsDepositScreen.fillUsdAmount('10');
-      await PerpsDepositScreen.tapContinue();
     },
   );
 

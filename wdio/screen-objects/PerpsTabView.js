@@ -25,19 +25,17 @@ class PerpsTabView {
   }
 
   async tapPerpsTab() {
-    const element = await this.perpsTabButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.perpsTabButton); // Use static tap method with retry logic
   }
 
   async tapAddFunds() {
-    const element = await this.addFundsButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.addFundsButton); // Use static tap method with retry logic
   }
 
   async tapOnboardingButton() {
     const button = await this.onboardingButton;
     await button.isVisible({ timeout: 5000 });
-    await AppwrightGestures.tap(button); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.onboardingButton); // Use static tap method with retry logic
   }
 }
 

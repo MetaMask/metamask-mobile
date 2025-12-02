@@ -26,8 +26,7 @@ class PerpsMarketListView {
   }
 
   async tapBackButtonMarketList() {
-    const element = await this.backButtonMarketList;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.backButtonMarketList); // Use static tap method with retry logic
   }
 }
 

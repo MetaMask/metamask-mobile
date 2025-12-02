@@ -48,7 +48,7 @@ test('Cold Start after importing a wallet', async ({
   MultichainAccountEducationModal.device = device;
   LoginScreen.device = device;
   WalletActionModal.device = device;
-
+  test.setTimeout(1800000);
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_3, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);

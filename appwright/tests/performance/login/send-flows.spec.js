@@ -98,8 +98,8 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   LoginScreen.device = device;
   NetworksScreen.device = device;
   TokenOverviewScreen.device = device;
+  test.setTimeout(1800000);
   await login(device);
-  await dissmissPredictionsModal(device);
   // await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',

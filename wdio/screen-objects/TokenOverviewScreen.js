@@ -65,8 +65,7 @@ class TokenOverviewScreen {
     await Gestures.waitAndTap(this.sendButton);
     }
     else {
-      const element = await this.sendButton;
-      await AppwrightGestures.tap(element);
+      await AppwrightGestures.tap(this.sendButton);
     }
   }
 

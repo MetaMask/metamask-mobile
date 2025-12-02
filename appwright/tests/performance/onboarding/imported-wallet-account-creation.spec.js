@@ -36,9 +36,7 @@ test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   const screen1Timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
   );
-  const screen2Timer = new TimerHelper(
-    'Time since the user clicks on "Create account" button until the account is in the account list',
-  );
+
   const screen3Timer = new TimerHelper(
     'Time since the user clicks on new account created until the Token list is visible',
   );
@@ -47,16 +45,13 @@ test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   screen1Timer.start();
   await AccountListComponent.isComponentDisplayed();
   screen1Timer.stop();
-
   await AccountListComponent.tapCreateAccountButton();
-
   screen3Timer.start();
   await WalletMainScreen.isTokenVisible('ETH');
   await WalletMainScreen.isTokenVisible('SOL');
   screen3Timer.stop();
 
   performanceTracker.addTimer(screen1Timer);
-  performanceTracker.addTimer(screen2Timer);
   performanceTracker.addTimer(screen3Timer);
 
   await performanceTracker.attachToTest(testInfo);

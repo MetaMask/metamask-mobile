@@ -96,8 +96,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.iUnderstandCheckbox);
     } else {
-      const element = await this.iUnderstandCheckbox;
-      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.iUnderstandCheckbox); // Use static tapElement method with retry logic
     }
   }
 
@@ -105,8 +104,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.submitButton);
     } else {
-      const element = await this.submitButton;
-      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.submitButton); // Use static tapElement method with retry logic
     }
   }
 

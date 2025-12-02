@@ -52,8 +52,7 @@ class OnboardingSheet {
     if (!this.device) {
       await Gestures.waitAndTap(this.importSeedButton);
     } else {
-      const element = await this.importSeedButton;
-      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.importSeedButton); // Use static tapElement method with retry logic
     }
   }
 

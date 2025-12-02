@@ -23,7 +23,7 @@ class PerpsTutorialScreen {
 
   // Legacy alias for backward compatibility
   get addFundsButton() {
-    return this.continueButton;
+    return AppwrightSelectors.getElementByCatchAll(this._device, 'Add funds');
   }
 
   get skipButtonTutorial() {
@@ -31,29 +31,26 @@ class PerpsTutorialScreen {
   }
 
   async tapContinue() {
-    const element = await this.continueButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.continueButton);
   }
 
   // Legacy alias for backward compatibility
   async tapAddFunds() {
-    await this.tapContinue();
+    await AppwrightGestures.tap(this.addFundsButton); 
   }
 
   async tapSkip() {
-    const element = await this.skipButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.skipButton);
   }
 
   async expectFirstScreenVisible() {
     const title = await this.title;
-    expect(await title).toBeVisible();
+    expect(title).toBeVisible();
   }
 
   async flowTapContinueTutorial(times = 1) {
-    const btn = await this.continueButton;
     for (let i = 0; i < times; i++) {
-      await AppwrightGestures.tap(btn); // Use static tap method with retry logic
+      await AppwrightGestures.tap(this.continueButton);
     }
   }
 }

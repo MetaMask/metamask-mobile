@@ -145,10 +145,6 @@ export async function tapPerpsBottomSheetGotItButton(device) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
   }
-  if (await container.isVisible({ timeout: 5000 })) {
-    await PerpsGTMModal.tapNotNowButton();
-    console.log('Perps onboarding dismissed');
-  }
 }
 
 export async function dismissRewardsBottomSheetModal(device) {
@@ -165,9 +161,6 @@ export async function dismissMultichainAccountsIntroModal(
 ) {
   MultichainAccountEducationModal.device = device;
   const closeButton = await MultichainAccountEducationModal.closeButton;
-  if (await closeButton.isVisible({ timeout })) {
-    await MultichainAccountEducationModal.tapGotItButton();
-  }
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
   }

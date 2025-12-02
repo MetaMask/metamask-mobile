@@ -55,8 +55,7 @@ class PerpsGTMModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.notNowButton);
     } else {
-      const element = await this.notNowButton;
-      await AppwrightGestures.tap(element);
+      await AppwrightGestures.tap(this.notNowButton);
     }
   }
 
@@ -64,8 +63,7 @@ class PerpsGTMModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.getStartedButton);
     } else {
-      const element = await this.getStartedButton;
-      await AppwrightGestures.tap(element);
+      await AppwrightGestures.tap(this.getStartedButton);
     }
   }
 }

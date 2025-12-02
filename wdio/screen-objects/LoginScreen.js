@@ -115,8 +115,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.resetWalletButton);
     } else {
-      const element = await this.resetWalletButton;
-      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.resetWalletButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -137,8 +136,7 @@ class LoginScreen {
       const element = await this.unlockButton;
       await element.click();
     } else {
-      const element = await this.unlockButton;
-      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.unlockButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -146,8 +144,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.title);
     } else {
-      const element = await this.title;
-      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.title); // Use static tapElement method with retry logic
     }
   }
 
@@ -155,8 +152,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.rememberMeToggle);
     } else {
-      const element = await this.rememberMeToggle;
-      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.rememberMeToggle); // Use static tapElement method with retry logic
     }
   }
 }

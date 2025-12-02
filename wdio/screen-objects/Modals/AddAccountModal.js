@@ -62,8 +62,7 @@ class AddAccountModal {
       const newAccountButton = await this.newAccountButton;
       await newAccountButton.waitForExist({ reverse: true });
     } else {
-      const element = await this.newAccountButton;
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(this.newAccountButton); // Use static tap method with retry logic
     }
   }
 
@@ -71,8 +70,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.importAccountButton);
     } else {
-      const element = await this.importAccountButton;
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(this.importAccountButton); // Use static tap method with retry logic
     }
   }
 
@@ -80,8 +78,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.importSrpButton);
     } else {
-      const element = await this.importSrpButton;
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(this.importSrpButton); // Use static tap method with retry logic
     }
   }
 
@@ -89,8 +86,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.createSolanaAccountButton);
     } else {
-      const element = await this.createSolanaAccountButton;
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(this.createSolanaAccountButton); // Use static tap method with retry logic
     }
   }
 
@@ -98,8 +94,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.createEthereumAccountButton);
     } else {
-      const element = await this.createEthereumAccountButton;
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(this.createEthereumAccountButton); // Use static tap method with retry logic
     }
   }
 

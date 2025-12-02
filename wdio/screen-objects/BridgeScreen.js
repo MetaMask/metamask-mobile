@@ -6,6 +6,7 @@ import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.s
 import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
 import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
+import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
 
 class BridgeScreen {
 
@@ -64,7 +65,7 @@ class BridgeScreen {
 
   async enterSourceTokenAmount(amount) {
     // Split amount into digits
-    const digits = this.splitAmountIntoDigits(amount);
+    const digits = splitAmountIntoDigits(amount);
     console.log('Amount digits:', digits);
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
@@ -188,15 +189,6 @@ class BridgeScreen {
     await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
     await AppwrightGestures.tap(quotesButton);
     }
-  }
-
-  // Helper method to split amount into digits
-  splitAmountIntoDigits(amount) {
-    // Convert to string and split into array of digits
-    return amount.toString().split('').map(char => {
-      // Return only numeric digits, filter out decimal points, commas, etc.
-      return /\d/.test(char) ? parseInt(char, 10) : char;
-    });
   }
 
   async enterDestinationTokenAmount(amount) {

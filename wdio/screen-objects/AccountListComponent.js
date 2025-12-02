@@ -43,14 +43,12 @@ class AccountListComponent {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
       await AppwrightGestures.scrollIntoView(this.device, this.addAccountButton, {scrollParams: {direction: 'down'}});
-      const element = await this.addAccountButton;
-      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
     }
   }
 
   async tapOnAddWalletButton() {
-    const element = await this.addWalletButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.addWalletButton); // Use static tap method with retry logic
   }
 
   async isComponentDisplayed() {
@@ -73,7 +71,7 @@ class AccountListComponent {
   }
 
   async tapOnAccountByName(name) {
-    let account = await AppwrightSelectors.getElementByText(this.device, name);
+    const account = AppwrightSelectors.getElementByText(this.device, name);
     await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
     await AppwrightGestures.tap(account); // Tap after scrolling into view
   }

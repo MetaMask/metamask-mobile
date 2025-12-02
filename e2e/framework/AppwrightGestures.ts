@@ -15,7 +15,7 @@ export default class AppwrightGestures {
    * @param retryDelay - Delay between tap attempts
    */
   static async tap(
-    elem: AppwrightLocator,
+    elem: Promise<AppwrightLocator> | AppwrightLocator,
     options: {
       maxRetries?: number;
       retryDelay?: number;
@@ -23,11 +23,11 @@ export default class AppwrightGestures {
   ): Promise<void> {
     const { maxRetries = 2, retryDelay = 1000 } = options;
     let lastError: Error | undefined;
-    //const elementToTap = await elem;
+    const elementToTap = await elem;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        await elem.tap();
+        await elementToTap.tap();
         return; // Success, exit early
       } catch (error: unknown) {
         lastError = error as Error;

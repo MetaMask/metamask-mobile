@@ -1,5 +1,6 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AmountScreen from './AmountScreen';
 
 class PerpsDepositScreen {
 
@@ -21,7 +22,7 @@ class PerpsDepositScreen {
   }
 
   get amountInput() {
-    return AppwrightSelectors.getElementByID(this._device, 'edit-amount-input');
+    return AppwrightSelectors.getElementByID(this._device, 'custom-amount-input');
   }
 
   get payWithButton() {
@@ -36,28 +37,27 @@ class PerpsDepositScreen {
     await input.isVisible({ timeout: 15000 });
   }
 
-  async selectPayTokenByText(networkId, token) {
-    const networkButton = await AppwrightSelectors.getElementByID(this._device, `asset-${networkId}-${token}`);
-    await AppwrightGestures.tap(networkButton); // Use static tap method with retry logic
+  async selectPayTokenByText(token) {
+    const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+    await AppwrightGestures.tap(tokenButton); // Use static tap method with retry logic
   }
 
   async fillUsdAmount(amount) {
-    await AppwrightGestures.typeText(this.amountInput, String(amount));
+    AmountScreen.device = this._device;
+    await AmountScreen.enterAmount(amount);
+    await AmountScreen.tapOnNextButton();
   }
 
   async tapPayWith() {
-    const element = await this.payWithButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.payWithButton); // Use static tap method with retry logic
   }
 
   async tapContinue() {
-    const element = await this.continueButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
   }
 
   async tapCancel() {
-    const element = await this.cancelButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.cancelButton); // Use static tap method with retry logic
   }
 }
 
