@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { parseCaipChainId, Hex } from '@metamask/utils';
+import { parseCaipChainId, Hex, CaipChainId } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { isTestNet } from '../../../../../util/networks';
 import { AssetType } from '../../types/token';
@@ -26,7 +26,7 @@ const isNetworkTestnet = (chainId: string): boolean => {
   // Check if it's a CAIP chain ID (non-EVM networks)
   if (chainId.includes(':')) {
     try {
-      const { namespace, reference } = parseCaipChainId(chainId);
+      const { namespace, reference } = parseCaipChainId(chainId as CaipChainId);
 
       // Check EVM testnets using isTestNet helper
       if (namespace === 'eip155') {
