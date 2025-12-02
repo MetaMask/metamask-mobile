@@ -119,5 +119,5 @@ export default {
   XPL: PLASMA,
   CRO: CRONOS,
   HYPE,
-  X_LAYER,
+  OKB: X_LAYER,
 };
