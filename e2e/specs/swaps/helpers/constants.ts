@@ -761,3 +761,26 @@ export const GET_TOP_ASSETS_BASE_RESPONSE = [
   { address: '0x0000000000000000000000000000000000000000', symbol: 'ETH' },
   { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', symbol: 'USDC' },
 ];
+
+// Popular tokens response format for POST /getTokens/popular endpoint for Base
+// This matches the PopularToken interface used by usePopularTokens hook
+export const GET_POPULAR_TOKENS_BASE_RESPONSE = [
+  {
+    assetId: 'eip155:8453/slip44:8453',
+    chainId: 'eip155:8453',
+    decimals: 18,
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',
+    name: 'Ether',
+    symbol: 'ETH',
+  },
+  {
+    assetId: 'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+    chainId: 'eip155:8453',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
+    name: 'USDC',
+    symbol: 'USDC',
+  },
+];

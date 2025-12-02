@@ -9,6 +9,8 @@ import {
   GET_QUOTE_ETH_SOLANA_RESPONSE,
   GET_QUOTE_ETH_BASE_RESPONSE,
   GET_TOP_ASSETS_BASE_RESPONSE,
+  GET_POPULAR_TOKENS_MAINNET_RESPONSE,
+  GET_POPULAR_TOKENS_BASE_RESPONSE,
 } from './constants';
 
 export const testSpecificMock: TestSpecificMock = async (
@@ -74,6 +76,18 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     url: /getQuote.*destChainId=8453/i,
     response: GET_QUOTE_ETH_BASE_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock popular tokens (POST - for token selector)
+  // This combines responses from all networks as the API returns tokens for all requested chainIds
+  await setupMockRequest(mockServer, {
+    requestMethod: 'POST',
+    url: /getTokens\/popular/i,
+    response: [
+      ...GET_POPULAR_TOKENS_MAINNET_RESPONSE,
+      ...GET_POPULAR_TOKENS_BASE_RESPONSE,
+    ],
     responseCode: 200,
   });
 };
