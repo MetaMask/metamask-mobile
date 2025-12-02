@@ -131,15 +131,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return <section.Skeleton />;
       }
 
-      if (section.OverrideRowItemSearch) {
-        return (
-          <section.OverrideRowItemSearch
-            item={item.data}
-            navigation={navigation}
-          />
-        );
-      }
-
       // Cast navigation to 'never' to satisfy different navigation param list types
       return <section.RowItem item={item.data} navigation={navigation} />;
     },
@@ -152,7 +143,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       return `skeleton-${item.sectionId}-${item.index}`;
 
     const section = SECTIONS_CONFIG[item.sectionId];
-    return section ? `${section.id}-${index}` : `item-${index}`;
+    return section ? section.keyExtractor(item.data) : `item-${index}`;
   }, []);
 
   return (

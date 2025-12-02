@@ -62,7 +62,7 @@ const ListItemMultiSelectWithMenuButton: React.FC<
             iconName={buttonIcon}
             iconColor={IconColor.Default}
             testID={buttonProps?.buttonTestId || BUTTON_TEST_ID}
-            onPress={buttonProps?.onButtonClick as () => void}
+            onPress={buttonProps?.onButtonClick}
             accessibilityRole="button"
           />
         </View>

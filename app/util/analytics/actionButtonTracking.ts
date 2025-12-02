@@ -9,7 +9,6 @@ import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 export enum ActionLocation {
   HOME = 'home',
   ASSET_DETAILS = 'asset details',
-  NAVBAR = 'navbar',
 }
 
 export enum ActionButtonType {
@@ -34,13 +33,13 @@ export enum ActionPosition {
  * Properties for action button tracking
  *
  * @property action_name - The action that was clicked from the home page or asset details page
- * @property action_position - The position of the button in the action button for remote config use and a/b testing (optional, omitted for navbar)
+ * @property action_position - The position of the button in the action button for remote config use and a/b testing
  * @property button_label - The label of the button - i18n string
- * @property location - The location of the button (home, asset details, navbar)
+ * @property location - The location of the button (home, asset details)
  */
 export interface ActionButtonProperties extends JsonMap {
   action_name: ActionButtonType;
-  action_position?: ActionPosition;
+  action_position: ActionPosition;
   button_label: string;
   location?: ActionLocation;
 }

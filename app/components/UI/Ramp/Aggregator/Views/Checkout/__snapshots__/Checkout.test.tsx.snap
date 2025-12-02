@@ -434,6 +434,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -977,6 +978,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1673,6 +1675,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -2428,6 +2431,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -2971,6 +2975,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -3726,6 +3731,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -4481,6 +4487,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -5024,6 +5031,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -5779,6 +5787,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -6534,6 +6543,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,

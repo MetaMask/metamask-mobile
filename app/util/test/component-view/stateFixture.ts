@@ -1,6 +1,6 @@
 import type { DeepPartial } from '../renderWithProvider';
 import type { RootState } from '../../../reducers';
-// Removed dependency on large JSON snapshot; tests compose state via builder helpers
+import baseDeviceState from '../../../../state-logs-v7.59.0-(2968).json';
 
 type PlainObject = Record<string, unknown>;
 
@@ -19,11 +19,14 @@ export function deepMerge<T extends PlainObject, U extends PlainObject>(
   const output: PlainObject = { ...target };
   Object.keys(source).forEach((key) => {
     const sourceValue = (source as PlainObject)[key];
-    const targetValue = output[key];
+    const targetValue = (output as PlainObject)[key];
     if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
-      output[key] = deepMerge(targetValue, sourceValue);
+      (output as PlainObject)[key] = deepMerge(
+        targetValue as PlainObject,
+        sourceValue as PlainObject,
+      );
     } else {
-      output[key] = sourceValue;
+      (output as PlainObject)[key] = sourceValue;
     }
   });
   return output as T & U;
@@ -130,6 +133,10 @@ export function buildNormalizedAccountTree(
   };
 }
 
+export function loadBaseState(): DeepPartial<RootState> {
+  return baseDeviceState as unknown as DeepPartial<RootState>;
+}
+
 export interface StateFixtureBuilder {
   withRemoteFeatureFlags(
     overrides: Record<string, unknown>,
@@ -159,11 +166,17 @@ export interface StateFixtureBuilder {
   build(): DeepPartial<RootState>;
 }
 
-export function createStateFixture(): StateFixtureBuilder {
-  const baseState = {
-    engine: { backgroundState: {} },
-    settings: {},
-  } as unknown as DeepPartial<RootState>;
+export function createStateFixture(options?: {
+  base?: 'device' | 'empty';
+}): StateFixtureBuilder {
+  const baseOption = options?.base ?? 'device';
+  const baseState =
+    baseOption === 'device'
+      ? loadBaseState()
+      : ({
+          engine: { backgroundState: {} },
+          settings: {},
+        } as unknown as DeepPartial<RootState>);
   let current: DeepPartial<RootState> = baseState;
 
   const api: StateFixtureBuilder = {

@@ -3728,7 +3728,7 @@
     "show_test_networks": "Показать тестнеты",
     "deprecated_goerli": "Из-за изменений протокола Ethereum: тестовая сеть Goerli может работать ненадежно и скоро будет выведена из эксплуатации.",
     "network_deprecated_title": "Эта сеть устарела",
-    "network_deprecated_description": "Сеть, к которой вы пытаетесь подключиться, больше не поддерживается в MetaMask.",
+    "network_deprecated_description": "Сеть, к которой вы пытаетесь подключиться, больше не поддерживается в Metamask.",
     "edit_networks_title": "Изменить сети"
   },
   "permissions": {

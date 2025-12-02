@@ -44,8 +44,8 @@ import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagCon
 ///: END:ONLY_INCLUDE_IF
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
-import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../../../Earn/constants/musd';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -89,8 +89,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
-    useMusdConversion();
+  const { initiateConversion } = useMusdConversion();
   const { isConversionToken } = useMusdConversionTokens();
 
   const isConvertibleStablecoin =
@@ -222,27 +221,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Asset address or chain ID is not set');
       }
 
-      const config = {
-        outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+      await initiateConversion({
+        outputChainId: CHAIN_IDS.MAINNET,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
         navigationStack: Routes.EARN.ROOT,
-      };
-
-      if (!hasSeenConversionEducationScreen) {
-        navigation.navigate(config.navigationStack, {
-          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-          params: {
-            preferredPaymentToken: config.preferredPaymentToken,
-            outputChainId: config.outputChainId,
-          },
-        });
-        return;
-      }
-
-      await initiateConversion(config);
+      });
     } catch (error) {
       Logger.error(
         error as Error,
@@ -257,13 +243,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [
-    asset.address,
-    asset.chainId,
-    hasSeenConversionEducationScreen,
-    initiateConversion,
-    navigation,
-  ]);
+  }, [asset.address, asset.chainId, initiateConversion]);
 
   const onEarnButtonPress = async () => {
     if (isConvertibleStablecoin) {
@@ -300,7 +280,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
         {(() => {
           if (isConvertibleStablecoin) {
-            return strings('asset_overview.convert_to_musd');
+            return strings('asset_overview.convert');
           }
 
           const aprNumber = Number(earnToken?.experience?.apr);

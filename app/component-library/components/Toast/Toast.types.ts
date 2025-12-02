@@ -4,7 +4,6 @@ import { ImageSourcePropType } from 'react-native';
 // External Dependencies.
 import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 import { ButtonProps } from '../Buttons/Button/Button.types';
-import { ButtonIconProps } from '../Buttons/ButtonIcon/ButtonIcon.types';
 import { IconName } from '../Icons/Icon';
 import { ReactElement } from 'react';
 
@@ -50,17 +49,9 @@ interface BaseToastVariants {
   labelOptions: ToastLabelOptions;
   descriptionOptions?: ToastDescriptionOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
-  closeButtonOptions?: ToastCloseButtonOptions;
+  closeButtonOptions?: ButtonProps;
   startAccessory?: ReactElement;
   customBottomOffset?: number;
-}
-
-export type ToastCloseButtonOptions =
-  | ButtonProps
-  | (ButtonIconProps & { variant: ButtonIconVariant });
-
-export enum ButtonIconVariant {
-  Icon = 'Icon',
 }
 
 /**

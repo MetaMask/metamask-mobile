@@ -408,7 +408,6 @@ describe('StakeButton', () => {
       useMusdConversionMock.mockReturnValue({
         initiateConversion: mockInitiateConversion,
         error: null,
-        hasSeenConversionEducationScreen: true,
       });
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(false),
@@ -441,7 +440,7 @@ describe('StakeButton', () => {
         },
       );
 
-      expect(getByText('Convert to mUSD')).toBeDefined();
+      expect(getByText('Convert')).toBeDefined();
     });
 
     it('calls initiateConversion with correct parameters when Convert button pressed', async () => {

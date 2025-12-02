@@ -67,10 +67,6 @@
       "title": "Deposit in progress",
       "message": "Wait for the last deposit to finish before making another."
     },
-    "signed_or_submitted_pay_token": {
-      "title": "Pending transaction",
-      "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
-    },
     "pending_transaction": {
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
@@ -1265,9 +1261,6 @@
       "order_failed": "Order failed",
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled"
-    },
-    "price_deviation_warning": {
-      "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
     },
     "order_details": {
       "title": "Order Details",
@@ -3220,7 +3213,7 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
-    "convert_to_musd": "Convert to mUSD",
+    "convert": "Convert",
     "tron": {
       "daily_resource": "Daily resources",
       "bandwidth": "Bandwidth",
@@ -3893,7 +3886,7 @@
     "show_test_networks": "Show test networks",
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on MetaMask.",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask.",
     "edit_networks_title": "Edit networks",
     "no_network_fee": "No network fee"
   },
@@ -5654,15 +5647,7 @@
         "in_progress": "mUSD conversion in progress",
         "success": "mUSD conversion succeeded",
         "failed": "mUSD conversion failed"
-      },
-      "education": {
-        "heading": "Earn rewards with mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
-        "continue_button": "Continue"
-      },
-      "earn_points_daily": "Earn points daily",
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD"
+      }
     }
   },
   "stake": {
@@ -5866,7 +5851,7 @@
     },
     "estimated_gas_fee": {
       "title": "Estimated gas fee",
-      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
+      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. Metamask does not profit from gas fees.",
       "gas_fluctuation": "Gas fees are estimated and will fluctuate based on network traffic and transaction complexity.",
       "gas_learn_more": "Learn more about gas fees"
     },

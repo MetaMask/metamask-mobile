@@ -11,31 +11,26 @@ import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
-import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
 export const PAY_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
 ];
 
-const INCOMPLETE_STATUSES = [
-  TransactionStatus.signed,
-  TransactionStatus.approved,
-];
-const PENDING_STATUSES = [...INCOMPLETE_STATUSES, TransactionStatus.submitted];
+const BLOCK_STATUS = [TransactionStatus.signed, TransactionStatus.approved];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
   const transactionMetadata = useTransactionMetadataRequest();
-  const { payToken } = useTransactionPayToken();
-
   const { chainId, id: transactionId, txParams } = transactionMetadata || {};
   const { from } = txParams ?? {};
 
   const existingTransaction = transactions.find((transaction) => {
-    const blockStatuses = hasTransactionType(transactionMetadata, PAY_TYPES)
-      ? PENDING_STATUSES
-      : INCOMPLETE_STATUSES;
+    const blockStatuses = [...BLOCK_STATUS];
+
+    if (hasTransactionType(transactionMetadata, PAY_TYPES)) {
+      blockStatuses.push(TransactionStatus.submitted);
+    }
 
     return (
       blockStatuses.includes(transaction.status) &&
@@ -53,19 +48,7 @@ export const useSignedOrSubmittedAlert = () => {
       hasTransactionType(existingTransaction, [payType]),
   );
 
-  const hasExistingTransactionOnPayChain =
-    payToken &&
-    payToken.chainId !== chainId &&
-    transactions.some(
-      (t) =>
-        t.chainId === payToken.chainId &&
-        t.txParams.from.toLowerCase() === from?.toLowerCase() &&
-        PENDING_STATUSES.includes(t.status),
-    );
-
-  const showAlert = Boolean(
-    existingTransaction || hasExistingTransactionOnPayChain,
-  );
+  const showAlert = Boolean(existingTransaction);
 
   return useMemo(() => {
     if (!showAlert) {
@@ -78,16 +61,12 @@ export const useSignedOrSubmittedAlert = () => {
         key: AlertKeys.SignedOrSubmitted,
         message: isTransactionPay
           ? strings('alert_system.signed_or_submitted_perps_deposit.message')
-          : hasExistingTransactionOnPayChain
-            ? strings('alert_system.signed_or_submitted_pay_token.message')
-            : strings('alert_system.signed_or_submitted.message'),
+          : strings('alert_system.signed_or_submitted.message'),
         title: isTransactionPay
           ? strings('alert_system.signed_or_submitted_perps_deposit.title')
-          : hasExistingTransactionOnPayChain
-            ? strings('alert_system.signed_or_submitted_pay_token.title')
-            : strings('alert_system.signed_or_submitted.title'),
+          : strings('alert_system.signed_or_submitted.title'),
         severity: Severity.Danger,
       },
     ];
-  }, [hasExistingTransactionOnPayChain, isTransactionPay, showAlert]);
+  }, [isTransactionPay, showAlert]);
 };
