@@ -21,21 +21,6 @@ export const test = base.extend({
       console.log('⚠️ No timers found in performance tracker');
     }
 
-    // Enhanced timer recovery: capture any timers that weren't added to the tracker
-    try {
-      const Timers = await import('../utils/Timers.js').then((m) => m.default);
-      const allGlobalTimers = Timers.getAllTimers();
-
-      // Check for timers that exist globally but weren't added to the tracker
-      for (const timer of allGlobalTimers) {
-        const existsInTracker = performanceTracker.timers.some(
-          (t) => t.id === timer.id,
-        );
-      }
-    } catch (importError) {
-      console.log(`⚠️ Timer recovery failed: ${importError.message}`);
-    }
-
     // Always try to attach performance metrics, even if test failed
     try {
       const metrics = await performanceTracker.attachToTest(testInfo);
