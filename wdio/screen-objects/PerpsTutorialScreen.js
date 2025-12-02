@@ -45,7 +45,7 @@ class PerpsTutorialScreen {
 
   async expectFirstScreenVisible() {
     const title = await this.title;
-    expect(title).toBeVisible();
+    expect(await title).toBeVisible();
   }
 
   async flowTapContinueTutorial(times = 1) {

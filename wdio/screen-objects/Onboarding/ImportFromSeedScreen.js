@@ -159,7 +159,7 @@ class ImportFromSeedScreen {
         const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
         await AppwrightGestures.tap(element);
       } else {
-        AppwrightGestures.hideKeyboard(this.device);
+        await AppwrightGestures.hideKeyboard(this.device);
       }
     }
     }
