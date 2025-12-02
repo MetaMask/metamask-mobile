@@ -53,6 +53,7 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
 let mockExpectedAmount = 120;
 let mockMetamaskFee = 0.5;
 let mockProviderFee = 1.0;
+let mockTotalFeePercentage = 4;
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
     preview: {
@@ -72,6 +73,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
         metamaskFee: mockMetamaskFee,
         providerFee: mockProviderFee,
         totalFee: mockMetamaskFee + mockProviderFee,
+        totalFeePercentage: mockTotalFeePercentage,
       },
     },
     isCalculating: false,
@@ -240,6 +242,7 @@ describe('PredictBuyPreview', () => {
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
+    mockTotalFeePercentage = 4;
     mockRewardsEnabled = false;
     mockRewardsLoading = false;
     mockAccountOptedIn = null;
