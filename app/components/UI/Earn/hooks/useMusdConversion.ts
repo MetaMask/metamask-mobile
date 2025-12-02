@@ -12,6 +12,7 @@ import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TransactionType } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 
 /**
  * Configuration for mUSD conversion
@@ -65,17 +66,35 @@ export const useMusdConversion = () => {
 
   const selectedAddress = selectedAccount?.address;
 
+  const hasSeenConversionEducationScreen = useSelector(
+    selectMusdConversionEducationSeen,
+  );
+
+  const navigateToConversionScreen = useCallback(
+    ({
+      outputChainId,
+      preferredPaymentToken,
+      navigationStack = Routes.EARN.ROOT,
+    }: MusdConversionConfig) => {
+      navigation.navigate(navigationStack, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: {
+          loader: ConfirmationLoader.CustomAmount,
+          preferredPaymentToken,
+          outputChainId,
+        },
+      });
+    },
+    [navigation],
+  );
+
   /**
    * Creates a placeholder transaction and navigates to confirmation.
    * Navigation happens immediately. Transaction creation and gas estimation happen asynchronously.
    */
   const initiateConversion = useCallback(
     async (config: MusdConversionConfig): Promise<string> => {
-      const {
-        outputChainId,
-        preferredPaymentToken,
-        navigationStack = Routes.EARN.ROOT,
-      } = config;
+      const { outputChainId, preferredPaymentToken } = config;
 
       try {
         setError(null);
@@ -83,6 +102,13 @@ export const useMusdConversion = () => {
         if (!outputChainId || !preferredPaymentToken) {
           throw new Error(
             'Output chain ID and preferred payment token are required',
+          );
+        }
+
+        // TEMP: Until we enforce same-chain conversions.
+        if (outputChainId !== preferredPaymentToken.chainId) {
+          console.warn(
+            '[mUSD Conversion] Output chain ID and preferred payment token chain ID do not match',
           );
         }
 
@@ -105,14 +131,7 @@ export const useMusdConversion = () => {
          * since there can be a delay between the user's button press and
          * transaction creation in the background.
          */
-        navigation.navigate(navigationStack, {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params: {
-            loader: ConfirmationLoader.CustomAmount,
-            preferredPaymentToken,
-            outputChainId,
-          },
-        });
+        navigateToConversionScreen(config);
 
         try {
           const ZERO_HEX_VALUE = '0x0';
@@ -189,11 +208,12 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, selectedAddress],
+    [navigateToConversionScreen, navigation, selectedAddress],
   );
 
   return {
     initiateConversion,
+    hasSeenConversionEducationScreen,
     error,
   };
 };

@@ -13,6 +13,7 @@ export enum OAuthErrorType {
   AppleLoginError = 10012,
   GoogleLoginNoCredential = 10013,
   GoogleLoginNoMatchingCredential = 10014,
+  GoogleLoginUserDisabledOneTapFeature = 10015,
 }
 
 export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
@@ -31,6 +32,8 @@ export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
   [OAuthErrorType.GoogleLoginNoCredential]: 'Google login has no credential',
   [OAuthErrorType.GoogleLoginNoMatchingCredential]:
     'Google login has no matching credential',
+  [OAuthErrorType.GoogleLoginUserDisabledOneTapFeature]:
+    'Google login user disabled one tap feature',
 } as const;
 
 export class OAuthError extends Error {

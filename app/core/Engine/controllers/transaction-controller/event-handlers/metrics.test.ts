@@ -18,6 +18,8 @@ import {
   enabledSmartTransactionsState,
 } from '../data-helpers';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { selectIsPna25FlagEnabled } from '../../../../../selectors/featureFlagController/legalNotices';
+import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
 
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
@@ -29,6 +31,17 @@ jest.mock('../../../../../util/smart-transactions', () => {
 
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/legalNotices',
+  () => ({
+    selectIsPna25FlagEnabled: jest.fn(),
+  }),
+);
+
+jest.mock('../../../../../selectors/legalNotices', () => ({
+  selectIsPna25Acknowledged: jest.fn(),
 }));
 
 // Mock dependencies
@@ -69,10 +82,13 @@ describe('Transaction Metric Event Handlers', () => {
   const mockSelectShouldUseSmartTransaction = jest.mocked(
     selectShouldUseSmartTransaction,
   );
+  const mockSelectIsPna25FlagEnabled = jest.mocked(selectIsPna25FlagEnabled);
+  const mockSelectIsPna25Acknowledged = jest.mocked(selectIsPna25Acknowledged);
 
   const mockTransactionMeta = {
     id: 'test-id',
     chainId: '0x1',
+    hash: '0x1234567890',
     type: 'standard',
     networkClientId: 'test-network',
     time: 1234567890,
@@ -129,6 +145,9 @@ describe('Transaction Metric Event Handlers', () => {
         },
       }),
     );
+
+    mockSelectIsPna25FlagEnabled.mockReturnValue(false);
+    mockSelectIsPna25Acknowledged.mockReturnValue(false);
   });
 
   const handlerTestCases = [
@@ -298,6 +317,57 @@ describe('Transaction Metric Event Handlers', () => {
           builder_sensitive_test: true,
         }),
       );
+    });
+
+    describe('hash property', () => {
+      it('included when extensionUxPna25 is enabled and pna25 is acknowledged', async () => {
+        mockSelectIsPna25FlagEnabled.mockReturnValue(true);
+        mockSelectIsPna25Acknowledged.mockReturnValue(true);
+
+        await handleTransactionFinalizedEventForMetrics(
+          mockTransactionMeta,
+          mockTransactionMetricRequest,
+        );
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transaction_hash: mockTransactionMeta.hash,
+          }),
+        );
+      });
+
+      describe('not included', () => {
+        it('extensionUxPna25 flag is disabled', async () => {
+          mockSelectIsPna25FlagEnabled.mockReturnValue(false);
+          mockSelectIsPna25Acknowledged.mockReturnValue(true);
+
+          await handleTransactionFinalizedEventForMetrics(
+            mockTransactionMeta,
+            mockTransactionMetricRequest,
+          );
+
+          expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              transaction_hash: mockTransactionMeta.hash,
+            }),
+          );
+        });
+        it('pna25 is not acknowledged', async () => {
+          mockSelectIsPna25FlagEnabled.mockReturnValue(true);
+          mockSelectIsPna25Acknowledged.mockReturnValue(false);
+
+          await handleTransactionFinalizedEventForMetrics(
+            mockTransactionMeta,
+            mockTransactionMetricRequest,
+          );
+
+          expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              transaction_hash: mockTransactionMeta.hash,
+            }),
+          );
+        });
+      });
     });
   });
 });
