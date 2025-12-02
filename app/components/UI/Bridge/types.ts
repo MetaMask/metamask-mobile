@@ -1,4 +1,5 @@
 import { Asset } from '@metamask/assets-controllers';
+import { Quote, TxData } from '@metamask/bridge-controller';
 import { Hex, CaipChainId } from '@metamask/utils';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
@@ -17,6 +18,7 @@ export interface BridgeToken {
   tokenFiatAmount?: number; // A sortable fiat value in the user's currency, e.g. 100.12345
   currencyExchangeRate?: number; // A rate of the token in the user's currency, e.g. 100.12345
   aggregators: string[];
+  accountType?: Asset['accountType'];
 }
 
 // TODO: use type from @metamask/bridge-controller once "approval" is made optional

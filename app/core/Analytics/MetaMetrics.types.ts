@@ -27,11 +27,6 @@ export interface IMetaMetrics {
    */
   enable(enable?: boolean): Promise<void>;
   /**
-   * Enable or disable social login data tracking
-   * @param isSocialLoginEnabled
-   */
-  enableSocialLogin(isSocialLoginEnabled?: boolean): Promise<void>;
-  /**
    * add traits to an user
    * @param userTraits
    */
@@ -74,7 +69,7 @@ export interface IMetaMetrics {
 
   configure(): Promise<boolean>;
 
-  getMetaMetricsId(): Promise<string | undefined>;
+  getMetaMetricsId(): Promise<string>;
 }
 
 /**

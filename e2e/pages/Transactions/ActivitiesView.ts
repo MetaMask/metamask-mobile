@@ -120,10 +120,10 @@ class ActivitiesView {
   async tapOnPredictionsTab(): Promise<void> {
     await Gestures.waitAndTap(this.predictionsTab);
   }
-  async tapCashedOutPosition(positionName: string): Promise<void> {
+  async tapPredictPosition(positionName: string): Promise<void> {
     const el = Matchers.getElementByText(positionName);
     await Gestures.waitAndTap(el, {
-      elemDescription: `Tapping Cashed Out Position: ${positionName}`,
+      elemDescription: `Tapping Predict Position: ${positionName}`,
     });
   }
 }

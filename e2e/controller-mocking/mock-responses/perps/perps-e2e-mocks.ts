@@ -18,6 +18,8 @@ import type {
   WithdrawParams,
   WithdrawResult,
   Funding,
+  UpdatePositionTPSLParams,
+  UserHistoryItem,
 } from '../../../../app/components/UI/Perps/controllers/types';
 
 export class PerpsE2EMockService {
@@ -35,9 +37,12 @@ export class PerpsE2EMockService {
 
   private mockPositions: Position[] = [];
   private mockOrders: Order[] = [];
+  // Historical orders (canceled/filled/etc.) for Activity > Orders
+  private mockOrdersHistory: Order[] = [];
   private mockOrderFills: OrderFill[] = [];
   private mockPricesMap: Record<string, PriceUpdate> = {};
   private orderMeta: Record<string, { leverage: number }> = {};
+  private mockUserHistory: UserHistoryItem[] = [];
 
   private orderIdCounter = 1;
   private fillIdCounter = 1;
@@ -81,49 +86,19 @@ export class PerpsE2EMockService {
     if (profile === 'no-funds' || profile === 'no-positions') {
       this.mockPositions = [];
     } else if (profile === 'position-testing') {
-      // Rich set of positions for UI validation
+      // Requested scenario for tests: one BTC long position, open ETH and SOL limit orders
       this.mockPositions = [
-        {
-          coin: 'ETH',
-          entryPrice: '2500.00',
-          size: '1.0', // long
-          positionValue: '2500.00',
-          unrealizedPnl: '125.00',
-          marginUsed: '833.33',
-          leverage: { type: 'cross', value: 3 },
-          liquidationPrice: '2000.00',
-          maxLeverage: 40,
-          returnOnEquity: '0.05', // 5%
-          cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
-          takeProfitCount: 0,
-          stopLossCount: 0,
-        },
         {
           coin: 'BTC',
           entryPrice: '45000.00',
-          size: '-0.05', // short
-          positionValue: '2250.00',
-          unrealizedPnl: '-50.00',
-          marginUsed: '225.00',
-          leverage: { type: 'cross', value: 10 },
-          liquidationPrice: '47250.00',
+          size: '0.10', // long BTC
+          positionValue: '4500.00',
+          unrealizedPnl: '150.00',
+          marginUsed: '900.00',
+          leverage: { type: 'cross', value: 5 },
+          liquidationPrice: '36000.00',
           maxLeverage: 40,
-          returnOnEquity: '-0.02', // -2%
-          cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
-          takeProfitCount: 0,
-          stopLossCount: 0,
-        },
-        {
-          coin: 'SOL',
-          entryPrice: '100.00',
-          size: '5', // long
-          positionValue: '500.00',
-          unrealizedPnl: '25.00',
-          marginUsed: '25.00',
-          leverage: { type: 'cross', value: 20 },
-          liquidationPrice: '80.00',
-          maxLeverage: 40,
-          returnOnEquity: '0.10', // 10%
+          returnOnEquity: '0.167',
           cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
           takeProfitCount: 0,
           stopLossCount: 0,
@@ -163,7 +138,9 @@ export class PerpsE2EMockService {
     };
 
     this.mockOrders = [];
+    this.mockOrdersHistory = [];
     this.mockOrderFills = [];
+    this.mockUserHistory = [];
     this.orderIdCounter = 1;
     this.fillIdCounter = 1;
     this.orderMeta = {};
@@ -175,10 +152,73 @@ export class PerpsE2EMockService {
 
     // Initialize price map with default prices
     this.mockPricesMap = this.buildDefaultPrices();
+
+    // Seed default historical/open orders only when not explicitly requesting an empty profile
+    if (profile !== 'no-positions') {
+      // 1) Default trade (fill): Opened long BTC with a small fee
+      const defaultTrade: OrderFill = {
+        orderId: `seed_fill_${Date.now()}`,
+        symbol: 'BTC',
+        size: '0.01',
+        price: '45000.00',
+        timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
+        side: 'buy',
+        fee: '1.25',
+        feeToken: 'USDC',
+        pnl: '0.00',
+        direction: 'Open Long',
+      };
+      this.mockOrderFills.push(defaultTrade);
+
+      // 2) Open orders: ETH and SOL limit longs
+      const seedNow = Date.now();
+      const ethOrder: Order = {
+        orderId: `seed_order_eth_${seedNow}`,
+        symbol: 'ETH',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.50',
+        originalSize: '0.50',
+        price: '2400.00',
+        filledSize: '0',
+        remainingSize: '0.50',
+        status: 'open',
+        timestamp: seedNow - 30 * 60 * 1000,
+        isTrigger: false,
+      };
+      const solOrder: Order = {
+        orderId: `seed_order_sol_${seedNow}`,
+        symbol: 'SOL',
+        side: 'buy',
+        orderType: 'limit',
+        size: '10',
+        originalSize: '10',
+        price: '95.00',
+        filledSize: '0',
+        remainingSize: '10',
+        status: 'open',
+        timestamp: seedNow - 25 * 60 * 1000,
+        isTrigger: false,
+      };
+      this.mockOrders.push(ethOrder);
+      this.mockOrders.push(solOrder);
+    }
+
+    // Seed a completed deposit so Activity > Deposits is populated
+    this.mockUserHistory.push({
+      id: `seed_deposit_${Date.now()}`,
+      timestamp: Date.now() - 5 * 60 * 1000,
+      type: 'deposit',
+      amount: '100.00',
+      asset: 'USDC',
+      txHash: '0xseeddeposit',
+      status: 'completed',
+      details: { source: 'e2e-mock' },
+    });
   }
 
   // Mock successful order placement
-  public async mockPlaceOrder(params: OrderParams): Promise<OrderResult> {
+  public mockPlaceOrder(params: OrderParams): OrderResult {
     const orderId = `mock_order_${this.orderIdCounter++}`;
 
     // If this is a limit order, add to open orders and do not create a position yet
@@ -256,7 +296,7 @@ export class PerpsE2EMockService {
     // Add to mock state
     this.mockPositions.push(mockPosition);
 
-    // Create mock order fill
+    // Create mock order fill (market execution)
     const mockFill: OrderFill = {
       orderId,
       symbol: params.coin,
@@ -267,7 +307,7 @@ export class PerpsE2EMockService {
       fee: '2.50',
       feeToken: 'USDC',
       pnl: '0.00',
-      direction: params.isBuy ? 'long' : 'short',
+      direction: params.isBuy ? 'Open Long' : 'Open Short',
     };
 
     this.mockOrderFills.push(mockFill);
@@ -283,7 +323,7 @@ export class PerpsE2EMockService {
   }
 
   // Mock withdrawal (reserved for upcoming tests)
-  public async mockWithdraw(params: WithdrawParams): Promise<WithdrawResult> {
+  public mockWithdraw(params: WithdrawParams): WithdrawResult {
     const withdrawAmount = parseFloat(params.amount);
     const currentBalance = parseFloat(this.mockAccount.availableBalance);
 
@@ -316,11 +356,32 @@ export class PerpsE2EMockService {
     };
   }
 
+  /**
+   * Mock deposit in USD into the perps trading account.
+   * Increases both availableBalance and totalBalance by the provided fiat amount.
+   */
+  public mockDepositUSD(amountFiat: string): { success: boolean } {
+    const delta = parseFloat(amountFiat || '0');
+    if (!Number.isFinite(delta) || delta <= 0) {
+      return { success: false };
+    }
+
+    const newAvailable = parseFloat(this.mockAccount.availableBalance) + delta;
+    const newTotal = parseFloat(this.mockAccount.totalBalance) + delta;
+
+    this.mockAccount = {
+      ...this.mockAccount,
+      availableBalance: newAvailable.toString(),
+      totalBalance: newTotal.toString(),
+    };
+
+    // Notify subscribers about balance change
+    this.notifyAccountCallbacks();
+    return { success: true };
+  }
+
   // Mock close position
-  public async mockClosePosition(
-    coin: string,
-    _size?: string,
-  ): Promise<OrderResult> {
+  public mockClosePosition(coin: string, _size?: string): OrderResult {
     const existingPosition = this.mockPositions.find((p) => p.coin === coin);
     if (!existingPosition) {
       return {
@@ -351,6 +412,24 @@ export class PerpsE2EMockService {
 
     // Remove position
     this.mockPositions = this.mockPositions.filter((p) => p.coin !== coin);
+
+    // Record a trade fill for the close so it appears under Trades
+    const closeFill: OrderFill = {
+      orderId: `mock_close_${this.orderIdCounter}`,
+      symbol: existingPosition.coin,
+      size: Math.abs(parseFloat(existingPosition.size)).toString(),
+      price:
+        this.mockPricesMap[existingPosition.coin]?.price ||
+        existingPosition.entryPrice,
+      timestamp: Date.now(),
+      side: parseFloat(existingPosition.size) > 0 ? 'sell' : 'buy',
+      fee: '0.00',
+      feeToken: 'USDC',
+      pnl: pnl.toFixed(2),
+      direction:
+        parseFloat(existingPosition.size) > 0 ? 'Close Long' : 'Close Short',
+    };
+    this.mockOrderFills.push(closeFill);
 
     // Recompute account unrealized PnL based on remaining positions
     const recomputedUnrealized = this.computeTotalUnrealizedPnl();
@@ -465,8 +544,20 @@ export class PerpsE2EMockService {
     return [...this.mockOrders];
   }
 
+  public getMockOrdersHistory(): Order[] {
+    return [...this.mockOrdersHistory];
+  }
+
+  public getMockOrdersCombined(): Order[] {
+    return [...this.mockOrders, ...this.mockOrdersHistory];
+  }
+
   public getMockOrderFills(): OrderFill[] {
     return [...this.mockOrderFills];
+  }
+
+  public getMockUserHistory(): UserHistoryItem[] {
+    return [...this.mockUserHistory];
   }
 
   public getMockMarkets(): PerpsMarketData[] {
@@ -512,7 +603,7 @@ export class PerpsE2EMockService {
   }
 
   // Mock funding endpoint (reserved for upcoming tests)
-  public async mockGetFunding(): Promise<Funding[]> {
+  public mockGetFunding(): Funding[] {
     return [
       {
         symbol: 'BTC',
@@ -521,6 +612,96 @@ export class PerpsE2EMockService {
         timestamp: Date.now(),
       },
     ];
+  }
+
+  /** Cancel an open order by id and push a canceled state into historical orders */
+  public mockCancelOrder(orderId: string): OrderResult {
+    const idx = this.mockOrders.findIndex((o) => o.orderId === orderId);
+    if (idx === -1) {
+      return { success: false, error: 'Order not found' };
+    }
+
+    const order = { ...this.mockOrders[idx] };
+    // Remove from open orders
+    this.mockOrders.splice(idx, 1);
+
+    // Record canceled snapshot into orders history for Activity > Orders
+    const canceledOrder: Order = {
+      ...order,
+      status: 'canceled',
+      lastUpdated: Date.now(),
+    };
+    this.mockOrdersHistory.push(canceledOrder);
+
+    // Notify orders subscribers
+    this.notifyOrdersCallbacks();
+    return { success: true, orderId };
+  }
+
+  /**
+   * Mock update of Take Profit / Stop Loss settings. This creates trigger orders
+   * so that Activity > Perps → Orders shows TP/SL entries as open orders.
+   */
+  public mockUpdatePositionTPSL(params: UpdatePositionTPSLParams): OrderResult {
+    const position = this.mockPositions.find((p) => p.coin === params.coin);
+    if (!position) {
+      return { success: false, error: 'Position not found' };
+    }
+
+    const now = Date.now();
+    // Update position fields
+    position.takeProfitPrice = params.takeProfitPrice;
+    position.stopLossPrice = params.stopLossPrice;
+    position.takeProfitCount = params.takeProfitPrice ? 1 : 0;
+    position.stopLossCount = params.stopLossPrice ? 1 : 0;
+
+    // Create trigger orders for TP/SL as open orders
+    if (params.takeProfitPrice) {
+      const tpOrder: Order = {
+        orderId: `tp_${this.orderIdCounter++}`,
+        symbol: params.coin,
+        side: parseFloat(position.size) > 0 ? 'sell' : 'buy',
+        orderType: 'limit',
+        size: Math.abs(parseFloat(position.size)).toString(),
+        originalSize: Math.abs(parseFloat(position.size)).toString(),
+        price: params.takeProfitPrice,
+        filledSize: '0',
+        remainingSize: Math.abs(parseFloat(position.size)).toString(),
+        status: 'open',
+        timestamp: now,
+        detailedOrderType: 'Take Profit Limit',
+        isTrigger: true,
+        reduceOnly: true,
+      };
+      this.mockOrders.push(tpOrder);
+    }
+
+    if (params.stopLossPrice) {
+      const slOrder: Order = {
+        orderId: `sl_${this.orderIdCounter++}`,
+        symbol: params.coin,
+        side: parseFloat(position.size) > 0 ? 'sell' : 'buy',
+        orderType: 'limit',
+        size: Math.abs(parseFloat(position.size)).toString(),
+        originalSize: Math.abs(parseFloat(position.size)).toString(),
+        price: params.stopLossPrice,
+        filledSize: '0',
+        remainingSize: Math.abs(parseFloat(position.size)).toString(),
+        status: 'open',
+        timestamp: now,
+        detailedOrderType: 'Stop Loss Limit',
+        isTrigger: true,
+        reduceOnly: true,
+      };
+      this.mockOrders.push(slOrder);
+    }
+
+    // Notify orders subscribers
+    this.notifyOrdersCallbacks();
+    // Also notify position subscribers for UI counters
+    this.notifyPositionCallbacks();
+
+    return { success: true };
   }
 
   private calculateMockLiquidationPrice(
@@ -714,6 +895,14 @@ export class PerpsE2EMockService {
     symbol: string,
     price: PriceUpdate,
   ): boolean {
+    console.log(
+      '🎭 E2E Mock: Applying liquidation checks for symbol:',
+      symbol,
+      'price:',
+      price.price,
+      'positions:',
+      this.mockPositions,
+    );
     const px = parseFloat(price.price);
     let didAnyClose = false;
 

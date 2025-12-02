@@ -32,6 +32,7 @@ import {
 import Logger from '../../../../util/Logger';
 import { View } from 'react-native';
 import { UserResponse } from '../types';
+import { getErrorMessage } from '../util/getErrorMessage';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
@@ -60,9 +61,14 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   selectUserCardLocation: jest.fn(),
   setUserCardLocation: jest.fn(),
   selectOnboardingId: jest.fn(),
-  resetOnboardingState: jest.fn(),
+  resetOnboardingState: jest.fn(() => ({
+    type: 'card/resetOnboardingState',
+  })),
   resetAuthenticatedData: jest.fn(() => ({
     type: 'card/resetAuthenticatedData',
+  })),
+  clearAllCache: jest.fn(() => ({
+    type: 'card/clearAllCache',
   })),
 }));
 
@@ -97,6 +103,10 @@ jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock('../util/getErrorMessage', () => ({
+  getErrorMessage: jest.fn(),
+}));
+
 describe('CardSDK Context', () => {
   const MockedCardholderSDK = jest.mocked(CardSDK);
   const mockUseSelector = jest.mocked(useSelector);
@@ -110,6 +120,7 @@ describe('CardSDK Context', () => {
   const mockStoreCardBaanxToken = jest.mocked(storeCardBaanxToken);
   const mockRemoveCardBaanxToken = jest.mocked(removeCardBaanxToken);
   const mockLogger = jest.mocked(Logger);
+  const mockGetErrorMessage = jest.mocked(getErrorMessage);
 
   const mockSupportedTokens: SupportedToken[] = [
     {
@@ -246,6 +257,7 @@ describe('CardSDK Context', () => {
         isLoading: false,
         user: null,
         setUser: jest.fn(),
+        fetchUserData: jest.fn(),
         logoutFromProvider: jest.fn(),
       };
 
@@ -287,6 +299,7 @@ describe('CardSDK Context', () => {
         logoutFromProvider: expect.any(Function),
         user: null,
         setUser: expect.any(Function),
+        fetchUserData: expect.any(Function),
       });
     });
 
@@ -707,6 +720,70 @@ describe('CardSDK Context', () => {
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
       );
+      expect(result.current.user).toBe(null);
+    });
+
+    it('resets onboarding state when "Invalid onboarding ID" error occurs', async () => {
+      // Given: SDK that throws "Invalid onboarding ID" error
+      const mockError = new Error('Invalid onboarding ID');
+      const mockGetRegistrationStatus = jest.fn().mockRejectedValue(mockError);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      // Mock getErrorMessage to return the error message
+      mockGetErrorMessage.mockReturnValue('Invalid onboarding ID');
+
+      // When: provider initializes and fetches user data
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: error should be handled and onboarding state should be reset
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'test-onboarding-id',
+      );
+      expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'card/resetOnboardingState',
+      });
+      expect(result.current.user).toBe(null);
+    });
+
+    it('does not reset onboarding state for other errors', async () => {
+      // Given: SDK that throws a different error
+      const mockError = new Error('Network timeout');
+      const mockGetRegistrationStatus = jest.fn().mockRejectedValue(mockError);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      // Mock getErrorMessage to return a different error message
+      mockGetErrorMessage.mockReturnValue('Network timeout');
+
+      // Clear any previous dispatch calls
+      mockDispatch.mockClear();
+
+      // When: provider initializes and fetches user data
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: error should be handled but onboarding state should NOT be reset
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'test-onboarding-id',
+      );
+      expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
+      // Verify resetOnboardingState was NOT dispatched
+      expect(mockDispatch).not.toHaveBeenCalledWith({
+        type: 'card/resetOnboardingState',
+      });
       expect(result.current.user).toBe(null);
     });
   });

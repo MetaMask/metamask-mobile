@@ -11,7 +11,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 
-import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Button, {
@@ -29,6 +28,7 @@ import { PerpsNavigationParamList } from '../../types/navigation';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
+  formatPositiveFiat,
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
@@ -94,7 +94,7 @@ const PerpsOrderTransactionView: React.FC = () => {
     },
     {
       label: strings('perps.transactions.order.limit_price'),
-      value: formatPerpsFiat(transaction.order?.limitPrice ?? 0),
+      value: formatPositiveFiat(transaction.order?.limitPrice ?? 0),
     },
     {
       label: strings('perps.transactions.order.filled'),
@@ -103,44 +103,21 @@ const PerpsOrderTransactionView: React.FC = () => {
   ];
 
   const isFilled = transaction.order?.text === 'Filled';
+
   // Fee breakdown
 
   const feeRows = [
     {
       label: strings('perps.transactions.order.metamask_fee'),
-      value: `${
-        isFilled
-          ? `${
-              BigNumber(metamaskFee).isLessThan(0.01)
-                ? `$${metamaskFee}`
-                : formatPerpsFiat(metamaskFee)
-            }`
-          : '$0'
-      }`,
+      value: formatPositiveFiat(isFilled ? metamaskFee : 0),
     },
     {
       label: strings('perps.transactions.order.hyperliquid_fee'),
-      value: `${
-        isFilled
-          ? `${
-              BigNumber(protocolFee).isLessThan(0.01)
-                ? `$${protocolFee}`
-                : formatPerpsFiat(protocolFee)
-            }`
-          : '$0'
-      }`,
+      value: formatPositiveFiat(isFilled ? protocolFee : 0),
     },
     {
       label: strings('perps.transactions.order.total_fee'),
-      value: `${
-        isFilled
-          ? `${
-              BigNumber(totalFee).isLessThan(0.01)
-                ? `$${totalFee}`
-                : formatPerpsFiat(totalFee)
-            }`
-          : '$0'
-      }`,
+      value: formatPositiveFiat(isFilled ? totalFee : 0),
     },
   ];
 

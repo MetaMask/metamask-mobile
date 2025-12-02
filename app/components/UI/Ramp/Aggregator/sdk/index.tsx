@@ -21,15 +21,9 @@ import { getCaipChainIdFromCryptoCurrency } from '../utils';
 import Logger from '../../../../../util/Logger';
 
 import {
-  fiatOrdersGetStartedAgg,
-  setFiatOrdersGetStartedAGG,
   setFiatOrdersRegionAGG,
   fiatOrdersRegionSelectorAgg,
-  fiatOrdersPaymentMethodSelectorAgg,
-  setFiatOrdersPaymentMethodAGG,
   networkShortNameSelector,
-  fiatOrdersGetStartedSell,
-  setFiatOrdersGetStartedSell,
 } from '../../../../../reducers/fiatOrders';
 import { RampIntent, RampType, Region } from '../types';
 
@@ -98,9 +92,6 @@ export interface RampSDK {
   selectedFiatCurrencyId: string | null;
   setSelectedFiatCurrencyId: (currencyId: string | null) => void;
 
-  getStarted: boolean;
-  setGetStarted: (getStartedFlag: boolean) => void;
-
   selectedAddress: string | null;
   selectedNetworkName?: string;
 
@@ -163,16 +154,11 @@ export const RampSDKProvider = ({
   const INITIAL_SELECTED_REGION: Region | null = useSelector(
     fiatOrdersRegionSelectorAgg,
   );
-  const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
-  const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
   const selectedNetworkNickname = useSelector(selectNickname);
   const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
     selectedNetworkNickname || selectedAggregatorNetworkName;
 
-  const INITIAL_PAYMENT_METHOD_ID = useSelector(
-    fiatOrdersPaymentMethodSelectorAgg,
-  );
   const INITIAL_SELECTED_ASSET = null;
 
   const [rampType, setRampType] = useState(providerRampType ?? RampType.BUY);
@@ -188,17 +174,12 @@ export const RampSDKProvider = ({
   const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
   const selectedAddress = useRampAccountAddress(caipChainId);
 
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
-    INITIAL_PAYMENT_METHOD_ID,
-  );
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+    string | null
+  >(null);
   const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState<
     string | null
   >(null);
-  const [getStarted, setGetStarted] = useState(
-    (providerRampType ?? RampType.BUY) === RampType.BUY
-      ? INITIAL_GET_STARTED
-      : INITIAL_GET_STARTED_SELL,
-  );
 
   const isBuy = rampType === RampType.BUY;
   const isSell = rampType === RampType.SELL;
@@ -217,9 +198,8 @@ export const RampSDKProvider = ({
   const setSelectedPaymentMethodIdCallback = useCallback(
     (paymentMethodId: Payment['id'] | null) => {
       setSelectedPaymentMethodId(paymentMethodId);
-      dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodId));
     },
-    [dispatch],
+    [],
   );
 
   const setSelectedAssetCallback = useCallback((asset: CryptoCurrency) => {
@@ -231,18 +211,6 @@ export const RampSDKProvider = ({
       setSelectedFiatCurrencyId(currencyId);
     },
     [],
-  );
-
-  const setGetStartedCallback = useCallback(
-    (getStartedFlag: boolean) => {
-      setGetStarted(getStartedFlag);
-      if (rampType === RampType.BUY) {
-        dispatch(setFiatOrdersGetStartedAGG(getStartedFlag));
-      } else {
-        dispatch(setFiatOrdersGetStartedSell(getStartedFlag));
-      }
-    },
-    [dispatch, rampType],
   );
 
   const contextValue = useMemo(
@@ -270,9 +238,6 @@ export const RampSDKProvider = ({
       selectedFiatCurrencyId,
       setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
 
-      getStarted,
-      setGetStarted: setGetStartedCallback,
-
       selectedAddress,
       selectedNetworkName,
 
@@ -284,7 +249,6 @@ export const RampSDKProvider = ({
       isInternalBuild: isDevelopmentOrInternalBuild,
     }),
     [
-      getStarted,
       isBuy,
       isSell,
       intent,
@@ -298,7 +262,6 @@ export const RampSDKProvider = ({
       selectedNetworkName,
       selectedPaymentMethodId,
       selectedRegion,
-      setGetStartedCallback,
       setSelectedAssetCallback,
       setSelectedFiatCurrencyIdCallback,
       setSelectedPaymentMethodIdCallback,

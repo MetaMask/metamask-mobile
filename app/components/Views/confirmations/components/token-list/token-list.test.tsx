@@ -6,9 +6,9 @@ import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelecti
 import { TokenList } from './token-list';
 import { AssetType } from '../../types/token';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useSendContext } from '../../context/send-context';
 
 const mockGotToSendScreen = jest.fn();
-const mockUpdateAsset = jest.fn();
 
 jest.mock('../../hooks/send/useSendScreenNavigation', () => ({
   useSendScreenNavigation: () => ({
@@ -17,9 +17,7 @@ jest.mock('../../hooks/send/useSendScreenNavigation', () => ({
 }));
 
 jest.mock('../../context/send-context', () => ({
-  useSendContext: () => ({
-    updateAsset: mockUpdateAsset,
-  }),
+  useSendContext: jest.fn(),
 }));
 
 jest.mock('../UI/token', () => {
@@ -93,8 +91,15 @@ const manyTokens: AssetType[] = Array.from({ length: 25 }, (_, i) => ({
 }));
 
 describe('TokenList', () => {
+  const mockUpdateAsset = jest.fn();
+  const mockUseSendContext = jest.mocked(useSendContext);
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSendContext.mockReturnValue({
+      updateAsset: mockUpdateAsset,
+      asset: undefined,
+    } as unknown as ReturnType<typeof useSendContext>);
   });
 
   describe('token rendering', () => {
@@ -128,6 +133,20 @@ describe('TokenList', () => {
 
       expect(mockUpdateAsset).toHaveBeenCalledWith(mockTokens[0]);
       expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
+    });
+
+    it('calls updateTo when there is an existing asset selected', () => {
+      const mockUpdateTo = jest.fn();
+      mockUseSendContext.mockReturnValue({
+        updateAsset: mockUpdateAsset,
+        updateTo: mockUpdateTo,
+        asset: mockTokens[0],
+      } as unknown as ReturnType<typeof useSendContext>);
+
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+
+      fireEvent.press(getByTestId('token-ETH'));
+      expect(mockUpdateTo).toHaveBeenCalledWith('');
     });
 
     it('handles second token press correctly', () => {
@@ -169,6 +188,21 @@ describe('TokenList', () => {
       fireEvent.press(getByTestId('token-USDC'));
 
       expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[1], '1');
+    });
+
+    it('calls onSelect prop only if provided', () => {
+      const mockOnSelect = jest.fn();
+
+      const { getByTestId } = render(
+        <TokenList tokens={mockTokens} onSelect={mockOnSelect} />,
+      );
+
+      fireEvent.press(getByTestId('token-USDC'));
+
+      expect(mockOnSelect).toHaveBeenCalledTimes(1);
+      expect(mockOnSelect).toHaveBeenCalledWith(mockTokens[1]);
+      expect(mockUpdateAsset).not.toHaveBeenCalled();
+      expect(mockGotToSendScreen).not.toHaveBeenCalled();
     });
   });
 

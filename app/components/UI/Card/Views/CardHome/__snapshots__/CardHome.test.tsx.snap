@@ -320,6 +320,18 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                           "paddingBottom": 32,
                         }
                       }
+                      refreshControl={
+                        <RefreshControlMock
+                          colors={
+                            [
+                              "#4459ff",
+                            ]
+                          }
+                          onRefresh={[Function]}
+                          refreshing={false}
+                          tintColor="#121314"
+                        />
+                      }
                       showsVerticalScrollIndicator={false}
                       style={
                         {
@@ -328,6 +340,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                         }
                       }
                     >
+                      <RCTRefreshControl />
                       <View>
                         <View
                           style={
@@ -413,6 +426,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                               }
                             >
                               <RNSVGSvgView
+                                address="0x78...x789"
                                 align="xMidYMid"
                                 bbHeight="100%"
                                 bbWidth="100%"
@@ -712,6 +726,55 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                       }
                                     />
                                   </RNSVGGroup>
+                                  <RNSVGText
+                                    content={null}
+                                    dx={[]}
+                                    dy={[]}
+                                    fill={
+                                      {
+                                        "payload": 4294967295,
+                                        "type": 0,
+                                      }
+                                    }
+                                    font={
+                                      {
+                                        "fontSize": "40px",
+                                        "fontWeight": 800,
+                                      }
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    rotate={[]}
+                                    x={
+                                      [
+                                        40,
+                                      ]
+                                    }
+                                    y={
+                                      [
+                                        500,
+                                      ]
+                                    }
+                                  >
+                                    <RNSVGTSpan
+                                      content="0x78...x789"
+                                      dx={[]}
+                                      dy={[]}
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                      font={{}}
+                                      rotate={[]}
+                                      x={[]}
+                                      y={[]}
+                                    />
+                                  </RNSVGText>
                                   <RNSVGDefs>
                                     <RNSVGClipPath
                                       fill={
@@ -1439,6 +1502,18 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                           "paddingBottom": 32,
                         }
                       }
+                      refreshControl={
+                        <RefreshControlMock
+                          colors={
+                            [
+                              "#4459ff",
+                            ]
+                          }
+                          onRefresh={[Function]}
+                          refreshing={false}
+                          tintColor="#121314"
+                        />
+                      }
                       showsVerticalScrollIndicator={false}
                       style={
                         {
@@ -1447,6 +1522,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                         }
                       }
                     >
+                      <RCTRefreshControl />
                       <View>
                         <View
                           style={
@@ -1532,6 +1608,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                               }
                             >
                               <RNSVGSvgView
+                                address="0x78...x789"
                                 align="xMidYMid"
                                 bbHeight="100%"
                                 bbWidth="100%"
@@ -1831,6 +1908,55 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                       }
                                     />
                                   </RNSVGGroup>
+                                  <RNSVGText
+                                    content={null}
+                                    dx={[]}
+                                    dy={[]}
+                                    fill={
+                                      {
+                                        "payload": 4294967295,
+                                        "type": 0,
+                                      }
+                                    }
+                                    font={
+                                      {
+                                        "fontSize": "40px",
+                                        "fontWeight": 800,
+                                      }
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    rotate={[]}
+                                    x={
+                                      [
+                                        40,
+                                      ]
+                                    }
+                                    y={
+                                      [
+                                        500,
+                                      ]
+                                    }
+                                  >
+                                    <RNSVGTSpan
+                                      content="0x78...x789"
+                                      dx={[]}
+                                      dy={[]}
+                                      fill={
+                                        {
+                                          "payload": 4278190080,
+                                          "type": 0,
+                                        }
+                                      }
+                                      font={{}}
+                                      rotate={[]}
+                                      x={[]}
+                                      y={[]}
+                                    />
+                                  </RNSVGText>
                                   <RNSVGDefs>
                                     <RNSVGClipPath
                                       fill={

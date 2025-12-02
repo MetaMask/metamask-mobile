@@ -60,6 +60,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+// Mock Perps hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePositions: () => ({
+    positions: [],
+    isInitialLoading: false,
+  }),
+  usePerpsLiveOrders: () => ({
+    orders: [],
+    isInitialLoading: false,
+  }),
+}));
+
 describe('PerpsWatchlistMarkets', () => {
   const mockNavigate = jest.fn();
   const mockMarkets: PerpsMarketData[] = [
@@ -134,29 +146,8 @@ describe('PerpsWatchlistMarkets', () => {
   });
 
   describe('Navigation Handling', () => {
-    it('navigates to market list with showWatchlistOnly parameter', () => {
-      const { root } = render(<PerpsWatchlistMarkets markets={mockMarkets} />);
-
-      // Find TouchableOpacity that navigates to See all (second one in header)
-      const touchables = root.findAllByType(
-        jest.requireActual('react-native').TouchableOpacity,
-      );
-      // Header has one TouchableOpacity for "See all"
-      const seeAllButton = touchables.find(
-        (t) => t.props.onPress !== undefined && t.parent?.parent !== null,
-      );
-
-      if (seeAllButton) {
-        fireEvent.press(seeAllButton);
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_LIST,
-          params: {
-            showWatchlistOnly: true,
-          },
-        });
-      }
-    });
+    // Note: "See all" button was removed from PerpsWatchlistMarkets
+    // Navigation to watchlist is now handled elsewhere
 
     it('navigates to market details when market row is pressed', () => {
       render(<PerpsWatchlistMarkets markets={mockMarkets} />);
@@ -167,7 +158,10 @@ describe('PerpsWatchlistMarkets', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market: mockMarkets[0] },
+        params: {
+          market: mockMarkets[0],
+          initialTab: undefined,
+        },
       });
     });
 
@@ -180,7 +174,10 @@ describe('PerpsWatchlistMarkets', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market: mockMarkets[1] },
+        params: {
+          market: mockMarkets[1],
+          initialTab: undefined,
+        },
       });
     });
   });

@@ -1,11 +1,7 @@
 import React, { useMemo } from 'react';
-import { View, FlatList } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import {
-  selectChainId,
-  selectIsAllNetworks,
-} from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import {
   selectDeFiPositionsByAddress,
@@ -32,42 +28,34 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { DefiEmptyState } from '../DefiEmptyState';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
+
 export interface DeFiPositionsListProps {
   tabLabel: string;
 }
 
 const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   const { styles } = useStyles(styleSheet, undefined);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const currentChainId = useSelector(selectChainId) as Hex;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
   const defiPositionsByEnabledNetworks = useSelector(
     selectDefiPositionsByEnabledNetworks,
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const formattedDeFiPositions = useMemo(() => {
     if (!defiPositions) {
       return defiPositions;
     }
 
-    let chainFilteredDeFiPositions: { [key: Hex]: GroupedDeFiPositions };
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      chainFilteredDeFiPositions = defiPositionsByEnabledNetworks as {
-        [key: Hex]: GroupedDeFiPositions;
-      };
-    } else if (isAllNetworks) {
-      chainFilteredDeFiPositions = defiPositions;
-    } else if (currentChainId in defiPositions) {
-      chainFilteredDeFiPositions = {
-        [currentChainId]: defiPositions[currentChainId],
-      };
-    } else {
-      return [];
-    }
+    const chainFilteredDeFiPositions = defiPositionsByEnabledNetworks as {
+      [key: Hex]: GroupedDeFiPositions;
+    };
 
     if (!chainFilteredDeFiPositions) {
       return [];
@@ -94,13 +82,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     };
 
     return sortAssets(defiPositionsList, defiSortConfig);
-  }, [
-    defiPositions,
-    isAllNetworks,
-    currentChainId,
-    tokenSortConfig,
-    defiPositionsByEnabledNetworks,
-  ]);
+  }, [defiPositions, tokenSortConfig, defiPositionsByEnabledNetworks]);
 
   if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
@@ -132,29 +114,40 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     }
   }
 
-  return (
-    <View
-      style={styles.wrapper}
-      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
-    >
-      <DeFiPositionsControlBar />
-      <FlatList
-        testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
-        data={formattedDeFiPositions}
-        renderItem={({ item: { chainId, protocolId, protocolAggregate } }) => (
+  const content = (
+    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}>
+      {formattedDeFiPositions.map(
+        ({ chainId, protocolId, protocolAggregate }) => (
           <DeFiPositionsListItem
+            key={`${chainId}-${protocolAggregate.protocolDetails.name}`}
             chainId={chainId}
             protocolId={protocolId}
             protocolAggregate={protocolAggregate}
             privacyMode={privacyMode}
           />
-        )}
-        keyExtractor={(protocolChainAggregate) =>
-          `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
-        }
-        scrollEnabled
-        ListEmptyComponent={<DefiEmptyState twClassName="mx-auto mt-4" />}
-      />
+        ),
+      )}
+    </View>
+  );
+
+  return (
+    <View
+      style={!isHomepageRedesignV1Enabled ? styles.wrapper : undefined}
+      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
+    >
+      <DeFiPositionsControlBar />
+      {formattedDeFiPositions.length > 0 ? (
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+          }}
+        >
+          {content}
+        </ConditionalScrollView>
+      ) : (
+        <DefiEmptyState twClassName="mx-auto mt-4" />
+      )}
     </View>
   );
 };

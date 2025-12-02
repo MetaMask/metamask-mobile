@@ -34,8 +34,6 @@ import { fontStyles } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
-import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
-import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
 import TokenIcon from '../../Swaps/components/TokenIcon';
 import {
   TOKEN_BALANCE_LOADING,
@@ -43,20 +41,9 @@ import {
 } from '../../Tokens/constants';
 import { useRWAToken } from '../hooks/useRWAToken';
 import { BridgeToken } from '../types';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
-import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
-import { useSelector } from 'react-redux';
-import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
-import { strings } from '../../../../../locales/i18n';
-import TagBase, {
-  TagShape,
-  TagSeverity,
-} from '../../../../component-library/base-components/TagBase';
 import Tag from '../../../../component-library/components/Tags/Tag';
-import { RootState } from '../../../../reducers';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
+import parseAmount from '../../../../util/parseAmount';
 
 const createStyles = ({
   theme,
@@ -95,6 +82,9 @@ const createStyles = ({
     },
     skeleton: {
       width: 50,
+      padding: 8,
+      borderRadius: 30,
+      backgroundColor: theme.colors.background.alternative,
     },
     secondaryBalance: {
       color: theme.colors.text.alternative,
@@ -109,6 +99,13 @@ const createStyles = ({
     noFeeBadge: {
       marginLeft: 8,
       paddingHorizontal: 6,
+    },
+    selectedItemWrapperReset: {
+      marginLeft: -4,
+    },
+    nativeTokenIcon: {
+      width: 32,
+      height: 32,
     },
     stockBadge: {
       backgroundColor: theme.colors.background.muted,
@@ -195,6 +192,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
+          style={isSelected ? styles.selectedItemWrapperReset : {}}
         >
           {/* Token Icon */}
           <BadgeWrapper
@@ -213,6 +211,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 symbol={token.symbol}
                 icon={token.image}
                 medium
+                style={styles.nativeTokenIcon}
                 testID={`network-logo-${token.symbol}`}
               />
             ) : (
@@ -265,14 +264,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
+                <View style={styles.skeleton} />
               ) : (
                 <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
+                <View style={styles.skeleton} />
               ) : (
                 <Text
                   variant={TextVariant.BodyMD}

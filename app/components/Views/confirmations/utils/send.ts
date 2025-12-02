@@ -30,6 +30,25 @@ import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 
+export enum ChainType {
+  EVM = 'evm',
+  SOLANA = 'solana',
+  BITCOIN = 'bitcoin',
+  TRON = 'tron',
+}
+
+export interface PredefinedRecipient {
+  address: string;
+  chainType: ChainType;
+}
+
+export interface SendNavigationParams {
+  location: string;
+  isSendRedesignEnabled: boolean;
+  asset?: AssetType | Nft;
+  predefinedRecipient?: PredefinedRecipient;
+}
+
 const captureSendStartedEvent = (location: string) => {
   const { trackEvent } = MetaMetrics.getInstance();
   trackEvent(
@@ -51,16 +70,49 @@ export function isValidPositiveNumericString(str: string) {
     return false;
   }
 }
-
+/**
+ * Navigates to the appropriate send flow screen based on the redesign flag and asset type.
+ *
+ * This function handles navigation for both the legacy and redesigned send flows. In the redesigned flow,
+ * it intelligently determines the starting screen based on whether an asset is provided:
+ * - No asset: starts at asset selection screen
+ * - ERC721 NFT: starts at recipient screen (since NFTs are non-divisible)
+ * - Other assets: starts at amount screen
+ *
+ * @param navigate - Navigation function that accepts a screen name and optional params object
+ * @param params - Object containing the navigation parameters
+ * @param params.location - Analytics identifier for where the send flow was initiated (e.g., 'wallet', 'token_details')
+ * @param params.isSendRedesignEnabled - Feature flag indicating whether to use the new send flow or legacy SendFlowView
+ * @param params.asset - Optional preselected asset (token or NFT) to send. When provided, skips the asset selection screen.
+ * @param params.predefinedRecipient - Optional recipient with chain information. Should be an object containing:
+ * - `address`: The recipient's address string
+ * - `chainType`: One of 'evm', 'solana', 'bitcoin', or 'tron'
+ *
+ * @remarks
+ * The predefinedRecipient is passed through navigation params and can be used by downstream screens
+ * to pre-populate the recipient field and determine the appropriate chain context for the transaction.
+ *
+ * @example
+ * ```typescript
+ * handleSendPageNavigation(navigation.navigate, {
+ *   location: 'QRCode',
+ *   isSendRedesignEnabled: true,
+ *   predefinedRecipient: {
+ *     address: '7W54AwGDYRF7X...',
+ *     chainType: 'solana'
+ *   }
+ * });
+ * ```
+ */
 export const handleSendPageNavigation = (
   navigate: <RouteName extends string>(
     screenName: RouteName,
     params?: object,
   ) => void,
-  location: string,
-  isSendRedesignEnabled: boolean,
-  asset?: AssetType | Nft,
+  params: SendNavigationParams,
 ) => {
+  const { location, isSendRedesignEnabled, asset, predefinedRecipient } =
+    params;
   if (isSendRedesignEnabled) {
     captureSendStartedEvent(location);
     let screen = Routes.SEND.ASSET;
@@ -71,10 +123,13 @@ export const handleSendPageNavigation = (
         screen = Routes.SEND.AMOUNT;
       }
     }
+
     navigate(Routes.SEND.DEFAULT, {
       screen,
       params: {
         asset,
+        location,
+        predefinedRecipient,
       },
     });
   } else {

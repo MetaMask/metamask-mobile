@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
@@ -23,6 +23,8 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import { useSelector } from 'react-redux';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -40,6 +42,8 @@ import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
+import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
+
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
@@ -49,6 +53,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { account } = usePerpsLiveAccount();
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
@@ -227,29 +234,41 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
+    <SafeAreaView
+      style={[
+        styles.wrapper,
+        isHomepageRedesignV1Enabled && { flex: undefined },
+      ]}
+      edges={['left', 'right']}
+    >
       <>
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView style={styles.content}>
-          <View style={styles.contentContainer}>
-            {!isInitialLoading && hasNoPositionsOrOrders ? (
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            style: styles.content,
+            testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,
+          }}
+        >
+          {!isInitialLoading && hasNoPositionsOrOrders ? (
+            <View style={styles.emptyStateContainer}>
               <PerpsEmptyState
                 onAction={handleNewTrade}
                 testID="perps-empty-state"
                 twClassName="mx-auto"
               />
-            ) : (
-              <View style={styles.tradeInfoContainer}>
-                <View>{renderPositionsSection()}</View>
-                <View>{renderOrdersSection()}</View>
-              </View>
-            )}
-          </View>
-        </ScrollView>
+            </View>
+          ) : (
+            <View style={styles.tradeInfoContainer}>
+              <View>{renderPositionsSection()}</View>
+              <View>{renderOrdersSection()}</View>
+            </View>
+          )}
+        </ConditionalScrollView>
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>

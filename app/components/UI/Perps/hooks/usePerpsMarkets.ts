@@ -48,6 +48,11 @@ export interface UsePerpsMarketsOptions {
    * @default false
    */
   skipInitialFetch?: boolean;
+  /**
+   * Show markets with zero or invalid volume
+   * @default __DEV__ (true in development, false in production)
+   */
+  showZeroVolume?: boolean;
 }
 
 const multipliers: Record<string, number> = {
@@ -107,6 +112,7 @@ export const usePerpsMarkets = (
     enablePolling = false,
     pollingInterval = 60000, // 1 minute default
     skipInitialFetch = false,
+    showZeroVolume = __DEV__, // Show zero-volume markets in development mode
   } = options;
 
   const streamManager = usePerpsStream();
@@ -115,18 +121,43 @@ export const usePerpsMarkets = (
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper function to sort markets by volume
+  // Helper function to filter and sort markets by volume
   const sortMarketsByVolume = useCallback(
-    (marketData: PerpsMarketData[]): PerpsMarketDataWithVolumeNumber[] =>
-      marketData
-        // pregenerate volumeNumber for sorting to avoid recalculating it on every sort
-        .map((item) => ({ ...item, volumeNumber: parseVolume(item.volume) }))
-        .sort((a, b) => {
-          const volumeA = a.volumeNumber;
-          const volumeB = b.volumeNumber;
-          return volumeB - volumeA;
-        }),
-    [],
+    (marketData: PerpsMarketData[]): PerpsMarketDataWithVolumeNumber[] => {
+      // Filter out invalid volume (unless showZeroVolume is true)
+      const filteredData = !showZeroVolume
+        ? marketData.filter((market) => {
+            // Filter out fallback/error values
+            if (
+              market.volume === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY ||
+              market.volume === PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+            ) {
+              return false;
+            }
+            // Filter out zero and missing values
+            if (
+              !market.volume ||
+              market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY ||
+              market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
+            ) {
+              return false;
+            }
+            return true;
+          })
+        : marketData;
+
+      return (
+        filteredData
+          // pregenerate volumeNumber for sorting to avoid recalculating it on every sort
+          .map((item) => ({ ...item, volumeNumber: parseVolume(item.volume) }))
+          .sort((a, b) => {
+            const volumeA = a.volumeNumber;
+            const volumeB = b.volumeNumber;
+            return volumeB - volumeA;
+          })
+      );
+    },
+    [showZeroVolume],
   );
 
   // Manual refresh function

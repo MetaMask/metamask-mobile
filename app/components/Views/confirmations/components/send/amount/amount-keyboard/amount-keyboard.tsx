@@ -7,6 +7,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
+import { useParams } from '../../../../../../../util/navigation/navUtils.ts';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { AssetType, TokenStandard } from '../../../../types/token';
 import { getFractionLength } from '../../../../utils/send.ts';
@@ -14,8 +15,11 @@ import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmo
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
+import { useSendType } from '../../../../hooks/send/useSendType';
 import { useSendContext } from '../../../../context/send-context';
+import { type PredefinedRecipient } from '../../../../utils/send';
 import { useSendScreenNavigation } from '../../../../hooks/send/useSendScreenNavigation';
+import { useSendActions } from '../../../../hooks/send/useSendActions';
 import { EditAmountKeyboard } from '../../../edit-amount-keyboard';
 import { styleSheet } from './amount-keyboard.styles';
 
@@ -42,8 +46,10 @@ export const AmountKeyboard = ({
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
-  const { amountError } = useAmountValidation();
-  const { asset, updateValue } = useSendContext();
+  const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
+  const { asset, updateValue, updateTo } = useSendContext();
+  const { handleSubmitPress } = useSendActions();
+  const { isNonEvmSendType } = useSendType();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
   const { styles } = useStyles(styleSheet, {
     amountError: Boolean(amountError),
@@ -51,6 +57,10 @@ export const AmountKeyboard = ({
   });
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
+
+  const { predefinedRecipient } = useParams<{
+    predefinedRecipient: PredefinedRecipient;
+  }>();
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
@@ -88,10 +98,32 @@ export const AmountKeyboard = ({
     [asset, fiatMode, getNativeValue, updateAmount, updateValue],
   );
 
-  const goToNextPage = useCallback(() => {
+  const goToNextPage = useCallback(async () => {
+    if (isNonEvmSendType) {
+      // Non EVM flows need an extra validation because "value" can be empty dependent on the blockchain (e.g it's fine for Solana but not for Bitcoin)
+      // Hence we do a call for `validateNonEvmAmountAsync` here to raise UI validation errors if exists
+      const nonEvmAmountError = await validateNonEvmAmountAsync();
+      if (nonEvmAmountError) {
+        return;
+      }
+    }
     captureAmountSelected();
+    // Skip the recipient screen if a predefined recipient is provided
+    if (predefinedRecipient) {
+      updateTo(predefinedRecipient.address);
+      handleSubmitPress(predefinedRecipient.address);
+      return;
+    }
     gotToSendScreen(Routes.SEND.RECIPIENT);
-  }, [captureAmountSelected, gotToSendScreen]);
+  }, [
+    captureAmountSelected,
+    gotToSendScreen,
+    isNonEvmSendType,
+    validateNonEvmAmountAsync,
+    handleSubmitPress,
+    updateTo,
+    predefinedRecipient,
+  ]);
 
   return (
     <EditAmountKeyboard

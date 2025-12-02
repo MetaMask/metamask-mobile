@@ -35,6 +35,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
+import { PredictEventValues } from '../../constants/eventNames';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
@@ -68,24 +69,22 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [isDepositPending, loadBalance]);
 
   const handleAddFunds = useCallback(() => {
-    executeGuardedAction(() => {
-      deposit();
-    });
+    executeGuardedAction(
+      () => {
+        deposit();
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
+    );
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
-    executeGuardedAction(
-      () => {
-        withdraw();
-      },
-      { checkBalance: true },
-    );
-  }, [withdraw, executeGuardedAction]);
+    withdraw();
+  }, [withdraw]);
 
   if (isLoading) {
     return (
       <Box
-        twClassName="bg-muted rounded-xl p-4 gap-3"
+        twClassName="bg-muted rounded-xl p-4 mx-4 gap-3"
         testID="predict-balance-card-skeleton"
       >
         <Box
@@ -99,16 +98,16 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           </Box>
           <Skeleton width={48} height={48} style={tw.style('rounded-full')} />
         </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
           <Skeleton
             width="50%"
             height={40}
-            style={tw.style('rounded-full flex-1')}
+            style={tw.style('rounded-xl flex-1')}
           />
           <Skeleton
             width="50%"
             height={40}
-            style={tw.style('rounded-full flex-1')}
+            style={tw.style('rounded-xl flex-1')}
           />
         </Box>
       </Box>
@@ -146,11 +145,11 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           alignItems={BoxAlignItems.Center}
         >
           <Box>
-            <Text style={tw.style('text-heading-md font-bold')}>
+            <Text style={tw.style('text-body-md font-bold')}>
               {formatPrice(balance, { maximumDecimals: 2 })}
             </Text>
             <Text
-              style={tw.style('color-alternative')}
+              style={tw.style('color-alternative text-body-sm')}
               color={TextColor.Alternative}
             >
               {strings('predict.available_balance')}
@@ -163,8 +162,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={images.POL}
+                style={tw.style('border-background-muted')}
                 name="Polygon"
-                style={tw.style('rounded-2xl')}
               />
             }
           >
@@ -175,7 +174,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
             />
           </BadgeWrapper>
         </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
           <Button
             variant={
               hasBalance ? ButtonVariants.Secondary : ButtonVariants.Primary

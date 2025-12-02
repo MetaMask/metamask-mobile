@@ -8,12 +8,20 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { CardTokenAllowance, AllowanceState } from '../../types';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
+
+// Mock hooks first - must be hoisted before imports
+const mockUseParams = jest.fn();
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockGoToDeposit = jest.fn();
 
 // Mock dependencies
+jest.mock('../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
@@ -54,12 +62,51 @@ jest.mock('../../../../../util/theme', () => ({
       },
     },
   })),
+  mockTheme: {
+    colors: {
+      background: {
+        default: '#ffffff',
+      },
+      text: {
+        default: '#000000',
+        alternative: '#666666',
+      },
+    },
+    themeAppearance: 'light',
+  },
 }));
 
 jest.mock('./AddFundsBottomSheet.styles', () => ({
   createStyles: jest.fn(() => ({
     iconContainer: {},
   })),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: () => mockUseParams(),
+  createNavigationDetails: jest.fn((stackId, screenName) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (params?: any) => [stackId, { screen: screenName, params }],
+  ),
+}));
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+  }),
 }));
 
 function renderWithProvider(component: React.ComponentType) {
@@ -79,7 +126,6 @@ function renderWithProvider(component: React.ComponentType) {
 }
 
 describe('AddFundsBottomSheet', () => {
-  const mockNavigate = jest.fn();
   const mockOpenSwaps = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
@@ -87,9 +133,6 @@ describe('AddFundsBottomSheet', () => {
     addProperties: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({ event: 'built' }),
   };
-  const mockSetOpenAddFundsBottomSheet = jest.fn();
-
-  const mockSheetRef = React.createRef<BottomSheetRef>();
 
   const mockPriorityToken: CardTokenAllowance = {
     address: '0x456',
@@ -101,12 +144,14 @@ describe('AddFundsBottomSheet', () => {
     allowance: '1000000',
   };
 
-  const defaultProps = {
-    setOpenAddFundsBottomSheet: mockSetOpenAddFundsBottomSheet,
-    sheetRef: mockSheetRef,
-    priorityToken: mockPriorityToken,
-    chainId: '0xe708',
-    navigate: mockNavigate,
+  const setupComponent = (
+    priorityToken: CardTokenAllowance | undefined = mockPriorityToken,
+  ) => {
+    mockUseParams.mockReturnValue({
+      priorityToken,
+    });
+
+    return renderWithProvider(() => <AddFundsBottomSheet />);
   };
 
   beforeEach(() => {
@@ -114,6 +159,10 @@ describe('AddFundsBottomSheet', () => {
 
     (useOpenSwaps as jest.Mock).mockReturnValue({
       openSwaps: mockOpenSwaps,
+    });
+
+    (useRampNavigation as jest.Mock).mockReturnValue({
+      goToDeposit: mockGoToDeposit,
     });
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
@@ -133,9 +182,8 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('renders with both options enabled and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { toJSON } = setupComponent();
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -144,18 +192,16 @@ describe('AddFundsBottomSheet', () => {
       isDepositEnabled: false,
     });
 
-    const { toJSON } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { toJSON } = setupComponent();
+
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with only deposit option when swaps are not allowed and matches snapshot', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { toJSON } = setupComponent();
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -165,24 +211,19 @@ describe('AddFundsBottomSheet', () => {
     });
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { toJSON } = setupComponent();
+
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays the correct header text', () => {
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { getByText } = setupComponent();
 
     expect(getByText('Select method')).toBeTruthy();
   });
 
   it('displays correct options when both are enabled', () => {
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { getByText } = setupComponent();
 
     expect(getByText('Fund with cash')).toBeTruthy();
     expect(getByText('Fund with crypto')).toBeTruthy();
@@ -191,9 +232,7 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('handles deposit option press correctly', () => {
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { getByText } = setupComponent();
 
     fireEvent.press(getByText('Fund with cash'));
 
@@ -203,6 +242,18 @@ describe('AddFundsBottomSheet', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
     );
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Deposit',
+        location: 'CardHome',
+        chain_id_destination: '59144',
+        ramp_type: 'DEPOSIT',
+        ramp_routing: undefined,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
+      }),
+    );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith({
       name: TraceName.LoadDepositExperience,
@@ -210,9 +261,7 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('handles swap option press correctly', () => {
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { getByText } = setupComponent();
 
     fireEvent.press(getByText('Fund with crypto'));
 
@@ -221,14 +270,15 @@ describe('AddFundsBottomSheet', () => {
     });
   });
 
-  it('does not call openSwaps when priority token is null', () => {
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} priorityToken={undefined} />
-    ));
+  it('does not render swap option when priority token is null', () => {
+    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
+    const { queryByTestId } = setupComponent(undefined);
 
-    fireEvent.press(getByText('Fund with crypto'));
+    const swapOption = queryByTestId(
+      CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
+    );
 
-    expect(mockOpenSwaps).not.toHaveBeenCalled();
+    expect(swapOption).toBeNull();
   });
 
   it('renders correct descriptions for different tokens', () => {
@@ -237,9 +287,7 @@ describe('AddFundsBottomSheet', () => {
       symbol: 'USDT',
     };
 
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} priorityToken={usdtToken} />
-    ));
+    const { getByText } = setupComponent(usdtToken);
 
     expect(getByText('Low-cost card or bank transfer')).toBeTruthy();
     expect(getByText('Swap tokens into USDT on Linea')).toBeTruthy();
@@ -252,18 +300,14 @@ describe('AddFundsBottomSheet', () => {
       name: 'Tether USD',
     };
 
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} priorityToken={usdtToken} />
-    ));
+    const { getByText } = setupComponent(usdtToken);
 
     expect(getByText('Fund with cash')).toBeTruthy();
     expect(getByText('Fund with crypto')).toBeTruthy();
   });
 
   it('renders both options for USDC token', () => {
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { getByText } = setupComponent();
 
     expect(getByText('Fund with cash')).toBeTruthy();
     expect(getByText('Fund with crypto')).toBeTruthy();
@@ -277,9 +321,7 @@ describe('AddFundsBottomSheet', () => {
       decimals: 18,
     };
 
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} priorityToken={ethToken} />
-    ));
+    const { getByText } = setupComponent(ethToken);
 
     expect(getByText('Fund with cash')).toBeTruthy();
     expect(getByText('Fund with crypto')).toBeTruthy();
@@ -288,21 +330,15 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('navigates to deposit route when deposit callback is executed', () => {
-    const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+    const { getByText } = setupComponent();
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createDepositNavigationDetails(),
-    );
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
-  it('handles ref prop correctly', () => {
-    const { toJSON } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} />
-    ));
+  it('renders component correctly', () => {
+    const { toJSON } = setupComponent();
 
     expect(toJSON()).toBeTruthy();
   });

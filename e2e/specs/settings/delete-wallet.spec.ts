@@ -54,13 +54,6 @@ describe(
           await ChangePasswordView.tapIUnderstandCheckBox();
           await ChangePasswordView.tapSubmitButton();
 
-          // bug on CI when tap wallet button makes change password continue
-          // github issue: https://github.com/MetaMask/metamask-mobile/issues/16758
-          // TODO: remove this once the issue is fixed
-          if (device.getPlatform() === 'ios' && process.env.CI) {
-            await TabBarComponent.tapWallet();
-          }
-
           //wait for screen transitions after password change
           await Assertions.expectElementToNotBeVisible(
             ChangePasswordView.submitButton,

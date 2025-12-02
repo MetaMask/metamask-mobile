@@ -24,8 +24,7 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
   const controller = new TokenBalancesController({
     messenger: controllerMessenger,
     state: persistedState.TokenBalancesController,
-    // TODO: This is long, can we decrease it?
-    interval: 180_000,
+    interval: 30_000,
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     queryMultipleAccounts: preferencesState.isMultiAccountBalancesEnabled,
     accountsApiChainIds: () =>

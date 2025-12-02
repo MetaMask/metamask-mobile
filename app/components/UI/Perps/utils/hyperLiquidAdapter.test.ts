@@ -288,7 +288,7 @@ describe('hyperLiquidAdapter', () => {
       });
     });
 
-    it('should handle order with child orders (TP/SL)', () => {
+    it('converts order with child orders including TP and SL order IDs', () => {
       const frontendOrder: FrontendOrder = {
         oid: 22222,
         coin: 'UNI',
@@ -331,7 +331,7 @@ describe('hyperLiquidAdapter', () => {
             sz: '100',
             origSz: '100',
             triggerPx: '8',
-            orderType: 'Stop Market', // 'Stop Loss' is not a valid OrderType
+            orderType: 'Stop Market',
             timestamp: 1234567890002,
             isTrigger: true,
             reduceOnly: true,
@@ -363,7 +363,9 @@ describe('hyperLiquidAdapter', () => {
         isTrigger: false,
         reduceOnly: false,
         takeProfitPrice: '12',
+        takeProfitOrderId: '22223',
         stopLossPrice: '8',
+        stopLossOrderId: '22224',
       });
     });
 
@@ -473,7 +475,7 @@ describe('hyperLiquidAdapter', () => {
       expect(result.price).toBe('5.5');
     });
 
-    it('should handle child order with limitPx instead of triggerPx', () => {
+    it('converts child order with limitPx instead of triggerPx', () => {
       const frontendOrder: FrontendOrder = {
         oid: 66666,
         coin: 'ADA',
@@ -515,7 +517,103 @@ describe('hyperLiquidAdapter', () => {
       const result = adaptOrderFromSDK(frontendOrder);
 
       expect(result.takeProfitPrice).toBe('0.6');
+      expect(result.takeProfitOrderId).toBe('66667');
       expect(result.stopLossPrice).toBeUndefined();
+      expect(result.stopLossOrderId).toBeUndefined();
+    });
+
+    it('converts order with only take profit child order', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 77777,
+        coin: 'BNB',
+        side: 'B',
+        sz: '50',
+        origSz: '50',
+        limitPx: '300',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [
+          {
+            oid: 77778,
+            coin: 'BNB',
+            side: 'A',
+            sz: '50',
+            origSz: '50',
+            triggerPx: '350',
+            orderType: 'Take Profit Market',
+            timestamp: 1234567890001,
+            isTrigger: true,
+            reduceOnly: true,
+            triggerCondition: '',
+            limitPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
+          },
+        ],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBe('350');
+      expect(result.takeProfitOrderId).toBe('77778');
+      expect(result.stopLossPrice).toBeUndefined();
+      expect(result.stopLossOrderId).toBeUndefined();
+    });
+
+    it('converts order with only stop loss child order', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 88888,
+        coin: 'XRP',
+        side: 'B',
+        sz: '1000',
+        origSz: '1000',
+        limitPx: '0.5',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [
+          {
+            oid: 88889,
+            coin: 'XRP',
+            side: 'A',
+            sz: '1000',
+            origSz: '1000',
+            triggerPx: '0.4',
+            orderType: 'Stop Market',
+            timestamp: 1234567890001,
+            isTrigger: true,
+            reduceOnly: true,
+            triggerCondition: '',
+            limitPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
+          },
+        ],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBeUndefined();
+      expect(result.takeProfitOrderId).toBeUndefined();
+      expect(result.stopLossPrice).toBe('0.4');
+      expect(result.stopLossOrderId).toBe('88889');
     });
   });
 
@@ -713,8 +811,8 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '350.0',
         marginUsed: '150.0',
         unrealizedPnl: '100',
-        returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
-        totalBalance: '1000.5', // Spot (200.0 + 300.5 = 500.5) + Perps (500.0) = 1000.5
+        returnOnEquity: '0.0',
+        totalBalance: '1000.5',
       });
     });
 
@@ -752,7 +850,7 @@ describe('hyperLiquidAdapter', () => {
         marginUsed: '200.0',
         unrealizedPnl: '0',
         returnOnEquity: '0.0',
-        totalBalance: '1000', // Perps only (spot balances array is empty)
+        totalBalance: '1000',
       });
     });
 
@@ -934,6 +1032,19 @@ describe('hyperLiquidAdapter', () => {
       expect(formatHyperLiquidSize({ size: 1.123456, szDecimals: 6 })).toBe(
         '1.123456',
       );
+    });
+
+    it('should NOT strip trailing zeros from integers (regression test)', () => {
+      // Critical: With szDecimals=0, integers ending in 0 should stay intact
+      // e.g., 10 tokens should format as "10", not "1"
+      expect(formatHyperLiquidSize({ size: 10, szDecimals: 0 })).toBe('10');
+      expect(formatHyperLiquidSize({ size: 100, szDecimals: 0 })).toBe('100');
+      expect(formatHyperLiquidSize({ size: 20, szDecimals: 0 })).toBe('20');
+      expect(formatHyperLiquidSize({ size: 1000, szDecimals: 0 })).toBe('1000');
+
+      // But should still strip zeros after decimal points
+      expect(formatHyperLiquidSize({ size: 10.0, szDecimals: 2 })).toBe('10');
+      expect(formatHyperLiquidSize({ size: 10.5, szDecimals: 4 })).toBe('10.5');
     });
   });
 

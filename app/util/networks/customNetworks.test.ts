@@ -20,6 +20,8 @@ describe('popularNetwork', () => {
       'zkSync Era': toHex('324'),
       Sei: toHex('1329'),
       Monad: toHex('143'),
+      HyperEVM: toHex('999'),
+      MegaEth: toHex('4326'),
     };
 
     PopularList.forEach((rpc) => {

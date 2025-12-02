@@ -1,48 +1,36 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { processNotification } from '@metamask/notification-services-controller/notification-services';
-import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
+import {
+  TRIGGER_TYPES,
+  processNotification,
+  type INotification,
+} from '@metamask/notification-services-controller/notification-services';
+import {
+  createMockNotificationERC20Received,
+  createMockNotificationERC20Sent,
+  createMockNotificationEthReceived,
+  createMockNotificationEthSent,
+} from '@metamask/notification-services-controller/notification-services/mocks';
 import NotificationsList, {
   NotificationsListItem,
+  TEST_IDS,
   useNotificationOnClick,
 } from './';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import MOCK_NOTIFICATIONS from '../__mocks__/mock_notifications';
+import { mockNotificationsWithMetaData } from '../__mocks__/mock_notifications';
 import { createNavigationProps } from '../../../../util/testUtils';
-import {
-  hasNotificationComponents,
-  NotificationComponentState,
-} from '../../../../util/notifications/notification-states';
+import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
+import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
 // eslint-disable-next-line import/no-namespace
-import * as Actions from '../../../../actions/notification/helpers';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 
 const mockNavigation = createNavigationProps({});
-
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn(() => ({
     build: jest.fn(),
   })),
 }));
-
-jest.mock('../../../../util/notifications/constants', () => ({
-  ...jest.requireActual('../../../../util/notifications/constants'),
-  isNotificationsFeatureEnabled: () => true,
-}));
-
-jest.mock(
-  '../../../../util/notifications/services/NotificationService',
-  () => ({
-    ...jest.requireActual(
-      '../../../../util/notifications/services/NotificationService',
-    ),
-    getBadgeCount: jest.fn(),
-    decrementBadgeCount: jest.fn(),
-    setBadgeCount: jest.fn(),
-  }),
-);
 
 jest.mock('../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -54,95 +42,161 @@ jest.mock('../../../hooks/useMetrics', () => ({
   },
 }));
 
-jest.mock('../NotificationMenuItem', () => ({
-  NotificationMenuItem: {
-    Root: ({ children }: { children: React.ReactNode }) => (
-      <div>{children}</div>
-    ),
-    Icon: jest.fn(({ isRead }: { isRead: boolean }) => (
-      <div>{isRead ? 'Read Icon' : 'Unread Icon'}</div>
-    )),
-    Content: jest.fn(() => <div>Mocked Content</div>),
-  },
-}));
+describe('NotificationsList States', () => {
+  const mockNotifSlice = mockNotificationsWithMetaData.slice(0, 1);
+  const itemIds = mockNotifSlice
+    .map(({ notification }) =>
+      NotificationMenuViewSelectorsIDs.ITEM(notification.id),
+    )
+    .slice(0, 1);
+  const statesTests = [
+    {
+      type: 'loading',
+      elemsRendered: [TEST_IDS.loadingContainer],
+      elemsNotRendered: [
+        NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER,
+        ...itemIds,
+      ],
+    },
+    {
+      type: 'empty',
+      elemsRendered: [NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER],
+      elemsNotRendered: [TEST_IDS.loadingContainer, ...itemIds],
+    },
+    {
+      type: 'data',
+      elemsRendered: [...itemIds],
+      elemsNotRendered: [
+        TEST_IDS.loadingContainer,
+        NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER,
+      ],
+    },
+  ] as const;
 
-function arrangeActions() {
-  const mockMarkNotificationAsRead = jest
-    .spyOn(Actions, 'markNotificationsAsRead')
-    .mockResolvedValue(undefined);
+  it.each(statesTests)(
+    'renders correct list state - $type',
+    ({ type, elemsRendered, elemsNotRendered }) => {
+      const getTestState = () => {
+        if (type === 'loading') {
+          return { allNotifications: [], loading: true };
+        }
+        if (type === 'empty') {
+          return { allNotifications: [], loading: false };
+        }
+        if (type === 'data') {
+          return {
+            allNotifications: mockNotifSlice.map((n) => n.notification),
+            loading: false,
+          };
+        }
+        throw new Error('TEST FAIL - NO TEST STATE FOUND');
+      };
 
-  return {
-    mockMarkNotificationAsRead,
-  };
-}
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <NotificationsList navigation={mockNavigation} {...getTestState()} />,
+      );
 
-describe('NotificationsList', () => {
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <NotificationsList
-        navigation={mockNavigation}
-        allNotifications={MOCK_NOTIFICATIONS}
-        walletNotifications={[MOCK_NOTIFICATIONS[1]]}
-        web3Notifications={[MOCK_NOTIFICATIONS[0]]}
-        loading
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
+      elemsRendered.forEach((id) => {
+        expect(getByTestId(id)).toBeOnTheScreen();
+      });
 
-  it('renders empty state', () => {
-    const { toJSON } = renderWithProvider(
-      <NotificationsList
-        navigation={mockNavigation}
-        allNotifications={[]}
-        walletNotifications={[]}
-        web3Notifications={[]}
-        loading={false}
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
+      elemsNotRendered.forEach((id) => {
+        expect(queryByTestId(id)).not.toBeOnTheScreen();
+      });
+    },
+  );
+});
 
-  it('derives notificationState correctly based on notification type', () => {
-    const notification = MOCK_NOTIFICATIONS[2];
-    if (!hasNotificationComponents(notification.type)) {
-      throw new Error('Test Setup Failure - incorrect mock');
-    }
-
-    const notifState = NotificationComponentState[notification.type];
-    const mockCreateMenuItem = jest.spyOn(notifState, 'createMenuItem');
-
-    renderWithProvider(
+describe('NotificationsListItem', () => {
+  it('returns null on invalid notification', () => {
+    const { root } = renderWithProvider(
       <NotificationsListItem
-        notification={MOCK_NOTIFICATIONS[2]}
         navigation={mockNavigation}
+        notification={
+          { type: 'Invalid-Notification' } as unknown as INotification
+        }
       />,
     );
-
-    expect(mockCreateMenuItem).toHaveBeenCalledWith(MOCK_NOTIFICATIONS[2]);
+    expect(root).toBeUndefined();
   });
+
+  it('returns null on unsupported eth_sent and eth_received notifications', () => {
+    const invalidNotifications = [
+      processNotification(createMockNotificationEthSent()),
+      processNotification(createMockNotificationEthReceived()),
+    ].map((n) => {
+      if (
+        n.type === TRIGGER_TYPES.ETH_SENT ||
+        n.type === TRIGGER_TYPES.ETH_RECEIVED
+      ) {
+        n.payload.chain_id = 123; // unsupported chainId
+      }
+
+      return n;
+    });
+
+    invalidNotifications.forEach((n) => {
+      const { root } = renderWithProvider(
+        <NotificationsListItem navigation={mockNavigation} notification={n} />,
+      );
+      expect(root).toBeUndefined();
+    });
+  });
+
+  it('returns null on unsupported erc20_sent and erc20_received notifications', () => {
+    const invalidNotifications = [
+      processNotification(createMockNotificationERC20Sent()),
+      processNotification(createMockNotificationERC20Received()),
+    ].map((n) => {
+      if (
+        n.type === TRIGGER_TYPES.ERC20_SENT ||
+        n.type === TRIGGER_TYPES.ERC20_RECEIVED
+      ) {
+        n.payload.chain_id = 123; // unsupported chainId
+      }
+
+      return n;
+    });
+
+    invalidNotifications.forEach((n) => {
+      const { root } = renderWithProvider(
+        <NotificationsListItem navigation={mockNavigation} notification={n} />,
+      );
+      expect(root).toBeUndefined();
+    });
+  });
+
+  it.each(mockNotificationsWithMetaData)(
+    'renders notification menu item - $type',
+    ({ notification }) => {
+      const { getByTestId } = renderWithProvider(
+        <NotificationsListItem
+          navigation={mockNavigation}
+          notification={notification}
+        />,
+      );
+
+      expect(
+        getByTestId(NotificationMenuViewSelectorsIDs.ITEM(notification.id)),
+      ).toBeOnTheScreen();
+    },
+  );
 });
 
 describe('useNotificationOnClick', () => {
   const arrangeMocks = () => {
-    const { mockMarkNotificationAsRead } = arrangeActions();
-    const mockGetBadgeCount = jest
-      .mocked(NotificationsService.getBadgeCount)
-      .mockResolvedValue(1);
-    const mockDecrementBadgeCount = jest.mocked(
-      NotificationsService.decrementBadgeCount,
-    );
-    const mockSetBadgeConut = jest.mocked(NotificationsService.setBadgeCount);
+    const mockMarkNotificationAsRead = jest.fn();
+    jest
+      .spyOn(UseNotificationsModule, 'useMarkNotificationAsRead')
+      .mockReturnValue({
+        loading: false,
+        markNotificationAsRead: mockMarkNotificationAsRead,
+      });
 
     return {
       mockMarkNotificationAsRead,
-      mockGetBadgeCount,
-      mockDecrementBadgeCount,
-      mockSetBadgeConut,
       mockTrackEvent,
-      mockNavigation: createNavigationProps({}).navigation as jest.MockedObject<
-        NavigationProp<ParamListBase>
-      >,
+      mockNavigation: createNavigationProps({}).navigation,
     };
   };
 
@@ -150,28 +204,22 @@ describe('useNotificationOnClick', () => {
     jest.clearAllMocks();
   });
 
-  it('call correct logic, and invoke navigation + events', async () => {
-    const mocks = arrangeMocks();
-    const hook = renderHook(() =>
-      useNotificationOnClick({ navigation: mocks.mockNavigation }),
-    );
-    const notification = processNotification(createMockNotificationEthSent());
+  it.each(mockNotificationsWithMetaData)(
+    'invokes click callback and attempts navigation for notification - $type',
+    async ({ notification, hasModal }) => {
+      const mocks = arrangeMocks();
+      const hook = renderHook(() =>
+        useNotificationOnClick({ navigation: mocks.mockNavigation }),
+      );
+      await act(() => hook.result.current.onNotificationClick(notification));
+      expect(mocks.mockMarkNotificationAsRead).toHaveBeenCalled();
+      expect(mocks.mockTrackEvent).toHaveBeenCalled();
 
-    await act(() => hook.result.current(notification));
-
-    // Assert - Controller Action
-    expect(mocks.mockMarkNotificationAsRead).toHaveBeenCalledWith([
-      expect.objectContaining({ id: notification.id }),
-    ]);
-
-    // Assert - Page Navigation
-    expect(mocks.mockNavigation.navigate).toHaveBeenCalled();
-
-    // Assert - Badge Update
-    expect(mocks.mockGetBadgeCount).toHaveBeenCalled();
-    expect(mocks.mockDecrementBadgeCount).toHaveBeenCalled();
-
-    // Assert - Event Fired
-    expect(mocks.mockTrackEvent).toHaveBeenCalled();
-  });
+      if (hasModal) {
+        expect(mocks.mockNavigation.navigate).toHaveBeenCalled();
+      } else {
+        expect(mocks.mockNavigation.navigate).not.toHaveBeenCalled();
+      }
+    },
+  );
 });
