@@ -45,7 +45,7 @@ describe('TrendingTokensSkeleton', () => {
       const logoSkeleton = skeletons[0];
 
       expect(logoSkeleton.props.style).toEqual([
-        { height: 44, width: 44 },
+        { height: 40, width: 40 },
         { borderRadius: 100 },
       ]);
     });

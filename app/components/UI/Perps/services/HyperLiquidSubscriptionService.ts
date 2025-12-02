@@ -1189,7 +1189,7 @@ export class HyperLiquidSubscriptionService {
                   : undefined,
               }));
 
-              callback(orderFills);
+              callback(orderFills, data.isSnapshot);
             },
           ),
         )
@@ -1865,7 +1865,14 @@ export class HyperLiquidSubscriptionService {
    * @returns Cleanup function to unsubscribe
    */
   public subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
-    const { symbol, levels = 10, nSigFigs = 5, callback, onError } = params;
+    const {
+      symbol,
+      levels = 10,
+      nSigFigs = 5,
+      mantissa,
+      callback,
+      onError,
+    } = params;
 
     this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
@@ -1885,7 +1892,7 @@ export class HyperLiquidSubscriptionService {
     let cancelled = false;
 
     subscriptionClient
-      .l2Book({ coin: symbol, nSigFigs }, (data: L2BookResponse) => {
+      .l2Book({ coin: symbol, nSigFigs, mantissa }, (data: L2BookResponse) => {
         if (cancelled || data?.coin !== symbol || !data?.levels) {
           return;
         }
