@@ -1,9 +1,9 @@
 import { ensureValidState, addFailoverUrlToNetworkConfiguration } from './util';
 
 const monadChainId = '0x8f';
-const migrationVersion = 108;
+const migrationVersion = 109;
 /**
- * Migration 108: Add failoverUrls to Monad network configuration
+ * Migration 109: Add failoverUrls to Monad network configuration
  *
  * This migration adds failoverUrls to the Monad network configuration
  * to ensure that the app can connect to the Monad network even if the

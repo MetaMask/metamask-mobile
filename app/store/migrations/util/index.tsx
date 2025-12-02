@@ -110,9 +110,15 @@ export function addFailoverUrlToNetworkConfiguration(
 ): unknown {
   try {
     // Validate if the NetworkController state exists and has the expected structure.
+    if (!isObject(state)) {
+      return state;
+    }
+
     if (
       !hasProperty(state, 'engine') ||
+      !isObject(state.engine) ||
       !hasProperty(state.engine, 'backgroundState') ||
+      !isObject(state.engine.backgroundState) ||
       !hasProperty(state.engine.backgroundState, 'NetworkController')
     ) {
       captureException(
@@ -185,13 +191,18 @@ export function addFailoverUrlToNetworkConfiguration(
       return state;
     }
 
-    if (
-      !hasProperty(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId[chainId],
-        'rpcEndpoints',
-      )
-    ) {
+    const networkConfigValue =
+      state.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId[chainId];
+
+    if (!isObject(networkConfigValue)) {
+      return state;
+    }
+
+    // TypeScript type assertion after validation
+    const networkConfig = networkConfigValue as Record<string, unknown>;
+
+    if (!hasProperty(networkConfig, 'rpcEndpoints')) {
       captureException(
         new Error(
           `Migration ${migrationVersion}: Invalid ${networkName} network configuration: missing rpcEndpoints property`,
@@ -200,27 +211,18 @@ export function addFailoverUrlToNetworkConfiguration(
       return state;
     }
 
-    if (
-      !Array.isArray(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId[chainId].rpcEndpoints,
-      )
-    ) {
+    if (!Array.isArray(networkConfig.rpcEndpoints)) {
       captureException(
         new Error(
-          `Migration ${migrationVersion}: Invalid ${networkName} network rpcEndpoints: expected array, got '${typeof state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[chainId].rpcEndpoints}'`,
+          `Migration ${migrationVersion}: Invalid ${networkName} network rpcEndpoints: expected array, got '${typeof networkConfig.rpcEndpoints}'`,
         ),
       );
       return state;
     }
 
     // Update RPC endpoints to add failover URL if needed
-    state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-      chainId
-    ].rpcEndpoints =
-      state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-        chainId
-      ].rpcEndpoints.map((rpcEndpoint: unknown) => {
+    networkConfig.rpcEndpoints = networkConfig.rpcEndpoints.map(
+      (rpcEndpoint: unknown) => {
         // Skip if endpoint is not an object or doesn't have a url property
         if (
           !isObject(rpcEndpoint) ||
@@ -250,7 +252,8 @@ export function addFailoverUrlToNetworkConfiguration(
         }
 
         return rpcEndpoint;
-      });
+      },
+    );
 
     return state;
   } catch (error) {
