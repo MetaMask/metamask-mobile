@@ -1,10 +1,10 @@
 import React, { View } from 'react-native';
-import { useStyles } from '../../../../hooks/useStyles';
+import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './MusdConversionCta.styles';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonSize,
@@ -14,21 +14,23 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../../constants/musd';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+} from '../../../constants/musd';
+import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { useMemo } from 'react';
-import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
-import { useMusdConversion } from '../../hooks/useMusdConversion';
+import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
+import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import { RampIntent } from '../../../Ramp/types';
-import { strings } from '../../../../../../locales/i18n';
-import { EARN_TEST_IDS } from '../../constants/testIds';
+import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
+import { RampIntent } from '../../../../Ramp/types';
+import { strings } from '../../../../../../../locales/i18n';
+import { EARN_TEST_IDS } from '../../../constants/testIds';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import Logger from '../../../../../util/Logger';
+import Routes from '../../../../../../constants/navigation/Routes';
+import Logger from '../../../../../../util/Logger';
 
+// TODO: Rename to MusdConversionAssetListCta
+// We need to differentiate between the CTA that shows on the asset list and the one that shows on the asset overview.
 const MusdConversionCta = () => {
   const { styles } = useStyles(styleSheet, {});
 

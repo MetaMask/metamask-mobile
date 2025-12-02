@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 
-jest.mock('../../hooks/useMusdConversionTokens');
-jest.mock('../../hooks/useMusdConversion');
-jest.mock('../../../Ramp/hooks/useRampNavigation');
-jest.mock('../../../../../util/Logger');
+jest.mock('../../../hooks/useMusdConversionTokens');
+jest.mock('../../../hooks/useMusdConversion');
+jest.mock('../../../../Ramp/hooks/useRampNavigation');
+jest.mock('../../../../../../util/Logger');
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'earn.musd_conversion.buy_musd': 'Buy mUSD',
@@ -27,18 +27,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import MusdConversionCta from './MusdConversionCta';
-import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
-import { useMusdConversion } from '../../hooks/useMusdConversion';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import MusdConversionCta from '.';
+import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
+import { useMusdConversion } from '../../../hooks/useMusdConversion';
+import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../../constants/musd';
-import { EARN_TEST_IDS } from '../../constants/testIds';
-import initialRootState from '../../../../../util/test/initial-root-state';
-import Logger from '../../../../../util/Logger';
+} from '../../../constants/musd';
+import { EARN_TEST_IDS } from '../../../constants/testIds';
+import initialRootState from '../../../../../../util/test/initial-root-state';
+import Logger from '../../../../../../util/Logger';
 
 const mockToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
