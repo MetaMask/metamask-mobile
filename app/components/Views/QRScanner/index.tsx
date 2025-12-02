@@ -6,7 +6,6 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-import { CaipChainId } from '@metamask/utils';
 import {
   isTronAddress,
   isBtcMainnetAddress,
@@ -55,7 +54,6 @@ import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 import { ChainType } from '../confirmations/utils/send';
 ///: END:ONLY_INCLUDE_IF
 import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
@@ -96,19 +94,6 @@ const QRScanner = ({
   );
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // Hook for handling non-EVM asset sending (Solana, Bitcoin, etc.)
-  const {
-    sendNonEvmAsset,
-  }: { sendNonEvmAsset: (location: string) => Promise<boolean> } =
-    useSendNonEvmAsset({
-      asset: {
-        chainId: currentChainId as CaipChainId,
-        address: undefined,
-      },
-    });
-  ///: END:ONLY_INCLUDE_IF
 
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -443,93 +428,63 @@ const QRScanner = ({
           setIsCameraActive(false);
 
           ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          // Try non-EVM first (Solana, Bitcoin, Tron, etc.), if handled, return early
+          // Handle non-EVM addresses (Solana, Bitcoin, Tron)
+          // Directly navigate with predefinedRecipient instead of using sendNonEvmAsset
+          // to avoid double navigation (sendNonEvmAsset navigates without recipient,
+          // then we navigate again with recipient, causing flickering)
           if (isSolana) {
-            const wasHandledAsNonEvm = await sendNonEvmAsset(
-              InitSendLocation.QRScanner,
-            );
-
-            if (wasHandledAsNonEvm) {
-              // Close QR scanner modal first
-              end();
-
-              // Navigate to send flow after modal closes
-              InteractionManager.runAfterInteractions(() => {
-                navigateToSendPage({
-                  location: InitSendLocation.QRScanner,
-                  predefinedRecipient: {
-                    address: content,
-                    chainType: ChainType.SOLANA,
-                  },
-                });
-              });
-
-              return;
-            }
-
-            // Solana address was not handled by sendNonEvmAsset, show error
-            showAlertForInvalidAddress();
+            // Close QR scanner modal first
             end();
+
+            // Navigate to send flow after modal closes
+            InteractionManager.runAfterInteractions(() => {
+              navigateToSendPage({
+                location: InitSendLocation.QRScanner,
+                predefinedRecipient: {
+                  address: content,
+                  chainType: ChainType.SOLANA,
+                },
+              });
+            });
+
             return;
           }
 
           // Handle Tron addresses
           if (isTron) {
-            const wasHandledAsNonEvm = await sendNonEvmAsset(
-              InitSendLocation.QRScanner,
-            );
-
-            if (wasHandledAsNonEvm) {
-              // Close QR scanner modal first
-              end();
-
-              // Navigate to send flow after modal closes
-              InteractionManager.runAfterInteractions(() => {
-                navigateToSendPage({
-                  location: InitSendLocation.QRScanner,
-                  predefinedRecipient: {
-                    address: content,
-                    chainType: ChainType.TRON,
-                  },
-                });
-              });
-
-              return;
-            }
-
-            // Tron address was not handled by sendNonEvmAsset, show error
-            showAlertForInvalidAddress();
+            // Close QR scanner modal first
             end();
+
+            // Navigate to send flow after modal closes
+            InteractionManager.runAfterInteractions(() => {
+              navigateToSendPage({
+                location: InitSendLocation.QRScanner,
+                predefinedRecipient: {
+                  address: content,
+                  chainType: ChainType.TRON,
+                },
+              });
+            });
+
             return;
           }
 
           // Handle Bitcoin addresses
           if (isBitcoin) {
-            const wasHandledAsNonEvm = await sendNonEvmAsset(
-              InitSendLocation.QRScanner,
-            );
-
-            if (wasHandledAsNonEvm) {
-              // Close QR scanner modal first
-              end();
-
-              // Navigate to send flow after modal closes
-              InteractionManager.runAfterInteractions(() => {
-                navigateToSendPage({
-                  location: InitSendLocation.QRScanner,
-                  predefinedRecipient: {
-                    address: content,
-                    chainType: ChainType.BITCOIN,
-                  },
-                });
-              });
-
-              return;
-            }
-
-            // Bitcoin address was not handled by sendNonEvmAsset, show error
-            showAlertForInvalidAddress();
+            // Close QR scanner modal first
             end();
+
+            // Navigate to send flow after modal closes
+            InteractionManager.runAfterInteractions(() => {
+              navigateToSendPage({
+                location: InitSendLocation.QRScanner,
+                predefinedRecipient: {
+                  address: content,
+                  chainType: ChainType.BITCOIN,
+                },
+              });
+            });
+
             return;
           }
           ///: END:ONLY_INCLUDE_IF
@@ -575,9 +530,6 @@ const QRScanner = ({
         // Checking if it can be handled like deeplinks
         const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          // TODO: Check is pop is still valid.
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onHandled: () => {
             const stackNavigation = navigation as {
               pop?: (count: number) => void;
@@ -676,9 +628,6 @@ const QRScanner = ({
       nativeCurrency,
       trackEvent,
       createEventBuilder,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      sendNonEvmAsset,
-      ///: END:ONLY_INCLUDE_IF
     ],
   );
 

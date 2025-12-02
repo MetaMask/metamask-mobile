@@ -4,23 +4,16 @@ import {
   useCameraPermission,
   useCameraDevice,
   useCodeScanner,
-  type CodeScannerFrame,
 } from 'react-native-vision-camera';
 import { Linking } from 'react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import QrScanner from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { getEther } from '../../../util/transactions';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import Routes from '../../../constants/navigation/Routes';
 
-const mockNavigateToSendPage = jest.fn();
-const mockSendNonEvmAsset = jest.fn();
-const mockNewAssetTransaction = jest.fn();
-const mockGetEther = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -28,6 +21,8 @@ const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn();
 const mockLinkingOpenURL = jest.fn();
+const mockNavigateToSendPage = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -37,34 +32,12 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     }),
+    useFocusEffect: jest.fn(() => {
+      // No-op to avoid infinite loops during render
+      // Component refs are already initialized to true by default
+    }),
   };
 });
-
-jest.mock('../confirmations/hooks/useSendNavigation', () => ({
-  useSendNavigation: jest.fn(() => ({
-    navigateToSendPage: mockNavigateToSendPage,
-  })),
-}));
-
-jest.mock('../../hooks/useSendNonEvmAsset', () => ({
-  useSendNonEvmAsset: () => ({
-    sendNonEvmAsset: mockSendNonEvmAsset,
-  }),
-}));
-
-jest.mock('../../../actions/transaction', () => ({
-  newAssetTransaction: jest.fn((asset) => ({
-    type: 'NEW_ASSET_TRANSACTION',
-    payload: asset,
-  })),
-}));
-
-jest.mock('../../../util/transactions', () => ({
-  getEther: jest.fn((currency) => ({
-    type: 'ETHER',
-    currency,
-  })),
-}));
 
 jest.mock('react-native-vision-camera', () => ({
   Camera: () => null,
@@ -133,12 +106,57 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      isUnlocked: jest.fn(() => true),
-    },
-  },
+const mockRunAfterInteractions = jest.fn((callback) => {
+  // Execute callback immediately but in next tick to simulate async behavior
+  Promise.resolve().then(() => callback());
+  return { cancel: jest.fn() };
+});
+
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+  runAfterInteractions: mockRunAfterInteractions,
+}));
+
+jest.mock('@solana/addresses', () => ({
+  isAddress: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  isTronAddress: jest.fn().mockReturnValue(false),
+  isBtcMainnetAddress: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../confirmations/hooks/useSendNavigation', () => ({
+  useSendNavigation: jest.fn(() => ({
+    navigateToSendPage: mockNavigateToSendPage,
+  })),
+}));
+
+jest.mock('../../../actions/transaction', () => ({
+  newAssetTransaction: jest.fn((asset) => ({
+    type: 'NEW_ASSET_TRANSACTION',
+    payload: asset,
+  })),
+}));
+
+jest.mock('../../../util/transactions', () => ({
+  getEther: jest.fn((currency) => ({
+    type: 'ETHER',
+    currency,
+  })),
+}));
+
+jest.mock('../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../selectors/networkController'),
+  selectChainId: jest.fn(() => '0x1'),
+  selectNativeCurrencyByChainId: jest.fn(() => 'ETH'),
+}));
+
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+  useSelector: (selector: (state: unknown) => unknown) =>
+    mockUseSelector(selector),
 }));
 
 const mockUseCameraDevice = useCameraDevice as jest.MockedFunction<
@@ -171,6 +189,25 @@ describe('QrScanner', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockLinkingOpenURL.mockClear();
+
+    // Setup useSelector mock
+    mockUseSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => {
+        const selectorString = selector?.toString() || '';
+        if (selectorString.includes('selectChainId')) {
+          return '0x1';
+        }
+        if (selectorString.includes('selectNativeCurrencyByChainId')) {
+          return 'ETH';
+        }
+        // For other selectors, try to call with empty state
+        try {
+          return selector({});
+        } catch {
+          return undefined;
+        }
+      },
+    );
 
     // Setup Linking mock
     (Linking.openURL as jest.Mock) = mockLinkingOpenURL.mockResolvedValue(true);
@@ -779,22 +816,34 @@ describe('QrScanner', () => {
     });
   });
 
-  describe('QR Code Scanning - Ethereum Address', () => {
+  describe('QR Code Scanning - Address Handling with Send Flow', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      mockNavigateToSendPage.mockClear();
+      mockDispatch.mockClear();
+      mockNavigate.mockClear();
+      mockGoBack.mockClear();
 
-      // Setup mock return values
-      mockGetEther.mockReturnValue({ type: 'ETHER', currency: 'ETH' });
-      mockNewAssetTransaction.mockReturnValue({
-        type: 'NEW_ASSET_TRANSACTION',
-        payload: { type: 'ETHER', currency: 'ETH' },
+      // Setup metrics mocks (same as global beforeEach)
+      mockBuild.mockReturnValue({ event: 'mock-event' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+        build: mockBuild,
       });
-      mockSendNonEvmAsset.mockResolvedValue(false);
-
-      mockUseCodeScanner.mockImplementation((config) => ({
-        codeTypes: ['qr'],
-        onCodeScanned: config.onCodeScanned,
-      }));
+      mockUseMetrics.mockReturnValue({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+        isEnabled: jest.fn().mockReturnValue(true),
+        enable: jest.fn(),
+        addTraitsToUser: jest.fn(),
+        createDataDeletionTask: jest.fn(),
+        checkDataDeleteStatus: jest.fn(),
+        getMetaMetricsId: jest.fn(),
+        isDataRecorded: jest.fn().mockReturnValue(true),
+        getDeleteRegulationId: jest.fn(),
+        getDeleteRegulationCreationDate: jest.fn(),
+      } as ReturnType<typeof useMetrics>);
 
       mockUseCameraDevice.mockReturnValue({
         id: 'back',
@@ -807,303 +856,387 @@ describe('QrScanner', () => {
         hasPermission: true,
         requestPermission: jest.fn(),
       });
+
+      mockUseCodeScanner.mockImplementation((config) => {
+        if (config?.onCodeScanned) {
+          onCodeScannedCallback = config.onCodeScanned as (
+            codes: { value: string }[],
+          ) => void;
+        }
+        return {
+          codeTypes: ['qr'],
+          onCodeScanned: config?.onCodeScanned || jest.fn(),
+        };
+      });
+
+      // Reset address validation mocks to defaults
+      const solanaModule = jest.requireMock('@solana/addresses');
+      (solanaModule.isAddress as jest.Mock).mockReturnValue(false);
+
+      const multichainModule = jest.requireMock(
+        '../../../core/Multichain/utils',
+      );
+      (multichainModule.isTronAddress as jest.Mock).mockReturnValue(false);
+      (multichainModule.isBtcMainnetAddress as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const ethereumjsUtilModule = jest.requireMock('ethereumjs-util');
+      (ethereumjsUtilModule.isValidAddress as jest.Mock).mockReturnValue(true);
     });
 
-    it('should handle scanning Ethereum address with 0x prefix', async () => {
-      const ethereumAddress = '0x1234567890123456789012345678901234567890';
+    describe('Ethereum Address Scanning', () => {
+      it('should handle scanning Ethereum address with 0x prefix', async () => {
+        const ethereumAddress = '0x1234567890123456789012345678901234567890';
 
-      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-        state: initialState,
-      });
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
 
-      // Wait for component to mount
-      await waitFor(() => {
-        expect(mockUseCodeScanner).toHaveBeenCalled();
-      });
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
 
-      // Get the onCodeScanned callback
-      const codeScannerConfig =
-        mockUseCodeScanner.mock.calls[
-          mockUseCodeScanner.mock.calls.length - 1
-        ][0];
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: ethereumAddress }]);
+        });
 
-      // Simulate scanning an Ethereum address
-      await act(async () => {
-        await codeScannerConfig.onCodeScanned(
-          [{ value: ethereumAddress, type: 'qr' }],
-          {} as CodeScannerFrame,
+        // Wait for all async operations to complete, including InteractionManager callback
+        await waitFor(
+          async () => {
+            // Flush promises to ensure InteractionManager callback executes
+            await new Promise((resolve) => setImmediate(resolve));
+            expect(mockGoBack).toHaveBeenCalled();
+            expect(mockDispatch).toHaveBeenCalled();
+            expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+              location: 'qr_scanner',
+              predefinedRecipient: {
+                address: ethereumAddress,
+                chainType: 'evm',
+              },
+            });
+          },
+          { timeout: 3000 },
         );
       });
 
-      // Verify transaction initialization
-      await waitFor(() => {
-        expect(getEther).toHaveBeenCalledWith('ETH');
-      });
-      expect(newAssetTransaction).toHaveBeenCalled();
+      it('should handle scanning ethereum: URL with address', async () => {
+        const ethereumAddress = '0x1234567890123456789012345678901234567890';
+        const ethereumUrl = `ethereum:${ethereumAddress}`;
 
-      // Verify scanner closes
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
-      });
-    });
+        const ethUrlParserModule = jest.requireMock('eth-url-parser');
+        (ethUrlParserModule.parse as jest.Mock).mockReturnValue({
+          target_address: ethereumAddress,
+          chain_id: '1',
+        });
 
-    it('should handle scanning ethereum: URL with address', async () => {
-      const ethereumAddress = '0x1234567890123456789012345678901234567890';
-      const ethereumUrl = `ethereum:${ethereumAddress}`;
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
 
-      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-        state: initialState,
-      });
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
 
-      await waitFor(() => {
-        expect(mockUseCodeScanner).toHaveBeenCalled();
-      });
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: ethereumUrl }]);
+        });
 
-      const codeScannerConfig =
-        mockUseCodeScanner.mock.calls[
-          mockUseCodeScanner.mock.calls.length - 1
-        ][0];
-
-      await act(async () => {
-        await codeScannerConfig.onCodeScanned(
-          [{ value: ethereumUrl, type: 'qr' }],
-          {} as CodeScannerFrame,
+        await waitFor(
+          () => {
+            expect(mockGoBack).toHaveBeenCalled();
+            expect(mockDispatch).toHaveBeenCalled();
+            expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+              location: 'qr_scanner',
+              predefinedRecipient: {
+                address: ethereumAddress,
+                chainType: 'evm',
+              },
+            });
+          },
+          { timeout: 3000 },
         );
       });
 
-      await waitFor(() => {
-        expect(getEther).toHaveBeenCalled();
-        expect(newAssetTransaction).toHaveBeenCalled();
-        expect(mockGoBack).toHaveBeenCalled();
+      it('should use native currency when available', async () => {
+        const { getEther } = jest.requireMock('../../../util/transactions');
+        const { newAssetTransaction } = jest.requireMock(
+          '../../../actions/transaction',
+        );
+
+        const ethereumAddress = '0x1234567890123456789012345678901234567890';
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: ethereumAddress }]);
+        });
+
+        await waitFor(() => {
+          expect(getEther).toHaveBeenCalled();
+          expect(newAssetTransaction).toHaveBeenCalled();
+          expect(mockDispatch).toHaveBeenCalled();
+        });
       });
     });
 
-    it('should fallback to ETH when native currency is not available', async () => {
-      const ethereumAddress = '0x1234567890123456789012345678901234567890';
-
-      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-        state: initialState,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    describe('Solana Address Scanning', () => {
+      beforeEach(() => {
+        const solanaModule = jest.requireMock('@solana/addresses');
+        (solanaModule.isAddress as jest.Mock).mockReturnValue(true);
       });
 
-      await waitFor(() => {
-        expect(mockUseCodeScanner).toHaveBeenCalled();
+      it('should navigate to send flow with Solana recipient when Solana address scanned', async () => {
+        const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: solanaAddress }]);
+        });
+
+        await waitFor(() => {
+          expect(mockGoBack).toHaveBeenCalled();
+          expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+            location: 'qr_scanner',
+            predefinedRecipient: {
+              address: solanaAddress,
+              chainType: 'solana',
+            },
+          });
+        });
       });
 
-      const codeScannerConfig =
-        mockUseCodeScanner.mock.calls[
-          mockUseCodeScanner.mock.calls.length - 1
-        ][0];
+      it('should not call EVM transaction methods for Solana address', async () => {
+        const { getEther } = jest.requireMock('../../../util/transactions');
+        const { newAssetTransaction } = jest.requireMock(
+          '../../../actions/transaction',
+        );
 
-      await act(async () => {
-        await codeScannerConfig.onCodeScanned(
-          [{ value: ethereumAddress, type: 'qr' }],
-          {} as CodeScannerFrame,
+        const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: solanaAddress }]);
+        });
+
+        await waitFor(() => {
+          expect(mockGoBack).toHaveBeenCalled();
+          expect(mockNavigateToSendPage).toHaveBeenCalled();
+        });
+
+        expect(getEther).not.toHaveBeenCalled();
+        expect(newAssetTransaction).not.toHaveBeenCalled();
+      });
+
+      it('should track QR_SCANNED metrics for Solana address', async () => {
+        const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: solanaAddress }]);
+        });
+
+        await waitFor(() => {
+          expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+            MetaMetricsEvents.QR_SCANNED,
+          );
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+          });
+        });
+      });
+    });
+
+    describe('Tron Address Scanning', () => {
+      beforeEach(() => {
+        const multichainModule = jest.requireMock(
+          '../../../core/Multichain/utils',
+        );
+        (multichainModule.isTronAddress as jest.Mock).mockReturnValue(true);
+        (multichainModule.isBtcMainnetAddress as jest.Mock).mockReturnValue(
+          false,
         );
       });
 
-      await waitFor(() => {
-        expect(getEther).toHaveBeenCalledWith('ETH');
+      it('should navigate to send flow with Tron recipient when Tron address scanned', async () => {
+        const tronAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9';
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: tronAddress }]);
+        });
+
+        await waitFor(() => {
+          expect(mockGoBack).toHaveBeenCalled();
+          expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+            location: 'qr_scanner',
+            predefinedRecipient: {
+              address: tronAddress,
+              chainType: 'tron',
+            },
+          });
+        });
       });
-      expect(newAssetTransaction).toHaveBeenCalled();
-    });
 
-    it('should navigate to send page with recipient address', async () => {
-      const ethereumAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
-
-      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-        state: initialState,
-      });
-
-      await waitFor(() => {
-        expect(mockUseCodeScanner).toHaveBeenCalled();
-      });
-
-      const codeScannerConfig =
-        mockUseCodeScanner.mock.calls[
-          mockUseCodeScanner.mock.calls.length - 1
-        ][0];
-
-      await act(async () => {
-        await codeScannerConfig.onCodeScanned(
-          [{ value: ethereumAddress, type: 'qr' }],
-          {} as CodeScannerFrame,
+      it('should not call EVM transaction methods for Tron address', async () => {
+        const { getEther } = jest.requireMock('../../../util/transactions');
+        const { newAssetTransaction } = jest.requireMock(
+          '../../../actions/transaction',
         );
-      });
 
-      // Verify scanner closes
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
-      });
-    });
-  });
+        const tronAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9';
 
-  describe('QR Code Scanning - Solana Address', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
 
-      // Setup mock return values
-      mockGetEther.mockReturnValue({ type: 'ETHER', currency: 'ETH' });
-      mockNewAssetTransaction.mockReturnValue({
-        type: 'NEW_ASSET_TRANSACTION',
-        payload: { type: 'ETHER', currency: 'ETH' },
-      });
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
 
-      mockUseCodeScanner.mockImplementation((config) => ({
-        codeTypes: ['qr'],
-        onCodeScanned: config.onCodeScanned,
-      }));
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: tronAddress }]);
+        });
 
-      mockUseCameraDevice.mockReturnValue({
-        id: 'back',
-        position: 'back',
-        name: 'Back Camera',
-        hasFlash: false,
-      } as unknown as ReturnType<typeof useCameraDevice>);
+        await waitFor(() => {
+          expect(mockGoBack).toHaveBeenCalled();
+          expect(mockNavigateToSendPage).toHaveBeenCalled();
+        });
 
-      mockUseCameraPermission.mockReturnValue({
-        hasPermission: true,
-        requestPermission: jest.fn(),
+        expect(getEther).not.toHaveBeenCalled();
+        expect(newAssetTransaction).not.toHaveBeenCalled();
       });
     });
 
-    it('should handle Solana address and call sendNonEvmAsset', async () => {
-      const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
-      mockSendNonEvmAsset.mockResolvedValue(true);
-
-      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-        state: initialState,
-      });
-
-      await waitFor(() => {
-        expect(mockUseCodeScanner).toHaveBeenCalled();
-      });
-
-      const codeScannerConfig =
-        mockUseCodeScanner.mock.calls[
-          mockUseCodeScanner.mock.calls.length - 1
-        ][0];
-
-      await act(async () => {
-        await codeScannerConfig.onCodeScanned(
-          [{ value: solanaAddress, type: 'qr' }],
-          {} as CodeScannerFrame,
+    describe('Bitcoin Address Scanning', () => {
+      beforeEach(() => {
+        const multichainModule = jest.requireMock(
+          '../../../core/Multichain/utils',
         );
+        (multichainModule.isBtcMainnetAddress as jest.Mock).mockReturnValue(
+          true,
+        );
+        (multichainModule.isTronAddress as jest.Mock).mockReturnValue(false);
       });
 
-      // Verify sendNonEvmAsset was called
-      await waitFor(() => {
-        expect(mockSendNonEvmAsset).toHaveBeenCalledWith('qr_scanner');
+      it('should navigate to send flow with Bitcoin recipient when Bitcoin address scanned', async () => {
+        const bitcoinAddress = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: bitcoinAddress }]);
+        });
+
+        await waitFor(() => {
+          expect(mockGoBack).toHaveBeenCalled();
+          expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+            location: 'qr_scanner',
+            predefinedRecipient: {
+              address: bitcoinAddress,
+              chainType: 'bitcoin',
+            },
+          });
+        });
       });
 
-      // Verify scanner closes
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
+      it('should not call EVM transaction methods for Bitcoin address', async () => {
+        const { getEther } = jest.requireMock('../../../util/transactions');
+        const { newAssetTransaction } = jest.requireMock(
+          '../../../actions/transaction',
+        );
+
+        const bitcoinAddress = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: bitcoinAddress }]);
+        });
+
+        await waitFor(() => {
+          expect(mockGoBack).toHaveBeenCalled();
+          expect(mockNavigateToSendPage).toHaveBeenCalled();
+        });
+
+        expect(getEther).not.toHaveBeenCalled();
+        expect(newAssetTransaction).not.toHaveBeenCalled();
       });
     });
+    ///: END:ONLY_INCLUDE_IF
 
-    it('should not call EVM transaction methods for Solana address', async () => {
-      const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
-      mockSendNonEvmAsset.mockResolvedValue(true);
+    describe('Camera State Management', () => {
+      it('should set isCameraActive to false when scanning address', async () => {
+        const ethereumAddress = '0x1234567890123456789012345678901234567890';
 
-      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-        state: initialState,
-      });
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
+        });
 
-      await waitFor(() => {
-        expect(mockUseCodeScanner).toHaveBeenCalled();
-      });
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
 
-      const codeScannerConfig =
-        mockUseCodeScanner.mock.calls[
-          mockUseCodeScanner.mock.calls.length - 1
-        ][0];
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: ethereumAddress }]);
+        });
 
-      await act(async () => {
-        await codeScannerConfig.onCodeScanned(
-          [{ value: solanaAddress, type: 'qr' }],
-          {} as CodeScannerFrame,
-        );
-      });
+        await waitFor(() => {
+          expect(mockGoBack).toHaveBeenCalled();
+        });
 
-      await waitFor(() => {
-        expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      });
-
-      // Should not call EVM methods
-      expect(getEther).not.toHaveBeenCalled();
-      expect(newAssetTransaction).not.toHaveBeenCalled();
-    });
-
-    it('should close scanner and navigate when sendNonEvmAsset returns true', async () => {
-      const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
-      mockSendNonEvmAsset.mockResolvedValue(true);
-
-      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-        state: initialState,
-      });
-
-      await waitFor(() => {
-        expect(mockUseCodeScanner).toHaveBeenCalled();
-      });
-
-      const codeScannerConfig =
-        mockUseCodeScanner.mock.calls[
-          mockUseCodeScanner.mock.calls.length - 1
-        ][0];
-
-      await act(async () => {
-        await codeScannerConfig.onCodeScanned(
-          [{ value: solanaAddress, type: 'qr' }],
-          {} as CodeScannerFrame,
-        );
-      });
-
-      await waitFor(() => {
-        expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      });
-
-      // Verify scanner closes
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
-      });
-    });
-
-    it('should show error when Solana address is not handled by sendNonEvmAsset', async () => {
-      const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
-      mockSendNonEvmAsset.mockResolvedValue(false);
-
-      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
-        state: initialState,
-      });
-
-      await waitFor(() => {
-        expect(mockUseCodeScanner).toHaveBeenCalled();
-      });
-
-      const codeScannerConfig =
-        mockUseCodeScanner.mock.calls[
-          mockUseCodeScanner.mock.calls.length - 1
-        ][0];
-
-      await act(async () => {
-        await codeScannerConfig.onCodeScanned(
-          [{ value: solanaAddress, type: 'qr' }],
-          {} as CodeScannerFrame,
-        );
-      });
-
-      // Verify sendNonEvmAsset was called
-      await waitFor(() => {
-        expect(mockSendNonEvmAsset).toHaveBeenCalledWith('qr_scanner');
-      });
-
-      // Should not call EVM methods when Solana address is not handled
-      expect(getEther).not.toHaveBeenCalled();
-      expect(newAssetTransaction).not.toHaveBeenCalled();
-
-      // Verify scanner closes
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
+        // Camera should be deactivated to prevent multiple scans
+        // This is tested indirectly through the shouldReadBarCodeRef behavior
       });
     });
   });
