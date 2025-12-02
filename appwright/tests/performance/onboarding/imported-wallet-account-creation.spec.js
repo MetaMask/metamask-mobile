@@ -27,7 +27,6 @@ test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
   AddNewHdAccountComponent.device = device;
-  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);

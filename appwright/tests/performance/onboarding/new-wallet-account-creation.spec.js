@@ -22,7 +22,6 @@ test('Account creation after fresh install', async ({
   device,
   performanceTracker,
 }, testInfo) => {
-  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;

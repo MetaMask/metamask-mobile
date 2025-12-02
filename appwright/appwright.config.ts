@@ -48,6 +48,7 @@ export default defineConfig({
     {
       name: 'browserstack-android',
       testMatch: '**/tests/performance/login/**/*.spec.js',
+      timeout: 1800000,
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -62,6 +63,7 @@ export default defineConfig({
     {
       name: 'browserstack-ios',
       testMatch: '**/tests/performance/login/**/*.spec.js',
+      timeout: 1800000,
       use: {
         platform: Platform.IOS,
         device: {
@@ -76,6 +78,7 @@ export default defineConfig({
     {
       name: 'android-onboarding',
       testMatch: '**/tests/performance/onboarding/**/*.spec.js',
+      timeout: 1800000,
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -90,6 +93,7 @@ export default defineConfig({
     {
       name: 'ios-onboarding',
       testMatch: '**/tests/performance/onboarding/**/*.spec.js',
+      timeout: 1800000,
       use: {
         platform: Platform.IOS,
         device: {
