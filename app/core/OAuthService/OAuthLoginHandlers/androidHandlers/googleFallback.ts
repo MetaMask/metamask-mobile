@@ -11,7 +11,6 @@ import {
 } from 'expo-auth-session';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
-import Logger from '../../../../util/Logger';
 
 /**
  * AndroidGoogleFallbackLoginHandlerParams is the params for the Google browser fallback login handler
@@ -76,16 +75,6 @@ export class AndroidGoogleFallbackLoginHandler extends BaseLoginHandler {
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
-    Logger.log(
-      'AndroidGoogleFallbackLoginHandler: Starting browser-based Google OAuth',
-    );
-    Logger.log(
-      `AndroidGoogleFallbackLoginHandler: Using clientId: ${this.clientId}`,
-    );
-    Logger.log(
-      `AndroidGoogleFallbackLoginHandler: Using redirectUri: ${this.redirectUri}`,
-    );
-
     const state = JSON.stringify({
       nonce: this.nonce,
     });
@@ -100,18 +89,11 @@ export class AndroidGoogleFallbackLoginHandler extends BaseLoginHandler {
       state,
     });
 
-    Logger.log(
-      'AndroidGoogleFallbackLoginHandler: Opening browser for OAuth...',
-    );
-
     const result = await authRequest.promptAsync({
       authorizationEndpoint: this.OAUTH_SERVER_URL,
     });
 
     if (result.type === 'success') {
-      Logger.log(
-        'AndroidGoogleFallbackLoginHandler: OAuth successful, got authorization code',
-      );
       return {
         authConnection: this.authConnection,
         code: result.params.code,

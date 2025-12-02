@@ -657,11 +657,7 @@ class Onboarding extends PureComponent {
     this.onPressContinueWithSocialLogin(createWallet, 'google');
 
   handleLoginError = async (error, socialConnectionType, createWallet) => {
-    Logger.log(
-      `handleLoginError called: socialConnectionType=${socialConnectionType}, Platform.OS=${Platform.OS}, error.code=${error?.code}`,
-    );
     if (error instanceof OAuthError) {
-      Logger.log(`handleLoginError: error is OAuthError, code=${error.code}`);
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
         error.code === OAuthErrorType.UserCancelled ||
@@ -675,14 +671,8 @@ class Onboarding extends PureComponent {
         error.code === OAuthErrorType.GoogleLoginNoCredential ||
         error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
       ) {
-        Logger.log(
-          `handleLoginError: Detected NoCredential/NoMatchingCredential error. Platform.OS=${Platform.OS}, socialConnectionType=${socialConnectionType}`,
-        );
         // For Android Google, try browser fallback instead of showing error
         if (Platform.OS === 'android' && socialConnectionType === 'google') {
-          Logger.log(
-            'handleLoginError: Triggering browser fallback for Android Google',
-          );
           try {
             this.props.setLoading();
             const fallbackHandler = createLoginHandler(
@@ -705,25 +695,9 @@ class Onboarding extends PureComponent {
             }, 1000);
             return;
           } catch (fallbackError) {
-            Logger.error(
-              fallbackError,
-              'handleLoginError: Browser fallback also failed',
-            );
             // Continue to show error below
           }
         }
-        // de-escalate google no credential error for other platforms or if fallback failed
-        // const errorMessage = 'google_login_no_credential';
-        // this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        //   screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        //   params: {
-        //     title: strings(`error_sheet.${errorMessage}_title`),
-        //     description: strings(`error_sheet.${errorMessage}_description`),
-        //     descriptionAlign: 'center',
-        //     buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-        //     type: 'error',
-        //   },
-        // });
         return;
       }
       // unexpected oauth login error
