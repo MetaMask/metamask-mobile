@@ -31,7 +31,7 @@ nobleHashesHmac.hmac = (hash, key, message) => {
 // Monkey patch keccak256 from @noble/hashes
 const nobleHashesSha3 = require('@noble/hashes/sha3');
 const originalNobleHashesSha3Keccak256 = nobleHashesSha3.keccak_256;
-nobleHashesSha3.keccak_256 = (value) => {
+const patchedNobleHashesSha3Keccak256 = (value) => {
   try {
     return keccak256(value);
   } catch (error) {
@@ -42,6 +42,12 @@ nobleHashesSha3.keccak_256 = (value) => {
   }
   return originalNobleHashesSha3Keccak256(value);
 };
+// We need to use Object.assign to ensure added properties are not overridden (e.g. keccak_256.create())
+Object.assign(
+  patchedNobleHashesSha3Keccak256,
+  originalNobleHashesSha3Keccak256,
+);
+nobleHashesSha3.keccak_256 = patchedNobleHashesSha3Keccak256;
 
 // Monkey patch keccak256 from js-sha3
 const jsSha3 = require('js-sha3');
