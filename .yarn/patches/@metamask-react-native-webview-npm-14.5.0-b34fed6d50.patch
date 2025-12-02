@@ -152,3 +152,29 @@ index d1459423fe85502017d2b424f61718ce1ae082b1..7fda7cf056af3e7e8904a0e2aa3391dc
          }
  
          if (!pendingPermissions.isEmpty()) {
+diff --git a/apple/RNCWebViewImpl.m b/apple/RNCWebViewImpl.m
+index c3bb7cc41097a39964b56386dbde321f7d52b35a..ebbb771d6bba6182e03f3c96ae8c9ab6514bd4f9 100644
+--- a/apple/RNCWebViewImpl.m
++++ b/apple/RNCWebViewImpl.m
+@@ -973,11 +973,20 @@ -(void)setKeyboardDisplayRequiresUserAction:(BOOL)keyboardDisplayRequiresUserAct
+ }
+ 
+ - (void)downloadBase64File:(NSString *)base64String {
++    // Infer file extension from the data: URL before doing any heavy work.
++    // For generic application/octet-stream payloads we suppress the download
++    // entirely (no "Do you want to download File.bin?" alert), since these
++    // are typically iframe-driven noise rather than user‑initiated downloads.
++    NSString *fileExtension = [self fileExtensionFromBase64String:base64String];
++    if ([[fileExtension lowercaseString] isEqualToString:@"bin"]) {
++        NSLog(@"RNCWebViewImpl: Ignoring generic binary download (File.bin) from data: URL");
++        return;
++    }
++
+     NSArray *components = [base64String componentsSeparatedByString:@","];
+     NSString *base64ContentPart = components.lastObject;
+ 
+     NSData *fileData = [[NSData alloc] initWithBase64EncodedString:base64ContentPart options:NSDataBase64DecodingIgnoreUnknownCharacters];
+-    NSString *fileExtension = [self fileExtensionFromBase64String:base64String];
+     [self showDownloadAlert:fileExtension invokeDownload:^{
+     	NSString *tempFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"File.%@", fileExtension]];
+         [fileData writeToFile:tempFilePath atomically:YES];

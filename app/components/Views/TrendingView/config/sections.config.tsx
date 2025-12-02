@@ -24,13 +24,13 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { filterMarketsByQuery } from '../../../UI/Perps/utils/marketUtils';
+import PredictMarketRowItem from '../../../UI/Predict/components/PredictMarketRowItem';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
 interface SectionData {
   data: unknown[];
   isLoading: boolean;
-  refetch?: () => void;
 }
 
 interface SectionConfig {
@@ -42,12 +42,16 @@ interface SectionConfig {
     item: unknown;
     navigation: NavigationProp<ParamListBase>;
   }>;
+  OverrideRowItemSearch?: React.ComponentType<{
+    item: unknown;
+    navigation: NavigationProp<ParamListBase>;
+  }>;
   Skeleton: React.ComponentType;
   Section: React.ComponentType<{ refreshTrigger?: number }>;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
-    refetch: () => void;
+    refetch: () => Promise<void> | void;
   };
 }
 
@@ -150,6 +154,9 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <Box twClassName="py-2">
         <PredictMarket market={item as PredictMarketType} isCarousel />
       </Box>
+    ),
+    OverrideRowItemSearch: ({ item }) => (
+      <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
     Section: ({ refreshTrigger }) => (
