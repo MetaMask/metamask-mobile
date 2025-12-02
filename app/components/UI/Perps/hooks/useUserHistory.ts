@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { UserHistoryItem, GetUserHistoryParams } from '../controllers/types';
@@ -14,7 +14,7 @@ interface UseUserHistoryResult {
   userHistory: UserHistoryItem[];
   isLoading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => Promise<UserHistoryItem[]>;
 }
 
 /**
@@ -29,7 +29,7 @@ export const useUserHistory = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserHistory = useCallback(async () => {
+  const fetchUserHistory = useCallback(async (): Promise<UserHistoryItem[]> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -53,20 +53,18 @@ export const useUserHistory = ({
 
       DevLogger.log('User history fetched successfully:', history);
       setUserHistory(history);
+      return history;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch user history';
       DevLogger.log('Error fetching user history:', errorMessage);
       setError(errorMessage);
       setUserHistory([]);
+      return [];
     } finally {
       setIsLoading(false);
     }
   }, [startTime, endTime, accountId]);
-
-  useEffect(() => {
-    fetchUserHistory();
-  }, [fetchUserHistory]);
 
   return {
     userHistory,

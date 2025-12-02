@@ -15,6 +15,7 @@ export const CommonSelectorsIDs = {
   NAVBAR_TITLE_NETWORKS_TEXT: 'navbar-title-networks',
   TRANSACTION_STATUS: 'transaction-status',
   ANDROID_PROGRESS_BAR: 'android.widget.ProgressBar',
+  BANNER_CLOSE_BUTTON_ICON: 'banner-close-button-icon',
 };
 
 export const CommonSelectorsText = {

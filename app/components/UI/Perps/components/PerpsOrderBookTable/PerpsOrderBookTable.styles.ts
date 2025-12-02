@@ -8,7 +8,6 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     header: {
       flexDirection: 'row',
-      paddingHorizontal: 16,
       paddingVertical: 8,
       borderBottomWidth: 1,
       borderBottomColor: params.theme.colors.border.muted,
@@ -35,7 +34,6 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     row: {
       flexDirection: 'row',
-      paddingHorizontal: 16,
       paddingVertical: 2,
       position: 'relative',
     },

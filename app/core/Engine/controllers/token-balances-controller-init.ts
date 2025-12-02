@@ -31,6 +31,7 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
       selectAssetsAccountApiBalancesEnabled({
         engine: { backgroundState: persistedState as EngineState },
       }) as `0x${string}`[],
+    platform: 'mobile',
   });
 
   return {
