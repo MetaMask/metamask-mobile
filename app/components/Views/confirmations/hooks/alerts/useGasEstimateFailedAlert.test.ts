@@ -1,4 +1,5 @@
 import {
+  SimulationErrorCode,
   TransactionStatus,
   TransactionType,
   TransactionMeta,
@@ -15,19 +16,31 @@ const MOCK_TRANSACTION_META = {
   status: TransactionStatus.unapproved,
   type: TransactionType.contractInteraction,
   chainId: '0x1',
-  simulationFails: undefined,
+  simulationData: undefined,
 } as unknown as TransactionMeta;
 
-const MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS = {
+const MOCK_TRANSACTION_META_WITH_REVERTED_SIMULATION = {
   id: '2',
   status: TransactionStatus.unapproved,
   type: TransactionType.contractInteraction,
   chainId: '0x1',
-  simulationFails: {
-    reason: 'execution reverted',
-    debug: {
-      blockNumber: '0x123',
-      blockGasLimit: '0x456',
+  simulationData: {
+    error: {
+      code: SimulationErrorCode.Reverted,
+      message: 'execution reverted',
+    },
+  },
+} as unknown as TransactionMeta;
+
+const MOCK_TRANSACTION_META_WITH_OTHER_SIMULATION_ERROR = {
+  id: '3',
+  status: TransactionStatus.unapproved,
+  type: TransactionType.contractInteraction,
+  chainId: '0x1',
+  simulationData: {
+    error: {
+      code: SimulationErrorCode.InvalidResponse,
+      message: 'invalid response',
     },
   },
 } as unknown as TransactionMeta;
@@ -43,9 +56,9 @@ describe('useGasEstimateFailedAlert', () => {
     jest.clearAllMocks();
   });
 
-  it('returns alert when transaction has simulationFails', () => {
+  it('returns alert when simulation is reverted', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(
-      MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
+      MOCK_TRANSACTION_META_WITH_REVERTED_SIMULATION,
     );
 
     const { result } = renderHookWithProvider(() =>
@@ -62,7 +75,7 @@ describe('useGasEstimateFailedAlert', () => {
     });
   });
 
-  it('returns empty array when transaction has no simulationFails', () => {
+  it('returns empty array when simulation has no error', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(MOCK_TRANSACTION_META);
 
     const { result } = renderHookWithProvider(() =>
@@ -82,9 +95,21 @@ describe('useGasEstimateFailedAlert', () => {
     expect(result.current).toEqual([]);
   });
 
+  it('returns empty array when simulation error is not Reverted', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      MOCK_TRANSACTION_META_WITH_OTHER_SIMULATION_ERROR,
+    );
+
+    const { result } = renderHookWithProvider(() =>
+      useGasEstimateFailedAlert(),
+    );
+
+    expect(result.current).toEqual([]);
+  });
+
   it('returns alert with correct message content', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(
-      MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
+      MOCK_TRANSACTION_META_WITH_REVERTED_SIMULATION,
     );
 
     const { result } = renderHookWithProvider(() =>
@@ -98,7 +123,7 @@ describe('useGasEstimateFailedAlert', () => {
 
   it('returns non-blocking alert', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(
-      MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
+      MOCK_TRANSACTION_META_WITH_REVERTED_SIMULATION,
     );
 
     const { result } = renderHookWithProvider(() =>
