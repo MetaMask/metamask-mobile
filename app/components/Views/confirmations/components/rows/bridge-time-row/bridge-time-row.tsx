@@ -13,15 +13,19 @@ import {
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../../utils/transaction';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
+
+const HIDE_BRIDGE_TIME_BY_DEFAULT_TYPES = [TransactionType.musdConversion];
 
 export function BridgeTimeRow() {
   const isLoading = useIsTransactionPayLoading();
   const { estimatedDuration } = useTransactionPayTotals() ?? {};
   const quotes = useTransactionPayQuotes();
   const { payToken } = useTransactionPayToken();
-  const { chainId } = useTransactionMetadataRequest() ?? {};
+  const transactionMetadata = useTransactionMetadataRequest();
 
   const showEstimate = isLoading || Boolean(quotes?.length);
 
@@ -29,11 +33,19 @@ export function BridgeTimeRow() {
     return null;
   }
 
+  const isVisible =
+    !transactionMetadata ||
+    !hasTransactionType(transactionMetadata, HIDE_BRIDGE_TIME_BY_DEFAULT_TYPES);
+
+  if (!isVisible) {
+    return null;
+  }
+
   if (isLoading) {
     return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
 
-  const isSameChain = payToken?.chainId === chainId;
+  const isSameChain = payToken?.chainId === transactionMetadata?.chainId;
   const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
 
   return (
