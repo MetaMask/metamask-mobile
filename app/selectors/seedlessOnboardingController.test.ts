@@ -1,4 +1,7 @@
-import { SeedlessOnboardingControllerState } from '@metamask/seedless-onboarding-controller';
+import {
+  SeedlessOnboardingControllerState,
+  AuthConnection as SeedlessAuthConnection,
+} from '@metamask/seedless-onboarding-controller';
 import { RootState } from '../reducers';
 import { AuthConnection } from '../core/OAuthService/OAuthInterface';
 import {
@@ -69,7 +72,7 @@ describe('Seedless Onboarding Controller Selectors', () => {
     it('returns authConnection when it exists', () => {
       const mockAuthConnection = AuthConnection.Google;
       const mockState = createMockState({
-        authConnection: mockAuthConnection,
+        authConnection: mockAuthConnection as SeedlessAuthConnection,
       });
 
       const result = selectSeedlessOnboardingAuthConnection(mockState);

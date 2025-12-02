@@ -10,7 +10,10 @@ import {
   OAuthLoginResultType,
   LoginHandlerResult,
 } from './OAuthInterface';
-import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import {
+  Web3AuthNetwork,
+  AuthConnection as SeedlessAuthConnection,
+} from '@metamask/seedless-onboarding-controller';
 import {
   AuthConnectionConfig,
   AuthServerUrl,
@@ -139,7 +142,7 @@ export class OAuthService {
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
-          authConnection,
+          authConnection: authConnection as SeedlessAuthConnection,
           authConnectionId: authConnectionConfig.authConnectionId,
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,

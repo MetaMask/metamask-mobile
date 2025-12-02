@@ -538,7 +538,7 @@ const Onboarding = () => {
               }, 1000);
               return;
             } catch (fallbackError) {
-              // Continue to show error below
+              unsetLoading();
             }
           }
           return;
@@ -649,24 +649,25 @@ const Onboarding = () => {
       const action = async () => {
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
-        const result = await OAuthLoginService.handleOAuthLogin(
-          loginHandler,
-          !createWallet,
-        ).catch(async (error: Error) => {
-          unsetLoading();
-          await handleLoginError(error, provider, createWallet);
-          return { type: 'error' as const, error, existingUser: false };
-        });
-        handlePostSocialLogin(
-          result as OAuthLoginResult,
-          createWallet,
-          provider,
-        );
+        try {
+          const result = await OAuthLoginService.handleOAuthLogin(
+            loginHandler,
+            !createWallet,
+          );
+          handlePostSocialLogin(
+            result as OAuthLoginResult,
+            createWallet,
+            provider,
+          );
 
-        // delay unset loading to avoid flash of loading state
-        setTimeout(() => {
+          // delay unset loading to avoid flash of loading state
+          setTimeout(() => {
+            unsetLoading();
+          }, 1000);
+        } catch (error) {
           unsetLoading();
-        }, 1000);
+          await handleLoginError(error as Error, provider, createWallet);
+        }
       };
       handleExistingUser(action);
     },
