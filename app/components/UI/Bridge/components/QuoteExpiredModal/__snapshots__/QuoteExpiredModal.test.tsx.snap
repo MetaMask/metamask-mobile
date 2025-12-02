@@ -248,7 +248,6 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#ffffff",
               "flexDirection": "row",
               "paddingHorizontal": 16,
               "paddingVertical": 20,
