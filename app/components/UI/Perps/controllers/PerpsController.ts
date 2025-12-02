@@ -80,6 +80,7 @@ import type {
   SubscribeAccountParams,
   SubscribeCandlesParams,
   SubscribeOICapsParams,
+  SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -92,6 +93,7 @@ import type {
   WithdrawResult,
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
+  OrderType,
 } from './types';
 import type {
   RemoteFeatureFlagControllerState,
@@ -220,11 +222,33 @@ export type PerpsControllerState = {
     testnet: {
       [marketSymbol: string]: {
         leverage?: number; // Last used leverage for this market
+        orderBookGrouping?: number; // Persisted price grouping for order book
+        // Pending trade configuration (temporary, expires after 5 minutes)
+        pendingConfig?: {
+          amount?: string; // Order size in USD
+          leverage?: number; // Leverage
+          takeProfitPrice?: string; // Take profit price
+          stopLossPrice?: string; // Stop loss price
+          limitPrice?: string; // Limit price (for limit orders)
+          orderType?: OrderType; // Market vs limit
+          timestamp: number; // When the config was saved (for expiration check)
+        };
       };
     };
     mainnet: {
       [marketSymbol: string]: {
         leverage?: number;
+        orderBookGrouping?: number; // Persisted price grouping for order book
+        // Pending trade configuration (temporary, expires after 5 minutes)
+        pendingConfig?: {
+          amount?: string; // Order size in USD
+          leverage?: number; // Leverage
+          takeProfitPrice?: string; // Take profit price
+          stopLossPrice?: string; // Stop loss price
+          limitPrice?: string; // Limit price (for limit orders)
+          orderType?: OrderType; // Market vs limit
+          timestamp: number; // When the config was saved (for expiration check)
+        };
       };
     };
   };
@@ -567,6 +591,26 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getMarketFilterPreferences';
       handler: PerpsController['getMarketFilterPreferences'];
+    }
+  | {
+      type: 'PerpsController:savePendingTradeConfiguration';
+      handler: PerpsController['savePendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getPendingTradeConfiguration';
+      handler: PerpsController['getPendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:clearPendingTradeConfiguration';
+      handler: PerpsController['clearPendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getOrderBookGrouping';
+      handler: PerpsController['getOrderBookGrouping'];
+    }
+  | {
+      type: 'PerpsController:saveOrderBookGrouping';
+      handler: PerpsController['saveOrderBookGrouping'];
     };
 
 /**
@@ -1967,6 +2011,29 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Subscribe to full order book updates with multiple depth levels
+   * Creates a dedicated L2Book subscription for real-time order book data
+   */
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOrderBook(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrderBook', {
+          symbol: params.symbol,
+          levels: params.levels,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
    * Subscribe to live candle updates
    */
   subscribeToCandles(params: SubscribeCandlesParams): () => void {
@@ -2213,9 +2280,130 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
       state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
         leverage,
       };
+    });
+  }
+
+  /**
+   * Save pending trade configuration for a market
+   * This is a temporary configuration that expires after 5 minutes
+   * @param coin - Market symbol
+   * @param config - Pending trade configuration
+   */
+  savePendingTradeConfiguration(
+    coin: string,
+    config: {
+      amount?: string;
+      leverage?: number;
+      takeProfitPrice?: string;
+      stopLossPrice?: string;
+      limitPrice?: string;
+      orderType?: OrderType;
+    },
+  ): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving pending trade configuration', {
+      coin,
+      network,
+      config,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
+      state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
+        pendingConfig: {
+          ...config,
+          timestamp: Date.now(),
+        },
+      };
+    });
+  }
+
+  /**
+   * Get pending trade configuration for a market
+   * Returns undefined if config doesn't exist or has expired (more than 5 minutes old)
+   * @param coin - Market symbol
+   * @returns Pending trade configuration or undefined
+   */
+  getPendingTradeConfiguration(coin: string):
+    | {
+        amount?: string;
+        leverage?: number;
+        takeProfitPrice?: string;
+        stopLossPrice?: string;
+        limitPrice?: string;
+        orderType?: OrderType;
+      }
+    | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const config =
+      this.state.tradeConfigurations[network]?.[coin]?.pendingConfig;
+
+    if (!config) {
+      return undefined;
+    }
+
+    // Check if config has expired (5 minutes = 300,000 milliseconds)
+    const FIVE_MINUTES_MS = 5 * 60 * 1000;
+    const now = Date.now();
+    const age = now - config.timestamp;
+
+    if (age > FIVE_MINUTES_MS) {
+      DevLogger.log('PerpsController: Pending trade config expired', {
+        coin,
+        network,
+        age,
+        timestamp: config.timestamp,
+      });
+      // Clear expired config
+      this.update((state) => {
+        if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
+          delete state.tradeConfigurations[network][coin].pendingConfig;
+        }
+      });
+      return undefined;
+    }
+
+    DevLogger.log('PerpsController: Retrieved pending trade config', {
+      coin,
+      network,
+      config,
+      age,
+    });
+
+    // Return config without timestamp
+    const { timestamp, ...configWithoutTimestamp } = config;
+    return configWithoutTimestamp;
+  }
+
+  /**
+   * Clear pending trade configuration for a market
+   * @param coin - Market symbol
+   */
+  clearPendingTradeConfiguration(coin: string): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Clearing pending trade configuration', {
+      coin,
+      network,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
+        delete state.tradeConfigurations[network][coin].pendingConfig;
+      }
     });
   }
 
@@ -2241,6 +2429,55 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.marketFilterPreferences = optionId;
+    });
+  }
+
+  /**
+   * Get saved order book grouping for a market
+   * @param coin - Market symbol
+   * @returns The saved grouping value or undefined if not set
+   */
+  getOrderBookGrouping(coin: string): number | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const grouping =
+      this.state.tradeConfigurations[network]?.[coin]?.orderBookGrouping;
+
+    if (grouping !== undefined) {
+      DevLogger.log('PerpsController: Retrieved order book grouping', {
+        coin,
+        network,
+        grouping,
+      });
+    }
+
+    return grouping;
+  }
+
+  /**
+   * Save order book grouping for a market
+   * @param coin - Market symbol
+   * @param grouping - Price grouping value
+   */
+  saveOrderBookGrouping(coin: string, grouping: number): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving order book grouping', {
+      coin,
+      network,
+      grouping,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
+      state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
+        orderBookGrouping: grouping,
+      };
     });
   }
 
