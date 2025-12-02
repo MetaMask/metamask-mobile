@@ -7,11 +7,11 @@ import { PredictActivityType, type PredictActivityItem } from '../../types';
 import { usePredictActivity } from '../../hooks/usePredictActivity';
 import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
-import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 
 interface PredictTransactionsViewProps {
   transactions?: unknown[];

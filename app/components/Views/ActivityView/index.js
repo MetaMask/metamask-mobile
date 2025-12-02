@@ -309,7 +309,6 @@ const ActivityView = () => {
                       )}
                       <TextComponent
                         variant={TextVariant.BodyMDMedium}
-                        style={styles.controlButtonText}
                         numberOfLines={1}
                       >
                         {enabledNetworks.length > 1

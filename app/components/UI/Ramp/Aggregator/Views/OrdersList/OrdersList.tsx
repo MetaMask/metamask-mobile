@@ -9,6 +9,7 @@ import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import OrderListItem from '../../components/OrderListItem';
 import createStyles from './OrdersList.styles';
+import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
 import {
   FIAT_ORDER_PROVIDERS,
@@ -19,9 +20,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
-import { Box, ButtonBaseSize } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonSize as ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
@@ -96,7 +99,7 @@ function OrdersList() {
   return (
     <FlatList
       ListHeaderComponent={
-        <Box twClassName="py-2 px-4 bg-default">
+        <Box twClassName="px-4 py-2 bg-default">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
