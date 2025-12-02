@@ -355,6 +355,7 @@ const NetworkMultiSelector = ({
 
         if (
           chainIdForAnalytics &&
+          fromNetworkName !== strings('network_information.unknown_network') &&
           toNetworkName !== strings('network_information.unknown_network')
         ) {
           trackNetworkSwitchedEvent(
