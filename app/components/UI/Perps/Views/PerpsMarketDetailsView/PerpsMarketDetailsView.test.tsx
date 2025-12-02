@@ -1672,7 +1672,7 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Position opened timestamp calculation', () => {
-    it("doesn't fail when timestamp is passed", () => {
+    it('computes position opened timestamp from order fills data', () => {
       // Arrange
       const timestamp = Date.now();
       mockUseHasExistingPosition.mockReturnValue({
