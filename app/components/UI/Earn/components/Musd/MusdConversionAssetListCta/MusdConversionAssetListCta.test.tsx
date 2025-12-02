@@ -28,7 +28,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import MusdConversionCta from '.';
+import MusdConversionAssetListCta from '.';
 import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
@@ -53,7 +53,7 @@ const mockToken = {
   isETH: false,
 };
 
-describe('MusdConversionCta', () => {
+describe('MusdConversionAssetListCta', () => {
   const mockGoToBuy = jest.fn();
   const mockInitiateConversion = jest.fn();
   const mockLoggerError = jest.spyOn(Logger, 'error');
@@ -95,9 +95,12 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByTestId } = renderWithProvider(<MusdConversionCta />, {
-        state: initialRootState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        {
+          state: initialRootState,
+        },
+      );
 
       expect(getByTestId(EARN_TEST_IDS.MUSD.CONVERSION_CTA)).toBeOnTheScreen();
     });
@@ -113,7 +116,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -131,7 +134,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -151,7 +154,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -169,7 +172,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -191,7 +194,7 @@ describe('MusdConversionCta', () => {
     });
 
     it('calls goToBuy with correct ramp intent', () => {
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -203,7 +206,7 @@ describe('MusdConversionCta', () => {
     });
 
     it('does not call initiateConversion when no tokens', () => {
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -225,7 +228,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -260,7 +263,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -290,7 +293,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -321,7 +324,7 @@ describe('MusdConversionCta', () => {
       const testError = new Error('Network error');
       mockInitiateConversion.mockRejectedValue(testError);
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -341,7 +344,7 @@ describe('MusdConversionCta', () => {
       const nonErrorValue = 'string error';
       mockInitiateConversion.mockRejectedValue(nonErrorValue);
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 

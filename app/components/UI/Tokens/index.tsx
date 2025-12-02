@@ -43,7 +43,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
-import MusdConversionCta from '../Earn/components/Musd/MusdConversionCta';
+import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 
 interface TokenListNavigationParamList {
@@ -225,7 +225,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
         <>
-          {isMusdConversionFlowEnabled && <MusdConversionCta />}
+          {isMusdConversionFlowEnabled && <MusdConversionAssetListCta />}
           <TokenList
             tokenKeys={sortedTokenKeys}
             refreshing={refreshing}

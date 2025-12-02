@@ -1,6 +1,6 @@
 import React, { View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './MusdConversionCta.styles';
+import styleSheet from './MusdConversionAssetListCta.styles';
 import Text, {
   TextVariant,
   TextColor,
@@ -31,7 +31,7 @@ import Logger from '../../../../../../util/Logger';
 
 // TODO: Rename to MusdConversionAssetListCta
 // We need to differentiate between the CTA that shows on the asset list and the one that shows on the asset overview.
-const MusdConversionCta = () => {
+const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { goToBuy } = useRampNavigation();
@@ -130,4 +130,4 @@ const MusdConversionCta = () => {
   );
 };
 
-export default MusdConversionCta;
+export default MusdConversionAssetListCta;
