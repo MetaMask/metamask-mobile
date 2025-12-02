@@ -452,7 +452,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: require('../../images/megaeth-testnet-logo.png'),
-  [NETWORK_CHAIN_ID.MEGAETH_TESTNET_V2]: require('../../images/megaeth-testnet-v2-logo.png'),
+  [NETWORK_CHAIN_ID.MEGAETH_TESTNET_V2]: require('../../images/megaeth-testnet-logo.png'),
   [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
   [NETWORK_CHAIN_ID.LUKSO]: require('../../images/lukso.png'),
   [NETWORK_CHAIN_ID.INJECTIVE]: require('../../images/injective.png'),

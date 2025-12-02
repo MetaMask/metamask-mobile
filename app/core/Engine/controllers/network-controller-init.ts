@@ -3,6 +3,7 @@ import {
   getDefaultNetworkControllerState,
   NetworkController,
   NetworkState,
+  RpcEndpointType,
   type NetworkControllerMessenger,
 } from '@metamask/network-controller';
 import { NetworkControllerInitMessenger } from '../messengers/network-controller-messenger';
