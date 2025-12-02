@@ -246,7 +246,6 @@ exports[`GasImpactModal render matches snapshot 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "paddingBottom": 16,
                 "paddingHorizontal": 8,
