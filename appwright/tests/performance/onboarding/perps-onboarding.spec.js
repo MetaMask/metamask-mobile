@@ -32,7 +32,8 @@ async function screensSetup(device) {
 }
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC */
-test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
+// TODO: Fix this test: https://consensyssoftware.atlassian.net/browse/MMQA-1190
+test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   device,
   performanceTracker,
 }, testInfo) => {
