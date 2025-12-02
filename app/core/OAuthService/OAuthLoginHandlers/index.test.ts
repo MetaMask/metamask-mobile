@@ -286,7 +286,7 @@ describe('OAuth login handlers', () => {
           expect(error).toBeInstanceOf(OAuthError);
           expect((error as OAuthError).code).toBe(OAuthErrorType.UserCancelled);
           expect((error as OAuthError).message).toContain(
-            'User cancelled - handleIosGoogleLogin: User cancelled the login process',
+            'User cancelled - IosGoogleLoginHandler: User cancelled the login process',
           );
         }
       });
@@ -303,7 +303,7 @@ describe('OAuth login handlers', () => {
           expect(error).toBeInstanceOf(OAuthError);
           expect((error as OAuthError).code).toBe(OAuthErrorType.UserDismissed);
           expect((error as OAuthError).message).toContain(
-            'User dismissed - handleIosGoogleLogin: User dismissed the login process',
+            'User dismissed - IosGoogleLoginHandler: User dismissed the login process',
           );
         }
       });
