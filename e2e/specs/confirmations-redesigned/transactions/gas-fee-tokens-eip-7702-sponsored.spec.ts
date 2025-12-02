@@ -23,6 +23,7 @@ import {
   TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/transaction-relay-mocks';
 import { RelayStatus } from '../../../../app/util/transactions/transaction-relay';
+import TestHelpers from '../../../helpers';
 
 const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
@@ -150,6 +151,7 @@ const localNodeOptions = [
 ];
 
 const performSendTransaction = async () => {
+  const isAndroid = device.getPlatform() === 'android';
   await loginToApp();
   await device.disableSynchronization();
   await WalletView.tapWalletSendButton();
@@ -161,6 +163,9 @@ const performSendTransaction = async () => {
   await Assertions.expectElementToBeVisible(
     RowComponents.NetworkFeePaidByMetaMask,
   );
+  // Android needs extra delay to avoid element being obscured by bottom toast notifications
+  // eslint-disable-next-line no-restricted-syntax
+  if (isAndroid) await TestHelpers.delay(3000);
   await FooterActions.tapConfirmButton();
   await TabBarComponent.tapActivity();
 };
