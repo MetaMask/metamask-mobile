@@ -2,8 +2,6 @@ import { act } from '@testing-library/react-hooks';
 import { renderHookWithProvider } from '../../../test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as actions from '../../../../actions/onboarding';
-// eslint-disable-next-line import/no-namespace
-import * as userActions from '../../../../actions/user';
 import { useCompletedOnboardingEffect } from './useCompletedOnboardingEffect';
 
 interface ArrangeMocksMetamaskStateOverrides {
@@ -34,12 +32,9 @@ const arrangeMocks = (stateOverrides: ArrangeMocksMetamaskStateOverrides) => {
     'setCompletedOnboarding',
   );
 
-  const mockCheckForDeeplink = jest.spyOn(userActions, 'checkForDeeplink');
-
   return {
     state,
     mockSetCompletedOnboarding,
-    mockCheckForDeeplink,
   };
 };
 
@@ -54,11 +49,10 @@ describe('useCompletedOnboardingEffect', () => {
 
   it('completes onboarding when vault exists but onboarding incomplete', async () => {
     // Arrange
-    const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
-      arrangeMocks({
-        vault: 'mock-vault-data',
-        completedOnboarding: false,
-      });
+    const { state, mockSetCompletedOnboarding } = arrangeMocks({
+      vault: 'mock-vault-data',
+      completedOnboarding: false,
+    });
 
     // Act
     const { rerender } = renderHookWithProvider(
@@ -71,16 +65,14 @@ describe('useCompletedOnboardingEffect', () => {
 
     // Assert
     expect(mockSetCompletedOnboarding).toHaveBeenCalledWith(true);
-    expect(mockCheckForDeeplink).toHaveBeenCalled();
   });
 
   it('skips onboarding completion when vault is missing', async () => {
     // Arrange
-    const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
-      arrangeMocks({
-        vault: undefined,
-        completedOnboarding: false,
-      });
+    const { state, mockSetCompletedOnboarding } = arrangeMocks({
+      vault: undefined,
+      completedOnboarding: false,
+    });
 
     // Act
     const { rerender } = renderHookWithProvider(
@@ -93,16 +85,14 @@ describe('useCompletedOnboardingEffect', () => {
 
     // Assert
     expect(mockSetCompletedOnboarding).not.toHaveBeenCalled();
-    expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
   it('skips onboarding completion when already completed', async () => {
     // Arrange
-    const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
-      arrangeMocks({
-        vault: 'mock-vault-data',
-        completedOnboarding: true,
-      });
+    const { state, mockSetCompletedOnboarding } = arrangeMocks({
+      vault: 'mock-vault-data',
+      completedOnboarding: true,
+    });
 
     // Act
     const { rerender } = renderHookWithProvider(
@@ -115,16 +105,14 @@ describe('useCompletedOnboardingEffect', () => {
 
     // Assert
     expect(mockSetCompletedOnboarding).not.toHaveBeenCalled();
-    expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
   it('skips onboarding completion when vault missing with completed status', async () => {
     // Arrange
-    const { state, mockSetCompletedOnboarding, mockCheckForDeeplink } =
-      arrangeMocks({
-        vault: undefined,
-        completedOnboarding: true,
-      });
+    const { state, mockSetCompletedOnboarding } = arrangeMocks({
+      vault: undefined,
+      completedOnboarding: true,
+    });
 
     // Act
     const { rerender } = renderHookWithProvider(
@@ -137,6 +125,5 @@ describe('useCompletedOnboardingEffect', () => {
 
     // Assert
     expect(mockSetCompletedOnboarding).not.toHaveBeenCalled();
-    expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 });
