@@ -57,7 +57,8 @@ export interface BridgeState {
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
   isSelectingRecipient: boolean;
-  gasIncluded: boolean;
+  isGasIncludedSTXSendBundleSupported: boolean;
+  isGasIncluded7702Supported: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -73,7 +74,8 @@ export const initialState: BridgeState = {
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
   isSelectingRecipient: false,
-  gasIncluded: false,
+  isGasIncludedSTXSendBundleSupported: false,
+  isGasIncluded7702Supported: false,
 };
 
 const name = 'bridge';
@@ -143,8 +145,14 @@ const slice = createSlice({
     setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
       state.isSelectingRecipient = action.payload;
     },
-    setGasIncluded: (state, action: PayloadAction<boolean>) => {
-      state.gasIncluded = action.payload;
+    setIsGasIncludedSTXSendBundleSupported: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.isGasIncludedSTXSendBundleSupported = action.payload;
+    },
+    setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
+      state.isGasIncluded7702Supported = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -404,7 +412,13 @@ export const selectDestAddress = createSelector(
   (bridgeState) => bridgeState.destAddress,
 );
 
-export const selectGasIncluded = (state: RootState) => state.bridge.gasIncluded;
+// Selectors for gas included STX/SendBundle support
+export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
+  state.bridge.isGasIncludedSTXSendBundleSupported;
+
+// Selector for 7702 gas included support
+export const selectIsGasIncluded7702Supported = (state: RootState) =>
+  state.bridge.isGasIncluded7702Supported;
 
 const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
@@ -507,6 +521,34 @@ export const selectIsSwap = createSelector(
     sourceToken.chainId === destToken.chainId,
 );
 
+/**
+ * Selector that returns the gas included quote params for bridge and swap transactions.
+ * Combines isSwap, STX/SendBundle support, and 7702 support to determine the correct
+ * gas included parameters.
+ */
+export const selectGasIncludedQuoteParams = createSelector(
+  [
+    selectIsSwap,
+    selectIsGasIncludedSTXSendBundleSupported,
+    selectIsGasIncluded7702Supported,
+  ],
+  (isSwap, gasIncludedSTXSendBundleSupport, gasIncluded7702Support) => {
+    // If STX send bundle support is true, we favor it over 7702.
+    if (gasIncludedSTXSendBundleSupport) {
+      return { gasIncluded: true, gasIncluded7702: false };
+    }
+
+    // If 7702 support is true, we use it for swap transactions.
+    const gasIncludedWith7702Enabled =
+      Boolean(isSwap) && gasIncluded7702Support;
+
+    return {
+      gasIncluded: gasIncludedWith7702Enabled,
+      gasIncluded7702: gasIncludedWith7702Enabled,
+    };
+  },
+);
+
 export const selectIsEvmSwap = createSelector(
   selectIsSwap,
   selectIsSolanaSwap,
@@ -590,5 +632,6 @@ export const {
   setIsSubmittingTx,
   setBridgeViewMode,
   setIsSelectingRecipient,
-  setGasIncluded,
+  setIsGasIncludedSTXSendBundleSupported,
+  setIsGasIncluded7702Supported,
 } = actions;

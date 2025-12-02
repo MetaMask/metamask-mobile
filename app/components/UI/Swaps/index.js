@@ -46,10 +46,10 @@ import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import {
   setQuotesNavigationsParams,
-  isSwapsNativeAsset,
   isDynamicToken,
   shouldShowMaxBalanceLink,
 } from './utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -62,7 +62,7 @@ import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
-import InfoModal from './components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
@@ -81,16 +81,13 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import AccountSelector from '../Ramp/Aggregator/components/AccountSelector';
 import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
-import {
-  getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 import { selectNetworkImageSourceByChainId } from '../../../selectors/networkInfos';
 import ContextualNetworkPicker from '../ContextualNetworkPicker/ContextualNetworkPicker';
+import { useStablecoinsDefaultSlippage } from '../Bridge/hooks/useStablecoinsDefaultSlippage';
 import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useChainRedirect } from './useChainRedirect';
@@ -723,13 +720,11 @@ function SwapsAmountView({
       contentContainerStyle={styles.screen}
       keyboardShouldPersistTaps="handled"
     >
-      {isRemoveGlobalNetworkSelectorEnabled() ? (
-        <ContextualNetworkPicker
-          networkName={networkName}
-          networkImageSource={networkImageSource}
-          onPress={onNetworkSelectorPress}
-        />
-      ) : null}
+      <ContextualNetworkPicker
+        networkName={networkName}
+        networkImageSource={networkImageSource}
+        onPress={onNetworkSelectorPress}
+      />
       <View style={styles.content}>
         <View style={styles.accountSelector}>
           <AccountSelector />

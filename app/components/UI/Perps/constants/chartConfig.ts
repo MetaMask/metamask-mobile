@@ -70,7 +70,7 @@ export const PERPS_CHART_CONFIG = {
   // Chart zoom configuration
   CANDLE_COUNT: {
     MIN: 10, // Minimum candles to display (zoomed in)
-    DEFAULT: 45, // Default candles to display (detail view)
+    DEFAULT: 30, // Default candles to display (detail view) - reduced from 45 for thicker candle bodies
     FULLSCREEN: 90, // Candles to display in fullscreen landscape mode
     MAX: 250, // Maximum candles to display (zoomed out)
     TOTAL: 500, // Total candles to load in memory (reduced for better performance)

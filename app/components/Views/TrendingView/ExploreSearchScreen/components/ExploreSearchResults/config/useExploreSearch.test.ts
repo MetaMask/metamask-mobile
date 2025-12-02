@@ -24,51 +24,86 @@ const mockPredictionMarkets = [
   { id: '4', title: 'Trump election results' },
 ];
 
-const mockUseTrendingRequest = jest.fn();
-const mockUseSearchRequest = jest.fn();
-const mockUsePerpsMarkets = jest.fn();
-const mockUsePredictMarketData = jest.fn();
+const mockSites = [
+  {
+    id: '1',
+    name: 'Uniswap',
+    url: 'https://uniswap.org',
+    displayUrl: 'uniswap.org',
+  },
+  {
+    id: '2',
+    name: 'OpenSea',
+    url: 'https://opensea.io',
+    displayUrl: 'opensea.io',
+  },
+  { id: '3', name: 'Aave', url: 'https://aave.com', displayUrl: 'aave.com' },
+  {
+    id: '4',
+    name: 'Compound',
+    url: 'https://compound.finance',
+    displayUrl: 'compound.finance',
+  },
+];
 
-jest.mock('../../../../../../UI/Trending/hooks/useTrendingRequest', () => ({
-  useTrendingRequest: () => mockUseTrendingRequest(),
-}));
+let mockTrendingData = mockTrendingTokens;
+let mockTrendingLoading = false;
+let mockPerpsData = mockPerpsMarkets;
+let mockPerpsLoading = false;
+let mockPredictionsData = mockPredictionMarkets;
+let mockPredictionsLoading = false;
+let mockSitesData = mockSites;
+let mockSitesLoading = false;
 
-jest.mock('../../../../../../UI/Trending/hooks/useSearchRequest', () => ({
-  useSearchRequest: () => mockUseSearchRequest(),
-}));
+jest.mock(
+  '../../../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
+  () => ({
+    useTrendingSearch: () => ({
+      data: mockTrendingData,
+      isLoading: mockTrendingLoading,
+      refetch: jest.fn(),
+    }),
+  }),
+);
 
 jest.mock('../../../../../../UI/Perps/hooks/usePerpsMarkets', () => ({
-  usePerpsMarkets: () => mockUsePerpsMarkets(),
+  usePerpsMarkets: () => ({
+    markets: mockPerpsData,
+    isLoading: mockPerpsLoading,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  }),
 }));
 
 jest.mock('../../../../../../UI/Predict/hooks/usePredictMarketData', () => ({
-  usePredictMarketData: () => mockUsePredictMarketData(),
+  usePredictMarketData: () => ({
+    marketData: mockPredictionsData,
+    isFetching: mockPredictionsLoading,
+    refetch: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
+  useSitesData: () => ({
+    sites: mockSitesData,
+    isLoading: mockSitesLoading,
+    refetch: jest.fn(),
+  }),
 }));
 
 describe('useExploreSearch', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockUseTrendingRequest.mockReturnValue({
-      results: mockTrendingTokens,
-      isLoading: false,
-    });
-
-    mockUseSearchRequest.mockReturnValue({
-      results: mockTrendingTokens,
-      isLoading: false,
-    });
-
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: mockPerpsMarkets,
-      isLoading: false,
-    });
-
-    mockUsePredictMarketData.mockReturnValue({
-      marketData: mockPredictionMarkets,
-      isFetching: false,
-    });
+    // Reset to default values
+    mockTrendingData = mockTrendingTokens;
+    mockTrendingLoading = false;
+    mockPerpsData = mockPerpsMarkets;
+    mockPerpsLoading = false;
+    mockPredictionsData = mockPredictionMarkets;
+    mockPredictionsLoading = false;
+    mockSitesData = mockSites;
+    mockSitesLoading = false;
   });
 
   afterEach(() => {
@@ -82,6 +117,7 @@ describe('useExploreSearch', () => {
     expect(result.current.data.tokens).toHaveLength(3);
     expect(result.current.data.perps).toHaveLength(3);
     expect(result.current.data.predictions).toHaveLength(3);
+    expect(result.current.data.sites).toHaveLength(3);
   });
 
   it('returns top 3 items when query contains only whitespace', () => {
@@ -90,115 +126,16 @@ describe('useExploreSearch', () => {
     expect(result.current.data.tokens).toHaveLength(3);
     expect(result.current.data.perps).toHaveLength(3);
     expect(result.current.data.predictions).toHaveLength(3);
+    expect(result.current.data.sites).toHaveLength(3);
   });
 
-  it('filters tokens by symbol when query matches', async () => {
-    const { result, rerender } = renderHook(
-      ({ query }) => useExploreSearch(query),
-      { initialProps: { query: '' } },
-    );
+  it('returns empty arrays when section hooks return no data', async () => {
+    mockTrendingData = [];
+    mockPerpsData = [];
+    mockPredictionsData = [];
+    mockSitesData = [];
 
-    rerender({ query: 'btc' });
-
-    await act(async () => {
-      jest.advanceTimersByTime(200);
-    });
-
-    await waitFor(() => {
-      expect(result.current.data.tokens).toHaveLength(1);
-      expect((result.current.data.tokens[0] as { symbol: string }).symbol).toBe(
-        'BTC',
-      );
-    });
-  });
-
-  it('filters tokens by name when query matches', async () => {
-    const { result, rerender } = renderHook(
-      ({ query }) => useExploreSearch(query),
-      { initialProps: { query: '' } },
-    );
-
-    rerender({ query: 'ethereum' });
-
-    await act(async () => {
-      jest.advanceTimersByTime(200);
-    });
-
-    await waitFor(() => {
-      expect(result.current.data.tokens).toHaveLength(1);
-      expect((result.current.data.tokens[0] as { name: string }).name).toBe(
-        'Ethereum',
-      );
-    });
-  });
-
-  it('performs case insensitive search', async () => {
-    const { result, rerender } = renderHook(
-      ({ query }) => useExploreSearch(query),
-      { initialProps: { query: '' } },
-    );
-
-    rerender({ query: 'BITCOIN' });
-
-    await act(async () => {
-      jest.advanceTimersByTime(200);
-    });
-
-    await waitFor(() => {
-      expect(result.current.data.tokens.length).toBeGreaterThan(0);
-      expect((result.current.data.tokens[0] as { name: string }).name).toBe(
-        'Bitcoin',
-      );
-    });
-  });
-
-  it('filters perps markets by symbol', async () => {
-    const { result, rerender } = renderHook(
-      ({ query }) => useExploreSearch(query),
-      { initialProps: { query: '' } },
-    );
-
-    rerender({ query: 'doge' });
-
-    await act(async () => {
-      jest.advanceTimersByTime(200);
-    });
-
-    await waitFor(() => {
-      expect(result.current.data.perps).toHaveLength(1);
-      expect((result.current.data.perps[0] as { symbol: string }).symbol).toBe(
-        'DOGE-USD',
-      );
-    });
-  });
-
-  it('filters predictions by title', async () => {
-    const { result, rerender } = renderHook(
-      ({ query }) => useExploreSearch(query),
-      { initialProps: { query: '' } },
-    );
-
-    rerender({ query: 'trump' });
-
-    await act(async () => {
-      jest.advanceTimersByTime(200);
-    });
-
-    await waitFor(() => {
-      expect(result.current.data.predictions).toHaveLength(1);
-      expect(
-        (result.current.data.predictions[0] as { title: string }).title,
-      ).toBe('Trump election results');
-    });
-  });
-
-  it('returns empty arrays when no items match query', async () => {
-    const { result, rerender } = renderHook(
-      ({ query }) => useExploreSearch(query),
-      { initialProps: { query: '' } },
-    );
-
-    rerender({ query: 'nonexistent' });
+    const { result } = renderHook(() => useExploreSearch('test'));
 
     await act(async () => {
       jest.advanceTimersByTime(200);
@@ -208,6 +145,7 @@ describe('useExploreSearch', () => {
       expect(result.current.data.tokens).toHaveLength(0);
       expect(result.current.data.perps).toHaveLength(0);
       expect(result.current.data.predictions).toHaveLength(0);
+      expect(result.current.data.sites).toHaveLength(0);
     });
   });
 
@@ -221,63 +159,59 @@ describe('useExploreSearch', () => {
 
     rerender({ query: 'btc' });
 
+    // Before debounce completes, should still show initial count (top 3)
     await act(async () => {
       jest.advanceTimersByTime(100);
     });
 
     expect(result.current.data.tokens.length).toBe(initialTokenCount);
 
+    // After full debounce time, query should be processed
     await act(async () => {
       jest.advanceTimersByTime(100);
     });
 
     await waitFor(() => {
-      expect(result.current.data.tokens.length).toBeLessThan(initialTokenCount);
+      expect(result.current.data.tokens.length).toBeGreaterThan(0);
     });
   });
 
-  it('returns loading states for each section', () => {
-    mockUseTrendingRequest.mockReturnValue({
-      results: [],
-      isLoading: true,
-    });
-
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: [],
-      isLoading: true,
-    });
-
-    mockUsePredictMarketData.mockReturnValue({
-      marketData: [],
-      isFetching: true,
-    });
-
-    const { result } = renderHook(() => useExploreSearch(''));
-
-    expect(result.current.isLoading.tokens).toBe(true);
-    expect(result.current.isLoading.perps).toBe(true);
-    expect(result.current.isLoading.predictions).toBe(true);
-  });
-
-  it('filters across multiple sections simultaneously', async () => {
+  it('shows loading state while debouncing', async () => {
     const { result, rerender } = renderHook(
       ({ query }) => useExploreSearch(query),
       { initialProps: { query: '' } },
     );
 
-    rerender({ query: 'sol' });
+    expect(result.current.isLoading.tokens).toBe(false);
+
+    rerender({ query: 'test' });
+
+    expect(result.current.isLoading.tokens).toBe(true);
+    expect(result.current.isLoading.perps).toBe(true);
+    expect(result.current.isLoading.predictions).toBe(true);
+    expect(result.current.isLoading.sites).toBe(true);
 
     await act(async () => {
       jest.advanceTimersByTime(200);
     });
 
     await waitFor(() => {
-      const hasTokenMatch = result.current.data.tokens.length > 0;
-      const hasPerpsMatch = result.current.data.perps.length > 0;
-      const hasPredictionsMatch = result.current.data.predictions.length > 0;
-
-      expect(hasTokenMatch || hasPerpsMatch || hasPredictionsMatch).toBe(true);
+      expect(result.current.isLoading.tokens).toBe(false);
     });
+  });
+
+  it('aggregates loading states from section hooks', () => {
+    mockTrendingLoading = true;
+    mockPerpsLoading = true;
+    mockPredictionsLoading = true;
+    mockSitesLoading = true;
+
+    const { result } = renderHook(() => useExploreSearch(''));
+
+    expect(result.current.isLoading.tokens).toBe(true);
+    expect(result.current.isLoading.perps).toBe(true);
+    expect(result.current.isLoading.predictions).toBe(true);
+    expect(result.current.isLoading.sites).toBe(true);
   });
 
   it('processes all sections defined in config', () => {
