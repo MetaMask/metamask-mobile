@@ -21,6 +21,9 @@ const DEBOUNCE_INTERVAL_MS = 100;
 // Polling interval for auto-refresh when country is missing (2 seconds)
 const MISSING_COUNTRY_POLLING_INTERVAL_MS = 2000;
 
+// Maximum number of retry attempts when country is missing
+const MISSING_COUNTRY_MAX_RETRIES = 3;
+
 /**
  * Singleton manager to coordinate eligibility refreshes across multiple hook instances.
  * This ensures that only one AppState listener is active and only one refresh happens
@@ -225,19 +228,23 @@ export const usePredictEligibility = ({
 
   // Auto-refresh when country is missing - sequential loading pattern
   // Similar to usePredictOptimisticPositionRefresh
+  // Retries up to MISSING_COUNTRY_MAX_RETRIES times, resets on unmount
   useEffect(() => {
     // Skip if we already have a country
     if (country) return;
 
     let shouldContinue = true;
     let timeoutId: NodeJS.Timeout | null = null;
+    let retryCount = 0;
 
     const pollForCountry = async () => {
       if (!shouldContinue) return;
 
+      retryCount += 1;
+
       DevLogger.log(
         'PredictController: Country missing, auto-refreshing eligibility',
-        { providerId },
+        { providerId, retryCount, maxRetries: MISSING_COUNTRY_MAX_RETRIES },
       );
 
       try {
@@ -249,23 +256,31 @@ export const usePredictEligibility = ({
           'PredictController: Auto-refresh for missing country failed',
           {
             error: error instanceof Error ? error.message : 'Unknown',
+            retryCount,
           },
         );
       }
 
       // After the response (or error), schedule next poll if still active
+      // and we haven't reached max retries
       // Note: The effect will re-run if country becomes available,
       // which will stop the polling due to the early return
-      if (shouldContinue) {
+      if (shouldContinue && retryCount < MISSING_COUNTRY_MAX_RETRIES) {
         timeoutId = setTimeout(() => {
           pollForCountry();
         }, MISSING_COUNTRY_POLLING_INTERVAL_MS);
+      } else if (shouldContinue && retryCount >= MISSING_COUNTRY_MAX_RETRIES) {
+        DevLogger.log(
+          'PredictController: Max retries reached for missing country',
+          { providerId, retryCount },
+        );
       }
     };
 
     pollForCountry();
 
     return () => {
+      // Reset retry count on unmount (retryCount is local to this effect instance)
       shouldContinue = false;
       if (timeoutId) {
         clearTimeout(timeoutId);

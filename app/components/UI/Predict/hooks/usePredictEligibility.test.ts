@@ -740,7 +740,7 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
       expect(mockDevLogger).toHaveBeenCalledWith(
         'PredictController: Country missing, auto-refreshing eligibility',
-        { providerId: 'polymarket' },
+        { providerId: 'polymarket', retryCount: 1, maxRetries: 3 },
       );
     });
 
@@ -772,21 +772,21 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
     });
 
-    it('continues polling while country is missing', async () => {
+    it('continues polling while country is missing up to max retries', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
         polymarket: { eligible: true },
       };
 
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
-      // Wait for initial poll to complete
+      // Wait for initial poll to complete (retry 1)
       await act(async () => {
         await Promise.resolve();
       });
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      // Advance timer to trigger second poll while country is still missing
+      // Advance timer to trigger second poll (retry 2)
       await act(async () => {
         jest.advanceTimersByTime(2000);
         await Promise.resolve();
@@ -794,13 +794,54 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
 
-      // Advance timer to trigger third poll while country is still missing
+      // Advance timer to trigger third poll (retry 3 - max)
       await act(async () => {
         jest.advanceTimersByTime(2000);
         await Promise.resolve();
       });
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
+    });
+
+    it('stops polling after reaching max retries', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      // Complete all 3 retries
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
+
+      // Advance timer again - no more polls should happen
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      // Still 3 calls - no additional polling after max retries
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Max retries reached for missing country',
+        expect.objectContaining({
+          providerId: 'polymarket',
+          retryCount: 3,
+        }),
+      );
     });
 
     it('does not start polling when country is already available', async () => {
@@ -838,6 +879,7 @@ describe('usePredictEligibility', () => {
         'PredictController: Auto-refresh for missing country failed',
         expect.objectContaining({
           error: 'Network error',
+          retryCount: 1,
         }),
       );
 
@@ -868,6 +910,7 @@ describe('usePredictEligibility', () => {
         'PredictController: Auto-refresh for missing country failed',
         expect.objectContaining({
           error: 'Unknown',
+          retryCount: 1,
         }),
       );
     });
