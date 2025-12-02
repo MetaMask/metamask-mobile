@@ -64,7 +64,7 @@ jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'Md' },
 }));
 
-jest.mock('../../Swaps/components/TokenIcon', () => ({
+jest.mock('../../../Base/TokenIcon', () => ({
   __esModule: true,
   default: () => null,
 }));
