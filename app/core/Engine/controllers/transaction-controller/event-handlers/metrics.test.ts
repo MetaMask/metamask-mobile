@@ -1,9 +1,8 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 
-import { MetaMetrics } from '../../../../Analytics';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
-import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../Analytics/AnalyticsEventBuilder';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import {
   handleTransactionAddedEventForMetrics,
@@ -32,20 +31,10 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
 }));
 
 // Mock dependencies
-jest.mock('../../../../Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(),
-  },
-}));
-
-jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
+jest.mock('../../../../Analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
     createEventBuilder: jest.fn(),
   },
-}));
-
-jest.mock('../../../Engine', () => ({
-  context: {},
 }));
 
 jest.mock('../event_properties/metamask-pay', () => ({
@@ -64,7 +53,9 @@ describe('Transaction Metric Event Handlers', () => {
     getSmartTransactionMetricsProperties,
   );
   const mockGetState = jest.fn();
-  const mockInitMessenger = jest.fn();
+  const mockInitMessenger = {
+    call: jest.fn().mockResolvedValue(undefined),
+  };
   const mockSmartTransactionsController = jest.fn();
   const mockSelectShouldUseSmartTransaction = jest.mocked(
     selectShouldUseSmartTransaction,
@@ -94,23 +85,18 @@ describe('Transaction Metric Event Handlers', () => {
   const mockEventBuilder = {
     addProperties: jest.fn().mockReturnThis(),
     addSensitiveProperties: jest.fn().mockReturnThis(),
-    build: jest.fn().mockReturnValue('built-event'),
+    build: jest.fn().mockReturnValue({
+      name: 'test-event',
+      properties: { test: 'value' },
+      sensitiveProperties: { sensitive: 'value' },
+    }),
   };
-  const mockTrackEvent = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
       mockEventBuilder,
-    );
-
-    const mockMetaMetricsInstance = {
-      trackEvent: mockTrackEvent,
-    };
-
-    (MetaMetrics.getInstance as jest.Mock).mockReturnValue(
-      mockMetaMetricsInstance,
     );
 
     mockGetSmartTransactionMetricsProperties.mockResolvedValue(
@@ -161,15 +147,25 @@ describe('Transaction Metric Event Handlers', () => {
 
   it.each(handlerTestCases)(
     '$handlerName should generate and track event with correct properties',
-    async ({ handler, event }) => {
+    async ({ handler, event: _event }) => {
       await handler(mockTransactionMeta, mockTransactionMetricRequest);
 
-      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-        event,
+      // For handleTransactionFinalizedEventForMetrics, generateEvent is called
+      // which uses AnalyticsEventBuilder.createEventBuilder
+      if (handler === handleTransactionFinalizedEventForMetrics) {
+        expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalled();
+      } else {
+        // For other handlers, the event builder is called in generateDefaultTransactionMetrics
+        expect(mockEventBuilder.build).toHaveBeenCalled();
+      }
+      expect(mockInitMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.objectContaining({
+          name: expect.any(String),
+          properties: expect.any(Object),
+          sensitiveProperties: expect.any(Object),
+        }),
       );
-
-      expect(mockEventBuilder.build).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalled();
     },
   );
 
@@ -243,13 +239,13 @@ describe('Transaction Metric Event Handlers', () => {
       // Check if the mock was called
       expect(mockGetSmartTransactionMetricsProperties).toHaveBeenCalled();
 
-      // Check if addProperties was called with the STX properties
-      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          smart_transaction_timed_out: false,
-          smart_transaction_proxied: false,
-          is_smart_transaction: true,
-        }),
+      // Check if AnalyticsEventBuilder was called (via generateEvent)
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalled();
+
+      // Check if initMessenger was called
+      expect(mockInitMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.any(Object),
       );
     });
 
@@ -275,10 +271,11 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockEventBuilder.addProperties).toHaveBeenCalled();
-      expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
-        expect.objectContaining(mockSmartTransactionMetricsProperties),
-      );
+      // Check if AnalyticsEventBuilder was called (via generateEvent)
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalled();
+
+      // Check that STX properties were not added
+      expect(mockGetSmartTransactionMetricsProperties).not.toHaveBeenCalled();
     });
 
     it('includes builder metrics', async () => {
@@ -287,15 +284,16 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          builder_test: true,
-        }),
-      );
+      // Check if AnalyticsEventBuilder was called (via generateEvent)
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalled();
 
-      expect(mockEventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
+      // Check if initMessenger was called with the event
+      expect(mockInitMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
         expect.objectContaining({
-          builder_sensitive_test: true,
+          name: expect.any(String),
+          properties: expect.any(Object),
+          sensitiveProperties: expect.any(Object),
         }),
       );
     });

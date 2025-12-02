@@ -144,7 +144,8 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
 type InitActions =
   | KeyringControllerGetKeyringsByTypeAction
   | PreferencesControllerGetStateAction
-  | SetClientActive;
+  | SetClientActive
+  | 'AnalyticsController:trackEvent';
 
 type InitEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent;
 
@@ -174,6 +175,7 @@ export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
       'KeyringController:getKeyringsByType',
       'PreferencesController:getState',
       'SnapController:setClientActive',
+      'AnalyticsController:trackEvent',
     ],
     events: ['KeyringController:lock', 'KeyringController:unlock'],
     messenger,

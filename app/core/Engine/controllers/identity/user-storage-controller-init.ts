@@ -4,9 +4,10 @@ import {
   UserStorageControllerMessenger,
 } from '@metamask/profile-sync-controller/user-storage';
 import { calculateScryptKey } from './calculate-scrypt-key';
-import { MetaMetrics, MetaMetricsEvents } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { EVENT_NAME } from '../../../Analytics/MetaMetrics.events';
+import { AnalyticsEventBuilder } from '../../../Analytics/AnalyticsEventBuilder';
 import { trace } from '../../../../util/trace';
+import { UserStorageControllerInitMessenger } from '../../messengers/identity/user-storage-controller-messenger';
 
 /**
  * Initialize the user storage controller.
@@ -17,8 +18,9 @@ import { trace } from '../../../../util/trace';
  */
 export const userStorageControllerInit: ControllerInitFunction<
   UserStorageController,
-  UserStorageControllerMessenger
-> = ({ controllerMessenger, persistedState }) => {
+  UserStorageControllerMessenger,
+  UserStorageControllerInitMessenger
+> = ({ controllerMessenger, persistedState, initMessenger }) => {
   const controller = new UserStorageController({
     messenger: controllerMessenger,
 
@@ -33,44 +35,41 @@ export const userStorageControllerInit: ControllerInitFunction<
     config: {
       contactSyncing: {
         onContactUpdated: (profileId) => {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-            )
-              .addProperties({
-                profile_id: profileId,
-                feature_name: 'Contacts Sync',
-                action: 'Contacts Sync Contact Updated',
-              })
-              .build(),
-          );
+          const event = AnalyticsEventBuilder.createEventBuilder(
+            EVENT_NAME.PROFILE_ACTIVITY_UPDATED,
+          )
+            .addProperties({
+              profile_id: profileId,
+              feature_name: 'Contacts Sync',
+              action: 'Contacts Sync Contact Updated',
+            })
+            .build();
+          initMessenger.call('AnalyticsController:trackEvent', event);
         },
         onContactDeleted: (profileId) => {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-            )
-              .addProperties({
-                profile_id: profileId,
-                feature_name: 'Contacts Sync',
-                action: 'Contacts Sync Contact Deleted',
-              })
-              .build(),
-          );
+          const event = AnalyticsEventBuilder.createEventBuilder(
+            EVENT_NAME.PROFILE_ACTIVITY_UPDATED,
+          )
+            .addProperties({
+              profile_id: profileId,
+              feature_name: 'Contacts Sync',
+              action: 'Contacts Sync Contact Deleted',
+            })
+            .build();
+          initMessenger.call('AnalyticsController:trackEvent', event);
         },
         onContactSyncErroneousSituation(profileId, situationMessage) {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-            )
-              .addProperties({
-                profile_id: profileId,
-                feature_name: 'Contacts Sync',
-                action: 'Contacts Sync Erroneous Situation',
-                additional_description: situationMessage,
-              })
-              .build(),
-          );
+          const event = AnalyticsEventBuilder.createEventBuilder(
+            EVENT_NAME.PROFILE_ACTIVITY_UPDATED,
+          )
+            .addProperties({
+              profile_id: profileId,
+              feature_name: 'Contacts Sync',
+              action: 'Contacts Sync Erroneous Situation',
+              additional_description: situationMessage,
+            })
+            .build();
+          initMessenger.call('AnalyticsController:trackEvent', event);
         },
       },
     },

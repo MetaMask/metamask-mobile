@@ -9,10 +9,10 @@ import {
   type SmartTransactionsControllerMessenger,
 } from '@metamask/smart-transactions-controller';
 import { selectSwapsChainFeatureFlags } from '../../../reducers/swaps';
-import { MetaMetrics } from '../../Analytics';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../Analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
+import { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
 
 /**
  * Initialize the smart transactions controller.
@@ -23,8 +23,9 @@ import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTra
  */
 export const smartTransactionsControllerInit: ControllerInitFunction<
   SmartTransactionsController,
-  SmartTransactionsControllerMessenger
-> = ({ controllerMessenger, persistedState, getState }) => {
+  SmartTransactionsControllerMessenger,
+  SmartTransactionsControllerInitMessenger
+> = ({ controllerMessenger, persistedState, getState, initMessenger }) => {
   const trackMetaMetricsEvent = (params: {
     event: MetaMetricsEventName;
     category: MetaMetricsEventCategory;
@@ -33,14 +34,12 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
       typeof getSmartTransactionMetricsSensitiveProperties
     >;
   }) => {
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder({
-        category: params.event,
-      })
-        .addProperties(params.properties || {})
-        .addSensitiveProperties(params.sensitiveProperties || {})
-        .build(),
-    );
+    const event = AnalyticsEventBuilder.createEventBuilder(params.event)
+      .addProperties(params.properties || {})
+      .addSensitiveProperties(params.sensitiveProperties || {})
+      .build();
+
+    initMessenger.call('AnalyticsController:trackEvent', event);
   };
 
   const controller = new SmartTransactionsController({

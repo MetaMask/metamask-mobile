@@ -6,18 +6,19 @@ import {
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
-import { MetaMetrics } from '../../../Analytics';
 import { TransactionParams } from '@metamask/transaction-controller';
+import { BridgeControllerInitMessenger } from '../../messengers/bridge-controller-messenger';
 import {
   ChainId,
   handleFetch,
   TraceCallback,
 } from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../Analytics/AnalyticsEventBuilder';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 import packageJSON from '../../../../../package.json';
+import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
 const { version: clientVersion } = packageJSON;
 
@@ -34,9 +35,10 @@ export const handleBridgeFetch = async (
 
 export const bridgeControllerInit: ControllerInitFunction<
   BridgeController,
-  BridgeControllerMessenger
+  BridgeControllerMessenger,
+  BridgeControllerInitMessenger
 > = (request) => {
-  const { controllerMessenger } = request;
+  const { controllerMessenger, initMessenger } = request;
   const { transactionController } = getControllers(request);
 
   try {
@@ -63,15 +65,17 @@ export const bridgeControllerInit: ControllerInitFunction<
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
-        const metricsEvent = MetricsEventBuilder.createEventBuilder({
-          // category property here maps to event name
-          category: event,
-        })
+        const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
           .addProperties({
             ...(properties ?? {}),
           })
           .build();
-        MetaMetrics.getInstance().trackEvent(metricsEvent);
+        (
+          initMessenger.call as unknown as (
+            action: 'AnalyticsController:trackEvent',
+            event: AnalyticsTrackingEvent,
+          ) => void
+        )('AnalyticsController:trackEvent', analyticsEvent);
       },
       traceFn: trace as TraceCallback,
     });
@@ -84,7 +88,10 @@ export const bridgeControllerInit: ControllerInitFunction<
 };
 
 function getControllers(
-  request: ControllerInitRequest<BridgeControllerMessenger>,
+  request: ControllerInitRequest<
+    BridgeControllerMessenger,
+    BridgeControllerInitMessenger
+  >,
 ) {
   return {
     transactionController: request.getController('TransactionController'),

@@ -42,7 +42,9 @@ export function getNetworkControllerMessenger(
   return messenger;
 }
 
-type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
+type AllowedInitializationActions =
+  | RemoteFeatureFlagControllerGetStateAction
+  | 'AnalyticsController:trackEvent';
 
 type AllowedInitializationEvents =
   | NetworkControllerRpcEndpointDegradedEvent
@@ -77,7 +79,10 @@ export function getNetworkControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
+    actions: [
+      'RemoteFeatureFlagController:getState',
+      'AnalyticsController:trackEvent',
+    ],
     events: [
       'NetworkController:rpcEndpointDegraded',
       'NetworkController:rpcEndpointUnavailable',

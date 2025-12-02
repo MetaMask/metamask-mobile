@@ -11,8 +11,10 @@ import {
   DeFiPositionsControllerMessenger,
 } from '@metamask/assets-controllers';
 import { defiPositionsControllerInit } from './defi-positions-controller-init';
-import { MetaMetrics } from '../../../Analytics';
+import { AnalyticsEventBuilder } from '../../../Analytics/AnalyticsEventBuilder';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+
+jest.mock('../../../Analytics/AnalyticsEventBuilder');
 
 jest.mock('@metamask/assets-controllers');
 
@@ -23,19 +25,32 @@ jest.mock('.../../../../store', () => ({
 }));
 
 function getInitRequestMock(
-  baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
-    namespace: MOCK_ANY_NAMESPACE,
-  }),
+  baseMessenger?: ExtendedMessenger<MockAnyNamespace>,
 ): jest.Mocked<
   ControllerInitRequest<
     DeFiPositionsControllerMessenger,
     DeFiPositionsControllerInitMessenger
   >
 > {
+  const messenger =
+    baseMessenger ||
+    new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+
+  // Register AnalyticsController action handlers in the base messenger if not already registered
+  if (!baseMessenger) {
+    messenger.registerActionHandler(
+      // @ts-expect-error: Action not allowed in base messenger type
+      'AnalyticsController:trackEvent',
+      jest.fn().mockResolvedValue(undefined),
+    );
+  }
+
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
-    controllerMessenger: getDeFiPositionsControllerMessenger(baseMessenger),
-    initMessenger: getDeFiPositionsControllerInitMessenger(baseMessenger),
+    ...buildControllerInitRequestMock(messenger),
+    controllerMessenger: getDeFiPositionsControllerMessenger(messenger),
+    initMessenger: getDeFiPositionsControllerInitMessenger(messenger),
   };
 
   return requestMock;
@@ -63,25 +78,51 @@ describe('DeFiPositionsControllerInit', () => {
   });
 
   describe('trackEvent', () => {
-    it('calls the MetaMetrics `trackEvent` function', () => {
-      defiPositionsControllerInit(getInitRequestMock());
+    it('calls AnalyticsController via initMessenger', () => {
+      const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+      const trackEventHandler = jest.fn().mockResolvedValue(undefined);
+      baseMessenger.registerActionHandler(
+        // @ts-expect-error: Action not allowed in base messenger type
+        'AnalyticsController:trackEvent',
+        trackEventHandler,
+      );
+
+      const requestMock = getInitRequestMock(baseMessenger);
+      defiPositionsControllerInit(requestMock);
 
       const controllerMock = jest.mocked(DeFiPositionsController);
       const trackEvent = controllerMock.mock.calls[0][0].trackEvent;
 
-      const instance = MetaMetrics.getInstance();
-      const spy = jest.spyOn(instance, 'trackEvent');
+      const mockEventBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({
+          name: 'test-event',
+          properties: { totalPositions: 1, totalMarketValueUSD: 100 },
+          sensitiveProperties: {},
+        }),
+      };
+      (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
+        mockEventBuilder,
+      );
 
       trackEvent?.({
         event: 'test-event',
-        category: 'test-category',
         properties: {
           totalPositions: 1,
           totalMarketValueUSD: 100,
         },
       });
 
-      expect(spy).toHaveBeenCalledWith(
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'test-event',
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        totalPositions: 1,
+        totalMarketValueUSD: 100,
+      });
+      expect(trackEventHandler).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'test-event',
           properties: {

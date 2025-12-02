@@ -4,8 +4,6 @@ import { merge } from 'lodash';
 
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
-import { MetaMetrics } from '../../../../Analytics';
-import { RootExtendedMessenger } from '../../../types';
 import {
   generateDefaultTransactionMetrics,
   generateEvent,
@@ -18,7 +16,6 @@ import type {
   TransactionMetricsBuilder,
 } from '../types';
 import { getMetaMaskPayProperties } from '../event_properties/metamask-pay';
-import Engine from '../../../Engine';
 import { createProjectLogger } from '@metamask/utils';
 
 const log = createProjectLogger('transaction-metrics');
@@ -55,7 +52,10 @@ const createTransactionEventHandler =
 
       log('Event', event);
 
-      MetaMetrics.getInstance().trackEvent(event);
+      transactionEventHandlerRequest.initMessenger.call(
+        'AnalyticsController:trackEvent',
+        event,
+      );
     } catch (error) {
       log('Error in transaction event handler', error);
     }
@@ -110,17 +110,6 @@ export async function handleTransactionFinalizedEventForMetrics(
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ): Promise<void> {
   try {
-    if (
-      retryIfEngineNotInitialized(() => {
-        handleTransactionFinalizedEventForMetrics(
-          transactionMeta,
-          transactionEventHandlerRequest,
-        );
-      })
-    ) {
-      return;
-    }
-
     // Generate default properties
     const defaultTransactionMetricProperties =
       await generateDefaultTransactionMetrics(
@@ -182,27 +171,21 @@ export async function handleTransactionFinalizedEventForMetrics(
 
     log('Finalized event', event);
 
-    MetaMetrics.getInstance().trackEvent(event);
+    transactionEventHandlerRequest.initMessenger.call(
+      'AnalyticsController:trackEvent',
+      {
+        name: event.name,
+        properties: event.properties,
+        sensitiveProperties: event.sensitiveProperties,
+      },
+    );
   } catch (error) {
     log('Error in finalized transaction event handler', error);
   }
 }
 
-function retryIfEngineNotInitialized(fn: () => void): boolean {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { context } = Engine;
-    return false;
-  } catch (e) {
-    log('Transaction controller event before engine initialized');
-
-    setTimeout(() => {
-      fn();
-    }, 5000);
-
-    return true;
-  }
-}
+// Removed retryIfEngineNotInitialized function - no longer needed since
+// initMessenger is available and doesn't depend on Engine being initialized
 
 function getBuilderMetrics({
   defaultMetrics,

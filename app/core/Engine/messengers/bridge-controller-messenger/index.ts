@@ -40,3 +40,37 @@ export function getBridgeControllerMessenger(
   });
   return messenger;
 }
+
+type BridgeControllerInitActions = 'AnalyticsController:trackEvent';
+
+type BridgeControllerInitEvents = never;
+
+export type BridgeControllerInitMessenger = ReturnType<
+  typeof getBridgeControllerInitMessenger
+>;
+
+/**
+ * Get the init messenger for the BridgeController. This is scoped to the
+ * actions and events that the BridgeController is allowed to handle during
+ * initialization.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The BridgeControllerInitMessenger.
+ */
+export function getBridgeControllerInitMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'BridgeControllerInit',
+    BridgeControllerInitActions,
+    BridgeControllerInitEvents,
+    RootMessenger
+  >({
+    namespace: 'BridgeControllerInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: ['AnalyticsController:trackEvent'],
+    events: [],
+    messenger,
+  });
+  return messenger;
+}

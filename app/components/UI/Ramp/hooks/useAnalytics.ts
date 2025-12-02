@@ -2,10 +2,9 @@ import { useCallback } from 'react';
 import { AnalyticsEvents as AggregatorEvents } from '../Aggregator/types';
 import { AnalyticsEvents as DepositEvents } from '../Deposit/types';
 
-// Import directly from source files to avoid circular dependency
-import MetaMetrics from '../../../../core/Analytics/MetaMetrics';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { analytics } from '../../../../core/Analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../core/Analytics/AnalyticsEventBuilder';
+import { EVENT_NAME } from '../../../../core/Analytics';
 
 interface MergedRampEvents extends AggregatorEvents, DepositEvents {}
 
@@ -13,9 +12,8 @@ export function trackEvent<T extends keyof MergedRampEvents>(
   eventType: T,
   params: MergedRampEvents[T],
 ) {
-  const metrics = MetaMetrics.getInstance();
-  metrics.trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[eventType])
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(EVENT_NAME[eventType])
       .addProperties({ ...params })
       .build(),
   );

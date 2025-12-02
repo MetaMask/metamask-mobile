@@ -15,8 +15,10 @@ import {
   KeyringControllerGetKeyringsByTypeAction,
 } from '@metamask/keyring-controller';
 import { store, runSaga } from '../../../../store';
-import { MetaMetrics } from '../../../Analytics';
+import { AnalyticsEventBuilder } from '../../../Analytics/AnalyticsEventBuilder';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+
+jest.mock('../../../Analytics/AnalyticsEventBuilder');
 
 jest.mock('@metamask/snaps-controllers');
 
@@ -36,6 +38,13 @@ function getInitRequestMock(
 ): jest.Mocked<
   ControllerInitRequest<SnapControllerMessenger, SnapControllerInitMessenger>
 > {
+  // Register AnalyticsController action handlers in the base messenger
+  baseMessenger.registerActionHandler(
+    // @ts-expect-error: Action not allowed in base messenger type
+    'AnalyticsController:trackEvent',
+    jest.fn().mockResolvedValue(undefined),
+  );
+
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getSnapControllerMessenger(baseMessenger),
@@ -152,7 +161,7 @@ describe('SnapControllerInit', () => {
         ],
       );
 
-      expect(getMnemonicSeed()).resolves.toBe(seed);
+      await expect(getMnemonicSeed()).resolves.toBe(seed);
     });
 
     it('throws an error if the keyring is not available', () => {
@@ -174,7 +183,7 @@ describe('SnapControllerInit', () => {
         () => [],
       );
 
-      expect(getMnemonicSeed()).rejects.toThrow(
+      await expect(getMnemonicSeed()).rejects.toThrow(
         'Primary keyring mnemonic unavailable.',
       );
     });
@@ -201,24 +210,41 @@ describe('SnapControllerInit', () => {
   });
 
   describe('trackEvent', () => {
-    it('calls the MetaMetrics `trackEvent` function', () => {
-      snapControllerInit(getInitRequestMock());
+    it('calls AnalyticsController via initMessenger', () => {
+      const requestMock = getInitRequestMock();
+      const callSpy = jest.spyOn(requestMock.initMessenger, 'call');
+      snapControllerInit(requestMock);
 
       const controllerMock = jest.mocked(SnapController);
       const trackEvent = controllerMock.mock.calls[0][0].trackEvent;
 
-      const instance = MetaMetrics.getInstance();
-      const spy = jest.spyOn(instance, 'trackEvent');
+      const mockEventBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({
+          name: 'test-event',
+          properties: { testProperty: 'test-value' },
+          sensitiveProperties: {},
+        }),
+      };
+      (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
+        mockEventBuilder,
+      );
 
       trackEvent({
         event: 'test-event',
-        category: 'test-category',
         properties: {
           testProperty: 'test-value',
         },
       });
 
-      expect(spy).toHaveBeenCalledWith(
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'test-event',
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        testProperty: 'test-value',
+      });
+      expect(callSpy).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
         expect.objectContaining({
           name: 'test-event',
           properties: {

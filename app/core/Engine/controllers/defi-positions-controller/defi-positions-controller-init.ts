@@ -6,8 +6,7 @@ import type { ControllerInitFunction } from '../../types';
 import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-positions-controller-messenger/defi-positions-controller-messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { MetaMetrics } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../Analytics/AnalyticsEventBuilder';
 
 /**
  * Initialize the DeFiPositionsController.
@@ -40,12 +39,10 @@ export const defiPositionsControllerInit: ControllerInitFunction<
       event: string;
       properties?: Record<string, unknown>;
     }) => {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
-          category: params.event,
-          properties: params.properties,
-        }).build(),
-      );
+      const event = AnalyticsEventBuilder.createEventBuilder(params.event)
+        .addProperties(params.properties || {})
+        .build();
+      initMessenger.call('AnalyticsController:trackEvent', event);
     },
   });
 

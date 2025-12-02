@@ -100,7 +100,8 @@ type InitMessengerActions =
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetStateAction
-  | TransactionPayControllerGetStrategyAction;
+  | TransactionPayControllerGetStrategyAction
+  | 'AnalyticsController:trackEvent';
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
@@ -155,6 +156,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:updateTransaction',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
+      'AnalyticsController:trackEvent',
     ],
     events: [
       'BridgeStatusController:stateChange',

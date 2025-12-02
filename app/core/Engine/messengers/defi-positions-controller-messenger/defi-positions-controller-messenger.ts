@@ -46,7 +46,8 @@ export function getDeFiPositionsControllerInitMessenger(
 ) {
   const messenger = new Messenger<
     'DeFiPositionsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
+    | RemoteFeatureFlagControllerGetStateAction
+    | 'AnalyticsController:trackEvent',
     never,
     RootMessenger
   >({
@@ -54,7 +55,10 @@ export function getDeFiPositionsControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
+    actions: [
+      'RemoteFeatureFlagController:getState',
+      'AnalyticsController:trackEvent',
+    ],
     messenger,
   });
   return messenger;

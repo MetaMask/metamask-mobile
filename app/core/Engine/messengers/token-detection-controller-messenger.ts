@@ -58,7 +58,8 @@ export function getTokenDetectionControllerMessenger(
 }
 
 type AllowedInitializationActions =
-  AssetsContractControllerGetBalancesInSingleCallAction;
+  | AssetsContractControllerGetBalancesInSingleCallAction
+  | 'AnalyticsController:trackEvent';
 
 type AllowedInitializationEvents = never;
 
@@ -87,7 +88,10 @@ export function getTokenDetectionControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AssetsContractController:getBalancesInSingleCall'],
+    actions: [
+      'AssetsContractController:getBalancesInSingleCall',
+      'AnalyticsController:trackEvent',
+    ],
     events: [],
     messenger,
   });

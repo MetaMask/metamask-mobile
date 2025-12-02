@@ -42,39 +42,49 @@ export const analyticsControllerInit: ControllerInitFunction<
 
   // Subscribe to individual fields - only persists what changed
   // analyticsId never changes after init, so no need to subscribe to it
+  let previousOptedInForRegularAccount: boolean | undefined;
   controllerMessenger.subscribe(
     'AnalyticsController:stateChange',
-    (state: AnalyticsControllerState) => state.optedInForRegularAccount,
-    async (optedIn: boolean) => {
-      try {
-        await StorageWrapper.setItem(
-          ANALYTICS_OPTED_IN_REGULAR,
-          String(optedIn),
-          { emitEvent: false },
-        );
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'AnalyticsController: Failed to sync optedInForRegularAccount to MMKV',
-        );
+    async (state: AnalyticsControllerState) => {
+      const optedIn = state.optedInForRegularAccount;
+      // Only persist if the value changed
+      if (optedIn !== previousOptedInForRegularAccount) {
+        previousOptedInForRegularAccount = optedIn;
+        try {
+          await StorageWrapper.setItem(
+            ANALYTICS_OPTED_IN_REGULAR,
+            String(optedIn),
+            { emitEvent: false },
+          );
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'AnalyticsController: Failed to sync optedInForRegularAccount to MMKV',
+          );
+        }
       }
     },
   );
+  let previousOptedInForSocialAccount: boolean | undefined;
   controllerMessenger.subscribe(
     'AnalyticsController:stateChange',
-    (state: AnalyticsControllerState) => state.optedInForSocialAccount,
-    async (optedIn: boolean) => {
-      try {
-        await StorageWrapper.setItem(
-          ANALYTICS_OPTED_IN_SOCIAL,
-          String(optedIn),
-          { emitEvent: false },
-        );
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'AnalyticsController: Failed to sync optedInForSocialAccount to MMKV',
-        );
+    async (state: AnalyticsControllerState) => {
+      const optedIn = state.optedInForSocialAccount;
+      // Only persist if the value changed
+      if (optedIn !== previousOptedInForSocialAccount) {
+        previousOptedInForSocialAccount = optedIn;
+        try {
+          await StorageWrapper.setItem(
+            ANALYTICS_OPTED_IN_SOCIAL,
+            String(optedIn),
+            { emitEvent: false },
+          );
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'AnalyticsController: Failed to sync optedInForSocialAccount to MMKV',
+          );
+        }
       }
     },
   );

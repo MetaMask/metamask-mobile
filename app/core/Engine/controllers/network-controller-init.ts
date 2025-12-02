@@ -15,9 +15,9 @@ import {
   onRpcEndpointDegraded,
   onRpcEndpointUnavailable,
 } from './network-controller/messenger-action-handlers';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
-import { MetaMetrics } from '../../Analytics';
+import { AnalyticsEventBuilder } from '../../Analytics/AnalyticsEventBuilder';
 import { Hex, Json } from '@metamask/utils';
+import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import Logger from '../../../util/Logger';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -193,12 +193,12 @@ export const networkControllerInit: ControllerInitFunction<
         infuraProjectId,
         error,
         trackEvent: ({ event, properties }) => {
-          const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-            .addProperties(properties)
+          const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
+            .addProperties(properties || {})
             .build();
-          MetaMetrics.getInstance().trackEvent(metricsEvent);
+          initMessenger.call('AnalyticsController:trackEvent', analyticsEvent);
         },
-        metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
+        metaMetricsId: selectAnalyticsId(getState()) ?? '',
       });
     },
   );
@@ -220,12 +220,12 @@ export const networkControllerInit: ControllerInitFunction<
         error,
         infuraProjectId,
         trackEvent: ({ event, properties }) => {
-          const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-            .addProperties(properties)
+          const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
+            .addProperties(properties || {})
             .build();
-          MetaMetrics.getInstance().trackEvent(metricsEvent);
+          initMessenger.call('AnalyticsController:trackEvent', analyticsEvent);
         },
-        metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
+        metaMetricsId: selectAnalyticsId(getState()) ?? '',
       });
     },
   );

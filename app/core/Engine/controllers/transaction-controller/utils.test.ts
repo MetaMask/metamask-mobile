@@ -28,15 +28,15 @@ import {
 } from './utils';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtilities from '../../../../util/transactions';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../Analytics/AnalyticsEventBuilder';
 import { IMetaMetricsEvent } from '../../../Analytics/MetaMetrics.types';
 import {
   TransactionEventHandlerRequest,
   type TransactionMetrics,
 } from './types';
 
-jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
+jest.mock('../../../Analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
     createEventBuilder: jest.fn(),
   },
 }));
@@ -253,7 +253,7 @@ describe('generateDefaultTransactionMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
       mockEventBuilder,
     );
   });

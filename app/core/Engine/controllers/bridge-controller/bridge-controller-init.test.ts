@@ -14,15 +14,13 @@ import {
   bridgeControllerInit,
   handleBridgeFetch,
 } from './bridge-controller-init';
-import { MetaMetrics } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../Analytics/AnalyticsEventBuilder';
 import { trace } from '../../../../util/trace';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/bridge-controller');
-jest.mock('../../../Analytics');
-jest.mock('../../../Analytics/MetricsEventBuilder');
+jest.mock('../../../Analytics/AnalyticsEventBuilder');
 jest.mock('../../../../util/trace');
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -58,9 +56,11 @@ function buildInitRequestMock(
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
+  const baseRequest = buildControllerInitRequestMock(baseControllerMessenger);
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...baseRequest,
     controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),
+    initMessenger: baseRequest.initMessenger, // Use the mock initMessenger from test-utils
     ...initRequestProperties,
   };
 
@@ -75,20 +75,24 @@ function buildInitRequestMock(
 
 describe('BridgeController Init', () => {
   const bridgeControllerClassMock = jest.mocked(BridgeController);
-  const metaMetricsInstanceMock = {
-    trackEvent: jest.fn(),
+  let mockEventBuilder: {
+    addProperties: jest.Mock;
+    build: jest.Mock;
   };
 
   beforeEach(() => {
     jest.resetAllMocks();
-    (MetaMetrics.getInstance as jest.Mock).mockReturnValue(
-      metaMetricsInstanceMock,
-    );
-    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn().mockReturnValue({ mockEvent: true }),
+    mockEventBuilder = {
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({
+        name: 'test-event',
+        properties: { property: 'value' },
+        sensitiveProperties: {},
       }),
-    });
+    };
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
+      mockEventBuilder,
+    );
     (trace as jest.Mock).mockImplementation((_label, fn) => fn());
   });
 
@@ -231,12 +235,19 @@ describe('BridgeController Init', () => {
       trackMetaMetricsFn('bridge_completed' as any, { property: 'value' });
 
       // Assert
-      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith({
-        category: 'bridge_completed',
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'bridge_completed',
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        property: 'value',
       });
-      expect(metaMetricsInstanceMock.trackEvent).toHaveBeenCalledWith({
-        mockEvent: true,
-      });
+      expect(requestMock.initMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.objectContaining({
+          name: 'test-event',
+          properties: { property: 'value' },
+        }),
+      );
     });
 
     it('handles trackMetaMetricsFn with no properties', () => {
@@ -255,10 +266,13 @@ describe('BridgeController Init', () => {
       trackMetaMetricsFn('bridge_completed' as any, {});
 
       // Assert
-      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith({
-        category: 'bridge_completed',
-      });
-      expect(metaMetricsInstanceMock.trackEvent).toHaveBeenCalled();
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'bridge_completed',
+      );
+      expect(requestMock.initMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.any(Object),
+      );
     });
   });
 

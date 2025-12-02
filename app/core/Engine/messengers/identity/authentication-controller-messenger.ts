@@ -34,3 +34,35 @@ export function getAuthenticationControllerMessenger(
   });
   return messenger;
 }
+
+export type AuthenticationControllerInitMessenger = ReturnType<
+  typeof getAuthenticationControllerInitMessenger
+>;
+
+/**
+ * Get the init messenger for the authentication controller. This is scoped to the
+ * actions and events that the authentication controller is allowed to handle during
+ * initialization.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The AuthenticationControllerInitMessenger.
+ */
+export function getAuthenticationControllerInitMessenger(
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'AuthenticationControllerInit',
+    never,
+    never,
+    RootMessenger
+  >({
+    namespace: 'AuthenticationControllerInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [],
+    events: [],
+    messenger,
+  });
+  return messenger;
+}

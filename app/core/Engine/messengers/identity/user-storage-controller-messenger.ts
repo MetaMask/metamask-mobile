@@ -47,3 +47,35 @@ export function getUserStorageControllerMessenger(
   });
   return messenger;
 }
+
+export type UserStorageControllerInitMessenger = ReturnType<
+  typeof getUserStorageControllerInitMessenger
+>;
+
+/**
+ * Get the init messenger for the user storage controller. This is scoped to the
+ * actions and events that the user storage controller is allowed to handle during
+ * initialization.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The UserStorageControllerInitMessenger.
+ */
+export function getUserStorageControllerInitMessenger(
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'UserStorageControllerInit',
+    'AnalyticsController:trackEvent',
+    never,
+    RootMessenger
+  >({
+    namespace: 'UserStorageControllerInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: ['AnalyticsController:trackEvent'],
+    events: [],
+    messenger,
+  });
+  return messenger;
+}

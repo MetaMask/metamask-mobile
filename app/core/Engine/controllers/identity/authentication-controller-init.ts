@@ -3,8 +3,9 @@ import {
   Controller as AuthenticationController,
   type AuthenticationControllerMessenger,
 } from '@metamask/profile-sync-controller/auth';
-import { MetaMetrics } from '../../../Analytics';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { AuthenticationControllerInitMessenger } from '../../messengers/identity/authentication-controller-messenger';
+import { selectAnalyticsId } from '../../../../selectors/analyticsController';
 
 /**
  * Initialize the authentication controller.
@@ -15,8 +16,9 @@ import { Platform } from '@metamask/profile-sync-controller/sdk';
  */
 export const authenticationControllerInit: ControllerInitFunction<
   AuthenticationController,
-  AuthenticationControllerMessenger
-> = ({ controllerMessenger, persistedState }) => {
+  AuthenticationControllerMessenger,
+  AuthenticationControllerInitMessenger
+> = ({ controllerMessenger, persistedState, getState }) => {
   const controller = new AuthenticationController({
     messenger: controllerMessenger,
 
@@ -25,8 +27,7 @@ export const authenticationControllerInit: ControllerInitFunction<
 
     metametrics: {
       agent: Platform.MOBILE,
-      getMetaMetricsId: async () =>
-        (await MetaMetrics.getInstance().getMetaMetricsId()) ?? '',
+      getMetaMetricsId: async () => selectAnalyticsId(getState()) ?? '',
     },
   });
 

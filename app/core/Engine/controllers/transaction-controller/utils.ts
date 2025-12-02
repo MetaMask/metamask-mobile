@@ -12,7 +12,7 @@ import { merge } from 'lodash';
 import type { RootState } from '../../../../reducers';
 import { EIP5792ErrorCode } from '../../../../constants/transaction';
 import { getMethodData } from '../../../../util/transactions';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../Analytics/AnalyticsEventBuilder';
 import {
   JsonMap,
   IMetaMetricsEvent,
@@ -239,7 +239,7 @@ export function generateEvent({
   properties?: JsonMap;
   sensitiveProperties?: JsonMap;
 }) {
-  return MetricsEventBuilder.createEventBuilder(metametricsEvent)
+  return AnalyticsEventBuilder.createEventBuilder(metametricsEvent.category)
     .addProperties(properties ?? {})
     .addSensitiveProperties(sensitiveProperties ?? {})
     .build();

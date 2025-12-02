@@ -39,3 +39,35 @@ export function getSmartTransactionsControllerMessenger(
   });
   return messenger;
 }
+
+export type SmartTransactionsControllerInitMessenger = ReturnType<
+  typeof getSmartTransactionsControllerInitMessenger
+>;
+
+/**
+ * Get the init messenger for the smart transactions controller. This is scoped to the
+ * actions and events that the smart transactions controller is allowed to handle during
+ * initialization.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The SmartTransactionsControllerInitMessenger.
+ */
+export function getSmartTransactionsControllerInitMessenger(
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'SmartTransactionsControllerInit',
+    'AnalyticsController:trackEvent',
+    never,
+    RootMessenger
+  >({
+    namespace: 'SmartTransactionsControllerInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: ['AnalyticsController:trackEvent'],
+    events: [],
+    messenger,
+  });
+  return messenger;
+}

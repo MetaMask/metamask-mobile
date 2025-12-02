@@ -4,12 +4,13 @@ import {
   type TokenDetectionControllerMessenger,
 } from '@metamask/assets-controllers';
 import { TokenDetectionControllerInitMessenger } from '../messengers/token-detection-controller-messenger';
-import { MetaMetrics, MetaMetricsEvents } from '../../Analytics';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import { EVENT_NAME } from '../../Analytics/MetaMetrics.events';
+import { AnalyticsEventBuilder } from '../../Analytics/AnalyticsEventBuilder';
 import { getDecimalChainId } from '../../../util/networks';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
 /**
  * Initialize the tokenDetection controller.
@@ -36,16 +37,23 @@ export const tokenDetectionControllerInit: ControllerInitFunction<
     ),
     useTokenDetection: () => selectUseTokenDetection(getState()),
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
-    trackMetaMetricsEvent: () =>
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.TOKEN_DETECTED)
-          .addProperties({
-            token_standard: 'ERC20',
-            asset_type: 'token',
-            chain_id: getDecimalChainId(getGlobalChainId(networkController)),
-          })
-          .build(),
-      ),
+    trackMetaMetricsEvent: () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        EVENT_NAME.TOKEN_DETECTED,
+      )
+        .addProperties({
+          token_standard: 'ERC20',
+          asset_type: 'token',
+          chain_id: getDecimalChainId(getGlobalChainId(networkController)),
+        })
+        .build();
+      (
+        initMessenger.call as unknown as (
+          action: 'AnalyticsController:trackEvent',
+          event: AnalyticsTrackingEvent,
+        ) => void
+      )('AnalyticsController:trackEvent', event);
+    },
   });
 
   return {
