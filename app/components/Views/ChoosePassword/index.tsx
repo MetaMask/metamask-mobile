@@ -56,7 +56,6 @@ import type {
 } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import type { AuthData } from '../../../core/Authentication/Authentication';
-import type { EngineContext } from '../../../core/Engine/types';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
@@ -223,7 +222,7 @@ const ChoosePassword = () => {
   }, []);
 
   const tryExportSeedPhrase = useCallback(async (pwd: string) => {
-    const context = Engine.context as EngineContext;
+    const context = Engine.context;
     const uint8ArrayMnemonic =
       await context.KeyringController.exportSeedPhrase(pwd);
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
@@ -231,7 +230,7 @@ const ChoosePassword = () => {
 
   const recreateVault = useCallback(
     async (pwd: string, authType?: AuthData) => {
-      const context = Engine.context as EngineContext;
+      const context = Engine.context;
       const keyringController =
         context.KeyringController as unknown as ExtendedKeyringController;
       const keychainPassword = keyringControllerPasswordSet.current
@@ -322,76 +321,56 @@ const ChoosePassword = () => {
     handleOAuthPasswordCreationError,
   ]);
 
-  const onPressCreate = useCallback(async () => {
+  const validatePasswordSubmission = useCallback(() => {
     const passwordsMatch = password !== '' && password === confirmPassword;
-    let canSubmit;
-    if (getOauth2LoginSuccess()) {
-      canSubmit = passwordsMatch;
-    } else {
-      canSubmit = passwordsMatch && isSelected;
-    }
-    if (loading) return;
+    const canSubmit = getOauth2LoginSuccess()
+      ? passwordsMatch
+      : passwordsMatch && isSelected;
+
+    if (loading) return { valid: false, shouldTrack: false };
+
     if (!canSubmit) {
-      if (
+      const shouldTrackMismatch =
         password !== '' &&
         confirmPassword !== '' &&
-        password !== confirmPassword
-      ) {
+        password !== confirmPassword;
+
+      if (shouldTrackMismatch) {
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: strings('choose_password.password_dont_match'),
         });
       }
-      return;
+      return { valid: false, shouldTrack: false };
     }
+
     if (!passwordRequirementsMet(password)) {
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
       });
-      return;
+      return { valid: false, shouldTrack: false };
     }
 
-    const provider = route.params?.provider;
-    const accountType = provider ? `metamask_${provider}` : 'metamask';
+    return { valid: true, shouldTrack: true };
+  }, [
+    password,
+    confirmPassword,
+    loading,
+    isSelected,
+    getOauth2LoginSuccess,
+    track,
+  ]);
 
-    track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
-      account_type: accountType,
-    });
-
-    try {
-      setLoading(true);
-      const previous_screen = route.params?.[PREVIOUS_SCREEN];
-
-      // latest ux changes - we are forcing user to enable biometric by default
-      const authType = await Authentication.componentAuthenticationType(
-        true,
-        false,
-      );
-      authType.oauth2Login = getOauth2LoginSuccess();
-
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
-        trace({
-          name: TraceName.OnboardingSRPAccountCreationTime,
-          op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
-          tags: {
-            is_social_login: Boolean(provider),
-            account_type: accountType,
-            biometrics_enabled: Boolean(biometryType),
-          },
-        });
-      }
-
-      Logger.log('previous_screen', previous_screen);
+  const handleWalletCreation = useCallback(
+    async (authType: AuthData, previous_screen: string | undefined) => {
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (err) {
           if (isOAuthPasswordCreationError(err, authType)) {
             handleOAuthPasswordCreationError(err as Error, authType);
-            return;
+            throw err;
           }
           if (Device.isIos()) {
             await handleRejectedOsBiometricPrompt();
@@ -402,7 +381,19 @@ const ChoosePassword = () => {
       } else {
         await recreateVault(password, authType);
       }
+    },
+    [
+      password,
+      isOAuthPasswordCreationError,
+      handleOAuthPasswordCreationError,
+      handleRejectedOsBiometricPrompt,
+      recreateVault,
+      dispatch,
+    ],
+  );
 
+  const handlePostWalletCreation = useCallback(
+    async (authType: AuthData) => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
@@ -438,39 +429,33 @@ const ChoosePassword = () => {
           settingsBackup: false,
         });
       }
-      track(MetaMetricsEvents.WALLET_CREATED, {
-        biometrics_enabled: Boolean(biometryType),
-        account_type: accountType,
-      });
-      track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-        wallet_setup_type: 'new',
-        new_wallet: true,
-        account_type: accountType,
-      });
-      endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
-    } catch (err) {
-      const caughtError = err as Error;
+    },
+    [dispatch, isSelected, navigation, tryExportSeedPhrase, password],
+  );
+
+  const handleWalletCreationError = useCallback(
+    async (caughtError: Error) => {
       try {
         await recreateVault('');
       } catch (e) {
         Logger.error(e as Error);
       }
-      // Set state in app as it was with no password
+
       dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       dispatch(passwordUnsetAction());
       dispatch(setLockTimeAction(-1));
-      // Should we force people to enable passcode / biometrics?
+
       if (caughtError.toString() === PASSCODE_NOT_SET_ERROR) {
         Alert.alert(
           strings('choose_password.security_alert_title'),
           strings('choose_password.security_alert_message'),
         );
-        setLoading(false);
       } else {
-        setLoading(false);
         setError(caughtError.toString());
       }
+      setLoading(false);
+
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'new',
         error_type: caughtError.toString(),
@@ -486,23 +471,81 @@ const ChoosePassword = () => {
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
       }
+    },
+    [recreateVault, dispatch, track, route.params],
+  );
+
+  const onPressCreate = useCallback(async () => {
+    const validation = validatePasswordSubmission();
+    if (!validation.valid) return;
+
+    const provider = route.params?.provider;
+    const accountType = provider ? `metamask_${provider}` : 'metamask';
+
+    track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
+      account_type: accountType,
+    });
+
+    try {
+      setLoading(true);
+      const previous_screen = route.params?.[PREVIOUS_SCREEN];
+
+      const authType = await Authentication.componentAuthenticationType(
+        true,
+        false,
+      );
+      authType.oauth2Login = getOauth2LoginSuccess();
+
+      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+      if (onboardingTraceCtx) {
+        trace({
+          name: TraceName.OnboardingSRPAccountCreationTime,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext: onboardingTraceCtx,
+          tags: {
+            is_social_login: Boolean(provider),
+            account_type: accountType,
+            biometrics_enabled: Boolean(biometryType),
+          },
+        });
+      }
+
+      Logger.log('previous_screen', previous_screen);
+
+      try {
+        await handleWalletCreation(authType, previous_screen);
+      } catch (err) {
+        if (isOAuthPasswordCreationError(err, authType)) {
+          return;
+        }
+        throw err;
+      }
+
+      await handlePostWalletCreation(authType);
+
+      track(MetaMetricsEvents.WALLET_CREATED, {
+        biometrics_enabled: Boolean(biometryType),
+        account_type: accountType,
+      });
+      track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        wallet_setup_type: 'new',
+        new_wallet: true,
+        account_type: accountType,
+      });
+      endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
+    } catch (err) {
+      await handleWalletCreationError(err as Error);
     }
   }, [
-    password,
-    confirmPassword,
-    loading,
-    isSelected,
-    biometryType,
+    validatePasswordSubmission,
     route.params,
-    getOauth2LoginSuccess,
     track,
+    getOauth2LoginSuccess,
+    biometryType,
+    handleWalletCreation,
+    handlePostWalletCreation,
+    handleWalletCreationError,
     isOAuthPasswordCreationError,
-    handleOAuthPasswordCreationError,
-    handleRejectedOsBiometricPrompt,
-    tryExportSeedPhrase,
-    recreateVault,
-    dispatch,
-    navigation,
   ]);
 
   const onPasswordChange = useCallback(
@@ -574,19 +617,21 @@ const ChoosePassword = () => {
     );
   }, [navigation, loading, colors]);
 
+  const EmptyHeaderLeft = useCallback(() => <View />, []);
+
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: loading ? () => <View /> : HeaderLeft,
+          headerLeft: loading ? EmptyHeaderLeft : HeaderLeft,
           headerRight: () => null,
         },
         colors,
         false,
       ),
     );
-  }, [navigation, loading, colors, route, HeaderLeft]);
+  }, [navigation, loading, colors, route, HeaderLeft, EmptyHeaderLeft]);
 
   useEffect(() => {
     const initBiometrics = async () => {
@@ -623,10 +668,10 @@ const ChoosePassword = () => {
       (
         navigation as unknown as { setParams: (params: object) => void }
       ).setParams({
-        headerLeft: () => <View />,
+        headerLeft: EmptyHeaderLeft,
       });
     }
-  }, [loading, navigation]);
+  }, [loading, navigation, EmptyHeaderLeft]);
 
   useEffect(
     () => () => {
