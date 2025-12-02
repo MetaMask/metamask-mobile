@@ -2104,6 +2104,7 @@
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
+      "no_funds_enough": "Not enough funds.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again."
