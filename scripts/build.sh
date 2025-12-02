@@ -553,13 +553,20 @@ generateAndroidBinary() {
 
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	if [ "$configuration" = "Release" ] ; then
-		# Generate Android binary only
-		./gradlew $flavorConfiguration --build-cache --parallel
+		# Check if test APK generation is requested (needed for AppWright/performance testing)
+		if [ "$GENERATE_TEST_APK" = "true" ]; then
+			testConfiguration="app:assemble${flavor}${configuration}AndroidTest"
+			./gradlew $flavorConfiguration $testConfiguration -PminSdkVersion=26 -DtestBuildType=release --build-cache --parallel
+		else
+			./gradlew $flavorConfiguration --build-cache --parallel
+		fi
 		
-		# Generate AAB bundle (not needed for E2E)
-		bundleConfiguration="bundle${flavor}Release"
-		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
-		./gradlew $bundleConfiguration
+		# Generate AAB bundle (not needed for test builds)
+		if [ "$GENERATE_TEST_APK" != "true" ]; then
+			bundleConfiguration="bundle${flavor}Release"
+			echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
+			./gradlew $bundleConfiguration
+		fi
 
 		# Generate checksum
 		lowerCaseFlavor=$(echo "$flavor" | tr '[:upper:]' '[:lower:]')
