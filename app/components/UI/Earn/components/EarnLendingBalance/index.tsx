@@ -195,6 +195,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
                 name={asset.symbol}
                 imageSource={{ uri: asset.image }}
                 size={AvatarSize.Md}
+                size={AvatarSize.Lg}
                 testID={
                   EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO
                 }
