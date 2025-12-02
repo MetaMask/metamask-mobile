@@ -53,9 +53,7 @@ import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { ChainType } from '../confirmations/utils/send';
-///: END:ONLY_INCLUDE_IF
 import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
