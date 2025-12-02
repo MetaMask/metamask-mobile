@@ -8,19 +8,26 @@ import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { getProfileMetricsControllerMessenger } from '../messengers/profile-metrics-controller-messenger';
 import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { MetaMetrics } from '../../Analytics';
 
 jest.mock('@metamask/profile-metrics-controller');
 
 function getInitRequestMock({
   metaMetricsId,
   remoteFeatureFlag,
+  metaMetricsEnabled,
 }: {
   metaMetricsId: string;
   remoteFeatureFlag: boolean;
+  metaMetricsEnabled: boolean;
 }): jest.Mocked<ControllerInitRequest<ProfileMetricsControllerMessenger>> {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
+
+  jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
+    isEnabled: () => metaMetricsEnabled,
+  } as MetaMetrics);
 
   const mockGetController = jest.fn().mockReturnValue({
     state: {
@@ -40,29 +47,60 @@ function getInitRequestMock({
 }
 
 describe.each([
-  { metaMetricsId: 'mock-id', remoteFeatureFlag: true },
-  { metaMetricsId: 'mock-id-2', remoteFeatureFlag: false },
-])('profileMetricsControllerInit', ({ metaMetricsId, remoteFeatureFlag }) => {
-  describe(`when metaMetricsId is ${metaMetricsId} and the feature flag value is ${remoteFeatureFlag}`, () => {
-    it('initializes the controller', () => {
-      const { controller } = profileMetricsControllerInit(
-        getInitRequestMock({ metaMetricsId, remoteFeatureFlag }),
-      );
-      expect(controller).toBeInstanceOf(ProfileMetricsController);
+  {
+    metaMetricsId: 'mock-id',
+    remoteFeatureFlag: true,
+    metaMetricsEnabled: true,
+  },
+  {
+    metaMetricsId: 'mock-id-2',
+    remoteFeatureFlag: false,
+    metaMetricsEnabled: false,
+  },
+])(
+  'profileMetricsControllerInit',
+  ({ metaMetricsId, remoteFeatureFlag, metaMetricsEnabled }) => {
+    beforeEach(() => {
+      jest.clearAllMocks();
     });
 
-    it('passes the proper arguments to the controller', () => {
-      profileMetricsControllerInit(
-        getInitRequestMock({ metaMetricsId, remoteFeatureFlag }),
-      );
+    describe(`when metaMetricsId is ${metaMetricsId}, the feature flag value is ${remoteFeatureFlag} and MetaMetrics is ${metaMetricsEnabled ? 'enabled' : 'disabled'}`, () => {
+      it('initializes the controller', () => {
+        const { controller } = profileMetricsControllerInit(
+          getInitRequestMock({
+            metaMetricsId,
+            remoteFeatureFlag,
+            metaMetricsEnabled,
+          }),
+        );
 
-      const controllerMock = jest.mocked(ProfileMetricsController);
-      expect(controllerMock).toHaveBeenCalledWith({
-        messenger: expect.any(Object),
-        state: undefined,
-        assertUserOptedIn: expect.any(Function),
-        getMetaMetricsId: expect.any(Function),
+        expect(controller).toBeInstanceOf(ProfileMetricsController);
+      });
+
+      it('passes the proper arguments to the controller', () => {
+        profileMetricsControllerInit(
+          getInitRequestMock({
+            metaMetricsId,
+            remoteFeatureFlag,
+            metaMetricsEnabled,
+          }),
+        );
+
+        const controllerMock = jest.mocked(ProfileMetricsController);
+
+        expect(controllerMock).toHaveBeenCalledWith({
+          messenger: expect.any(Object),
+          state: undefined,
+          assertUserOptedIn: expect.any(Function),
+          getMetaMetricsId: expect.any(Function),
+        });
+        expect(controllerMock.mock.calls[0][0].assertUserOptedIn()).toBe(
+          metaMetricsEnabled && remoteFeatureFlag,
+        );
+        expect(controllerMock.mock.calls[0][0].getMetaMetricsId()).toBe(
+          metaMetricsId,
+        );
       });
     });
-  });
-});
+  },
+);
