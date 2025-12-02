@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import Engine from '../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -298,12 +299,12 @@ describe('useConfirmAction', () => {
             transactionBatches: [
               {
                 id: lendingBatchId,
-                chainId: '0x1',
+                chainId: '0x1' as `0x${string}`,
                 origin: 'metamask',
                 from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
                 transactions: [
-                  { type: 'contractInteraction' },
-                  { type: 'lendingDeposit' },
+                  { type: TransactionType.contractInteraction },
+                  { type: TransactionType.lendingDeposit },
                 ],
               },
             ],

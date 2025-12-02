@@ -1,5 +1,4 @@
 import { Hex } from '@metamask/utils';
-import { isSwapsNativeAsset } from '.';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   balanceToFiatNumber,
@@ -8,6 +7,7 @@ import {
   renderFromWei,
   weiToFiatNumber,
 } from '../../../../util/number';
+import { isSwapsNativeAsset } from '../../../../util/bridge';
 
 export interface Token {
   address: string;

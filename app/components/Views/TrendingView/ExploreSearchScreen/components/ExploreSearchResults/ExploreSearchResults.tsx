@@ -1,15 +1,7 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  Text,
-  TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   SECTIONS_CONFIG,
@@ -17,10 +9,10 @@ import {
   type SectionId,
 } from '../../../config/sections.config';
 import { useExploreSearch } from './config/useExploreSearch';
+import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
+import SitesSearchFooter from '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useSelector } from 'react-redux';
 
-function looksLikeUrl(str: string): boolean {
-  return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
-}
 interface ExploreSearchResultsProps {
   searchQuery: string;
 }
@@ -51,16 +43,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const tw = useTailwind();
   const { data, isLoading } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
-
-  const handlePressFooterLink = useCallback(
-    (url: string) => {
-      navigation.navigate('TrendingBrowser', {
-        newTabUrl: url,
-        timestamp: Date.now(),
-        fromTrending: true,
-      });
-    },
-    [navigation],
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
   );
 
   const renderSectionHeader = useCallback(
@@ -78,7 +62,10 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const flatData = useMemo(() => {
     const result: FlatListItem[] = [];
 
-    SECTIONS_ARRAY.forEach((section) => {
+    // Filter sections based on basic functionality toggle
+    const sectionsToShow = isBasicFunctionalityEnabled ? SECTIONS_ARRAY : [];
+
+    sectionsToShow.forEach((section) => {
       const items = data[section.id];
       const sectionIsLoading = isLoading[section.id];
 
@@ -113,7 +100,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [data, isLoading]);
+  }, [data, isLoading, isBasicFunctionalityEnabled]);
 
   // Scroll to top when search query changes
   useEffect(() => {
@@ -125,78 +112,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     }
   }, [searchQuery, flatData.length]);
 
-  const finishedLoading = useMemo(
-    () => Object.values(isLoading).every((value) => !value),
-    [isLoading],
-  );
-
   const renderFooter = useMemo(() => {
-    if (!finishedLoading || searchQuery.length === 0) return null;
+    if (searchQuery.length === 0) return null;
 
-    const isUrl = looksLikeUrl(searchQuery.toLowerCase());
-
-    return (
-      <Box>
-        {isUrl && (
-          <TouchableOpacity
-            style={tw.style('flex-row items-center justify-center py-4 px-4')}
-            onPress={() => handlePressFooterLink(searchQuery)}
-            testID="trending-search-footer-url-link"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="flex-1 text-primary"
-              numberOfLines={1}
-            >
-              {searchQuery}
-            </Text>
-            <Icon
-              name={IconName.Arrow2UpRight}
-              size={IconSize.Md}
-              twClassName="text-primary"
-            />
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          style={tw.style('flex-row items-center justify-center py-4 px-4')}
-          onPress={() =>
-            handlePressFooterLink(
-              `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`,
-            )
-          }
-          testID="trending-search-footer-google-link"
-        >
-          <Box twClassName="flex-1 flex-row items-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary shrink-0"
-            >
-              Search for {'"'}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary shrink"
-              numberOfLines={1}
-            >
-              {searchQuery}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary mr-2 shrink-0"
-            >
-              {'"'} on Google
-            </Text>
-          </Box>
-          <Icon
-            name={IconName.Arrow2UpRight}
-            size={IconSize.Md}
-            twClassName="text-primary"
-          />
-        </TouchableOpacity>
-      </Box>
-    );
-  }, [finishedLoading, searchQuery, handlePressFooterLink, tw]);
+    return <SitesSearchFooter searchQuery={searchQuery} />;
+  }, [searchQuery]);
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item }) => {
@@ -211,6 +131,15 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return <section.Skeleton />;
       }
 
+      if (section.OverrideRowItemSearch) {
+        return (
+          <section.OverrideRowItemSearch
+            item={item.data}
+            navigation={navigation}
+          />
+        );
+      }
+
       // Cast navigation to 'never' to satisfy different navigation param list types
       return <section.RowItem item={item.data} navigation={navigation} />;
     },
@@ -223,7 +152,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       return `skeleton-${item.sectionId}-${item.index}`;
 
     const section = SECTIONS_CONFIG[item.sectionId];
-    return section ? section.keyExtractor(item.data) : `item-${index}`;
+    return section ? `${section.id}-${index}` : `item-${index}`;
   }, []);
 
   return (
