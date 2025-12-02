@@ -17,7 +17,7 @@ jest.mock('../../../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     NETWORK_REMOVED: 'Network Removed',
     RPC_ADDED: { category: 'RPC Added' },
-    RPC_DELETED: { category: 'RPC Deleted' },
+    RPC_REMOVED: { category: 'RPC Removed' },
   },
 }));
 
@@ -927,7 +927,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).not.toHaveBeenCalled();
       });
 
-      it('tracks RPC_DELETED event when deleting RPC URL with chainId set', async () => {
+      it('tracks RPC_REMOVED event when deleting RPC URL with chainId set', async () => {
         const instance = wrapper.instance();
         const chainId = '0x2';
         const rpcUrlToDelete = 'https://to-delete-url.com';
@@ -950,9 +950,9 @@ describe('NetworkSettings', () => {
 
         await instance.onRpcUrlDelete(rpcUrlToDelete);
 
-        // Verify RPC_DELETED event was tracked
+        // Verify RPC_REMOVED event was tracked
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({ category: 'RPC Deleted' }),
+          expect.objectContaining({ category: 'RPC Removed' }),
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           chain_id: '0x2',
@@ -961,7 +961,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
 
-      it('tracks RPC_DELETED event with correct rpc_url_index when deleting first RPC URL', async () => {
+      it('tracks RPC_REMOVED event with correct rpc_url_index when deleting first RPC URL', async () => {
         const instance = wrapper.instance();
         const chainId = '0x3';
         const rpcUrlToDelete = 'https://first-rpc-url.com';
@@ -984,9 +984,9 @@ describe('NetworkSettings', () => {
 
         await instance.onRpcUrlDelete(rpcUrlToDelete);
 
-        // Verify RPC_DELETED event was tracked with index 0
+        // Verify RPC_REMOVED event was tracked with index 0
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({ category: 'RPC Deleted' }),
+          expect.objectContaining({ category: 'RPC Removed' }),
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           chain_id: '0x3',
@@ -995,7 +995,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
 
-      it('does not track RPC_DELETED event when chainId is not set', async () => {
+      it('does not track RPC_REMOVED event when chainId is not set', async () => {
         const instance = wrapper.instance();
         const rpcUrlToDelete = 'https://to-delete-url.com';
 
@@ -1012,12 +1012,12 @@ describe('NetworkSettings', () => {
 
         await instance.onRpcUrlDelete(rpcUrlToDelete);
 
-        // Verify RPC_DELETED event was NOT tracked
+        // Verify RPC_REMOVED event was NOT tracked
         expect(mockCreateEventBuilder).not.toHaveBeenCalled();
         expect(mockTrackEvent).not.toHaveBeenCalled();
       });
 
-      it('does not track RPC_DELETED event when RPC URL is not found', async () => {
+      it('does not track RPC_REMOVED event when RPC URL is not found', async () => {
         const instance = wrapper.instance();
         const chainId = '0x4';
 
@@ -1034,7 +1034,7 @@ describe('NetworkSettings', () => {
 
         await instance.onRpcUrlDelete('https://non-existent-url.com');
 
-        // Verify RPC_DELETED event was NOT tracked (rpcUrlIndex would be -1)
+        // Verify RPC_REMOVED event was NOT tracked (rpcUrlIndex would be -1)
         expect(mockCreateEventBuilder).not.toHaveBeenCalled();
         expect(mockTrackEvent).not.toHaveBeenCalled();
       });

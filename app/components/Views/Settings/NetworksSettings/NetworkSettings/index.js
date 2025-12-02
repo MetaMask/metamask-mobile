@@ -1109,10 +1109,10 @@ export class NetworkSettings extends PureComponent {
       rpcUrls: prevState.rpcUrls.filter((rpcUrl) => rpcUrl.url !== url),
     }));
 
-    // Track RPC Deleted event
+    // Track RPC Removed event
     if (chainId && rpcUrlIndex !== -1) {
       MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_DELETED)
+        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_REMOVED)
           .addProperties({
             chain_id: toHex(chainId),
             rpc_url_index: rpcUrlIndex,
