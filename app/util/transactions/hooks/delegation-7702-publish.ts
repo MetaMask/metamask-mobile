@@ -40,7 +40,10 @@ import {
 import { NetworkClientId } from '@metamask/network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { stripSingleLeadingZero } from '../util';
+import { isTest } from '../../test/utils';
 
+// Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
+const CHAIN_ID_TEST = '0xaa36a7';
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
 
@@ -155,7 +158,7 @@ export class Delegation7702PublishHook {
     }
 
     const delegationEnvironment = getDeleGatorEnvironment(
-      parseInt(transactionMeta.chainId, 16),
+      parseInt(isTest ? CHAIN_ID_TEST : transactionMeta.chainId, 16),
     );
     const delegationManagerAddress = delegationEnvironment.DelegationManager;
     const includeTransfer =
@@ -249,7 +252,7 @@ export class Delegation7702PublishHook {
     const delegationSignature = (await this.#messenger.call(
       'DelegationController:signDelegation',
       {
-        chainId: transactionMeta.chainId,
+        chainId: isTest ? CHAIN_ID_TEST : transactionMeta.chainId,
         delegation: unsignedDelegation,
       },
     )) as Hex;

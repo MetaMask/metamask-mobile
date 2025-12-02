@@ -5,15 +5,15 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import { Assertions, LocalNode, LocalNodeType } from '../../../framework';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import {
-  AnvilPort,
-  buildPermissions,
-} from '../../../framework/fixtures/FixtureUtils';
+import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
-import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/helpers/mockHelpers';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
@@ -24,6 +24,7 @@ import {
 } from '../../../api-mocking/mock-responses/transaction-relay-mocks';
 import { RelayStatus } from '../../../../app/util/transactions/transaction-relay';
 
+const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const LOCALHOST_SENTINEL_URL =
@@ -47,55 +48,34 @@ const SIMULATION_ENABLED_NETWORKS_WITH_RELAY = {
   },
 };
 
-const SIMULATION_GAS_SPONSORSHIP_MOCK = {
-  requestBody: {
-    id: '0',
-    jsonrpc: '2.0',
-    method: 'infura_simulateTransactions',
-    params: [
+const SIMULATION_RESPONSE = {
+  jsonrpc: '2.0',
+  result: {
+    transactions: [
       {
-        transactions: [SEND_ETH_TRANSACTION_MOCK],
-        suggestFees: { withFeeTransfer: true, withTransfer: true },
+        return:
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        status: '0x1',
+        gasUsed: '0x5de2',
+        gasLimit: '0x5f34',
+        fees: [
+          {
+            maxFeePerGas: '0xf19b9f48d',
+            maxPriorityFeePerGas: '0x9febc9',
+            balanceNeeded: '0x59d9d3b865ed8',
+            currentBalance: '0x77f9fd8d99e7e0',
+            error: '',
+            tokenFees: [],
+          },
+        ],
+        stateDiff: {},
+        feeEstimate: 972988071597550,
+        baseFeePerGas: 40482817574,
       },
     ],
-  },
-  ignoreFields: [
-    'params.0.blockOverrides',
-    'id',
-    'params.0.transactions',
-    'params.0.suggestFees',
-  ],
-  urlEndpoint: LOCALHOST_SENTINEL_URL,
-  responseCode: 200,
-  response: {
-    jsonrpc: '2.0',
-    result: {
-      transactions: [
-        {
-          return:
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-          status: '0x1',
-          gasUsed: '0x5de2',
-          gasLimit: '0x5f34',
-          fees: [
-            {
-              maxFeePerGas: '0xf19b9f48d',
-              maxPriorityFeePerGas: '0x9febc9',
-              balanceNeeded: '0x59d9d3b865ed8',
-              currentBalance: '0x77f9fd8d99e7e0',
-              error: '',
-              tokenFees: [],
-            },
-          ],
-          stateDiff: {},
-          feeEstimate: 972988071597550,
-          baseFeePerGas: 40482817574,
-        },
-      ],
-      blockNumber: '0x1293669',
-      id: 'faaab4c5-edf5-4077-ac75-8d26278ca2c5',
-      sponsorship: { isSponsored: true },
-    },
+    blockNumber: '0x1293669',
+    id: 'faaab4c5-edf5-4077-ac75-8d26278ca2c5',
+    sponsorship: { isSponsored: true },
   },
 };
 
@@ -107,21 +87,32 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
     responseCode: 200,
   });
 
-  await setupMockRequest(mockServer, {
-    ...SIMULATION_GAS_SPONSORSHIP_MOCK,
-    requestMethod: 'POST',
-    url: LOCALHOST_SENTINEL_URL,
-    response: SIMULATION_GAS_SPONSORSHIP_MOCK.response,
-    responseCode: 200,
-  });
-
-  await setupMockRequest(mockServer, {
-    ...SIMULATION_GAS_SPONSORSHIP_MOCK,
-    requestMethod: 'POST',
-    url: `${LOCALHOST_SENTINEL_URL}/`,
-    response: SIMULATION_GAS_SPONSORSHIP_MOCK.response,
-    responseCode: 200,
-  });
+  // Mock infura_simulateTransactions
+  await setupMockPostRequest(
+    mockServer,
+    LOCALHOST_SENTINEL_URL,
+    {
+      jsonrpc: '2.0',
+      method: 'infura_simulateTransactions',
+      params: [
+        {
+          transactions: [SEND_ETH_TRANSACTION_MOCK],
+          suggestFees: { withFeeTransfer: true, withTransfer: true },
+        },
+      ],
+    },
+    SIMULATION_RESPONSE,
+    {
+      statusCode: 200,
+      ignoreFields: [
+        'id',
+        'params.0.blockOverrides',
+        'params.0.transactions',
+        'params.0.suggestFees',
+      ],
+      priority: 1000,
+    },
+  );
 
   await setupRemoteFeatureFlagsMock(
     mockServer,
@@ -143,7 +134,6 @@ const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {
         ticker: 'ETH',
       },
     })
-    .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
     .withDisabledSmartTransactions()
     .build();
 };
@@ -154,7 +144,7 @@ const localNodeOptions = [
     options: {
       hardfork: 'prague' as Hardfork,
       loadState:
-        './e2e/specs/confirmations-redesigned/transactions/7702/withUpgradedAccount.json',
+        './e2e/specs/confirmations-redesigned/transactions/7702/withDelegatorContracts.json',
     },
   },
 ];
@@ -189,17 +179,26 @@ describe(
           testSpecificMock: async (mockServer: Mockttp) => {
             await setupCommonMocks(mockServer);
 
-            // Success-specific mocks
-            await setupMockRequest(mockServer, {
-              requestMethod: 'POST',
-              url: `${LOCALHOST_SENTINEL_URL}/`,
-              response: TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK.response,
-              responseCode: 200,
-            });
+            // Mock eth_sendRelayTransaction
+            await setupMockPostRequest(
+              mockServer,
+              LOCALHOST_SENTINEL_URL,
+              {
+                jsonrpc: '2.0',
+                method: 'eth_sendRelayTransaction',
+              },
+              TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK.response,
+              {
+                statusCode: 200,
+                ignoreFields: ['id', 'params'],
+                priority: 999,
+              },
+            );
 
+            // Status check mock
             await setupMockRequest(mockServer, {
               requestMethod: 'GET',
-              url: `${TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.urlEndpoint}`,
+              url: `${LOCALHOST_SENTINEL_URL}/smart-transactions/${TRANSACTION_UUID_MOCK}`,
               response: {
                 transactions: [
                   {
@@ -235,22 +234,6 @@ describe(
           localNodeOptions,
           testSpecificMock: async (mockServer: Mockttp) => {
             await setupCommonMocks(mockServer);
-
-            // Failure-specific mocks - GET returns FAILED status
-            await setupMockRequest(mockServer, {
-              requestMethod: 'GET',
-              url: `${TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.urlEndpoint}`,
-              response: {
-                transactions: [
-                  {
-                    hash: TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.response
-                      .transactions[0].hash,
-                    status: 'FAILED',
-                  },
-                ],
-              },
-              responseCode: 200,
-            });
           },
         },
         async () => {
