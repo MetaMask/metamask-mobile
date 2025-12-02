@@ -220,7 +220,7 @@ async function handleUniversalLink({
         return;
       }
 
-      // if link origin is ORIGIN_CAROUSEL
+      // bypass if link originated from within this app
       if (interstitialWhitelistSources.includes(source)) {
         resolve(true);
         return;
