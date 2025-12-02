@@ -71,8 +71,11 @@ describe('BlockExplorersModal', () => {
       },
       { state: mockState },
     );
-    const etherscanButtons = getAllByText('Etherscan');
-    expect(etherscanButtons).toHaveLength(2);
+    const etherscanButton = getAllByText('Etherscan');
+    expect(etherscanButton).toHaveLength(1);
+
+    const optimisticButton = getAllByText('Optimistic');
+    expect(optimisticButton).toHaveLength(1);
   });
 
   it('should handle missing destination chain transaction hash', () => {

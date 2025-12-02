@@ -91,13 +91,13 @@ import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails
 import ShowBlockExplorer from './ShowBlockExplorer';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../../../../Base/InfoModal';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../../../../util/regex';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
+import { withRampNavigation } from '../../../../../UI/Ramp/hooks/withRampNavigation';
 import SDKConnect from '../../../../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { WC2Manager } from '../../../../../../core/WalletConnect/WalletConnectV2';
@@ -142,6 +142,10 @@ class ApproveTransactionReview extends PureComponent {
      * Current provider ticker
      */
     ticker: PropTypes.string,
+    /**
+     * Function to navigate to ramp flows
+     */
+    goToBuy: PropTypes.func,
     /**
      * Number of tokens
      */
@@ -1229,11 +1233,11 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   buyEth = () => {
-    const { navigation } = this.props;
+    const { goToBuy } = this.props;
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate(...createBuyNavigationDetails());
+      goToBuy();
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1382,7 +1386,9 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps,
 )(
-  withNavigation(
-    withQRHardwareAwareness(withMetricsAwareness(ApproveTransactionReview)),
+  withRampNavigation(
+    withNavigation(
+      withQRHardwareAwareness(withMetricsAwareness(ApproveTransactionReview)),
+    ),
   ),
 );

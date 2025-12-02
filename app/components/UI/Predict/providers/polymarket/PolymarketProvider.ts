@@ -7,6 +7,8 @@ import { Hex, numberToHex } from '@metamask/utils';
 import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
+import { MetaMetrics } from '../../../../../core/Analytics';
+import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   generateTransferData,
   isSmartContractAddress,
@@ -798,6 +800,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const queryParams = new URLSearchParams({
         user: predictAddress,
+        excludeLostRedeems: 'true',
       });
 
       const response = await fetch(
@@ -1077,7 +1080,11 @@ export class PolymarketProvider implements PredictProvider {
           outcomeTokenId,
         });
         if (error.includes(`order couldn't be fully filled`)) {
-          throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
+          throw new Error(
+            side === Side.BUY
+              ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
+              : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+          );
         }
         if (
           error.includes(`not available in your region`) ||
@@ -1298,6 +1305,32 @@ export class PolymarketProvider implements PredictProvider {
     return result;
   }
 
+  /**
+   * Set user trait for Polymarket account creation via MetaMask
+   * Fire-and-forget operation that logs errors but doesn't fail
+   */
+  private setPolymarketAccountCreatedTrait(): void {
+    MetaMetrics.getInstance()
+      .addTraitsToUser({
+        [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
+      })
+      .catch((error) => {
+        // Log error but don't fail the deposit preparation
+        Logger.error(error as Error, {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            provider: 'polymarket',
+          },
+          context: {
+            name: 'PolymarketProvider',
+            data: {
+              method: 'setPolymarketAccountCreatedTrait',
+            },
+          },
+        });
+      });
+  }
+
   public async prepareDeposit(
     params: PrepareDepositParams & { signer: Signer },
   ): Promise<PrepareDepositResponse> {
@@ -1340,6 +1373,9 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       transactions.push(deployTransaction);
+
+      // Set user trait for Polymarket account creation via MetaMask
+      this.setPolymarketAccountCreatedTrait();
     }
 
     if (!accountState.hasAllowances) {

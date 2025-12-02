@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, Linking, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -10,7 +10,6 @@ import Text, {
 import TagColored from '../../../component-library/components-temp/TagColored/TagColored';
 import { TagColor } from '../../../component-library/components-temp/TagColored/TagColored.types';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
-import Accordion from '../../../component-library/components/Accordions/Accordion';
 import Icon, {
   IconName,
   IconSize,
@@ -66,10 +65,6 @@ const NetworkVerificationInfo = ({
   isCustomNetwork?: boolean;
   isNetworkRpcUpdate?: boolean;
 }) => {
-  const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
-    number | null
-  >(null);
-  const [networkDetailsExpanded, setNetworkDetailsExpanded] = useState(false);
   const { styles } = useStyles(styleSheet, {});
   const safeChainsListValidationEnabled = useSelector(
     selectUseSafeChainsListValidation,
@@ -203,36 +198,20 @@ const NetworkVerificationInfo = ({
   const renderNetworkInfo = () => (
     <ScrollView
       nestedScrollEnabled
-      style={[
-        styles.accountCardWrapper,
-        networkInfoMaxHeight ? { maxHeight: networkInfoMaxHeight } : undefined,
-      ]}
-      onLayout={(event) => {
-        if (!networkInfoMaxHeight) {
-          setNetworkInfoMaxHeight(event.nativeEvent.layout.height);
-        }
-      }}
-      contentContainerStyle={
-        networkDetailsExpanded ? styles.nestedScrollContent : undefined
-      }
+      style={styles.accountCardWrapper}
+      contentContainerStyle={styles.nestedScrollContent}
     >
       {renderCurrencySymbol()}
       {renderNetworkRpcUrlLabel()}
       <Text style={styles.textSection}>
         {hideKeyFromUrl(customNetworkInformation.rpcUrl)}
       </Text>
-
-      <Accordion
-        title={strings('spend_limit_edition.view_details')}
-        onPress={() => setNetworkDetailsExpanded(!networkDetailsExpanded)}
-      >
-        {renderChainId()}
-        {renderNetworkDisplayName()}
-        <Text variant={TextVariant.BodyMDMedium}>
-          {strings('add_custom_network.block_explorer_url')}
-        </Text>
-        <Text>{customNetworkInformation.blockExplorerUrl}</Text>
-      </Accordion>
+      {renderChainId()}
+      {renderNetworkDisplayName()}
+      <Text variant={TextVariant.BodyMDMedium}>
+        {strings('add_custom_network.block_explorer_url')}
+      </Text>
+      <Text>{customNetworkInformation.blockExplorerUrl}</Text>
     </ScrollView>
   );
 

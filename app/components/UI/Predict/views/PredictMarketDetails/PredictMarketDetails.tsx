@@ -22,15 +22,13 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
+import { TraceName } from '../../../../../util/trace';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume, estimateLineCount } from '../../utils/format';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import Engine from '../../../../../core/Engine';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import {
@@ -39,6 +37,9 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   ButtonSize as ButtonSizeHero,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
@@ -48,6 +49,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictDetailsChart, {
   ChartSeries,
 } from '../../components/PredictDetailsChart/PredictDetailsChart';
+import {
+  DAY_IN_MS,
+  getTimestampInMs,
+} from '../../components/PredictDetailsChart/utils';
 import PredictPositionDetail from '../../components/PredictPositionDetail';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
@@ -68,6 +73,7 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderSkeleton';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
+import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -89,6 +95,12 @@ const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
   [PredictPriceHistoryInterval.MAX]: 1440, // 24-hour resolution for max window
 };
 
+const MAX_INTERVAL_SHORT_RANGE_THRESHOLD_DAYS = 30;
+const MAX_INTERVAL_SHORT_RANGE_MS =
+  MAX_INTERVAL_SHORT_RANGE_THRESHOLD_DAYS * DAY_IN_MS;
+const MAX_INTERVAL_SHORT_RANGE_FIDELITY =
+  DEFAULT_FIDELITY_BY_INTERVAL[PredictPriceHistoryInterval.ONE_WEEK] ?? 240;
+
 // Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
@@ -103,6 +115,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tw = useTailwind();
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
+  const [maxIntervalAdaptiveFidelity, setMaxIntervalAdaptiveFidelity] =
+    useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
@@ -126,6 +140,17 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     id: resolvedMarketId,
     providerId,
     enabled: Boolean(resolvedMarketId),
+  });
+
+  // Track screen load performance (market details + chart)
+  usePredictMeasurement({
+    traceName: TraceName.PredictMarketDetailsView,
+    conditions: [!isMarketFetching, !!market, !isRefreshing],
+    debugContext: {
+      marketId: market?.id,
+      hasMarket: !!market,
+      loadingStates: { isMarketFetching, isRefreshing },
+    },
   });
 
   // calculate sticky header indices based on content structure
@@ -183,6 +208,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       setSelectedTimeframe(PredictPriceHistoryInterval.MAX);
     }
   }, [market?.status]);
+
+  // check if market has fee exemption (note: worth moveing to a const or util at some point))
+  const isFeeExemption = market?.tags?.includes('Middle East') ?? false;
 
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
@@ -281,34 +309,104 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       (outcome) => outcome.resolutionStatus === 'resolved',
     );
 
-  const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
+  // Chart-specific data preparation (pending a larger refactor)
+  // Isolated from the rest of the component for now to avoid regressions
+  const chartOpenOutcomes = useMemo(
+    () =>
+      (market?.outcomes ?? [])
+        .filter((outcome) => outcome.status === 'open')
+        .slice(0, 3),
+    [market?.outcomes],
+  );
+
+  const chartOutcomeTokenIds = useMemo(
+    () =>
+      chartOpenOutcomes
+        .map((outcome) => outcome?.tokens?.[0]?.id)
+        .filter((tokenId): tokenId is string => Boolean(tokenId)),
+    [chartOpenOutcomes],
+  );
+
+  const selectedFidelity = useMemo(() => {
+    if (
+      selectedTimeframe === PredictPriceHistoryInterval.MAX &&
+      maxIntervalAdaptiveFidelity
+    ) {
+      return maxIntervalAdaptiveFidelity;
+    }
+
+    return DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
+  }, [selectedTimeframe, maxIntervalAdaptiveFidelity]);
   const {
     priceHistories,
     isFetching: isPriceHistoryFetching,
     errors,
     refetch: refetchPriceHistory,
   } = usePredictPriceHistory({
-    marketIds: loadedOutcomeTokenIds,
+    marketIds: chartOutcomeTokenIds,
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
-    enabled: hasAnyOutcomeToken,
+    enabled: chartOutcomeTokenIds.length > 0,
   });
 
-  // Transform data for the unified chart component
+  const maxIntervalRangeMs = useMemo(() => {
+    if (selectedTimeframe !== PredictPriceHistoryInterval.MAX) {
+      return null;
+    }
+
+    const timestamps = priceHistories.flatMap((history) =>
+      history.map((point) => getTimestampInMs(point.timestamp)),
+    );
+
+    if (!timestamps.length) {
+      return null;
+    }
+
+    return Math.max(...timestamps) - Math.min(...timestamps);
+  }, [priceHistories, selectedTimeframe]);
+
+  useEffect(() => {
+    if (selectedTimeframe !== PredictPriceHistoryInterval.MAX) {
+      if (maxIntervalAdaptiveFidelity !== null) {
+        setMaxIntervalAdaptiveFidelity(null);
+      }
+      return;
+    }
+
+    if (
+      typeof maxIntervalRangeMs === 'number' &&
+      maxIntervalRangeMs > 0 &&
+      maxIntervalRangeMs < MAX_INTERVAL_SHORT_RANGE_MS
+    ) {
+      if (maxIntervalAdaptiveFidelity !== MAX_INTERVAL_SHORT_RANGE_FIDELITY) {
+        setMaxIntervalAdaptiveFidelity(MAX_INTERVAL_SHORT_RANGE_FIDELITY);
+      }
+      return;
+    }
+
+    if (
+      maxIntervalAdaptiveFidelity !== null &&
+      (maxIntervalRangeMs === null ||
+        maxIntervalRangeMs >= MAX_INTERVAL_SHORT_RANGE_MS)
+    ) {
+      setMaxIntervalAdaptiveFidelity(null);
+    }
+  }, [maxIntervalRangeMs, maxIntervalAdaptiveFidelity, selectedTimeframe]);
+
   const chartData: ChartSeries[] = useMemo(() => {
     const palette = [
       colors.primary.default,
       colors.error.default,
       colors.success.default,
     ];
-    return loadedOutcomeTokenIds.map((_tokenId, index) => ({
+    return chartOutcomeTokenIds.map((_tokenId, index) => ({
       label:
-        outcomeSlices[index]?.groupItemTitle ||
-        outcomeSlices[index]?.title ||
+        chartOpenOutcomes[index]?.groupItemTitle ||
+        chartOpenOutcomes[index]?.title ||
         `Outcome ${index + 1}`,
       color:
-        loadedOutcomeTokenIds.length === 1
+        chartOutcomeTokenIds.length === 1
           ? colors.success.default
           : (palette[index] ?? colors.success.default),
       data: (priceHistories[index] ?? []).map((point) => ({
@@ -317,8 +415,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       })),
     }));
   }, [
-    loadedOutcomeTokenIds,
-    outcomeSlices,
+    chartOutcomeTokenIds,
+    chartOpenOutcomes,
     priceHistories,
     colors.primary.default,
     colors.error.default,
@@ -424,14 +522,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       () => {
         // Use open outcomes with updated prices if available
         const firstOpenOutcome = openOutcomes[0];
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome: firstOpenOutcome ?? market?.outcomes?.[0],
-            outcomeToken: token,
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          },
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome: firstOpenOutcome ?? market?.outcomes?.[0],
+          outcomeToken: token,
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
       },
       {
@@ -585,9 +680,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${index}`}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
               color={
-                activeTab === index ? TextColor.Default : TextColor.Alternative
+                activeTab === index
+                  ? TextColor.TextDefault
+                  : TextColor.TextAlternative
               }
               style={tw.style('text-center')}
             >
@@ -618,7 +716,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             onPress={handleBackPress}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel={strings('back')}
+            accessibilityLabel={strings('predict.buttons.back')}
             style={tw.style('items-center justify-center rounded-full')}
             testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
           >
@@ -647,9 +745,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           }
           style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
         >
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
             {title || market?.title || ''}
           </Text>
+        </Box>
+        <Box twClassName="pr-2">
+          <PredictShareButton marketId={market?.id} />
         </Box>
       </Box>
     );
@@ -672,8 +773,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   color={colors.text.alternative}
                 />
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
                 >
                   {strings('predict.market_details.market_resulted_to', {
                     outcome: winningOutcomeToken.title,
@@ -688,8 +790,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   color={colors.text.alternative}
                 />
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
                 >
                   {strings('predict.market_details.market_ended_on', {
                     outcome: winningOutcomeToken.title,
@@ -712,8 +815,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 color={colors.text.default}
               />
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
+                color={TextColor.TextDefault}
               >
                 {strings('predict.market_details.waiting_for_final_resolution')}
               </Text>
@@ -752,7 +856,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
     return (
       <Box twClassName="space-y-4">
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="font-medium"
+          color={TextColor.TextAlternative}
+        >
           {strings('predict.market_details.no_positions_found')}
         </Text>
       </Box>
@@ -760,100 +868,122 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const renderAboutSection = () => (
-    <Box twClassName="space-y-6">
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 mb-2"
-      >
+    <Box twClassName="gap-6">
+      <Box twClassName="gap-4">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
           twClassName="gap-3"
         >
-          <Icon
-            name={IconName.Chart}
-            size={IconSize.Md}
-            color={colors.text.muted}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('predict.market_details.volume')}
-          </Text>
-        </Box>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          ${formatVolume(market?.outcomes[0].volume || 0)}
-        </Text>
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 my-2"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-3"
-        >
-          <Icon
-            name={IconName.Clock}
-            size={IconSize.Md}
-            color={colors.text.muted}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('predict.market_details.end_date')}
-          </Text>
-        </Box>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {market?.endDate
-            ? new Date(market?.endDate).toLocaleDateString()
-            : 'N/A'}
-        </Text>
-      </Box>
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 my-2"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-3"
-        >
-          <Icon
-            name={IconName.Bank}
-            size={IconSize.Md}
-            color={colors.text.muted}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('predict.market_details.resolution_details')}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
-        >
-          <Pressable onPress={handlePolymarketResolution}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Icon
+              name={IconName.Chart}
+              size={IconSize.Md}
+              color={colors.text.muted}
+            />
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={colors.primary.default}
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
             >
-              Polymarket
+              {strings('predict.market_details.volume')}
             </Text>
-          </Pressable>
-          <Icon
-            name={IconName.Export}
-            size={IconSize.Sm}
-            color={colors.primary.default}
-          />
+          </Box>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="font-medium"
+            color={TextColor.TextDefault}
+          >
+            ${formatVolume(market?.outcomes[0].volume || 0)}
+          </Text>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-3"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Icon
+              name={IconName.Clock}
+              size={IconSize.Md}
+              color={colors.text.muted}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
+            >
+              {strings('predict.market_details.end_date')}
+            </Text>
+          </Box>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="font-medium"
+            color={TextColor.TextDefault}
+          >
+            {market?.endDate
+              ? new Date(market?.endDate).toLocaleDateString()
+              : 'N/A'}
+          </Text>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-3"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Icon
+              name={IconName.Bank}
+              size={IconSize.Md}
+              color={colors.text.muted}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
+            >
+              {strings('predict.market_details.resolution_details')}
+            </Text>
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Pressable onPress={handlePolymarketResolution}>
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
+                color={TextColor.PrimaryDefault}
+              >
+                Polymarket
+              </Text>
+            </Pressable>
+            <Icon
+              name={IconName.Export}
+              size={IconSize.Sm}
+              color={colors.primary.default}
+            />
+          </Box>
         </Box>
       </Box>
-      <Box twClassName="w-full border-t border-muted py-2" />
-      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+      <Box twClassName="w-full border-t border-muted" />
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {market?.description}
       </Text>
     </Box>
@@ -875,8 +1005,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               onPress={handleClaimPress}
             >
               <Text
-                variant={TextVariant.BodyMDMedium}
-                style={tw.style('text-white')}
+                variant={TextVariant.BodyMd}
+                style={tw.style('text-white font-medium')}
               >
                 {strings('confirm.predict_claim.button_label')}
               </Text>
@@ -903,7 +1033,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 width={ButtonWidthTypes.Full}
                 style={tw.style('flex-1 bg-success-muted')}
                 label={
-                  <Text style={tw.style('font-bold')} color={TextColor.Success}>
+                  <Text
+                    style={tw.style('font-bold')}
+                    color={TextColor.SuccessDefault}
+                  >
                     {firstOpenOutcome?.tokens[0].title} • {getYesPercentage()}¢
                   </Text>
                 }
@@ -920,7 +1053,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 width={ButtonWidthTypes.Full}
                 style={tw.style('flex-1 bg-error-muted')}
                 label={
-                  <Text style={tw.style('font-bold')} color={TextColor.Error}>
+                  <Text
+                    style={tw.style('font-bold')}
+                    color={TextColor.ErrorDefault}
+                  >
                     {firstOpenOutcome?.tokens[1].title} •{' '}
                     {100 - getYesPercentage()}¢
                   </Text>
@@ -1015,15 +1151,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 twClassName="gap-2"
               >
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextDefault}
                 >
                   {strings('predict.resolved_outcomes')}
                 </Text>
                 <Box twClassName="px-2 py-0.5 rounded bg-muted">
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
                   >
                     {closedOutcomes.length}
                   </Text>
@@ -1113,7 +1250,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   return (
     <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
+      style={tw.style('flex-1 bg-default', isFeeExemption ? 'pb-6' : '')}
       edges={['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
@@ -1136,14 +1273,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         {/* Header content - scrollable */}
         <Box twClassName="px-3 gap-4">
           {renderMarketStatus()}
-          <PredictDetailsChart
-            data={chartData}
-            timeframes={PRICE_HISTORY_TIMEFRAMES}
-            selectedTimeframe={selectedTimeframe}
-            onTimeframeChange={handleTimeframeChange}
-            isLoading={isPriceHistoryFetching}
-            emptyLabel={chartEmptyLabel}
-          />
+          {chartOpenOutcomes.length > 0 && (
+            <PredictDetailsChart
+              data={chartData}
+              timeframes={PRICE_HISTORY_TIMEFRAMES}
+              selectedTimeframe={selectedTimeframe}
+              onTimeframeChange={handleTimeframeChange}
+              isLoading={isPriceHistoryFetching}
+              emptyLabel={chartEmptyLabel}
+            />
+          )}
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
@@ -1163,6 +1302,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       <Box twClassName="px-3 bg-default border-t border-muted">
         {renderActionButtons()}
       </Box>
+      {isFeeExemption && (
+        <Box
+          style={tw`absolute inset-x-0 bottom-4 pb-3`}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            {strings('predict.market_details.fee_exemption')}
+          </Text>
+        </Box>
+      )}
     </SafeAreaView>
   );
 };

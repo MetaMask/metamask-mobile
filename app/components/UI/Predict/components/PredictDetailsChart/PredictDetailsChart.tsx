@@ -30,11 +30,8 @@ import {
   CHART_CONTENT_INSET,
   MAX_SERIES,
   formatPriceHistoryLabel,
-  getTimeframeDurationMs,
+  getTimestampInMs,
 } from './utils';
-
-const MIN_SERIES_POINTS = 2;
-const MIN_TIMEFRAME_COVERAGE_RATIO = 0.5;
 
 export interface ChartSeries {
   label: string;
@@ -279,68 +276,41 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
 
   // Limit to MAX_SERIES
   const seriesToRender = React.useMemo(() => data.slice(0, MAX_SERIES), [data]);
-  const timeframeDurationMs = React.useMemo(
-    () => getTimeframeDurationMs(selectedTimeframe),
-    [selectedTimeframe],
-  );
-  const seriesWithinTimeframe = React.useMemo(() => {
-    if (timeframeDurationMs === null) {
-      return seriesToRender;
+  const isSingleSeries = seriesToRender.length === 1;
+  const isMultipleSeries = seriesToRender.length > 1;
+
+  // Process data with labels
+  const chartTimeRangeMs = React.useMemo(() => {
+    const timestamps = seriesToRender
+      .flatMap((series) => series.data)
+      .map((point) => getTimestampInMs(point.timestamp));
+
+    if (!timestamps.length) {
+      return 0;
     }
 
-    return seriesToRender.filter((series) => {
-      if (!series.data?.length) {
-        return false;
-      }
+    return Math.max(...timestamps) - Math.min(...timestamps);
+  }, [seriesToRender]);
 
-      const timestampsInMs = series.data
-        .map((point) => Number(point.timestamp))
-        .filter((timestamp) => Number.isFinite(timestamp))
-        .map((timestamp) =>
-          timestamp > 1_000_000_000_000 ? timestamp : timestamp * 1000,
-        );
-
-      if (!timestampsInMs.length) {
-        return false;
-      }
-
-      if (timestampsInMs.length < MIN_SERIES_POINTS) {
-        return false;
-      }
-
-      const minTimestamp = Math.min(...timestampsInMs);
-      const maxTimestamp = Math.max(...timestampsInMs);
-      const span = maxTimestamp - minTimestamp;
-
-      const coverageRatio = span / timeframeDurationMs;
-
-      return coverageRatio >= MIN_TIMEFRAME_COVERAGE_RATIO;
-    });
-  }, [seriesToRender, timeframeDurationMs]);
-  // Process data with labels
   const seriesWithLabels = React.useMemo(
     () =>
-      seriesWithinTimeframe.map((series) => ({
+      seriesToRender.map((series) => ({
         ...series,
         data: series.data.map((point) => ({
           ...point,
-          label: formatPriceHistoryLabel(point.timestamp, selectedTimeframe),
+          label: formatPriceHistoryLabel(point.timestamp, selectedTimeframe, {
+            timeRangeMs: chartTimeRangeMs,
+          }),
         })),
       })),
-    [seriesWithinTimeframe, selectedTimeframe],
+    [seriesToRender, selectedTimeframe, chartTimeRangeMs],
   );
-
-  const isSingleSeries = seriesWithLabels.length === 1;
-  const isMultipleSeries = seriesWithLabels.length > 1;
 
   // Filter out empty series
   const nonEmptySeries = seriesWithLabels.filter(
     (series) => series.data.length > 0,
   );
   const hasData = nonEmptySeries.length > 0;
-
-  const shouldHideChart =
-    !isLoading && (!hasData || seriesWithinTimeframe.length === 0);
 
   // Calculate chart bounds
   const chartValues = hasData
@@ -450,10 +420,6 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
     [updatePosition],
   );
 
-  if (shouldHideChart) {
-    return null;
-  }
-
   const renderGraph = () => {
     if (isLoading || !hasData) {
       return (
@@ -508,10 +474,26 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
 
     // Calculate axis labels
     const axisLabelStep = Math.max(1, Math.floor(primaryData.length / 4) || 1);
-    const axisLabels = primaryData.filter(
-      (_, index) =>
-        index % axisLabelStep === 0 || index === primaryData.length - 1,
-    );
+    const axisLabelEntries = primaryData
+      .map((point, index) => ({
+        point,
+        label: point.label ?? '',
+        key: `${point.timestamp}-${index}`,
+        index,
+      }))
+      .filter(
+        (entry) =>
+          entry.index % axisLabelStep === 0 ||
+          entry.index === primaryData.length - 1,
+      );
+
+    const dedupedAxisLabels = axisLabelEntries.filter((entry, idx, arr) => {
+      if (!entry.label) {
+        return true;
+      }
+      const previous = arr[idx - 1];
+      return !previous || previous.label !== entry.label;
+    });
 
     return (
       <Box twClassName="mb-4">
@@ -589,13 +571,13 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
           justifyContent={BoxJustifyContent.Between}
           twClassName="px-4"
         >
-          {axisLabels.map((point, index) => (
+          {dedupedAxisLabels.map(({ label, key }) => (
             <Text
-              key={`${point.timestamp}-${index}`}
+              key={key}
               color={TextColor.Alternative}
               style={tw.style('text-[11px]')}
             >
-              {point.label}
+              {label}
             </Text>
           ))}
         </Box>

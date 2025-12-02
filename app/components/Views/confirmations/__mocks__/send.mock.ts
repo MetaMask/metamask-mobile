@@ -28,6 +28,23 @@ export const SOLANA_ASSET = {
   symbol: 'SOL',
 };
 
+export const EVM_NATIVE_ASSET = {
+  address: '0x0000000000000000000000000000000000000000',
+  aggregators: [],
+  decimals: 18,
+  isNative: true,
+  isETH: true,
+  image:
+    'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+  logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+  name: 'Ethereum',
+  symbol: 'ETH',
+  balance: '100',
+  balanceFiat: '100',
+  chainId: '0x1',
+  accountId: 'evm-account-id',
+};
+
 export const MOCK_NFT1155 = {
   address: '0x4B3E2eD66631FE2dE488CB0c23eF3A91A41601f7',
   chainId: 8453,

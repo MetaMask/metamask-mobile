@@ -77,6 +77,7 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
+  VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -298,6 +299,7 @@ enum EVENT_NAME {
   SEND_FLOW = 'Send Flow',
   SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
+  TOAST_DISPLAYED = 'Toast Displayed',
 
   // Send Flow
   SEND_ASSET_SELECTED = 'Send Asset Selected',
@@ -513,6 +515,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Modal Viewed
   DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
@@ -555,6 +558,7 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_STARTED = 'Card Delegation Process Started',
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
+  CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -578,10 +582,7 @@ enum EVENT_NAME {
   REWARDS_WAYS_TO_EARN_CTA_CLICKED = 'Rewards Ways to Earn CTA Clicked',
 
   // Predict
-  PREDICT_ACTION_INITIATED = 'Predict Action Initiated',
-  PREDICT_ACTION_SUBMITTED = 'Predict Action Submitted',
-  PREDICT_ACTION_COMPLETED = 'Predict Action Completed',
-  PREDICT_ACTION_FAILED = 'Predict Action Failed',
+  PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
   PREDICT_MARKET_DETAILS_OPENED = 'Predict Market Details Opened',
   PREDICT_POSITION_VIEWED = 'Predict Position Viewed',
   PREDICT_ACTIVITY_VIEWED = 'Predict Activity Viewed',
@@ -684,6 +685,7 @@ const events = {
   DEFI_PROTOCOL_DETAILS_OPENED: generateOpt(
     EVENT_NAME.DEFI_PROTOCOL_DETAILS_OPENED,
   ),
+  VIEW_ALL_ASSETS_CLICKED: generateOpt(EVENT_NAME.VIEW_ALL_ASSETS_CLICKED),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
@@ -1332,6 +1334,9 @@ const events = {
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
   ),
+  NetworkConnectionBannerRpcUpdated: generateOpt(
+    EVENT_NAME.NetworkConnectionBannerRpcUpdated,
+  ),
 
   // Multi SRP
   IMPORT_SECRET_RECOVERY_PHRASE_CLICKED: generateOpt(
@@ -1427,6 +1432,9 @@ const events = {
   CARD_DELEGATION_PROCESS_FAILED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_FAILED,
   ),
+  CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
+  ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -1467,10 +1475,7 @@ const events = {
     EVENT_NAME.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
   ),
   // Predict
-  PREDICT_ACTION_INITIATED: generateOpt(EVENT_NAME.PREDICT_ACTION_INITIATED),
-  PREDICT_ACTION_SUBMITTED: generateOpt(EVENT_NAME.PREDICT_ACTION_SUBMITTED),
-  PREDICT_ACTION_COMPLETED: generateOpt(EVENT_NAME.PREDICT_ACTION_COMPLETED),
-  PREDICT_ACTION_FAILED: generateOpt(EVENT_NAME.PREDICT_ACTION_FAILED),
+  PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
   PREDICT_MARKET_DETAILS_OPENED: generateOpt(
     EVENT_NAME.PREDICT_MARKET_DETAILS_OPENED,
   ),
@@ -1487,6 +1492,9 @@ const events = {
   // QR Scanner
   QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
   QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
+
+  // Toast
+  TOAST_DISPLAYED: generateOpt(EVENT_NAME.TOAST_DISPLAYED),
 };
 
 /**

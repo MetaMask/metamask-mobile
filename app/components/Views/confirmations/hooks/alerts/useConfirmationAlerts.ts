@@ -9,9 +9,11 @@ import { Alert } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
-import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
+import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
+import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
+import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -27,9 +29,9 @@ function useTransactionAlerts(): Alert[] {
   const insufficientPayTokenBalanceAlert =
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
-  const insufficientPayTokenNativeAlert = useInsufficientPayTokenNativeAlert();
   const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
   const burnAddressAlert = useBurnAddressAlert();
+  const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
 
   return useMemo(
     () => [
@@ -39,9 +41,9 @@ function useTransactionAlerts(): Alert[] {
       ...signedOrSubmittedAlert,
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
-      ...insufficientPayTokenNativeAlert,
       ...insufficientPredictBalanceAlert,
       ...burnAddressAlert,
+      ...tokenTrustSignalAlerts,
     ],
     [
       insufficientBalanceAlert,
@@ -50,9 +52,9 @@ function useTransactionAlerts(): Alert[] {
       signedOrSubmittedAlert,
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
-      insufficientPayTokenNativeAlert,
       insufficientPredictBalanceAlert,
       burnAddressAlert,
+      tokenTrustSignalAlerts,
     ],
   );
 }
@@ -61,6 +63,8 @@ export default function useConfirmationAlerts(): Alert[] {
   const signatureAlerts = useSignatureAlerts();
   const transactionAlerts = useTransactionAlerts();
   const accountTypeUpgrade = useAccountTypeUpgrade();
+  const urlTrustSignalAlerts = useOriginTrustSignalAlerts();
+  const addressTrustSignalAlerts = useAddressTrustSignalAlerts();
 
   return useMemo(
     () => [
@@ -68,7 +72,16 @@ export default function useConfirmationAlerts(): Alert[] {
       ...signatureAlerts,
       ...transactionAlerts,
       ...accountTypeUpgrade,
+      ...urlTrustSignalAlerts,
+      ...addressTrustSignalAlerts,
     ],
-    [blockaidAlerts, signatureAlerts, transactionAlerts, accountTypeUpgrade],
+    [
+      blockaidAlerts,
+      signatureAlerts,
+      transactionAlerts,
+      accountTypeUpgrade,
+      urlTrustSignalAlerts,
+      addressTrustSignalAlerts,
+    ],
   );
 }

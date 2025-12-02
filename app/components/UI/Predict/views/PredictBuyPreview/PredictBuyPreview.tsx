@@ -7,6 +7,9 @@ import {
   Icon,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -30,16 +33,11 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
@@ -47,7 +45,7 @@ import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PredictEventType,
+  PredictTradeStatus,
   PredictEventValues,
 } from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
@@ -63,7 +61,10 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
+import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { PredictBuyPreviewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -75,9 +76,6 @@ const PredictBuyPreview = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
-
-  // Rewards feature flag
-  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   // Prepare analytics properties
   const analyticsProperties = useMemo(
@@ -140,6 +138,17 @@ const PredictBuyPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  // Track screen load performance (balance + initial preview)
+  usePredictMeasurement({
+    traceName: TraceName.PredictBuyPreviewView,
+    conditions: [!isBalanceLoading, balance !== undefined, !!market],
+    debugContext: {
+      marketId: market?.id,
+      hasBalance: balance !== undefined,
+      isBalanceLoading,
+    },
+  });
+
   // Track when user changes input to show skeleton only during user input changes
   useEffect(() => {
     if (!isCalculating) {
@@ -163,12 +172,12 @@ const PredictBuyPreview = () => {
 
   const errorMessage = previewError ?? placeOrderError;
 
-  // Track Predict Action Initiated when screen mounts
+  // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
     controller.trackPredictOrderEvent({
-      eventType: PredictEventType.INITIATED,
+      status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       providerId: outcome.providerId,
       sharePrice: outcomeToken?.price,
@@ -184,16 +193,6 @@ const PredictBuyPreview = () => {
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
 
-  // Calculate estimated rewards points: 1 point per cent spent on MM fee
-  // Formula: MM fee (in dollars) * 100 = points (rounded)
-  const estimatedPoints = useMemo(
-    () => Math.round(metamaskFee * 100),
-    [metamaskFee],
-  );
-
-  // Show rewards row if feature is enabled and we have a valid amount
-  const shouldShowRewards = rewardsEnabled && currentValue > 0;
-
   // Validation constants and states
   const MINIMUM_BET = 1; // $1 minimum bet
   const hasInsufficientFunds = total > balance;
@@ -205,6 +204,22 @@ const PredictBuyPreview = () => {
     !isLoading &&
     !isBalanceLoading &&
     !isRateLimited;
+
+  const {
+    enabled: isRewardsEnabled,
+    isLoading: isRewardsLoading,
+    accountOptedIn: isAccountOptedIntoRewards,
+    rewardsAccountScope,
+    estimatedPoints: estimatedRewardsPoints,
+    hasError: isRewardsError,
+  } = usePredictRewards(
+    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
+  );
+
+  // Show rewards row if we have a valid amount
+  // && either active account address is opted in or not opted in but opt-in is supported
+  const shouldShowRewardsRow =
+    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
@@ -272,7 +287,7 @@ const PredictBuyPreview = () => {
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Text
-              variant={TextVariant.HeadingSM}
+              variant={TextVariant.HeadingSm}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -286,27 +301,30 @@ const PredictBuyPreview = () => {
               {!!outcomeGroupTitle && (
                 <>
                   <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodySm}
+                    twClassName="font-medium"
+                    color={TextColor.TextAlternative}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
                     {outcomeGroupTitle}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodySm}
+                    twClassName="font-medium"
+                    color={TextColor.TextAlternative}
                   >
                     {separator}
                   </Text>
                 </>
               )}
               <Text
-                variant={TextVariant.BodySMMedium}
+                variant={TextVariant.BodySm}
+                twClassName="font-medium"
                 color={
                   outcomeToken?.title === 'Yes'
-                    ? TextColor.Success
-                    : TextColor.Error
+                    ? TextColor.SuccessDefault
+                    : TextColor.ErrorDefault
                 }
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -345,7 +363,10 @@ const PredictBuyPreview = () => {
           {isBalanceLoading ? (
             <Skeleton width={120} height={20} />
           ) : (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {`${strings('predict.order.available')}: `}
               {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
             </Text>
@@ -357,13 +378,21 @@ const PredictBuyPreview = () => {
           justifyContent={BoxJustifyContent.Center}
           twClassName="mt-2"
         >
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
+          <Text
+            variant={TextVariant.BodyLg}
+            twClassName="font-medium"
+            color={TextColor.SuccessDefault}
+          >
             {`${strings('predict.order.to_win')} `}
           </Text>
           {isCalculating && isUserInputChange ? (
             <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
           ) : (
-            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
+            <Text
+              variant={TextVariant.BodyLg}
+              twClassName="font-medium"
+              color={TextColor.SuccessDefault}
+            >
               {formatPrice(toWin, {
                 minimumDecimals: 2,
                 maximumDecimals: 2,
@@ -382,8 +411,8 @@ const PredictBuyPreview = () => {
       return (
         <Box twClassName="px-12 pb-4">
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Error}
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
             style={tw.style('text-center')}
           >
             {strings('predict.order.prediction_insufficient_funds', {
@@ -401,8 +430,8 @@ const PredictBuyPreview = () => {
       return (
         <Box twClassName="px-12 pb-4">
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Error}
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
             style={tw.style('text-center')}
           >
             {strings('predict.order.prediction_minimum_bet', {
@@ -439,8 +468,9 @@ const PredictBuyPreview = () => {
             <Box twClassName="flex-row items-center gap-1">
               <ActivityIndicator size="small" />
               <Text
-                variant={TextVariant.BodyLGMedium}
-                color={TextColor.Inverse}
+                variant={TextVariant.BodyLg}
+                twClassName="font-medium"
+                color={TextColor.PrimaryInverse}
               >
                 {`${strings('predict.order.placing_prediction')}...`}
               </Text>
@@ -458,14 +488,19 @@ const PredictBuyPreview = () => {
 
     return (
       <ButtonHero
+        testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         onPress={onPlaceBet}
         disabled={!canPlaceBet}
         isLoading={isLoading}
         size={ButtonSizeHero.Lg}
         style={tw.style('w-full')}
       >
-        <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
-          {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+        <Text
+          variant={TextVariant.BodyMd}
+          style={tw.style('text-white font-medium')}
+        >
+          {outcomeToken?.title} ·{' '}
+          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
         </Text>
       </ButtonHero>
     );
@@ -484,8 +519,8 @@ const PredictBuyPreview = () => {
         <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
           {errorMessage && (
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Error}
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
               style={tw.style('text-center pb-2')}
             >
               {errorMessage}
@@ -493,11 +528,14 @@ const PredictBuyPreview = () => {
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
           <Box twClassName="text-center items-center flex-row gap-1 justify-center">
-            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
               {strings('predict.consent_sheet.disclaimer')}
             </Text>
             <Text
-              variant={TextVariant.BodyXS}
+              variant={TextVariant.BodyXs}
               style={tw.style('text-info-default')}
               onPress={() => {
                 Linking.openURL('https://polymarket.com/tos');
@@ -520,10 +558,14 @@ const PredictBuyPreview = () => {
         total={total}
         metamaskFee={metamaskFee}
         providerFee={providerFee}
-        shouldShowRewards={shouldShowRewards}
-        estimatedPoints={estimatedPoints}
-        isLoadingRewards={isCalculating && isUserInputChange}
-        hasRewardsError={false}
+        shouldShowRewardsRow={shouldShowRewardsRow}
+        rewardsAccountScope={rewardsAccountScope}
+        accountOptedIn={isAccountOptedIntoRewards}
+        estimatedPoints={estimatedRewardsPoints}
+        isLoadingRewards={
+          (isCalculating && isUserInputChange) || isRewardsLoading
+        }
+        hasRewardsError={isRewardsError}
         onFeesInfoPress={handleFeesInfoPress}
       />
       {renderErrorMessage()}

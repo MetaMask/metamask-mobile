@@ -293,7 +293,6 @@ describe('mapCardExternalWalletDetailToCardTokenAllowance', () => {
 
 describe('useGetCardExternalWalletDetails', () => {
   const mockGetCardExternalWalletDetails = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
   const mockFetchData = jest.fn();
 
   const mockSDK = {
@@ -355,7 +354,7 @@ describe('useGetCardExternalWalletDetails', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: false,
+    error: null,
     fetchData: mockFetchData,
   };
 
@@ -366,11 +365,8 @@ describe('useGetCardExternalWalletDetails', () => {
     mockUseSelector.mockReturnValue(true); // isAuthenticated
 
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
 
     mockUseWrapWithCache.mockImplementation((_key, fetchFn, _options) => {
@@ -394,7 +390,7 @@ describe('useGetCardExternalWalletDetails', () => {
 
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.error).toBeNull();
       expect(result.current.fetchData).toBe(mockFetchData);
     });
 
@@ -415,11 +411,8 @@ describe('useGetCardExternalWalletDetails', () => {
   describe('Prerequisites Check', () => {
     it('returns null when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
@@ -628,7 +621,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -639,17 +632,14 @@ describe('useGetCardExternalWalletDetails', () => {
 
     it('does not trigger fetch when SDK is not available', () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -664,7 +654,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -677,7 +667,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -690,7 +680,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -707,7 +697,21 @@ describe('useGetCardExternalWalletDetails', () => {
           priorityWalletDetail: null,
         },
         isLoading: false,
-        error: false,
+        error: null,
+        fetchData: mockFetchData,
+      });
+
+      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
+
+      expect(mockFetchData).not.toHaveBeenCalled();
+    });
+
+    it('does not trigger fetch when error exists', () => {
+      const mockError = new Error('Previous fetch failed');
+      mockUseWrapWithCache.mockReturnValue({
+        data: null,
+        isLoading: false,
+        error: mockError,
         fetchData: mockFetchData,
       });
 
@@ -720,17 +724,14 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
       // Start with SDK unavailable
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { rerender } = renderHook(() =>
@@ -741,11 +742,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       // SDK becomes available
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: mockSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       rerender();

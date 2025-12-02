@@ -52,7 +52,7 @@ describe('BridgeFeeRow', () => {
     useTransactionTotalsMock.mockReturnValue({
       fees: {
         provider: { usd: '1.00' },
-        sourceNetwork: { usd: '0.20' },
+        sourceNetwork: { estimate: { usd: '0.20' } },
         targetNetwork: { usd: '0.03' },
       },
     } as TransactionPayTotals);

@@ -13,7 +13,7 @@ import { RewardDto } from '../../../../../../core/Engine/controllers/rewards-con
 import { strings } from '../../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
-import RewardItem from './RewardItem';
+import RewardItem from '../../RewardItem/RewardItem';
 import { useUnlockedRewards } from '../../../hooks/useUnlockedRewards';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import RewardsErrorBanner from '../../RewardsErrorBanner';

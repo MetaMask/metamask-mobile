@@ -26,7 +26,6 @@ import type {
 } from '../types';
 import {
   ClobAuthDomain,
-  SLIPPAGE,
   EIP712Domain,
   FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
@@ -34,6 +33,8 @@ import {
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
   ROUNDING_CONFIG,
+  SLIPPAGE_BUY,
+  SLIPPAGE_SELL,
 } from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
@@ -52,7 +53,6 @@ import {
   PolymarketPosition,
   TickSize,
   OrderBook,
-  RoundConfig,
 } from './types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 
@@ -450,7 +450,7 @@ export const parsePolymarketEvents = (
 /**
  * Normalizes Polymarket /activity entries to PredictActivity[]
  * Keeps essential metadata used by UI (title/outcome/icon)
- * Filters out claim activities with no payout (lost positions - technical clearing only)
+ * Note: Lost redeems (activities with no payout) are excluded by the API via excludeLostRedeems parameter
  */
 export const parsePolymarketActivity = (
   activities: PolymarketApiActivity[],
@@ -459,66 +459,57 @@ export const parsePolymarketActivity = (
     return [];
   }
 
-  const parsedActivities: PredictActivity[] = activities
-    .map((activity) => {
-      // Normalize entry type: TRADE with explicit side => buy/sell, otherwise claimWinnings
-      const entryType: 'buy' | 'sell' | 'claimWinnings' =
-        activity.type === 'TRADE'
-          ? activity.side === 'BUY'
-            ? 'buy'
-            : activity.side === 'SELL'
-              ? 'sell'
-              : 'claimWinnings'
-          : 'claimWinnings';
+  const parsedActivities: PredictActivity[] = activities.map((activity) => {
+    // Normalize entry type: TRADE with explicit side => buy/sell, otherwise claimWinnings
+    const entryType: 'buy' | 'sell' | 'claimWinnings' =
+      activity.type === 'TRADE'
+        ? activity.side === 'BUY'
+          ? 'buy'
+          : activity.side === 'SELL'
+            ? 'sell'
+            : 'claimWinnings'
+        : 'claimWinnings';
 
-      const id =
-        activity.transactionHash ?? String(activity.timestamp ?? Math.random());
-      const timestamp = Number(activity.timestamp ?? Date.now());
+    const id =
+      activity.transactionHash ?? String(activity.timestamp ?? Math.random());
+    const timestamp = Number(activity.timestamp ?? Date.now());
 
-      const price = Number(activity.price ?? 0);
-      const amount = Number(activity.usdcSize ?? 0);
+    const price = Number(activity.price ?? 0);
+    const amount = Number(activity.usdcSize ?? 0);
 
-      const outcomeId = String(activity.conditionId ?? '');
-      const marketId = String(activity.conditionId ?? '');
-      const outcomeTokenId = Number(activity.outcomeIndex ?? 0);
-      const title = String(activity.title ?? 'Market');
-      const outcome = activity.outcome ? String(activity.outcome) : undefined;
-      const icon = activity.icon as string | undefined;
+    const outcomeId = String(activity.conditionId ?? '');
+    const marketId = String(activity.conditionId ?? '');
+    const outcomeTokenId = Number(activity.outcomeIndex ?? 0);
+    const title = String(activity.title ?? 'Market');
+    const outcome = activity.outcome ? String(activity.outcome) : undefined;
+    const icon = activity.icon as string | undefined;
 
-      const parsedActivity: PredictActivity = {
-        id,
-        providerId: 'polymarket',
-        entry:
-          entryType === 'claimWinnings'
-            ? { type: 'claimWinnings', timestamp, amount }
-            : {
-                type: entryType,
-                timestamp,
-                marketId,
-                outcomeId,
-                outcomeTokenId,
-                amount,
-                price,
-              },
-        title,
-        outcome,
-        icon,
-      } as PredictActivity & {
-        title?: string;
-        outcome?: string;
-        icon?: string;
-      };
+    const parsedActivity: PredictActivity = {
+      id,
+      providerId: 'polymarket',
+      entry:
+        entryType === 'claimWinnings'
+          ? { type: 'claimWinnings', timestamp, amount }
+          : {
+              type: entryType,
+              timestamp,
+              marketId,
+              outcomeId,
+              outcomeTokenId,
+              amount,
+              price,
+            },
+      title,
+      outcome,
+      icon,
+    } as PredictActivity & {
+      title?: string;
+      outcome?: string;
+      icon?: string;
+    };
 
-      return parsedActivity;
-    })
-    .filter((activity) => {
-      // Filter out claim activities with no actual payout
-      // These are lost positions being cleared - just technical operations with no transaction value
-      if (activity.entry.type === 'claimWinnings') {
-        return activity.entry.amount > 0;
-      }
-      return true;
-    });
+    return parsedActivity;
+  });
 
   return parsedActivities;
 };
@@ -1128,35 +1119,6 @@ export const roundOrderAmount = ({
   return amount;
 };
 
-export const roundOrderAmounts = ({
-  roundConfig,
-  side,
-  size,
-  price,
-}: {
-  roundConfig: RoundConfig;
-  side: Side;
-  size: number;
-  price: number;
-}): { makerAmount: number; takerAmount: number } => {
-  const rawPrice = roundDown(price, roundConfig.price);
-  const rawMakerAmt = roundDown(size, roundConfig.size);
-  let rawTakerAmt;
-  if (side === Side.BUY) {
-    rawTakerAmt = rawMakerAmt / rawPrice;
-  } else {
-    rawTakerAmt = rawMakerAmt * rawPrice;
-  }
-  rawTakerAmt = roundOrderAmount({
-    amount: rawTakerAmt,
-    decimals: roundConfig.amount,
-  });
-  return {
-    makerAmount: rawMakerAmt,
-    takerAmount: rawTakerAmt,
-  };
-};
-
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'>,
 ): Promise<OrderPreview> => {
@@ -1176,12 +1138,10 @@ export const previewOrder = async (
       asks,
       dollarAmount: size,
     });
-    const avgPrice = size / shareAmount;
-    const { makerAmount, takerAmount } = roundOrderAmounts({
-      roundConfig,
-      side,
-      size,
-      price: avgPrice,
+    const makerAmount = roundDown(size, roundConfig.size);
+    const takerAmount = roundOrderAmount({
+      amount: shareAmount,
+      decimals: roundConfig.amount,
     });
     return {
       marketId,
@@ -1192,7 +1152,7 @@ export const previewOrder = async (
       sharePrice: bestPrice,
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
-      slippage: SLIPPAGE,
+      slippage: SLIPPAGE_BUY,
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
@@ -1210,12 +1170,10 @@ export const previewOrder = async (
     bids,
     shareAmount: size,
   });
-  const avgPrice = dollarAmount / size;
-  const { makerAmount, takerAmount } = roundOrderAmounts({
-    roundConfig,
-    side,
-    size,
-    price: avgPrice,
+  const makerAmount = roundDown(size, roundConfig.size);
+  const takerAmount = roundOrderAmount({
+    amount: dollarAmount,
+    decimals: roundConfig.amount,
   });
   return {
     marketId,
@@ -1227,7 +1185,7 @@ export const previewOrder = async (
     sharePrice: bestPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
-    slippage: SLIPPAGE,
+    slippage: SLIPPAGE_SELL,
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
