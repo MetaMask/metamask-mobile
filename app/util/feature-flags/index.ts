@@ -12,6 +12,7 @@ export interface FeatureFlagInfo {
     | 'array'
     | 'boolean with minimumVersion'
     | 'boolean nested'
+    | 'abTest'
     | 'object';
   description: string | undefined;
   isOverridden: boolean;
@@ -39,6 +40,12 @@ export const getFeatureFlagType = (value: unknown): FeatureFlagInfo['type'] => {
     Object.hasOwnProperty.call(value, 'minimumVersion')
   ) {
     return 'boolean with minimumVersion';
+  } else if (
+    typeof value === 'object' &&
+    Object.hasOwnProperty.call(value, 'name') &&
+    Object.hasOwnProperty.call(value, 'value')
+  ) {
+    return 'abTest';
   } else if (
     typeof value === 'object' &&
     typeof (value as { value: boolean })?.value === 'boolean'

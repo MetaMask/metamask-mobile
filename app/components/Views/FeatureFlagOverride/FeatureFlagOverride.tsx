@@ -114,6 +114,15 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             ios_backgroundColor={theme.colors.border.muted}
           />
         );
+      case 'abTest':
+        return (
+          <Box twClassName="flex-1 ml-2">
+            <Text>name: {(localValue as { name: string })?.name}</Text>
+            <Text>
+              value: {(localValue as { value: string })?.value.toString()}
+            </Text>
+          </Box>
+        );
       case 'string':
       case 'number':
         return (

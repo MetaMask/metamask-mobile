@@ -21,7 +21,8 @@ export const useFeatureFlagStats = (): Record<string, number> => {
     featureFlagsList.forEach((flag: FeatureFlagInfo) => {
       if (
         flag.type === 'boolean with minimumVersion' ||
-        flag.type === 'boolean nested'
+        flag.type === 'boolean nested' ||
+        flag.type === 'abTest'
       ) {
         stats.boolean++;
       } else {
