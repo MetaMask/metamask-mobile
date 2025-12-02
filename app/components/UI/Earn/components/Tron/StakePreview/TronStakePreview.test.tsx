@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import TronStakePreview from './TronStakePreview';
-import type { ComputeFeeResult } from '../../../utils/tron-staking';
+import type { ComputeFeeResult } from '../../../utils/tron-staking-snap';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: jest.fn(() => {

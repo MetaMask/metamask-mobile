@@ -5465,7 +5465,10 @@
       "lending": "Position history",
       "staking": "Payout history"
     },
-    "allowance_reset": "Allowance Reset"
+    "allowance_reset": "Allowance Reset",
+    "tron": {
+      "fee": "Fee"
+    }
   },
   "stake": {
     "stake": "Stake",

@@ -1,40 +1,71 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { TrxScope } from '@metamask/keyring-api';
+import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
 import {
   confirmTronStake,
   validateTronStakeAmount,
   TronStakeResult,
-} from '../utils/tron-staking';
+} from '../utils/tron-staking-snap';
 import { TronResourceType } from '../../../../core/Multichain/constants';
+import { isTronChainId } from '../../../../core/Multichain/utils';
+import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
+import { TokenI } from '../../Tokens/types';
 
-type Purpose = TronResourceType.ENERGY | TronResourceType.BANDWIDTH;
+/** Resource type for Tron staking - matches ResourceToggle component type */
+export type ResourceType = 'energy' | 'bandwidth';
+
+interface UseTronStakeParams {
+  token: TokenI;
+}
 
 interface UseTronStakeReturn {
+  /** Whether this is a native TRX token eligible for Tron staking */
+  isTronNative: boolean;
+  /** Whether Tron staking feature is enabled */
+  isTronEnabled: boolean;
+  /** Selected resource type (ENERGY or BANDWIDTH) */
+  resourceType: ResourceType;
+  /** Setter for resource type */
+  setResourceType: React.Dispatch<React.SetStateAction<ResourceType>>;
+  /** Whether validation/confirmation is in progress */
   validating: boolean;
+  /** Validation errors if any */
   errors?: string[];
+  /** Preview data including fee estimate */
   preview?: Record<string, unknown>;
-  validate: (
-    amount: string,
-    chainId: string,
-  ) => Promise<TronStakeResult | null>;
-  confirm: (
-    amount: string,
-    purpose: Purpose,
-    chainId: string,
-  ) => Promise<TronStakeResult | null>;
+  /** Validate stake amount */
+  validate: (amount: string) => Promise<TronStakeResult | null>;
+  /** Confirm stake with current resource type */
+  confirmStake: (amount: string) => Promise<TronStakeResult | null>;
 }
 
 /**
- * Hook that validates and confirms a TRON stake via Snap methods.
- * - Builds CAIP-19 assetId for native TRX using provided chainId
+ * Hook that encapsulates all TRON staking logic:
+ * - Derives whether token is native TRX and eligible for staking
+ * - Manages resource type state (ENERGY/BANDWIDTH)
+ * - Validates and confirms TRON stakes via Snap methods
  */
-const useTronStake = (): UseTronStakeReturn => {
+const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
   const selectedTronAccount = useSelector(selectSelectedInternalAccountByScope)(
     TrxScope.Mainnet,
   );
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
+
+  // Derive whether token is native TRX
+  const isTronNative = useMemo(
+    () =>
+      Boolean(token.isNative && isTronChainId(String(token.chainId) as Hex)),
+    [token.isNative, token.chainId],
+  );
+
+  // Tron staking is enabled when both flag is on and token is native TRX
+  const isTronEnabled = Boolean(isTrxStakingEnabled && isTronNative);
+
+  // Resource type state (energy or bandwidth)
+  const [resourceType, setResourceType] = useState<ResourceType>('energy');
 
   const [validating, setValidating] = useState(false);
   const [errors, setErrors] = useState<string[] | undefined>(undefined);
@@ -42,8 +73,10 @@ const useTronStake = (): UseTronStakeReturn => {
     undefined,
   );
 
+  const chainId = String(token.chainId);
+
   const validate = useCallback<UseTronStakeReturn['validate']>(
-    async (amount: string, chainId: string) => {
+    async (amount: string) => {
       if (!selectedTronAccount?.id || !chainId) return null;
 
       setValidating(true);
@@ -62,11 +95,6 @@ const useTronStake = (): UseTronStakeReturn => {
         rest && Object.keys(rest).length > 0 ? rest : undefined;
 
       try {
-        // const fee = await computeTronFee(selectedTronAccount, {
-        //   transaction: 'stake',
-        //   accountId: selectedTronAccount.id,
-        //   scope: chainId,
-        // });
         const fee = {
           type: 'fee',
           asset: {
@@ -87,11 +115,11 @@ const useTronStake = (): UseTronStakeReturn => {
 
       return validation;
     },
-    [selectedTronAccount],
+    [selectedTronAccount, chainId],
   );
 
-  const confirm = useCallback<UseTronStakeReturn['confirm']>(
-    async (amount: string, purpose: Purpose, chainId: string) => {
+  const confirmStake = useCallback<UseTronStakeReturn['confirmStake']>(
+    async (amount: string) => {
       if (!selectedTronAccount?.id || !chainId) return null;
 
       setValidating(true);
@@ -102,17 +130,27 @@ const useTronStake = (): UseTronStakeReturn => {
         fromAccountId: selectedTronAccount.id,
         assetId,
         value: amount,
-        options: { purpose: purpose.toUpperCase() as TronResourceType },
+        options: { purpose: resourceType.toUpperCase() as TronResourceType },
       });
       setValidating(false);
       setErrors(confirmation?.errors);
 
       return confirmation;
     },
-    [selectedTronAccount],
+    [selectedTronAccount, chainId, resourceType],
   );
 
-  return { validating, errors, preview, validate, confirm };
+  return {
+    isTronNative,
+    isTronEnabled,
+    resourceType,
+    setResourceType,
+    validating,
+    errors,
+    preview,
+    validate,
+    confirmStake,
+  };
 };
 
 export default useTronStake;

@@ -13,7 +13,7 @@ import {
   TronStakeConfirmParams,
   TronUnstakeValidateParams,
   TronUnstakeConfirmParams,
-} from './tron-staking';
+} from './tron-staking-snap';
 
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {} as unknown,

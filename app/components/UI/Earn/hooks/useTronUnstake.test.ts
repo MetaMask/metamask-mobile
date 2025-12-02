@@ -8,7 +8,7 @@ import {
   confirmTronUnstake,
   validateTronUnstakeAmount,
   TronUnstakeResult,
-} from '../utils/tron-staking';
+} from '../utils/tron-staking-snap';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),

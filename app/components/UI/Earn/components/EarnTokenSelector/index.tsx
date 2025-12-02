@@ -46,11 +46,11 @@ const EarnTokenSelector = ({
   const earnToken = getEarnToken(someEarnToken);
   const outputToken = getOutputToken(someEarnToken);
 
-  // For withdrawal flows we want to display the asset the user is
-  // actually interacting with (e.g. sTRX), not a paired underlying.
+  // For withdrawal flows we want to display the output token (e.g. sTRX, stETH),
+  // for staking flows we want to display the earn token (e.g. TRX, ETH).
   const tokenToRender = (
     action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
-      ? someEarnToken
+      ? outputToken || someEarnToken
       : earnToken || outputToken || someEarnToken
   ) as EarnTokenDetails | TokenI | undefined;
 

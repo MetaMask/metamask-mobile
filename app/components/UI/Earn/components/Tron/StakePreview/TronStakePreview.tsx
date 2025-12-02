@@ -10,7 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { ResourceType } from '../ResourceToggle';
-import { ComputeFeeResult } from '../../../utils/tron-staking';
+import { ComputeFeeResult } from '../../../utils/tron-staking-snap';
 
 export interface TronStakePreviewProps {
   resourceType?: ResourceType;
@@ -29,10 +29,7 @@ const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   </Box>
 );
 
-const TronStakePreview = ({
-  // resourceType = TRON_RESOURCE.ENERGY,
-  fee,
-}: TronStakePreviewProps) => {
+const TronStakePreview = ({ fee }: TronStakePreviewProps) => {
   const tw = useTailwind();
 
   const feeItem: ComputeFeeResult[0] | undefined = Array.isArray(fee)
@@ -45,7 +42,7 @@ const TronStakePreview = ({
       style={tw.style()}
     >
       <Row
-        label={strings('stake.tron.fee')}
+        label={strings('earn.tron.fee')}
         value={feeItem ? `${feeItem.asset.amount} ${feeItem.asset.unit}` : ''}
       />
     </Box>

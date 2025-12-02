@@ -205,12 +205,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     if (primaryExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    // Fallback for TRX (stake flag on) when no earnToken metadata is present yet
-    if (isTronNative && isTrxStakingEnabled) {
-      return handleStakeRedirect();
-    }
-    ///: END:ONLY_INCLUDE_IF
   };
 
   if (

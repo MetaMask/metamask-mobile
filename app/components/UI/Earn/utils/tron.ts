@@ -8,7 +8,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
-import type { TronStakeResult, TronUnstakeResult } from './tron-staking';
+import type { TronStakeResult, TronUnstakeResult } from './tron-staking-snap';
 import { TokenI } from '../../Tokens/types';
 
 interface TronResource {
