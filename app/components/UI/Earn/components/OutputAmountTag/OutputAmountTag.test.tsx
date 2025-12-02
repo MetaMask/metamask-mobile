@@ -8,8 +8,8 @@ describe('OutputAmountTag', () => {
       <OutputAmountTag amount="10" symbol="mUSD" />,
     );
 
-    expect(getByTestId(OUTPUT_AMOUNT_TAG_SELECTOR)).toBeDefined();
-    expect(getByText('10 mUSD')).toBeDefined();
+    expect(getByTestId(OUTPUT_AMOUNT_TAG_SELECTOR)).toBeOnTheScreen();
+    expect(getByText('10 mUSD')).toBeOnTheScreen();
   });
 
   it('renders correctly with custom symbol', () => {
@@ -17,13 +17,13 @@ describe('OutputAmountTag', () => {
       <OutputAmountTag amount="25" symbol="USDC" />,
     );
 
-    expect(getByText('25 USDC')).toBeDefined();
+    expect(getByText('25 USDC')).toBeOnTheScreen();
   });
 
   it('renders amount without symbol when symbol not provided', () => {
     const { getByText } = renderWithProvider(<OutputAmountTag amount="100" />);
 
-    expect(getByText('100')).toBeDefined();
+    expect(getByText('100')).toBeOnTheScreen();
   });
 
   it('renders without background when showBackground is false', () => {
@@ -31,7 +31,7 @@ describe('OutputAmountTag', () => {
       <OutputAmountTag amount="10" symbol="mUSD" showBackground={false} />,
     );
 
-    expect(getByText('10 mUSD')).toBeDefined();
+    expect(getByText('10 mUSD')).toBeOnTheScreen();
   });
 
   it('uses custom testID when provided', () => {
@@ -40,7 +40,7 @@ describe('OutputAmountTag', () => {
       <OutputAmountTag amount="50" symbol="ETH" testID={customTestID} />,
     );
 
-    expect(getByTestId(customTestID)).toBeDefined();
+    expect(getByTestId(customTestID)).toBeOnTheScreen();
   });
 
   it('renders correctly with 0 amount', () => {
@@ -48,7 +48,7 @@ describe('OutputAmountTag', () => {
       <OutputAmountTag amount="0" symbol="mUSD" />,
     );
 
-    expect(getByText('0 mUSD')).toBeDefined();
+    expect(getByText('0 mUSD')).toBeOnTheScreen();
   });
 
   it('renders correctly with large amount', () => {
@@ -56,6 +56,6 @@ describe('OutputAmountTag', () => {
       <OutputAmountTag amount="1,500" symbol="USDT" />,
     );
 
-    expect(getByText('1,500 USDT')).toBeDefined();
+    expect(getByText('1,500 USDT')).toBeOnTheScreen();
   });
 });

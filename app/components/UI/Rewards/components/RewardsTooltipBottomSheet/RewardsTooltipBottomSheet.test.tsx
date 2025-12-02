@@ -40,10 +40,12 @@ describe('RewardsTooltipBottomSheet', () => {
       <RewardsTooltipBottomSheet isOptedIn isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByTestId(REWARDS_TOOLTIP_BOTTOM_SHEET_SELECTOR)).toBeDefined();
-    expect(getByText('earn.rewards.tooltip_title')).toBeDefined();
-    expect(getByText('earn.rewards.tooltip_description')).toBeDefined();
-    expect(getByText('earn.rewards.tooltip_opted_in_footer')).toBeDefined();
+    expect(
+      getByTestId(REWARDS_TOOLTIP_BOTTOM_SHEET_SELECTOR),
+    ).toBeOnTheScreen();
+    expect(getByText('earn.rewards.tooltip_title')).toBeOnTheScreen();
+    expect(getByText('earn.rewards.tooltip_description')).toBeOnTheScreen();
+    expect(getByText('earn.rewards.tooltip_opted_in_footer')).toBeOnTheScreen();
   });
 
   it('renders correctly when not opted in and visible', () => {
@@ -55,10 +57,14 @@ describe('RewardsTooltipBottomSheet', () => {
       />,
     );
 
-    expect(getByTestId(REWARDS_TOOLTIP_BOTTOM_SHEET_SELECTOR)).toBeDefined();
-    expect(getByText('earn.rewards.tooltip_title')).toBeDefined();
-    expect(getByText('earn.rewards.tooltip_description')).toBeDefined();
-    expect(getByText('earn.rewards.tooltip_not_opted_in_footer')).toBeDefined();
+    expect(
+      getByTestId(REWARDS_TOOLTIP_BOTTOM_SHEET_SELECTOR),
+    ).toBeOnTheScreen();
+    expect(getByText('earn.rewards.tooltip_title')).toBeOnTheScreen();
+    expect(getByText('earn.rewards.tooltip_description')).toBeOnTheScreen();
+    expect(
+      getByText('earn.rewards.tooltip_not_opted_in_footer'),
+    ).toBeOnTheScreen();
   });
 
   it('does not render when isVisible is false', () => {
@@ -80,7 +86,7 @@ describe('RewardsTooltipBottomSheet', () => {
 
     expect(
       getByText('5 points earn.rewards.tooltip_points_suffix'),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('renders custom header layout with close button', () => {
@@ -88,8 +94,8 @@ describe('RewardsTooltipBottomSheet', () => {
       <RewardsTooltipBottomSheet isOptedIn isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByText('earn.rewards.tooltip_title')).toBeDefined();
-    expect(getByTestId('rewards-tooltip-close-icon')).toBeDefined();
+    expect(getByText('earn.rewards.tooltip_title')).toBeOnTheScreen();
+    expect(getByTestId('rewards-tooltip-close-icon')).toBeOnTheScreen();
   });
 
   it('calls onClose when close button is pressed', () => {
@@ -114,6 +120,6 @@ describe('RewardsTooltipBottomSheet', () => {
       />,
     );
 
-    expect(getByTestId(customTestID)).toBeDefined();
+    expect(getByTestId(customTestID)).toBeOnTheScreen();
   });
 });

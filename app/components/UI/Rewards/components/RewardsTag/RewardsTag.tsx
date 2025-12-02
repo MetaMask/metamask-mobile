@@ -13,6 +13,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 
 export const REWARDS_TAG_SELECTOR = 'rewards-tag';
+export const REWARDS_TAG_INFO_ICON_SELECTOR = 'rewards-tag-info-icon';
 
 export enum RewardsTagBackgroundVariant {
   Subsection = 'subsection',
@@ -99,7 +100,11 @@ const RewardsTag: React.FC<RewardsTagProps> = ({
       }
       endAccessory={
         showInfoIcon ? (
-          <Icon name={IconName.Info} size={IconSize.Sm} />
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Sm}
+            testID={REWARDS_TAG_INFO_ICON_SELECTOR}
+          />
         ) : undefined
       }
       testID={testID || REWARDS_TAG_SELECTOR}
