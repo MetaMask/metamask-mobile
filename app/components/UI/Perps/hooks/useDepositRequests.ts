@@ -104,6 +104,15 @@ export const useDepositRequests = (
       setIsLoading(true);
       setError(null);
 
+      // Skip fetch if no selected address - can't attribute deposits to unknown account
+      if (!selectedAddress) {
+        DevLogger.log(
+          'fetchCompletedDeposits: No selected address, skipping fetch',
+        );
+        setIsLoading(false);
+        return;
+      }
+
       const controller = Engine.context.PerpsController;
       if (!controller) {
         throw new Error('PerpsController not available');
@@ -145,7 +154,8 @@ export const useDepositRequests = (
 
       // Get current account address for completed deposits
       // Since we're fetching deposits for the current account, all completed deposits belong to it
-      const currentAccountAddress = selectedAddress || 'unknown';
+      // Note: selectedAddress is guaranteed to exist due to early return above
+      const currentAccountAddress = selectedAddress;
 
       const depositData = (
         updatesArray as {

@@ -739,36 +739,21 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Migrate old withdrawal/deposit requests that don't have accountAddress
-   * This handles backward compatibility with persisted state from before this field was added
+   * Clean up old withdrawal/deposit requests that don't have accountAddress
+   * These are from before the accountAddress field was added and can't be displayed
+   * in the UI (which filters by account), so we discard them
    */
   private migrateRequestsIfNeeded(): void {
     this.update((state) => {
-      // Migrate withdrawal requests
-      state.withdrawalRequests = state.withdrawalRequests.map((req) => {
-        if (!req.accountAddress) {
-          // Mark old requests as completed since we don't know which account they belong to
-          return {
-            ...req,
-            accountAddress: 'unknown',
-            status: 'completed' as TransactionStatus,
-          };
-        }
-        return req;
-      });
+      // Remove withdrawal requests without accountAddress - they can't be attributed to any account
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => !!req.accountAddress,
+      );
 
-      // Migrate deposit requests
-      state.depositRequests = state.depositRequests.map((req) => {
-        if (!req.accountAddress) {
-          // Mark old requests as completed since we don't know which account they belong to
-          return {
-            ...req,
-            accountAddress: 'unknown',
-            status: 'completed' as TransactionStatus,
-          };
-        }
-        return req;
-      });
+      // Remove deposit requests without accountAddress - they can't be attributed to any account
+      state.depositRequests = state.depositRequests.filter(
+        (req) => !!req.accountAddress,
+      );
     });
   }
 
