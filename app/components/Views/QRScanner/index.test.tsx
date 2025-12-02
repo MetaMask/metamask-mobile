@@ -106,15 +106,11 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
-const mockRunAfterInteractions = jest.fn((callback) => {
-  // Execute callback immediately but in next tick to simulate async behavior
-  Promise.resolve().then(() => callback());
-  return { cancel: jest.fn() };
-});
+const { InteractionManager } = jest.requireActual('react-native');
 
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
-  runAfterInteractions: mockRunAfterInteractions,
-}));
+InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
+  callback(),
+);
 
 jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn().mockReturnValue(false),
@@ -902,23 +898,20 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: ethereumAddress }]);
         });
 
-        // Wait for all async operations to complete, including InteractionManager callback
-        await waitFor(
-          async () => {
-            // Flush promises to ensure InteractionManager callback executes
-            await new Promise((resolve) => setImmediate(resolve));
-            expect(mockGoBack).toHaveBeenCalled();
-            expect(mockDispatch).toHaveBeenCalled();
-            expect(mockNavigateToSendPage).toHaveBeenCalledWith({
-              location: 'qr_scanner',
-              predefinedRecipient: {
-                address: ethereumAddress,
-                chainType: 'evm',
-              },
-            });
-          },
-          { timeout: 3000 },
-        );
+        // Wait for goBack and dispatch (synchronous after scan)
+        expect(mockGoBack).toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalled();
+
+        // Wait for navigateToSendPage (happens in InteractionManager callback)
+        await waitFor(() => {
+          expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+            location: 'qr_scanner',
+            predefinedRecipient: {
+              address: ethereumAddress,
+              chainType: 'evm',
+            },
+          });
+        });
       });
 
       it('should handle scanning ethereum: URL with address', async () => {
@@ -943,20 +936,18 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: ethereumUrl }]);
         });
 
-        await waitFor(
-          () => {
-            expect(mockGoBack).toHaveBeenCalled();
-            expect(mockDispatch).toHaveBeenCalled();
-            expect(mockNavigateToSendPage).toHaveBeenCalledWith({
-              location: 'qr_scanner',
-              predefinedRecipient: {
-                address: ethereumAddress,
-                chainType: 'evm',
-              },
-            });
-          },
-          { timeout: 3000 },
-        );
+        expect(mockGoBack).toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalled();
+
+        await waitFor(() => {
+          expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+            location: 'qr_scanner',
+            predefinedRecipient: {
+              address: ethereumAddress,
+              chainType: 'evm',
+            },
+          });
+        });
       });
 
       it('should use native currency when available', async () => {
@@ -1009,8 +1000,9 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: solanaAddress }]);
         });
 
+        expect(mockGoBack).toHaveBeenCalled();
+
         await waitFor(() => {
-          expect(mockGoBack).toHaveBeenCalled();
           expect(mockNavigateToSendPage).toHaveBeenCalledWith({
             location: 'qr_scanner',
             predefinedRecipient: {
@@ -1041,8 +1033,9 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: solanaAddress }]);
         });
 
+        expect(mockGoBack).toHaveBeenCalled();
+
         await waitFor(() => {
-          expect(mockGoBack).toHaveBeenCalled();
           expect(mockNavigateToSendPage).toHaveBeenCalled();
         });
 
@@ -1104,8 +1097,9 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: tronAddress }]);
         });
 
+        expect(mockGoBack).toHaveBeenCalled();
+
         await waitFor(() => {
-          expect(mockGoBack).toHaveBeenCalled();
           expect(mockNavigateToSendPage).toHaveBeenCalledWith({
             location: 'qr_scanner',
             predefinedRecipient: {
@@ -1136,8 +1130,9 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: tronAddress }]);
         });
 
+        expect(mockGoBack).toHaveBeenCalled();
+
         await waitFor(() => {
-          expect(mockGoBack).toHaveBeenCalled();
           expect(mockNavigateToSendPage).toHaveBeenCalled();
         });
 
@@ -1172,8 +1167,9 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: bitcoinAddress }]);
         });
 
+        expect(mockGoBack).toHaveBeenCalled();
+
         await waitFor(() => {
-          expect(mockGoBack).toHaveBeenCalled();
           expect(mockNavigateToSendPage).toHaveBeenCalledWith({
             location: 'qr_scanner',
             predefinedRecipient: {
@@ -1204,8 +1200,8 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: bitcoinAddress }]);
         });
 
+        expect(mockGoBack).toHaveBeenCalled();
         await waitFor(() => {
-          expect(mockGoBack).toHaveBeenCalled();
           expect(mockNavigateToSendPage).toHaveBeenCalled();
         });
 
