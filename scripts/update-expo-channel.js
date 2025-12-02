@@ -23,8 +23,16 @@ const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
 
 //TODO: add production channel when it's ready
 const CONFIG_MAP = {
+  exp: {
+    channel: 'exp',
+    runtimeVersion: RUNTIME_VERSION,
+    updatesEnabled: true,
+    updateUrl: UPDATE_URL,
+    checkAutomatically: 'NEVER',
+    fallbackToCacheTimeout: 0,
+  },
   rc: {
-    channel: 'preview',
+    channel: 'rc',
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: true,
     updateUrl: UPDATE_URL,
@@ -122,9 +130,9 @@ function loadCodeSigningConfiguration() {
  * Gets the configuration for a given environment
  * @returns {Object} - The configuration object with channel, runtimeVersion, and updatesEnabled
  */
-function getConfigForEnvironment() {
+function getConfigForEnvironment(environment) {
   // For now, all environments use RC configuration
-  return CONFIG_MAP.rc;
+  return CONFIG_MAP[environment];
 }
 
 /**
