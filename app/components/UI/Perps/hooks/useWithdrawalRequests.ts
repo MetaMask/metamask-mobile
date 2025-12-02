@@ -110,6 +110,15 @@ export const useWithdrawalRequests = (
       setIsLoading(true);
       setError(null);
 
+      // Skip fetch if no selected address - can't attribute withdrawals to unknown account
+      if (!selectedAddress) {
+        DevLogger.log(
+          'fetchCompletedWithdrawals: No selected address, skipping fetch',
+        );
+        setIsLoading(false);
+        return;
+      }
+
       const controller = Engine.context.PerpsController;
       if (!controller) {
         throw new Error('PerpsController not available');
@@ -171,7 +180,7 @@ export const useWithdrawalRequests = (
           timestamp: update.time,
           amount: Math.abs(parseFloat(update.delta.usdc)).toString(),
           asset: update.delta.coin || 'USDC', // Default to USDC if coin is not specified
-          accountAddress: selectedAddress || 'unknown', // Use current selected address for historical withdrawals
+          accountAddress: selectedAddress, // selectedAddress is guaranteed to exist due to early return above
           txHash: update.hash,
           status: 'completed' as const, // HyperLiquid ledger updates are completed transactions
           destination: undefined, // Not available in ledger updates
