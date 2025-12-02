@@ -864,9 +864,11 @@ describe('NetworkSettings', () => {
       it('tracks RPC_ADDED event when adding RPC URL with chainId set', async () => {
         const instance = wrapper.instance();
         const chainId = '0x1';
+        const ticker = 'ETH';
 
         wrapper.setState({
           chainId,
+          ticker,
           rpcUrls: [],
         });
 
@@ -878,6 +880,8 @@ describe('NetworkSettings', () => {
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           chain_id: '0x1',
+          source: 'Network Settings',
+          symbol: 'ETH',
           rpc_url_index: 0,
         });
         expect(mockTrackEvent).toHaveBeenCalled();
@@ -886,9 +890,11 @@ describe('NetworkSettings', () => {
       it('tracks RPC_ADDED event with correct rpc_url_index when adding multiple RPC URLs', async () => {
         const instance = wrapper.instance();
         const chainId = '0x64';
+        const ticker = 'xDai';
 
         wrapper.setState({
           chainId,
+          ticker,
           rpcUrls: [
             {
               url: 'https://first-rpc-url.com',
@@ -907,6 +913,8 @@ describe('NetworkSettings', () => {
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           chain_id: '0x64',
+          source: 'Network Settings',
+          symbol: 'xDai',
           rpc_url_index: 1,
         });
         expect(mockTrackEvent).toHaveBeenCalled();
@@ -930,10 +938,12 @@ describe('NetworkSettings', () => {
       it('tracks RPC_REMOVED event when deleting RPC URL with chainId set', async () => {
         const instance = wrapper.instance();
         const chainId = '0x2';
+        const ticker = 'TST';
         const rpcUrlToDelete = 'https://to-delete-url.com';
 
         wrapper.setState({
           chainId,
+          ticker,
           rpcUrls: [
             {
               url: 'https://first-rpc-url.com',
@@ -956,6 +966,8 @@ describe('NetworkSettings', () => {
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           chain_id: '0x2',
+          source: 'Network Settings',
+          symbol: 'TST',
           rpc_url_index: 1, // Second RPC URL (index 1)
         });
         expect(mockTrackEvent).toHaveBeenCalled();
@@ -964,10 +976,12 @@ describe('NetworkSettings', () => {
       it('tracks RPC_REMOVED event with correct rpc_url_index when deleting first RPC URL', async () => {
         const instance = wrapper.instance();
         const chainId = '0x3';
+        const ticker = 'ABC';
         const rpcUrlToDelete = 'https://first-rpc-url.com';
 
         wrapper.setState({
           chainId,
+          ticker,
           rpcUrls: [
             {
               url: rpcUrlToDelete,
@@ -990,6 +1004,8 @@ describe('NetworkSettings', () => {
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
           chain_id: '0x3',
+          source: 'Network Settings',
+          symbol: 'ABC',
           rpc_url_index: 0, // First RPC URL (index 0)
         });
         expect(mockTrackEvent).toHaveBeenCalled();

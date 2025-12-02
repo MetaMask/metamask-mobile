@@ -999,6 +999,8 @@ export class NetworkSettings extends PureComponent {
         MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
           .addProperties({
             chain_id: toHex(this.state.chainId),
+            source: 'Network Settings',
+            symbol: this.state.ticker,
             rpc_url_index: rpcUrlIndex,
           })
           .build(),
@@ -1115,6 +1117,8 @@ export class NetworkSettings extends PureComponent {
         MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_REMOVED)
           .addProperties({
             chain_id: toHex(chainId),
+            source: 'Network Settings',
+            symbol: this.state.ticker,
             rpc_url_index: rpcUrlIndex,
           })
           .build(),
