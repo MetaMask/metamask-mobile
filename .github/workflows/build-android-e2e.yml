@@ -136,7 +136,6 @@ jobs:
       - name: Build Android E2E APKs
         run: |
           echo "🏗 Building Android E2E APKs..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
@@ -149,7 +148,6 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
@@ -198,7 +196,6 @@ jobs:
       #     IGNORE_BOXLOGS_DEVELOPMENT: true
       #     GITHUB_CI: 'true'
       #     CI: 'true'
-      #     NODE_OPTIONS: '--max-old-space-size=8192'
       #     BRIDGE_USE_DEV_APIS: 'true'
       #     RAMP_INTERNAL_BUILD: 'true'
       #     SEEDLESS_ONBOARDING_ENABLED: 'true'
