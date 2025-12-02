@@ -49,7 +49,7 @@ exports[`QrScanner render matches snapshot 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,

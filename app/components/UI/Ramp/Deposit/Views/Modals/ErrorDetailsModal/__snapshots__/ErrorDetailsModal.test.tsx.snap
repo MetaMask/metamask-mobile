@@ -488,7 +488,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -565,7 +565,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

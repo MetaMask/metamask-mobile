@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -31,12 +30,6 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
       paddingHorizontal: 24,
-    },
-    title: {
-      textAlign: 'center',
-      flex: 1,
-      fontSize: 16,
-      ...fontStyles.medium,
     },
     imagePlaceholder: {
       width: '100%',

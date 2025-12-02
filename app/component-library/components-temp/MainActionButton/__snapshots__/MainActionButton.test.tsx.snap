@@ -89,7 +89,7 @@ exports[`MainActionButton should render correctly 1`] = `
           {
             "color": "#121314",
             "flexShrink": 0,
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,

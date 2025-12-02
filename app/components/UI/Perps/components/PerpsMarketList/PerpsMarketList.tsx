@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import Text, {
   TextVariant,
@@ -82,7 +82,10 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       data={markets}
       renderItem={renderItem}
       keyExtractor={(item: PerpsMarketData) => item.symbol}
-      contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
+      contentContainerStyle={StyleSheet.flatten([
+        styles.contentContainer,
+        contentContainerStyle,
+      ])}
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={ListHeaderComponent}
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}

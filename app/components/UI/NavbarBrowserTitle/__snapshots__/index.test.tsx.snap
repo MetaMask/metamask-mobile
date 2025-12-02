@@ -28,7 +28,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "textAlign": "center",
           },
@@ -93,7 +93,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 11,
           "lineHeight": 11,
         }

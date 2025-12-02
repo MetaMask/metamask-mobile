@@ -7,7 +7,7 @@ exports[`AmountInput renders correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -85,7 +85,7 @@ exports[`AmountInput renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 24,
                     "letterSpacing": 0,
                     "lineHeight": 32,
@@ -111,7 +111,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -189,7 +189,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 24,
                     "letterSpacing": 0,
                     "lineHeight": 32,
@@ -240,7 +240,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
                       },
@@ -280,14 +280,14 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 30,
                           "marginVertical": 2,
                         },
                         undefined,
                         undefined,
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                         },
                         undefined,
                         {
@@ -362,7 +362,7 @@ exports[`AmountInput renders loading state correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -476,7 +476,7 @@ exports[`AmountInput renders loading state correctly with currency selector 1`] 
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,

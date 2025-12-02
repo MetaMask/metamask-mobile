@@ -59,7 +59,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -115,7 +115,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -190,7 +190,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -280,7 +280,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -376,7 +376,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -453,7 +453,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -549,7 +549,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -592,7 +592,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,

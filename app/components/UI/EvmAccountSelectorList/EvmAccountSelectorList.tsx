@@ -59,7 +59,7 @@ import {
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -89,7 +89,7 @@ const EvmAccountSelectorList = ({
   /**
    * Ref for the FlashList component.
    */
-  const accountListRef = useRef<FlashListRef<FlattenedAccountListItem>>(null);
+  const accountListRef = useRef<FlashList<FlattenedAccountListItem>>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 

@@ -35,7 +35,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -64,7 +64,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -93,7 +93,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -118,7 +118,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       style={
         {
           "color": "#457a39",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -132,7 +132,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -302,7 +302,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -331,7 +331,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -360,7 +360,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -385,7 +385,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       style={
         {
           "color": "#457a39",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -397,7 +397,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -565,7 +565,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -594,7 +594,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -623,7 +623,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -648,7 +648,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       style={
         {
           "color": "#457a39",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -660,7 +660,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -830,7 +830,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -859,7 +859,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -888,7 +888,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -913,7 +913,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       style={
         {
           "color": "#457a39",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -927,7 +927,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -1095,7 +1095,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1124,7 +1124,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1153,7 +1153,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1178,7 +1178,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       style={
         {
           "color": "#457a39",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -1192,7 +1192,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -1362,7 +1362,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1391,7 +1391,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1420,7 +1420,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1445,7 +1445,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       style={
         {
           "color": "#457a39",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -1459,7 +1459,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

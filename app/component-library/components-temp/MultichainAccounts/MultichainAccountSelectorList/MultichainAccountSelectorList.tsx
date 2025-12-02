@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
@@ -68,7 +68,7 @@ const MultichainAccountSelectorList = ({
     string | null
   >(null);
   const internalListRef =
-    useRef<FlashListRef<FlattenedMultichainAccountListItem>>(null);
+    useRef<FlashList<FlattenedMultichainAccountListItem>>(null);
   const listRefToUse = listRef || internalListRef;
 
   const selectedIdSet = useMemo(

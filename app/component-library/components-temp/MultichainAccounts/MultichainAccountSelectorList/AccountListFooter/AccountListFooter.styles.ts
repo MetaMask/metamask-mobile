@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = ({ theme }: { theme: Theme }) =>
@@ -28,10 +27,6 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       height: 32,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    buttonText: {
-      color: theme.colors.primary.default,
-      ...fontStyles.medium,
     },
   });
 

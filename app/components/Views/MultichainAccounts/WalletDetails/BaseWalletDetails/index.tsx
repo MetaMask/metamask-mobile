@@ -33,7 +33,7 @@ import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell';
 import { selectAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import AddAccountItem from './components/AddAccountItem';
@@ -55,7 +55,7 @@ export const BaseWalletDetails = ({
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const accountGroupsFlashListRef =
-    useRef<FlashListRef<AccountGroupListItem> | null>(null);
+    useRef<FlashList<AccountGroupListItem> | null>(null);
 
   const { keyringId, isSRPBackedUp } = useWalletInfo(wallet);
 

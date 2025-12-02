@@ -133,7 +133,7 @@ exports[`CustomAlert should render correctly 1`] = `
           <Text
             style={
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "marginBottom": 15,
                 "textAlign": "center",

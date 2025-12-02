@@ -131,7 +131,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -242,7 +225,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={-1}
+              handlerTag={2}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -592,7 +575,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -674,7 +657,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 46,
@@ -705,7 +688,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -788,7 +771,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 46,
@@ -845,7 +828,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -894,8 +877,8 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

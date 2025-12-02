@@ -21,14 +21,14 @@ exports[`CustomNonce should render correctly 1`] = `
       [
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
         },
         undefined,
         undefined,
         {
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
         },
         undefined,
         {
@@ -65,14 +65,14 @@ exports[`CustomNonce should render correctly 1`] = `
       [
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
         },
         undefined,
         undefined,
         {
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
         },
         undefined,
         undefined,
@@ -108,14 +108,14 @@ exports[`CustomNonce should render correctly 1`] = `
       [
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
         },
         undefined,
         undefined,
         {
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
         },
         undefined,
         {

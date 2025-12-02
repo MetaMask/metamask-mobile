@@ -87,9 +87,6 @@ describe('createTransactionDetailStyles', () => {
     // Assert
     expect(styles.detailLabel.fontSize).toBe(14);
     expect(styles.detailValue.fontSize).toBe(14);
-    expect(styles.assetAmount.fontWeight).toBe('700');
-    expect(styles.detailValue.fontWeight).toBe('400');
-    expect(styles.profitValue.fontWeight).toBe('500');
   });
 
   it('should apply correct flex layout to detail rows', () => {

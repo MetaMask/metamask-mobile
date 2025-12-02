@@ -69,13 +69,13 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     transactionTitle: {
       fontSize: 16,
-      ...(fontStyles.normal as const),
+      ...fontStyles.normal,
       color: colors.text.default,
       marginBottom: 4,
     },
     transactionTitleCentered: {
       fontSize: 16,
-      ...(fontStyles.normal as const),
+      ...fontStyles.normal,
       color: colors.text.default,
       marginBottom: 0, // No margin when centered
     },

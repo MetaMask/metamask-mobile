@@ -32,7 +32,7 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -105,7 +105,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "height": 38,
@@ -135,7 +135,7 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -208,7 +208,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "height": 38,
@@ -264,7 +264,7 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -304,7 +304,7 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

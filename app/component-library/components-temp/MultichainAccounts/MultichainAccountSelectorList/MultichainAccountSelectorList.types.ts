@@ -3,7 +3,7 @@ import {
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
 import { RefObject } from 'react';
-import { FlashListProps, FlashListRef } from '@shopify/flash-list';
+import { FlashListProps, FlashList } from '@shopify/flash-list';
 import { AccountWalletId } from '@metamask/account-api';
 
 /**
@@ -44,7 +44,7 @@ export interface MultichainAccountSelectorListProps
   /**
    * Reference to the FlashList component
    */
-  listRef?: RefObject<FlashListRef<FlattenedMultichainAccountListItem>>;
+  listRef?: RefObject<FlashList<FlattenedMultichainAccountListItem>>;
   /**
    * Optional boolean to show checkbox
    */

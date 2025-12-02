@@ -11,7 +11,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     selectionRow: {
       flexDirection: 'row',
-      ...fontStyles.medium,
       justifyContent: 'center',
       gap: 12,
     },

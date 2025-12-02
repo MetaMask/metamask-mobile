@@ -7,7 +7,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -98,7 +98,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -131,7 +131,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
                       },
@@ -171,14 +171,14 @@ exports[`AssetSelectorButton renders correctly 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 30,
                           "marginVertical": 2,
                         },
                         undefined,
                         undefined,
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                         },
                         undefined,
                         {
@@ -253,7 +253,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -319,7 +319,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -352,7 +352,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
                       },
@@ -392,14 +392,14 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 30,
                           "marginVertical": 2,
                         },
                         undefined,
                         undefined,
                         {
-                          "fontFamily": "Geist Bold",
+                          "fontFamily": "Geist-Bold",
                         },
                         undefined,
                         {
@@ -474,7 +474,7 @@ exports[`AssetSelectorButton renders loading state correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,

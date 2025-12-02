@@ -7,7 +7,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -95,7 +95,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -120,7 +120,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
                 [
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 30,
                     "marginVertical": 2,
                   },
@@ -160,14 +160,14 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 30,
                       "marginVertical": 2,
                     },
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                     },
                     undefined,
                     {
@@ -287,7 +287,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -375,7 +375,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -400,7 +400,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
                 [
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 30,
                     "marginVertical": 2,
                   },
@@ -440,14 +440,14 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 30,
                       "marginVertical": 2,
                     },
                     undefined,
                     undefined,
                     {
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                     },
                     undefined,
                     {
@@ -538,7 +538,7 @@ exports[`PaymentMethodSelector renders loading state correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
