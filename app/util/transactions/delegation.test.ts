@@ -84,21 +84,23 @@ describe('Transaction Delegation Utils', () => {
     });
   });
 
-  it('returns delegation data', async () => {
-    const result = await getDelegationTransaction(
-      messengerMock,
-      TRANSACTION_META_MOCK,
-    );
+  describe('getDelegationTransaction', () => {
+    it('returns delegation data', async () => {
+      const result = await getDelegationTransaction(
+        messengerMock,
+        TRANSACTION_META_MOCK,
+      );
 
-    expect(result).toMatchSnapshot();
-  });
-
-  it('does not include authorization if already upgraded', async () => {
-    const result = await getDelegationTransaction(messengerMock, {
-      ...TRANSACTION_META_MOCK,
-      delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      expect(result).toMatchSnapshot();
     });
 
-    expect(result.authorizationList).toBeUndefined();
+    it('does not include authorization if already upgraded', async () => {
+      const result = await getDelegationTransaction(messengerMock, {
+        ...TRANSACTION_META_MOCK,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      });
+
+      expect(result.authorizationList).toBeUndefined();
+    });
   });
 });
