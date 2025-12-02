@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -225,7 +225,11 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
         <>
-          {isMusdConversionFlowEnabled && <MusdConversionAssetListCta />}
+          {isMusdConversionFlowEnabled && (
+            <View style={isFullView ? tw`px-4` : undefined}>
+              <MusdConversionAssetListCta />
+            </View>
+          )}
           <TokenList
             tokenKeys={sortedTokenKeys}
             refreshing={refreshing}
