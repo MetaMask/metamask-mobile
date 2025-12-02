@@ -27,23 +27,22 @@ const createNetworkEntry = (
 /**
  * Network configurations for trending features
  */
+// Before adding a network, you MUST make sure it is supported on both `searchAPI` and `trendingAPI`
 const TRENDING_NETWORKS_CONFIG: {
   caipChainId: CaipChainId;
   name: string;
 }[] = [
-  { caipChainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
-  { caipChainId: 'eip155:59144' as CaipChainId, name: 'Linea' },
-  { caipChainId: 'eip155:8453' as CaipChainId, name: 'Base' },
-  { caipChainId: 'eip155:42161' as CaipChainId, name: 'Arbitrum' },
-  { caipChainId: 'eip155:56' as CaipChainId, name: 'BNB Chain' },
-  { caipChainId: 'eip155:10' as CaipChainId, name: 'OP' },
-  { caipChainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
-  { caipChainId: 'eip155:1329' as CaipChainId, name: 'Sei' },
-  { caipChainId: 'eip155:43114' as CaipChainId, name: 'Avalanche' },
-  { caipChainId: 'eip155:324' as CaipChainId, name: 'zkSync Era' },
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  { caipChainId: 'eip155:1', name: 'Ethereum' },
+  { caipChainId: 'eip155:59144', name: 'Linea' },
+  { caipChainId: 'eip155:8453', name: 'Base' },
+  { caipChainId: 'eip155:42161', name: 'Arbitrum' },
+  { caipChainId: 'eip155:56', name: 'BNB Chain' },
+  { caipChainId: 'eip155:10', name: 'OP' },
+  { caipChainId: 'eip155:137', name: 'Polygon' },
+  { caipChainId: 'eip155:1329', name: 'Sei' },
+  { caipChainId: 'eip155:43114', name: 'Avalanche' },
+  { caipChainId: 'eip155:324', name: 'zkSync Era' },
   { caipChainId: SolScope.Mainnet, name: 'Solana' },
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   { caipChainId: TrxScope.Mainnet, name: 'Tron' },
   ///: END:ONLY_INCLUDE_IF
