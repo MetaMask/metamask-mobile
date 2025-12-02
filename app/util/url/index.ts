@@ -5,6 +5,7 @@ import AppConstants from '../../core/AppConstants';
  * {@see {@link https://github.com/mathiasbynens/punycode.js?tab=readme-ov-file#installation}
  */
 import { toASCII } from 'punycode/';
+import Logger from '../Logger';
 
 const hostnameRegex =
   /^(?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)?(?:www\.)?([^/?:]+)(?::\d+)?/;
@@ -38,6 +39,7 @@ export const isCardUrl = (url: string) => {
     const currentUrl = new URL(url);
     return currentUrl.origin === AppConstants.CARD.URL;
   } catch (error) {
+    Logger.log('Error in isCardUrl', error);
     return false;
   }
 };
@@ -47,6 +49,7 @@ export const isCardTravelUrl = (url: string) => {
     const currentUrl = new URL(url);
     return currentUrl.origin === AppConstants.CARD.TRAVEL_URL;
   } catch (error) {
+    Logger.log('Error in isCardTravelUrl', error);
     return false;
   }
 };
@@ -57,6 +60,7 @@ export const isCardTosUrl = (url: string) => {
     const tosUrl = new URL(AppConstants.CARD.CARD_TOS_URL);
     return currentUrl.origin === tosUrl.origin;
   } catch (error) {
+    Logger.log('Error in isCardTosUrl', error);
     return false;
   }
 };
