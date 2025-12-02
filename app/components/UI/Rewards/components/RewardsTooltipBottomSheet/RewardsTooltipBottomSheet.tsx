@@ -90,6 +90,7 @@ const RewardsTooltipBottomSheet: React.FC<RewardsTooltipBottomSheetProps> = ({
           size={ButtonIconSizes.Lg}
           onPress={handleClose}
           style={styles.closeButton}
+          testID="rewards-tooltip-close-icon"
         />
         <Text variant={TextVariant.HeadingLG} style={styles.title}>
           {strings('earn.rewards.tooltip_title')}

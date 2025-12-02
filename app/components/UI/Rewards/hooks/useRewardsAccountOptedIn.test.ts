@@ -170,4 +170,120 @@ describe('useRewardsAccountOptedIn', () => {
       expect.any(Function),
     );
   });
+
+  it('returns selected account in result', async () => {
+    (Engine.controllerMessenger.call as jest.Mock)
+      .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+      .mockResolvedValueOnce('subscription-id') // getCandidateSubscriptionId
+      .mockResolvedValueOnce(true); // getHasAccountOptedIn
+
+    const { result } = renderHook(() => useRewardsAccountOptedIn());
+
+    await waitFor(() => {
+      expect(result.current.account).toEqual(mockAccount);
+    });
+  });
+
+  describe('checkActiveSeason parameter', () => {
+    it('checks hasActiveSeason when checkActiveSeason is true', async () => {
+      (Engine.controllerMessenger.call as jest.Mock)
+        .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+        .mockResolvedValueOnce(true) // hasActiveSeason
+        .mockResolvedValueOnce('subscription-id') // getCandidateSubscriptionId
+        .mockResolvedValueOnce(true); // getHasAccountOptedIn
+
+      const { result } = renderHook(() =>
+        useRewardsAccountOptedIn({ checkActiveSeason: true }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.accountOptedIn).toBe(true);
+      });
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'RewardsController:isRewardsFeatureEnabled',
+      );
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'RewardsController:hasActiveSeason',
+      );
+    });
+
+    it('returns null when rewards enabled but no active season', async () => {
+      (Engine.controllerMessenger.call as jest.Mock)
+        .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+        .mockResolvedValueOnce(false); // hasActiveSeason
+
+      const { result } = renderHook(() =>
+        useRewardsAccountOptedIn({ checkActiveSeason: true }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.accountOptedIn).toBeNull();
+      });
+    });
+
+    it('returns null when rewards not enabled even with checkActiveSeason', async () => {
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValueOnce(
+        false,
+      ); // isRewardsFeatureEnabled
+
+      const { result } = renderHook(() =>
+        useRewardsAccountOptedIn({ checkActiveSeason: true }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.accountOptedIn).toBeNull();
+      });
+
+      // Should not call hasActiveSeason if rewards not enabled
+      expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsController:hasActiveSeason',
+      );
+    });
+
+    it('does not check hasActiveSeason when checkActiveSeason is false', async () => {
+      (Engine.controllerMessenger.call as jest.Mock)
+        .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+        .mockResolvedValueOnce('subscription-id') // getCandidateSubscriptionId
+        .mockResolvedValueOnce(true); // getHasAccountOptedIn
+
+      const { result } = renderHook(() =>
+        useRewardsAccountOptedIn({ checkActiveSeason: false }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.accountOptedIn).toBe(true);
+      });
+
+      expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsController:hasActiveSeason',
+      );
+    });
+  });
+
+  describe('trigger parameter', () => {
+    it('re-checks opt-in status when trigger changes', async () => {
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(true);
+
+      const { result, rerender } = renderHook(
+        ({ trigger }) => useRewardsAccountOptedIn({ trigger }),
+        { initialProps: { trigger: 'initial' } },
+      );
+
+      await waitFor(() => {
+        expect(result.current.accountOptedIn).toBe(true);
+      });
+
+      const initialCallCount = (Engine.controllerMessenger.call as jest.Mock)
+        .mock.calls.length;
+
+      rerender({ trigger: 'changed' });
+
+      await waitFor(() => {
+        expect(
+          (Engine.controllerMessenger.call as jest.Mock).mock.calls.length,
+        ).toBeGreaterThan(initialCallCount);
+      });
+    });
+  });
 });

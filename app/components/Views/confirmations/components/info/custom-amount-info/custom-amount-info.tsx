@@ -1,5 +1,4 @@
-import React, { ReactNode, memo, useCallback, useState, useMemo } from 'react';
-import { Modal, View } from 'react-native';
+import React, { ReactNode, memo, useCallback, useState } from 'react';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
@@ -53,11 +52,9 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import RewardsTag from '../../../../../UI/Rewards/components/RewardsTag';
-import RewardsTooltipBottomSheet from '../../../../../UI/Rewards/components/RewardsTooltipBottomSheet';
-import { useRewardsAccountOptedIn } from '../../../../../UI/Rewards/hooks/useRewardsAccountOptedIn';
 import EngineService from '../../../../../../core/EngineService';
-import MusdTag from '../../../../../UI/Earn/components/MusdTag';
-import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
+import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
+import { useCustomAmountRewards } from '../../../hooks/rewards/useCustomAmountRewards';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -81,27 +78,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const availableTokens = useTransactionPayAvailableTokens();
     const hasTokens = availableTokens.length > 0;
 
-    const [isRewardsTooltipVisible, setIsRewardsTooltipVisible] =
-      useState(false);
-
-    const transactionMeta = useTransactionMetadataRequest();
-    const isMusdConversion = hasTransactionType(transactionMeta, [
-      TransactionType.musdConversion,
-    ]);
-
-    const musdSymbol = 'mUSD';
-
-    const { accountOptedIn } = useRewardsAccountOptedIn();
-    const isOptedInToRewards = accountOptedIn ?? false;
-
-    const handleRewardsTagPress = useCallback(() => {
-      setIsRewardsTooltipVisible(true);
-    }, []);
-
-    const handleRewardsTooltipClose = useCallback(() => {
-      setIsRewardsTooltipVisible(false);
-    }, []);
-
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
     });
@@ -117,12 +93,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
-    // Calculate rewards points: 5 points per $100 USD
-    // amountHuman represents mUSD amount (1 mUSD = 1 USD)
-    const estimatedMusdPoints = useMemo(() => {
-      const amount = parseFloat(amountHuman) || 0;
-      return Math.floor(amount / 100) * 5;
-    }, [amountHuman]);
+    // Use the rewards hook for all rewards and output amount logic
+    const {
+      shouldShowRewardsTag,
+      estimatedPoints,
+      onRewardsTagPress,
+      shouldShowOutputAmountTag,
+      outputAmount,
+      outputSymbol,
+      renderRewardsTooltip,
+    } = useCustomAmountRewards({ amountHuman });
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
@@ -150,25 +130,22 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {disablePay !== true && !isMusdConversion && (
+          {disablePay !== true && !shouldShowOutputAmountTag && (
             <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
-          {isMusdConversion && (
-            <MusdTag
-              amount={limitToMaximumDecimalPlaces(
-                parseFloat(amountHuman || '0'),
-                2,
-              )}
-              symbol={musdSymbol}
+          {shouldShowOutputAmountTag && outputAmount !== null && (
+            <OutputAmountTag
+              amount={outputAmount}
+              symbol={outputSymbol ?? undefined}
               showBackground={false}
             />
           )}
           {children}
           {disablePay !== true && hasTokens && <PayWithRow />}
-          {isMusdConversion && (
+          {shouldShowRewardsTag && estimatedPoints !== null && (
             <RewardsTag
-              points={estimatedMusdPoints}
-              onPress={handleRewardsTagPress}
+              points={estimatedPoints}
+              onPress={onRewardsTagPress}
               showBackground={false}
             />
           )}
@@ -196,22 +173,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hasTokens && <BuySection />}
           {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
         </Box>
-        {isRewardsTooltipVisible && (
-          <View>
-            <Modal
-              visible
-              transparent
-              animationType="none"
-              statusBarTranslucent
-            >
-              <RewardsTooltipBottomSheet
-                isOptedIn={isOptedInToRewards}
-                isVisible={isRewardsTooltipVisible}
-                onClose={handleRewardsTooltipClose}
-              />
-            </Modal>
-          </View>
-        )}
+        {renderRewardsTooltip()}
       </Box>
     );
   },

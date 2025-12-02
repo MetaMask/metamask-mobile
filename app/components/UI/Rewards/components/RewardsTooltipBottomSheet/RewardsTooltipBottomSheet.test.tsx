@@ -84,12 +84,12 @@ describe('RewardsTooltipBottomSheet', () => {
   });
 
   it('renders custom header layout with close button', () => {
-    const { getByTestId } = render(
+    const { getByText, getByTestId } = render(
       <RewardsTooltipBottomSheet isOptedIn isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByTestId(REWARDS_TOOLTIP_BOTTOM_SHEET_SELECTOR)).toBeDefined();
-    // Custom header with close button should be present
+    expect(getByText('earn.rewards.tooltip_title')).toBeDefined();
+    expect(getByTestId('rewards-tooltip-close-icon')).toBeDefined();
   });
 
   it('calls onClose when close button is pressed', () => {

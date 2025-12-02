@@ -8,15 +8,15 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 
-export const MUSD_TAG_SELECTOR = 'musd-tag';
+export const OUTPUT_AMOUNT_TAG_SELECTOR = 'output-amount-tag';
 
-interface MusdTagProps {
+interface OutputAmountTagProps {
   /**
-   * Amount of mUSD to display
+   * Amount to display
    */
   amount: string;
   /**
-   * Token symbol (defaults to 'mUSD')
+   * Token symbol to display after the amount
    */
   symbol?: string;
   /**
@@ -39,12 +39,12 @@ const createStyles = () =>
   });
 
 /**
- * Tag component that displays mUSD amount.
- * Used in mUSD conversion flow to show the output amount.
+ * Generic tag component that displays an output amount with symbol.
+ * Used in conversion flows to show the expected output amount.
  */
-const MusdTag: React.FC<MusdTagProps> = ({
+const OutputAmountTag: React.FC<OutputAmountTagProps> = ({
   amount,
-  symbol = 'mUSD',
+  symbol,
   showBackground = true,
   testID,
 }) => {
@@ -58,6 +58,8 @@ const MusdTag: React.FC<MusdTagProps> = ({
     paddingBottom: 6,
   };
 
+  const displayText = symbol ? `${amount} ${symbol}` : amount;
+
   return (
     <View style={styles.wrapper}>
       <TagBase
@@ -67,14 +69,14 @@ const MusdTag: React.FC<MusdTagProps> = ({
           variant: TextVariant.BodySMMedium,
         }}
         severity={TagSeverity.Neutral}
-        testID={testID || MUSD_TAG_SELECTOR}
+        testID={testID || OUTPUT_AMOUNT_TAG_SELECTOR}
         gap={6}
         style={tagStyle}
       >
-        {`${amount} ${symbol}`}
+        {displayText}
       </TagBase>
     </View>
   );
 };
 
-export default MusdTag;
+export default OutputAmountTag;

@@ -4,16 +4,42 @@ import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { formatAccountToCaipAccountId } from '../../Perps/utils/rewardsUtils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+
+export interface UseRewardsAccountOptedInParams {
+  /**
+   * Optional trigger to re-check opt-in status when changed.
+   * Useful for Perps when estimated points change and you want to revalidate.
+   */
+  trigger?: unknown;
+  /**
+   * Whether to additionally check for an active season after verifying rewards are enabled.
+   * Always checks isRewardsFeatureEnabled first, then also checks hasActiveSeason if true.
+   * @default false
+   */
+  checkActiveSeason?: boolean;
+}
+
+export interface UseRewardsAccountOptedInResult {
+  /** Whether the account has opted in to rewards */
+  accountOptedIn: boolean | null;
+  /** The account that is currently in scope */
+  account: InternalAccount | null | undefined;
+}
 
 /**
  * Generic hook for checking if the current account has opted in to rewards.
  * Can be used across different features (mUSD, Perps, Predict, etc.).
  *
- * @returns Object containing accountOptedIn status (boolean | null)
+ * Opt-in status is always checked against mainnet (eip155:1) as the canonical
+ * identifier, but rewards are earned across all supported EVM chains.
+ *
+ * @param params - Optional configuration
+ * @returns Object containing accountOptedIn status and account info
  */
-export const useRewardsAccountOptedIn = (): {
-  accountOptedIn: boolean | null;
-} => {
+export const useRewardsAccountOptedIn = (
+  params?: UseRewardsAccountOptedInParams,
+): UseRewardsAccountOptedInResult => {
   const [accountOptedIn, setAccountOptedIn] = useState<boolean | null>(null);
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
@@ -29,6 +55,7 @@ export const useRewardsAccountOptedIn = (): {
     }
 
     try {
+      // Always check if rewards feature is enabled first
       const isRewardsEnabled = await Engine.controllerMessenger.call(
         'RewardsController:isRewardsFeatureEnabled',
       );
@@ -36,6 +63,18 @@ export const useRewardsAccountOptedIn = (): {
       if (!isRewardsEnabled) {
         setAccountOptedIn(null);
         return;
+      }
+
+      // Optionally also check for active season (Perps requires this)
+      if (params?.checkActiveSeason) {
+        const hasActiveSeason = await Engine.controllerMessenger.call(
+          'RewardsController:hasActiveSeason',
+        );
+
+        if (!hasActiveSeason) {
+          setAccountOptedIn(null);
+          return;
+        }
       }
 
       const firstSubscriptionId = await Engine.controllerMessenger.call(
@@ -72,11 +111,11 @@ export const useRewardsAccountOptedIn = (): {
     } catch (error) {
       setAccountOptedIn(null);
     }
-  }, [selectedAddress, selectedAccount]);
+  }, [selectedAddress, selectedAccount, params?.checkActiveSeason]);
 
   useEffect(() => {
     checkOptInStatus();
-  }, [checkOptInStatus]);
+  }, [checkOptInStatus, params?.trigger]);
 
   useEffect(() => {
     const handleAccountLinked = () => {
@@ -98,5 +137,6 @@ export const useRewardsAccountOptedIn = (): {
 
   return {
     accountOptedIn,
+    account: selectedAccount,
   };
 };

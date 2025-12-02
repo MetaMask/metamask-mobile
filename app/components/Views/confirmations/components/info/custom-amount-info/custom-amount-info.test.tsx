@@ -30,7 +30,7 @@ import { useTransactionConfirm } from '../../../hooks/transactions/useTransactio
 import { useRewardsAccountOptedIn } from '../../../../../UI/Rewards/hooks/useRewardsAccountOptedIn';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { REWARDS_TAG_SELECTOR } from '../../../../../UI/Rewards/components/RewardsTag';
-import { MUSD_TAG_SELECTOR } from '../../../../../UI/Earn/components/MusdTag';
+import { OUTPUT_AMOUNT_TAG_SELECTOR } from '../../../../../UI/Earn/components/OutputAmountTag';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
@@ -413,8 +413,8 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  describe('mUSD Tag', () => {
-    it('renders MusdTag for mUSD conversion', () => {
+  describe('Output Amount Tag', () => {
+    it('renders OutputAmountTag for mUSD conversion', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.musdConversion,
         txParams: { from: '0x123' },
@@ -423,10 +423,10 @@ describe('CustomAmountInfo', () => {
 
       const { getByTestId } = render();
 
-      expect(getByTestId(MUSD_TAG_SELECTOR)).toBeDefined();
+      expect(getByTestId(OUTPUT_AMOUNT_TAG_SELECTOR)).toBeDefined();
     });
 
-    it('displays correct mUSD amount', () => {
+    it('displays correct output amount', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.musdConversion,
         txParams: { from: '0x123' },
@@ -470,7 +470,7 @@ describe('CustomAmountInfo', () => {
       expect(getByText('100.5 mUSD')).toBeDefined();
     });
 
-    it('does not render MusdTag for non-mUSD transactions', () => {
+    it('does not render OutputAmountTag for non-mUSD transactions', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.perpsDeposit,
         txParams: { from: '0x123' },
@@ -478,7 +478,7 @@ describe('CustomAmountInfo', () => {
 
       const { queryByTestId } = render();
 
-      expect(queryByTestId(MUSD_TAG_SELECTOR)).toBeNull();
+      expect(queryByTestId(OUTPUT_AMOUNT_TAG_SELECTOR)).toBeNull();
     });
   });
 });
