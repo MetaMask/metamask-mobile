@@ -73,7 +73,7 @@ describe('Transaction Delegation Utils', () => {
     mockIsAtomicBatchSupported.mockResolvedValue([
       {
         chainId: TRANSACTION_META_MOCK.chainId,
-        isSupported: true,
+        isSupported: false,
         upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
       },
     ]);
@@ -95,12 +95,39 @@ describe('Transaction Delegation Utils', () => {
     });
 
     it('does not include authorization if already upgraded', async () => {
+      mockIsAtomicBatchSupported.mockResolvedValue([
+        {
+          chainId: TRANSACTION_META_MOCK.chainId,
+          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+          isSupported: true,
+          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        },
+      ]);
+
       const result = await getDelegationTransaction(messengerMock, {
         ...TRANSACTION_META_MOCK,
         delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
       });
 
       expect(result.authorizationList).toBeUndefined();
+    });
+
+    it('includes authorization if upgraded to different contract', async () => {
+      mockIsAtomicBatchSupported.mockResolvedValue([
+        {
+          chainId: TRANSACTION_META_MOCK.chainId,
+          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+          isSupported: false,
+          upgradeContractAddress: '0x789' as Hex,
+        },
+      ]);
+
+      const result = await getDelegationTransaction(messengerMock, {
+        ...TRANSACTION_META_MOCK,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      });
+
+      expect(result.authorizationList).toHaveLength(1);
     });
   });
 });

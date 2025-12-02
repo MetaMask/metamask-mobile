@@ -9986,9 +9986,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^10.2.0":
-  version: 10.2.0
-  resolution: "@metamask/transaction-pay-controller@npm:10.2.0"
+"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@10.2.0-preview-42166fa":
+  version: 10.2.0-preview-42166fa
+  resolution: "@metamask-previews/transaction-pay-controller@npm:10.2.0-preview-42166fa"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10000,7 +10000,7 @@ __metadata:
     "@metamask/gas-fee-controller": "npm:^26.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
-    "@metamask/network-controller": "npm:^26.0.0"
+    "@metamask/network-controller": "npm:^27.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^2.0.1"
     "@metamask/transaction-controller": "npm:^62.3.1"
     "@metamask/utils": "npm:^11.8.1"
@@ -10008,7 +10008,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/20b251ae57cf48f1ed4da018c638b0b380a6a1c1fc051a976fc5e37ee5ebbb755c03d3d261418b63f9f926a602be6614160f860102b8628d69d5f744ce57cf8e
+  checksum: 10/9da93c679e5eb371c81bfbda98baa34916def021cb68f95ebefcdae831d3930e3369af16b857d8fdb6df79be36a5578a4e5448e4ac38964db9ca73c1385beb5c
   languageName: node
   linkType: hard
 
@@ -36046,7 +36046,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.3.1#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
-    "@metamask/transaction-pay-controller": "npm:^10.2.0"
+    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@10.2.0-preview-42166fa"
     "@metamask/tron-wallet-snap": "npm:^1.13.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
