@@ -25,6 +25,22 @@ import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride
 import useMetrics from '../components/hooks/useMetrics/useMetrics';
 import Engine from '../core/Engine';
 import type { Json } from '@metamask/utils';
+import type { RemoteFeatureFlagController } from '@metamask/remote-feature-flag-controller';
+
+interface FeatureFlagOverrides {
+  [key: string]: unknown;
+}
+
+// Extended interface for controller methods not in the base type definition
+// These methods exist at runtime in the mobile app's version of RemoteFeatureFlagController
+// but are not included in the @metamask/remote-feature-flag-controller type definitions
+interface ExtendedRemoteFeatureFlagController
+  extends RemoteFeatureFlagController {
+  setFlagOverride: (key: string, value: Json) => void;
+  clearFlagOverride: (key: string) => void;
+  getAllFlags: () => FeatureFlagOverrides;
+  clearAllOverrides: () => void;
+}
 
 // Helper to check if Engine is ready
 const isEngineReady = (): boolean => {
@@ -40,17 +56,16 @@ const isEngineReady = (): boolean => {
 };
 
 // Helper to safely access the RemoteFeatureFlagController with proper typing
-// Using any to bypass TypeScript type checking since Engine.context types don't expose all controller methods
-const getRemoteFeatureFlagController = (): unknown => {
+const getRemoteFeatureFlagController = ():
+  | ExtendedRemoteFeatureFlagController
+  | undefined => {
   if (!isEngineReady()) {
     return undefined;
   }
-  return Engine.context?.RemoteFeatureFlagController;
+  return Engine.context?.RemoteFeatureFlagController as
+    | ExtendedRemoteFeatureFlagController
+    | undefined;
 };
-
-interface FeatureFlagOverrides {
-  [key: string]: unknown;
-}
 
 export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
