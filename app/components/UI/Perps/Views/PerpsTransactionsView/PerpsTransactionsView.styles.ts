@@ -84,10 +84,5 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
       paddingHorizontal: 16,
     },
-    sectionHeaderText: {
-      fontSize: 16,
-      fontWeight: '600' as const,
-      color: colors.text.default,
-    },
   };
 };

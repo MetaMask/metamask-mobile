@@ -13,7 +13,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 px-4 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -2089,7 +2089,7 @@ exports[`OrdersList renders correctly 1`] = `
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 px-4 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -4454,7 +4454,7 @@ exports[`OrdersList renders empty buy message 1`] = `
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 px-4 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -5135,7 +5135,7 @@ exports[`OrdersList renders empty sell message 1`] = `
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 px-4 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -5816,7 +5816,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 px-4 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -6737,7 +6737,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 px-4 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -7658,7 +7658,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 px-4 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={

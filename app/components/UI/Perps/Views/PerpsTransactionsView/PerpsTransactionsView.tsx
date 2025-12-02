@@ -317,7 +317,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     if (item.type === 'header') {
       return (
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeaderText}>{item.title}</Text>
+          <Text>{item.title}</Text>
         </View>
       );
     }
