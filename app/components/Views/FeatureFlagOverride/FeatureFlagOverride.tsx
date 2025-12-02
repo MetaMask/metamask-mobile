@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
 import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -23,8 +29,12 @@ import {
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
-
+import {
+  selectAbTestRawFlags,
+  selectLocalOverrides,
+} from '../../../selectors/featureFlagController';
+import { useSelector } from 'react-redux';
+import SelectOptionSheet from '../../UI/SelectOptionSheet';
 interface FeatureFlagRowProps {
   flag: FeatureFlagInfo;
   onToggle: (key: string, newValue: unknown) => void;
@@ -35,9 +45,24 @@ export interface MinimumVersionFlagValue {
   minimumVersion: string;
 }
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
+  const abTestRawFlags = useSelector(selectAbTestRawFlags);
+  const override = useSelector(selectLocalOverrides);
   const tw = useTailwind();
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
+  const prevIsOverriddenRef = useRef(flag.isOverridden);
+
+  useEffect(() => {
+    const wasOverridden = prevIsOverriddenRef.current;
+    const isNowOverridden = flag.isOverridden;
+
+    if (wasOverridden && !isNowOverridden) {
+      // Reset localValue to flag.value when override is cleared
+      setLocalValue(flag.value);
+    }
+
+    prevIsOverriddenRef.current = isNowOverridden;
+  }, [override, flag.value, flag.isOverridden, flag.key]);
   const minimumVersion = (localValue as MinimumVersionFlagValue)
     ?.minimumVersion;
   const isVersionSupported = useMemo(
@@ -57,12 +82,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <Box twClassName="items-end">
             <Switch
               value={(localValue as MinimumVersionFlagValue).enabled}
-              disabled={
-                !isVersionSupported &&
-                !Object.values(FeatureFlagNames).includes(
-                  flag.key as FeatureFlagNames,
-                )
-              }
+              disabled={!isVersionSupported}
               onValueChange={(newValue: boolean) => {
                 const updatedValue = {
                   ...(localValue as MinimumVersionFlagValue),
@@ -96,11 +116,6 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case 'boolean':
         return (
           <Switch
-            disabled={
-              !Object.values(FeatureFlagNames).includes(
-                flag.key as FeatureFlagNames,
-              )
-            }
             value={localValue as boolean}
             onValueChange={(newValue: boolean) => {
               setLocalValue(newValue);
@@ -114,15 +129,34 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             ios_backgroundColor={theme.colors.border.muted}
           />
         );
-      case 'abTest':
+      case 'abTest': {
+        interface AbTestType { name: string; value: unknown }
+        const abTestOptions: AbTestType[] = abTestRawFlags[flag.key] || [];
+        const flagValue = flag.value as AbTestType;
+
+        const handleSelectOption = (name: string) => {
+          const selectedOption = abTestOptions.find(
+            (option: { name: string }) => option.name === name,
+          );
+          setLocalValue(selectedOption);
+          onToggle(flag.key, selectedOption);
+        };
+
         return (
-          <Box twClassName="flex-1 ml-2">
-            <Text>name: {(localValue as { name: string })?.name}</Text>
-            <Text>
-              value: {(localValue as { value: string })?.value.toString()}
-            </Text>
+          <Box twClassName="flex-1 ml-2 justify-center min-w-[160px]">
+            <SelectOptionSheet
+              options={abTestOptions.map((option: AbTestType) => ({
+                label: option.name,
+                value: option.name,
+              }))}
+              label={flag.key}
+              defaultValue={flagValue.name}
+              onValueChange={handleSelectOption}
+              selectedValue={(localValue as AbTestType).name}
+            />
           </Box>
         );
+      }
       case 'string':
       case 'number':
         return (
@@ -264,8 +298,14 @@ const FeatureFlagOverride: React.FC = () => {
   const tw = useTailwind();
 
   const flagStats = useFeatureFlagStats();
-  const { setOverride, removeOverride, clearAllOverrides, featureFlagsList } =
-    useFeatureFlagOverride();
+  const {
+    setOverride,
+    removeOverride,
+    clearAllOverrides,
+    featureFlagsList,
+    getOverrideCount,
+  } = useFeatureFlagOverride();
+  const overrideCount = getOverrideCount();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'boolean'>('all');
@@ -435,7 +475,7 @@ const FeatureFlagOverride: React.FC = () => {
             size={ButtonSize.Sm}
             onPress={handleClearAllOverrides}
           >
-            Clear All Overrides
+            {`Clear All Overrides (${overrideCount})`}
           </Button>
         </Box>
       </Box>

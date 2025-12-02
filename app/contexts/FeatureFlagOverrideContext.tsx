@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import {
   selectRemoteFeatureFlags,
   selectLocalOverrides,
+  selectRawFeatureFlags,
 } from '../selectors/featureFlagController';
 import {
   FeatureFlagInfo,
@@ -34,7 +35,7 @@ interface FeatureFlagOverrides {
 // Extended interface for controller methods not in the base type definition
 // These methods exist at runtime in the mobile app's version of RemoteFeatureFlagController
 // but are not included in the @metamask/remote-feature-flag-controller type definitions
-interface ExtendedRemoteFeatureFlagController
+export interface ExtendedRemoteFeatureFlagController
   extends RemoteFeatureFlagController {
   setFlagOverride: (key: string, value: Json) => void;
   clearFlagOverride: (key: string) => void;
@@ -77,9 +78,6 @@ export interface FeatureFlagOverrideContextType {
   removeOverride: (key: string) => void;
   clearAllOverrides: () => void;
   hasOverride: (key: string) => boolean;
-  getOverride: (key: string) => unknown;
-  getAllOverrides: () => FeatureFlagOverrides;
-  applyOverrides: (originalFlags: FeatureFlagOverrides) => FeatureFlagOverrides;
   getOverrideCount: () => number;
 }
 
@@ -96,17 +94,11 @@ export const FeatureFlagOverrideProvider: React.FC<
 > = ({ children }) => {
   const { addTraitsToUser } = useMetrics();
   // Get the initial feature flags from Redux
-  const rawFeatureFlagsSelected = useSelector(selectRemoteFeatureFlags);
-  const rawFeatureFlags = useMemo(
-    () => rawFeatureFlagsSelected || {},
-    [rawFeatureFlagsSelected],
-  );
+  const featureFlagsWithOverrides = useSelector(selectRemoteFeatureFlags);
+  const rawFeatureFlags = useSelector(selectRawFeatureFlags);
+
   // Get overrides from controller state via Redux
-  const localOverridesSelected = useSelector(selectLocalOverrides);
-  const overrides = useMemo(
-    () => localOverridesSelected || {},
-    [localOverridesSelected],
-  );
+  const overrides = useSelector(selectLocalOverrides);
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
 
@@ -194,72 +186,11 @@ export const FeatureFlagOverrideProvider: React.FC<
     [overrides],
   );
 
-  const getOverride = useCallback(
-    (key: string): unknown => overrides[key],
-    [overrides],
-  );
-
-  const getAllOverrides = useCallback(
-    (): FeatureFlagOverrides => ({ ...overrides }),
-    [overrides],
-  );
-
-  const applyOverrides = useCallback(
-    (originalFlags: FeatureFlagOverrides): FeatureFlagOverrides => {
-      // Use controller's getAllFlags method which already applies overrides
-      const controller = getRemoteFeatureFlagController();
-      if (!controller) {
-        return {
-          ...originalFlags,
-          ...overrides,
-        };
-      }
-      return controller.getAllFlags() as FeatureFlagOverrides;
-    },
-    [overrides],
-  );
-
-  // Use controller's getAllFlags method which already applies overrides
-  // This method combines remoteFeatureFlags with localOverrides, giving precedence to localOverrides
-  const featureFlagsWithOverrides = useMemo(() => {
-    if (!isEngineReady()) {
-      // Fallback to applying overrides manually if controller not ready
-      return {
-        ...rawFeatureFlags,
-        ...overrides,
-      };
-    }
-    try {
-      const controller = getRemoteFeatureFlagController();
-      if (!controller) {
-        // Fallback to applying overrides manually if controller not available
-        return {
-          ...rawFeatureFlags,
-          ...overrides,
-        };
-      }
-      // Use controller's getAllFlags() which properly merges remoteFeatureFlags and localOverrides
-      // The controller's state includes localOverrides and abTestRawFlags at runtime
-      return controller.getAllFlags() as FeatureFlagOverrides;
-    } catch (error) {
-      // Fallback to applying overrides manually if controller call fails
-      console.warn(
-        'Failed to get all flags from controller, using fallback:',
-        error,
-      );
-      return {
-        ...rawFeatureFlags,
-        ...overrides,
-      };
-    }
-  }, [rawFeatureFlags, overrides]);
-
   const featureFlags = useMemo(() => {
     // Get all unique keys from both raw and overridden flags
     const allKeys = new Set([
       ...Object.keys(rawFeatureFlags),
       ...Object.keys(featureFlagsWithOverrides),
-      ...Object.keys(getAllOverrides()),
     ]);
     const allFlags: { [key: string]: FeatureFlagInfo } = {};
 
@@ -280,12 +211,7 @@ export const FeatureFlagOverrideProvider: React.FC<
       allFlags[key] = flagValue;
     });
     return allFlags;
-  }, [
-    rawFeatureFlags,
-    featureFlagsWithOverrides,
-    hasOverride,
-    getAllOverrides,
-  ]);
+  }, [rawFeatureFlags, featureFlagsWithOverrides, hasOverride]);
 
   const featureFlagsList = useMemo(
     () =>
@@ -366,9 +292,6 @@ export const FeatureFlagOverrideProvider: React.FC<
       removeOverride,
       clearAllOverrides,
       hasOverride,
-      getOverride,
-      getAllOverrides,
-      applyOverrides,
       getOverrideCount,
     }),
     [
@@ -381,9 +304,6 @@ export const FeatureFlagOverrideProvider: React.FC<
       removeOverride,
       clearAllOverrides,
       hasOverride,
-      getOverride,
-      getAllOverrides,
-      applyOverrides,
       getOverrideCount,
     ],
   );
