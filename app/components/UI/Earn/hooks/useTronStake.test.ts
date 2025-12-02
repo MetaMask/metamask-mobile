@@ -1,28 +1,43 @@
 import { act, renderHook } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
 import { TrxScope } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { TronResourceType } from '../../../../core/Multichain/constants';
 import useTronStake from './useTronStake';
 import {
   confirmTronStake,
   validateTronStakeAmount,
   TronStakeResult,
 } from '../utils/tron-staking-snap';
+import { TokenI } from '../../Tokens/types';
+
+const mockSelectSelectedInternalAccountByScope = jest.fn();
+const mockSelectTrxStakingEnabled = jest.fn();
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+  useSelector: jest.fn((selector) => selector()),
 }));
 
-jest.mock('../utils/tron-staking', () => ({
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () =>
+    mockSelectSelectedInternalAccountByScope,
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/trxStakingEnabled',
+  () => ({
+    selectTrxStakingEnabled: () => mockSelectTrxStakingEnabled(),
+  }),
+);
+
+jest.mock('../utils/tron-staking-snap', () => ({
   confirmTronStake: jest.fn(),
   validateTronStakeAmount: jest.fn(),
 }));
 
+jest.mock('../../../../core/Multichain/utils', () => ({
+  isTronChainId: jest.fn((chainId: string) => chainId.startsWith('tron:')),
+}));
+
 describe('useTronStake', () => {
-  const mockUseSelector = useSelector as jest.MockedFunction<
-    typeof useSelector
-  >;
   const mockValidateTronStakeAmount =
     validateTronStakeAmount as jest.MockedFunction<
       typeof validateTronStakeAmount
@@ -41,49 +56,97 @@ describe('useTronStake', () => {
     },
   } as InternalAccount;
 
-  const mockChainId = TrxScope.Mainnet;
+  const mockTrxToken: TokenI = {
+    address: '0x0',
+    symbol: 'TRX',
+    decimals: 6,
+    isNative: true,
+    chainId: TrxScope.Mainnet,
+    balance: '100',
+    balanceFiat: '$10',
+  } as TokenI;
+
+  const mockNonTrxToken: TokenI = {
+    address: '0x123',
+    symbol: 'ETH',
+    decimals: 18,
+    isNative: true,
+    chainId: '0x1',
+    balance: '1',
+    balanceFiat: '$3000',
+  } as TokenI;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockImplementation(() => () => mockAccount);
+    // Setup default mock values
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(mockAccount);
+    mockSelectTrxStakingEnabled.mockReturnValue(true);
+  });
+
+  describe('initialization', () => {
+    it('returns isTronNative true for TRX token', () => {
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.isTronNative).toBe(true);
+    });
+
+    it('returns isTronNative false for non-TRX token', () => {
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockNonTrxToken }),
+      );
+
+      expect(result.current.isTronNative).toBe(false);
+    });
+
+    it('returns isTronEnabled true when flag is on and token is TRX', () => {
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.isTronEnabled).toBe(true);
+    });
+
+    it('returns default resourceType as energy', () => {
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.resourceType).toBe('energy');
+    });
+
+    it('allows updating resourceType', () => {
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
+
+      act(() => {
+        result.current.setResourceType('bandwidth');
+      });
+
+      expect(result.current.resourceType).toBe('bandwidth');
+    });
   });
 
   describe('validate', () => {
     it('returns null when account is missing', async () => {
-      mockUseSelector.mockImplementation(() => () => undefined);
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(undefined);
 
-      const { result } = renderHook(() => useTronStake());
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
 
       let validation: TronStakeResult | null = null;
       await act(async () => {
-        validation = await result.current.validate('10', mockChainId);
+        validation = await result.current.validate('10');
       });
 
       expect(validation).toBeNull();
       expect(mockValidateTronStakeAmount).not.toHaveBeenCalled();
       expect(result.current.validating).toBe(false);
       expect(result.current.errors).toBeUndefined();
-      expect(result.current.preview).toBeUndefined();
-    });
-
-    it('returns null when chainId is missing', async () => {
-      const { result } = renderHook(() => useTronStake());
-
-      let validation: TronStakeResult | null = null;
-      await act(async () => {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        validation = await result.current.validate(
-          '10',
-          '' as unknown as string,
-        );
-      });
-
-      expect(validation).toBeNull();
-      expect(mockValidateTronStakeAmount).not.toHaveBeenCalled();
-      expect(result.current.validating).toBe(false);
-      expect(result.current.errors).toBeUndefined();
-      expect(result.current.preview).toBeUndefined();
     });
 
     it('calls validateTronStakeAmount with constructed assetId and updates state', async () => {
@@ -94,17 +157,19 @@ describe('useTronStake', () => {
       };
       mockValidateTronStakeAmount.mockResolvedValue(validationResult);
 
-      const { result } = renderHook(() => useTronStake());
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
 
       let validation: TronStakeResult | null = null;
       await act(async () => {
-        validation = await result.current.validate('10', mockChainId);
+        validation = await result.current.validate('10');
       });
 
       expect(mockValidateTronStakeAmount).toHaveBeenCalledWith(mockAccount, {
         value: '10',
         accountId: mockAccount.id,
-        assetId: `${mockChainId}/slip44:195`,
+        assetId: `${TrxScope.Mainnet}/slip44:195`,
       });
 
       expect(validation).toEqual(validationResult);
@@ -115,15 +180,6 @@ describe('useTronStake', () => {
           extra: 'preview-data',
         }),
       );
-      expect(result.current.preview?.fee).toEqual({
-        type: 'fee',
-        asset: {
-          unit: 'TRX',
-          type: 'TRX',
-          amount: '0.01',
-          fungible: true,
-        },
-      });
     });
 
     it('sets errors from validation result', async () => {
@@ -133,42 +189,29 @@ describe('useTronStake', () => {
       };
       mockValidateTronStakeAmount.mockResolvedValue(validationResult);
 
-      const { result } = renderHook(() => useTronStake());
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
 
       await act(async () => {
-        await result.current.validate('1000', mockChainId);
+        await result.current.validate('1000');
       });
 
       expect(result.current.errors).toEqual(['Amount exceeds balance']);
-      expect(result.current.preview).toEqual(
-        expect.objectContaining({
-          fee: {
-            type: 'fee',
-            asset: {
-              unit: 'TRX',
-              type: 'TRX',
-              amount: '0.01',
-              fungible: true,
-            },
-          },
-        }),
-      );
     });
   });
 
-  describe('confirm', () => {
+  describe('confirmStake', () => {
     it('returns null when account is missing', async () => {
-      mockUseSelector.mockImplementation(() => () => undefined);
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(undefined);
 
-      const { result } = renderHook(() => useTronStake());
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
 
       let confirmation: TronStakeResult | null = null;
       await act(async () => {
-        confirmation = await result.current.confirm(
-          '10',
-          TronResourceType.ENERGY,
-          mockChainId,
-        );
+        confirmation = await result.current.confirmStake('10');
       });
 
       expect(confirmation).toBeNull();
@@ -177,52 +220,59 @@ describe('useTronStake', () => {
       expect(result.current.errors).toBeUndefined();
     });
 
-    it('returns null when chainId is missing', async () => {
-      const { result } = renderHook(() => useTronStake());
-
-      let confirmation: TronStakeResult | null = null;
-      await act(async () => {
-        confirmation = await result.current.confirm(
-          '10',
-          TronResourceType.ENERGY,
-          '' as unknown as string,
-        );
-      });
-
-      expect(confirmation).toBeNull();
-      expect(mockConfirmTronStake).not.toHaveBeenCalled();
-      expect(result.current.validating).toBe(false);
-      expect(result.current.errors).toBeUndefined();
-    });
-
-    it('calls confirmTronStake with correct params and updates errors', async () => {
+    it('calls confirmTronStake with correct params using resourceType state', async () => {
       const confirmationResult: TronStakeResult = {
         valid: true,
         errors: ['Warning: low remaining balance'],
       };
       mockConfirmTronStake.mockResolvedValue(confirmationResult);
 
-      const { result } = renderHook(() => useTronStake());
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
+
+      // Set resourceType to bandwidth
+      act(() => {
+        result.current.setResourceType('bandwidth');
+      });
 
       let confirmation: TronStakeResult | null = null;
       await act(async () => {
-        confirmation = await result.current.confirm(
-          '25',
-          TronResourceType.BANDWIDTH,
-          mockChainId,
-        );
+        confirmation = await result.current.confirmStake('25');
       });
 
       expect(mockConfirmTronStake).toHaveBeenCalledWith(mockAccount, {
         fromAccountId: mockAccount.id,
-        assetId: `${mockChainId}/slip44:195`,
+        assetId: `${TrxScope.Mainnet}/slip44:195`,
         value: '25',
-        options: { purpose: TronResourceType.BANDWIDTH },
+        options: { purpose: 'BANDWIDTH' },
       });
 
       expect(confirmation).toEqual(confirmationResult);
       expect(result.current.validating).toBe(false);
       expect(result.current.errors).toEqual(['Warning: low remaining balance']);
+    });
+
+    it('uses default energy resourceType when not changed', async () => {
+      const confirmationResult: TronStakeResult = {
+        valid: true,
+      };
+      mockConfirmTronStake.mockResolvedValue(confirmationResult);
+
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
+
+      await act(async () => {
+        await result.current.confirmStake('10');
+      });
+
+      expect(mockConfirmTronStake).toHaveBeenCalledWith(
+        mockAccount,
+        expect.objectContaining({
+          options: { purpose: 'ENERGY' },
+        }),
+      );
     });
   });
 });

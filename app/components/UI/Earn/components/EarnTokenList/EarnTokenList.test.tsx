@@ -60,6 +60,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 const mockIsTronChainId = jest.fn().mockReturnValue(false);
+const mockIsNonEvmChainId = jest.fn().mockReturnValue(false);
 
 jest.mock('../../../../../core/Multichain/utils', () => {
   const actual = jest.requireActual('../../../../../core/Multichain/utils');
@@ -67,6 +68,8 @@ jest.mock('../../../../../core/Multichain/utils', () => {
     ...actual,
     isTronChainId: (...args: unknown[]) =>
       mockIsTronChainId(...(args as [string])),
+    isNonEvmChainId: (...args: unknown[]) =>
+      mockIsNonEvmChainId(...(args as [string])),
   };
 });
 
@@ -850,6 +853,9 @@ describe('EarnTokenList', () => {
 
     it('navigates directly to Tron deposit screen without switching EVM network', async () => {
       mockIsTronChainId.mockImplementation(
+        (chainId: string) => chainId === TrxScope.Mainnet,
+      );
+      mockIsNonEvmChainId.mockImplementation(
         (chainId: string) => chainId === TrxScope.Mainnet,
       );
 

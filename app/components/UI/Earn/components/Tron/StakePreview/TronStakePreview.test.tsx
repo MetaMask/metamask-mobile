@@ -31,7 +31,7 @@ describe('TronStakePreview', () => {
 
     const { getByText } = render(<TronStakePreview fee={fee} />);
 
-    expect(getByText('stake.tron.fee')).toBeTruthy();
+    expect(getByText('earn.tron.fee')).toBeTruthy();
     expect(getByText('1.23 TRX')).toBeTruthy();
   });
 });

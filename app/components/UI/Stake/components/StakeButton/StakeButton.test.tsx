@@ -390,10 +390,10 @@ describe('StakeButton', () => {
       isETH: false,
     };
 
-    it('navigates to Stake Input screen via Tron staking fallback when primary experience type is undefined', async () => {
+    it('navigates to Stake Input screen when TRX has POOLED_STAKING experience', async () => {
       mockIsTronChainId.mockReturnValue(true);
       selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
-        undefined,
+        EARN_EXPERIENCES.POOLED_STAKING,
       );
 
       const { getByTestId } = renderWithProvider(
