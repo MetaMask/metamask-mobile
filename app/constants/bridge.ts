@@ -51,7 +51,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [CHAIN_IDS.BSC]: 'BNB',
   [CHAIN_IDS.ARBITRUM]: 'Arbitrum',
   [CHAIN_IDS.OPTIMISM]: 'Optimism',
-  [CHAIN_IDS.ZKSYNC_ERA]: 'ZkSync Era',
+  [CHAIN_IDS.ZKSYNC_ERA]: 'zkSync',
   [CHAIN_IDS.BASE]: 'Base',
   [CHAIN_IDS.SEI]: 'Sei',
   [CHAIN_IDS.MONAD]: 'Monad',
