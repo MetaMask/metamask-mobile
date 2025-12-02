@@ -1233,13 +1233,20 @@ describe('NetworkMultiSelector', () => {
   describe('NETWORK_SWITCHED event tracking', () => {
     let capturedProperties: Record<string, unknown> = {};
 
+    interface MockEventBuilder {
+      addProperties: (props: Record<string, unknown>) => MockEventBuilder;
+      build: () => {
+        event: typeof MetaMetricsEvents.NETWORK_SWITCHED;
+        properties: Record<string, unknown>;
+      };
+    }
+
     beforeEach(() => {
       jest.clearAllMocks();
       capturedProperties = {};
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mockAddProperties: any = jest.fn(
-        (props: Record<string, unknown>) => {
+      const mockAddProperties = jest.fn(
+        (props: Record<string, unknown>): MockEventBuilder => {
           Object.assign(capturedProperties, props);
           return {
             addProperties: mockAddProperties,
