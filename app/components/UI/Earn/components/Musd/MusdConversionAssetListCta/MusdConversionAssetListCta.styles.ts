@@ -7,6 +7,7 @@ const styleSheet = () =>
       justifyContent: 'space-between',
       height: 64, // Match AssetElement height
       alignItems: 'center',
+      // TODO: Fix horizontal padding in "all tokens" view.
     },
     assetInfo: {
       flexDirection: 'row',
