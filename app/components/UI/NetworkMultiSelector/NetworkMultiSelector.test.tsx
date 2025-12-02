@@ -1886,13 +1886,15 @@ describe('NetworkMultiSelector', () => {
         createMockUseNetworksToUse([fromNetwork, toNetwork]),
       );
 
+      // Setup: Solana is selected, Bitcoin config has no name property
       setupMockSelectors(
         false,
         solanaChainId,
         {},
         {
           [solanaChainId]: { name: 'Solana', ticker: 'SOL' },
-          [bitcoinChainId]: { ticker: 'BTC' }, // No name property - will be Unknown Network
+          // Bitcoin config missing name - will result in Unknown Network
+          [bitcoinChainId]: { ticker: 'BTC' },
         },
       );
 
@@ -1903,11 +1905,17 @@ describe('NetworkMultiSelector', () => {
         />,
       );
 
+      // Switch from Solana (has name) to Bitcoin (no name = Unknown Network)
       await getByTestId(
         'mock-network-multi-selector-list',
       ).props.onSelectNetwork(bitcoinChainId);
 
-      expect(mockSelectPopularNetwork).toHaveBeenCalled();
+      // Verify network selection happens
+      expect(mockSelectPopularNetwork).toHaveBeenCalledWith(
+        bitcoinChainId,
+        expect.any(Function),
+      );
+      // Verify tracking is NOT called because target network name is Unknown Network
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
