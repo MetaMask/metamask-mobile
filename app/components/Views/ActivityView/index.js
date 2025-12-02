@@ -77,6 +77,7 @@ const createStyles = (params) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginVertical: 8,
+      paddingHorizontal: 16,
     },
     controlButton: {
       backgroundColor: colors.background.default,
@@ -284,6 +285,7 @@ const ActivityView = () => {
         <TabsList
           ref={tabViewRef}
           onChangeTab={({ i }) => setActiveTabIndex(i)}
+          tabsListContentTwClassName="px-0 pb-3"
         >
           <View
             key="transactions"

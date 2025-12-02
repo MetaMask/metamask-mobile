@@ -96,7 +96,7 @@ function OrdersList() {
   return (
     <FlatList
       ListHeaderComponent={
-        <Box twClassName="py-2 bg-default">
+        <Box twClassName="py-2 px-4 bg-default">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}

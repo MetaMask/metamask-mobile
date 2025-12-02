@@ -385,7 +385,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.filterScrollView}
             contentContainerStyle={tw.style('flex-row gap-3')}
             pointerEvents="auto"
             scrollEnabled={false}

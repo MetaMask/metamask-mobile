@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
 import { ActivityIndicator, SectionList } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import { PredictActivityType, type PredictActivityItem } from '../../types';
@@ -12,6 +12,7 @@ import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
