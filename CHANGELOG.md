@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - update changelog for 7.60.2 (hotfix - no test plan)
 - update changelog for 7.60.2 (hotfix - no test plan)
+- update changelog for 7.60.2 (hotfix - no test plan)
+- bump semvar version to 7.60.2 && build version to 3205
+- update changelog for 7.60.2 (hotfix - no test plan)
+- update changelog for 7.60.2 (hotfix - no test plan)
 - bump semvar version to 7.60.2 && build version to 3205
 - update changelog for 7.60.2 (hotfix - no test plan)
 - bump semvar version to 7.60.2 && build version to 3205
