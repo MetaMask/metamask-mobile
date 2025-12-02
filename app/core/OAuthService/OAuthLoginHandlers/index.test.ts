@@ -69,10 +69,21 @@ describe('OAuth login handlers', () => {
 
   for (const os of ['ios', 'android']) {
     for (const provider of Object.values(AuthConnection)) {
+      // Skip GoogleFallback for iOS
+      if (os === 'ios' && provider === AuthConnection.GoogleFallback) {
+        continue;
+      }
+
       it(`should create the correct login handler for ${os} and ${provider}`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
         const result = await handler.login();
-        expect(result?.authConnection).toBe(provider);
+
+        // GoogleFallback handler returns AuthConnection.Google
+        const expectedAuthConnection =
+          provider === AuthConnection.GoogleFallback
+            ? AuthConnection.Google
+            : provider;
+        expect(result?.authConnection).toBe(expectedAuthConnection);
 
         switch (os) {
           case 'ios': {
@@ -102,11 +113,21 @@ describe('OAuth login handlers', () => {
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
+              case AuthConnection.GoogleFallback:
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+                break;
             }
             break;
           }
         }
       });
+
+      // Skip GoogleFallback for iOS
+      if (os === 'ios' && provider === AuthConnection.GoogleFallback) {
+        continue;
+      }
 
       it(`should have correct scope and authServerPath for ${os} ${provider} handler`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
@@ -137,6 +158,10 @@ describe('OAuth login handlers', () => {
               case AuthConnection.Google:
                 expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
+                break;
+              case AuthConnection.GoogleFallback:
+                expect(handler.scope).toEqual(['email', 'profile', 'openid']);
+                expect(handler.authServerPath).toBe('api/v1/oauth/token');
                 break;
             }
             break;
