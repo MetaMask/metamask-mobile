@@ -15,12 +15,17 @@ import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
 import { GasFeeTokenModal } from '../gas-fee-token-modal';
 import { useIsInsufficientBalance } from '../../../hooks/useIsInsufficientBalance';
+import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
 
 export function SelectedGasFeeToken() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
-  const { chainId, gasFeeTokens } = transactionMetadata || {};
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
+  const { chainId: chainIdFromTransactionMetadata, gasFeeTokens } =
+    transactionMetadata || {};
   const hasGasFeeTokens = Boolean(gasFeeTokens?.length);
+  const chainId =
+    chainIdFromTransactionMetadata ?? transactionBatchesMetadata?.chainId;
 
   const { styles } = useStyles(styleSheet, {
     hasGasFeeTokens,

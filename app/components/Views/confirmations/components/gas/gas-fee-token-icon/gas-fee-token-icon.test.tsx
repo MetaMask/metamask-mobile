@@ -5,8 +5,11 @@ import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { GasFeeTokenIcon } from './gas-fee-token-icon';
 import { transferTransactionStateMock } from '../../../__mocks__/transfer-transaction-mock';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
+import { merge } from 'lodash';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../hooks/transactions/useTransactionBatchesMetadata');
 jest.mock('../../../hooks/useNetworkInfo');
 jest.mock('../../../hooks/tokens/useTokenWithBalance', () => ({
   useTokenWithBalance: jest
@@ -17,6 +20,9 @@ jest.mock('../../../hooks/tokens/useTokenWithBalance', () => ({
 describe('GasFeeTokenIcon', () => {
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
   const mockUseTokenWithBalance = jest.mocked(useTokenWithBalance);
+  const mockUseTransactionBatchesMetadata = jest.mocked(
+    useTransactionBatchesMetadata,
+  );
 
   beforeEach(() => {
     mockUseNetworkInfo.mockReturnValue({
@@ -24,6 +30,7 @@ describe('GasFeeTokenIcon', () => {
       networkNativeCurrency: 'ETH',
       networkName: 'Ethereum',
     });
+    mockUseTransactionBatchesMetadata.mockReturnValue(undefined);
     jest.clearAllMocks();
   });
 
@@ -59,5 +66,87 @@ describe('GasFeeTokenIcon', () => {
     );
 
     expect(getByTestId('native-icon')).toBeOnTheScreen();
+  });
+
+  describe('Batch Transactions', () => {
+    it('uses chainId from batch metadata when transaction metadata is unavailable', () => {
+      const batchChainId = '0xe708';
+      mockUseTransactionBatchesMetadata.mockReturnValue({
+        chainId: batchChainId,
+      } as Partial<
+        ReturnType<typeof mockUseTransactionBatchesMetadata>
+      > as ReturnType<typeof mockUseTransactionBatchesMetadata>);
+
+      // Create state without transaction metadata
+      const stateWithoutTransactionMeta = merge(
+        {},
+        transferTransactionStateMock,
+        {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [],
+              },
+            },
+          },
+        },
+      );
+
+      renderWithProvider(
+        <GasFeeTokenIcon tokenAddress={NATIVE_TOKEN_ADDRESS} />,
+        { state: stateWithoutTransactionMeta },
+      );
+
+      expect(mockUseNetworkInfo).toHaveBeenCalledWith(batchChainId);
+    });
+
+    it('prefers transaction metadata chainId over batch metadata chainId', () => {
+      const batchChainId = '0xe708';
+
+      mockUseTransactionBatchesMetadata.mockReturnValue({
+        chainId: batchChainId,
+      } as Partial<
+        ReturnType<typeof mockUseTransactionBatchesMetadata>
+      > as ReturnType<typeof mockUseTransactionBatchesMetadata>);
+
+      // State has transaction metadata with chainId
+      renderWithProvider(
+        <GasFeeTokenIcon tokenAddress={NATIVE_TOKEN_ADDRESS} />,
+        { state: transferTransactionStateMock },
+      );
+
+      // Should use transaction chainId (0x1 from transferTransactionStateMock)
+      expect(mockUseNetworkInfo).toHaveBeenCalledWith(batchChainId);
+    });
+
+    it('renders correctly with batch metadata chainId', () => {
+      const batchChainId = '0xe708';
+      mockUseTransactionBatchesMetadata.mockReturnValue({
+        chainId: batchChainId,
+      } as Partial<
+        ReturnType<typeof mockUseTransactionBatchesMetadata>
+      > as ReturnType<typeof mockUseTransactionBatchesMetadata>);
+
+      const stateWithoutTransactionMeta = merge(
+        {},
+        transferTransactionStateMock,
+        {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [],
+              },
+            },
+          },
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <GasFeeTokenIcon tokenAddress={NATIVE_TOKEN_ADDRESS} />,
+        { state: stateWithoutTransactionMeta },
+      );
+
+      expect(getByTestId('native-icon')).toBeOnTheScreen();
+    });
   });
 });

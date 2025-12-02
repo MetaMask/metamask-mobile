@@ -5488,7 +5488,24 @@
         "in_progress": "mUSD conversion in progress",
         "success": "mUSD conversion succeeded",
         "failed": "mUSD conversion failed"
-      }
+      },
+      "education": {
+        "heading": "Earn rewards with mUSD",
+        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
+        "continue_button": "Continue"
+      },
+      "earn_points_daily": "Earn points daily",
+      "buy_musd": "Buy mUSD",
+      "get_musd": "Get mUSD"
+    },
+    "rewards": {
+      "rewards_tag_label": "Rewards",
+      "tooltip_title": "Earn rewards with mUSD",
+      "tooltip_points_suffix": "per $100",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_opted_in_footer": "Points will be automatically added to your account.",
+      "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
+      "tooltip_close": "Close"
     }
   },
   "stake": {
