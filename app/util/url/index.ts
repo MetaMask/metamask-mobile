@@ -42,6 +42,23 @@ export const isCardUrl = (url: string) => {
   }
 };
 
+export const isCardTravelUrl = (url: string) => {
+  try {
+    const currentUrl = new URL(url);
+    return currentUrl.origin === AppConstants.CARD.TRAVEL_URL;
+  } catch (error) {
+    return false;
+  }
+};
+
+export const isCardTosUrl = (url: string) => {
+  try {
+    const currentUrl = new URL(url);
+    return currentUrl.origin === AppConstants.CARD.CARD_TOS_URL;
+  } catch (error) {
+    return false;
+  }
+};
 /**
  * This method does not use the URL library because it does not support punycode encoding in react native.
  * It compares the original hostname to a punycode version of the hostname.
