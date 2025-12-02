@@ -25,6 +25,7 @@ import {
   type SetExistingUserAction,
   type SetIsConnectionRemovedAction,
   type SetMultichainAccountsIntroModalSeenAction,
+  type SetMusdConversionEducationSeenAction,
   UserActionType,
 } from './types';
 
@@ -210,6 +211,18 @@ export function setMultichainAccountsIntroModalSeen(
 ): SetMultichainAccountsIntroModalSeenAction {
   return {
     type: UserActionType.SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN,
+    payload: { seen },
+  };
+}
+
+/**
+ * Action to set mUSD conversion education as seen
+ */
+export function setMusdConversionEducationSeen(
+  seen: boolean,
+): SetMusdConversionEducationSeenAction {
+  return {
+    type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
     payload: { seen },
   };
 }

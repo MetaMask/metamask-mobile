@@ -24,6 +24,7 @@ import {
   updateId,
   checkAutomatically,
 } from 'expo-updates';
+import { connect } from 'react-redux';
 import { PROJECT_ID, getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
@@ -37,6 +38,7 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
+import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,12 +104,13 @@ const foxImage = require('../../../../images/branding/fox.png'); // eslint-disab
 /**
  * View that contains app information
  */
-export default class AppInformation extends PureComponent {
+class AppInformation extends PureComponent {
   static propTypes = {
     /**
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
+    preinstalledSnaps: PropTypes.array,
   };
 
   state = {
@@ -265,6 +268,12 @@ export default class AppInformation extends PureComponent {
                     </Text>
                   </>
                 )}
+
+                {this.props.preinstalledSnaps.map((snap) => (
+                  <Text key={snap.name} style={styles.branchInfo}>
+                    {snap.name}: {snap.version} ({snap.status})
+                  </Text>
+                ))}
               </>
             )}
           </View>
@@ -311,3 +320,9 @@ export default class AppInformation extends PureComponent {
 }
 
 AppInformation.contextType = ThemeContext;
+
+const mapStateToProps = (state) => ({
+  preinstalledSnaps: getPreinstalledSnapsMetadata(state),
+});
+
+export default connect(mapStateToProps)(AppInformation);

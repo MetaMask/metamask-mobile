@@ -353,6 +353,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   MARKET_HOURS_INFO_BUTTON: 'perps-market-hours-banner-info-button',
   MARKET_HOURS_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-market-hours-bottom-sheet-tooltip',
+  STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
 };
 
 // ========================================
@@ -458,6 +459,17 @@ export const PerpsTutorialSelectorsIDs = {
   CAROUSEL: 'perps-tutorial-carousel',
   CHARACTER_IMAGE: 'perps-tutorial-character-image',
   TUTORIAL_CARD: 'perps-tutorial-card',
+} as const;
+
+// ========================================
+// PERPS STOP LOSS PROMPT BANNER SELECTORS
+// ========================================
+
+export const PerpsStopLossPromptSelectorsIDs = {
+  CONTAINER: 'perps-stop-loss-prompt-container',
+  ADD_MARGIN_BUTTON: 'perps-stop-loss-prompt-add-margin-button',
+  TOGGLE: 'perps-stop-loss-prompt-toggle',
+  LOADING: 'perps-stop-loss-prompt-loading',
 } as const;
 
 // ========================================
@@ -603,4 +615,44 @@ export const PerpsGeneralSelectorsIDs = {
   // Common action buttons that may appear in flows (keep for E2E compatibility)
   CONTINUE_BUTTON: 'continue-button',
   DONE_BUTTON: 'done-button',
+} as const;
+
+// ========================================
+// PERPS ORDER BOOK VIEW SELECTORS
+// ========================================
+
+export const PerpsOrderBookViewSelectorsIDs = {
+  CONTAINER: 'perps-order-book-view',
+  BACK_BUTTON: 'perps-order-book-back-button',
+  SCROLL_VIEW: 'perps-order-book-scroll-view',
+  DEPTH_CHART: 'perps-order-book-depth-chart',
+  TABLE: 'perps-order-book-table',
+  LONG_BUTTON: 'perps-order-book-long-button',
+  SHORT_BUTTON: 'perps-order-book-short-button',
+  DEPTH_BAND_BUTTON: 'perps-order-book-depth-band-button',
+  DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
+  UNIT_TOGGLE_BASE: 'perps-order-book-unit-toggle-base',
+  UNIT_TOGGLE_USD: 'perps-order-book-unit-toggle-usd',
+  SPREAD_INFO_BUTTON: 'perps-order-book-spread-info-button',
+  BOTTOM_SHEET_TOOLTIP: 'perps-order-book-tooltip',
+} as const;
+
+// ========================================
+// PERPS ORDER BOOK TABLE SELECTORS
+// ========================================
+
+export const PerpsOrderBookTableSelectorsIDs = {
+  CONTAINER: 'perps-order-book-table',
+  UNIT_TOGGLE: 'perps-order-book-unit-toggle',
+  BID_ROW: 'perps-order-book-bid-row',
+  ASK_ROW: 'perps-order-book-ask-row',
+  SPREAD: 'perps-order-book-spread',
+} as const;
+
+// ========================================
+// PERPS ORDER BOOK DEPTH CHART SELECTORS
+// ========================================
+
+export const PerpsOrderBookDepthChartSelectorsIDs = {
+  CONTAINER: 'perps-order-book-depth-chart',
 } as const;

@@ -137,6 +137,19 @@ describe('AlertRow', () => {
     expect(queryByTestId('inline-alert')).toBeNull();
   });
 
+  it('disables inline alert interaction when disableAlertInteraction prop is true', () => {
+    const { getByTestId } = render(
+      <AlertRow {...baseProps} disableAlertInteraction />,
+    );
+    const inlineAlert = getByTestId('inline-alert');
+
+    fireEvent.press(inlineAlert);
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
+  });
+
   it('renders with the given style if provided', () => {
     const props = { ...baseProps, style: { backgroundColor: 'red' } };
     const { getByTestId } = render(<AlertRow {...props} />);
