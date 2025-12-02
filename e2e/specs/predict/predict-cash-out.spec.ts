@@ -44,7 +44,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Predictions'), () => {
-  it.skip('should cash out on open position: Spurs vs. Pelicans', async () => {
+  it('should cash out on open position: Spurs vs. Pelicans', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -60,9 +60,9 @@ describe(SmokePredictions('Predictions'), () => {
         );
         // Current balance prior to cashing out
         await Assertions.expectTextDisplayed(positionDetails.initialBalance);
+        await device.disableSynchronization();
 
         await WalletView.tapOnPredictionsPosition(positionDetails.name);
-        await device.disableSynchronization();
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
@@ -79,9 +79,9 @@ describe(SmokePredictions('Predictions'), () => {
         );
 
         await PredictCashOutPage.tapCashOutButton();
-        await device.enableSynchronization();
 
         await PredictDetailsPage.tapBackButton();
+        await device.enableSynchronization();
 
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {
           description: 'Predictions balance should be updated to $58.16',

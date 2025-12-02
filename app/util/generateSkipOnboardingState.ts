@@ -5,7 +5,7 @@ import {
   TRUE,
   USE_TERMS,
 } from '../constants/storage';
-import { storePrivacyPolicyClickedOrClosed } from '../reducers/legalNotices';
+import { storePrivacyPolicyClickedOrClosed } from '../actions/legalNotices';
 import { Authentication } from '../core';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';

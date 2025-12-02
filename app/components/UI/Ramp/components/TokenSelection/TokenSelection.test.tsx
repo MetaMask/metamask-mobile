@@ -12,16 +12,29 @@ import { useRampTokens } from '../../hooks/useRampTokens';
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
+const mockParentGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
     goBack: mockGoBack,
+    dangerouslyGetParent: () => ({
+      goBack: mockParentGoBack,
+    }),
   }),
 }));
 
-function renderWithProvider(component: React.ComponentType) {
+interface CustomTestState {
+  fiatOrders?: {
+    rampRoutingDecision?: UnifiedRampRoutingType;
+  };
+}
+
+function renderWithProvider(
+  component: React.ComponentType,
+  customState?: CustomTestState,
+) {
   return renderScreen(
     component,
     {
@@ -35,6 +48,7 @@ function renderWithProvider(component: React.ComponentType) {
         fiatOrders: {
           detectedGeolocation: 'US',
           rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
+          ...customState?.fiatOrders,
         },
       },
     },
@@ -43,8 +57,24 @@ function renderWithProvider(component: React.ComponentType) {
 
 jest.mock('../../Deposit/hooks/useSearchTokenResults', () => jest.fn());
 
+const mockGoToBuy = jest.fn();
+
+jest.mock('../../hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({
+    goToBuy: mockGoToBuy,
+  }),
+}));
+
 jest.mock('../../hooks/useRampTokens', () => ({
   useRampTokens: jest.fn(),
+}));
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+const mockGetNetworkName = jest.fn();
+jest.mock('../../Deposit/hooks/useDepositCryptoCurrencyNetworkName', () => ({
+  useDepositCryptoCurrencyNetworkName: () => mockGetNetworkName,
 }));
 
 const mockTokens = MOCK_CRYPTOCURRENCIES;
@@ -63,6 +93,7 @@ describe('TokenSelection Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
+    mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
 
     const rampsTokens = convertToRampsTokens(mockTokens);
     mockUseRampTokens.mockReturnValue({
@@ -110,6 +141,18 @@ describe('TokenSelection Component', () => {
         }),
       );
     });
+  });
+
+  it('calls goToBuy when token is pressed', () => {
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
+    fireEvent.press(firstToken);
+
+    expect(mockGoToBuy).toHaveBeenCalledWith({
+      assetId: mockTokens[0].assetId,
+    });
+    expect(mockParentGoBack).toHaveBeenCalled();
   });
 
   it('navigates to unsupported token modal when info button is pressed', () => {
@@ -218,5 +261,26 @@ describe('TokenSelection Component', () => {
         searchString: '   ',
       }),
     );
+  });
+
+  it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
+    fireEvent.press(firstToken);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+      ramp_type: 'UNIFIED BUY',
+      region: 'US',
+      chain_id: mockTokens[0].chainId,
+      currency_destination: mockTokens[0].assetId,
+      currency_destination_symbol: mockTokens[0].symbol,
+      currency_destination_network: 'Ethereum Mainnet',
+      currency_source: '',
+      is_authenticated: false,
+      token_caip19: mockTokens[0].assetId,
+      token_symbol: mockTokens[0].symbol,
+      ramp_routing: UnifiedRampRoutingType.DEPOSIT,
+    });
   });
 });

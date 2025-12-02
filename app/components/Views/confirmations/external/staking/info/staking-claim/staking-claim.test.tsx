@@ -8,6 +8,7 @@ import StakingClaim from './staking-claim';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,

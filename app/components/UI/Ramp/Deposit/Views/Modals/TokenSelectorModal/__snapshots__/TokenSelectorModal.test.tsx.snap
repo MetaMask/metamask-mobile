@@ -433,7 +433,6 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1390,7 +1389,6 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -2547,7 +2545,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -3029,6 +3026,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3269,6 +3267,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3482,6 +3481,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-bip122:000000000019d6689c085ae165831e93/slip44:0"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3695,6 +3695,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-eip155:1/slip44:60"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3908,6 +3909,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
+                                  testID="token-list-item-solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
                                 >
                                   <View
                                     accessibilityRole="none"

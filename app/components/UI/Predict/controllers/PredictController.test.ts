@@ -2605,6 +2605,8 @@ describe('PredictController', () => {
           networkClientId: 'mainnet',
           disableHook: true,
           disableSequential: true,
+          disableUpgrade: true,
+          skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
       });

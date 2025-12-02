@@ -36,6 +36,9 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
   // Fetch data for all sections using centralized hook
   const allSectionsData = useSectionsData(debouncedQuery);
 
+  // Check if query is still debouncing (query changed but debounce hasn't completed)
+  const isDebouncing = query !== debouncedQuery;
+
   const filteredResults = useMemo(() => {
     const isLoading: Record<SectionId, boolean> = {} as Record<
       SectionId,
@@ -47,26 +50,25 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     >;
 
     const shouldShowTopItems = !debouncedQuery.trim();
-    const searchTerm = debouncedQuery.toLowerCase();
 
     // Process each section generically
     SECTIONS_ARRAY.forEach((section) => {
       const sectionData = allSectionsData[section.id];
-      isLoading[section.id] = sectionData.isLoading;
+      // If we're debouncing, show loading state immediately
+      // Otherwise, use the actual loading state from the data fetch
+      isLoading[section.id] = isDebouncing || sectionData.isLoading;
 
       if (shouldShowTopItems) {
         // Show top 3 items when no search query
         data[section.id] = sectionData.data.slice(0, 3);
       } else {
         // Filter items based on section's searchable text
-        data[section.id] = sectionData.data.filter((item) =>
-          section.getSearchableText(item).includes(searchTerm),
-        );
+        data[section.id] = sectionData.data;
       }
     });
 
     return { data, isLoading };
-  }, [debouncedQuery, allSectionsData]);
+  }, [debouncedQuery, allSectionsData, isDebouncing]);
 
   return filteredResults;
 };

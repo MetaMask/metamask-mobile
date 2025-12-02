@@ -1,23 +1,23 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextVariant,
-  ButtonIcon,
-  ButtonIconSize,
   IconName,
+  Icon,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { appendURLParams } from '../../../util/browser';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
-import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
 import {
   lastTrendingScreenRef,
@@ -25,57 +25,22 @@ import {
 } from '../../Nav/Main/MainNavigator';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
-import {
-  PredictScreenStack,
-  PredictModalStack,
-  PredictMarketDetails,
-  PredictSellPreview,
-} from '../../UI/Predict';
-import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 
 const Stack = createStackNavigator();
 
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-    paddingLeft: 16,
-    paddingRight: 16,
-  },
-});
-
-// Wrapper component to intercept navigation
-const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
-  const navigation = useNavigation();
-
-  // Create a custom navigation object that intercepts navigate calls
-  const customNavigation = useMemo(() => {
-    const originalNavigate = navigation.navigate.bind(navigation);
-
-    return {
-      ...navigation,
-      navigate: (routeName: string, params?: object) => {
-        // If trying to navigate to TRENDING_VIEW, go back in stack instead
-        if (routeName === Routes.TRENDING_VIEW) {
-          navigation.goBack();
-        } else {
-          originalNavigate(routeName, params);
-        }
-      },
-    };
-  }, [navigation]);
-
-  return <Browser navigation={customNavigation} route={route} />;
-};
-
 const TrendingFeed: React.FC = () => {
+  const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
   const { colors } = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -93,6 +58,10 @@ const TrendingFeed: React.FC = () => {
 
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
+  );
+  // check if basic functionality toggle is on
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
   );
 
   const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
@@ -114,6 +83,22 @@ const TrendingFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
+  // Clean up timeout when component unmounts or refreshing changes
+  useEffect(() => {
+    if (refreshing) {
+      const timeoutId = setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [refreshing]);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
+
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
       <Box twClassName="px-4 py-3">
@@ -122,49 +107,61 @@ const TrendingFeed: React.FC = () => {
         </Text>
       </Box>
 
-      <Box twClassName="px-4 pb-3">
-        <Box twClassName="flex-row items-center gap-2">
-          <Box twClassName="flex-1">
-            <ExploreSearchBar type="button" onPress={handleSearchPress} />
-          </Box>
-
-          <Box
-            twClassName="rounded-md items-center justify-center h-8 w-8 border-4"
-            style={{
-              borderColor: colors.text.default,
-            }}
-          >
-            {browserTabsCount > 0 ? (
-              <ButtonLink
-                onPress={handleBrowserPress}
-                label={browserTabsCount}
-                testID="trending-view-browser-button"
-              />
-            ) : (
-              <ButtonIcon
-                iconName={IconName.Add}
-                size={ButtonIconSize.Md}
-                onPress={handleBrowserPress}
-                testID="trending-view-browser-button"
-              />
-            )}
-          </Box>
+      <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
+        <Box twClassName="flex-1">
+          <ExploreSearchBar type="button" onPress={handleSearchPress} />
         </Box>
+
+        <TouchableOpacity onPress={handleBrowserPress}>
+          {browserTabsCount > 0 ? (
+            <Box
+              twClassName="rounded-md items-center justify-center h-8 w-8 border-2"
+              style={{
+                borderColor: colors.text.default,
+              }}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                testID="trending-view-browser-button"
+              >
+                {browserTabsCount}
+              </Text>
+            </Box>
+          ) : (
+            <Icon
+              name={IconName.Explore}
+              size={IconSize.Xl}
+              testID="trending-view-browser-button"
+            />
+          )}
+        </TouchableOpacity>
       </Box>
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <QuickActions />
+      {isBasicFunctionalityEnabled ? (
+        <ScrollView
+          style={tw.style('flex-1 px-4')}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.icon.default}
+              colors={[colors.primary.default]}
+            />
+          }
+        >
+          <QuickActions />
 
-        {HOME_SECTIONS_ARRAY.map((section) => (
-          <React.Fragment key={section.id}>
-            <SectionHeader sectionId={section.id} />
-            {section.renderSection()}
-          </React.Fragment>
-        ))}
-      </ScrollView>
+          {HOME_SECTIONS_ARRAY.map((section) => (
+            <React.Fragment key={section.id}>
+              <SectionHeader sectionId={section.id} />
+              <section.Section refreshTrigger={refreshTrigger} />
+            </React.Fragment>
+          ))}
+        </ScrollView>
+      ) : (
+        <BasicFunctionalityEmptyState />
+      )}
     </Box>
   );
 };
@@ -180,53 +177,9 @@ const TrendingView: React.FC = () => {
       }}
     >
       <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
       <Stack.Screen
         name={Routes.EXPLORE_SEARCH}
         component={ExploreSearchScreen}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.ROOT}
-        component={PredictScreenStack}
-        options={{
-          headerShown: false,
-          cardStyle: {
-            backgroundColor: 'transparent',
-          },
-          animationEnabled: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.ROOT}
-        component={PredictModalStack}
-        options={{
-          headerShown: false,
-          cardStyle: {
-            backgroundColor: 'transparent',
-          },
-          animationEnabled: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MARKET_DETAILS}
-        component={PredictMarketDetails}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.BUY_PREVIEW}
-        component={PredictBuyPreview}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.SELL_PREVIEW}
-        component={PredictSellPreview}
-        options={{
-          headerShown: false,
-        }}
       />
     </Stack.Navigator>
   );

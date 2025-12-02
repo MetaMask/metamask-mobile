@@ -14,7 +14,10 @@ import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
-import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import {
+  SetPayTokenRequest,
+  useAutomaticTransactionPayToken,
+} from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -32,11 +35,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import {
-  RampMode,
-  useRampNavigation,
-} from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { RampType } from '../../../../../../reducers/fiatOrders/types';
+import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
@@ -52,17 +51,23 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import EngineService from '../../../../../../core/EngineService';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
+  hasMax?: boolean;
+  preferredToken?: SetPayTokenRequest;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay }) => {
+  ({ children, currency, disablePay, hasMax, preferredToken }) => {
     useClearConfirmationOnBackSwipe();
-    useAutomaticTransactionPayToken({ disable: disablePay });
+    useAutomaticTransactionPayToken({
+      disable: disablePay,
+      preferredToken,
+    });
     useTransactionPayMetrics();
 
     const { styles } = useStyles(styleSheet, {});
@@ -91,8 +96,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingTokenAmount: amountHumanDebounced,
     });
 
-    const handleDone = useCallback(async () => {
-      await updateTokenAmount();
+    const handleDone = useCallback(() => {
+      updateTokenAmount();
+      EngineService.flushState();
       setIsKeyboardVisible(false);
     }, [updateTokenAmount]);
 
@@ -102,7 +108,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     return (
       <Box style={styles.container}>
-        <Box>
+        <Box style={styles.inputContainer}>
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
@@ -133,6 +139,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
+              hasMax={hasMax}
             />
           )}
           {!hasTokens && <BuySection />}
@@ -148,7 +155,7 @@ export function CustomAmountInfoSkeleton() {
 
   return (
     <Box style={styles.container}>
-      <Box>
+      <Box style={styles.inputContainer}>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
         <PayWithRowSkeleton />
@@ -181,17 +188,11 @@ function BuySection() {
     asset?.assetId ?? '0x0',
   );
 
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const handleBuyPress = useCallback(() => {
-    goToRamps({
-      mode: RampMode.AGGREGATOR,
-      params: {
-        rampType: RampType.BUY,
-        intent: { assetId },
-      },
-    });
-  }, [assetId, goToRamps]);
+    goToBuy({ assetId });
+  }, [assetId, goToBuy]);
 
   let message: string | undefined;
 
@@ -215,6 +216,7 @@ function BuySection() {
         variant={ButtonVariants.Primary}
         onPress={handleBuyPress}
         width={ButtonWidthTypes.Full}
+        size={ButtonSize.Lg}
       />
     </Box>
   );
@@ -272,6 +274,10 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
+    return strings('earn.musd_conversion.confirmation_button');
   }
 
   return strings('confirm.deposit_edit_amount_done');

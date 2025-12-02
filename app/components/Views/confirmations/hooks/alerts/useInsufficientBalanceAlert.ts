@@ -9,11 +9,7 @@ import {
 } from '../../../../../util/conversions';
 import { strings } from '../../../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../../UI/Ramp/hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../../../../UI/Ramp/Aggregator/types';
+import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
@@ -36,7 +32,7 @@ export const useInsufficientBalanceAlert = ({
 }: {
   ignoreGasFeeToken?: boolean;
 } = {}): Alert[] => {
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const { balanceWeiInHex } = useAccountNativeBalance(
@@ -109,10 +105,7 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            goToRamps({
-              mode: RampMode.AGGREGATOR,
-              params: { rampType: AggregatorRampType.BUY },
-            });
+            goToBuy();
             onReject(undefined, true);
           },
         },
@@ -137,6 +130,6 @@ export const useInsufficientBalanceAlert = ({
     onReject,
     payToken,
     transactionMetadata,
-    goToRamps,
+    goToBuy,
   ]);
 };

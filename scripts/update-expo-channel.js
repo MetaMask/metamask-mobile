@@ -17,6 +17,10 @@ const VALID_ENVIRONMENTS = ['beta', 'rc', 'exp', 'test', 'e2e', 'dev', 'producti
 const ANDROID_MANIFEST_PATH = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
 
+const CERTIFICATE_PATH = path.join(__dirname, '..', 'certs', 'certificate.pem');
+const CODE_SIGNING_KEY_ID = 'main';
+const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
+
 //TODO: add production channel when it's ready
 const CONFIG_MAP = {
   rc: {
@@ -25,6 +29,7 @@ const CONFIG_MAP = {
     updatesEnabled: true,
     updateUrl: UPDATE_URL,
     checkAutomatically: 'NEVER',
+    fallbackToCacheTimeout: 0,
   },
 };
 
@@ -50,8 +55,68 @@ const EXPO_CONFIG_MAP = {
   checkAutomatically: {
     ios: 'EXUpdatesCheckOnLaunch',
     android: 'expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH'
-  }
+  },
+  codeSigningCertificate: {
+    ios: 'EXUpdatesCodeSigningCertificate',
+    android: 'expo.modules.updates.CODE_SIGNING_CERTIFICATE'
+  },
+  codeSigningMetadata: {
+    ios: 'EXUpdatesCodeSigningMetadata',
+    android: 'expo.modules.updates.CODE_SIGNING_METADATA'
+  },
+  fallbackToCacheTimeout: {
+    ios: 'EXUpdatesLaunchWaitMs',
+    android: 'expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS'
+  },
 };
+
+/**
+ * Loads the code signing certificate and generates Expo-compatible payloads
+ * for Android and iOS configuration files.
+ *
+ * @returns {null | {
+ *   certificatePath: string,
+ *   androidCertificateValue: string,
+ *   iosCertificateValue: string,
+ *   metadata: { keyid: string, alg: string },
+ *   androidMetadataValue: string,
+ * }} Configuration object or null when certificate is missing
+ */
+function loadCodeSigningConfiguration() {
+  if (!fs.existsSync(CERTIFICATE_PATH)) {
+    console.warn(
+      `⚠️  Code signing certificate not found at ${CERTIFICATE_PATH}. ` +
+        'Skipping code signing configuration updates.',
+    );
+    return null;
+  }
+
+  const certificateContent = fs.readFileSync(CERTIFICATE_PATH, 'utf8');
+
+  const androidCertificateValue = certificateContent
+    .replace(/\r/g, '&#xD;')
+    .replace(/\n/g, '&#xA;');
+
+  const iosCertificateValue = certificateContent.replace(/\r/g, '&#xD;');
+
+  const metadata = {
+    keyid: CODE_SIGNING_KEY_ID,
+    alg: CODE_SIGNING_ALGORITHM,
+  };
+
+  const androidMetadataValue = JSON.stringify(metadata).replace(
+    /"/g,
+    '&quot;',
+  );
+
+  return {
+    certificatePath: CERTIFICATE_PATH,
+    androidCertificateValue,
+    iosCertificateValue,
+    metadata,
+    androidMetadataValue,
+  };
+}
 
 /**
  * Gets the configuration for a given environment
@@ -70,8 +135,18 @@ function getConfigForEnvironment() {
  * @param {boolean} updatesEnabled
  * @param {string} updateUrl
  * @param {string} checkAutomatically
+ * @param {number} fallbackToCacheTimeout
  */
-function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically) {
+function updateAndroidManifest(
+  filePath,
+  channelName,
+  runtimeVersion,
+  updatesEnabled,
+  updateUrl,
+  checkAutomatically,
+  fallbackToCacheTimeout,
+  codeSigningConfig,
+) {
   let content = fs.readFileSync(filePath, 'utf8');
 
   // Update or insert UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY (JSON header with channel)
@@ -130,6 +205,54 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
     );
   }
 
+  // Update or insert EXPO_UPDATES_LAUNCH_WAIT_MS (fallbackToCacheTimeout)
+  const fallbackToCacheTimeoutKey = EXPO_CONFIG_MAP.fallbackToCacheTimeout.android;
+  if (content.includes(fallbackToCacheTimeoutKey)) {
+    content = content.replace(
+      /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="[^"]*" \/>/g,
+      `<meta-data android:name="${fallbackToCacheTimeoutKey}" android:value="${fallbackToCacheTimeout}" />`,
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/application>/,
+      `\n\t\t<meta-data android:name="${fallbackToCacheTimeoutKey}" android:value="${fallbackToCacheTimeout}" />$1</application>`,
+    );
+  }
+
+  if (codeSigningConfig?.androidCertificateValue) {
+    const certificateKey = EXPO_CONFIG_MAP.codeSigningCertificate.android;
+    const certificateMetaData = `<meta-data android:name="${certificateKey}" android:value="${codeSigningConfig.androidCertificateValue}" />`;
+
+    if (content.includes(certificateKey)) {
+      content = content.replace(
+        /<meta-data android:name="expo\.modules\.updates\.CODE_SIGNING_CERTIFICATE" android:value="[^"]*" \/>/g,
+        certificateMetaData,
+      );
+    } else {
+      content = content.replace(
+        /(\s*)<\/application>/,
+        `\n\t\t${certificateMetaData}$1</application>`,
+      );
+    }
+  }
+
+  if (codeSigningConfig?.androidMetadataValue) {
+    const metadataKey = EXPO_CONFIG_MAP.codeSigningMetadata.android;
+    const metadataMetaData = `<meta-data android:name="${metadataKey}" android:value="${codeSigningConfig.androidMetadataValue}" />`;
+
+    if (content.includes(metadataKey)) {
+      content = content.replace(
+        /<meta-data android:name="expo\.modules\.updates\.CODE_SIGNING_METADATA" android:value="[^"]*" \/>/g,
+        metadataMetaData,
+      );
+    } else {
+      content = content.replace(
+        /(\s*)<\/application>/,
+        `\n\t\t${metadataMetaData}$1</application>`,
+      );
+    }
+  }
+
   // Only toggle expo.modules.updates.ENABLED; rely on defaults for the rest
   const enabledKey = EXPO_CONFIG_MAP.enabled.android;
   const enabledValue = updatesEnabled ? 'true' : 'false';
@@ -158,8 +281,19 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
  * @param {boolean} updatesEnabled
  * @param {string} updateUrl
  * @param {string} checkAutomatically
+ * @param {number} fallbackToCacheTimeout
  */
-function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled, updateUrl, checkAutomatically) {
+function updatePlistFile(
+  filePath,
+  channelName,
+  runtimeVersion,
+  fileName,
+  updatesEnabled,
+  updateUrl,
+  checkAutomatically,
+  fallbackToCacheTimeout,
+  codeSigningConfig,
+) {
   console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}, checkAutomatically=${checkAutomatically}`);
 
   let content = fs.readFileSync(filePath, 'utf8');
@@ -227,7 +361,61 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName, update
     );
   }
 
-  // Only toggle EXUpdatesEnabled; do not modify LaunchWaitMs
+  // Update or insert EXUpdatesLaunchWaitMs (fallbackToCacheTimeout)
+  const fallbackToCacheTimeoutKey = EXPO_CONFIG_MAP.fallbackToCacheTimeout.ios;
+  if (content.includes(`<key>${fallbackToCacheTimeoutKey}</key>`)) {
+    content = content.replace(
+      new RegExp(
+        `(<key>${fallbackToCacheTimeoutKey}<\\/key>\\s*<integer>)[^<]*(<\\/integer>)`,
+      ),
+      `$1${fallbackToCacheTimeout}$2`,
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/dict>\s*<\/plist>/,
+      `\n\t<key>${fallbackToCacheTimeoutKey}</key>\n\t<integer>${fallbackToCacheTimeout}</integer>$1</dict>\n</plist>`,
+    );
+  }
+
+  if (codeSigningConfig?.iosCertificateValue) {
+    const certificateKey = EXPO_CONFIG_MAP.codeSigningCertificate.ios;
+    const certificateBlock = `<key>${certificateKey}</key>\n\t<string>${codeSigningConfig.iosCertificateValue}</string>`;
+
+    if (content.includes(`<key>${certificateKey}</key>`)) {
+      content = content.replace(
+        new RegExp(
+          `(<key>${certificateKey}<\\/key>\\s*<string>)[\\s\\S]*?(<\\/string>)`,
+        ),
+        `$1${codeSigningConfig.iosCertificateValue}$2`,
+      );
+    } else {
+      content = content.replace(
+        /(\s*)<\/dict>\s*<\/plist>/,
+        `\n\t${certificateBlock}\n$1</dict>\n</plist>`,
+      );
+    }
+  }
+
+  if (codeSigningConfig?.metadata) {
+    const metadataKey = EXPO_CONFIG_MAP.codeSigningMetadata.ios;
+    const metadataBlock = `\t<key>${metadataKey}</key>\n\t<dict>\n\t\t<key>keyid</key>\n\t\t<string>${codeSigningConfig.metadata.keyid}</string>\n\t\t<key>alg</key>\n\t\t<string>${codeSigningConfig.metadata.alg}</string>\n\t</dict>`;
+
+    if (content.includes(`<key>${metadataKey}</key>`)) {
+      content = content.replace(
+        new RegExp(
+          `<key>${metadataKey}<\\/key>\\s*<dict>[\\s\\S]*?<\\/dict>`,
+        ),
+        metadataBlock,
+      );
+    } else {
+      content = content.replace(
+        /(\s*)<\/dict>\s*<\/plist>/,
+        `\n${metadataBlock}\n$1</dict>\n</plist>`,
+      );
+    }
+  }
+
+  // Only toggle EXUpdatesEnabled; LaunchWaitMs is handled via fallbackToCacheTimeout
   const enabledKey = EXPO_CONFIG_MAP.enabled.ios;
   if (content.includes(`<key>${enabledKey}</key>`)) {
     content = content.replace(
@@ -250,6 +438,7 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName, update
  */
 function main() {
   const environment = process.env.METAMASK_ENVIRONMENT;
+  const codeSigningConfig = loadCodeSigningConfiguration();
 
   console.log('======================================');
   console.log('  Updating Expo Updates Configuration');
@@ -272,14 +461,21 @@ function main() {
   console.log(`Environment: ${environment}`);
 
   // Skip configuration for production environment
-  if (environment === 'production' || environment === 'dev') {
-    console.log('ℹ️  Production environment detected - skipping Expo Updates configuration');
+  if (environment === 'production' || environment === 'dev' || environment === 'e2e') {
+    console.log('ℹ️  Production/dev/e2e environment detected - skipping Expo Updates configuration');
     console.log('✓ No configuration changes made');
     return;
   }
 
   // Get configuration for this environment
-  const { channel, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically } = getConfigForEnvironment(environment);
+  const {
+    channel,
+    runtimeVersion,
+    updatesEnabled,
+    updateUrl,
+    checkAutomatically,
+    fallbackToCacheTimeout,
+  } = getConfigForEnvironment(environment);
 
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
@@ -294,8 +490,27 @@ function main() {
 
 
   try {
-    updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically);
-    updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled, updateUrl, checkAutomatically);
+    updateAndroidManifest(
+      ANDROID_MANIFEST_PATH,
+      channel,
+      runtimeVersion,
+      updatesEnabled,
+      updateUrl,
+      checkAutomatically,
+      fallbackToCacheTimeout,
+      codeSigningConfig,
+    );
+    updatePlistFile(
+      IOS_EXPO_PLIST_PATH,
+      channel,
+      runtimeVersion,
+      'Expo.plist',
+      updatesEnabled,
+      updateUrl,
+      checkAutomatically,
+      fallbackToCacheTimeout,
+      codeSigningConfig,
+    );
 
     console.log('✓ All files updated successfully!');
   } catch (error) {
