@@ -1903,65 +1903,6 @@ describe('NetworkMultiSelector', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('does not track event when chainIdForAnalytics is undefined', async () => {
-      const fromNetwork = createMockNetwork(
-        'eip155:1',
-        'Ethereum Main Network',
-        'eip155:1' as CaipChainId,
-        true,
-      );
-      const toNetwork = createMockNetwork(
-        'eip155:8453',
-        'Base',
-        'eip155:8453' as CaipChainId,
-        false,
-      );
-
-      mockUseNetworksByNamespace.mockReturnValue({
-        networks: [fromNetwork, toNetwork],
-        selectedNetworks: [fromNetwork],
-        selectedCount: 1,
-        areAllNetworksSelected: false,
-        areAnyNetworksSelected: true,
-        networkCount: 2,
-      });
-
-      mockUseNetworksToUse.mockReturnValue(
-        createMockUseNetworksToUse([fromNetwork, toNetwork]),
-      );
-
-      setupMockSelectors(
-        true,
-        '0x1',
-        {
-          '0x1': {
-            name: 'Ethereum Main Network',
-            chainId: '0x1',
-            rpcEndpoints: [
-              { networkClientId: 'mainnet', url: 'https://mainnet.infura.io' },
-            ],
-            defaultRpcEndpointIndex: 0,
-          },
-          // Missing '0x2105' config to make chainIdForAnalytics undefined
-        },
-        {},
-      );
-
-      const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          dismissModal={jest.fn()}
-        />,
-      );
-
-      await getByTestId(
-        'mock-network-multi-selector-list',
-      ).props.onSelectNetwork('eip155:8453');
-
-      expect(mockSelectPopularNetwork).toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
-
     it('does not track event when EVM network config is missing', async () => {
       const fromNetwork = createMockNetwork(
         'eip155:1',
