@@ -745,6 +745,32 @@ describe('useRampsSmartRouting', () => {
         }),
       );
     });
+
+    it('routes to AGGREGATOR when last completed order has legacy provider', async () => {
+      mockApiResponse({
+        deposit: true,
+        aggregator: true,
+        global: true,
+      });
+      // Legacy orders may have deprecated provider values like MOONPAY
+      // These should route to AGGREGATOR since they're not DEPOSIT or Transak via aggregator
+      mockOrders = [
+        createMockOrder({
+          provider: FIAT_ORDER_PROVIDERS.MOONPAY,
+          state: FIAT_ORDER_STATES.COMPLETED,
+          createdAt: 4000,
+        }),
+      ];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.AGGREGATOR,
+        }),
+      );
+    });
   });
 
   describe('Order sorting by timestamp', () => {
