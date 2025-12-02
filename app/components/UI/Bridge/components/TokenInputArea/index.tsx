@@ -5,6 +5,8 @@ import {
   TextInput,
   StyleProp,
   ViewStyle,
+  NativeSyntheticEvent,
+  TextInputSelectionChangeEventData,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -195,6 +197,9 @@ interface TokenInputAreaProps {
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
   isQuoteSponsored?: boolean;
+  onSelectionChange?: (
+    selection: NativeSyntheticEvent<TextInputSelectionChangeEventData>['nativeEvent']['selection'],
+  ) => void;
 }
 
 export const TokenInputArea = forwardRef<
@@ -221,6 +226,7 @@ export const TokenInputArea = forwardRef<
       isSourceToken,
       style,
       isQuoteSponsored = false,
+      onSelectionChange,
     },
     ref,
   ) => {
@@ -358,6 +364,9 @@ export const TokenInputArea = forwardRef<
                   }}
                   onBlur={() => {
                     onBlur?.();
+                  }}
+                  onSelectionChange={(e) => {
+                    onSelectionChange?.(e.nativeEvent.selection);
                   }}
                   // Android only issue, for long numbers, the input field will focus on the right hand side
                   // Force it to focus on the left hand side

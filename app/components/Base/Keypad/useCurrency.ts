@@ -1,9 +1,17 @@
 import { useMemo } from 'react';
 import { CURRENCIES, CurrencyCode, Keys } from './constants';
 import createKeypadRule from './createKeypadRule';
+import {
+  NativeSyntheticEvent,
+  TextInputSelectionChangeEventData,
+} from 'react-native';
 
 interface CurrencyData {
-  handler: (currentAmount: string, inputKey: Keys) => string;
+  handler: (
+    currentAmount: string,
+    inputKey: Keys,
+    cursorSelection?: NativeSyntheticEvent<TextInputSelectionChangeEventData>['nativeEvent']['selection'],
+  ) => string;
   symbol: string | null;
   decimalSeparator: string | null;
 }

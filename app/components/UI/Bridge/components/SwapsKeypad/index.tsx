@@ -1,4 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
+import {
+  TextInputSelectionChangeEventData,
+  NativeSyntheticEvent,
+} from 'react-native';
 import Keypad, { KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import { Box } from '../../../Box/Box';
 import { swapsKeypadStyles as styles } from './styles';
@@ -21,6 +25,7 @@ interface SwapsKeypadProps {
   token?: BridgeToken;
   tokenBalance: ReturnType<typeof useLatestBalance>;
   onMaxPress: () => void;
+  cursorSelection?: NativeSyntheticEvent<TextInputSelectionChangeEventData>['nativeEvent']['selection'];
 }
 
 export const SwapsKeypad = ({
@@ -31,6 +36,7 @@ export const SwapsKeypad = ({
   token,
   tokenBalance,
   onMaxPress,
+  cursorSelection,
 }: SwapsKeypadProps) => {
   const tokenAddress = useTokenAddress(token);
   const isNativeAsset = useMemo(
@@ -126,6 +132,7 @@ export const SwapsKeypad = ({
         onChange={onChange}
         currency={currency}
         decimals={decimals}
+        cursorSelection={cursorSelection}
       />
     </Box>
   );

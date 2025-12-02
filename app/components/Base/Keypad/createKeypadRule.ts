@@ -1,3 +1,7 @@
+import {
+  NativeSyntheticEvent,
+  TextInputSelectionChangeEventData,
+} from 'react-native';
 import { regex } from '../../../../app/util/regex';
 import { Keys } from './constants';
 
@@ -9,11 +13,25 @@ interface KeypadRuleConfig {
 export default function createKeypadRule({
   decimalSeparator = null,
   decimals = null,
-}: KeypadRuleConfig = {}): (currentAmount: string, inputKey: Keys) => string {
-  return function handler(currentAmount: string, inputKey: Keys): string {
+}: KeypadRuleConfig = {}): (
+  currentAmount: string,
+  inputKey: Keys,
+  cursorSelection?: NativeSyntheticEvent<TextInputSelectionChangeEventData>['nativeEvent']['selection'],
+) => string {
+  return function handler(
+    currentAmount: string,
+    inputKey: Keys,
+    cursorSelection?: NativeSyntheticEvent<TextInputSelectionChangeEventData>['nativeEvent']['selection'],
+  ): string {
     if (!currentAmount) {
       currentAmount = '0';
     }
+
+    // Use cursor position if provided, otherwise default to end of string
+    const cursor = cursorSelection ?? {
+      start: currentAmount.length,
+      end: currentAmount.length,
+    };
 
     switch (inputKey) {
       case Keys.Period: {
@@ -25,7 +43,15 @@ export default function createKeypadRule({
           return currentAmount;
         }
 
-        return `${currentAmount}${decimalSeparator}`;
+        if (cursorSelection === undefined) {
+          return `${currentAmount}${decimalSeparator}`;
+        }
+
+        return (
+          currentAmount.slice(0, cursor.start) +
+          decimalSeparator +
+          currentAmount.slice(cursor.end)
+        );
       }
       case Keys.Back: {
         if (currentAmount === '0') {
@@ -35,7 +61,14 @@ export default function createKeypadRule({
           return '0';
         }
 
-        return currentAmount.slice(0, -1);
+        if (cursorSelection === undefined) {
+          return currentAmount.slice(0, -1);
+        }
+
+        return (
+          currentAmount.slice(0, cursor.start - 1) +
+          currentAmount.slice(cursor.end)
+        );
       }
       case Keys.Initial: {
         return '0';
@@ -62,7 +95,15 @@ export default function createKeypadRule({
           }
         }
 
-        return `${currentAmount}${inputKey}`;
+        if (cursorSelection === undefined) {
+          return `${currentAmount}${inputKey}`;
+        }
+
+        return (
+          currentAmount.slice(0, cursor.start) +
+          inputKey +
+          currentAmount.slice(cursor.end)
+        );
       }
       default: {
         return currentAmount;

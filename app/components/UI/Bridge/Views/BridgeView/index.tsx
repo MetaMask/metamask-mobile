@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import {
@@ -81,6 +87,7 @@ import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
+import { Keys } from '../../../../Base/Keypad';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
@@ -97,6 +104,10 @@ export interface BridgeRouteParams {
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
+  const [sourceInputSelectionRange, setSourceInputSelectionRange] = useState({
+    start: 0,
+    end: 0,
+  });
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
 
@@ -327,15 +338,33 @@ const BridgeView = () => {
   // Keypad already handles max token decimals, so we don't need to check here
   const handleKeypadChange = ({
     value,
+    pressedKey,
   }: {
     value: string;
     valueAsNumber: number;
-    pressedKey: string;
+    pressedKey: Keys;
   }) => {
     if (value.length >= MAX_INPUT_LENGTH) {
       return;
     }
     dispatch(setSourceAmount(value || undefined));
+
+    const currentPosition = sourceInputSelectionRange.start;
+    let newPosition: number;
+
+    switch (pressedKey) {
+      case Keys.Back:
+        newPosition = Math.max(0, currentPosition - 1);
+        break;
+      case Keys.Initial:
+        newPosition = value.length;
+        break;
+      default:
+        newPosition = currentPosition + 1;
+        break;
+    }
+
+    setSourceInputSelectionRange({ start: newPosition, end: newPosition });
   };
 
   const handleContinue = async () => {
@@ -357,6 +386,8 @@ const BridgeView = () => {
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
       dispatch(setSourceAmountAsMax(latestSourceBalance.displayBalance));
+      const newPosition = latestSourceBalance.displayBalance.length;
+      setSourceInputSelectionRange({ start: newPosition, end: newPosition });
     }
   };
 
@@ -369,6 +400,20 @@ const BridgeView = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
     });
+
+  // Memoized handler to prevent unnecessary state updates and re-renders
+  const handleSourceSelectionChange = useCallback(
+    (selection: { start: number; end: number }) => {
+      setSourceInputSelectionRange((prev) => {
+        // Only update if values actually changed to prevent re-render loops
+        if (prev.start === selection.start && prev.end === selection.end) {
+          return prev;
+        }
+        return selection;
+      });
+    },
+    [],
+  );
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
@@ -528,6 +573,7 @@ const BridgeView = () => {
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
             isQuoteSponsored={isQuoteSponsored}
+            onSelectionChange={handleSourceSelectionChange}
           />
           <FLipQuoteButton
             onPress={handleSwitchTokens(destTokenAmount)}
@@ -571,6 +617,7 @@ const BridgeView = () => {
                 token={sourceToken}
                 tokenBalance={latestSourceBalance}
                 onMaxPress={handleSourceMaxPress}
+                cursorSelection={sourceInputSelectionRange}
               />
             ) : null}
           </Box>

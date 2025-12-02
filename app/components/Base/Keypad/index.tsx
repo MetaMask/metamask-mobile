@@ -1,5 +1,9 @@
 import React, { useCallback } from 'react';
-import { StyleSheet } from 'react-native';
+import {
+  NativeSyntheticEvent,
+  StyleSheet,
+  TextInputSelectionChangeEventData,
+} from 'react-native';
 import Keypad, {
   type KeypadButtonProps,
   type KeypadContainerProps,
@@ -40,6 +44,10 @@ interface KeypadComponentProps extends Omit<KeypadContainerProps, 'children'> {
    */
   value: string;
   /**
+   * Optional cursor selection for inserting characters at specific positions
+   */
+  cursorSelection?: NativeSyntheticEvent<TextInputSelectionChangeEventData>['nativeEvent']['selection'];
+  /**
    * Props for the period button
    */
   periodButtonProps?: Partial<KeypadButtonProps>;
@@ -54,6 +62,7 @@ function KeypadComponent({
   value,
   currency,
   decimals,
+  cursorSelection,
   periodButtonProps,
   deleteButtonProps,
   ...props
@@ -62,7 +71,7 @@ function KeypadComponent({
 
   const handleKeypadPress = useCallback(
     (pressedKey: Keys) => {
-      const newValue = handler(value, pressedKey);
+      const newValue = handler(value, pressedKey, cursorSelection);
       let valueAsNumber = 0;
       try {
         valueAsNumber = decimalSeparator
@@ -73,7 +82,7 @@ function KeypadComponent({
       }
       onChange({ value: newValue, valueAsNumber, pressedKey });
     },
-    [decimalSeparator, handler, onChange, value],
+    [decimalSeparator, handler, onChange, value, cursorSelection],
   );
 
   const handleKeypadPress1 = useCallback(
