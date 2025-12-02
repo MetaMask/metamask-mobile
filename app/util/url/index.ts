@@ -54,7 +54,8 @@ export const isCardTravelUrl = (url: string) => {
 export const isCardTosUrl = (url: string) => {
   try {
     const currentUrl = new URL(url);
-    return currentUrl.origin === AppConstants.CARD.CARD_TOS_URL;
+    const tosUrl = new URL(AppConstants.CARD.CARD_TOS_URL);
+    return currentUrl.origin === tosUrl.origin;
   } catch (error) {
     return false;
   }
