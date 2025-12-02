@@ -137,7 +137,7 @@ const userReducer = (
     case UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN:
       return {
         ...state,
-        musdConversionEducationSeen: true,
+        musdConversionEducationSeen: action.payload.seen,
       };
     default:
       return state;
