@@ -1,10 +1,6 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../Engine';
-import { Keyring } from '@metamask/keyring-api';
-
-interface KeyringWithAccounts extends Keyring {
-  accounts?: string[];
-}
+import { Json, Keyring } from '@metamask/utils';
 
 export const getConnectedDevicesCount = async (): Promise<number> => {
   const { KeyringController } = Engine.context;
@@ -17,17 +13,18 @@ export const getConnectedDevicesCount = async (): Promise<number> => {
     KeyringController.getKeyringsByType(KeyringTypes.oneKey),
   ]);
 
-  return keyringResults.reduce((acc, result) => {
+  let count = 0;
+  for (const result of keyringResults) {
     if (result.status === 'fulfilled' && Array.isArray(result.value)) {
-      const keyrings = result.value as KeyringWithAccounts[];
-      return (
-        acc +
-        keyrings.filter((keyring) => {
-          const accounts = keyring.accounts;
-          return Array.isArray(accounts) && accounts.length > 0;
-        }).length
-      );
+      // TODO: use type from keyring-utils
+      const keyrings = result.value as unknown as Keyring<Json>[];
+      for (const keyring of keyrings) {
+        const accounts = await keyring.getAccounts();
+        if (Array.isArray(accounts) && accounts.length > 0) {
+          count++;
+        }
+      }
     }
-    return acc;
-  }, 0);
+  }
+  return count;
 };

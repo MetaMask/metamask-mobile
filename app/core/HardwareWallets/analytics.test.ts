@@ -26,9 +26,13 @@ describe('getConnectedDevicesCount', () => {
       (type: KeyringTypes) => {
         switch (type) {
           case KeyringTypes.ledger:
-            return Promise.resolve([{ type: 'ledger', accounts: ['0x123'] }]);
+            return Promise.resolve([
+              { type: 'ledger', getAccounts: () => Promise.resolve(['0x123']) },
+            ]);
           case KeyringTypes.qr:
-            return Promise.resolve([{ type: 'qr', accounts: ['0x456'] }]);
+            return Promise.resolve([
+              { type: 'qr', getAccounts: () => Promise.resolve(['0x456']) },
+            ]);
           default:
             return Promise.resolve([]);
         }
@@ -57,7 +61,9 @@ describe('getConnectedDevicesCount', () => {
           case KeyringTypes.ledger:
             return Promise.reject(new Error('Ledger not available'));
           case KeyringTypes.qr:
-            return Promise.resolve([{ type: 'qr', accounts: ['0x456'] }]);
+            return Promise.resolve([
+              { type: 'qr', getAccounts: () => Promise.resolve(['0x456']) },
+            ]);
           default:
             return Promise.resolve([]);
         }
@@ -84,9 +90,13 @@ describe('getConnectedDevicesCount', () => {
       (type: KeyringTypes) => {
         switch (type) {
           case KeyringTypes.ledger:
-            return Promise.resolve([{ type: 'ledger', accounts: [] }]);
+            return Promise.resolve([
+              { type: 'ledger', getAccounts: () => Promise.resolve([]) },
+            ]);
           case KeyringTypes.qr:
-            return Promise.resolve([{ type: 'qr', accounts: [] }]);
+            return Promise.resolve([
+              { type: 'qr', getAccounts: () => Promise.resolve([]) },
+            ]);
           default:
             return Promise.resolve([]);
         }
@@ -98,14 +108,18 @@ describe('getConnectedDevicesCount', () => {
     expect(result).toBe(0);
   });
 
-  it('returns 0 when keyrings do not have accounts property', async () => {
+  it('returns 0 when getAccounts returns non-array', async () => {
     (mockKeyringController.getKeyringsByType as jest.Mock).mockImplementation(
       (type: KeyringTypes) => {
         switch (type) {
           case KeyringTypes.ledger:
-            return Promise.resolve([{ type: 'ledger' }]);
+            return Promise.resolve([
+              { type: 'ledger', getAccounts: () => Promise.resolve(null) },
+            ]);
           case KeyringTypes.qr:
-            return Promise.resolve([{ type: 'qr' }]);
+            return Promise.resolve([
+              { type: 'qr', getAccounts: () => Promise.resolve(undefined) },
+            ]);
           default:
             return Promise.resolve([]);
         }
@@ -123,17 +137,28 @@ describe('getConnectedDevicesCount', () => {
         switch (type) {
           case KeyringTypes.ledger:
             return Promise.resolve([
-              { type: 'ledger', accounts: ['0x123'] },
-              { type: 'ledger', accounts: ['0x789'] },
+              { type: 'ledger', getAccounts: () => Promise.resolve(['0x123']) },
+              { type: 'ledger', getAccounts: () => Promise.resolve(['0x789']) },
             ]);
           case KeyringTypes.qr:
-            return Promise.resolve([{ type: 'qr', accounts: ['0x456'] }]);
+            return Promise.resolve([
+              { type: 'qr', getAccounts: () => Promise.resolve(['0x456']) },
+            ]);
           case KeyringTypes.lattice:
-            return Promise.resolve([{ type: 'lattice', accounts: ['0xabc'] }]);
+            return Promise.resolve([
+              {
+                type: 'lattice',
+                getAccounts: () => Promise.resolve(['0xabc']),
+              },
+            ]);
           case KeyringTypes.trezor:
-            return Promise.resolve([{ type: 'trezor', accounts: ['0xdef'] }]);
+            return Promise.resolve([
+              { type: 'trezor', getAccounts: () => Promise.resolve(['0xdef']) },
+            ]);
           case KeyringTypes.oneKey:
-            return Promise.resolve([{ type: 'oneKey', accounts: ['0x111'] }]);
+            return Promise.resolve([
+              { type: 'oneKey', getAccounts: () => Promise.resolve(['0x111']) },
+            ]);
           default:
             return Promise.resolve([]);
         }
@@ -151,11 +176,13 @@ describe('getConnectedDevicesCount', () => {
         switch (type) {
           case KeyringTypes.ledger:
             return Promise.resolve([
-              { type: 'ledger', accounts: ['0x123'] },
-              { type: 'ledger', accounts: null },
+              { type: 'ledger', getAccounts: () => Promise.resolve(['0x123']) },
+              { type: 'ledger', getAccounts: () => Promise.resolve(null) },
             ]);
           case KeyringTypes.qr:
-            return Promise.resolve([{ type: 'qr', accounts: ['0x456'] }]);
+            return Promise.resolve([
+              { type: 'qr', getAccounts: () => Promise.resolve(['0x456']) },
+            ]);
           default:
             return Promise.resolve([]);
         }
@@ -173,8 +200,8 @@ describe('getConnectedDevicesCount', () => {
         switch (type) {
           case KeyringTypes.ledger:
             return Promise.resolve([
-              { type: 'ledger', accounts: ['0x123'] },
-              { type: 'ledger', accounts: undefined },
+              { type: 'ledger', getAccounts: () => Promise.resolve(['0x123']) },
+              { type: 'ledger', getAccounts: () => Promise.resolve(undefined) },
             ]);
           default:
             return Promise.resolve([]);

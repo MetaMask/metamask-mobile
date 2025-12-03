@@ -251,11 +251,10 @@ const LedgerSelectAccount = () => {
       showLoadingModal();
 
       try {
-        const numberOfConnectedDevices = await getConnectedDevicesCount();
         for (const index of accountIndexes) {
           await unlockLedgerWalletAccount(index);
         }
-
+        const numberOfConnectedDevices = await getConnectedDevicesCount();
         await updateNewLegacyAccountsLabel();
 
         trackEvent(
