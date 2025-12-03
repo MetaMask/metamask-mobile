@@ -66,6 +66,7 @@ import useTronUnstake from '../../hooks/useTronUnstake';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
+import { ComputeFeeResult } from '../../utils/tron-staking-snap';
 ///: END:ONLY_INCLUDE_IF
 
 const EarnWithdrawInputView = () => {
@@ -87,6 +88,7 @@ const EarnWithdrawInputView = () => {
     setResourceType,
     tronWithdrawalToken,
     validating: isTronUnstakeValidating,
+    preview: tronPreview,
     validateUnstakeAmount: tronValidateUnstakeAmount,
     confirmUnstake: tronConfirmUnstake,
   } = useTronUnstake({ token });
@@ -866,7 +868,11 @@ const EarnWithdrawInputView = () => {
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         isTronEnabled && isPreviewVisible && isNonZeroAmount && (
-          <TronStakePreview stakeAmount={amountToken} mode="unstake" />
+          <TronStakePreview
+            stakeAmount={amountToken}
+            fee={tronPreview?.fee as ComputeFeeResult}
+            mode="unstake"
+          />
         )
         ///: END:ONLY_INCLUDE_IF
       }

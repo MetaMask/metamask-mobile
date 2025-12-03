@@ -44,6 +44,8 @@ interface UseTronUnstakeReturn {
   validating: boolean;
   /** Validation errors if any */
   errors?: string[];
+  /** Preview data including fee estimate */
+  preview?: Record<string, unknown>;
   /** Validate unstake amount */
   validateUnstakeAmount: (amount: string) => Promise<TronUnstakeResult | null>;
   /** Confirm unstake with current resource type */
@@ -102,6 +104,9 @@ const useTronUnstake = ({
 
   const [validating, setValidating] = useState(false);
   const [errors, setErrors] = useState<string[] | undefined>(undefined);
+  const [preview, setPreview] = useState<Record<string, unknown> | undefined>(
+    undefined,
+  );
 
   const chainId = String(token.chainId);
 
@@ -123,7 +128,27 @@ const useTronUnstake = ({
         options: { purpose: resourceType.toUpperCase() as TronResourceType },
       });
 
-      setErrors(validation?.errors);
+      const { errors: validationErrors, ...rest } = validation ?? {};
+      let nextPreview: Record<string, unknown> | undefined =
+        rest && Object.keys(rest).length > 0 ? rest : undefined;
+
+      try {
+        const fee = {
+          type: 'fee',
+          asset: {
+            unit: 'TRX',
+            type: 'TRX',
+            amount: '0.01',
+            fungible: true,
+          },
+        };
+        nextPreview = { ...(nextPreview ?? {}), fee };
+      } catch {
+        // ignore for now
+      }
+
+      if (nextPreview) setPreview(nextPreview);
+      setErrors(validationErrors);
       setValidating(false);
 
       return validation;
@@ -162,6 +187,7 @@ const useTronUnstake = ({
     tronWithdrawalToken,
     validating,
     errors,
+    preview,
     validateUnstakeAmount,
     confirmUnstake,
   };
