@@ -103,10 +103,14 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
         return <SkeletonItem />;
       }
 
+      // Transform MUSD symbol to mUSD for display
+      const displayToken =
+        item.symbol === 'MUSD' ? { ...item, symbol: 'mUSD' } : item;
+
       // If the user hasn't added the network, it won't be in the networkConfigurations object
       // So we use the PopularList to get the network name
       const networkName = getNetworkName(
-        item.chainId as Hex,
+        displayToken.chainId as Hex,
         networkConfigurations,
       );
 
@@ -115,7 +119,7 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.TOKEN_INSIGHTS,
           params: {
-            token: item,
+            token: displayToken,
             networkName,
           },
         });
@@ -123,26 +127,26 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
           UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
           {
-            token_name: item.name ?? 'Unknown',
-            token_symbol: item.symbol,
-            token_contract: item.address,
+            token_name: displayToken.name ?? 'Unknown',
+            token_symbol: displayToken.symbol,
+            token_contract: displayToken.address,
             chain_name: networkName,
-            chain_id: item.chainId,
+            chain_id: displayToken.chainId,
           },
         );
       };
 
       return (
         <TokenSelectorItem
-          token={item}
+          token={displayToken}
           onPress={debouncedTokenPress}
           networkName={networkName}
           networkImageSource={getNetworkImageSource({
-            chainId: item.chainId as Hex,
+            chainId: displayToken.chainId as Hex,
           })}
           isSelected={
-            selectedDestToken?.address === item.address &&
-            selectedDestToken?.chainId === item.chainId
+            selectedDestToken?.address === displayToken.address &&
+            selectedDestToken?.chainId === displayToken.chainId
           }
         >
           <ButtonIcon

@@ -528,4 +528,50 @@ describe('BridgeDestTokenSelector', () => {
       );
     });
   });
+
+  describe('MUSD symbol transformation', () => {
+    it('displays mUSD instead of MUSD for token symbol', async () => {
+      const musdTokenAddress =
+        '0x0000000000000000000000000000000000000003' as Hex;
+      const stateWithMusd = cloneDeep(initialState);
+
+      // Add MUSD token to TokensController
+      stateWithMusd.engine.backgroundState.TokensController.allTokens[
+        '0x1' as Hex
+      ]['0x1234567890123456789012345678901234567890' as Hex].push({
+        address: musdTokenAddress,
+        symbol: 'MUSD',
+        decimals: 18,
+        image: 'https://musd.com/logo.png',
+        name: 'mStable USD',
+        aggregators: ['1inch'],
+      });
+
+      // Add MUSD balance
+      stateWithMusd.engine.backgroundState.TokenBalancesController.tokenBalances[
+        '0x1234567890123456789012345678901234567890' as Hex
+      ]['0x1' as Hex][musdTokenAddress] = '0x0de0b6b3a7640000' as Hex;
+
+      // Add MUSD market data
+      stateWithMusd.engine.backgroundState.TokenRatesController.marketData[
+        '0x1' as Hex
+      ][musdTokenAddress] = {
+        tokenAddress: musdTokenAddress,
+        currency: 'ETH',
+        price: 1,
+      };
+
+      const { getByText, queryByText } = renderScreen(
+        BridgeDestTokenSelector,
+        { name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR },
+        { state: stateWithMusd },
+      );
+
+      await waitFor(() => {
+        expect(getByText('mUSD')).toBeTruthy();
+      });
+
+      expect(queryByText('MUSD')).toBeNull();
+    });
+  });
 });
