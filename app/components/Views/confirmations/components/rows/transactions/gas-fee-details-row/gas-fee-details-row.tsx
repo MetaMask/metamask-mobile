@@ -79,20 +79,10 @@ const EstimationInfo = ({
       ? styles.primaryValue
       : styles.secondaryValue;
 
-  // For batches, don't check simulationData since it's not stored in batch metadata
-  // Instead, check if fee calculations are available
   const transactionMetadata = useTransactionMetadataRequest();
-  const { chainId, simulationData, networkClientId } =
-    (transactionMetadata as TransactionMeta) ?? {};
-  const balanceChangesResult = useBalanceChanges({
-    chainId,
-    simulationData,
-    networkClientId,
-  });
-
-  const isSimulationLoading = isBatch
-    ? !feeCalculations.estimatedFeeNative && !feeCalculations.estimatedFeeFiat
-    : !simulationData || balanceChangesResult.pending;
+  const { simulationData } = (transactionMetadata as TransactionMeta) ?? {};
+  // For batches, don't check simulationData since it has already been calculated
+  const isSimulationLoading = !isBatch ? Boolean(!simulationData) : false;
 
   return (
     <View style={styles.estimationContainer}>
@@ -147,6 +137,7 @@ const BatchEstimateInfo = ({
   const feeCalculations = useFeeCalculationsTransactionBatch(
     transactionBatchesMetadata as TransactionBatchMeta,
   );
+  const isBatch = Boolean(transactionBatchesMetadata);
 
   return (
     <EstimationInfo
@@ -154,7 +145,7 @@ const BatchEstimateInfo = ({
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
       isGasFeeSponsored={isGasFeeSponsored}
-      isBatch={!!transactionBatchesMetadata}
+      isBatch={isBatch}
     />
   );
 };

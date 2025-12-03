@@ -21,11 +21,10 @@ export function SelectedGasFeeToken() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  const { chainId: chainIdFromTransactionMetadata, gasFeeTokens } =
-    transactionMetadata || {};
+  const { chainId: chainIdSingle, gasFeeTokens } = transactionMetadata || {};
+  const { chainId: chainIdBatch } = transactionBatchesMetadata || {};
+  const chainId = chainIdSingle ?? chainIdBatch;
   const hasGasFeeTokens = Boolean(gasFeeTokens?.length);
-  const chainId =
-    chainIdFromTransactionMetadata ?? transactionBatchesMetadata?.chainId;
 
   const { styles } = useStyles(styleSheet, {
     hasGasFeeTokens,

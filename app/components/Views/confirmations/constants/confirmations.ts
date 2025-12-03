@@ -52,6 +52,7 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
+  TransactionType.lendingDeposit,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
@@ -61,7 +62,6 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.stakingClaim,
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
-  TransactionType.lendingDeposit,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
   TransactionType.tokenMethodSafeTransferFrom,

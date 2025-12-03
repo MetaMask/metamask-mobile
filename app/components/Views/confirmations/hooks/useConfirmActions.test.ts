@@ -270,7 +270,7 @@ describe('useConfirmAction', () => {
     await flushPromises();
   });
 
-  it('navigates to transactions view when confirming lending deposit batch', async () => {
+  it('navigates to transactions view when confirming batch transaction', async () => {
     const mockOpenLedgerSignModal = jest.fn();
     createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
 

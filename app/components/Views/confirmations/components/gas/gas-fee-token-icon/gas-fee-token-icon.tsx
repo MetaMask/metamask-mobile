@@ -31,10 +31,10 @@ export function GasFeeTokenIcon({
   tokenAddress: Hex;
 }) {
   const transactionMeta = useTransactionMetadataRequest();
-  const { chainId: chainIdFromTransactionMetadata } = transactionMeta || {};
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  const chainId =
-    chainIdFromTransactionMetadata ?? transactionBatchesMetadata?.chainId;
+  const { chainId: chainIdSingle } = transactionMeta || {};
+  const { chainId: chainIdBatch } = transactionBatchesMetadata || {};
+  const chainId = chainIdSingle ?? chainIdBatch;
   const token = useTokenWithBalance(tokenAddress, chainId as Hex);
   const {
     networkImage,

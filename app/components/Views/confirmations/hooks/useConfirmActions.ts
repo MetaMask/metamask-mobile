@@ -11,8 +11,6 @@ import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
-import { TransactionType } from '@metamask/transaction-controller';
-import { useTransactionBatchesMetadata } from './transactions/useTransactionBatchesMetadata';
 
 export const useConfirmActions = () => {
   const {
@@ -21,8 +19,6 @@ export const useConfirmActions = () => {
     approvalRequest,
   } = useApprovalRequest();
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
-  const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  const { transactions } = transactionBatchesMetadata ?? {};
   const { captureSignatureMetrics } = useSignatureMetrics();
   const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
     useQRHardwareContext();
@@ -86,10 +82,7 @@ export const useConfirmActions = () => {
       handleErrors: false,
     });
 
-    if (
-      approvalType === ApprovalType.TransactionBatch &&
-      transactions?.[1]?.type === TransactionType.lendingDeposit
-    ) {
+    if (approvalType === ApprovalType.TransactionBatch) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
       return;
     }
@@ -112,7 +105,6 @@ export const useConfirmActions = () => {
     onTransactionConfirm,
     captureSignatureMetrics,
     approvalType,
-    transactions,
   ]);
 
   return { onConfirm, onReject };
