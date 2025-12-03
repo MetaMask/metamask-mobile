@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ActivityView should render correctly 1`] = `
+exports[`ActivityView matches snapshot 1`] = `
 <View
   style={
     {
@@ -374,57 +374,133 @@ exports[`ActivityView should render correctly 1`] = `
                         testID="tabs-list"
                       >
                         <View
-                          style={
-                            {
-                              "backgroundColor": "#ffffff",
-                              "flex": 1,
-                            }
-                          }
-                          tabLabel="Transactions"
+                          testID="tab-transactions"
                         >
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "marginVertical": 8,
-                                "paddingHorizontal": 16,
-                                "width": "100%",
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
                               }
                             }
+                            tabLabel="Transactions"
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={false}
-                              onPress={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "center",
-                                  "alignSelf": "flex-start",
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 8,
-                                  "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 40,
-                                  "justifyContent": "center",
-                                  "maxWidth": "80%",
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 12,
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 8,
+                                  "paddingHorizontal": 16,
+                                  "width": "100%",
                                 }
                               }
-                              testID="tokens-network-filter"
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "justifyContent": "center",
+                                    "maxWidth": "80%",
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 12,
+                                  }
+                                }
+                                testID="tokens-network-filter"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "gap": 4,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 4,
+                                        "height": 16,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "width": 16,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={1}
+                                      style={
+                                        {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    numberOfLines={1}
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Popular networks
+                                  </Text>
+                                </View>
+                                <SvgMock
+                                  color="#121314"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="ArrowDown"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "marginLeft": 8,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
                             >
                               <View
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "flexDirection": "row",
-                                    "gap": 4,
+                                    "backgroundColor": "#ffffff",
+                                    "flex": 1,
                                   }
                                 }
                               >
@@ -433,98 +509,49 @@ exports[`ActivityView should render correctly 1`] = `
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "height": 16,
                                       "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "width": 16,
+                                      "paddingVertical": 40,
+                                      "width": "100%",
                                     }
                                   }
                                 >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={1}
+                                  <ActivityIndicator
+                                    size="small"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "alignSelf": "center",
                                       }
                                     }
-                                    testID="network-avatar-image"
                                   />
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  numberOfLines={1}
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Popular networks
-                                </Text>
                               </View>
-                              <SvgMock
-                                color="#121314"
-                                fill="currentColor"
-                                height={16}
-                                name="ArrowDown"
-                                style={
-                                  {
-                                    "height": 16,
-                                    "marginLeft": 8,
-                                    "width": 16,
-                                  }
-                                }
-                                width={16}
-                              />
-                            </TouchableOpacity>
+                              <View />
+                            </View>
                           </View>
+                        </View>
+                        <View
+                          testID="tab-orders"
+                        >
                           <View
                             style={
                               {
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               }
                             }
+                            tabLabel="Transfers"
                           >
                             <View
-                              style={
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flex": 1,
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "justifyContent": "center",
-                                    "paddingVertical": 40,
-                                    "width": "100%",
-                                  }
-                                }
-                              >
-                                <ActivityIndicator
-                                  size="small"
-                                  style={
-                                    {
-                                      "alignSelf": "center",
-                                    }
-                                  }
-                                />
-                              </View>
-                            </View>
-                            <View />
+                              testID="ramp-orders-list"
+                            />
                           </View>
                         </View>
+                        <View
+                          testID="tab-2"
+                        />
+                        <View
+                          testID="tab-3"
+                        />
                       </View>
                     </View>
                   </View>

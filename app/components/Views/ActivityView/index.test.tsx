@@ -116,18 +116,12 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
-  selectTicker: jest.fn(() => 'ETH'),
-  selectEvmTicker: jest.fn(() => 'ETH'),
-  selectChainId: jest.fn(() => '0x1'),
-  selectProviderConfig: jest.fn(() => ({ chainId: '0x1', ticker: 'ETH' })),
-  selectNetworkConfigurations: jest.fn(() => ({})),
-  selectSelectedNetworkClientId: jest.fn(() => 'mainnet'),
-}));
-
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
-    areAllNetworksSelected: true,
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
   }),
   NetworkType: {
     Popular: 'popular',
@@ -135,44 +129,15 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   },
 }));
 
+jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
+jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
+
 jest.mock(
   '../../../selectors/featureFlagController/multichainAccounts',
   () => ({
     selectMultichainAccountsState2Enabled: () => false,
   }),
 );
-
-jest.mock('../TransactionsView', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockTransactionsView() {
-    return <View testID="transactions-view" />;
-  };
-});
-
-jest.mock('../MultichainTransactionsView', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockMultichainTransactionsView() {
-    return <View testID="multichain-transactions-view" />;
-  };
-});
-
-jest.mock('../UnifiedTransactionsView/UnifiedTransactionsView', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockUnifiedTransactionsView() {
-    return <View testID="unified-transactions-view" />;
-  };
-});
-
-jest.mock('../ErrorBoundary', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockErrorBoundary({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) {
-    return <View testID="error-boundary">{children}</View>;
-  };
-});
 
 jest.mock(
   '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView',
@@ -220,7 +185,11 @@ jest.mock('../../UI/Ramp/Aggregator/Views/OrdersList', () => {
 
 let mockIsEvmSelected = true;
 jest.mock('../../../selectors/multichainNetworkController', () => ({
-  selectIsEvmNetworkSelected: () => mockIsEvmSelected,
+  selectIsEvmNetworkSelected: jest.fn(() => mockIsEvmSelected),
+  selectSelectedNonEvmNetworkSymbol: jest.fn(() => 'SOL'),
+  selectSelectedNonEvmNetworkChainId: jest.fn(() => 'solana:mainnet'),
+  selectNonEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
+  selectSelectedNonEvmNetworkName: jest.fn(() => 'Solana'),
 }));
 
 // TODO: Replace "any" with type
