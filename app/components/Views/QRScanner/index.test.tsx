@@ -5,7 +5,7 @@ import {
   useCameraDevice,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { Linking } from 'react-native';
+import { Linking, Alert } from 'react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import QrScanner from './';
@@ -106,6 +106,10 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
+jest.mock('react-native/Libraries/Alert/Alert', () => ({
+  alert: jest.fn(),
+}));
+
 const { InteractionManager } = jest.requireActual('react-native');
 
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
@@ -164,6 +168,9 @@ const mockUseCameraPermission = useCameraPermission as jest.MockedFunction<
 const mockUseCodeScanner = useCodeScanner as jest.MockedFunction<
   typeof useCodeScanner
 >;
+
+// Cast Alert.alert as a mock for better TypeScript support
+const mockAlert = Alert.alert as jest.MockedFunction<typeof Alert.alert>;
 
 const initialState = {
   engine: {
@@ -1082,7 +1089,7 @@ describe('QrScanner', () => {
         );
       });
 
-      it('should navigate to send flow with Tron recipient when Tron address scanned', async () => {
+      it('should show error alert when Tron address scanned (temporarily disabled)', async () => {
         const tronAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9';
 
         renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
@@ -1100,22 +1107,17 @@ describe('QrScanner', () => {
         expect(mockGoBack).toHaveBeenCalled();
 
         await waitFor(() => {
-          expect(mockNavigateToSendPage).toHaveBeenCalledWith({
-            location: 'qr_scanner',
-            predefinedRecipient: {
-              address: tronAddress,
-              chainType: 'tron',
-            },
-          });
+          expect(mockAlert).toHaveBeenCalledWith(
+            'Error',
+            'Tron addresses are not currently supported',
+          );
         });
+
+        // Should NOT navigate to send flow
+        expect(mockNavigateToSendPage).not.toHaveBeenCalled();
       });
 
       it('should not call EVM transaction methods for Tron address', async () => {
-        const { getEther } = jest.requireMock('../../../util/transactions');
-        const { newAssetTransaction } = jest.requireMock(
-          '../../../actions/transaction',
-        );
-
         const tronAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9';
 
         renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
@@ -1132,12 +1134,36 @@ describe('QrScanner', () => {
 
         expect(mockGoBack).toHaveBeenCalled();
 
-        await waitFor(() => {
-          expect(mockNavigateToSendPage).toHaveBeenCalled();
+        // Should NOT navigate to send flow or call EVM methods
+        expect(mockNavigateToSendPage).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+
+      it('should track QR_SCANNED metrics for Tron address', async () => {
+        const tronAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9';
+
+        renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+          state: initialState,
         });
 
-        expect(getEther).not.toHaveBeenCalled();
-        expect(newAssetTransaction).not.toHaveBeenCalled();
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: tronAddress }]);
+        });
+
+        await waitFor(() => {
+          expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+            MetaMetricsEvents.QR_SCANNED,
+          );
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+          });
+        });
       });
     });
 

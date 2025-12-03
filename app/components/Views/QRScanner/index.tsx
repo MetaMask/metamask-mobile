@@ -431,10 +431,7 @@ const QRScanner = ({
           // to avoid double navigation (sendNonEvmAsset navigates without recipient,
           // then we navigate again with recipient, causing flickering)
           if (isSolana) {
-            // Close QR scanner modal first
             end();
-
-            // Navigate to send flow after modal closes
             InteractionManager.runAfterInteractions(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
@@ -448,31 +445,28 @@ const QRScanner = ({
             return;
           }
 
-          // Handle Tron addresses
           if (isTron) {
-            // Close QR scanner modal first
             end();
-
-            // Navigate to send flow after modal closes
-            InteractionManager.runAfterInteractions(() => {
-              navigateToSendPage({
-                location: InitSendLocation.QRScanner,
-                predefinedRecipient: {
-                  address: content,
-                  chainType: ChainType.TRON,
-                },
-              });
-            });
+            // TODO: Commented out for now because Tron has been temporarily disabled
+            // InteractionManager.runAfterInteractions(() => {
+            //   navigateToSendPage({
+            //     location: InitSendLocation.QRScanner,
+            //     predefinedRecipient: {
+            //       address: content,
+            //       chainType: ChainType.TRON,
+            //     },
+            //   });
+            // });
+            Alert.alert(
+              strings('qr_scanner.error'),
+              strings('qr_scanner.tron_address_not_supported'),
+            );
 
             return;
           }
 
-          // Handle Bitcoin addresses
           if (isBitcoin) {
-            // Close QR scanner modal first
             end();
-
-            // Navigate to send flow after modal closes
             InteractionManager.runAfterInteractions(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
@@ -507,8 +501,6 @@ const QRScanner = ({
             // Fallback to ETH if native currency not available
             dispatch(newAssetTransaction(getEther('ETH')));
           }
-
-          // Close QR scanner modal first
           end();
 
           // Navigate to send flow after modal closes
