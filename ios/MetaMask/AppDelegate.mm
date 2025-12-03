@@ -4,6 +4,7 @@
 #import <React/RCTRootView.h>
 
 #import <React/RCTAppSetupUtils.h>
+#import <IntercomModule.h>
 
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
@@ -56,6 +57,21 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
+
+  // Initialize Intercom SDK (beta only, privacy-first)
+  // SDK loads but no user data sent until they click the support button
+  NSString *intercomEnabled = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"intercom_enabled"];
+  NSString *metamaskEnvironment = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"metamask_environment"];
+  
+  if ([intercomEnabled isEqualToString:@"true"] && [metamaskEnvironment isEqualToString:@"beta"]) {
+    NSString *apiKey = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"intercom_api_key"];
+    NSString *appId = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"intercom_app_id"];
+    
+    if (apiKey && appId && apiKey.length > 0 && appId.length > 0) {
+      [IntercomModule initialize:apiKey withAppId:appId];
+    }
+  }
+
   return YES;
 }
 
