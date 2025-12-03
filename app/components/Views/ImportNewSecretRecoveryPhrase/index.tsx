@@ -6,10 +6,14 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { Alert, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { Alert, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import StyledButton from '../../UI/StyledButton';
+import ButtonPrimary from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary';
+import {
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button/Button.types';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
@@ -126,7 +130,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       <TouchableOpacity onPress={dismiss} style={styles.headerButton}>
         <Icon
           name={IconName.ArrowLeft}
-          size={IconSize.Lg}
+          size={IconSize.Md}
           testID={ImportSRPIDs.BACK}
         />
       </TouchableOpacity>
@@ -137,7 +141,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const headerRight = useCallback(
     () => (
       <TouchableOpacity onPress={onQrCodePress} style={styles.headerButton}>
-        <Icon name={IconName.Scan} size={IconSize.Lg} testID="qr-code-button" />
+        <Icon name={IconName.Scan} size={IconSize.Md} testID="qr-code-button" />
       </TouchableOpacity>
     ),
     [onQrCodePress, styles],
@@ -307,29 +311,19 @@ const ImportNewSecretRecoveryPhrase = () => {
             )}
             uniqueId={uniqueId}
           />
-
-          <View style={styles.buttonWrapper}>
-            <StyledButton
-              containerStyle={styles.button}
-              type={'confirm'}
-              onPress={onSubmit}
-              disabled={
-                isSRPContinueButtonDisabled || Boolean(error) || loading
-              }
-              testID={ImportSRPIDs.IMPORT_BUTTON}
-            >
-              {loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.inverse}
-                />
-              ) : (
-                strings('import_new_secret_recovery_phrase.cta_text')
-              )}
-            </StyledButton>
-          </View>
         </View>
       </KeyboardAwareScrollView>
+      <View style={styles.buttonContainer}>
+        <ButtonPrimary
+          onPress={onSubmit}
+          isDisabled={isSRPContinueButtonDisabled || Boolean(error) || loading}
+          loading={loading}
+          label={strings('import_new_secret_recovery_phrase.cta_text')}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          testID={ImportSRPIDs.IMPORT_BUTTON}
+        />
+      </View>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

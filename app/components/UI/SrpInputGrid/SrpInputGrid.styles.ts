@@ -17,8 +17,7 @@ export const createStyles = (colors: Colors) =>
     seedPhraseContainer: {
       paddingTop: 16,
       backgroundColor: colors.background.section,
-      borderRadius: 10,
-      marginTop: 16,
+      borderRadius: 12,
       minHeight: 264,
       maxHeight: 'auto',
     },
@@ -58,8 +57,7 @@ export const createStyles = (colors: Colors) =>
       backgroundColor: commonColors.transparent,
       ...fontStyles.normal,
       fontSize: 16,
-      lineHeight: 20,
-      paddingTop: Platform.OS === 'ios' ? 12 : 8,
+      lineHeight: 24,
       paddingBottom: 12,
     } satisfies TextStyle,
     inputItem: {
