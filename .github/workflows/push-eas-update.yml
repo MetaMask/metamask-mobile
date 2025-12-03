@@ -290,7 +290,7 @@ jobs:
           # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
           EXPO_NO_LAVAMOAT: '1'
         run: |
-          yarn build:expo-update:main:exp
+          yarn run build:expo-update:main:exp
 
       - name: Update summary
         if: success()
