@@ -59,16 +59,16 @@ function AssetField(props: AssetFieldProps) {
 
       {/* Token Label + Description */}
       <View style={styles.boxLeft}>
-        <Text variant={TextVariant.BodyLGMedium}>{props.label}</Text>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMD}>{props.label}</Text>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
           {props.description}
         </Text>
       </View>
 
       {/* Token Amount + USD Amount */}
       <View style={styles.rightSection}>
-        <Text variant={TextVariant.BodyLGMedium}>{props.amount}</Text>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMD}>{props.amount}</Text>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
           {props.usdAmount}
         </Text>
       </View>

@@ -32,17 +32,17 @@ function NetworkField(props: ModalFieldNetwork) {
     <View style={styles.row}>
       <Avatar
         variant={AvatarVariant.Network}
-        size={AvatarSize.Md}
+        size={AvatarSize.Lg}
         style={styles.badgeWrapper}
         imageSource={iconSource}
       />
 
       <View style={styles.boxLeft}>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyMD}>
           {strings('asset_details.network')}
         </Text>
 
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
           {name}
         </Text>
       </View>

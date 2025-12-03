@@ -67,7 +67,7 @@ function NetworkFeeLabelAndValue(props: {
   const { label, value, styles } = props;
   return (
     <View style={styles.row}>
-      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+      <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
         {label}
       </Text>
       <Text
@@ -100,7 +100,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
     if (!networkFee) {
       return (
         <View style={styles.boxLeft}>
-          <Text variant={TextVariant.BodyLGMedium}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('notifications.network_fee_not_available')}
           </Text>
         </View>
@@ -112,11 +112,11 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
     return (
       <>
         <View style={styles.boxLeft}>
-          <Text variant={TextVariant.BodyLGMedium}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('asset_details.network_fee')}
           </Text>
 
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+          <Text color={TextColor.Alternative} variant={TextVariant.BodySM}>
             {networkFee.transactionFeeInEth} {ticker} ($
             {networkFee.transactionFeeInUsd})
           </Text>
@@ -157,7 +157,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
         <View style={styles.row}>
           <Avatar
             variant={AvatarVariant.Icon}
-            size={AvatarSize.Md}
+            size={AvatarSize.Lg}
             style={styles.badgeWrapper}
             name={IconName.Gas}
             backgroundColor={theme.colors.info.muted}

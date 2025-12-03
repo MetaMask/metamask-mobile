@@ -35,11 +35,11 @@ function AddressField(props: AddressFieldProps) {
         variant={AvatarVariant.Account}
         type={accountAvatarType}
         accountAddress={address}
-        size={AvatarSize.Md}
+        size={AvatarSize.Lg}
         style={styles.badgeWrapper}
       />
       <View style={styles.boxLeft}>
-        <Text variant={TextVariant.BodyLGMedium}>{label}</Text>
+        <Text variant={TextVariant.BodyMD}>{label}</Text>
         <Pressable
           onPress={() =>
             copyToClipboard(address, CopyClipboardAlertMessage.address())

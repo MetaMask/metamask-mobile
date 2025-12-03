@@ -113,6 +113,7 @@ const NotificationsDetails = ({
       >
         <HeaderLeft />
         <HeaderTitle />
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Body */}
