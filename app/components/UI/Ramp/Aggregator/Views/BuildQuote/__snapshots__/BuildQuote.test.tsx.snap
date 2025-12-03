@@ -447,7 +447,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={15}
+              handlerTag={14}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3309,7 +3309,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={21}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3493,7 +3493,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     }
                                   }
                                 >
-                                  No Tokens Available
+                                  No tokens available
                                 </Text>
                               </View>
                               <View
@@ -3972,7 +3972,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={22}
+              handlerTag={21}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4156,7 +4156,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     }
                                   }
                                 >
-                                  No Tokens Available
+                                  No tokens available
                                 </Text>
                               </View>
                               <View
@@ -4732,7 +4732,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={23}
+              handlerTag={22}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5492,7 +5492,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={20}
+              handlerTag={19}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8058,7 +8058,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={32}
+              handlerTag={31}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8818,7 +8818,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={31}
+              handlerTag={30}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -11293,7 +11293,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={28}
+              handlerTag={27}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -12053,7 +12053,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={27}
+              handlerTag={26}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -14872,7 +14872,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -17613,7 +17613,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={17}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -18373,7 +18373,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={16}
+              handlerTag={15}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -26711,7 +26711,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                       ]
                                     }
                                   >
-                                    Return to Home Screen
+                                    Return to home screen
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -27374,7 +27374,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                       ]
                                     }
                                   >
-                                    Return to Home Screen
+                                    Return to home screen
                                   </Text>
                                 </TouchableOpacity>
                               </View>

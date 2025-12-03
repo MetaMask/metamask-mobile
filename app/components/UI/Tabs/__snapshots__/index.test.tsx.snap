@@ -249,7 +249,7 @@ exports[`Tabs should render correctly 1`] = `
           }
         }
       >
-        Close All
+        Close all
       </Text>
     </TouchableOpacity>
     <View

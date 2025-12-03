@@ -8,7 +8,7 @@ import {
 describe('gas-validations', () => {
   describe('validateGas', () => {
     it('return error message when gas is empty', () => {
-      expect(validateGas('')).toBe('Gas Limit is required');
+      expect(validateGas('')).toBe('Gas limit is required');
     });
 
     it('return error message when gas is not a number', () => {
@@ -16,7 +16,7 @@ describe('gas-validations', () => {
     });
 
     it('return error message when gas is zero', () => {
-      expect(validateGas('0')).toBe('Gas Limit must be greater than 0');
+      expect(validateGas('0')).toBe('Gas limit must be greater than 0');
     });
 
     it('return error message when gas is negative', () => {

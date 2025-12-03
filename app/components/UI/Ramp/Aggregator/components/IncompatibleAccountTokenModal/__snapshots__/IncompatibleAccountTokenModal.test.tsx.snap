@@ -474,7 +474,7 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                                   }
                                 }
                               >
-                                Incompatible Account
+                                Incompatible account
                               </Text>
                             </View>
                             <View
