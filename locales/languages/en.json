@@ -5674,6 +5674,15 @@
       "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD"
+    },
+    "rewards": {
+      "rewards_tag_label": "Rewards",
+      "tooltip_title": "Earn rewards with mUSD",
+      "tooltip_points_suffix": "per $100",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_opted_in_footer": "Points will be automatically added to your account.",
+      "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
+      "tooltip_close": "Close"
     }
   },
   "stake": {
@@ -7229,6 +7238,11 @@
     "search_sites": "Search sites",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
-    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled."
+    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
+    "empty_error_trending_state": {
+      "title": "Trending tokens is not available",
+      "description": "We can't fetch this page right now",
+      "try_again": "Try again"
+    }
   }
 }
