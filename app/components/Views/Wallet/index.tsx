@@ -1,17 +1,21 @@
 import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
+  forwardRef,
   useCallback,
   useContext,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
 
 import {
   ActivityIndicator,
   Linking,
+  RefreshControl,
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
@@ -84,6 +88,7 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNativeCurrencyByChainId,
+  selectNativeNetworkCurrencies,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -240,7 +245,10 @@ interface WalletTokensTabViewProps {
   };
 }
 
-const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
+const WalletTokensTabView = forwardRef<
+  WalletTokensTabViewHandle,
+  WalletTokensTabViewProps
+>((props, ref) => {
   const isPerpsFlagEnabled = useFeatureFlag(
     FeatureFlagNames.perpsPerpTradingEnabled,
   );
@@ -290,6 +298,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   // Track current tab index for Perps visibility
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
+
+  // Refs for tab components that have refresh functionality
+  const tokensRef = useRef<TabRefreshHandle>(null);
+  const predictRef = useRef<TabRefreshHandle>(null);
+  const nftsRef = useRef<TabRefreshHandle>(null);
 
   const tokensTabProps = useMemo(
     () => ({
@@ -344,6 +357,73 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     },
     [onChangeTab],
   );
+
+  // Build ordered list of tab refs based on which tabs are enabled
+  // Returns null for tabs without refresh (Perps uses WebSocket, DeFi uses selectors)
+  const getTabRefByIndex = useCallback(
+    (index: number): React.RefObject<TabRefreshHandle> | null => {
+      // Build array matching tab order: [tokens, perps?, predict?, defi?, nfts?]
+      // Use null for tabs without refresh functionality
+      const tabRefs: (React.RefObject<TabRefreshHandle> | null)[] = [tokensRef];
+
+      if (isPerpsEnabled) {
+        tabRefs.push(null); // Perps uses WebSocket streaming, no refresh needed
+      }
+      if (isPredictEnabled) {
+        tabRefs.push(predictRef);
+      }
+      if (!enabledNetworksIsSolana) {
+        if (defiEnabled) {
+          tabRefs.push(null); // DeFi uses Redux selectors, no refresh needed
+        }
+        if (collectiblesEnabled) {
+          tabRefs.push(nftsRef);
+        }
+      }
+
+      return tabRefs[index] || null;
+    },
+    [
+      isPerpsEnabled,
+      isPredictEnabled,
+      defiEnabled,
+      collectiblesEnabled,
+      enabledNetworksIsSolana,
+    ],
+  );
+
+  // Expose refresh method to parent
+  useImperativeHandle(ref, () => ({
+    refresh: async (refreshSharedContent: () => Promise<void>) => {
+      // eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
+      console.log(
+        '[WalletTokensTabView] refresh START, currentTabIndex:',
+        currentTabIndex,
+      );
+      const activeTabRef = getTabRefByIndex(currentTabIndex);
+      // eslint-disable-next-line no-console
+      console.log(
+        '[WalletTokensTabView] activeTabRef exists:',
+        !!activeTabRef?.current,
+      );
+
+      // Always refresh shared content (balance) + tab-specific content if available
+      const promises = [
+        refreshSharedContent(),
+        activeTabRef?.current?.refresh(),
+      ].filter(Boolean);
+      // eslint-disable-next-line no-console
+      console.log(
+        '[WalletTokensTabView] awaiting',
+        promises.length,
+        'promises',
+      );
+
+      await Promise.all(promises);
+      // eslint-disable-next-line no-console
+      console.log('[WalletTokensTabView] refresh DONE');
+    },
+  }));
 
   // Calculate Perps tab visibility
   const perpsTabIndex = isPerpsEnabled ? 1 : -1;
@@ -403,7 +483,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   // Build tabs array dynamically based on enabled features
   const tabsToRender = useMemo(() => {
-    const tabs = [<Tokens {...tokensTabProps} key={tokensTabProps.key} />];
+    const tabs = [
+      <Tokens ref={tokensRef} {...tokensTabProps} key={tokensTabProps.key} />,
+    ];
 
     if (isPerpsEnabled) {
       tabs.push(
@@ -421,6 +503,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     if (isPredictEnabled) {
       tabs.push(
         <PredictTabView
+          ref={predictRef}
           {...predictTabProps}
           key={predictTabProps.key}
           isVisible={isPredictTabVisible}
@@ -442,7 +525,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }
 
     if (collectiblesEnabled) {
-      tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
+      tabs.push(
+        <NftGrid ref={nftsRef} {...nftsTabProps} key={nftsTabProps.key} />,
+      );
     }
 
     return tabs;
@@ -497,6 +582,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   );
 });
 
+WalletTokensTabView.displayName = 'WalletTokensTabView';
+
 /**
  * Main view for the wallet
  */
@@ -511,6 +598,8 @@ const Wallet = ({
   const { navigate } = useNavigation();
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
+  const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const theme = useTheme();
 
   const isPerpsFlagEnabled = useFeatureFlag(
@@ -538,6 +627,7 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
   /**
    * Object containing the balance of the current selected account
@@ -1327,6 +1417,63 @@ const Wallet = ({
     [styles.wrapper, isHomepageRedesignV1Enabled],
   );
 
+  // eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
+  const refreshSharedContent = useCallback(async () => {
+    const TIMEOUT_MS = 5000; // 5 second timeout
+    console.log('[Wallet] refreshSharedContent START'); // eslint-disable-line no-console
+    const { AccountTrackerController, CurrencyRateController } = Engine.context;
+    const networkClientIds = Object.values(evmNetworkConfigurations)
+      .map(
+        ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
+          rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId,
+      )
+      .filter((id): id is string => Boolean(id));
+
+    // eslint-disable-next-line no-console
+    console.log(
+      '[Wallet] refreshSharedContent - networkClientIds:',
+      networkClientIds.length,
+    );
+    try {
+      await Promise.race([
+        Promise.allSettled([
+          AccountTrackerController.refresh(networkClientIds),
+          CurrencyRateController.updateExchangeRate(nativeCurrencies),
+        ]),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error('refreshSharedContent timed out')),
+            TIMEOUT_MS,
+          ),
+        ),
+      ]);
+      console.log('[Wallet] refreshSharedContent DONE'); // eslint-disable-line no-console
+    } catch (error) {
+      console.log('[Wallet] refreshSharedContent ERROR/TIMEOUT:', error); // eslint-disable-line no-console
+      Logger.error(error as Error, 'Error refreshing shared content');
+    }
+  }, [evmNetworkConfigurations, nativeCurrencies]);
+
+  // eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
+  const handleRefresh = useCallback(async () => {
+    console.log('[Wallet] handleRefresh START'); // eslint-disable-line no-console
+    // eslint-disable-next-line no-console
+    console.log(
+      '[Wallet] walletTokensTabViewRef.current exists:',
+      !!walletTokensTabViewRef.current,
+    );
+    setRefreshing(true);
+    try {
+      await walletTokensTabViewRef.current?.refresh(refreshSharedContent);
+      console.log('[Wallet] handleRefresh - refresh completed'); // eslint-disable-line no-console
+    } catch (error) {
+      console.log('[Wallet] handleRefresh ERROR:', error); // eslint-disable-line no-console
+    } finally {
+      console.log('[Wallet] handleRefresh FINALLY - setting refreshing false'); // eslint-disable-line no-console
+      setRefreshing(false);
+    }
+  }, [refreshSharedContent]);
+
   const content = (
     <>
       <AssetPollingProvider />
@@ -1369,6 +1516,7 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         <WalletTokensTabView
+          ref={walletTokensTabViewRef}
           navigation={navigation}
           onChangeTab={onChangeTab}
           defiEnabled={defiEnabled}
@@ -1400,6 +1548,14 @@ const Wallet = ({
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
+                refreshControl: isHomepageRedesignV1Enabled ? (
+                  <RefreshControl
+                    colors={[colors.primary.default]}
+                    tintColor={colors.icon.default}
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                  />
+                ) : undefined,
               }}
             >
               {content}

@@ -4,7 +4,11 @@ import React, {
   useRef,
   useEffect,
   useCallback,
+  forwardRef,
+  useImperativeHandle,
 } from 'react';
+import type { TabRefreshHandle } from '../../Views/Wallet/types';
+import { useNftRefresh } from './useNftRefresh';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { RefreshTestId } from './constants';
@@ -76,14 +80,20 @@ const NftRow = ({
   </Box>
 );
 
-const NftGrid = ({ isFullView = false }: NftGridProps) => {
-  const navigation =
-    useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
-  const [longPressedCollectible, setLongPressedCollectible] =
-    useState<Nft | null>(null);
-  const tw = useTailwind();
+const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
+  ({ isFullView = false }, ref) => {
+    const navigation =
+      useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
+    const { trackEvent, createEventBuilder } = useMetrics();
+    const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
+    const [longPressedCollectible, setLongPressedCollectible] =
+      useState<Nft | null>(null);
+    const tw = useTailwind();
+    const { onRefresh } = useNftRefresh();
+
+    useImperativeHandle(ref, () => ({
+      refresh: onRefresh,
+    }));
 
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
   const isHomepageRedesignV1Enabled = useSelector(
@@ -244,6 +254,9 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
       />
     </>
   );
-};
+  },
+);
+
+NftGrid.displayName = 'NftGrid';
 
 export default NftGrid;

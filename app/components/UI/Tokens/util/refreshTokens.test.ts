@@ -11,12 +11,6 @@ jest.mock('../../../../core/Engine', () => ({
     TokenBalancesController: {
       updateBalances: jest.fn(),
     },
-    AccountTrackerController: {
-      refresh: jest.fn(),
-    },
-    CurrencyRateController: {
-      updateExchangeRate: jest.fn(),
-    },
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(),
     },
@@ -62,7 +56,6 @@ describe('refreshTokens', () => {
       '0x1': { chainId: '0x1' as Hex, nativeCurrency: 'ETH' },
       '0x89': { chainId: '0x89' as Hex, nativeCurrency: 'POL' },
     },
-    nativeCurrencies: ['ETH', 'POL'],
     internalAccount: '',
   };
 
@@ -70,10 +63,9 @@ describe('refreshTokens', () => {
     jest.clearAllMocks();
   });
 
-  it('should refresh tokens when EVM is selected', async () => {
+  it('refreshes tokens when EVM is selected', async () => {
     await refreshTokens(mockProps);
 
-    // Check if controllers are called with expected arguments
     expect(
       Engine.context.TokenDetectionController.detectTokens,
     ).toHaveBeenCalledWith({
@@ -85,12 +77,6 @@ describe('refreshTokens', () => {
     ).toHaveBeenCalledWith({
       chainIds: ['0x1', '0x89'],
     });
-
-    expect(Engine.context.AccountTrackerController.refresh).toHaveBeenCalled();
-
-    expect(
-      Engine.context.CurrencyRateController.updateExchangeRate,
-    ).toHaveBeenCalledWith(['ETH', 'POL']);
 
     expect(
       Engine.context.TokenRatesController.updateExchangeRatesByChainId,
@@ -100,19 +86,26 @@ describe('refreshTokens', () => {
     ]);
   });
 
-  it('should not refresh tokens if multichain network is not selected', async () => {
+  it('calls updateBalance for Solana when selected', async () => {
+    await refreshTokens({
+      ...mockProps,
+      isSolanaSelected: true,
+      selectedAccountId: 'test-account-id',
+    });
+
+    expect(
+      Engine.context.MultichainBalancesController.updateBalance,
+    ).toHaveBeenCalledWith('test-account-id');
+  });
+
+  it('does not call updateBalance when Solana is not selected', async () => {
     await refreshTokens({ ...mockProps, isSolanaSelected: false });
 
-    // Ensure controllers are never called
     expect(
       Engine.context.TokenDetectionController.detectTokens,
     ).toHaveBeenCalled();
     expect(
       Engine.context.TokenBalancesController.updateBalances,
-    ).toHaveBeenCalled();
-    expect(Engine.context.AccountTrackerController.refresh).toHaveBeenCalled();
-    expect(
-      Engine.context.CurrencyRateController.updateExchangeRate,
     ).toHaveBeenCalled();
     expect(
       Engine.context.TokenRatesController.updateExchangeRatesByChainId,
@@ -122,7 +115,7 @@ describe('refreshTokens', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('should log an error if an exception occurs', async () => {
+  it('logs an error if an exception occurs', async () => {
     (
       Engine.context.TokenDetectionController.detectTokens as jest.Mock
     ).mockRejectedValue(new Error('Failed to detect tokens'));
@@ -135,24 +128,10 @@ describe('refreshTokens', () => {
     );
   });
 
-  it('should call updateBalance with selectedAccount ID when Multichain network not selected', async () => {
+  it('does not call updateBalance if selectedAccountId is undefined', async () => {
     await refreshTokens({
       isSolanaSelected: true,
       evmNetworkConfigurationsByChainId: {},
-      nativeCurrencies: [],
-      selectedAccountId: 'test-account-id',
-    });
-
-    expect(
-      Engine.context.MultichainBalancesController.updateBalance,
-    ).toHaveBeenCalledWith('test-account-id');
-  });
-
-  it('should not call updateBalance if selectedAccount is undefined', async () => {
-    await refreshTokens({
-      isSolanaSelected: false,
-      evmNetworkConfigurationsByChainId: {},
-      nativeCurrencies: [],
       selectedAccountId: undefined,
     });
 

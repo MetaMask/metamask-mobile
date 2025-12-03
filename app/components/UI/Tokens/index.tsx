@@ -2,11 +2,13 @@ import React, {
   useRef,
   useState,
   LegacyRef,
-  memo,
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
 } from 'react';
+import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { InteractionManager } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
@@ -14,7 +16,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
-  selectNativeNetworkCurrencies,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList';
@@ -56,199 +57,209 @@ interface TokensProps {
   isFullView?: boolean;
 }
 
-const Tokens = memo(({ isFullView = false }: TokensProps) => {
-  const navigation =
-    useNavigation<
-      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
-    >();
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const tw = useTailwind();
+const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
+  ({ isFullView = false }, ref) => {
+    const navigation =
+      useNavigation<
+        StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
+      >();
+    const { trackEvent, createEventBuilder } = useMetrics();
+    const tw = useTailwind();
 
-  // evm
-  const evmNetworkConfigurationsByChainId = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-  const currentChainId = useSelector(selectChainId);
-  const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
+    // evm
+    const evmNetworkConfigurationsByChainId = useSelector(
+      selectEvmNetworkConfigurationsByChainId,
+    );
+    const currentChainId = useSelector(selectChainId);
 
-  const actionSheet = useRef<typeof ActionSheet>();
-  const tokenToRemoveRef = useRef<TokenI | undefined>();
-  const [refreshing, setRefreshing] = useState(false);
-  const selectedAccountId = useSelector(selectSelectedInternalAccountId);
+    const actionSheet = useRef<typeof ActionSheet>();
+    const tokenToRemoveRef = useRef<TokenI | undefined>();
+    const [refreshing, setRefreshing] = useState(false);
+    const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
-  const selectInternalAccountByScope = useSelector(
-    selectSelectedInternalAccountByScope,
-  );
+    const selectInternalAccountByScope = useSelector(
+      selectSelectedInternalAccountByScope,
+    );
 
-  const selectedSolanaAccount =
-    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
-  const isSolanaSelected = selectedSolanaAccount !== null;
+    const selectedSolanaAccount =
+      useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
+      null;
+    const isSolanaSelected = selectedSolanaAccount !== null;
 
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
+    const isHomepageRedesignV1Enabled = useSelector(
+      selectHomepageRedesignV1Enabled,
+    );
 
-  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
-  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+    const [showScamWarningModal, setShowScamWarningModal] = useState(false);
+    const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
-  // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
+    // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
+    const isMultichainAccountsState2Enabled = useSelector(
+      selectMultichainAccountsState2Enabled,
+    );
 
-  // Memoize selector computation for better performance
-  const sortedTokenKeys = useSelector(
-    useMemo(
-      () =>
-        isMultichainAccountsState2Enabled
-          ? selectSortedAssetsBySelectedAccountGroup
-          : selectSortedTokenKeys,
-      [isMultichainAccountsState2Enabled],
-    ),
-  );
+    // Memoize selector computation for better performance
+    const sortedTokenKeys = useSelector(
+      useMemo(
+        () =>
+          isMultichainAccountsState2Enabled
+            ? selectSortedAssetsBySelectedAccountGroup
+            : selectSortedTokenKeys,
+        [isMultichainAccountsState2Enabled],
+      ),
+    );
 
-  // Mark as loaded once we have data (even if empty)
-  useEffect(() => {
-    if (!hasInitialLoad && sortedTokenKeys) {
-      InteractionManager.runAfterInteractions(() => {
-        setHasInitialLoad(true);
-      });
-    }
-  }, [sortedTokenKeys, hasInitialLoad]);
-
-  const showRemoveMenu = useCallback((token: TokenI) => {
-    if (actionSheet.current) {
-      tokenToRemoveRef.current = token;
-      actionSheet.current.show();
-    }
-  }, []);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-
-    // Use InteractionManager for better performance during refresh
-    InteractionManager.runAfterInteractions(() => {
-      refreshTokens({
-        isSolanaSelected,
-        evmNetworkConfigurationsByChainId,
-        nativeCurrencies,
-        selectedAccountId,
-      });
-      setRefreshing(false);
-    });
-  }, [
-    isSolanaSelected,
-    evmNetworkConfigurationsByChainId,
-    nativeCurrencies,
-    selectedAccountId,
-  ]);
-
-  const removeToken = useCallback(async () => {
-    const tokenToRemove = tokenToRemoveRef.current;
-    if (tokenToRemove?.chainId !== undefined) {
-      if (isNonEvmChainId(tokenToRemove.chainId)) {
-        await removeNonEvmToken({
-          tokenAddress: tokenToRemove.address,
-          tokenChainId: tokenToRemove.chainId,
-          selectInternalAccountByScope,
-        });
-      } else {
-        await removeEvmToken({
-          tokenToRemove,
-          currentChainId,
-          trackEvent,
-          strings,
-          getDecimalChainId,
-          createEventBuilder,
+    // Mark as loaded once we have data (even if empty)
+    useEffect(() => {
+      if (!hasInitialLoad && sortedTokenKeys) {
+        InteractionManager.runAfterInteractions(() => {
+          setHasInitialLoad(true);
         });
       }
-    }
-  }, [
-    currentChainId,
-    trackEvent,
-    createEventBuilder,
-    selectInternalAccountByScope,
-  ]);
+    }, [sortedTokenKeys, hasInitialLoad]);
 
-  const goToAddToken = useCallback(() => {
-    goToAddEvmToken({
-      navigation,
+    const showRemoveMenu = useCallback((token: TokenI) => {
+      if (actionSheet.current) {
+        tokenToRemoveRef.current = token;
+        actionSheet.current.show();
+      }
+    }, []);
+
+    // eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
+    const onRefresh = useCallback(async () => {
+      console.log('[Tokens] onRefresh START'); // eslint-disable-line no-console
+      setRefreshing(true);
+      try {
+        console.log('[Tokens] calling refreshTokens...'); // eslint-disable-line no-console
+        await refreshTokens({
+          isSolanaSelected,
+          evmNetworkConfigurationsByChainId,
+          selectedAccountId,
+        });
+        console.log('[Tokens] refreshTokens DONE'); // eslint-disable-line no-console
+      } catch (error) {
+        console.log('[Tokens] refreshTokens ERROR:', error); // eslint-disable-line no-console
+      } finally {
+        console.log('[Tokens] onRefresh FINALLY - setting refreshing false'); // eslint-disable-line no-console
+        setRefreshing(false);
+      }
+    }, [
+      isSolanaSelected,
+      evmNetworkConfigurationsByChainId,
+      selectedAccountId,
+    ]);
+
+    useImperativeHandle(ref, () => ({
+      refresh: onRefresh,
+    }));
+
+    const removeToken = useCallback(async () => {
+      const tokenToRemove = tokenToRemoveRef.current;
+      if (tokenToRemove?.chainId !== undefined) {
+        if (isNonEvmChainId(tokenToRemove.chainId)) {
+          await removeNonEvmToken({
+            tokenAddress: tokenToRemove.address,
+            tokenChainId: tokenToRemove.chainId,
+            selectInternalAccountByScope,
+          });
+        } else {
+          await removeEvmToken({
+            tokenToRemove,
+            currentChainId,
+            trackEvent,
+            strings,
+            getDecimalChainId,
+            createEventBuilder,
+          });
+        }
+      }
+    }, [
+      currentChainId,
       trackEvent,
       createEventBuilder,
-      getDecimalChainId,
-      currentChainId,
-    });
-  }, [navigation, trackEvent, createEventBuilder, currentChainId]);
+      selectInternalAccountByScope,
+    ]);
 
-  const onActionSheetPress = useCallback(
-    (index: number) => {
-      if (index === 0) {
-        removeToken();
+    const goToAddToken = useCallback(() => {
+      goToAddEvmToken({
+        navigation,
+        trackEvent,
+        createEventBuilder,
+        getDecimalChainId,
+        currentChainId,
+      });
+    }, [navigation, trackEvent, createEventBuilder, currentChainId]);
+
+    const onActionSheetPress = useCallback(
+      (index: number) => {
+        if (index === 0) {
+          removeToken();
+        }
+      },
+      [removeToken],
+    );
+
+    const handleScamWarningModal = useCallback(() => {
+      setShowScamWarningModal((prev) => !prev);
+    }, []);
+
+    const maxItems = useMemo(() => {
+      if (isFullView) {
+        return undefined;
       }
-    },
-    [removeToken],
-  );
+      return isHomepageRedesignV1Enabled ? 10 : undefined;
+    }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  const handleScamWarningModal = useCallback(() => {
-    setShowScamWarningModal((prev) => !prev);
-  }, []);
-
-  const maxItems = useMemo(() => {
-    if (isFullView) {
-      return undefined;
-    }
-    return isHomepageRedesignV1Enabled ? 10 : undefined;
-  }, [isFullView, isHomepageRedesignV1Enabled]);
-
-  return (
-    <Box
-      twClassName={
-        isHomepageRedesignV1Enabled && !isFullView
-          ? 'bg-default'
-          : 'flex-1 bg-default'
-      }
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-    >
-      <TokenListControlBar
-        goToAddToken={goToAddToken}
-        style={isFullView ? tw`px-4 pb-4` : undefined}
-      />
-      {!hasInitialLoad ? (
-        <Box twClassName={isFullView ? 'px-4' : undefined}>
-          <TokenListSkeleton />
-        </Box>
-      ) : sortedTokenKeys.length > 0 ? (
-        <TokenList
-          tokenKeys={sortedTokenKeys}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          showRemoveMenu={showRemoveMenu}
-          setShowScamWarningModal={handleScamWarningModal}
-          maxItems={maxItems}
-          isFullView={isFullView}
+    return (
+      <Box
+        twClassName={
+          isHomepageRedesignV1Enabled && !isFullView
+            ? 'bg-default'
+            : 'flex-1 bg-default'
+        }
+        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+      >
+        <TokenListControlBar
+          goToAddToken={goToAddToken}
+          style={isFullView ? tw`px-4 pb-4` : undefined}
         />
-      ) : (
-        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          <TokensEmptyState />
-        </Box>
-      )}
-      {showScamWarningModal && (
-        <ScamWarningModal
-          showScamWarningModal={showScamWarningModal}
-          setShowScamWarningModal={setShowScamWarningModal}
+        {!hasInitialLoad ? (
+          <Box twClassName={isFullView ? 'px-4' : undefined}>
+            <TokenListSkeleton />
+          </Box>
+        ) : sortedTokenKeys.length > 0 ? (
+          <TokenList
+            tokenKeys={sortedTokenKeys}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            setShowScamWarningModal={handleScamWarningModal}
+            maxItems={maxItems}
+            isFullView={isFullView}
+          />
+        ) : (
+          <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+            <TokensEmptyState />
+          </Box>
+        )}
+        {showScamWarningModal && (
+          <ScamWarningModal
+            showScamWarningModal={showScamWarningModal}
+            setShowScamWarningModal={setShowScamWarningModal}
+          />
+        )}
+        <ActionSheet
+          ref={actionSheet as LegacyRef<typeof ActionSheet>}
+          title={strings('wallet.remove_token_title')}
+          options={[strings('wallet.remove'), strings('wallet.cancel')]}
+          cancelButtonIndex={1}
+          destructiveButtonIndex={0}
+          onPress={onActionSheetPress}
         />
-      )}
-      <ActionSheet
-        ref={actionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.remove_token_title')}
-        options={[strings('wallet.remove'), strings('wallet.cancel')]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        onPress={onActionSheetPress}
-      />
-    </Box>
-  );
-});
+      </Box>
+    );
+  },
+);
 
 Tokens.displayName = 'Tokens';
 
