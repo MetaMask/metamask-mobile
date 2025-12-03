@@ -7,16 +7,20 @@ import { selectTransactionPaymentTokenByTransactionId } from '../../../../../sel
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import EngineService from '../../../../../core/EngineService';
+import { updateMusdConversionChain } from '../../utils/musd-conversion';
+import { hasTransactionType } from '../../utils/transaction';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export function useTransactionPayToken() {
-  const { id: transactionId } = useTransactionMetadataRequest() || { id: '' };
+  const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
 
   const payToken = useSelector((state: RootState) =>
     selectTransactionPaymentTokenByTransactionId(state, transactionId),
   );
 
   const setPayToken = useCallback(
-    (newPayToken: { address: Hex; chainId: Hex }) => {
+    async (newPayToken: { address: Hex; chainId: Hex }) => {
       const { GasFeeController, NetworkController, TransactionPayController } =
         Engine.context;
 
@@ -35,12 +39,25 @@ export function useTransactionPayToken() {
           chainId: newPayToken.chainId,
         });
 
+        if (
+          transactionMeta &&
+          hasTransactionType(transactionMeta, [
+            TransactionType.musdConversion,
+          ]) &&
+          newPayToken.chainId !== transactionMeta?.chainId
+        ) {
+          updateMusdConversionChain({
+            transactionMeta,
+            newChainId: newPayToken.chainId,
+          });
+        }
+
         EngineService.flushState();
       } catch (e) {
         console.error('Error updating payment token', e);
       }
     },
-    [transactionId],
+    [transactionId, transactionMeta],
   );
 
   return {
