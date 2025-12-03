@@ -225,6 +225,7 @@ export type PerpsControllerState = {
     testnet: {
       [marketSymbol: string]: {
         leverage?: number; // Last used leverage for this market
+        orderBookGrouping?: number; // Persisted price grouping for order book
         // Pending trade configuration (temporary, expires after 5 minutes)
         pendingConfig?: {
           amount?: string; // Order size in USD
@@ -240,6 +241,7 @@ export type PerpsControllerState = {
     mainnet: {
       [marketSymbol: string]: {
         leverage?: number;
+        orderBookGrouping?: number; // Persisted price grouping for order book
         // Pending trade configuration (temporary, expires after 5 minutes)
         pendingConfig?: {
           amount?: string; // Order size in USD
@@ -604,6 +606,14 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:clearPendingTradeConfiguration';
       handler: PerpsController['clearPendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getOrderBookGrouping';
+      handler: PerpsController['getOrderBookGrouping'];
+    }
+  | {
+      type: 'PerpsController:saveOrderBookGrouping';
+      handler: PerpsController['saveOrderBookGrouping'];
     };
 
 /**
@@ -2449,6 +2459,55 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.marketFilterPreferences = optionId;
+    });
+  }
+
+  /**
+   * Get saved order book grouping for a market
+   * @param coin - Market symbol
+   * @returns The saved grouping value or undefined if not set
+   */
+  getOrderBookGrouping(coin: string): number | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const grouping =
+      this.state.tradeConfigurations[network]?.[coin]?.orderBookGrouping;
+
+    if (grouping !== undefined) {
+      DevLogger.log('PerpsController: Retrieved order book grouping', {
+        coin,
+        network,
+        grouping,
+      });
+    }
+
+    return grouping;
+  }
+
+  /**
+   * Save order book grouping for a market
+   * @param coin - Market symbol
+   * @param grouping - Price grouping value
+   */
+  saveOrderBookGrouping(coin: string, grouping: number): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving order book grouping', {
+      coin,
+      network,
+      grouping,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
+      state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
+        orderBookGrouping: grouping,
+      };
     });
   }
 

@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -15,8 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { appendURLParams } from '../../../util/browser';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -37,7 +36,7 @@ const TrendingFeed: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { isEnabled } = useMetrics();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -51,25 +50,14 @@ const TrendingFeed: React.FC = () => {
     return unsubscribe;
   }, [navigation]);
 
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: { security: { dataCollectionForMarketing?: boolean } }) =>
-      state.security.dataCollectionForMarketing,
-  );
+  const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
-  // check if basic functionality toggle is on
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
-
-  const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-    metamaskEntry: 'mobile',
-    metricsEnabled: isEnabled(),
-    marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-  });
-
   const handleBrowserPress = useCallback(() => {
     updateLastTrendingScreen('TrendingBrowser');
     navigation.navigate('TrendingBrowser', {
