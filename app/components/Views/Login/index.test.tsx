@@ -1387,8 +1387,20 @@ describe('Login', () => {
   });
 
   describe('KeyboardAwareScrollView Configuration', () => {
+    let originalPlatform: string;
+
+    beforeEach(() => {
+      originalPlatform = Platform.OS;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    });
+
     it('sets bottomOffset to 50 on Android', () => {
-      const originalPlatform = Platform.OS;
       Object.defineProperty(Platform, 'OS', {
         value: 'android',
         writable: true,
@@ -1405,15 +1417,9 @@ describe('Login', () => {
       const scrollView = UNSAFE_root.findByProps({ bottomOffset: 50 });
       expect(scrollView).toBeDefined();
       expect(scrollView.props.bottomOffset).toBe(50);
-
-      Object.defineProperty(Platform, 'OS', {
-        value: originalPlatform,
-        writable: true,
-      });
     });
 
     it('sets bottomOffset to 0 on iOS', () => {
-      const originalPlatform = Platform.OS;
       Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
       mockRoute.mockReturnValue({
         params: {
@@ -1427,11 +1433,6 @@ describe('Login', () => {
       const scrollView = UNSAFE_root.findByProps({ bottomOffset: 0 });
       expect(scrollView).toBeDefined();
       expect(scrollView.props.bottomOffset).toBe(0);
-
-      Object.defineProperty(Platform, 'OS', {
-        value: originalPlatform,
-        writable: true,
-      });
     });
   });
 });

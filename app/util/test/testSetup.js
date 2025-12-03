@@ -568,9 +568,9 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-jest.mock('react-native-keyboard-controller', () => {
-  const React = require('react');
-  return {
+jest.mock(
+  'react-native-keyboard-controller',
+  () => ({
     KeyboardProvider: ({ children }) => children,
     KeyboardAwareScrollView: require('react-native').ScrollView,
     KeyboardGestureArea: require('react-native').View,
@@ -589,8 +589,9 @@ jest.mock('react-native-keyboard-controller', () => {
     KeyboardEvents: {
       addListener: jest.fn(() => ({ remove: jest.fn() })),
     },
-  };
-});
+  }),
+  { virtual: true },
+);
 
 afterEach(() => {
   jest.restoreAllMocks();
