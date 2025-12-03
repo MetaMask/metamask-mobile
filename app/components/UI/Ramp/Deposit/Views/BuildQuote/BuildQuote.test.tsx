@@ -960,6 +960,29 @@ describe('BuildQuote Component', () => {
     });
   });
 
+  describe('Immediate Routing Loading State', () => {
+    it('renders loading state snapshot when shouldRouteImmediately is true', () => {
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('resets shouldRouteImmediately to false', () => {
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      expect(mockSetParams).toHaveBeenCalledWith({
+        shouldRouteImmediately: false,
+      });
+    });
+  });
+
   describe('Tracing functionality', () => {
     beforeEach(() => {
       const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;

@@ -82,6 +82,11 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       alignSelf: 'stretch',
     },
+    spinner: {
+      flex: 1,
+      justifyContent: 'center',
+      alignSelf: 'center',
+    },
   });
 };
 
