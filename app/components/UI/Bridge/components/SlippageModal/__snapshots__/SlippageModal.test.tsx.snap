@@ -133,7 +133,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "padding": 16,
@@ -466,7 +465,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
           <View
             style={
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "paddingHorizontal": 8,
                 "paddingVertical": 4,

@@ -13,6 +13,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
+import { useBuildPortfolioUrl } from '../../../../hooks/useBuildPortfolioUrl';
 import {
   selectEvmChainId,
   selectNetworkConfigurationByChainId,
@@ -44,8 +45,8 @@ import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagCon
 ///: END:ONLY_INCLUDE_IF
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../../../Earn/constants/musd';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -57,6 +58,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
@@ -89,7 +91,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion, hasSeenMusdEducationScreen } =
+  const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
   const { isConversionToken } = useMusdConversionTokens();
 
@@ -149,7 +151,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+        const stakeUrl = buildPortfolioUrlWithMetrics(AppConstants.STAKE.URL);
+        newTabUrl = stakeUrl.href;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),
@@ -223,7 +226,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       }
 
       const config = {
-        outputChainId: CHAIN_IDS.MAINNET,
+        outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
@@ -231,7 +234,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         navigationStack: Routes.EARN.ROOT,
       };
 
-      if (!hasSeenMusdEducationScreen) {
+      if (!hasSeenConversionEducationScreen) {
         navigation.navigate(config.navigationStack, {
           screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
           params: {
@@ -260,7 +263,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   }, [
     asset.address,
     asset.chainId,
-    hasSeenMusdEducationScreen,
+    hasSeenConversionEducationScreen,
     initiateConversion,
     navigation,
   ]);
@@ -300,7 +303,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
         {(() => {
           if (isConvertibleStablecoin) {
-            return strings('asset_overview.convert');
+            return strings('asset_overview.convert_to_musd');
           }
 
           const aprNumber = Number(earnToken?.experience?.apr);

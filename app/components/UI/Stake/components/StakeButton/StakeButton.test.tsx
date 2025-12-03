@@ -84,6 +84,16 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../hooks/useMetrics');
 
+jest.mock('../../../../hooks/useBuildPortfolioUrl', () => ({
+  useBuildPortfolioUrl: jest.fn(() => (baseUrl: string) => {
+    const url = new URL(baseUrl);
+    url.searchParams.set('metamaskEntry', 'mobile');
+    url.searchParams.set('marketingEnabled', 'true');
+    url.searchParams.set('metricsEnabled', 'true');
+    return url;
+  }),
+}));
+
 // Mock the environment variables
 jest.mock('../../../../../util/environment', () => ({
   isProduction: jest.fn().mockReturnValue(false),
@@ -256,7 +266,7 @@ describe('StakeButton', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
           params: {
-            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
+            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=true`,
             timestamp: expect.any(Number),
           },
           screen: Routes.BROWSER.VIEW,
@@ -408,7 +418,7 @@ describe('StakeButton', () => {
       useMusdConversionMock.mockReturnValue({
         initiateConversion: mockInitiateConversion,
         error: null,
-        hasSeenMusdEducationScreen: true,
+        hasSeenConversionEducationScreen: true,
       });
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(false),
@@ -441,7 +451,7 @@ describe('StakeButton', () => {
         },
       );
 
-      expect(getByText('Convert')).toBeDefined();
+      expect(getByText('Convert to mUSD')).toBeDefined();
     });
 
     it('calls initiateConversion with correct parameters when Convert button pressed', async () => {
