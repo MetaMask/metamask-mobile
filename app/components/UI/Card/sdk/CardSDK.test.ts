@@ -1762,6 +1762,33 @@ describe('CardSDK', () => {
   });
 
   describe('getCardExternalWalletDetails', () => {
+    // Helper to create mock delegation settings for a given network and currencies
+    const createMockDelegationSettings = (
+      network: string,
+      currencies: string[],
+    ) => [
+      {
+        network,
+        environment: 'production',
+        chainId: '59144',
+        delegationContract: '0xDelegationContract',
+        tokens: currencies.reduce(
+          (acc, currency) => ({
+            ...acc,
+            [currency.toLowerCase()]: {
+              symbol: currency,
+              decimals: 6,
+              address: `0x${currency}TokenAddress`,
+            },
+          }),
+          {} as Record<
+            string,
+            { symbol: string; decimals: number; address: string }
+          >,
+        ),
+      },
+    ];
+
     const createMockWalletData = (
       externalWallets: {
         address: string;
@@ -1854,7 +1881,12 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const delegationSettings = createMockDelegationSettings('linea', [
+        'USDC',
+        'USDT',
+      ]);
+      const result =
+        await cardSDK.getCardExternalWalletDetails(delegationSettings);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
@@ -1870,7 +1902,7 @@ describe('CardSDK', () => {
         priority: 2,
       });
 
-      // Should call both endpoints
+      // Endpoints are called
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/v1/wallet/external'),
         expect.objectContaining({ method: 'GET' }),
@@ -2002,22 +2034,27 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const delegationSettings = createMockDelegationSettings('linea', [
+        'USDC',
+        'USDT',
+      ]);
+      const result =
+        await cardSDK.getCardExternalWalletDetails(delegationSettings);
 
-      // Should be sorted by priority ascending (1 comes before 5)
+      // Sorted by priority ascending (1 comes before 5)
       expect(result[0].priority).toBe(1);
       expect(result[0].currency).toBe('USDT');
       expect(result[1].priority).toBe(5);
       expect(result[1].currency).toBe('USDC');
     });
 
-    it('handles missing priority data gracefully', async () => {
+    it('returns empty array when priority wallet data is empty', async () => {
       const mockExternalWalletResponse = [
         {
           address: '0x1234567890123456789012345678901234567890',
           currency: 'USDC',
-          balance: '1000.00',
-          allowance: '500.00',
+          balance: '1000',
+          allowance: '500',
           network: 'linea',
         },
       ];
@@ -2037,7 +2074,11 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const delegationSettings = createMockDelegationSettings('linea', [
+        'USDC',
+      ]);
+      const result =
+        await cardSDK.getCardExternalWalletDetails(delegationSettings);
 
       expect(result).toEqual([]);
     });
@@ -2062,7 +2103,12 @@ describe('CardSDK', () => {
           },
         ]);
 
-        const result = await cardSDK.getCardExternalWalletDetails([]);
+        const delegationSettings = createMockDelegationSettings('linea', [
+          'USDC',
+          'USDT',
+        ]);
+        const result =
+          await cardSDK.getCardExternalWalletDetails(delegationSettings);
 
         expect(result).toHaveLength(1);
         expect(result[0].currency).toBe('USDT');
@@ -2084,7 +2130,12 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const delegationSettings = createMockDelegationSettings('linea', [
+        'USDC',
+        'USDT',
+      ]);
+      const result =
+        await cardSDK.getCardExternalWalletDetails(delegationSettings);
 
       expect(result).toHaveLength(2);
       expect(result[0].currency).toBe('USDC');
@@ -2115,7 +2166,14 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const delegationSettings = createMockDelegationSettings('linea', [
+        'USDC',
+        'USDT',
+        'DAI',
+        'WETH',
+      ]);
+      const result =
+        await cardSDK.getCardExternalWalletDetails(delegationSettings);
 
       expect(result).toHaveLength(1);
       expect(result[0].currency).toBe('WETH');
@@ -2136,10 +2194,59 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      // Include both networks in delegation settings - only linea is supported
+      const delegationSettings = [
+        ...createMockDelegationSettings('linea', ['USDC', 'USDT']),
+        ...createMockDelegationSettings('ethereum', ['USDC']),
+      ];
+      const result =
+        await cardSDK.getCardExternalWalletDetails(delegationSettings);
 
       expect(result).toHaveLength(1);
       expect(result[0].currency).toBe('USDT');
+    });
+
+    it('filters out wallets when tokenDetails is null (no matching delegation settings)', async () => {
+      createMockWalletData([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          allowance: '500',
+        },
+        {
+          address: '0x0987654321098765432109876543210987654321',
+          currency: 'USDT',
+          allowance: '1000',
+        },
+      ]);
+
+      // Only provide delegation settings for USDC, not USDT
+      const delegationSettings = createMockDelegationSettings('linea', [
+        'USDC',
+      ]);
+      const result =
+        await cardSDK.getCardExternalWalletDetails(delegationSettings);
+
+      // USDT is filtered out because there's no matching token in delegation settings
+      expect(result).toHaveLength(1);
+      expect(result[0].currency).toBe('USDC');
+    });
+
+    it('returns empty array when no wallets have matching delegation settings', async () => {
+      createMockWalletData([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          allowance: '500',
+        },
+      ]);
+
+      // Provide delegation settings for a different network
+      const delegationSettings = createMockDelegationSettings('base', ['USDC']);
+      const result =
+        await cardSDK.getCardExternalWalletDetails(delegationSettings);
+
+      expect(result).toHaveLength(0);
     });
   });
 

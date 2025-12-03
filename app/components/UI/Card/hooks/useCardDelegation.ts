@@ -19,6 +19,9 @@ import { ARBITRARY_ALLOWANCE } from '../constants';
 import { toTokenMinimalUnit } from '../../../../util/number';
 import AppConstants from '../../../../core/AppConstants';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { handleSnapRequest } from '../../../../core/Snaps/utils';
+import { SOLANA_WALLET_SNAP_ID } from '../../../../core/SnapKeyring/SolanaWalletSnap';
+import { HandlerType } from '@metamask/snaps-utils';
 
 /**
  * Custom error class for user-initiated cancellations
@@ -99,6 +102,10 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
 
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         safeFormatChainIdToHex(token.caipChainId ?? '') as Hex,
+      );
+      Logger.log(
+        'executeApprovalTransaction: networkClientId',
+        networkClientId,
       );
 
       // Convert amount to minimal units based on token decimals
@@ -204,6 +211,37 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
     [sdk, token, TransactionController, NetworkController],
   );
 
+  const signSolanaMessage = async (
+    accountId: string | undefined,
+    message: string,
+  ): Promise<unknown> => {
+    try {
+      if (!accountId) {
+        throw new Error('Account ID is required');
+      }
+
+      const result = await handleSnapRequest(Engine.controllerMessenger, {
+        origin: 'metamask',
+        snapId: SOLANA_WALLET_SNAP_ID,
+        handler: HandlerType.OnClientRequest,
+        request: {
+          jsonrpc: '2.0',
+          id: Date.now(),
+          method: 'signMessage',
+          params: {
+            accountId,
+            message,
+          },
+        },
+      });
+
+      return result as unknown;
+    } catch (error) {
+      Logger.log('Error signing Solana message:', error);
+      throw error;
+    }
+  };
+
   /**
    * Submit complete delegation flow
    */
@@ -231,13 +269,17 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
             .addProperties(metricsProps)
             .build(),
         );
+        const isSolana = params.network === 'solana';
         const userAccount = selectAccountByScope(
-          params.network === 'solana' ? SolScope.Mainnet : 'eip155:0',
+          isSolana ? SolScope.Mainnet : 'eip155:0',
         );
-        const address =
-          params.network === 'solana'
-            ? userAccount?.address
-            : safeToChecksumAddress(userAccount?.address);
+        Logger.log(
+          'useCardDelegation: userAccount',
+          JSON.stringify(userAccount, null, 2),
+        );
+        const address = isSolana
+          ? userAccount?.address
+          : safeToChecksumAddress(userAccount?.address);
 
         if (!address) {
           throw new Error('No account found');
@@ -246,21 +288,23 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         // Step 1: Generate delegation token
         const { token: delegationJWTToken, nonce } =
           await sdk.generateDelegationToken(params.network, address);
-
         // Step 2: Generate and sign SIWE message
         const signatureMessage = generateSignatureMessage(address, nonce);
-        const siweHex =
-          '0x' + Buffer.from(signatureMessage, 'utf8').toString('hex');
-        const signature = await KeyringController.signPersonalMessage({
-          data: siweHex,
-          from: address,
-        });
+        const signature = isSolana
+          ? await signSolanaMessage(userAccount?.id, signatureMessage)
+          : await KeyringController.signPersonalMessage({
+              data:
+                '0x' + Buffer.from(signatureMessage, 'utf8').toString('hex'),
+              from: address,
+            });
+
+        Logger.log('useCardDelegation: signature', signature);
 
         // Step 3: Execute approval transaction
         await executeApprovalTransaction(
           params,
           address,
-          signature,
+          signature as string,
           signatureMessage,
           delegationJWTToken,
         );
