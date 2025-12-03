@@ -13,24 +13,27 @@ import {
   TransactionPayQuote,
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
-import {
-  TransactionMeta,
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex, Json } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 
-function render() {
+function render(options: { type?: TransactionType } = {}) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
     transactionApprovalControllerMock,
+    options.type && {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [{ type: options.type }],
+          },
+        },
+      },
+    },
   );
 
   return renderWithProvider(<BridgeTimeRow />, { state });
@@ -40,27 +43,10 @@ describe('BridgeTimeRow', () => {
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
-  const useTransactionMetadataRequestMock = jest.mocked(
-    useTransactionMetadataRequest,
-  );
 
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
-
-  const createTransactionMetadataMock = (
-    overrides: Partial<TransactionMeta> = {},
-  ): TransactionMeta =>
-    ({
-      id: 'test-id',
-      chainId: '0x1',
-      networkClientId: 'test-network',
-      status: TransactionStatus.unapproved,
-      time: Date.now(),
-      txParams: { from: '0x123' },
-      type: TransactionType.simpleSend,
-      ...overrides,
-    }) as TransactionMeta;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -74,8 +60,6 @@ describe('BridgeTimeRow', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
     } as ReturnType<typeof useTransactionPayToken>);
-
-    useTransactionMetadataRequestMock.mockReturnValue(undefined);
   });
 
   it.each([
@@ -91,9 +75,6 @@ describe('BridgeTimeRow', () => {
       useTransactionPayTotalsMock.mockReturnValue({
         estimatedDuration,
       } as TransactionPayTotals);
-      useTransactionMetadataRequestMock.mockReturnValue(
-        createTransactionMetadataMock(),
-      );
 
       const { getByText } = render();
 
@@ -108,9 +89,6 @@ describe('BridgeTimeRow', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { chainId: '0x1' as Hex },
     } as ReturnType<typeof useTransactionPayToken>);
-    useTransactionMetadataRequestMock.mockReturnValue(
-      createTransactionMetadataMock({ chainId: '0x1' }),
-    );
 
     const { getByText } = render();
 
@@ -119,35 +97,26 @@ describe('BridgeTimeRow', () => {
 
   it('renders skeleton if quotes loading', async () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
-    useTransactionMetadataRequestMock.mockReturnValue(
-      createTransactionMetadataMock(),
-    );
 
     const { getByTestId } = render();
 
     expect(getByTestId(`bridge-time-row-skeleton`)).toBeDefined();
   });
 
-  it('does not render skeleton when transaction type is inHIDE_BRIDGE_TIME_BY_DEFAULT_TYPES', () => {
+  it('does not render skeleton when transaction type is in HIDE_TYPES', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
-    useTransactionMetadataRequestMock.mockReturnValue(
-      createTransactionMetadataMock({ type: TransactionType.musdConversion }),
-    );
 
-    const { queryByTestId } = render();
+    const { queryByTestId } = render({ type: TransactionType.musdConversion });
 
     expect(queryByTestId('bridge-time-row-skeleton')).toBeNull();
   });
 
-  it('does not render when transaction type is in HIDE_BRIDGE_TIME_BY_DEFAULT_TYPES', () => {
+  it('does not render when transaction type is in HIDE_TYPES', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       estimatedDuration: 60,
     } as TransactionPayTotals);
-    useTransactionMetadataRequestMock.mockReturnValue(
-      createTransactionMetadataMock({ type: TransactionType.musdConversion }),
-    );
 
-    const { queryByText } = render();
+    const { queryByText } = render({ type: TransactionType.musdConversion });
 
     expect(queryByText('1 min')).toBeNull();
   });

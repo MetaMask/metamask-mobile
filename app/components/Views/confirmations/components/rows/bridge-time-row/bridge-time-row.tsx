@@ -18,7 +18,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
-const HIDE_BRIDGE_TIME_BY_DEFAULT_TYPES = [TransactionType.musdConversion];
+const HIDE_TYPES = [TransactionType.musdConversion];
 
 export function BridgeTimeRow() {
   const isLoading = useIsTransactionPayLoading();
@@ -26,18 +26,13 @@ export function BridgeTimeRow() {
   const quotes = useTransactionPayQuotes();
   const { payToken } = useTransactionPayToken();
   const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId } = transactionMetadata ?? {};
 
-  const showEstimate = isLoading || Boolean(quotes?.length);
+  const showEstimate =
+    !hasTransactionType(transactionMetadata, HIDE_TYPES) &&
+    (isLoading || Boolean(quotes?.length));
 
   if (!showEstimate) {
-    return null;
-  }
-
-  const isVisible =
-    !transactionMetadata ||
-    !hasTransactionType(transactionMetadata, HIDE_BRIDGE_TIME_BY_DEFAULT_TYPES);
-
-  if (!isVisible) {
     return null;
   }
 
@@ -45,7 +40,7 @@ export function BridgeTimeRow() {
     return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
 
-  const isSameChain = payToken?.chainId === transactionMetadata?.chainId;
+  const isSameChain = payToken?.chainId === chainId;
   const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
 
   return (
