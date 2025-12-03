@@ -412,15 +412,6 @@ const QRScanner = ({
           isTron ||
           isBitcoin
         ) {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
-              .addProperties({
-                [QRScannerEventProperties.SCAN_SUCCESS]: true,
-                [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
-                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
-              })
-              .build(),
-          );
           // Immediately stop barcode scanning to prevent multiple triggers
           shouldReadBarCodeRef.current = false;
           setIsCameraActive(false);
@@ -431,6 +422,15 @@ const QRScanner = ({
           // to avoid double navigation (sendNonEvmAsset navigates without recipient,
           // then we navigate again with recipient, causing flickering)
           if (isSolana) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                })
+                .build(),
+            );
             end();
             InteractionManager.runAfterInteractions(() => {
               navigateToSendPage({
@@ -446,6 +446,17 @@ const QRScanner = ({
           }
 
           if (isTron) {
+            // Track as failure since Tron is temporarily disabled
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]:
+                    ScanResult.ADDRESS_TYPE_NOT_SUPPORTED,
+                })
+                .build(),
+            );
             end();
             // TODO: Commented out for now because Tron has been temporarily disabled
             // InteractionManager.runAfterInteractions(() => {
@@ -466,6 +477,15 @@ const QRScanner = ({
           }
 
           if (isBitcoin) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                })
+                .build(),
+            );
             end();
             InteractionManager.runAfterInteractions(() => {
               navigateToSendPage({
@@ -483,11 +503,33 @@ const QRScanner = ({
 
           // Skip Ethereum processing for non-EVM addresses when keyring-snaps is disabled
           if (isSolana || isTron || isBitcoin) {
+            // Track as failure for unsupported non-EVM addresses when keyring-snaps is disabled
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]:
+                    ScanResult.ADDRESS_TYPE_NOT_SUPPORTED,
+                })
+                .build(),
+            );
             // Show error for unsupported non-EVM addresses when keyring-snaps is disabled
             showAlertForInvalidAddress();
             end();
             return;
           }
+
+          // Track successful EVM address scan
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
 
           // Extract recipient address from QR code
           const recipientAddress = content.startsWith('0x')

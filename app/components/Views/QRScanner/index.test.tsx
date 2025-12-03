@@ -1089,7 +1089,7 @@ describe('QrScanner', () => {
         );
       });
 
-      it('should show error alert when Tron address scanned (temporarily disabled)', async () => {
+      it('shows error alert when Tron address scanned (temporarily disabled)', async () => {
         const tronAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9';
 
         renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
@@ -1117,7 +1117,7 @@ describe('QrScanner', () => {
         expect(mockNavigateToSendPage).not.toHaveBeenCalled();
       });
 
-      it('should not call EVM transaction methods for Tron address', async () => {
+      it('does not call EVM transaction methods for Tron address', async () => {
         const tronAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9';
 
         renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
@@ -1139,7 +1139,7 @@ describe('QrScanner', () => {
         expect(mockDispatch).not.toHaveBeenCalled();
       });
 
-      it('should track QR_SCANNED metrics for Tron address', async () => {
+      it('tracks QR_SCANNED metrics with failure for Tron address (temporarily disabled)', async () => {
         const tronAddress = 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9';
 
         renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
@@ -1159,9 +1159,10 @@ describe('QrScanner', () => {
             MetaMetricsEvents.QR_SCANNED,
           );
           expect(mockAddProperties).toHaveBeenCalledWith({
-            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.SCAN_SUCCESS]: false,
             [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
-            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+            [QRScannerEventProperties.SCAN_RESULT]:
+              ScanResult.ADDRESS_TYPE_NOT_SUPPORTED,
           });
         });
       });
