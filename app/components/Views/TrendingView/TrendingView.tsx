@@ -62,33 +62,23 @@ const TrendingFeed: React.FC = () => {
     selectBasicFunctionalityEnabled,
   );
 
-  // Callback for sections to report their empty state
-  const handleSectionEmptyChange = useCallback(
-    (sectionId: SectionId, isEmpty: boolean) => {
-      setEmptySections((prev) => {
-        const next = new Set(prev);
-        if (isEmpty) {
-          next.add(sectionId);
-        } else {
-          next.delete(sectionId);
-        }
-        return next;
-      });
-    },
-    [],
-  );
-
-  // Memoize callbacks for each section to prevent infinite loops
   const sectionCallbacks = useMemo(() => {
-    const callbacks: Record<SectionId, (isEmpty: boolean) => void> =
-      {} as Record<SectionId, (isEmpty: boolean) => void>;
+    const callbacks = {} as Record<SectionId, (isEmpty: boolean) => void>;
     HOME_SECTIONS_ARRAY.forEach((section) => {
-      callbacks[section.id] = (isEmpty: boolean) =>
-        handleSectionEmptyChange(section.id, isEmpty);
+      callbacks[section.id] = (isEmpty: boolean) => {
+        setEmptySections((prev) => {
+          const next = new Set(prev);
+          if (isEmpty) {
+            next.add(section.id);
+          } else {
+            next.delete(section.id);
+          }
+          return next;
+        });
+      };
     });
     return callbacks;
-  }, [handleSectionEmptyChange]);
-
+  }, []);
   const handleBrowserPress = useCallback(() => {
     updateLastTrendingScreen('TrendingBrowser');
     navigation.navigate('TrendingBrowser', {
@@ -171,17 +161,23 @@ const TrendingFeed: React.FC = () => {
         >
           <QuickActions emptySections={emptySections} />
 
-          {HOME_SECTIONS_ARRAY.filter(
-            (section) => !emptySections.has(section.id),
-          ).map((section) => (
-            <Box key={section.id}>
-              <SectionHeader sectionId={section.id} />
-              <section.Section
-                refreshTrigger={refreshTrigger}
-                toggleSectionEmptyState={sectionCallbacks[section.id]}
-              />
-            </Box>
-          ))}
+          {HOME_SECTIONS_ARRAY.map((section) => {
+            // Hide section visually but keep mounted so it can report when data arrives
+            const isHidden = emptySections.has(section.id);
+
+            return (
+              <Box
+                key={section.id}
+                twClassName={isHidden ? 'hidden' : undefined}
+              >
+                <SectionHeader sectionId={section.id} />
+                <section.Section
+                  refreshTrigger={refreshTrigger}
+                  toggleSectionEmptyState={sectionCallbacks[section.id]}
+                />
+              </Box>
+            );
+          })}
         </ScrollView>
       ) : (
         <BasicFunctionalityEmptyState />
