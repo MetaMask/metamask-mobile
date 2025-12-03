@@ -46,10 +46,15 @@ jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
+const mockGetAddressAccountType = jest.fn().mockReturnValue('MetaMask');
+const mockIsValidHexAddress = jest.fn().mockReturnValue(true);
+const mockIsHardwareAccount = jest.fn().mockReturnValue(false);
+
 jest.mock('../../../../util/address', () => ({
-  getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
-  isValidHexAddress: jest.fn().mockReturnValue(true),
-  isHardwareAccount: jest.fn().mockReturnValue(false),
+  getAddressAccountType: (...args: unknown[]) =>
+    mockGetAddressAccountType(...args),
+  isValidHexAddress: (...args: unknown[]) => mockIsValidHexAddress(...args),
+  isHardwareAccount: (...args: unknown[]) => mockIsHardwareAccount(...args),
 }));
 
 jest.mock('../../../../util/rpc-domain-utils', () => ({
@@ -295,6 +300,10 @@ describe('generateDefaultTransactionMetrics', () => {
     (MetricsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
       mockEventBuilder,
     );
+
+    mockGetAddressAccountType.mockReturnValue('MetaMask');
+    mockIsValidHexAddress.mockReturnValue(true);
+    mockIsHardwareAccount.mockReturnValue(false);
 
     mockNativeBalance('0x1', FROM_ADDRESS_MOCK, '0x0000000000000000000');
   });
@@ -913,6 +922,79 @@ describe('generateDefaultTransactionMetrics', () => {
           transaction_type: 'batch',
         }),
       );
+    });
+  });
+
+  describe('hardware wallet metrics', () => {
+    it('sets account_hardware_type to Ledger for Ledger hardware wallet', async () => {
+      mockIsHardwareAccount.mockReturnValue(true);
+      mockGetAddressAccountType.mockReturnValue('Ledger');
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('Ledger');
+      expect(result.properties.account_hardware_type).toBe('Ledger');
+    });
+
+    it('sets account_hardware_type to QR for QR hardware wallet', async () => {
+      mockIsHardwareAccount.mockReturnValue(true);
+      mockGetAddressAccountType.mockReturnValue('QR');
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('QR');
+      expect(result.properties.account_hardware_type).toBe('QR');
+    });
+
+    it('sets account_hardware_type to null for non-hardware wallet', async () => {
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockGetAddressAccountType.mockReturnValue('MetaMask');
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('MetaMask');
+      expect(result.properties.account_hardware_type).toBeNull();
+    });
+
+    it('sets account_type to unknown when from address is invalid', async () => {
+      mockIsValidHexAddress.mockReturnValue(false);
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('unknown');
+      expect(result.properties.account_hardware_type).toBeNull();
+    });
+
+    it('handles error when checking account type and defaults to unknown', async () => {
+      mockIsValidHexAddress.mockReturnValue(true);
+      mockGetAddressAccountType.mockImplementation(() => {
+        throw new Error('Wallet locked');
+      });
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('unknown');
+      expect(result.properties.account_hardware_type).toBeNull();
     });
   });
 });
