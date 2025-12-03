@@ -251,6 +251,6 @@ describe('BridgeDestNetworkSelector - ChainPopularity fallback', () => {
     // Optimism (popularity 10) should appear before Palm and zkSync Era (both Infinity)
     expect(getByText('Optimism')).toBeTruthy();
     expect(getByText('Palm')).toBeTruthy();
-    expect(getByText('zkSync Era')).toBeTruthy();
+    expect(getByText('zkSync')).toBeTruthy();
   });
 });
