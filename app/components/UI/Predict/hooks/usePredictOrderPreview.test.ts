@@ -25,6 +25,7 @@ describe('usePredictOrderPreview', () => {
       metamaskFee: 1,
       providerFee: 1,
       totalFee: 2,
+      totalFeePercentage: 4,
     },
   };
 
