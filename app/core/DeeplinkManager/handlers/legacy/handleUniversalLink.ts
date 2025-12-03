@@ -59,7 +59,7 @@ enum SUPPORTED_ACTIONS {
 }
 
 /**
- * Actions that should not show the deep link modal
+ * Actions that should not show the deep link INTERSTITIAL modal
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.WC,
@@ -75,9 +75,20 @@ const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.MMSDK,
 ];
 
-const interstitialWhitelist = [
+const interstitialWhitelistUrls = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
 ] as const;
+
+// remember this is only for the INTERSTITIAL
+// "Redirecting you to MetaMask..." modal
+// NOT THE "proceed with caution" modal
+const interstitialWhitelistSources = [
+  AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+  AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+  AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+  AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+  AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+] as string[];
 
 async function handleUniversalLink({
   instance,
@@ -195,13 +206,22 @@ async function handleUniversalLink({
   const shouldProceed =
     WHITELISTED_ACTIONS.includes(action) ||
     (await new Promise<boolean>((resolve) => {
+      // async because app may wait for user to dismiss modal
       const [, actionName] = validatedUrl.pathname.split('/');
       const sanitizedAction = actionName?.replace(/-/g, ' ');
       const pageTitle: string =
         capitalize(sanitizedAction?.toLowerCase()) || '';
 
       const validatedUrlString = validatedUrl.toString();
-      if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
+      if (
+        interstitialWhitelistUrls.some((u) => validatedUrlString.startsWith(u))
+      ) {
+        resolve(true);
+        return;
+      }
+
+      // bypass if link originated from within this app
+      if (interstitialWhitelistSources.includes(source)) {
         resolve(true);
         return;
       }
