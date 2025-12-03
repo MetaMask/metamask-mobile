@@ -197,13 +197,16 @@ export async function generateDefaultTransactionMetrics(
 
   // Fails if wallet locked
   try {
-    accountType = isValidHexAddress(from)
-      ? getAddressAccountType(from)
-      : accountType;
-
-    accountHardwareType = isHardwareAccount(from)
-      ? getAddressAccountType(from)
-      : null;
+    if (isValidHexAddress(from)) {
+      // Get account type based on the keyring associated with
+      // this address.
+      accountType = getAddressAccountType(from);
+      
+      // Also populate this one for HW accounts.
+      if (isHardwareAccount(from)) {
+        accountHardwareType = accountType;
+      }
+    }
   } catch {
     // Intentionally empty
   }
