@@ -14,7 +14,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TRON_RESOURCE } from '../../../../../../core/Multichain/constants';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
 import { ResourceType } from '../ResourceToggle';
-import { ComputeFeeResult } from '../../../utils/tron-staking';
+import type { ComputeFeeResult } from '../../../types/tron-staking.types';
 
 export interface TronStakePreviewProps {
   resourceType?: ResourceType;

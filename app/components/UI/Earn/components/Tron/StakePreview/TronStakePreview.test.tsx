@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import TronStakePreview from './TronStakePreview';
 import { TRON_RESOURCE } from '../../../../../../core/Multichain/constants';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
-import type { ComputeFeeResult } from '../../../utils/tron-staking';
+import type { ComputeFeeResult } from '../../../utils/tron-staking-snap';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
