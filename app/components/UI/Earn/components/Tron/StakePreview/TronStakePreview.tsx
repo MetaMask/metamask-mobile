@@ -144,7 +144,7 @@ const TronStakePreview = ({
       >
         {mode === 'stake' && (
           <Row
-            label={strings('stake.estimated_annual_reward')}
+            label={strings('stake.tron.estimated_annual_reward')}
             value={estimatedAnnualReward}
           />
         )}

@@ -1045,7 +1045,7 @@ const EarnInputView = () => {
           )
         ///: END:ONLY_INCLUDE_IF
       }
-      {!isTronNative &&
+      {!isTronEnabled &&
         renderReviewButton(
           isOverMaximum.isOverMaximumToken ||
             isOverMaximum.isOverMaximumEth ||
