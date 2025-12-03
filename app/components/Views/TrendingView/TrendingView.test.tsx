@@ -50,7 +50,7 @@ const TrendingView: React.FC = () => (
       headerShown: false,
     }}
   >
-    <Stack.Screen name={Routes.EXPLORE_FEED} component={ExploreFeed} />
+    <Stack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
   </Stack.Navigator>
 );
 

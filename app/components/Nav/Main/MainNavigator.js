@@ -306,9 +306,9 @@ const BrowserFlow = (props) => (
 );
 
 const ExploreHome = () => (
-  <Stack.Navigator initialRouteName={Routes.EXPLORE_FEED} mode="modal">
+  <Stack.Navigator initialRouteName={Routes.TRENDING_FEED} mode="modal">
     <Stack.Screen
-      name={Routes.EXPLORE_FEED}
+      name={Routes.TRENDING_FEED}
       component={ExploreFeed}
       options={{ headerShown: false }}
     />
@@ -601,7 +601,7 @@ const HomeTabs = () => {
           ).build(),
         );
       },
-      rootScreenName: Routes.EXPLORE_VIEW,
+      rootScreenName: Routes.TRENDING_VIEW,
       unmountOnBlur: true,
     },
     settings: {
@@ -645,7 +645,7 @@ const HomeTabs = () => {
     }
 
     // Hide tab bar when browser is in fullscreen mode
-    const homeTabsWithBrowser = [Routes.BROWSER.HOME, Routes.EXPLORE_VIEW];
+    const homeTabsWithBrowser = [Routes.BROWSER.HOME, Routes.TRENDING_VIEW];
     if (
       isBrowserFullscreen &&
       homeTabsWithBrowser.some((routeName) =>
@@ -676,7 +676,7 @@ const HomeTabs = () => {
       />
       {isAssetsTrendingTokensEnabled ? (
         <Tab.Screen
-          name={Routes.EXPLORE_VIEW}
+          name={Routes.TRENDING_VIEW}
           options={options.trending}
           component={ExploreHome}
           layout={({ children }) => UnmountOnBlurComponent(children)}

@@ -1320,7 +1320,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         navigation.goBack();
       } else {
         // By default go to trending
-        navigation.navigate(Routes.EXPLORE_FEED);
+        navigation.navigate(Routes.TRENDING_FEED);
       }
     }, [navigation, fromTrending]);
 
