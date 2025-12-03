@@ -91,9 +91,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
               screen: 'Settings',
             });
             break;
-          case Routes.TRENDING_VIEW:
+          case Routes.EXPLORE_VIEW:
             if (isAssetsTrendingTokensEnabled) {
-              navigation.navigate(Routes.TRENDING_VIEW);
+              navigation.navigate(Routes.EXPLORE_VIEW);
             }
             break;
         }

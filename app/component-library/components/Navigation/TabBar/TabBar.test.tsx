@@ -205,7 +205,7 @@ describe('TabBar', () => {
       '1': {
         options: {
           tabBarIconKey: TabBarIconKey.Trending,
-          rootScreenName: Routes.TRENDING_VIEW,
+          rootScreenName: Routes.EXPLORE_VIEW,
         },
       },
     };
@@ -222,7 +222,7 @@ describe('TabBar', () => {
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_VIEW);
   });
 
   it('does not navigate to trending when trending feature flag is disabled', () => {
@@ -236,7 +236,7 @@ describe('TabBar', () => {
       '1': {
         options: {
           tabBarIconKey: TabBarIconKey.Trending,
-          rootScreenName: Routes.TRENDING_VIEW,
+          rootScreenName: Routes.EXPLORE_VIEW,
         },
       },
     };
@@ -253,6 +253,6 @@ describe('TabBar', () => {
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
-    expect(navigation.navigate).not.toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    expect(navigation.navigate).not.toHaveBeenCalledWith(Routes.EXPLORE_VIEW);
   });
 });

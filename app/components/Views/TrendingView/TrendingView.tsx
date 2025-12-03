@@ -18,10 +18,6 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  lastTrendingScreenRef,
-  updateLastTrendingScreen,
-} from '../../Nav/Main/MainNavigator';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
@@ -32,7 +28,7 @@ import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptySt
 
 const Stack = createStackNavigator();
 
-const TrendingFeed: React.FC = () => {
+export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -40,15 +36,6 @@ const TrendingFeed: React.FC = () => {
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // Update state when returning to TrendingFeed
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      updateLastTrendingScreen('TrendingFeed');
-    });
-
-    return unsubscribe;
-  }, [navigation]);
 
   const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 
@@ -59,11 +46,13 @@ const TrendingFeed: React.FC = () => {
     selectBasicFunctionalityEnabled,
   );
   const handleBrowserPress = useCallback(() => {
-    updateLastTrendingScreen('TrendingBrowser');
-    navigation.navigate('TrendingBrowser', {
-      newTabUrl: portfolioUrl.href,
-      timestamp: Date.now(),
-      fromTrending: true,
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: portfolioUrl.href,
+        timestamp: Date.now(),
+        fromTrending: true,
+      },
     });
   }, [navigation, portfolioUrl.href]);
 
@@ -154,8 +143,12 @@ const TrendingFeed: React.FC = () => {
   );
 };
 
+/**
+ * @deprecated - this is not used anymore and should be thrown away. Maybe we can reuse this, but currently is just messy to keep...
+ * @returns react component
+ */
 const TrendingView: React.FC = () => {
-  const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
+  const initialRoot = Routes.EXPLORE_FEED;
 
   return (
     <Stack.Navigator
@@ -164,7 +157,7 @@ const TrendingView: React.FC = () => {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
+      <Stack.Screen name={Routes.EXPLORE_FEED} component={ExploreFeed} />
       <Stack.Screen
         name={Routes.EXPLORE_SEARCH}
         component={ExploreSearchScreen}

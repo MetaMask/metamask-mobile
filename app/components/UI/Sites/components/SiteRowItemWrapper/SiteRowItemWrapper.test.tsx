@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import SiteRowItemWrapper from './SiteRowItemWrapper';
-import { updateLastTrendingScreen } from '../../../../Nav/Main/MainNavigator';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { SiteData } from '../SiteRowItem/SiteRowItem';
 
@@ -174,9 +173,6 @@ describe('SiteRowItemWrapper', () => {
       );
 
       fireEvent.press(getByTestId('site-row-item'));
-
-      expect(updateLastTrendingScreen).toHaveBeenCalledWith('TrendingBrowser');
-      expect(updateLastTrendingScreen).toHaveBeenCalledTimes(1);
     });
 
     it('should navigate to TrendingBrowser with correct params when pressed', () => {
@@ -222,10 +218,6 @@ describe('SiteRowItemWrapper', () => {
 
       const callOrder: string[] = [];
 
-      (updateLastTrendingScreen as jest.Mock).mockImplementation(() => {
-        callOrder.push('update');
-      });
-
       (mockNavigation.navigate as jest.Mock).mockImplementation(() => {
         callOrder.push('navigate');
       });
@@ -245,8 +237,6 @@ describe('SiteRowItemWrapper', () => {
       fireEvent.press(siteRowItem);
       fireEvent.press(siteRowItem);
       fireEvent.press(siteRowItem);
-
-      expect(updateLastTrendingScreen).toHaveBeenCalledTimes(3);
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(3);
     });
 
