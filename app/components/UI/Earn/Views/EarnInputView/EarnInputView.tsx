@@ -1045,6 +1045,14 @@ const EarnInputView = () => {
           )
         ///: END:ONLY_INCLUDE_IF
       }
+      {!isTronNative &&
+        renderReviewButton(
+          isOverMaximum.isOverMaximumToken ||
+            isOverMaximum.isOverMaximumEth ||
+            !isNonZeroAmount ||
+            (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
+            isSubmittingStakeDepositTransaction,
+        )}
     </ScreenLayout>
   );
 };
