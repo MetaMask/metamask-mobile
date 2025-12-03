@@ -37,7 +37,10 @@ export const useNftRefresh = (): UseNftRefreshReturn => {
         source: 'detected' as const,
       };
     } catch (error) {
-      Logger.error(error as Error, 'useNftRefresh.getNftDetectionAnalyticsParams');
+      Logger.error(
+        error as Error,
+        'useNftRefresh.getNftDetectionAnalyticsParams',
+      );
       return undefined;
     }
   }, []);
@@ -117,4 +120,3 @@ export const useNftRefresh = (): UseNftRefreshReturn => {
     onRefresh,
   };
 };
-

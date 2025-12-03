@@ -125,22 +125,15 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       }
     }, []);
 
-    // eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
     const onRefresh = useCallback(async () => {
-      console.log('[Tokens] onRefresh START'); // eslint-disable-line no-console
       setRefreshing(true);
       try {
-        console.log('[Tokens] calling refreshTokens...'); // eslint-disable-line no-console
         await refreshTokens({
           isSolanaSelected,
           evmNetworkConfigurationsByChainId,
           selectedAccountId,
         });
-        console.log('[Tokens] refreshTokens DONE'); // eslint-disable-line no-console
-      } catch (error) {
-        console.log('[Tokens] refreshTokens ERROR:', error); // eslint-disable-line no-console
       } finally {
-        console.log('[Tokens] onRefresh FINALLY - setting refreshing false'); // eslint-disable-line no-console
         setRefreshing(false);
       }
     }, [

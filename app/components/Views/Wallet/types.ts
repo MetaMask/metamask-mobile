@@ -17,4 +17,3 @@ export interface WalletTokensTabViewHandle {
    */
   refresh: (refreshSharedContent: () => Promise<void>) => Promise<void>;
 }
-

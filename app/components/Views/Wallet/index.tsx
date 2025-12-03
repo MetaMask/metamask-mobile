@@ -395,33 +395,15 @@ const WalletTokensTabView = forwardRef<
   // Expose refresh method to parent
   useImperativeHandle(ref, () => ({
     refresh: async (refreshSharedContent: () => Promise<void>) => {
-      // eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
-      console.log(
-        '[WalletTokensTabView] refresh START, currentTabIndex:',
-        currentTabIndex,
-      );
       const activeTabRef = getTabRefByIndex(currentTabIndex);
-      // eslint-disable-next-line no-console
-      console.log(
-        '[WalletTokensTabView] activeTabRef exists:',
-        !!activeTabRef?.current,
-      );
 
       // Always refresh shared content (balance) + tab-specific content if available
       const promises = [
         refreshSharedContent(),
         activeTabRef?.current?.refresh(),
       ].filter(Boolean);
-      // eslint-disable-next-line no-console
-      console.log(
-        '[WalletTokensTabView] awaiting',
-        promises.length,
-        'promises',
-      );
 
       await Promise.all(promises);
-      // eslint-disable-next-line no-console
-      console.log('[WalletTokensTabView] refresh DONE');
     },
   }));
 
@@ -1417,10 +1399,8 @@ const Wallet = ({
     [styles.wrapper, isHomepageRedesignV1Enabled],
   );
 
-  // eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
   const refreshSharedContent = useCallback(async () => {
     const TIMEOUT_MS = 5000; // 5 second timeout
-    console.log('[Wallet] refreshSharedContent START'); // eslint-disable-line no-console
     const { AccountTrackerController, CurrencyRateController } = Engine.context;
     const networkClientIds = Object.values(evmNetworkConfigurations)
       .map(
@@ -1429,11 +1409,6 @@ const Wallet = ({
       )
       .filter((id): id is string => Boolean(id));
 
-    // eslint-disable-next-line no-console
-    console.log(
-      '[Wallet] refreshSharedContent - networkClientIds:',
-      networkClientIds.length,
-    );
     try {
       await Promise.race([
         Promise.allSettled([
@@ -1447,29 +1422,16 @@ const Wallet = ({
           ),
         ),
       ]);
-      console.log('[Wallet] refreshSharedContent DONE'); // eslint-disable-line no-console
     } catch (error) {
-      console.log('[Wallet] refreshSharedContent ERROR/TIMEOUT:', error); // eslint-disable-line no-console
       Logger.error(error as Error, 'Error refreshing shared content');
     }
   }, [evmNetworkConfigurations, nativeCurrencies]);
 
-  // eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
   const handleRefresh = useCallback(async () => {
-    console.log('[Wallet] handleRefresh START'); // eslint-disable-line no-console
-    // eslint-disable-next-line no-console
-    console.log(
-      '[Wallet] walletTokensTabViewRef.current exists:',
-      !!walletTokensTabViewRef.current,
-    );
     setRefreshing(true);
     try {
       await walletTokensTabViewRef.current?.refresh(refreshSharedContent);
-      console.log('[Wallet] handleRefresh - refresh completed'); // eslint-disable-line no-console
-    } catch (error) {
-      console.log('[Wallet] handleRefresh ERROR:', error); // eslint-disable-line no-console
     } finally {
-      console.log('[Wallet] handleRefresh FINALLY - setting refreshing false'); // eslint-disable-line no-console
       setRefreshing(false);
     }
   }, [refreshSharedContent]);

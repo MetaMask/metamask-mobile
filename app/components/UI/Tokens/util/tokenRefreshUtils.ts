@@ -27,14 +27,12 @@ const withTimeout = <T>(
  * Refreshes token-specific data (detection, balances, rates).
  * Does NOT refresh account balance - use performEvmRefresh for that.
  */
-// eslint-disable-next-line no-console -- TODO: Remove debug logs after testing
 export const performEvmTokenRefresh = async (
   evmNetworkConfigurationsByChainId: Record<
     string,
     { chainId: Hex; nativeCurrency: string }
   >,
 ) => {
-  console.log('[performEvmTokenRefresh] START'); // eslint-disable-line no-console
   const {
     TokenDetectionController,
     TokenRatesController,
@@ -49,8 +47,6 @@ export const performEvmTokenRefresh = async (
   )
     .filter(([, isEnabled]) => isEnabled === true)
     .map(([chainId]) => chainId as Hex);
-
-  console.log('[performEvmTokenRefresh] chainIds:', chainIds.length); // eslint-disable-line no-console
 
   const actions = [
     TokenDetectionController.detectTokens({
@@ -69,21 +65,13 @@ export const performEvmTokenRefresh = async (
     ),
   ];
 
-  // eslint-disable-next-line no-console
-  console.log(
-    '[performEvmTokenRefresh] awaiting',
-    actions.length,
-    'actions...',
-  );
   try {
     await withTimeout(
       Promise.allSettled(actions),
       REFRESH_TIMEOUT_MS,
       'performEvmTokenRefresh',
     );
-    console.log('[performEvmTokenRefresh] DONE'); // eslint-disable-line no-console
   } catch (error) {
-    console.log('[performEvmTokenRefresh] ERROR/TIMEOUT:', error); // eslint-disable-line no-console
     Logger.error(error as Error, 'Error while refreshing tokens');
   }
 };
