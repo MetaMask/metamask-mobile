@@ -3,11 +3,24 @@ import { fireEvent } from '@testing-library/react-native';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
+import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 
 // Mock Keyboard
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
 }));
+
+// Mock useFeatureFlag hook
+jest.mock('../../hooks/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn(),
+  FeatureFlagNames: {
+    srpWordSuggestionsEnabled: 'srpWordSuggestionsEnabled',
+  },
+}));
+
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
+>;
 
 // Mock BIP39 wordlist with test words
 jest.mock('@metamask/scure-bip39/dist/wordlists/english', () => ({
@@ -43,6 +56,8 @@ describe('SrpInputGrid', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    // Enable feature flag by default
+    mockUseFeatureFlag.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -146,6 +161,34 @@ describe('SrpInputGrid', () => {
 
       const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
       fireEvent.changeText(secondInput, 'ab');
+
+      expect(getByText('abandon')).toBeOnTheScreen();
+      expect(getByText('ability')).toBeOnTheScreen();
+    });
+
+    it('hides suggestions when srpWordSuggestionsEnabled feature flag is disabled', () => {
+      mockUseFeatureFlag.mockReturnValue(false);
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent.changeText(input, 'ab');
+
+      expect(queryByText('abandon')).not.toBeOnTheScreen();
+      expect(queryByText('ability')).not.toBeOnTheScreen();
+    });
+
+    it('displays suggestions when srpWordSuggestionsEnabled feature flag is enabled', () => {
+      mockUseFeatureFlag.mockReturnValue(true);
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent.changeText(input, 'ab');
 
       expect(getByText('abandon')).toBeOnTheScreen();
       expect(getByText('ability')).toBeOnTheScreen();

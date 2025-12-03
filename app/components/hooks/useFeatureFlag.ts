@@ -17,6 +17,7 @@ export enum FeatureFlagNames {
   confirmationsPay = 'confirmations_pay', //remote config
   carouselBanners = 'carouselBanners',
   fullPageAccountList = 'fullPageAccountList',
+  srpWordSuggestionsEnabled = 'srpWordSuggestionsEnabled',
 }
 
 export const useFeatureFlag = (key: FeatureFlagNames) => {

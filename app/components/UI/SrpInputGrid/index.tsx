@@ -30,6 +30,7 @@ import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import Logger from '../../../util/Logger';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
@@ -62,6 +63,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
   ) => {
     const { colors } = useAppTheme();
     const styles = createStyles(colors);
+
+    //flag to enable/disable SRP word suggestions
+    const isSrpWordSuggestionsEnabled = useFeatureFlag(
+      FeatureFlagNames.srpWordSuggestionsEnabled,
+    ) as boolean;
 
     // Internal state
     const [
@@ -502,7 +508,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             : strings('import_from_seed.paste')}
         </Text>
 
-        {suggestions.length > 0 && (
+        {isSrpWordSuggestionsEnabled && suggestions.length > 0 && (
           <View
             style={[
               styles.suggestionContainer,
