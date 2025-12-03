@@ -1874,7 +1874,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.
+          Participate in MetaMetrics to help us make MetaMask better.
            
           <Text
             accessibilityRole="link"
