@@ -112,7 +112,11 @@ describe('LedgerConnect', () => {
 
   const onConfirmationComplete = jest.fn();
   const ledgerLogicToRun = jest.fn();
-  const selectedDevice: BluetoothDevice = { id: '1', name: 'Ledger device' };
+  const selectedDevice: BluetoothDevice = {
+    id: '1',
+    name: 'Ledger device',
+    serviceUUIDs: ['service1'],
+  };
   const setSelectedDevice = jest.fn();
 
   const checkLedgerCommunicationErrorFlow = function (
@@ -159,7 +163,7 @@ describe('LedgerConnect', () => {
     (
       useBluetoothDevices as jest.MockedFunction<() => UseBluetoothDevicesHook>
     ).mockReturnValue({
-      devices: [{ id: '1', name: 'Ledger device' }],
+      devices: [{ id: '1', name: 'Ledger device', serviceUUIDs: ['service1'] }],
       deviceScanError: false,
     });
 

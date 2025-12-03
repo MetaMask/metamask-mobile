@@ -37,6 +37,13 @@ jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionConfirm');
+jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: () => ({
+    trackInlineAlertClicked: jest.fn(),
+    trackAlertActionClicked: jest.fn(),
+    trackAlertRendered: jest.fn(),
+  }),
+}));
 
 const mockGoToBuy = jest.fn();
 

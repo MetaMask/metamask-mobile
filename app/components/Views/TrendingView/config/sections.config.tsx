@@ -47,7 +47,10 @@ interface SectionConfig {
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
-  Section: React.ComponentType<{ refreshTrigger?: number }>;
+  Section: React.ComponentType<{
+    refreshTrigger?: number;
+    toggleSectionEmptyState?: (isEmpty: boolean) => void;
+  }>;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
@@ -83,8 +86,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <TrendingTokenRowItem token={item as TrendingAsset} />
     ),
     Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger }) => (
-      <SectionCard sectionId="tokens" refreshTrigger={refreshTrigger} />
+    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
+      <SectionCard
+        sectionId="tokens"
+        refreshTrigger={refreshTrigger}
+        toggleSectionEmptyState={toggleSectionEmptyState}
+      />
     ),
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
@@ -120,10 +127,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     ),
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
     Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger }) => (
+    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
       <PerpsConnectionProvider>
         <PerpsStreamProvider>
-          <SectionCard sectionId="perps" refreshTrigger={refreshTrigger} />
+          <SectionCard
+            sectionId="perps"
+            refreshTrigger={refreshTrigger}
+            toggleSectionEmptyState={toggleSectionEmptyState}
+          />
         </PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
@@ -159,10 +170,11 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
-    Section: ({ refreshTrigger }) => (
+    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
       <SectionCarrousel
         sectionId="predictions"
         refreshTrigger={refreshTrigger}
+        toggleSectionEmptyState={toggleSectionEmptyState}
       />
     ),
     useSectionData: (searchQuery) => {
@@ -186,8 +198,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),
     Skeleton: () => <SiteSkeleton />,
-    Section: ({ refreshTrigger }) => (
-      <SectionCard sectionId="sites" refreshTrigger={refreshTrigger} />
+    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
+      <SectionCard
+        sectionId="sites"
+        refreshTrigger={refreshTrigger}
+        toggleSectionEmptyState={toggleSectionEmptyState}
+      />
     ),
     useSectionData: (searchQuery) => {
       const { sites, isLoading, refetch } = useSitesData(searchQuery, 100);

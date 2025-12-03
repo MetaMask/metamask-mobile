@@ -4,8 +4,15 @@ import { PermissionsAndroid, AppStateStatus, AppState } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
+import {
+  PERMISSION_RESULT,
+  PERMISSION_TYPE,
+} from '../../../../../core/Analytics/MetaMetrics.events';
 
 export const useCamera = (isSigningQRObject: boolean) => {
+  const { trackEvent, createEventBuilder } = useMetrics();
   // todo: integrate with alert system
   const [cameraError, setCameraError] = useState<string | undefined>();
 
@@ -16,16 +23,51 @@ export const useCamera = (isSigningQRObject: boolean) => {
     if (Device.isAndroid() && !hasCameraPermission) {
       PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then(
         (_hasPermission) => {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
+            )
+              .addProperties({
+                permission: PERMISSION_TYPE.CAMERA,
+                result: _hasPermission
+                  ? PERMISSION_RESULT.GRANTED
+                  : PERMISSION_RESULT.DENIED,
+                device_type: HardwareDeviceTypes.QR,
+              })
+              .build(),
+          );
           setCameraPermission(_hasPermission);
           if (!_hasPermission) {
+            trackEvent(
+              createEventBuilder(
+                MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
+              )
+                .addProperties({
+                  permission: PERMISSION_TYPE.CAMERA,
+                  result: PERMISSION_RESULT.LIMITED,
+                  device_type: HardwareDeviceTypes.QR,
+                })
+                .build(),
+            );
             setCameraError(strings('transaction.no_camera_permission_android'));
           } else {
+            trackEvent(
+              createEventBuilder(
+                MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
+              )
+                .addProperties({
+                  permission: PERMISSION_TYPE.CAMERA,
+                  result: PERMISSION_RESULT.UNAVAILABLE,
+                  device_type: HardwareDeviceTypes.QR,
+                })
+                .build(),
+            );
             setCameraError(undefined);
           }
         },
       );
     }
-  }, [hasCameraPermission]);
+  }, [hasCameraPermission, trackEvent, createEventBuilder]);
 
   const handleAppState = useCallback(
     (appState: AppStateStatus) => {
