@@ -1,17 +1,23 @@
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
 import { useCallback, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { CaipAssetType } from '@metamask/utils';
 import {
+  addCurrencySymbol,
   fromTokenMinimalUnit,
   limitToMaximumDecimalPlaces,
   renderFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
+import { Keys } from '../../../Base/Keypad/constants';
 import useBalance from '../../Stake/hooks/useBalance';
 import { EarnTokenDetails } from '../types/lending.types';
 import useEarnDepositGasFee from './useEarnGasFee';
 import { useEarnMetadata } from './useEarnMetadata';
 import useInputHandler from './useInput';
+import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 export interface EarnInputProps {
   earnToken: EarnTokenDetails;
@@ -27,6 +33,19 @@ const useEarnInputHandlers = ({
   const { balanceWei, balanceETH, balanceFiatNumber } = useBalance();
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 
+  // Non-EVM chain support: get multichain asset rates for fiat conversion
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  const isNonEvm = useMemo(
+    () => isNonEvmChainId(earnToken?.chainId ?? ''),
+    [earnToken?.chainId],
+  );
+
+  const nonEvmFiatRate = useMemo(() => {
+    if (!isNonEvm || !earnToken?.address) return undefined;
+    const rate = multichainAssetsRates?.[earnToken.address as CaipAssetType];
+    return rate?.rate ? Number(rate.rate) : undefined;
+  }, [isNonEvm, earnToken?.address, multichainAssetsRates]);
+
   const balanceMinimalUnit: BN4 = useMemo(
     () => new BN4(earnToken?.balanceMinimalUnit ?? '0'),
     [earnToken?.balanceMinimalUnit],
@@ -34,18 +53,18 @@ const useEarnInputHandlers = ({
 
   const {
     isFiat,
-    currencyToggleValue,
+    currencyToggleValue: evmCurrencyToggleValue,
     isNonZeroAmount,
-    handleKeypadChange,
+    handleKeypadChange: evmHandleKeypadChange,
     handleCurrencySwitch,
     percentageOptions,
     handleQuickAmountPress,
     currentCurrency,
     handleTokenInput,
-    handleFiatInput,
+    handleFiatInput: evmHandleFiatInput,
     amountToken,
     amountTokenMinimalUnit,
-    amountFiatNumber,
+    amountFiatNumber: evmAmountFiatNumber,
     handleMaxInput,
   } = useInputHandler({
     balance: earnToken?.balanceMinimalUnit ?? '0',
@@ -54,6 +73,102 @@ const useEarnInputHandlers = ({
     conversionRate,
     exchangeRate,
   });
+
+  // For non-EVM chains override fiat input to convert fiat → token using correct rate
+  const nonEvmHandleFiatInput = useCallback(
+    (value: string) => {
+      if (!nonEvmFiatRate || nonEvmFiatRate <= 0) {
+        evmHandleFiatInput(value);
+        return;
+      }
+      // Convert fiat to token: tokenAmount = fiatValue / rate
+      const fiatValue = parseFloat(value) || 0;
+      const tokenValue = fiatValue / nonEvmFiatRate;
+      const tokenValueString = tokenValue.toFixed(5);
+      // Use the token input handler with the converted value
+      handleTokenInput(tokenValueString);
+    },
+    [nonEvmFiatRate, evmHandleFiatInput, handleTokenInput],
+  );
+
+  // Select the appropriate fiat input handler
+  const handleFiatInput = isNonEvm ? nonEvmHandleFiatInput : evmHandleFiatInput;
+
+  // For non-EVM chains override keypad change to use our fiat handler
+  const handleKeypadChange = useCallback(
+    ({ value, pressedKey }: { value: string; pressedKey: string }) => {
+      if (!isNonEvm) {
+        evmHandleKeypadChange({ value, pressedKey });
+        return;
+      }
+
+      // Replicate the validation logic from useInput.ts
+      const digitsOnly = value.replace(/[^0-9.]/g, '');
+      const [whole = '', fraction = ''] = digitsOnly.split('.');
+      const totalDigits = whole.length + fraction.length;
+      const isValueNaN = isNaN(parseFloat(value));
+      const MAX_DIGITS = 12;
+      const MAX_FRACTION_DIGITS = 5;
+
+      if (
+        pressedKey === Keys.Back ||
+        isValueNaN ||
+        (totalDigits <= MAX_DIGITS &&
+          fraction.length <= MAX_FRACTION_DIGITS &&
+          value !== amountToken)
+      ) {
+        if (isValueNaN) {
+          if (
+            pressedKey === digitsOnly[digitsOnly.length - 1] ||
+            pressedKey === Keys.Period
+          ) {
+            value = pressedKey === Keys.Period ? '0.' : pressedKey;
+          } else {
+            value = '0';
+          }
+        }
+        isFiat ? nonEvmHandleFiatInput(value) : handleTokenInput(value);
+      }
+    },
+    [
+      isNonEvm,
+      evmHandleKeypadChange,
+      isFiat,
+      nonEvmHandleFiatInput,
+      handleTokenInput,
+      amountToken,
+    ],
+  );
+
+  // For non-EVM chains calculate fiat amount using multichain rates
+  const amountFiatNumber = useMemo(() => {
+    if (!isNonEvm || !nonEvmFiatRate || nonEvmFiatRate <= 0) {
+      return evmAmountFiatNumber;
+    }
+    const tokenAmount = parseFloat(amountToken) || 0;
+    return (tokenAmount * nonEvmFiatRate).toFixed(2);
+  }, [isNonEvm, nonEvmFiatRate, amountToken, evmAmountFiatNumber]);
+
+  // For non-EVM chains calculate currency toggle value
+  const currencyToggleValue = useMemo(() => {
+    if (!isNonEvm || !nonEvmFiatRate || nonEvmFiatRate <= 0) {
+      return evmCurrencyToggleValue;
+    }
+    const ticker = earnToken?.ticker ?? earnToken?.symbol ?? '';
+    const amountTokenText = `${amountToken} ${ticker}`;
+    const amountFiatText = addCurrencySymbol(amountFiatNumber, currentCurrency);
+    return isFiat ? amountTokenText : amountFiatText;
+  }, [
+    isNonEvm,
+    nonEvmFiatRate,
+    evmCurrencyToggleValue,
+    earnToken?.ticker,
+    earnToken?.symbol,
+    amountToken,
+    amountFiatNumber,
+    currentCurrency,
+    isFiat,
+  ]);
 
   const earnGasFee = useEarnDepositGasFee(
     amountTokenMinimalUnit,
@@ -162,15 +277,10 @@ const useEarnInputHandlers = ({
     ],
   );
 
-  const annualRewardsFiat = useMemo(
-    () =>
-      renderFiat(
-        parseFloat(amountFiatNumber) * annualRewardRateDecimal,
-        currentCurrency,
-        2,
-      ),
-    [amountFiatNumber, annualRewardRateDecimal, currentCurrency],
-  );
+  const annualRewardsFiat = useMemo(() => {
+    const fiatAmount = parseFloat(amountFiatNumber) || 0;
+    return renderFiat(fiatAmount * annualRewardRateDecimal, currentCurrency, 2);
+  }, [amountFiatNumber, annualRewardRateDecimal, currentCurrency]);
 
   const calculateEstimatedAnnualRewards = useCallback(() => {
     if (isNonZeroAmount) {
@@ -190,9 +300,22 @@ const useEarnInputHandlers = ({
     annualRewardRate,
   ]);
 
-  const tokenBalanceFiat = earnToken.isETH
-    ? balanceFiatNumber?.toString()
-    : earnToken.balanceFiat;
+  const tokenBalanceFiat = useMemo(() => {
+    if (isNonEvm && nonEvmFiatRate && nonEvmFiatRate > 0) {
+      const balanceNumber = parseFloat(earnToken?.balanceFormatted ?? '0') || 0;
+      return (balanceNumber * nonEvmFiatRate).toFixed(2);
+    }
+    return earnToken.isETH
+      ? balanceFiatNumber?.toString()
+      : earnToken.balanceFiat;
+  }, [
+    isNonEvm,
+    nonEvmFiatRate,
+    earnToken?.balanceFormatted,
+    earnToken.isETH,
+    earnToken.balanceFiat,
+    balanceFiatNumber,
+  ]);
 
   const tokenBalance = earnToken.isETH
     ? `${balanceETH} ETH`
