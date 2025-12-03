@@ -22,13 +22,13 @@ interface SectionCardProps {
   sectionId: SectionId;
   refreshTrigger?: number;
   /** Callback when data empty state changes (only called after loading completes) */
-  onEmptyChange?: (isEmpty: boolean) => void;
+  toggleSectionEmptyState?: (isEmpty: boolean) => void;
 }
 
 const SectionCard: React.FC<SectionCardProps> = ({
   sectionId,
   refreshTrigger,
-  onEmptyChange,
+  toggleSectionEmptyState,
 }) => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
@@ -39,10 +39,10 @@ const SectionCard: React.FC<SectionCardProps> = ({
 
   // Notify parent when data empty state changes (only after loading completes)
   useEffect(() => {
-    if (!isLoading && onEmptyChange) {
-      onEmptyChange(data.length === 0);
+    if (!isLoading && toggleSectionEmptyState) {
+      toggleSectionEmptyState(data.length === 0);
     }
-  }, [data.length, isLoading, onEmptyChange]);
+  }, [data.length, isLoading, toggleSectionEmptyState]);
 
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0 && refetch) {

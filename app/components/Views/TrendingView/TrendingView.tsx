@@ -172,7 +172,7 @@ const TrendingFeed: React.FC = () => {
             />
           }
         >
-          <QuickActions />
+          <QuickActions emptySections={emptySections} />
 
           {HOME_SECTIONS_ARRAY.map((section) => {
             // Hide section visually but keep mounted so it can report when data arrives
@@ -186,7 +186,7 @@ const TrendingFeed: React.FC = () => {
                 <SectionHeader sectionId={section.id} />
                 <section.Section
                   refreshTrigger={refreshTrigger}
-                  onEmptyChange={sectionEmptyCallbacks[section.id]}
+                  toggleSectionEmptyState={sectionEmptyCallbacks[section.id]}
                 />
               </Box>
             );
