@@ -6,7 +6,7 @@ import otaConfig from '../../ota.config.js';
  * Reset to v0 when releasing a new native build
  * We keep this OTA_VERSION here to because changes in ota.config.js will affect the fingerprint and break the workflow in Github Actions
  */
-export const OTA_VERSION: string = 'v2';
+export const OTA_VERSION: string = 'v3';
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
 export const UPDATE_URL = otaConfig.UPDATE_URL;
