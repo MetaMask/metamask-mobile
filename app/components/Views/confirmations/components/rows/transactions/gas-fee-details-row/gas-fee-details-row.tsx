@@ -80,9 +80,16 @@ const EstimationInfo = ({
       : styles.secondaryValue;
 
   const transactionMetadata = useTransactionMetadataRequest();
-  const { simulationData } = (transactionMetadata as TransactionMeta) ?? {};
-  // For batches, don't check simulationData since it has already been calculated
-  const isSimulationLoading = !isBatch ? Boolean(!simulationData) : false;
+  const { chainId, simulationData, networkClientId } =
+    (transactionMetadata as TransactionMeta) ?? {};
+  const balanceChangesResult = useBalanceChanges({
+    chainId,
+    simulationData,
+    networkClientId,
+  });
+
+  const isSimulationLoading =
+    !isBatch && (!simulationData || balanceChangesResult.pending);
 
   return (
     <View style={styles.estimationContainer}>
