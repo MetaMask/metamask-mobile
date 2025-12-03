@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -26,7 +26,7 @@ import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import { HOME_SECTIONS_ARRAY } from './config/sections.config';
+import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 
@@ -40,6 +40,9 @@ const TrendingFeed: React.FC = () => {
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Track which sections have empty data
+  const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -58,6 +61,24 @@ const TrendingFeed: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+
+  const sectionCallbacks = useMemo(() => {
+    const callbacks = {} as Record<SectionId, (isEmpty: boolean) => void>;
+    HOME_SECTIONS_ARRAY.forEach((section) => {
+      callbacks[section.id] = (isEmpty: boolean) => {
+        setEmptySections((prev) => {
+          const next = new Set(prev);
+          if (isEmpty) {
+            next.add(section.id);
+          } else {
+            next.delete(section.id);
+          }
+          return next;
+        });
+      };
+    });
+    return callbacks;
+  }, []);
   const handleBrowserPress = useCallback(() => {
     updateLastTrendingScreen('TrendingBrowser');
     navigation.navigate('TrendingBrowser', {
@@ -138,14 +159,25 @@ const TrendingFeed: React.FC = () => {
             />
           }
         >
-          <QuickActions />
+          <QuickActions emptySections={emptySections} />
 
-          {HOME_SECTIONS_ARRAY.map((section) => (
-            <React.Fragment key={section.id}>
-              <SectionHeader sectionId={section.id} />
-              <section.Section refreshTrigger={refreshTrigger} />
-            </React.Fragment>
-          ))}
+          {HOME_SECTIONS_ARRAY.map((section) => {
+            // Hide section visually but keep mounted so it can report when data arrives
+            const isHidden = emptySections.has(section.id);
+
+            return (
+              <Box
+                key={section.id}
+                twClassName={isHidden ? 'hidden' : undefined}
+              >
+                <SectionHeader sectionId={section.id} />
+                <section.Section
+                  refreshTrigger={refreshTrigger}
+                  toggleSectionEmptyState={sectionCallbacks[section.id]}
+                />
+              </Box>
+            );
+          })}
         </ScrollView>
       ) : (
         <BasicFunctionalityEmptyState />
