@@ -571,7 +571,7 @@ describe('Asset', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('should handle unknown SPL token filtering gracefully', () => {
+    it('returns empty list for unknown SPL tokens', () => {
       const testState = createMockStateWithAccount(SolAccountType.DataAccount);
 
       const { toJSON } = renderScreen(
@@ -672,7 +672,7 @@ describe('Asset', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('should handle state with no multichain transactions', () => {
+    it('renders empty state when no multichain transactions exist', () => {
       const stateWithoutMultichain = {
         ...createMockStateWithAccount(SolAccountType.DataAccount),
         engine: {
@@ -1122,6 +1122,70 @@ describe('Asset', () => {
       expect(mockScopedSelector).toHaveBeenCalledWith(
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       );
+    });
+
+    it('preserves Solana address format without checksumming', () => {
+      // Solana addresses are not hex, so they should not be checksummed
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => ({
+        id: 'solana-account-id',
+        address: MOCK_SOLANA_ADDRESS,
+        type: SolAccountType.DataAccount,
+      }));
+
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        { name: 'Asset' },
+        { state: testState },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('falls back to standard address when account by scope returns null address', () => {
+      // Test the fallback when accountByScope returns an account without an address
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => ({
+        id: 'account-without-address',
+        address: null, // No address
+        type: EthAccountType.Eoa,
+      }));
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: '0x0000000000000000000000000000000000000000',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      // Should fall back to standard address selection
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

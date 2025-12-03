@@ -14,7 +14,6 @@ import AppConstants from '../../../core/AppConstants';
 import { swapsTokensMultiChainObjectSelector } from '../../../reducers/swaps';
 import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
 import {
-  selectChainId,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectRpcUrl,
@@ -159,7 +158,7 @@ class Asset extends PureComponent {
      */
     selectedAddressForAsset: PropTypes.string,
     /**
-     * The chain ID for the current selected network
+     * The chain ID for the asset being viewed
      */
     chainId: PropTypes.string,
     /**
@@ -779,17 +778,17 @@ const mapStateToProps = (state, { route }) => {
     currentCurrency: selectCurrentCurrency(state),
     selectedInternalAccount,
     selectedAddressForAsset,
-    chainId: selectChainId(state),
+    chainId: route.params.chainId,
     tokens: selectTokens(state),
     transactions: allTransactions,
     rpcUrl: selectRpcUrl(state),
     networkConfigurations: selectNetworkConfigurations(state),
     isNetworkRampSupported: isNetworkRampSupported(
-      selectChainId(state),
+      route.params.chainId,
       getRampNetworks(state),
     ),
     isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-      selectChainId(state),
+      route.params.chainId,
       getRampNetworks(state),
     ),
     isDepositEnabled: (() => {
