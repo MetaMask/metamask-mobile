@@ -106,8 +106,33 @@ jobs:
         if: ${{ inputs.platform == 'android' }}
         run: |
           echo "📱 Installing Android system images for E2E tests..."
-          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
-          echo "✅ System images installed"
+          
+          # Accept licenses first
+          yes | "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          
+          # Clear any corrupted cache
+          rm -rf "$ANDROID_SDK_ROOT/.downloadIntermediates" 2>/dev/null || true
+          
+          # Install with retry logic
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          
+          until [ $RETRY_COUNT -ge $MAX_RETRIES ]
+          do
+            echo "Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES"
+            if "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager --install "system-images;android-34;google_apis;x86_64"; then
+              echo "✅ System images installed successfully"
+              exit 0
+            fi
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "⚠️ Installation failed, cleaning up and retrying..."
+            rm -rf "$ANDROID_SDK_ROOT/system-images/android-34" 2>/dev/null || true
+            rm -rf "$ANDROID_SDK_ROOT/.downloadIntermediates" 2>/dev/null || true
+            sleep 5
+          done
+          
+          echo "❌ Failed to install system images after $MAX_RETRIES attempts"
+          exit 1
 
       - name: Set up E2E environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
