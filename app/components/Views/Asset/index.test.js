@@ -277,12 +277,12 @@ jest.mock('../../../selectors/earnController', () => ({
   },
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
+const mockSelectSelectedInternalAccountByScope = jest.fn(() => () => undefined);
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: (...args) =>
+    mockSelectSelectedInternalAccountByScope(...args),
+}));
 
 describe('Asset', () => {
   it('should render correctly', () => {
@@ -956,6 +956,172 @@ describe('Asset', () => {
         { state },
       );
       expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
+  describe('selectedAddressForAsset', () => {
+    const MOCK_EVM_ADDRESS = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
+    const MOCK_SOLANA_ADDRESS = '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
+    });
+
+    it('uses account from selectSelectedInternalAccountByScope for EVM asset', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => ({
+        id: 'evm-account-id',
+        address: MOCK_EVM_ADDRESS,
+        type: EthAccountType.Eoa,
+      }));
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: '0x0000000000000000000000000000000000000000',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalled();
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('uses Solana address for Solana asset', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => ({
+        id: 'solana-account-id',
+        address: MOCK_SOLANA_ADDRESS,
+        type: SolAccountType.DataAccount,
+      }));
+
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      const { toJSON } = renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        { name: 'Asset' },
+        { state: testState },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalled();
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('falls back to standard address when selectSelectedInternalAccountByScope returns undefined', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: '0x0000000000000000000000000000000000000000',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalled();
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('converts EVM hex chainId to CAIP format when looking up account by scope', () => {
+      const mockScopedSelector = jest.fn().mockReturnValue({
+        id: 'evm-account-id',
+        address: MOCK_EVM_ADDRESS,
+        type: EthAccountType.Eoa,
+      });
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        mockScopedSelector,
+      );
+
+      renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: '0x0000000000000000000000000000000000000000',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      // formatChainIdToCaip converts '0x1' to 'eip155:1'
+      expect(mockScopedSelector).toHaveBeenCalledWith('eip155:1');
+    });
+
+    it('passes Solana CAIP chainId directly when looking up account by scope', () => {
+      const mockScopedSelector = jest.fn().mockReturnValue({
+        id: 'solana-account-id',
+        address: MOCK_SOLANA_ADDRESS,
+        type: SolAccountType.DataAccount,
+      });
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        mockScopedSelector,
+      );
+
+      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
+
+      renderScreen(
+        (props) => (
+          <Asset
+            {...props}
+            route={{
+              params: {
+                symbol: 'SOL',
+                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                isNative: true,
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              },
+            }}
+          />
+        ),
+        { name: 'Asset' },
+        { state: testState },
+        {
+          symbol: 'SOL',
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          isNative: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      );
+
+      // Solana chainId is already in CAIP format, passed through as-is
+      expect(mockScopedSelector).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
     });
   });
 });
