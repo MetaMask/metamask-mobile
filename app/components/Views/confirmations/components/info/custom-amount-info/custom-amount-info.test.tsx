@@ -314,7 +314,7 @@ describe('CustomAmountInfo', () => {
 
       const { getByTestId } = render();
 
-      expect(getByTestId(REWARDS_TAG_SELECTOR)).toBeDefined();
+      expect(getByTestId(REWARDS_TAG_SELECTOR)).toBeOnTheScreen();
     });
 
     it('does not render RewardsTag for non-mUSD transactions', () => {
@@ -346,7 +346,7 @@ describe('CustomAmountInfo', () => {
 
       const { getByText } = render();
 
-      expect(getByText('5 points')).toBeDefined();
+      expect(getByText('5 points')).toBeOnTheScreen();
     });
 
     it('calculates points correctly for $199', () => {
@@ -362,7 +362,7 @@ describe('CustomAmountInfo', () => {
 
       const { getByText } = render();
 
-      expect(getByText('5 points')).toBeDefined();
+      expect(getByText('5 points')).toBeOnTheScreen();
     });
 
     it('calculates points correctly for $300', () => {
@@ -378,7 +378,7 @@ describe('CustomAmountInfo', () => {
 
       const { getByText } = render();
 
-      expect(getByText('15 points')).toBeDefined();
+      expect(getByText('15 points')).toBeOnTheScreen();
     });
 
     it('renders 0 points when amount is empty', () => {
@@ -394,7 +394,7 @@ describe('CustomAmountInfo', () => {
 
       const { getByText } = render();
 
-      expect(getByText('0 points')).toBeDefined();
+      expect(getByText('0 points')).toBeOnTheScreen();
     });
 
     it('calls onRewardsTagPress when RewardsTag is pressed', () => {
@@ -432,7 +432,7 @@ describe('CustomAmountInfo', () => {
 
       const { getByTestId } = render();
 
-      expect(getByTestId(OUTPUT_AMOUNT_TAG_SELECTOR)).toBeDefined();
+      expect(getByTestId(OUTPUT_AMOUNT_TAG_SELECTOR)).toBeOnTheScreen();
     });
 
     it('displays correct output amount', () => {
@@ -448,7 +448,7 @@ describe('CustomAmountInfo', () => {
 
       const { getByText } = render();
 
-      expect(getByText('100 mUSD')).toBeDefined();
+      expect(getByText('100 mUSD')).toBeOnTheScreen();
     });
 
     it('formats amount with 2 decimal places', () => {
@@ -464,7 +464,7 @@ describe('CustomAmountInfo', () => {
 
       const { getByText } = render();
 
-      expect(getByText('100.5 mUSD')).toBeDefined();
+      expect(getByText('100.5 mUSD')).toBeOnTheScreen();
     });
 
     it('does not render OutputAmountTag for non-mUSD transactions', () => {

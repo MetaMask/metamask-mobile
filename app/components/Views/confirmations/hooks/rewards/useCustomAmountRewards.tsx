@@ -82,7 +82,7 @@ export const useCustomAmountRewards = ({
     if (!shouldShowOutputAmountTag) {
       return null;
     }
-    return limitToMaximumDecimalPlaces(parseFloat(amountHuman || '0'), 2);
+    return limitToMaximumDecimalPlaces(parseFloat(amountHuman) || 0, 2);
   }, [shouldShowOutputAmountTag, amountHuman]);
 
   const outputSymbol = useMemo(() => {
