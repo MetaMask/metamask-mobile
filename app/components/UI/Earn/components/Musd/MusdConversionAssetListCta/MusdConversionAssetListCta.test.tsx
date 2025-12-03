@@ -102,7 +102,9 @@ describe('MusdConversionAssetListCta', () => {
         },
       );
 
-      expect(getByTestId(EARN_TEST_IDS.MUSD.CONVERSION_CTA)).toBeOnTheScreen();
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
     });
 
     it('displays MetaMask USD text', () => {

@@ -100,7 +100,10 @@ const MusdConversionAssetListCta = () => {
   };
 
   return (
-    <View style={styles.container} testID={EARN_TEST_IDS.MUSD.CONVERSION_CTA}>
+    <View
+      style={styles.container}
+      testID={EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA}
+    >
       <View style={styles.assetInfo}>
         <AvatarToken
           name={MUSD_TOKEN.symbol}

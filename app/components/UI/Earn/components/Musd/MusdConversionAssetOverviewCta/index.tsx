@@ -11,13 +11,16 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
+import { EARN_TEST_IDS } from '../../../constants/testIds';
 
 interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
+  testId?: string;
 }
 
 const MusdConversionAssetOverviewCta = ({
   asset,
+  testId = EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
 }: MusdConversionAssetOverviewCtaProps) => {
   const { styles } = useStyles(stylesheet, {});
 
@@ -61,10 +64,8 @@ const MusdConversionAssetOverviewCta = ({
     }
   };
 
-  // TODO: Fix EarnBalance icon size being smaller than main balance
-  // TODO: Write tests for MusdConversionAssetOverviewCta
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID={testId}>
       <Text>
         <Text style={styles.text}>
           {strings('earn.musd_conversion.earn_rewards_when')}
