@@ -5,6 +5,8 @@ import {
   connectLedgerHardware,
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
+  getLedgerKeyringIdByDeviceId,
+  createNewLedgerKeyring,
 } from '../../../core/Ledger/Ledger';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
@@ -133,6 +135,12 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
       if (!transportRef.current) {
         throw new Error('transportRef.current is undefined');
       }
+      // Create the keyring for the device if it doesn't exist.
+      let ledgerKeyringId = await getLedgerKeyringIdByDeviceId(deviceId);
+      if (!ledgerKeyringId) {
+        ledgerKeyringId = await createNewLedgerKeyring(deviceId);
+      }
+
       // Initialise the keyring and check for pre-conditions (is the correct app running?)
       const appName = await connectLedgerHardware(
         transportRef.current as unknown as BleTransport,
@@ -144,7 +152,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         // Open Ethereum App
         try {
           setIsAppLaunchConfirmationNeeded(true);
-          await openEthereumAppOnLedger();
+          await openEthereumAppOnLedger(ledgerKeyringId);
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
@@ -179,7 +187,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         return;
       } else if (appName !== 'Ethereum') {
         try {
-          await closeRunningAppOnLedger();
+          await closeRunningAppOnLedger(ledgerKeyringId);
         } catch (e) {
           throw new LedgerError(
             strings('ledger.running_app_close_error'),

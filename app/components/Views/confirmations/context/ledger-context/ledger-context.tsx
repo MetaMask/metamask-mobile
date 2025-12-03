@@ -69,7 +69,7 @@ export const LedgerContextProvider: React.FC<{
     }
 
     (async () => {
-      const id = await getDeviceId();
+      const id = await getDeviceId(keyring.metadata.id);
       if (isMounted) {
         setDeviceId(id);
       }
