@@ -646,10 +646,44 @@ buildAndroidReleaseE2E(){
 buildExpoUpdate() {
 		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
 
-		## add validation for expo update variables
+		# Validate required Expo Update environment variables
+		if [ -z "${EXPO_CHANNEL}" ]; then
+			echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
+			exit 1
+		fi
 
-		## expo command to build the update
+		if [ -z "${EXPO_KEY_PRIV}" ]; then
+			echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
+			exit 1
+		fi
 
+		# Prepare Expo update signing key
+		mkdir -p keys
+		echo "Writing Expo private key to ./keys/private-key.pem"
+		printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
+
+		if [ ! -f keys/private-key.pem ]; then
+			echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
+			exit 1
+		fi
+
+		echo "🚀 Publishing EAS update..."
+
+		echo "ℹ️ Git head: $(git rev-parse HEAD)"
+		echo "ℹ️ Checking for eas script in package.json..."
+		if ! grep -q '"eas": "eas"' package.json; then
+			echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
+			exit 1
+		fi
+
+		echo "ℹ️ Available yarn scripts containing eas:"
+		yarn run --json | grep '"name":"eas"' || true
+
+		yarn run eas update \
+			--channel "${EXPO_CHANNEL}" \
+			--private-key-path "./keys/private-key.pem" \
+			--message "test eas update workflow" \
+			--non-interactive
 }
 
 buildAndroid() {

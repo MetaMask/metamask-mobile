@@ -64,7 +64,6 @@
     "build:expo-update:main:e2e": "./scripts/build.sh expo-update main e2e",
     "build:expo-update:main:dev": "./scripts/build.sh expo-update main dev",
     "build:expo-update:main:test": "./scripts/build.sh expo-update main test",
-    ## mirror scripts for flask 
     "build:ios:release": "./scripts/build.sh ios release",
     "build:ios:main:prod": "./scripts/build.sh ios main production",
     "build:ios:main:beta": "./scripts/build.sh ios main beta",
