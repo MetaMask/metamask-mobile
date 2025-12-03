@@ -13,11 +13,17 @@ const CARD_HEIGHT = 220;
 
 export interface SectionCarrouselProps {
   sectionId: SectionId;
+  data: unknown[];
+  isLoading: boolean;
+  refetch: () => void;
   refreshTrigger?: number;
 }
 
 const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   sectionId,
+  data,
+  isLoading,
+  refetch,
   refreshTrigger,
 }) => {
   const navigation = useNavigation();
@@ -25,7 +31,6 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   const flashListRef = useRef<FlashListRef<unknown>>(null);
 
   const section = SECTIONS_CONFIG[sectionId];
-  const { data, isLoading, refetch } = section.useSectionData();
 
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0 && refetch) {

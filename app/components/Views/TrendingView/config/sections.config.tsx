@@ -31,6 +31,7 @@ export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 interface SectionData {
   data: unknown[];
   isLoading: boolean;
+  refetch: () => void;
 }
 
 interface SectionConfig {
@@ -47,7 +48,12 @@ interface SectionConfig {
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
-  Section: React.ComponentType<{ refreshTrigger?: number }>;
+  Section: React.ComponentType<{
+    data: unknown[];
+    isLoading: boolean;
+    refetch: () => void;
+    refreshTrigger?: number;
+  }>;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
@@ -83,8 +89,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <TrendingTokenRowItem token={item as TrendingAsset} />
     ),
     Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger }) => (
-      <SectionCard sectionId="tokens" refreshTrigger={refreshTrigger} />
+    Section: ({ data, isLoading, refetch, refreshTrigger }) => (
+      <SectionCard
+        sectionId="tokens"
+        data={data}
+        isLoading={isLoading}
+        refetch={refetch}
+        refreshTrigger={refreshTrigger}
+      />
     ),
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
@@ -120,12 +132,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     ),
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
     Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger }) => (
-      <PerpsConnectionProvider>
-        <PerpsStreamProvider>
-          <SectionCard sectionId="perps" refreshTrigger={refreshTrigger} />
-        </PerpsStreamProvider>
-      </PerpsConnectionProvider>
+    Section: ({ data, isLoading, refetch, refreshTrigger }) => (
+      <SectionCard
+        sectionId="perps"
+        data={data}
+        isLoading={isLoading}
+        refetch={refetch}
+        refreshTrigger={refreshTrigger}
+      />
     ),
     useSectionData: (searchQuery) => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
@@ -159,9 +173,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
-    Section: ({ refreshTrigger }) => (
+    Section: ({ data, isLoading, refetch, refreshTrigger }) => (
       <SectionCarrousel
         sectionId="predictions"
+        data={data}
+        isLoading={isLoading}
+        refetch={refetch}
         refreshTrigger={refreshTrigger}
       />
     ),
@@ -186,8 +203,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),
     Skeleton: () => <SiteSkeleton />,
-    Section: ({ refreshTrigger }) => (
-      <SectionCard sectionId="sites" refreshTrigger={refreshTrigger} />
+    Section: ({ data, isLoading, refetch, refreshTrigger }) => (
+      <SectionCard
+        sectionId="sites"
+        data={data}
+        isLoading={isLoading}
+        refetch={refetch}
+        refreshTrigger={refreshTrigger}
+      />
     ),
     useSectionData: (searchQuery) => {
       const { sites, isLoading, refetch } = useSitesData(searchQuery, 100);
@@ -223,34 +246,50 @@ export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 export const useSectionsData = (
   searchQuery: string,
 ): Record<SectionId, SectionData> => {
-  const { data: trendingTokens, isLoading: isTokensLoading } =
-    SECTIONS_CONFIG.tokens.useSectionData(searchQuery);
+  const {
+    data: trendingTokens,
+    isLoading: isTokensLoading,
+    refetch: refetchTokens,
+  } = SECTIONS_CONFIG.tokens.useSectionData(searchQuery);
 
-  const { data: perpsMarkets, isLoading: isPerpsLoading } =
-    SECTIONS_CONFIG.perps.useSectionData(searchQuery);
+  const {
+    data: perpsMarkets,
+    isLoading: isPerpsLoading,
+    refetch: refetchPerps,
+  } = SECTIONS_CONFIG.perps.useSectionData(searchQuery);
 
-  const { data: predictionMarkets, isLoading: isPredictionsLoading } =
-    SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
+  const {
+    data: predictionMarkets,
+    isLoading: isPredictionsLoading,
+    refetch: refetchPredictions,
+  } = SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
 
-  const { data: sites, isLoading: isSitesLoading } =
-    SECTIONS_CONFIG.sites.useSectionData(searchQuery);
+  const {
+    data: sites,
+    isLoading: isSitesLoading,
+    refetch: refetchSites,
+  } = SECTIONS_CONFIG.sites.useSectionData(searchQuery);
 
   return {
     tokens: {
       data: trendingTokens,
       isLoading: isTokensLoading,
+      refetch: refetchTokens,
     },
     perps: {
       data: perpsMarkets,
       isLoading: isPerpsLoading,
+      refetch: refetchPerps,
     },
     predictions: {
       data: predictionMarkets,
       isLoading: isPredictionsLoading,
+      refetch: refetchPredictions,
     },
     sites: {
       data: sites,
       isLoading: isSitesLoading,
+      refetch: refetchSites,
     },
   };
 };

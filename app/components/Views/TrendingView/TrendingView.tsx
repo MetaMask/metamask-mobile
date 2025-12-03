@@ -26,11 +26,58 @@ import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import { HOME_SECTIONS_ARRAY } from './config/sections.config';
+import { HOME_SECTIONS_ARRAY, useSectionsData } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 
 const Stack = createStackNavigator();
+
+const SectionItem: React.FC<{
+  section: (typeof HOME_SECTIONS_ARRAY)[number];
+  sectionData: {
+    data: unknown[];
+    isLoading: boolean;
+    refetch: () => void;
+  };
+  refreshTrigger: number;
+}> = ({ section, sectionData, refreshTrigger }) => {
+  const handleRefetch = useCallback(() => {
+    sectionData.refetch();
+  }, [sectionData]);
+
+  return (
+    <React.Fragment>
+      <SectionHeader sectionId={section.id} />
+      <section.Section
+        data={sectionData.data}
+        isLoading={sectionData.isLoading}
+        refetch={handleRefetch}
+        refreshTrigger={refreshTrigger}
+      />
+    </React.Fragment>
+  );
+};
+
+const TrendingSections: React.FC<{ refreshTrigger: number }> = ({
+  refreshTrigger,
+}) => {
+  const sectionsData = useSectionsData('');
+
+  return HOME_SECTIONS_ARRAY.filter(
+    (section) =>
+      !sectionsData[section.id].isLoading &&
+      sectionsData[section.id].data.length > 0,
+  ).map((section) => (
+    <SectionItem
+      key={section.id}
+      section={section}
+      sectionData={sectionsData[section.id]}
+      refreshTrigger={refreshTrigger}
+    />
+  ));
+};
 
 const TrendingFeed: React.FC = () => {
   const tw = useTailwind();
@@ -140,12 +187,11 @@ const TrendingFeed: React.FC = () => {
         >
           <QuickActions />
 
-          {HOME_SECTIONS_ARRAY.map((section) => (
-            <React.Fragment key={section.id}>
-              <SectionHeader sectionId={section.id} />
-              <section.Section refreshTrigger={refreshTrigger} />
-            </React.Fragment>
-          ))}
+          <PerpsConnectionProvider>
+            <PerpsStreamProvider>
+              <TrendingSections refreshTrigger={refreshTrigger} />
+            </PerpsStreamProvider>
+          </PerpsConnectionProvider>
         </ScrollView>
       ) : (
         <BasicFunctionalityEmptyState />

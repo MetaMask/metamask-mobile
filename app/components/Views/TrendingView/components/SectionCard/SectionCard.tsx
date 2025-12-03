@@ -20,11 +20,17 @@ const createStyles = (theme: Theme) =>
   });
 interface SectionCardProps {
   sectionId: SectionId;
+  data: unknown[];
+  isLoading: boolean;
+  refetch: () => void;
   refreshTrigger?: number;
 }
 
 const SectionCard: React.FC<SectionCardProps> = ({
   sectionId,
+  data,
+  isLoading,
+  refetch,
   refreshTrigger,
 }) => {
   const navigation = useNavigation();
@@ -32,7 +38,6 @@ const SectionCard: React.FC<SectionCardProps> = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const section = SECTIONS_CONFIG[sectionId];
-  const { data, isLoading, refetch } = section.useSectionData();
 
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0 && refetch) {
