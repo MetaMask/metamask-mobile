@@ -49,6 +49,7 @@ import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import {
@@ -373,7 +374,9 @@ const ActivityView = () => {
               tabLabel={strings('perps.transactions.title')}
               isVisible={isPerpsTabActive}
             >
-              <PerpsTransactionsView />
+              <PerpsStreamProvider>
+                <PerpsTransactionsView />
+              </PerpsStreamProvider>
             </PerpsConnectionProvider>
           )}
 
