@@ -20,9 +20,8 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
-import Icon, {
+import {
   IconName,
-  IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import Text, {
@@ -173,23 +172,22 @@ const ImportPrivateKey = () => {
         >
           <ButtonIcon
             onPress={dismiss}
-            iconName={IconName.Close}
+            iconName={IconName.ArrowLeft}
             size={ButtonIconSizes.Lg}
             iconColor={IconColor.Default}
-            style={styles.navbarRightButton}
+            style={styles.navbarLeftButton}
             testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
           />
           <View style={styles.top}>
-            <Icon
-              name={IconName.Download}
-              size={IconSize.XXL}
-              color={IconColor.Default}
-            />
             <View style={styles.textContainer}>
               <Text style={styles.title}>
                 {strings('import_private_key.title')}
               </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                style={styles.descriptionText}
+              >
                 {isSRP
                   ? strings('import_private_key.description_srp')
                   : strings('import_private_key.description_one')}
@@ -197,7 +195,8 @@ const ImportPrivateKey = () => {
               {isSRP ? (
                 <Text
                   variant={TextVariant.BodySM}
-                  color={TextColor.Default}
+                  color={TextColor.Alternative}
+                  style={styles.learnMoreText}
                   onPress={learnMore}
                 >
                   {strings('import_private_key.learn_more_srp')}{' '}
@@ -208,7 +207,8 @@ const ImportPrivateKey = () => {
               ) : (
                 <Text
                   variant={TextVariant.BodySM}
-                  color={TextColor.Default}
+                  color={TextColor.Alternative}
+                  style={styles.learnMoreText}
                   onPress={learnMore}
                 >
                   <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
@@ -220,7 +220,11 @@ const ImportPrivateKey = () => {
             </View>
           </View>
           <View style={styles.bottom}>
-            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.HeadingSM}
+              color={TextColor.Default}
+              style={styles.subtitleText}
+            >
               {strings('import_private_key.subtitle')}
             </Text>
             <TextInput
