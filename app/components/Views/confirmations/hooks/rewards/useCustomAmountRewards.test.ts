@@ -39,6 +39,20 @@ describe('useCustomAmountRewards', () => {
     });
   });
 
+  describe('rewards opt-in', () => {
+    it('passes requireActiveSeason true to useRewardsAccountOptedIn', () => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        type: TransactionType.musdConversion,
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+
+      renderHook(() => useCustomAmountRewards({ amountHuman: '100' }));
+
+      expect(mockUseRewardsAccountOptedIn).toHaveBeenCalledWith({
+        requireActiveSeason: true,
+      });
+    });
+  });
+
   describe('non-mUSD transactions', () => {
     it('returns shouldShowRewardsTag false for non-mUSD transaction types', () => {
       mockUseTransactionMetadataRequest.mockReturnValue({

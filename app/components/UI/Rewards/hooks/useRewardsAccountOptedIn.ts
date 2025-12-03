@@ -17,7 +17,7 @@ export interface UseRewardsAccountOptedInParams {
    * Always checks isRewardsFeatureEnabled first, then also checks hasActiveSeason if true.
    * @default false
    */
-  checkActiveSeason?: boolean;
+  requireActiveSeason?: boolean;
 }
 
 export interface UseRewardsAccountOptedInResult {
@@ -66,7 +66,7 @@ export const useRewardsAccountOptedIn = (
       }
 
       // Optionally also check for active season (Perps requires this)
-      if (params?.checkActiveSeason) {
+      if (params?.requireActiveSeason) {
         const hasActiveSeason = await Engine.controllerMessenger.call(
           'RewardsController:hasActiveSeason',
         );
@@ -111,7 +111,7 @@ export const useRewardsAccountOptedIn = (
     } catch (error) {
       setAccountOptedIn(null);
     }
-  }, [selectedAddress, selectedAccount, params?.checkActiveSeason]);
+  }, [selectedAddress, selectedAccount, params?.requireActiveSeason]);
 
   useEffect(() => {
     checkOptInStatus();

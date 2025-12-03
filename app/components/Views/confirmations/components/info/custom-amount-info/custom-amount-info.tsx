@@ -51,10 +51,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
-import RewardsTag from '../../../../../UI/Rewards/components/RewardsTag';
 import EngineService from '../../../../../../core/EngineService';
-import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
-import { useCustomAmountRewards } from '../../../hooks/rewards/useCustomAmountRewards';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -62,10 +59,36 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
+  /**
+   * Optional render function for extra content that needs access to amountHuman.
+   * Used for feature-specific UI like rewards tags or output amount displays.
+   */
+  renderExtras?: (amountHuman: string) => ReactNode;
+  /**
+   * Whether to show the PayTokenAmount component.
+   * Set to false when providing custom output display via renderExtras.
+   * @default true
+   */
+  showPayTokenAmount?: boolean;
+  /**
+   * Whether to show the PayWithRow component.
+   * Set to false when providing custom PayWithRow positioning via renderExtras.
+   * @default true
+   */
+  showPayWithRow?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay, hasMax, preferredToken }) => {
+  ({
+    children,
+    currency,
+    disablePay,
+    hasMax,
+    preferredToken,
+    renderExtras,
+    showPayTokenAmount = true,
+    showPayWithRow = true,
+  }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
       disable: disablePay,
@@ -93,17 +116,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
-    // Use the rewards hook for all rewards and output amount logic
-    const {
-      shouldShowRewardsTag,
-      estimatedPoints,
-      onRewardsTagPress,
-      shouldShowOutputAmountTag,
-      outputAmount,
-      outputSymbol,
-      renderRewardsTooltip,
-    } = useCustomAmountRewards({ amountHuman });
-
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
       isKeyboardVisible,
@@ -130,25 +142,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {disablePay !== true && !shouldShowOutputAmountTag && (
+          {disablePay !== true && showPayTokenAmount && (
             <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
-          {shouldShowOutputAmountTag && outputAmount !== null && (
-            <OutputAmountTag
-              amount={outputAmount}
-              symbol={outputSymbol ?? undefined}
-              showBackground={false}
-            />
-          )}
           {children}
-          {disablePay !== true && hasTokens && <PayWithRow />}
-          {shouldShowRewardsTag && estimatedPoints !== null && (
-            <RewardsTag
-              points={estimatedPoints}
-              onPress={onRewardsTagPress}
-              showBackground={false}
-            />
-          )}
+          {renderExtras?.(amountHuman)}
+          {disablePay !== true && hasTokens && showPayWithRow && <PayWithRow />}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
@@ -173,7 +172,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hasTokens && <BuySection />}
           {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
         </Box>
-        {renderRewardsTooltip()}
       </Box>
     );
   },

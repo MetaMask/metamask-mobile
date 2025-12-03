@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
@@ -10,6 +10,49 @@ import {
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
 import { useParams } from '../../../../../../util/navigation/navUtils';
+import { useCustomAmountRewards } from '../../../hooks/rewards/useCustomAmountRewards';
+import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
+import RewardsTag from '../../../../../UI/Rewards/components/RewardsTag';
+import { PayWithRow } from '../../rows/pay-with-row';
+
+interface MusdRewardsExtrasProps {
+  amountHuman: string;
+}
+
+const MusdRewardsExtras: React.FC<MusdRewardsExtrasProps> = ({
+  amountHuman,
+}) => {
+  const {
+    shouldShowRewardsTag,
+    estimatedPoints,
+    onRewardsTagPress,
+    shouldShowOutputAmountTag,
+    outputAmount,
+    outputSymbol,
+    renderRewardsTooltip,
+  } = useCustomAmountRewards({ amountHuman });
+
+  return (
+    <>
+      {shouldShowOutputAmountTag && outputAmount !== null && (
+        <OutputAmountTag
+          amount={outputAmount}
+          symbol={outputSymbol ?? undefined}
+          showBackground={false}
+        />
+      )}
+      <PayWithRow />
+      {shouldShowRewardsTag && estimatedPoints !== null && (
+        <RewardsTag
+          points={estimatedPoints}
+          onPress={onRewardsTagPress}
+          showBackground={false}
+        />
+      )}
+      {renderRewardsTooltip()}
+    </>
+  );
+};
 
 export const MusdConversionInfo = () => {
   const { outputChainId, preferredPaymentToken } =
@@ -37,5 +80,17 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  return <CustomAmountInfo preferredToken={preferredPaymentToken} />;
+  const renderExtras = useCallback(
+    (amountHuman: string) => <MusdRewardsExtras amountHuman={amountHuman} />,
+    [],
+  );
+
+  return (
+    <CustomAmountInfo
+      preferredToken={preferredPaymentToken}
+      showPayTokenAmount={false}
+      showPayWithRow={false}
+      renderExtras={renderExtras}
+    />
+  );
 };

@@ -33,8 +33,8 @@ interface OutputAmountTagProps {
 const createStyles = () =>
   StyleSheet.create({
     wrapper: {
-      marginTop: 8,
-      marginBottom: 8,
+      marginTop: -8,
+      marginBottom: 6,
     },
   });
 

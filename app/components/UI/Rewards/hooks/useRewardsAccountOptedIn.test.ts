@@ -193,7 +193,7 @@ describe('useRewardsAccountOptedIn', () => {
         .mockResolvedValueOnce(true); // getHasAccountOptedIn
 
       const { result } = renderHook(() =>
-        useRewardsAccountOptedIn({ checkActiveSeason: true }),
+        useRewardsAccountOptedIn({ requireActiveSeason: true }),
       );
 
       await waitFor(() => {
@@ -214,7 +214,7 @@ describe('useRewardsAccountOptedIn', () => {
         .mockResolvedValueOnce(false); // hasActiveSeason
 
       const { result } = renderHook(() =>
-        useRewardsAccountOptedIn({ checkActiveSeason: true }),
+        useRewardsAccountOptedIn({ requireActiveSeason: true }),
       );
 
       await waitFor(() => {
@@ -228,7 +228,7 @@ describe('useRewardsAccountOptedIn', () => {
       ); // isRewardsFeatureEnabled
 
       const { result } = renderHook(() =>
-        useRewardsAccountOptedIn({ checkActiveSeason: true }),
+        useRewardsAccountOptedIn({ requireActiveSeason: true }),
       );
 
       await waitFor(() => {
@@ -248,7 +248,7 @@ describe('useRewardsAccountOptedIn', () => {
         .mockResolvedValueOnce(true); // getHasAccountOptedIn
 
       const { result } = renderHook(() =>
-        useRewardsAccountOptedIn({ checkActiveSeason: false }),
+        useRewardsAccountOptedIn({ requireActiveSeason: false }),
       );
 
       await waitFor(() => {

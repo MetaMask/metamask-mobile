@@ -7,12 +7,18 @@ import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CustomAmountInfo } from '../custom-amount-info';
+import { useCustomAmountRewards } from '../../../hooks/rewards/useCustomAmountRewards';
 
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
+jest.mock('../../../hooks/rewards/useCustomAmountRewards');
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
+}));
+
+jest.mock('../../rows/pay-with-row', () => ({
+  PayWithRow: jest.fn(() => null),
 }));
 
 const mockRoute = {
@@ -33,9 +39,19 @@ describe('MusdConversionInfo', () => {
   const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseAddToken = jest.mocked(useAddToken);
   const mockUseRoute = jest.mocked(useRoute);
+  const mockUseCustomAmountRewards = jest.mocked(useCustomAmountRewards);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCustomAmountRewards.mockReturnValue({
+      shouldShowRewardsTag: false,
+      estimatedPoints: null,
+      onRewardsTagPress: jest.fn(),
+      shouldShowOutputAmountTag: false,
+      outputAmount: null,
+      outputSymbol: null,
+      renderRewardsTooltip: () => null,
+    });
   });
 
   afterEach(() => {
@@ -130,6 +146,65 @@ describe('MusdConversionInfo', () => {
       expect(CustomAmountInfo).toHaveBeenCalledWith(
         expect.objectContaining({
           preferredToken: preferredPaymentToken,
+        }),
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('rewards rendering', () => {
+    it('passes showPayTokenAmount false to CustomAmountInfo', () => {
+      mockRoute.params = {
+        outputChainId: '0x1' as Hex,
+      };
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(CustomAmountInfo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showPayTokenAmount: false,
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('passes showPayWithRow false to CustomAmountInfo', () => {
+      mockRoute.params = {
+        outputChainId: '0x1' as Hex,
+      };
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(CustomAmountInfo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showPayWithRow: false,
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('passes renderExtras function to CustomAmountInfo', () => {
+      mockRoute.params = {
+        outputChainId: '0x1' as Hex,
+      };
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(CustomAmountInfo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          renderExtras: expect.any(Function),
         }),
         expect.anything(),
       );

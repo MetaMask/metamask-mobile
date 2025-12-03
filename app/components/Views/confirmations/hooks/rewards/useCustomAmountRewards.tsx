@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -59,7 +59,9 @@ export const useCustomAmountRewards = ({
     isMusdConversionFlowEnabled &&
     hasTransactionType(transactionMeta, [TransactionType.musdConversion]);
 
-  const { accountOptedIn } = useRewardsAccountOptedIn();
+  const { accountOptedIn } = useRewardsAccountOptedIn({
+    requireActiveSeason: true,
+  });
   const isOptedIn = accountOptedIn ?? false;
 
   // Calculate rewards points: 5 points per $100 USD
@@ -107,7 +109,7 @@ export const useCustomAmountRewards = ({
     }
 
     return (
-      <View>
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
         <Modal visible transparent animationType="none" statusBarTranslucent>
           <RewardsTooltipBottomSheet
             isOptedIn={isOptedIn}
