@@ -3,6 +3,7 @@ import {
   formatGroupingLabel,
   selectDefaultGrouping,
   aggregateOrderBookLevels,
+  calculateAggregationParams,
 } from './orderBookGrouping';
 import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
 
@@ -202,6 +203,107 @@ describe('orderBookGrouping', () => {
     it('handles empty levels array', () => {
       const result = aggregateOrderBookLevels([], 10, 'bid');
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('calculateAggregationParams', () => {
+    describe('guard clause for invalid inputs', () => {
+      it('returns nSigFigs: 5 for price <= 0', () => {
+        expect(calculateAggregationParams(10, 0)).toEqual({ nSigFigs: 5 });
+        expect(calculateAggregationParams(10, -100)).toEqual({ nSigFigs: 5 });
+      });
+
+      it('returns nSigFigs: 5 for grouping <= 0', () => {
+        expect(calculateAggregationParams(0, 50000)).toEqual({ nSigFigs: 5 });
+        expect(calculateAggregationParams(-10, 50000)).toEqual({ nSigFigs: 5 });
+      });
+    });
+
+    describe('BTC at ~$90,000', () => {
+      const btcPrice = 90000;
+
+      it('returns nSigFigs: 5 with mantissa: 2 for grouping 1', () => {
+        const result = calculateAggregationParams(1, btcPrice);
+        expect(result).toEqual({ nSigFigs: 5, mantissa: 2 });
+      });
+
+      it('returns nSigFigs: 5 with mantissa: 2 for grouping 2', () => {
+        const result = calculateAggregationParams(2, btcPrice);
+        expect(result).toEqual({ nSigFigs: 5, mantissa: 2 });
+      });
+
+      it('returns nSigFigs: 5 with mantissa: 5 for grouping 5', () => {
+        const result = calculateAggregationParams(5, btcPrice);
+        expect(result).toEqual({ nSigFigs: 5, mantissa: 5 });
+      });
+
+      it('returns nSigFigs: 4 for grouping 10', () => {
+        const result = calculateAggregationParams(10, btcPrice);
+        expect(result).toEqual({ nSigFigs: 4 });
+      });
+
+      it('returns nSigFigs: 3 for grouping 100', () => {
+        const result = calculateAggregationParams(100, btcPrice);
+        expect(result).toEqual({ nSigFigs: 3 });
+      });
+
+      it('returns nSigFigs: 2 for grouping 1000', () => {
+        const result = calculateAggregationParams(1000, btcPrice);
+        expect(result).toEqual({ nSigFigs: 2 });
+      });
+    });
+
+    describe('ETH at ~$3,000', () => {
+      const ethPrice = 3000;
+
+      it('returns nSigFigs: 5 with mantissa for grouping 0.1', () => {
+        const result = calculateAggregationParams(0.1, ethPrice);
+        expect(result).toEqual({ nSigFigs: 5, mantissa: 2 });
+      });
+
+      it('returns nSigFigs: 4 for grouping 1', () => {
+        const result = calculateAggregationParams(1, ethPrice);
+        expect(result).toEqual({ nSigFigs: 4 });
+      });
+
+      it('returns nSigFigs: 3 for grouping 10', () => {
+        const result = calculateAggregationParams(10, ethPrice);
+        expect(result).toEqual({ nSigFigs: 3 });
+      });
+    });
+
+    describe('very small prices (PUMP at ~$0.002)', () => {
+      const pumpPrice = 0.002;
+
+      it('handles very small price with appropriate nSigFigs', () => {
+        const result = calculateAggregationParams(0.000001, pumpPrice);
+        // magnitude = floor(log10(0.002)) = -3
+        // groupingMagnitude = floor(log10(0.000001)) = -6
+        // baseNSigFigs = -3 - (-6) + 1 = 4
+        expect(result).toEqual({ nSigFigs: 4 });
+      });
+
+      it('returns finest granularity for smallest groupings', () => {
+        const result = calculateAggregationParams(0.0000001, pumpPrice);
+        expect(result.nSigFigs).toBe(5);
+        expect(result.mantissa).toBeDefined();
+      });
+    });
+
+    describe('edge cases', () => {
+      it('clamps nSigFigs to minimum of 2', () => {
+        // Very large grouping relative to price
+        const result = calculateAggregationParams(10000, 90000);
+        // baseNSigFigs = 4 - 4 + 1 = 1, clamped to 2
+        expect(result.nSigFigs).toBe(2);
+      });
+
+      it('handles fractional grouping values correctly', () => {
+        const result = calculateAggregationParams(0.5, 3000);
+        // Should derive mantissa from first digit (5)
+        expect(result.nSigFigs).toBe(5);
+        expect(result.mantissa).toBe(5);
+      });
     });
   });
 });
