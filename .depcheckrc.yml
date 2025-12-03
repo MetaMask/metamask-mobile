@@ -1,4 +1,10 @@
 # List things here that *are - 'used, that depcheck is wrong about'
+
+# Ignore test/e2e directories that have cross-folder imports by design
+ignorePatterns:
+  - 'wdio/*'
+  - 'appwright/*'
+
 ignores:
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'

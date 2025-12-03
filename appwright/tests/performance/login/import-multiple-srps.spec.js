@@ -27,6 +27,7 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   WalletActionModal.device = device;
   SwapScreen.device = device;
   TabBarModal.device = device;
+  test.setTimeout(1800000);
   await login(device, { dismissModals: false });
   await dismissMultichainAccountsIntroModal(device);
   await dissmissPredictionsModal(device);
