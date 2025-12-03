@@ -83,7 +83,14 @@ import {
 import { createEip5792Middleware } from '../RPCMethods/createEip5792Middleware';
 import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
-import { SolAccountType, SolScope } from '@metamask/keyring-api';
+import {
+  SolAccountType,
+  SolScope,
+  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  TrxScope,
+  TrxAccountType,
+  ///: END: ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 import { isSameOrigin } from '../../util/url';
@@ -150,6 +157,9 @@ export class BackgroundBridge extends EventEmitter {
     this.multichainMiddlewareManager = null;
 
     this.lastSelectedSolanaAccountAddress = null;
+    ///: BEGIN: ONLY_INCLUDE_IF(tron)
+    this.lastSelectedTronAccountAddress = null;
+    ///: END: ONLY_INCLUDE_IF
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
@@ -512,6 +522,20 @@ export class BackgroundBridge extends EventEmitter {
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
       );
+      ///: BEGIN: ONLY_INCLUDE_IF(tron)
+      controllerMessenger.unsubscribe(
+        `${PermissionController.name}:stateChange`,
+        this.handleTronAccountChangedFromScopeChanges,
+      );
+      controllerMessenger.unsubscribe(
+        `${AccountsController.name}:selectedAccountChange`,
+        this.handleTronAccountChangedFromSelectedAccountChanges,
+      );
+      controllerMessenger.unsubscribe(
+        `${AccountTreeController.name}:selectedAccountGroupChange`,
+        this.handleTronAccountChangedFromSelectedAccountGroupChanges,
+      );
+      ///: END: ONLY_INCLUDE_IF
     }
 
     this.port.emit('disconnect', { name: this.port.name, data: null });
@@ -910,7 +934,7 @@ export class BackgroundBridge extends EventEmitter {
       context: { AccountsController, PermissionController },
     } = Engine;
 
-    // this throws if there is no solana account... perhaps we should handle this better at the controller level
+    // this throws if there is no solana or tron account... perhaps we should handle this better at the controller level
     try {
       this.lastSelectedSolanaAccountAddress =
         AccountsController.getSelectedMultichainAccount(
@@ -919,6 +943,16 @@ export class BackgroundBridge extends EventEmitter {
     } catch {
       // noop
     }
+    ///: BEGIN: ONLY_INCLUDE_IF(tron)
+    try {
+      this.lastSelectedTronAccountAddress =
+        AccountsController.getSelectedMultichainAccount(
+          'tron:0x2b6653dc', // TronScope.Mainnet
+        )?.address;
+    } catch {
+      // noop
+    }
+    ///: END: ONLY_INCLUDE_IF
 
     // wallet_sessionChanged and eth_subscription setup/teardown
     controllerMessenger.subscribe(
@@ -944,6 +978,26 @@ export class BackgroundBridge extends EventEmitter {
       `${AccountTreeController.name}:selectedAccountGroupChange`,
       this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
     );
+
+    ///: BEGIN: ONLY_INCLUDE_IF(tron)
+    // wallet_notify for tron accountChanged when permission changes
+    controllerMessenger.subscribe(
+      `${PermissionController.name}:stateChange`,
+      this.handleTronAccountChangedFromScopeChanges,
+      getAuthorizedScopes(this.channelIdOrOrigin),
+    );
+
+    // wallet_notify for tron accountChanged when selected account changes
+    controllerMessenger.subscribe(
+      `${AccountsController.name}:selectedAccountChange`,
+      this.handleTronAccountChangedFromSelectedAccountChanges,
+    );
+
+    controllerMessenger.subscribe(
+      `${AccountTreeController.name}:selectedAccountGroupChange`,
+      this.handleTronAccountChangedFromSelectedAccountGroupChanges,
+    );
+    ///: END: ONLY_INCLUDE_IF
   }
 
   /**
@@ -1117,13 +1171,13 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   handleSolanaAccountChangedFromSelectedAccountGroupChanges = () => {
-    const solanaAccount = this.getNonEvmAccountFromSelectedAccountGroup();
+    const solanaAccount = this.getSolanaAccountFromSelectedAccountGroup();
     if (solanaAccount) {
       this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
     }
   };
 
-  getNonEvmAccountFromSelectedAccountGroup() {
+  getSolanaAccountFromSelectedAccountGroup() {
     const controllerMessenger = Engine.controllerMessenger;
 
     const [solanaAccount] = controllerMessenger.call(
@@ -1132,6 +1186,135 @@ export class BackgroundBridge extends EventEmitter {
     );
     return solanaAccount;
   }
+
+  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  handleTronAccountChangedFromScopeChanges = (currentValue, previousValue) => {
+    const previousTronAccountChangedNotificationsEnabled = Boolean(
+      previousValue?.sessionProperties?.[
+        KnownSessionProperties.TronAccountChangedNotifications
+      ],
+    );
+    const currentTronAccountChangedNotificationsEnabled = Boolean(
+      currentValue?.sessionProperties?.[
+        KnownSessionProperties.TronAccountChangedNotifications
+      ],
+    );
+
+    if (
+      !previousTronAccountChangedNotificationsEnabled &&
+      !currentTronAccountChangedNotificationsEnabled
+    ) {
+      return;
+    }
+
+    const previousTronCaipAccountIds = previousValue
+      ? getPermittedAccountsForScopes(previousValue, [
+          TrxScope.Mainnet,
+          TrxScope.Shasta,
+          TrxScope.Nile,
+        ])
+      : [];
+
+    const [previousSelectedTronAccountId] =
+      sortMultichainAccountsByLastSelected(previousTronCaipAccountIds);
+    const previousSelectedTronAccountAddress = previousSelectedTronAccountId
+      ? parseCaipAccountId(previousSelectedTronAccountId).address
+      : '';
+
+    const currentTronCaipAccountIds = currentValue
+      ? getPermittedAccountsForScopes(currentValue, [
+          TrxScope.Mainnet,
+          TrxScope.Shasta,
+          TrxScope.Nile,
+        ])
+      : [];
+    const [currentSelectedTronAccountId] = sortMultichainAccountsByLastSelected(
+      currentTronCaipAccountIds,
+    );
+    const currentSelectedTronAccountAddress = currentSelectedTronAccountId
+      ? parseCaipAccountId(currentSelectedTronAccountId).address
+      : '';
+
+    if (
+      previousSelectedTronAccountAddress !== currentSelectedTronAccountAddress
+    ) {
+      this._notifyTronAccountChange(
+        currentSelectedTronAccountAddress
+          ? [currentSelectedTronAccountAddress]
+          : [],
+      );
+    }
+  };
+  ///: END: ONLY_INCLUDE_IF
+
+  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  handleTronAccountChangedFromSelectedAccountChanges = (account) => {
+    if (
+      account.type === TrxAccountType.Eoa &&
+      !areAddressesEqual(account.address, this.lastSelectedTronAccountAddress)
+    ) {
+      this.lastSelectedTronAccountAddress = account.address;
+
+      let caip25Caveat;
+      try {
+        caip25Caveat = Engine.context.PermissionController.getCaveat(
+          this.channelIdOrOrigin,
+          Caip25EndowmentPermissionName,
+          Caip25CaveatType,
+        );
+      } catch {
+        // noop
+      }
+      if (!caip25Caveat) {
+        return;
+      }
+
+      const shouldNotifyTronAccountChanged =
+        caip25Caveat.value.sessionProperties?.[
+          KnownSessionProperties.TronAccountChangedNotifications
+        ];
+      if (!shouldNotifyTronAccountChanged) {
+        return;
+      }
+
+      const tronAccounts = getPermittedAccountsForScopes(caip25Caveat.value, [
+        TrxScope.Mainnet,
+        TrxScope.Shasta,
+        TrxScope.Nile,
+      ]);
+
+      const parsedTronAddresses = tronAccounts.map((caipAccountId) => {
+        const { address } = parseCaipAccountId(caipAccountId);
+        return address;
+      });
+
+      if (parsedTronAddresses.includes(account.address)) {
+        this._notifyTronAccountChange([account.address]);
+      }
+    }
+  };
+  ///: END: ONLY_INCLUDE_IF
+
+  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  handleTronAccountChangedFromSelectedAccountGroupChanges = () => {
+    const tronAccount = this.getTronAccountFromSelectedAccountGroup();
+    if (tronAccount) {
+      this.handleTronAccountChangedFromSelectedAccountChanges(tronAccount);
+    }
+  };
+  ///: END: ONLY_INCLUDE_IF
+
+  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  getTronAccountFromSelectedAccountGroup() {
+    const controllerMessenger = Engine.controllerMessenger;
+
+    const [tronAccount] = controllerMessenger.call(
+      `AccountTreeController:getAccountsFromSelectedAccountGroup`,
+      { type: TrxAccountType.Eoa },
+    );
+    return tronAccount;
+  }
+  ///: END: ONLY_INCLUDE_IF
 
   sendNotificationEip1193(payload) {
     DevLogger.log(`BackgroundBridge::sendNotificationEip1193: `, payload);
@@ -1265,7 +1448,7 @@ export class BackgroundBridge extends EventEmitter {
 
     if (solanaAccountsChangedNotifications && solanaScope) {
       const currentSolanaAccountFromSelectedAccountGroup =
-        this.getNonEvmAccountFromSelectedAccountGroup();
+        this.getSolanaAccountFromSelectedAccountGroup();
 
       if (currentSolanaAccountFromSelectedAccountGroup) {
         this._notifySolanaAccountChange([
@@ -1286,6 +1469,71 @@ export class BackgroundBridge extends EventEmitter {
     }
   }
 
+  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  /**
+   * For origins with a tron scope permitted, sends a wallet_notify -> metamask_accountChanged
+   * event to fire for the tron scope with the currently selected tron account if any are
+   * permitted or empty array otherwise.
+   *
+   * @param {string} origin - The origin to notify with the current tron account
+   */
+  notifyTronAccountChangedForCurrentAccount() {
+    let caip25Caveat;
+    try {
+      caip25Caveat = Engine.context.PermissionController.getCaveat(
+        this.channelIdOrOrigin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+    } catch (err) {
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+        return;
+      }
+      throw err;
+    }
+    if (!caip25Caveat) {
+      return;
+    }
+    const tronAccountsChangedNotifications =
+      caip25Caveat.value.sessionProperties[
+        KnownSessionProperties.TronAccountChangedNotifications
+      ];
+
+    const sessionScopes = getSessionScopes(caip25Caveat.value, {
+      getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+    });
+
+    const tronScope =
+      sessionScopes[TrxScope.Mainnet] ||
+      sessionScopes[TrxScope.Shasta] ||
+      sessionScopes[TrxScope.Nile];
+
+    if (tronAccountsChangedNotifications && tronScope) {
+      const currentTronAccountFromSelectedAccountGroup =
+        this.getTronAccountFromSelectedAccountGroup();
+
+      if (currentTronAccountFromSelectedAccountGroup) {
+        this._notifyTronAccountChange([
+          currentTronAccountFromSelectedAccountGroup.address,
+        ]);
+        return;
+      }
+
+      const { accounts } = tronScope;
+
+      const [accountIdToEmit] = sortMultichainAccountsByLastSelected(accounts);
+
+      if (accountIdToEmit) {
+        const accountAddressToEmit =
+          parseCaipAccountId(accountIdToEmit).address;
+        this._notifyTronAccountChange([accountAddressToEmit]);
+      }
+    }
+  }
+  ///: END: ONLY_INCLUDE_IF
+
   _notifySolanaAccountChange(value) {
     this.sendNotificationMultichain({
       method: MultichainApiNotifications.walletNotify,
@@ -1298,6 +1546,21 @@ export class BackgroundBridge extends EventEmitter {
       },
     });
   }
+
+  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  _notifyTronAccountChange(value) {
+    this.sendNotificationMultichain({
+      method: MultichainApiNotifications.walletNotify,
+      params: {
+        scope: TrxScope.Mainnet,
+        notification: {
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: value,
+        },
+      },
+    });
+  }
+  ///: END: ONLY_INCLUDE_IF
 }
 
 export default BackgroundBridge;
