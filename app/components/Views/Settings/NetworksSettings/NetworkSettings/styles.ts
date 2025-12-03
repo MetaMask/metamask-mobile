@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { Colors } from '../../../../../util/theme/models';
 
 const createStyles = () =>
@@ -8,13 +7,14 @@ const createStyles = () =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginVertical: 12,
+      marginVertical: 16,
+      paddingLeft: 0,
+      marginLeft: 0,
     },
     popularNetworkImage: {
-      width: 20,
-      height: 20,
-      marginRight: isNetworkUiRedesignEnabled() ? 20 : 10,
-      borderRadius: 10,
+      marginRight: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     popularWrapper: {
       flexDirection: 'row',
