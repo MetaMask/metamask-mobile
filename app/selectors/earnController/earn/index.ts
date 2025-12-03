@@ -38,9 +38,33 @@ import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.type
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
 import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
-import { isTronChainId } from '../../../core/Multichain/utils';
+import { isTronChainId, isNonEvmChainId } from '../../../core/Multichain/utils';
 
 import { selectTrxStakingEnabled } from '../../featureFlagController/trxStakingEnabled';
+
+/**
+ * Get the APR for pooled staking based on token type.
+ * This helper centralizes APR logic to avoid scattered conditionals.
+ *
+ * @param token - The token to get APR for
+ * @param pooledStakingVaultAprForChain - The APR from pooled staking vault (for ETH)
+ * @returns The APR string for the token's staking experience
+ */
+const getPooledStakingApr = (
+  token: TokenI,
+  pooledStakingVaultAprForChain: string,
+): string => {
+  if (token.isETH) {
+    return pooledStakingVaultAprForChain;
+  }
+
+  // TRX staking - TODO: Add actual APR when available
+  if (token.isNative && isTronChainId(token.chainId as Hex)) {
+    return '0';
+  }
+
+  return '0';
+};
 
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
@@ -185,14 +209,21 @@ const selectEarnTokens = createDeepEqualSelector(
       const isLendingToken = lendingMarketsForToken.length > 0;
       const isLendingOutputToken = lendingMarketsForOutputToken.length > 0;
 
+      const isNonEvmNative =
+        token.isNative && isNonEvmChainId(String(token.chainId));
       const isTronNative =
         token.isNative && isTronChainId(token.chainId as Hex);
+      const isTronStakedToken =
+        token.isStaked &&
+        isTronChainId(token.chainId as Hex) &&
+        isTrxStakingEnabled;
 
       const isStakingToken =
         (token.isETH && !token.isStaked && isStakingSupportedChain) ||
         (isTronNative && isTrxStakingEnabled && !token.isStaked);
       const isStakingOutputToken =
-        token.isETH && token.isStaked && isStakingSupportedChain;
+        (token.isETH && token.isStaked && isStakingSupportedChain) ||
+        isTronStakedToken;
 
       const isEarnToken = isStakingToken || isLendingToken;
       const isEarnOutputToken = isStakingOutputToken || isLendingOutputToken;
@@ -217,8 +248,8 @@ const selectEarnTokens = createDeepEqualSelector(
         if (token.isETH) {
           return token.isStaked ? stakedBalanceWei : balanceWei;
         }
-        if (isTronNative) {
-          // For non-EVM native (e.g., TRX), convert decimal balance to minimal unit
+        if (isNonEvmNative) {
+          // For non-EVM native tokens (TRX, SOL, BTC), convert decimal balance to minimal unit
           const decimalBalance = token.balance ?? '0';
           try {
             return toTokenMinimalUnit(decimalBalance, token.decimals ?? 0);
@@ -255,7 +286,7 @@ const selectEarnTokens = createDeepEqualSelector(
         ethToUsdConversionRate,
         2,
       );
-      const tronOrDerived = isTronNative
+      const nonEvmOrDerived = isNonEvmNative
         ? {
             balanceValueFormatted: token.balance ?? '0',
             balanceFiat: token.balanceFiat ?? '0',
@@ -269,14 +300,15 @@ const selectEarnTokens = createDeepEqualSelector(
             ethToUserSelectedFiatConversionRate,
             currentCurrency || '',
           );
-      const balanceValueFormatted = tronOrDerived.balanceValueFormatted || '0';
-      const balanceFiat = tronOrDerived.balanceFiat || '0';
-      const balanceFiatCalculation = tronOrDerived.balanceFiatCalculation;
+      const balanceValueFormatted =
+        nonEvmOrDerived.balanceValueFormatted || '0';
+      const balanceFiat = nonEvmOrDerived.balanceFiat || '0';
+      const balanceFiatCalculation = nonEvmOrDerived.balanceFiatCalculation;
 
-      let assetBalanceFiatNumber = isTronNative
+      let assetBalanceFiatNumber = isNonEvmNative
         ? parseFloat(token.balanceFiat ?? '0') || 0
         : balanceFiatNumber;
-      if (!token.isETH && !isTronNative) {
+      if (!token.isETH && !isNonEvmNative) {
         assetBalanceFiatNumber =
           !balanceFiatCalculation || isNaN(balanceFiatCalculation)
             ? 0
@@ -291,10 +323,10 @@ const selectEarnTokens = createDeepEqualSelector(
       // TODO: we could add direct validator staking as an additional earn experience
 
       if (isStakingToken || isStakingOutputToken) {
-        const aprForExperience = token.isETH
-          ? pooledStakingVaultAprForChain
-          : // TODO: Comeback after we have a TRX APR value
-            '0';
+        const aprForExperience = getPooledStakingApr(
+          token,
+          pooledStakingVaultAprForChain,
+        );
         experiences.push({
           type: EARN_EXPERIENCES.POOLED_STAKING,
           apr: aprForExperience,

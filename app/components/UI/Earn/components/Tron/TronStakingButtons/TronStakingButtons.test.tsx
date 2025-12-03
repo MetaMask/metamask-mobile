@@ -1,10 +1,21 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import TronStakingButtons from './TronStakingButtons';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/assets/assets-list', () => ({
+  selectAsset: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockSelectAsset = selectAsset as jest.MockedFunction<typeof selectAsset>;
 
 const mockNavigate = jest.fn();
 
@@ -47,10 +58,6 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
-jest.mock('../../../../../../selectors/assets/assets-list', () => ({
-  selectAsset: jest.fn(),
-}));
-
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -58,7 +65,9 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 describe('TronStakingButtons', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(selectAsset).mockReturnValue(undefined);
+
+    mockUseSelector.mockImplementation(() => undefined);
+    mockSelectAsset.mockReset();
   });
 
   const baseAsset = {
@@ -70,13 +79,9 @@ describe('TronStakingButtons', () => {
     isStaked: false,
   } as TokenI;
 
-  it('navigates to stake screen with base asset TRX when not staked', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <TronStakingButtons
-        asset={baseAsset}
-        hasStakedPositions={false}
-        showUnstake={false}
-      />,
+  it('navigates to stake screen with base asset TRX when not staked and uses default hasStakedPositions', () => {
+    const { getByTestId, getByText } = render(
+      <TronStakingButtons asset={baseAsset} showUnstake={false} />,
     );
 
     expect(getByText('stake.stake')).toBeTruthy();
@@ -99,12 +104,16 @@ describe('TronStakingButtons', () => {
       nativeAsset: undefined,
     } as TokenI;
 
-    jest.mocked(selectAsset).mockReturnValue({
+    mockSelectAsset.mockReturnValue({
       ...baseAsset,
       isStaked: false,
     } as TokenI);
 
-    const { getByTestId } = renderWithProvider(
+    mockUseSelector.mockImplementation((selector) =>
+      selector({} as unknown as ReturnType<typeof Object>),
+    );
+
+    const { getByTestId } = render(
       <TronStakingButtons asset={stakedTrx} hasStakedPositions />,
     );
     fireEvent.press(getByTestId('stake-more-button'));
@@ -119,7 +128,7 @@ describe('TronStakingButtons', () => {
   });
 
   it('shows Unstake button when showUnstake is true and navigates on press', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId } = render(
       <TronStakingButtons asset={baseAsset} showUnstake hasStakedPositions />,
     );
 

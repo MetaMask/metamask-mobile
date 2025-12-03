@@ -36,7 +36,10 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { isTronChainId } from '../../../../../core/Multichain/utils';
+import {
+  isTronChainId,
+  isNonEvmChainId,
+} from '../../../../../core/Multichain/utils';
 import {
   useFeatureFlag,
   FeatureFlagNames,
@@ -106,7 +109,6 @@ const EarnTokenList = () => {
     FeatureFlagNames.earnPooledStakingEnabled,
   );
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
   const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
@@ -160,48 +162,45 @@ const EarnTokenList = () => {
     });
   };
 
-  const handleRedirectToInputScreen = async (token: TokenI) => {
-    const { NetworkController } = Engine.context;
-
-    // For non-EVM do not try to switch EVM network and just navigate directly
-    if (isTronChainId(String(token.chainId))) {
-      const onItemPressScreen = params?.onItemPressScreen ?? '';
-      if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT) {
-        return closeBottomSheetAndNavigate(() => {
-          navigate('StakeScreens', {
-            screen: Routes.STAKING.STAKE,
-            params: { token },
-          });
-        });
-      }
-      if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
-        return closeBottomSheetAndNavigate(() => {
-          navigate('StakeScreens', {
-            screen: Routes.STAKING.UNSTAKE,
-            params: { token },
-          });
-        });
-      }
+  /**
+   * Prepares the network for the token if needed.
+   * EVM tokens require switching to the correct network.
+   * Non-EVM tokens (TRX, SOL, BTC) don't require network switching.
+   *
+   * @returns true if ready to proceed, false if network setup failed
+   */
+  const prepareNetworkForToken = async (token: TokenI): Promise<boolean> => {
+    // Non-EVM tokens don't need network switching - ready to proceed
+    if (isNonEvmChainId(String(token.chainId))) {
+      return true;
     }
 
+    // EVM tokens need network switching
+    const { NetworkController } = Engine.context;
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
       token.chainId as Hex,
     );
 
     if (!networkClientId) {
       console.error(
-        `EarnDepositTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
+        `EarnTokenList redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
       );
-      return;
+      return false;
     }
+
+    await NetworkController.setActiveNetwork(networkClientId);
+    return true;
+  };
+
+  const handleRedirectToInputScreen = async (token: TokenI) => {
+    const isReady = await prepareNetworkForToken(token);
+    if (!isReady) return;
 
     const onItemPressScreen = params?.onItemPressScreen ?? '';
 
     if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT) {
-      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
       redirectToDepositScreen(token);
     } else if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
-      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
       redirectToWithdrawalScreen(token);
     }
 
@@ -248,7 +247,7 @@ const EarnTokenList = () => {
 
     tokens?.forEach((token) => {
       const hasTokenBalance = new BN4(token.balanceMinimalUnit).gt(new BN4(0));
-      // show ETH always (existing behavior). Also show TRX native when TRX staking is enabled.
+      // Show ETH always (existing behavior). Also show TRX native when TRX staking is enabled.
       const isTrxNative =
         Boolean(token.isNative) && isTronChainId(String(token.chainId));
       if (

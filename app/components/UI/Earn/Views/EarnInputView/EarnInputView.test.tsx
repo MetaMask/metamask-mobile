@@ -626,6 +626,52 @@ describe('EarnInputView', () => {
       expect(getByTestId('resource-toggle-energy')).toBeTruthy();
       expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
     });
+
+    it('renders TRX earnToken with non-zero balance from selector', () => {
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const TRX_TOKEN = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        balance: '100',
+        balanceFiat: '$100',
+        decimals: 6,
+        isETH: false,
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      const mockGetEarnToken = jest.fn(() => ({
+        ...TRX_TOKEN,
+        balanceMinimalUnit: '100000000',
+        balanceFormatted: '100 TRX',
+        balanceFiatNumber: 100,
+        tokenUsdExchangeRate: 1,
+        experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+        experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+      }));
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: mockGetEarnToken,
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getByTestId } = render(EarnInputView, {
+        params: {
+          token: TRX_TOKEN,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      // Verify getEarnToken was called with the token
+      expect(mockGetEarnToken).toHaveBeenCalledWith(TRX_TOKEN);
+      // Verify TRX-specific UI elements are rendered
+      expect(getByTestId('resource-toggle-energy')).toBeTruthy();
+      expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
+    });
   });
 
   describe('when values are entered in the keypad', () => {
