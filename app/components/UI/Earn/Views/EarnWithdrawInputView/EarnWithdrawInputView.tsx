@@ -80,7 +80,7 @@ const EarnWithdrawInputView = () => {
 
   const earnTokenFromMap = getEarnToken(token);
 
-  ///: BEGIN:ONLY_TINCLUDE_IF(tron)
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
     isTronEnabled,
     resourceType,
