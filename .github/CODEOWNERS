@@ -150,6 +150,14 @@ app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 
+# Predict Team
+app/components/UI/Predict/                                    @MetaMask/predict
+app/core/Engine/controllers/predict-controller                @MetaMask/predict
+app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
+app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts  @MetaMask/predict
+**/Predict/**                                                 @MetaMask/predict
+**/predict/**                                                 @MetaMask/predict
+
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
