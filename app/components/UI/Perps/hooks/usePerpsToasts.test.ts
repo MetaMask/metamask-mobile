@@ -814,6 +814,93 @@ describe('usePerpsToasts', () => {
       });
     });
 
+    describe('positionManagement.margin', () => {
+      it('returns add margin success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.addSuccess(
+            'ETH',
+            '100',
+          );
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toHaveLength(1);
+        expect(config.labelOptions?.[0]).toMatchObject({
+          isBold: true,
+        });
+      });
+
+      it('returns remove margin success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeSuccess(
+            'BTC',
+            '50',
+          );
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toHaveLength(1);
+        expect(config.labelOptions?.[0]).toMatchObject({
+          isBold: true,
+        });
+      });
+
+      it('returns adjustment failed configuration with custom error', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const customError = 'Insufficient funds';
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.adjustmentFailed(
+            customError,
+          );
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toHaveLength(3);
+        expect(config.labelOptions?.[0]).toMatchObject({
+          isBold: true,
+        });
+        expect(config.labelOptions?.[2]).toMatchObject({
+          label: customError,
+          isBold: false,
+        });
+      });
+
+      it('returns adjustment failed configuration with default error', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.adjustmentFailed();
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toHaveLength(3);
+        expect(config.labelOptions?.[0]).toMatchObject({
+          isBold: true,
+        });
+        // Default error uses perps.errors.unknown key
+        expect(config.labelOptions?.[2]).toMatchObject({
+          isBold: false,
+        });
+      });
+    });
+
     describe('positionManagement.tpsl', () => {
       it('returns update TPSL success configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
@@ -872,7 +959,7 @@ describe('usePerpsToasts', () => {
               description:
                 'An unexpected error occurred. Please try again later.',
               retry: 'Retry',
-              title: 'Something Went Wrong',
+              title: 'Something went wrong',
             },
             isBold: false,
           },
@@ -900,7 +987,7 @@ describe('usePerpsToasts', () => {
               description:
                 'An unexpected error occurred. Please try again later.',
               retry: 'Retry',
-              title: 'Something Went Wrong',
+              title: 'Something went wrong',
             },
             isBold: false,
           },
@@ -938,7 +1025,7 @@ describe('usePerpsToasts', () => {
           isBold: false,
         });
         expect(config.closeButtonOptions).toMatchObject({
-          label: 'Go Back',
+          label: 'Go back',
           variant: ButtonVariants.Secondary,
         });
 

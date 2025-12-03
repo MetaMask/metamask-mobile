@@ -30,6 +30,7 @@ import {
   CHART_CONTENT_INSET,
   MAX_SERIES,
   formatPriceHistoryLabel,
+  getTimestampInMs,
 } from './utils';
 
 export interface ChartSeries {
@@ -279,16 +280,30 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   const isMultipleSeries = seriesToRender.length > 1;
 
   // Process data with labels
+  const chartTimeRangeMs = React.useMemo(() => {
+    const timestamps = seriesToRender
+      .flatMap((series) => series.data)
+      .map((point) => getTimestampInMs(point.timestamp));
+
+    if (!timestamps.length) {
+      return 0;
+    }
+
+    return Math.max(...timestamps) - Math.min(...timestamps);
+  }, [seriesToRender]);
+
   const seriesWithLabels = React.useMemo(
     () =>
       seriesToRender.map((series) => ({
         ...series,
         data: series.data.map((point) => ({
           ...point,
-          label: formatPriceHistoryLabel(point.timestamp, selectedTimeframe),
+          label: formatPriceHistoryLabel(point.timestamp, selectedTimeframe, {
+            timeRangeMs: chartTimeRangeMs,
+          }),
         })),
       })),
-    [seriesToRender, selectedTimeframe],
+    [seriesToRender, selectedTimeframe, chartTimeRangeMs],
   );
 
   // Filter out empty series
@@ -459,10 +474,26 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
 
     // Calculate axis labels
     const axisLabelStep = Math.max(1, Math.floor(primaryData.length / 4) || 1);
-    const axisLabels = primaryData.filter(
-      (_, index) =>
-        index % axisLabelStep === 0 || index === primaryData.length - 1,
-    );
+    const axisLabelEntries = primaryData
+      .map((point, index) => ({
+        point,
+        label: point.label ?? '',
+        key: `${point.timestamp}-${index}`,
+        index,
+      }))
+      .filter(
+        (entry) =>
+          entry.index % axisLabelStep === 0 ||
+          entry.index === primaryData.length - 1,
+      );
+
+    const dedupedAxisLabels = axisLabelEntries.filter((entry, idx, arr) => {
+      if (!entry.label) {
+        return true;
+      }
+      const previous = arr[idx - 1];
+      return !previous || previous.label !== entry.label;
+    });
 
     return (
       <Box twClassName="mb-4">
@@ -540,13 +571,13 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
           justifyContent={BoxJustifyContent.Between}
           twClassName="px-4"
         >
-          {axisLabels.map((point, index) => (
+          {dedupedAxisLabels.map(({ label, key }) => (
             <Text
-              key={`${point.timestamp}-${index}`}
+              key={key}
               color={TextColor.Alternative}
               style={tw.style('text-[11px]')}
             >
-              {point.label}
+              {label}
             </Text>
           ))}
         </Box>
