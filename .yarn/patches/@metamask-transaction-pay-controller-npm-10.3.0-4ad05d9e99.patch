@@ -1,0 +1,678 @@
+diff --git a/dist/TransactionPayController.cjs b/dist/TransactionPayController.cjs
+index 5ad6684c9b677356f4451ef74637db0332089119..20a33aaa6b4e82dea8431eacbef52457a76c1045 100644
+--- a/dist/TransactionPayController.cjs
++++ b/dist/TransactionPayController.cjs
+@@ -1,102 +1,304 @@
+ "use strict";
+-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
++
++var __classPrivateFieldSet =
++  (this && this.__classPrivateFieldSet) ||
++  function (receiver, state, value, kind, f) {
+     if (kind === "m") throw new TypeError("Private method is not writable");
+-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+-};
+-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+-};
+-var _TransactionPayController_instances, _TransactionPayController_getDelegationTransaction, _TransactionPayController_getStrategy, _TransactionPayController_removeTransactionData, _TransactionPayController_updateTransactionData, _TransactionPayController_registerActionHandlers;
++    if (kind === "a" && !f)
++      throw new TypeError("Private accessor was defined without a setter");
++    if (
++      typeof state === "function"
++        ? receiver !== state || !f
++        : !state.has(receiver)
++    )
++      throw new TypeError(
++        "Cannot write private member to an object whose class did not declare it"
++      );
++    return (
++      kind === "a"
++        ? f.call(receiver, value)
++        : f
++        ? (f.value = value)
++        : state.set(receiver, value),
++      value
++    );
++  };
++
++var __classPrivateFieldGet =
++  (this && this.__classPrivateFieldGet) ||
++  function (receiver, state, kind, f) {
++    if (kind === "a" && !f)
++      throw new TypeError("Private accessor was defined without a getter");
++    if (
++      typeof state === "function"
++        ? receiver !== state || !f
++        : !state.has(receiver)
++    )
++      throw new TypeError(
++        "Cannot read private member from an object whose class did not declare it"
++      );
++    return kind === "m"
++      ? f
++      : kind === "a"
++      ? f.call(receiver)
++      : f
++      ? f.value
++      : state.get(receiver);
++  };
++
++var _TransactionPayController_instances,
++  _TransactionPayController_getDelegationTransaction,
++  _TransactionPayController_getStrategy,
++  _TransactionPayController_pendingQuoteUpdates,
++  _TransactionPayController_removeTransactionData,
++  _TransactionPayController_updateTransactionData,
++  _TransactionPayController_registerActionHandlers;
++
+ Object.defineProperty(exports, "__esModule", { value: true });
++
+ exports.TransactionPayController = void 0;
++
+ const base_controller_1 = require("@metamask/base-controller");
++
+ const lodash_1 = require("lodash");
++
+ const update_payment_token_1 = require("./actions/update-payment-token.cjs");
++
+ const constants_1 = require("./constants.cjs");
++
+ const QuoteRefresher_1 = require("./helpers/QuoteRefresher.cjs");
++
+ const quotes_1 = require("./utils/quotes.cjs");
++
+ const source_amounts_1 = require("./utils/source-amounts.cjs");
++
+ const transaction_1 = require("./utils/transaction.cjs");
++
+ const stateMetadata = {
+-    transactionData: {
+-        includeInDebugSnapshot: false,
+-        includeInStateLogs: true,
+-        persist: false,
+-        usedInUi: true,
+-    },
++  transactionData: {
++    includeInDebugSnapshot: false,
++    includeInStateLogs: true,
++    persist: false,
++    usedInUi: true,
++  },
+ };
++
+ const getDefaultState = () => ({
+-    transactionData: {},
++  transactionData: {},
+ });
++
++const QUOTE_UPDATE_DEBOUNCE_MS = 50;
++
+ class TransactionPayController extends base_controller_1.BaseController {
+-    constructor({ getDelegationTransaction, getStrategy, messenger, state, }) {
+-        super({
+-            name: constants_1.CONTROLLER_NAME,
+-            metadata: stateMetadata,
+-            messenger,
+-            state: { ...getDefaultState(), ...state },
+-        });
+-        _TransactionPayController_instances.add(this);
+-        _TransactionPayController_getDelegationTransaction.set(this, void 0);
+-        _TransactionPayController_getStrategy.set(this, void 0);
+-        __classPrivateFieldSet(this, _TransactionPayController_getDelegationTransaction, getDelegationTransaction, "f");
+-        __classPrivateFieldSet(this, _TransactionPayController_getStrategy, getStrategy, "f");
+-        __classPrivateFieldGet(this, _TransactionPayController_instances, "m", _TransactionPayController_registerActionHandlers).call(this);
+-        (0, transaction_1.pollTransactionChanges)(messenger, __classPrivateFieldGet(this, _TransactionPayController_instances, "m", _TransactionPayController_updateTransactionData).bind(this), __classPrivateFieldGet(this, _TransactionPayController_instances, "m", _TransactionPayController_removeTransactionData).bind(this));
+-        new QuoteRefresher_1.QuoteRefresher({
+-            messenger,
+-            updateTransactionData: __classPrivateFieldGet(this, _TransactionPayController_instances, "m", _TransactionPayController_updateTransactionData).bind(this),
+-        });
+-    }
+-    updatePaymentToken(request) {
+-        (0, update_payment_token_1.updatePaymentToken)(request, {
+-            messenger: this.messenger,
+-            updateTransactionData: __classPrivateFieldGet(this, _TransactionPayController_instances, "m", _TransactionPayController_updateTransactionData).bind(this),
+-        });
+-    }
++  constructor({ getDelegationTransaction, getStrategy, messenger, state }) {
++    super({
++      name: constants_1.CONTROLLER_NAME,
++      metadata: stateMetadata,
++      messenger,
++      state: { ...getDefaultState(), ...state },
++    });
++
++    _TransactionPayController_instances.add(this);
++
++    _TransactionPayController_getDelegationTransaction.set(this, void 0);
++
++    _TransactionPayController_getStrategy.set(this, void 0);
++
++    _TransactionPayController_pendingQuoteUpdates.set(this, new Map());
++
++    __classPrivateFieldSet(
++      this,
++      _TransactionPayController_getDelegationTransaction,
++      getDelegationTransaction,
++      "f"
++    );
++
++    __classPrivateFieldSet(
++      this,
++      _TransactionPayController_getStrategy,
++      getStrategy,
++      "f"
++    );
++
++    __classPrivateFieldGet(
++      this,
++      _TransactionPayController_instances,
++      "m",
++      _TransactionPayController_registerActionHandlers
++    ).call(this);
++
++    (0, transaction_1.pollTransactionChanges)(
++      messenger,
++      __classPrivateFieldGet(
++        this,
++        _TransactionPayController_instances,
++        "m",
++        _TransactionPayController_updateTransactionData
++      ).bind(this),
++      __classPrivateFieldGet(
++        this,
++        _TransactionPayController_instances,
++        "m",
++        _TransactionPayController_removeTransactionData
++      ).bind(this)
++    );
++
++    new QuoteRefresher_1.QuoteRefresher({
++      messenger,
++      updateTransactionData: __classPrivateFieldGet(
++        this,
++        _TransactionPayController_instances,
++        "m",
++        _TransactionPayController_updateTransactionData
++      ).bind(this),
++    });
++  }
++
++  updatePaymentToken(request) {
++    (0, update_payment_token_1.updatePaymentToken)(request, {
++      messenger: this.messenger,
++      updateTransactionData: __classPrivateFieldGet(
++        this,
++        _TransactionPayController_instances,
++        "m",
++        _TransactionPayController_updateTransactionData
++      ).bind(this),
++    });
++  }
+ }
++
+ exports.TransactionPayController = TransactionPayController;
+-_TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_removeTransactionData = function _TransactionPayController_removeTransactionData(transactionId) {
+-    this.update((state) => {
++
++(_TransactionPayController_getDelegationTransaction = new WeakMap()),
++  (_TransactionPayController_getStrategy = new WeakMap()),
++  (_TransactionPayController_pendingQuoteUpdates = new WeakMap()),
++  (_TransactionPayController_instances = new WeakSet()),
++  (_TransactionPayController_removeTransactionData =
++    function _TransactionPayController_removeTransactionData(transactionId) {
++      // Cancel any pending quote update for this transaction
++      const existingTimeout = __classPrivateFieldGet(
++        this,
++        _TransactionPayController_pendingQuoteUpdates,
++        "f"
++      ).get(transactionId);
++      if (existingTimeout) {
++        clearTimeout(existingTimeout);
++        __classPrivateFieldGet(
++          this,
++          _TransactionPayController_pendingQuoteUpdates,
++          "f"
++        ).delete(transactionId);
++      }
++
++      this.update((state) => {
+         delete state.transactionData[transactionId];
+-    });
+-}, _TransactionPayController_updateTransactionData = function _TransactionPayController_updateTransactionData(transactionId, fn) {
+-    let shouldUpdateQuotes = false;
+-    this.update((state) => {
++      });
++    }),
++  (_TransactionPayController_updateTransactionData =
++    function _TransactionPayController_updateTransactionData(
++      transactionId,
++      fn
++    ) {
++      let shouldUpdateQuotes = false;
++
++      this.update((state) => {
+         const { transactionData } = state;
++
+         let current = transactionData[transactionId];
++
+         const originalPaymentToken = current?.paymentToken;
++
+         const originalTokens = current?.tokens;
++
+         if (!current) {
+-            transactionData[transactionId] = {
+-                isLoading: false,
+-                tokens: [],
+-            };
+-            current = transactionData[transactionId];
++          transactionData[transactionId] = {
++            isLoading: false,
++            tokens: [],
++          };
++
++          current = transactionData[transactionId];
+         }
++
+         fn(current);
+-        const isPaymentTokenUpdated = current.paymentToken !== originalPaymentToken;
++
++        const isPaymentTokenUpdated =
++          current.paymentToken !== originalPaymentToken;
++
+         const isTokensUpdated = current.tokens !== originalTokens;
++
+         if (isPaymentTokenUpdated || isTokensUpdated) {
+-            (0, source_amounts_1.updateSourceAmounts)(transactionId, current, this.messenger);
+-            shouldUpdateQuotes = true;
++          (0, source_amounts_1.updateSourceAmounts)(
++            transactionId,
++            current,
++            this.messenger
++          );
++
++          shouldUpdateQuotes = true;
+         }
+-    });
+-    if (shouldUpdateQuotes) {
+-        (0, quotes_1.updateQuotes)({
++      });
++
++      if (shouldUpdateQuotes) {
++        // Cancel any pending quote update for this transaction
++        const existingTimeout = __classPrivateFieldGet(
++          this,
++          _TransactionPayController_pendingQuoteUpdates,
++          "f"
++        ).get(transactionId);
++        if (existingTimeout) {
++          clearTimeout(existingTimeout);
++        }
++
++        // Schedule quote update with debounce
++        const timeoutId = setTimeout(() => {
++          __classPrivateFieldGet(
++            this,
++            _TransactionPayController_pendingQuoteUpdates,
++            "f"
++          ).delete(transactionId);
++          (0, quotes_1.updateQuotes)({
+             messenger: this.messenger,
+             transactionData: this.state.transactionData[transactionId],
+             transactionId,
+-            updateTransactionData: __classPrivateFieldGet(this, _TransactionPayController_instances, "m", _TransactionPayController_updateTransactionData).bind(this),
+-        }).catch(lodash_1.noop);
+-    }
+-}, _TransactionPayController_registerActionHandlers = function _TransactionPayController_registerActionHandlers() {
+-    this.messenger.registerActionHandler('TransactionPayController:getDelegationTransaction', __classPrivateFieldGet(this, _TransactionPayController_getDelegationTransaction, "f").bind(this));
+-    this.messenger.registerActionHandler('TransactionPayController:getStrategy', __classPrivateFieldGet(this, _TransactionPayController_getStrategy, "f") ?? (() => constants_1.TransactionPayStrategy.Relay));
+-    this.messenger.registerActionHandler('TransactionPayController:updatePaymentToken', this.updatePaymentToken.bind(this));
+-};
++            updateTransactionData: __classPrivateFieldGet(
++              this,
++              _TransactionPayController_instances,
++              "m",
++              _TransactionPayController_updateTransactionData
++            ).bind(this),
++          }).catch(lodash_1.noop);
++        }, QUOTE_UPDATE_DEBOUNCE_MS);
++
++        __classPrivateFieldGet(
++          this,
++          _TransactionPayController_pendingQuoteUpdates,
++          "f"
++        ).set(transactionId, timeoutId);
++      }
++    }),
++  (_TransactionPayController_registerActionHandlers =
++    function _TransactionPayController_registerActionHandlers() {
++      this.messenger.registerActionHandler(
++        "TransactionPayController:getDelegationTransaction",
++        __classPrivateFieldGet(
++          this,
++          _TransactionPayController_getDelegationTransaction,
++          "f"
++        ).bind(this)
++      );
++
++      this.messenger.registerActionHandler(
++        "TransactionPayController:getStrategy",
++        __classPrivateFieldGet(
++          this,
++          _TransactionPayController_getStrategy,
++          "f"
++        ) ?? (() => constants_1.TransactionPayStrategy.Relay)
++      );
++
++      this.messenger.registerActionHandler(
++        "TransactionPayController:updatePaymentToken",
++        this.updatePaymentToken.bind(this)
++      );
++    });
++
+ //# sourceMappingURL=TransactionPayController.cjs.map
+diff --git a/dist/strategy/relay/constants.cjs b/dist/strategy/relay/constants.cjs
+index 4154174f204311bb4f88d84fc062c93a83141619..05b8174a832325774a6d8a745065b8f760cf79d6 100644
+--- a/dist/strategy/relay/constants.cjs
++++ b/dist/strategy/relay/constants.cjs
+@@ -1,7 +1,8 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.RELAY_POLLING_INTERVAL = exports.RELAY_URL_BASE = exports.CHAIN_ID_HYPERCORE = void 0;
++exports.TOKEN_TRANSFER_FOUR_BYTE = exports.RELAY_POLLING_INTERVAL = exports.RELAY_URL_BASE = exports.CHAIN_ID_HYPERCORE = void 0;
+ exports.CHAIN_ID_HYPERCORE = '0x539';
+ exports.RELAY_URL_BASE = 'https://api.relay.link';
+ exports.RELAY_POLLING_INTERVAL = 1000; // 1 Second
++exports.TOKEN_TRANSFER_FOUR_BYTE = '0xa9059cbb';
+ //# sourceMappingURL=constants.cjs.map
+\ No newline at end of file
+diff --git a/dist/utils/transaction.cjs b/dist/utils/transaction.cjs
+index 1a2dc31cc7f8196d01a1bcee84bcfc97521fa087..e1e387b785aa9e974a496366eb2e659391e7459e 100644
+--- a/dist/utils/transaction.cjs
++++ b/dist/utils/transaction.cjs
+@@ -1,16 +1,25 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.collectTransactionIds = exports.updateTransaction = exports.waitForTransactionConfirmed = exports.pollTransactionChanges = exports.getTransaction = exports.FINALIZED_STATUSES = void 0;
++exports.collectTransactionIds =
++  exports.updateTransaction =
++  exports.waitForTransactionConfirmed =
++  exports.pollTransactionChanges =
++  exports.getTransaction =
++  exports.FINALIZED_STATUSES =
++    void 0;
+ const transaction_controller_1 = require("@metamask/transaction-controller");
+ const utils_1 = require("@metamask/utils");
+ const lodash_1 = require("lodash");
+ const required_tokens_1 = require("./required-tokens.cjs");
+ const logger_1 = require("../logger.cjs");
+-const log = (0, utils_1.createModuleLogger)(logger_1.projectLogger, 'transaction');
++const log = (0, utils_1.createModuleLogger)(
++  logger_1.projectLogger,
++  "transaction"
++);
+ exports.FINALIZED_STATUSES = [
+-    transaction_controller_1.TransactionStatus.confirmed,
+-    transaction_controller_1.TransactionStatus.dropped,
+-    transaction_controller_1.TransactionStatus.failed,
++  transaction_controller_1.TransactionStatus.confirmed,
++  transaction_controller_1.TransactionStatus.dropped,
++  transaction_controller_1.TransactionStatus.failed,
+ ];
+ /**
+  * Retrieve transaction metadata by ID.
+@@ -20,8 +29,12 @@ exports.FINALIZED_STATUSES = [
+  * @returns The transaction metadata or undefined if not found.
+  */
+ function getTransaction(transactionId, messenger) {
+-    const transactionControllerState = messenger.call('TransactionController:getState');
+-    return transactionControllerState.transactions.find((tx) => tx.id === transactionId);
++  const transactionControllerState = messenger.call(
++    "TransactionController:getState"
++  );
++  return transactionControllerState.transactions.find(
++    (tx) => tx.id === transactionId
++  );
+ }
+ exports.getTransaction = getTransaction;
+ /**
+@@ -31,24 +44,50 @@ exports.getTransaction = getTransaction;
+  * @param updateTransactionData - Callback to update transaction data.
+  * @param removeTransactionData - Callback to remove transaction data.
+  */
+-function pollTransactionChanges(messenger, updateTransactionData, removeTransactionData) {
+-    messenger.subscribe('TransactionController:stateChange', (transactions, previousTransactions) => {
+-        const newTransactions = transactions.filter((tx) => !previousTransactions?.find((prevTx) => prevTx.id === tx.id));
+-        const updatedTransactions = transactions.filter((tx) => {
+-            const previousTransaction = previousTransactions?.find((prevTx) => prevTx.id === tx.id);
+-            return (previousTransaction &&
+-                previousTransaction?.txParams.data !== tx.txParams.data);
+-        });
+-        const finalizedTransactions = transactions.filter((tx) => {
+-            const previousTransaction = previousTransactions?.find((prevTx) => prevTx.id === tx.id);
+-            return (previousTransaction &&
+-                !exports.FINALIZED_STATUSES.includes(previousTransaction.status) &&
+-                exports.FINALIZED_STATUSES.includes(tx.status));
+-        });
+-        const deletedTransactions = (previousTransactions ?? []).filter((prevTx) => !transactions.find((tx) => tx.id === prevTx.id));
+-        [...finalizedTransactions, ...deletedTransactions].forEach((tx) => onTransactionFinalized(tx, removeTransactionData));
+-        [...newTransactions, ...updatedTransactions].forEach((tx) => onTransactionChange(tx, messenger, updateTransactionData));
+-    }, (state) => state.transactions);
++function pollTransactionChanges(
++  messenger,
++  updateTransactionData,
++  removeTransactionData
++) {
++  messenger.subscribe(
++    "TransactionController:stateChange",
++    (transactions, previousTransactions) => {
++      const newTransactions = transactions.filter(
++        (tx) => !previousTransactions?.find((prevTx) => prevTx.id === tx.id)
++      );
++      const updatedTransactions = transactions.filter((tx) => {
++        const previousTransaction = previousTransactions?.find(
++          (prevTx) => prevTx.id === tx.id
++        );
++        return (
++          previousTransaction &&
++          // Detect changes when chainId or to address changes but data remains the same
++          (previousTransaction?.txParams.data !== tx.txParams.data ||
++            previousTransaction?.chainId !== tx.chainId)
++        );
++      });
++      const finalizedTransactions = transactions.filter((tx) => {
++        const previousTransaction = previousTransactions?.find(
++          (prevTx) => prevTx.id === tx.id
++        );
++        return (
++          previousTransaction &&
++          !exports.FINALIZED_STATUSES.includes(previousTransaction.status) &&
++          exports.FINALIZED_STATUSES.includes(tx.status)
++        );
++      });
++      const deletedTransactions = (previousTransactions ?? []).filter(
++        (prevTx) => !transactions.find((tx) => tx.id === prevTx.id)
++      );
++      [...finalizedTransactions, ...deletedTransactions].forEach((tx) =>
++        onTransactionFinalized(tx, removeTransactionData)
++      );
++      [...newTransactions, ...updatedTransactions].forEach((tx) =>
++        onTransactionChange(tx, messenger, updateTransactionData)
++      );
++    },
++    (state) => state.transactions
++  );
+ }
+ exports.pollTransactionChanges = pollTransactionChanges;
+ /**
+@@ -59,32 +98,44 @@ exports.pollTransactionChanges = pollTransactionChanges;
+  * @returns A promise that resolves when the transaction is confirmed or rejects if it fails.
+  */
+ function waitForTransactionConfirmed(transactionId, messenger) {
+-    return new Promise((resolve, reject) => {
+-        const isConfirmed = (tx, fn) => {
+-            log('Checking transaction status', tx?.status, tx?.type);
+-            if (tx?.status === transaction_controller_1.TransactionStatus.confirmed) {
+-                fn?.();
+-                resolve();
+-                return true;
+-            }
+-            if ([transaction_controller_1.TransactionStatus.dropped, transaction_controller_1.TransactionStatus.failed].includes(tx?.status)) {
+-                fn?.();
+-                reject(new Error(`Transaction failed - ${tx?.type} - ${tx?.error?.message}`));
+-                return true;
+-            }
+-            return false;
+-        };
+-        const initialState = messenger.call('TransactionController:getState');
+-        const initialTx = initialState.transactions.find((t) => t.id === transactionId);
+-        if (isConfirmed(initialTx)) {
+-            return;
+-        }
+-        const handler = (tx) => {
+-            const unsubscribe = () => messenger.unsubscribe('TransactionController:stateChange', handler);
+-            isConfirmed(tx, unsubscribe);
+-        };
+-        messenger.subscribe('TransactionController:stateChange', handler, (state) => state.transactions.find((tx) => tx.id === transactionId));
+-    });
++  return new Promise((resolve, reject) => {
++    const isConfirmed = (tx, fn) => {
++      log("Checking transaction status", tx?.status, tx?.type);
++      if (tx?.status === transaction_controller_1.TransactionStatus.confirmed) {
++        fn?.();
++        resolve();
++        return true;
++      }
++      if (
++        [
++          transaction_controller_1.TransactionStatus.dropped,
++          transaction_controller_1.TransactionStatus.failed,
++        ].includes(tx?.status)
++      ) {
++        fn?.();
++        reject(
++          new Error(`Transaction failed - ${tx?.type} - ${tx?.error?.message}`)
++        );
++        return true;
++      }
++      return false;
++    };
++    const initialState = messenger.call("TransactionController:getState");
++    const initialTx = initialState.transactions.find(
++      (t) => t.id === transactionId
++    );
++    if (isConfirmed(initialTx)) {
++      return;
++    }
++    const handler = (tx) => {
++      const unsubscribe = () =>
++        messenger.unsubscribe("TransactionController:stateChange", handler);
++      isConfirmed(tx, unsubscribe);
++    };
++    messenger.subscribe("TransactionController:stateChange", handler, (state) =>
++      state.transactions.find((tx) => tx.id === transactionId)
++    );
++  });
+ }
+ exports.waitForTransactionConfirmed = waitForTransactionConfirmed;
+ /**
+@@ -96,14 +147,18 @@ exports.waitForTransactionConfirmed = waitForTransactionConfirmed;
+  * @param request.note - Note describing the update.
+  * @param fn - Function that applies updates to the transaction draft.
+  */
+-function updateTransaction({ transactionId, messenger, note, }, fn) {
+-    const transaction = getTransaction(transactionId, messenger);
+-    if (!transaction) {
+-        throw new Error(`Transaction not found: ${transactionId}`);
+-    }
+-    const newTransaction = (0, lodash_1.cloneDeep)(transaction);
+-    fn(newTransaction);
+-    messenger.call('TransactionController:updateTransaction', newTransaction, note);
++function updateTransaction({ transactionId, messenger, note }, fn) {
++  const transaction = getTransaction(transactionId, messenger);
++  if (!transaction) {
++    throw new Error(`Transaction not found: ${transactionId}`);
++  }
++  const newTransaction = (0, lodash_1.cloneDeep)(transaction);
++  fn(newTransaction);
++  messenger.call(
++    "TransactionController:updateTransaction",
++    newTransaction,
++    note
++  );
+ }
+ exports.updateTransaction = updateTransaction;
+ /**
+@@ -116,18 +171,26 @@ exports.updateTransaction = updateTransaction;
+  * @returns An object with an `end` method to stop collecting transactions.
+  */
+ function collectTransactionIds(chainId, from, messenger, onTransaction) {
+-    const listener = (tx) => {
+-        if (tx.chainId !== chainId ||
+-            tx.txParams.from.toLowerCase() !== from.toLowerCase()) {
+-            return;
+-        }
+-        onTransaction(tx.id);
+-    };
+-    messenger.subscribe('TransactionController:unapprovedTransactionAdded', listener);
+-    const end = () => {
+-        messenger.unsubscribe('TransactionController:unapprovedTransactionAdded', listener);
+-    };
+-    return { end };
++  const listener = (tx) => {
++    if (
++      tx.chainId !== chainId ||
++      tx.txParams.from.toLowerCase() !== from.toLowerCase()
++    ) {
++      return;
++    }
++    onTransaction(tx.id);
++  };
++  messenger.subscribe(
++    "TransactionController:unapprovedTransactionAdded",
++    listener
++  );
++  const end = () => {
++    messenger.unsubscribe(
++      "TransactionController:unapprovedTransactionAdded",
++      listener
++    );
++  };
++  return { end };
+ }
+ exports.collectTransactionIds = collectTransactionIds;
+ /**
+@@ -138,11 +201,14 @@ exports.collectTransactionIds = collectTransactionIds;
+  * @param updateTransactionData - Callback to update transaction data.
+  */
+ function onTransactionChange(transaction, messenger, updateTransactionData) {
+-    const tokens = (0, required_tokens_1.parseRequiredTokens)(transaction, messenger);
+-    log('Transaction changed', { transaction, tokens });
+-    updateTransactionData(transaction.id, (data) => {
+-        data.tokens = tokens;
+-    });
++  const tokens = (0, required_tokens_1.parseRequiredTokens)(
++    transaction,
++    messenger
++  );
++  log("Transaction changed", { transaction, tokens });
++  updateTransactionData(transaction.id, (data) => {
++    data.tokens = tokens;
++  });
+ }
+ /**
+  * Handle a finalized transaction by removing its associated data.
+@@ -151,7 +217,7 @@ function onTransactionChange(transaction, messenger, updateTransactionData) {
+  * @param removeTransactionData - Callback to remove transaction data.
+  */
+ function onTransactionFinalized(transaction, removeTransactionData) {
+-    log('Transaction finalized', { transaction });
+-    removeTransactionData(transaction.id);
++  log("Transaction finalized", { transaction });
++  removeTransactionData(transaction.id);
+ }
+ //# sourceMappingURL=transaction.cjs.map
