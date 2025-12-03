@@ -71,10 +71,17 @@ export type EncapsulatedElementType = DetoxElement | Promise<PlaywrightElement>;
  */
 export class FrameworkDetector {
   private static framework?: TestFramework;
-  private static logger: Logger = createLogger({
-    name: 'FrameworkDetector',
-    level: LogLevel.DEBUG,
-  });
+  private static _logger: Logger | undefined;
+
+  private static get logger(): Logger {
+    if (!this._logger) {
+      this._logger = createLogger({
+        name: 'FrameworkDetector',
+        level: LogLevel.DEBUG,
+      });
+    }
+    return this._logger;
+  }
 
   /**
    * Detect current framework based on environment
