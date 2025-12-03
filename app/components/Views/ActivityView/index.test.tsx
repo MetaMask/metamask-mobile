@@ -116,6 +116,15 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../selectors/networkController', () => ({
+  selectTicker: jest.fn(() => 'ETH'),
+  selectEvmTicker: jest.fn(() => 'ETH'),
+  selectChainId: jest.fn(() => '0x1'),
+  selectProviderConfig: jest.fn(() => ({ chainId: '0x1', ticker: 'ETH' })),
+  selectNetworkConfigurations: jest.fn(() => ({})),
+  selectSelectedNetworkClientId: jest.fn(() => 'mainnet'),
+}));
+
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
     areAllNetworksSelected: true,
