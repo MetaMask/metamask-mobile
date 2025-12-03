@@ -646,6 +646,12 @@ buildAndroidReleaseE2E(){
 buildExpoUpdate() {
 		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
 
+		if [ -z "${EXPO_TOKEN}" ]; then
+			echo "EXPO_TOKEN is NOT set in build.sh env"
+		else
+			echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
+		fi
+
 		# Validate required Expo Update environment variables
 		if [ -z "${EXPO_CHANNEL}" ]; then
 			echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
