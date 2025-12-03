@@ -15,8 +15,8 @@ import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
-import AppwrightGestures from 'e2e/framework/AppwrightGestures.js';
-import AppwrightSelectors from 'e2e/framework/AppwrightSelectors.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;

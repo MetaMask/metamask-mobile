@@ -11,7 +11,7 @@ import Gestures from "../../helpers/Gestures";
 import Selectors from "../../helpers/Selectors";
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import { expect } from "appwright";
-import { ChoosePasswordSelectorsIDs } from "e2e/selectors/Onboarding/ChoosePassword.selectors";
+import { ChoosePasswordSelectorsIDs } from "../../../e2e/selectors/Onboarding/ChoosePassword.selectors";
 
 class CreateNewWalletScreen {
   get device() {

@@ -14,7 +14,7 @@ import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.j
 import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
 import { dissmissPredictionsModal } from '../../../utils/Flows.js';
-import CreatePasswordScreen from 'wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
+import CreatePasswordScreen from '../../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 
 /* Scenario 2: Account creation after fresh install */
 
