@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -18,15 +17,12 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
-
-const Stack = createStackNavigator();
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -142,28 +138,3 @@ export const ExploreFeed: React.FC = () => {
     </Box>
   );
 };
-
-/**
- * @deprecated - this is not used anymore and should be thrown away. Maybe we can reuse this, but currently is just messy to keep...
- * @returns react component
- */
-const TrendingView: React.FC = () => {
-  const initialRoot = Routes.EXPLORE_FEED;
-
-  return (
-    <Stack.Navigator
-      initialRouteName={initialRoot}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name={Routes.EXPLORE_FEED} component={ExploreFeed} />
-      <Stack.Screen
-        name={Routes.EXPLORE_SEARCH}
-        component={ExploreSearchScreen}
-      />
-    </Stack.Navigator>
-  );
-};
-
-export default TrendingView;
