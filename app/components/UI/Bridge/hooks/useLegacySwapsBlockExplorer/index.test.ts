@@ -1,11 +1,12 @@
 import { RpcEndpointType } from '@metamask/network-controller';
 
-import { createProviderConfig } from '../../../../selectors/networkController';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { mockNetworkState } from '../../../../util/test/network';
-import useBlockExplorer from './useBlockExplorer';
+import { createProviderConfig } from '../../../../../selectors/networkController';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { mockNetworkState } from '../../../../../util/test/network';
+import { useLegacySwapsBlockExplorer } from '.';
 
-const renderUseBlockExplorerHook = (overrides) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const renderUseBlockExplorerHook = (overrides: any) => {
   // Prepare mock network state
   const networkConfigurations = mockNetworkState(overrides);
   const networkConfiguration =
@@ -21,7 +22,7 @@ const renderUseBlockExplorerHook = (overrides) => {
 
   // Get the block explorer using the hook
   const { result } = renderHookWithProvider(() =>
-    useBlockExplorer(
+    useLegacySwapsBlockExplorer(
       networkConfigurations.networkConfigurationsByChainId,
       providerConfig,
     ),

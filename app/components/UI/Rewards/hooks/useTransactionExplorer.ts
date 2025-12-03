@@ -15,7 +15,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   createProviderConfig,
 } from '../../../../selectors/networkController';
-import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
+import { useLegacySwapsBlockExplorer } from '../../Bridge/hooks/useLegacySwapsBlockExplorer';
 import { formatChainIdToHex } from '@metamask/bridge-controller';
 
 type ExplorerInfo = { name: string; url: string } | undefined;
@@ -59,7 +59,7 @@ export const useTransactionExplorer = (
   }, [currentChainId, evmNetworkConfigurationsByChainId]);
 
   // Get EVM explorer
-  const evmExplorer = useBlockExplorer(
+  const evmExplorer = useLegacySwapsBlockExplorer(
     evmNetworkConfigurationsByChainId,
     providerConfig,
   );

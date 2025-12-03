@@ -1,16 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
 import etherscanLink from '@metamask/etherscan-link';
-import { RPC } from '../../../../constants/network';
+import { RPC } from '../../../../../constants/network';
 import {
   findBlockExplorerForRpc,
   getBlockExplorerName,
-} from '../../../../util/networks';
-import { strings } from '../../../../../locales/i18n';
-import { getEtherscanBaseUrl } from '../../../../util/etherscan';
+} from '../../../../../util/networks';
+import { strings } from '../../../../../../locales/i18n';
+import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../../selectors/networkController';
+import {
+  ProviderConfig,
+  selectProviderConfig,
+} from '../../../../../selectors/networkController';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
-function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
+/**
+ * @deprecated Please use either global useBlockExplorer or useMultichainBlockExplorerTxUrl
+ */
+export function useLegacySwapsBlockExplorer(
+  networkConfigurations: Record<`0x${string}`, NetworkConfiguration>,
+  providerConfigTokenExplorer?: ProviderConfig,
+) {
   const [explorer, setExplorer] = useState({
     name: '',
     value: null,
@@ -67,31 +77,34 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
   }, [networkConfigurations, providerConfig, providerConfigTokenExplorer]);
 
   const tx = useCallback(
-    (hash) => {
+    (hash: string) => {
       if (!explorer.isValid) {
         return '';
       }
       // Regardless of whether the chain uses Etherscan,
       // we should always use the RPC explorer URL that we retrieved,
       // as the built-in URL mapping from `etherscanLink` may be outdated.
-      return etherscanLink.createCustomExplorerLink(hash, explorer.value);
+      return etherscanLink.createCustomExplorerLink(hash, explorer.value ?? '');
     },
     [explorer],
   );
   const account = useCallback(
-    (address) => {
+    (address: string) => {
       if (!explorer.isValid) {
         return '';
       }
       // Regardless of whether the chain uses Etherscan,
       // we should always use the RPC explorer URL that we retrieved,
       // as the built-in URL mapping from `etherscanLink` may be outdated.
-      return etherscanLink.createCustomAccountLink(address, explorer.value);
+      return etherscanLink.createCustomAccountLink(
+        address,
+        explorer.value ?? '',
+      );
     },
     [explorer],
   );
   const token = useCallback(
-    (address) => {
+    (address: string) => {
       if (!explorer.isValid) {
         return '';
       }
@@ -100,7 +113,7 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
       // as the built-in URL mapping from `etherscanLink` may be outdated.
       return etherscanLink.createCustomTokenTrackerLink(
         address,
-        explorer.value,
+        explorer.value ?? '',
       );
     },
     [explorer],
@@ -113,5 +126,3 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
     token,
   };
 }
-
-export default useBlockExplorer;
