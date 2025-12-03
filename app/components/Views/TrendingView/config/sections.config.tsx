@@ -47,7 +47,10 @@ interface SectionConfig {
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
-  Section: React.ComponentType<{ refreshTrigger?: number }>;
+  Section: React.ComponentType<{
+    refreshTrigger?: number;
+    onEmptyChange?: (isEmpty: boolean) => void;
+  }>;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
@@ -83,8 +86,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <TrendingTokenRowItem token={item as TrendingAsset} />
     ),
     Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger }) => (
-      <SectionCard sectionId="tokens" refreshTrigger={refreshTrigger} />
+    Section: ({ refreshTrigger, onEmptyChange }) => (
+      <SectionCard
+        sectionId="tokens"
+        refreshTrigger={refreshTrigger}
+        onEmptyChange={onEmptyChange}
+      />
     ),
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch(searchQuery);

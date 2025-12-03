@@ -21,11 +21,14 @@ const createStyles = (theme: Theme) =>
 interface SectionCardProps {
   sectionId: SectionId;
   refreshTrigger?: number;
+  /** Callback when data empty state changes (only called after loading completes) */
+  onEmptyChange?: (isEmpty: boolean) => void;
 }
 
 const SectionCard: React.FC<SectionCardProps> = ({
   sectionId,
   refreshTrigger,
+  onEmptyChange,
 }) => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
@@ -33,6 +36,13 @@ const SectionCard: React.FC<SectionCardProps> = ({
 
   const section = SECTIONS_CONFIG[sectionId];
   const { data, isLoading, refetch } = section.useSectionData();
+
+  // Notify parent when data empty state changes (only after loading completes)
+  useEffect(() => {
+    if (!isLoading && onEmptyChange) {
+      onEmptyChange(data.length === 0);
+    }
+  }, [data.length, isLoading, onEmptyChange]);
 
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0 && refetch) {

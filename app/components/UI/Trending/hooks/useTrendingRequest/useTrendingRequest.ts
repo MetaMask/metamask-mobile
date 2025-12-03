@@ -48,7 +48,7 @@ export const useTrendingRequest = (options: {
     Awaited<ReturnType<typeof getTrendingTokens>>
   >([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [error, setError] = useState<Error | null>(null);
 
