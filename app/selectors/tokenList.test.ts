@@ -19,7 +19,13 @@ import { RootState } from '../reducers';
 jest.mock('./preferencesController');
 jest.mock('./multichainNetworkController');
 jest.mock('./accountsController');
-jest.mock('./multichain');
+jest.mock('./multichain', () => ({
+  selectEvmTokens: jest.fn(),
+  selectEvmTokenFiatBalances: jest.fn(),
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectMultichainTokenListForAccountId: jest.fn(),
+  ///: END:ONLY_INCLUDE_IF
+}));
 jest.mock('../store', () => ({
   store: { getState: jest.fn() },
 }));

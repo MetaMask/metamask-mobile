@@ -21,9 +21,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import ResourceToggle, {
-  type ResourceType,
-} from '../../components/Tron/ResourceToggle';
+import ResourceToggle from '../../components/Tron/ResourceToggle';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -76,7 +74,12 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
-import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import useTronStake from '../../hooks/useTronStake';
+import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
+import { ComputeFeeResult } from '../../utils/tron-staking-snap';
+import { handleTronStakingNavigationResult } from '../../utils/tron';
+///: END:ONLY_INCLUDE_IF
 
 const EarnInputView = () => {
   // navigation hooks
@@ -113,8 +116,6 @@ const EarnInputView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-
   // if token is ETH, use 1 as the exchange rate
   // otherwise, use the contract exchange rate or 0 if undefined
   const exchangeRate = token.isETH
@@ -128,41 +129,25 @@ const EarnInputView = () => {
   const { getEarnToken } = useEarnTokens();
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const [resourceType, setResourceType] = useState<ResourceType>('energy');
-  const isTronNative =
-    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
+  const {
+    isTronNative,
+    isTronEnabled,
+    resourceType,
+    setResourceType,
+    validating: isTronStakeValidating,
+    preview: tronPreview,
+    validate: tronValidate,
+    confirmStake: tronConfirmStake,
+  } = useTronStake({ token });
   ///: END:ONLY_INCLUDE_IF
 
-  const earnTokenFromMap = getEarnToken(token);
+  // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
+  let showTronStakingUI = false;
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  showTronStakingUI = isTronEnabled;
+  ///: END:ONLY_INCLUDE_IF
 
-  const earnToken = React.useMemo(() => {
-    if (earnTokenFromMap) return earnTokenFromMap;
-
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    if (isTrxStakingEnabled && isTronNative) {
-      const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
-      return {
-        ...token,
-        isETH: false,
-        balanceMinimalUnit: '0',
-        balanceFormatted: token.balance ?? '0',
-        balanceFiat: token.balanceFiat ?? '0',
-        tokenUsdExchangeRate: 0,
-        experiences,
-        experience: experiences[0],
-      } as EarnTokenDetails;
-    }
-    ///: END:ONLY_INCLUDE_IF
-
-    return undefined;
-  }, [
-    earnTokenFromMap,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    isTrxStakingEnabled,
-    isTronNative,
-    token,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  const earnToken = getEarnToken(token);
 
   const networkClientId = useSelector(selectNetworkClientId);
   const {
@@ -479,7 +464,7 @@ const EarnInputView = () => {
   ]);
 
   const handlePooledStakingFlow = useCallback(async () => {
-    if (isHighGasCostImpact()) {
+    if (isHighGasCostImpact() && earnToken?.isETH) {
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.STAKE_GAS_COST_IMPACT_WARNING_TRIGGERED,
@@ -589,6 +574,7 @@ const EarnInputView = () => {
     attemptDepositTransaction,
     createEventBuilder,
     earnToken?.chainId,
+    earnToken?.isETH,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
@@ -598,6 +584,14 @@ const EarnInputView = () => {
   ]);
 
   const handleEarnPress = useCallback(async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTronEnabled) {
+      const result = await tronConfirmStake?.(amountToken);
+      handleTronStakingNavigationResult(navigation, result, 'stake');
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     // Stablecoin Lending Flow
     if (
       earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
@@ -612,6 +606,12 @@ const EarnInputView = () => {
   }, [
     earnToken?.experience?.type,
     isStablecoinLendingEnabled,
+    amountToken,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronEnabled,
+    navigation,
+    tronConfirmStake,
+    ///: END:ONLY_INCLUDE_IF
     handlePooledStakingFlow,
     handleLendingFlow,
   ]);
@@ -700,7 +700,33 @@ const EarnInputView = () => {
     earnToken?.chainId,
   ]);
 
+  const handleKeypadChangeWithValidation = useCallback(
+    (data: { value: string; valueAsNumber: number; pressedKey: string }) => {
+      handleKeypadChange(data);
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      if (isTronEnabled && !isFiat) {
+        tronValidate?.(data.value);
+      }
+      ///: END:ONLY_INCLUDE_IF
+    },
+    [
+      handleKeypadChange,
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      isTronEnabled,
+      isFiat,
+      tronValidate,
+      ///: END:ONLY_INCLUDE_IF
+    ],
+  );
+
   const getButtonLabel = () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    // Tron staking has a simpler flow - just show "Stake"
+    if (isTronEnabled) {
+      return strings('stake.stake');
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     if (!isNonZeroAmount) {
       return strings('stake.enter_amount');
     }
@@ -867,7 +893,7 @@ const EarnInputView = () => {
     <ScreenLayout style={styles.container}>
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTrxStakingEnabled && isTronNative && (
+        isTronEnabled && (
           <ResourceToggle value={resourceType} onChange={setResourceType} />
         )
         ///: END:ONLY_INCLUDE_IF
@@ -889,31 +915,42 @@ const EarnInputView = () => {
           currencyToggleValue={currencyToggleValue}
         />
         <View style={styles.rewardsRateContainer}>
-          {isStablecoinLendingEnabled && !isTrxStakingEnabled ? (
-            <>
-              <View style={styles.spacer} />
-              <EarnTokenSelector
-                token={token}
-                action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+          {!showTronStakingUI &&
+            (isStablecoinLendingEnabled ? (
+              <>
+                <View style={styles.spacer} />
+                <EarnTokenSelector
+                  token={token}
+                  action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+                />
+              </>
+            ) : (
+              <EstimatedAnnualRewardsCard
+                estimatedAnnualRewards={estimatedAnnualRewards}
+                onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+                  event: MetaMetricsEvents.TOOLTIP_OPENED,
+                  properties: {
+                    selected_provider: EVENT_PROVIDERS.CONSENSYS,
+                    text: 'Tooltip Opened',
+                    location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+                    tooltip_name: 'MetaMask Pool Estimated Rewards',
+                  },
+                })}
+                isLoading={isLoadingEarnMetadata}
               />
-            </>
-          ) : (
-            <EstimatedAnnualRewardsCard
-              estimatedAnnualRewards={estimatedAnnualRewards}
-              onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-                event: MetaMetricsEvents.TOOLTIP_OPENED,
-                properties: {
-                  selected_provider: EVENT_PROVIDERS.CONSENSYS,
-                  text: 'Tooltip Opened',
-                  location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-                  tooltip_name: 'MetaMask Pool Estimated Rewards',
-                },
-              })}
-              isLoading={isLoadingEarnMetadata}
-            />
-          )}
+            ))}
         </View>
       </ScrollView>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTronEnabled && isNonZeroAmount && (
+          <TronStakePreview
+            resourceType={resourceType}
+            fee={tronPreview?.fee as ComputeFeeResult}
+          />
+        )
+        ///: END:ONLY_INCLUDE_IF
+      }
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleQuickAmountPressWithTracking}
@@ -922,7 +959,7 @@ const EarnInputView = () => {
       <Keypad
         value={!isFiat ? amountToken : amountFiatNumber}
         // Debounce used to avoid error message flicker from recalculating gas fee estimate
-        onChange={debounce(handleKeypadChange, 1)}
+        onChange={debounce(handleKeypadChangeWithValidation, 1)}
         style={styles.keypad}
         currency={token.symbol}
         decimals={!isFiat ? 5 : 2}
@@ -938,7 +975,7 @@ const EarnInputView = () => {
             isOverMaximum.isOverMaximumToken ||
             isOverMaximum.isOverMaximumEth ||
             !isNonZeroAmount ||
-            isLoadingEarnGasFee ||
+            (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
             isSubmittingStakeDepositTransaction
           }
           width={ButtonWidthTypes.Full}
