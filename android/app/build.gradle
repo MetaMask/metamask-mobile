@@ -360,6 +360,11 @@ android {
       it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
       // Used to point to dev environment API for ramp
       it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
+      // Intercom configuration (beta only)
+      it.buildConfigField 'String', 'MM_INTERCOM_ENABLED', "\"$System.env.MM_INTERCOM_ENABLED\""
+      it.buildConfigField 'String', 'METAMASK_ENVIRONMENT', "\"$System.env.METAMASK_ENVIRONMENT\""
+      it.buildConfigField 'String', 'MM_INTERCOM_API_KEY_ANDROID', "\"$System.env.MM_INTERCOM_API_KEY_ANDROID\""
+      it.buildConfigField 'String', 'MM_INTERCOM_APP_ID', "\"$System.env.MM_INTERCOM_APP_ID\""
     }
 
     buildFeatures {
