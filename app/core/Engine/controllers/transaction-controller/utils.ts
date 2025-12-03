@@ -201,7 +201,7 @@ export async function generateDefaultTransactionMetrics(
       // Get account type based on the keyring associated with
       // this address.
       accountType = getAddressAccountType(from);
-      
+
       // Also populate this one for HW accounts.
       if (isHardwareAccount(from)) {
         accountHardwareType = accountType;
