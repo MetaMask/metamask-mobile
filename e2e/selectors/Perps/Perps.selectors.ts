@@ -633,6 +633,8 @@ export const PerpsOrderBookViewSelectorsIDs = {
   DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
   UNIT_TOGGLE_BASE: 'perps-order-book-unit-toggle-base',
   UNIT_TOGGLE_USD: 'perps-order-book-unit-toggle-usd',
+  SPREAD_INFO_BUTTON: 'perps-order-book-spread-info-button',
+  BOTTOM_SHEET_TOOLTIP: 'perps-order-book-tooltip',
 } as const;
 
 // ========================================

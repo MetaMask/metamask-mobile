@@ -34,7 +34,6 @@ import { fontStyles } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
-import TokenIcon from '../../Swaps/components/TokenIcon';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
@@ -44,6 +43,7 @@ import { BridgeToken } from '../types';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import parseAmount from '../../../../util/parseAmount';
+import TokenIcon from '../../../Base/TokenIcon';
 
 const createStyles = ({
   theme,

@@ -23,7 +23,8 @@ export function useRWAToken({ token }: { token: BridgeToken }) {
       return false;
     }
 
-    return Boolean(token.aggregators?.includes('Ondo'));
+    // return Boolean(token.aggregators?.includes('Ondo'));
+    return Boolean(token.metadata?.assetType === 'stock');
   }, [isRWAEnabled, token]);
 
   return {

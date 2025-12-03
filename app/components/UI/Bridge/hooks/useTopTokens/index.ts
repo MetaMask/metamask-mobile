@@ -191,6 +191,7 @@ export const useTopTokens = ({
 
     // Convert from BridgeAsset type to BridgeToken type
     const bridgeTokenObj: Record<string, BridgeToken> = {};
+
     Object.keys(rawBridgeAssets).forEach((addr) => {
       const bridgeAsset = rawBridgeAssets[addr];
 
@@ -204,6 +205,20 @@ export const useTopTokens = ({
         ? bridgeAsset.assetId
         : bridgeAsset.address;
 
+      //TODO hack the metadata for ondo tokens only
+      if (bridgeAsset.aggregators.includes('ondo')) {
+        bridgeAsset.metadata = {
+          assetType: 'stock',
+          containsProfanity: false,
+          market: {
+            openingHour: new Date(),
+            closingHour: new Date(),
+          },
+          isPaused: false,
+          restrictedCountries: [],
+        } as BridgeToken['metadata'];
+      }
+
       bridgeTokenObj[addr] = {
         address: tokenAddress,
         symbol: bridgeAsset.symbol,
@@ -213,6 +228,7 @@ export const useTopTokens = ({
         aggregators: bridgeAsset.aggregators,
         chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
         accountType: getAccountType(caipChainId),
+        metadata: bridgeAsset.metadata,
       };
     });
 

@@ -19,6 +19,17 @@ export interface BridgeToken {
   currencyExchangeRate?: number; // A rate of the token in the user's currency, e.g. 100.12345
   aggregators: string[];
   accountType?: Asset['accountType'];
+  metadata?: {
+    assetType?: 'stock';
+    containsProfanity: boolean;
+    market: {
+      openingHour: Date;
+      closingHour: Date;
+    };
+    assetNamespace?: string;
+    isPaused: boolean;
+    restrictedCountries: string[];
+  };
 }
 
 // TODO: use type from @metamask/bridge-controller once "approval" is made optional
