@@ -745,7 +745,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                     }
                                                   }
                                                 >
-                                                  Ethereum Mainnet
+                                                  Ethereum
                                                 </Text>
                                               </View>
                                             </View>

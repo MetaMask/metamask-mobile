@@ -2115,6 +2115,7 @@
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
+      "no_funds_enough": "Not enough funds.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again."
@@ -3226,7 +3227,10 @@
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
     "tron": {
-      "daily_resource": "Daily resources",
+      "daily_resource_new_energy": "New daily energy",
+      "sufficient_to_cover": "Sufficient to cover",
+      "transactions": "transactions",
+      "daily_resource": "Daily resource",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
       "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
@@ -5651,6 +5655,9 @@
       "staking": "Payout history"
     },
     "allowance_reset": "Allowance Reset",
+    "tron": {
+      "fee": "Fee"
+    },
     "musd_conversion": {
       "confirmation_button": "Convert to mUSD",
       "earn_rewards_with": "Earn rewards with mUSD",
@@ -5667,14 +5674,32 @@
       "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD"
+    },
+    "rewards": {
+      "rewards_tag_label": "Rewards",
+      "tooltip_title": "Earn rewards with mUSD",
+      "tooltip_points_suffix": "per $100",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_opted_in_footer": "Points will be automatically added to your account.",
+      "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
+      "tooltip_close": "Close"
     }
   },
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
     "tron": {
+      "stake_completed": "Staking completed",
+      "stake_completed_description": "Your staking transaction has been completed successfully.",
+      "stake_failed": "Staking failed",
+      "unstake_completed": "Unstaking completed",
+      "unstake_completed_description": "Your unstaking transaction has been completed successfully.",
+      "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
-      "energy": "Energy"
+      "energy": "Energy",
+      "estimated_annual_reward": "Estimated annual reward",
+      "trx_locked_for": "TRX locked for",
+      "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
@@ -7213,6 +7238,11 @@
     "search_sites": "Search sites",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
-    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled."
+    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
+    "empty_error_trending_state": {
+      "title": "Trending tokens is not available",
+      "description": "We can't fetch this page right now",
+      "try_again": "Try again"
+    }
   }
 }
