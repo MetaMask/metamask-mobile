@@ -66,7 +66,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
     //flag to enable/disable SRP word suggestions
     const isSrpWordSuggestionsEnabled = useFeatureFlag(
-      FeatureFlagNames.srpWordSuggestionsEnabled,
+      FeatureFlagNames.importSrpWordSuggestion,
     ) as boolean;
 
     // Internal state

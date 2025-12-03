@@ -14,7 +14,7 @@ jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
 jest.mock('../../hooks/useFeatureFlag', () => ({
   useFeatureFlag: jest.fn(),
   FeatureFlagNames: {
-    srpWordSuggestionsEnabled: 'srpWordSuggestionsEnabled',
+    importSrpWordSuggestion: 'importSrpWordSuggestion',
   },
 }));
 
@@ -166,7 +166,7 @@ describe('SrpInputGrid', () => {
       expect(getByText('ability')).toBeOnTheScreen();
     });
 
-    it('hides suggestions when srpWordSuggestionsEnabled feature flag is disabled', () => {
+    it('hides suggestions when importSrpWordSuggestion feature flag is disabled', () => {
       mockUseFeatureFlag.mockReturnValue(false);
 
       const { getByTestId, queryByText } = renderWithProvider(
@@ -180,7 +180,7 @@ describe('SrpInputGrid', () => {
       expect(queryByText('ability')).not.toBeOnTheScreen();
     });
 
-    it('displays suggestions when srpWordSuggestionsEnabled feature flag is enabled', () => {
+    it('displays suggestions when importSrpWordSuggestion feature flag is enabled', () => {
       mockUseFeatureFlag.mockReturnValue(true);
 
       const { getByTestId, getByText } = renderWithProvider(
