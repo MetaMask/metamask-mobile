@@ -317,13 +317,6 @@ const ExploreHome = () => (
       component={ExploreSearchScreen}
       options={{ headerShown: false }}
     />
-
-    {/* Browser Pages */}
-    <Stack.Screen
-      name={Routes.BROWSER.HOME}
-      component={BrowserFlow}
-      options={{ headerShown: false }}
-    />
   </Stack.Navigator>
 );
 
@@ -645,12 +638,9 @@ const HomeTabs = () => {
     }
 
     // Hide tab bar when browser is in fullscreen mode
-    const homeTabsWithBrowser = [Routes.BROWSER.HOME, Routes.TRENDING_VIEW];
     if (
       isBrowserFullscreen &&
-      homeTabsWithBrowser.some((routeName) =>
-        currentRoute.name?.startsWith(routeName),
-      )
+      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
     ) {
       return null;
     }
@@ -675,21 +665,35 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       {isAssetsTrendingTokensEnabled ? (
-        <Tab.Screen
-          name={Routes.TRENDING_VIEW}
-          options={options.trending}
-          component={ExploreHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
+        <>
+          <Tab.Screen
+            name={Routes.TRENDING_VIEW}
+            options={{
+              ...options.trending,
+              overrides: {
+                isSelected: (rootScreenName) =>
+                  [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                    rootScreenName,
+                  ),
+              },
+            }}
+            component={ExploreHome}
+            layout={({ children }) => UnmountOnBlurComponent(children)}
+          />
+          <Tab.Screen
+            name={Routes.BROWSER.HOME}
+            options={{
+              ...options.browser,
+              overrides: { hide: true },
+            }}
+            component={BrowserFlow}
+            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          />
+        </>
       ) : (
         <Tab.Screen
           name={Routes.BROWSER.HOME}
-          options={{
-            ...options.browser,
-            tabBarButton: isAssetsTrendingTokensEnabled
-              ? () => null
-              : undefined,
-          }}
+          options={options.browser}
           component={BrowserFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
