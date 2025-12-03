@@ -195,11 +195,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
-          # Original behavior: checkout PR head by number for OTA workflow
-          # ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
-          # For testing on this branch, checkout the commit that triggered this workflow
-          ref: ${{ github.sha }}
+          ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
           fetch-depth: 0
 
       - name: Setup Node.js

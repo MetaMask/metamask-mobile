@@ -686,7 +686,7 @@ buildExpoUpdate() {
 		yarn run --json | grep '"name":"eas"' || true
 
 		yarn run eas update \
-			--channel "${EXPO_CHANNEL}" \
+			--channel "exp" \
 			--private-key-path "./keys/private-key.pem" \
 			--message "test eas update workflow" \
 			--non-interactive
