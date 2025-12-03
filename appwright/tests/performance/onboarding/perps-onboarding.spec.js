@@ -40,7 +40,7 @@ test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   test.setTimeout(10 * 60 * 1000); // 10 minutes
   await screensSetup(device);
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3, 120000);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
   await WalletMainScreen.isTokenVisible('ETH');
   await TabBarModal.tapTradeButton();
 

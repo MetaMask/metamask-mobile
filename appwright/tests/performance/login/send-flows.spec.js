@@ -13,11 +13,7 @@ import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 
 import { TEST_AMOUNTS } from '../../../utils/TestConstants.js';
-import {
-  dissmissPredictionsModal,
-  login,
-  onboardingFlowImportSRP,
-} from '../../../utils/Flows.js';
+import { dissmissPredictionsModal, login } from '../../../utils/Flows.js';
 import TokenOverviewScreen from '../../../../wdio/screen-objects/TokenOverviewScreen.js';
 
 const ethAddress = '0xbea21b0b30ddd5e04f426ffb0c4c79157fc4047d';
@@ -40,7 +36,6 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   TokenOverviewScreen.device = device;
   await login(device);
   await dissmissPredictionsModal(device);
-  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
   );
