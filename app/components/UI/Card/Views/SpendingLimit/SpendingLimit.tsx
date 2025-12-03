@@ -29,7 +29,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import createStyles from './SpendingLimit.styles';
-import { SolScope } from '@metamask/keyring-api';
 import {
   ToastContext,
   ToastVariants,
@@ -171,16 +170,7 @@ const SpendingLimit = ({
     // For both flows, pre-select the priority token if no token is selected yet
     // and no token was passed from the route
     if (!selectedToken && priorityToken) {
-      // Check if priority token is Solana
-      const isPriorityTokenSolana =
-        priorityToken?.caipChainId === SolScope.Mainnet ||
-        priorityToken?.caipChainId?.startsWith('solana:');
-
-      // Only pre-select if it's NOT Solana (Solana delegation is not supported)
-      if (!isPriorityTokenSolana) {
-        // Spread the entire priorityToken to preserve all fields including delegationContract
-        setSelectedToken(priorityToken);
-      }
+      setSelectedToken(priorityToken);
     }
   }, [flow, selectedTokenFromRoute, priorityToken, allTokens, selectedToken]);
 
@@ -404,7 +394,6 @@ const SpendingLimit = ({
         delegationSettings,
         cardExternalWalletDetails: externalWalletDetailsData,
         selectionOnly: true,
-        hideSolanaAssets: true,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
         callerParams: route?.params as Record<string, unknown>,
       }),
@@ -457,21 +446,13 @@ const SpendingLimit = ({
     );
   };
 
-  // Check if selected token is Solana
-  const isSolanaSelected =
-    selectedToken?.caipChainId === SolScope.Mainnet ||
-    selectedToken?.caipChainId?.startsWith('solana:');
-
   const isConfirmDisabled = useMemo(() => {
-    if (isSolanaSelected) return true;
-    // For restricted mode, require a valid custom limit to be entered
     if (tempSelectedOption === 'restricted') {
       const limitNum = parseFloat(customLimit);
-      // Allow 0 (to remove token) or any positive number
       return customLimit === '' || isNaN(limitNum) || limitNum < 0;
     }
     return false;
-  }, [tempSelectedOption, isSolanaSelected, customLimit]);
+  }, [tempSelectedOption, customLimit]);
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
@@ -608,25 +589,6 @@ const SpendingLimit = ({
         </View>
 
         <View style={styles.buttonsContainer}>
-          {isSolanaSelected && (
-            <View style={styles.warningContainer}>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={theme.colors.warning.default}
-                style={styles.warningIcon}
-              />
-              <Text
-                variant={TextVariant.BodySM}
-                style={[
-                  styles.warningText,
-                  { color: theme.colors.warning.default },
-                ]}
-              >
-                {strings('card.card_spending_limit.solana_not_supported')}
-              </Text>
-            </View>
-          )}
           <Button
             variant={ButtonVariants.Primary}
             label={strings('card.card_spending_limit.confirm_new_limit')}

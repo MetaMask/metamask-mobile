@@ -299,28 +299,11 @@ describe('SpendingLimit Component', () => {
   });
 
   describe('Token Selection - Manage Flow', () => {
-    it('pre-selects priority token when it is not Solana', () => {
+    it('pre-selects priority token', () => {
       render();
 
       expect(screen.getByText('USDC')).toBeOnTheScreen();
       expect(screen.getByText('Linea')).toBeOnTheScreen();
-    });
-
-    it('does not pre-select token when priority token is Solana', () => {
-      const solanaRoute: MockRoute = {
-        params: {
-          flow: 'manage' as const,
-          selectedToken: undefined,
-          priorityToken: mockSolanaToken,
-          allTokens: [mockSolanaToken, mockMUSDToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
-        },
-      };
-
-      render(solanaRoute);
-
-      expect(screen.getByText('Select token')).toBeOnTheScreen();
     });
 
     it('displays placeholder when no priority token exists', () => {
@@ -338,23 +321,6 @@ describe('SpendingLimit Component', () => {
       render(emptyRoute);
 
       expect(screen.getByText('Select token')).toBeOnTheScreen();
-    });
-
-    it('does not pre-select token when priority is Solana and mUSD does not exist', () => {
-      const solanaOnlyRoute: MockRoute = {
-        params: {
-          flow: 'manage' as const,
-          selectedToken: undefined,
-          priorityToken: mockSolanaToken,
-          allTokens: [mockSolanaToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
-        },
-      };
-
-      render(solanaOnlyRoute);
-
-      expect(screen.queryByText('USDC')).not.toBeOnTheScreen();
     });
   });
 
@@ -567,26 +533,6 @@ describe('SpendingLimit Component', () => {
       const confirmButton = screen.getByText('Confirm');
 
       // Button should be enabled when input is 0 (valid case to remove token)
-      expect(confirmButton).toBeOnTheScreen();
-    });
-
-    it('disables confirm button when Solana token is selected', () => {
-      const solanaRoute: MockRoute = {
-        params: {
-          flow: 'enable' as const,
-          selectedToken: mockSolanaToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockSolanaToken, mockPriorityToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
-        },
-      };
-
-      render(solanaRoute);
-
-      const confirmButton = screen.getByText('Confirm');
-
-      // Button should be disabled for Solana tokens
       expect(confirmButton).toBeOnTheScreen();
     });
 
@@ -958,7 +904,6 @@ describe('SpendingLimit Component', () => {
           params: expect.objectContaining({
             tokensWithAllowances: expect.any(Array),
             selectionOnly: true,
-            hideSolanaAssets: true,
             callerRoute: Routes.CARD.SPENDING_LIMIT,
           }),
         }),

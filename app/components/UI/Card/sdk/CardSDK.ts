@@ -1229,12 +1229,12 @@ export class CardSDK {
     expiresAt: string;
     nonce: string;
   }> => {
-    // The endpoint only accepts linea or solana.
-    // linea-us can be mapped to linea.
-    const mapNetworkPropToEndpointParam =
-      network === 'solana' ? 'solana' : 'linea';
+    const networkToEndpointParam: Partial<Record<CardNetwork, string>> = {
+      'linea-us': 'linea',
+    };
+    const endpointNetwork = networkToEndpointParam[network] ?? network;
     const response = await this.makeRequest(
-      `/v1/delegation/token?network=${mapNetworkPropToEndpointParam}&address=${address}`,
+      `/v1/delegation/token?network=${endpointNetwork}&address=${address}`,
       { method: 'GET' },
       true, // authenticated
     );

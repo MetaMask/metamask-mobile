@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useIsSwapEnabledForPriorityToken } from './useIsSwapEnabledForPriorityToken';
-import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { cardNetworkInfos } from '../constants';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -183,7 +183,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
   describe('Solana Account Matching', () => {
     it('returns true when priority token address matches Solana account address', () => {
       mockSelectSelectedInternalAccount.mockImplementation((scope) => {
-        if (scope === SOLANA_MAINNET.chainId) {
+        if (scope === cardNetworkInfos.solana.caipChainId) {
           return mockSolanaAccount;
         }
         return undefined;
@@ -198,7 +198,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
 
     it('returns false when priority token address does not match Solana account address', () => {
       mockSelectSelectedInternalAccount.mockImplementation((scope) => {
-        if (scope === SOLANA_MAINNET.chainId) {
+        if (scope === cardNetworkInfos.solana.caipChainId) {
           return mockSolanaAccount;
         }
         return undefined;
@@ -219,7 +219,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
       };
 
       mockSelectSelectedInternalAccount.mockImplementation((scope) => {
-        if (scope === SOLANA_MAINNET.chainId) {
+        if (scope === cardNetworkInfos.solana.caipChainId) {
           return solanaAccountUpperCase;
         }
         return undefined;
@@ -239,7 +239,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         if (scope === 'eip155:0') {
           return mockEvmAccount;
         }
-        if (scope === SOLANA_MAINNET.chainId) {
+        if (scope === cardNetworkInfos.solana.caipChainId) {
           return mockSolanaAccount;
         }
         return undefined;
