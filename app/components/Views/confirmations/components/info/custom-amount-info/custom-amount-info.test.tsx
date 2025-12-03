@@ -32,6 +32,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { REWARDS_TAG_SELECTOR } from '../../../../../UI/Rewards/components/RewardsTag';
 import { OUTPUT_AMOUNT_TAG_SELECTOR } from '../../../../../UI/Earn/components/OutputAmountTag';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
+import { useCustomAmountRewards } from '../../../hooks/rewards/useCustomAmountRewards';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -48,6 +49,7 @@ jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionConfirm');
 jest.mock('../../../../../UI/Rewards/hooks/useRewardsAccountOptedIn');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../hooks/rewards/useCustomAmountRewards');
 
 const mockGoToBuy = jest.fn();
 
@@ -138,6 +140,8 @@ describe('CustomAmountInfo', () => {
 
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
 
+  const useCustomAmountRewardsMock = jest.mocked(useCustomAmountRewards);
+
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -189,11 +193,21 @@ describe('CustomAmountInfo', () => {
     useTokenFiatRatesMock.mockReturnValue([1, 1]);
     useRewardsAccountOptedInMock.mockReturnValue({
       accountOptedIn: false,
+      account: null,
     });
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.contractInteraction,
       txParams: { from: '0x123' },
     } as never);
+    useCustomAmountRewardsMock.mockReturnValue({
+      shouldShowRewardsTag: false,
+      estimatedPoints: null,
+      onRewardsTagPress: jest.fn(),
+      shouldShowOutputAmountTag: false,
+      outputAmount: null,
+      outputSymbol: null,
+      renderRewardsTooltip: () => null,
+    });
   });
 
   it('renders amount', () => {
@@ -288,10 +302,15 @@ describe('CustomAmountInfo', () => {
 
   describe('Rewards', () => {
     it('renders RewardsTag for mUSD conversion', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-      } as never);
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: true,
+        estimatedPoints: 5,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: false,
+        outputAmount: null,
+        outputSymbol: null,
+        renderRewardsTooltip: () => null,
+      });
 
       const { getByTestId } = render();
 
@@ -299,10 +318,15 @@ describe('CustomAmountInfo', () => {
     });
 
     it('does not render RewardsTag for non-mUSD transactions', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.perpsDeposit,
-        txParams: { from: '0x123' },
-      } as never);
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: false,
+        estimatedPoints: null,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: false,
+        outputAmount: null,
+        outputSymbol: null,
+        renderRewardsTooltip: () => null,
+      });
 
       const { queryByTestId } = render();
 
@@ -310,19 +334,14 @@ describe('CustomAmountInfo', () => {
     });
 
     it('calculates points correctly for $100', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-      } as never);
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '100',
-        amountHuman: '100',
-        amountHumanDebounced: '100',
-        hasInput: true,
-        isInputChanged: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: true,
+        estimatedPoints: 5,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: false,
+        outputAmount: null,
+        outputSymbol: null,
+        renderRewardsTooltip: () => null,
       });
 
       const { getByText } = render();
@@ -331,19 +350,14 @@ describe('CustomAmountInfo', () => {
     });
 
     it('calculates points correctly for $199', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-      } as never);
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '199',
-        amountHuman: '199',
-        amountHumanDebounced: '199',
-        hasInput: true,
-        isInputChanged: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: true,
+        estimatedPoints: 5,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: false,
+        outputAmount: null,
+        outputSymbol: null,
+        renderRewardsTooltip: () => null,
       });
 
       const { getByText } = render();
@@ -352,19 +366,14 @@ describe('CustomAmountInfo', () => {
     });
 
     it('calculates points correctly for $300', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-      } as never);
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '300',
-        amountHuman: '300',
-        amountHumanDebounced: '300',
-        hasInput: true,
-        isInputChanged: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: true,
+        estimatedPoints: 15,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: false,
+        outputAmount: null,
+        outputSymbol: null,
+        renderRewardsTooltip: () => null,
       });
 
       const { getByText } = render();
@@ -373,19 +382,14 @@ describe('CustomAmountInfo', () => {
     });
 
     it('renders 0 points when amount is empty', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-      } as never);
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        hasInput: false,
-        isInputChanged: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: true,
+        estimatedPoints: 0,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: false,
+        outputAmount: null,
+        outputSymbol: null,
+        renderRewardsTooltip: () => null,
       });
 
       const { getByText } = render();
@@ -393,33 +397,38 @@ describe('CustomAmountInfo', () => {
       expect(getByText('0 points')).toBeDefined();
     });
 
-    it('opens rewards tooltip when RewardsTag is pressed', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-      } as never);
+    it('calls onRewardsTagPress when RewardsTag is pressed', () => {
+      const mockOnRewardsTagPress = jest.fn();
 
-      const { getByTestId, queryByTestId } = render();
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: true,
+        estimatedPoints: 5,
+        onRewardsTagPress: mockOnRewardsTagPress,
+        shouldShowOutputAmountTag: false,
+        outputAmount: null,
+        outputSymbol: null,
+        renderRewardsTooltip: () => null,
+      });
 
-      // Tooltip should not be visible initially
-      expect(queryByTestId('rewards-tooltip-bottom-sheet')).toBeNull();
+      const { getByTestId } = render();
 
       fireEvent.press(getByTestId(REWARDS_TAG_SELECTOR));
 
-      // Tooltip should now be visible
-      // Note: Modal content isn't testable in React Native tests,
-      // but RewardsTooltipBottomSheet has its own comprehensive test coverage
-      expect(getByTestId('rewards-tooltip-bottom-sheet')).toBeDefined();
+      expect(mockOnRewardsTagPress).toHaveBeenCalled();
     });
   });
 
   describe('Output Amount Tag', () => {
     it('renders OutputAmountTag for mUSD conversion', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-        chainId: '0x1',
-      } as never);
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: false,
+        estimatedPoints: null,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: true,
+        outputAmount: '100',
+        outputSymbol: 'mUSD',
+        renderRewardsTooltip: () => null,
+      });
 
       const { getByTestId } = render();
 
@@ -427,20 +436,14 @@ describe('CustomAmountInfo', () => {
     });
 
     it('displays correct output amount', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-        chainId: '0x1',
-      } as never);
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '100',
-        amountHuman: '100',
-        amountHumanDebounced: '100',
-        hasInput: true,
-        isInputChanged: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: false,
+        estimatedPoints: null,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: true,
+        outputAmount: '100',
+        outputSymbol: 'mUSD',
+        renderRewardsTooltip: () => null,
       });
 
       const { getByText } = render();
@@ -449,20 +452,14 @@ describe('CustomAmountInfo', () => {
     });
 
     it('formats amount with 2 decimal places', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-        txParams: { from: '0x123' },
-        chainId: '0x1',
-      } as never);
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '100.5',
-        amountHuman: '100.5',
-        amountHumanDebounced: '100.5',
-        hasInput: true,
-        isInputChanged: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: false,
+        estimatedPoints: null,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: true,
+        outputAmount: '100.5',
+        outputSymbol: 'mUSD',
+        renderRewardsTooltip: () => null,
       });
 
       const { getByText } = render();
@@ -471,10 +468,15 @@ describe('CustomAmountInfo', () => {
     });
 
     it('does not render OutputAmountTag for non-mUSD transactions', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.perpsDeposit,
-        txParams: { from: '0x123' },
-      } as never);
+      useCustomAmountRewardsMock.mockReturnValue({
+        shouldShowRewardsTag: false,
+        estimatedPoints: null,
+        onRewardsTagPress: jest.fn(),
+        shouldShowOutputAmountTag: false,
+        outputAmount: null,
+        outputSymbol: null,
+        renderRewardsTooltip: () => null,
+      });
 
       const { queryByTestId } = render();
 
