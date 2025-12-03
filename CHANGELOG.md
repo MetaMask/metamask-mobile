@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- update changelog for 7.60.3 (hotfix - no test plan)
+- bump semvar version to 7.60.3 && build version to 3226
 - bump semvar version to 7.60.3 && build version to 3226
 
 ## [7.59.0]
