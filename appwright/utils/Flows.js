@@ -77,7 +77,7 @@ export async function dissmissPredictionsModal(device) {
   }
 }
 
-export async function importSRPFlow(device, srp) {
+export async function importSRPFlow(device, srp, dismissModals = true) {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
@@ -114,7 +114,7 @@ export async function importSRPFlow(device, srp) {
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard(false);
 
   await ImportFromSeedScreen.tapContinueButton(false);
-  await dissmissAllModals(device);
+  dismissModals ? await dissmissAllModals(device) : null;
   timer4.start();
   await WalletMainScreen.isMainWalletViewVisible();
   timer4.stop();

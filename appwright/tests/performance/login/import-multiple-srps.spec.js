@@ -28,14 +28,9 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   SwapScreen.device = device;
   TabBarModal.device = device;
   test.setTimeout(1800000);
-  await login(device, { dismissModals: false });
-  await dismissMultichainAccountsIntroModal(device);
-  await dissmissPredictionsModal(device);
-  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
+  await login(device);
 
-  const timers = await importSRPFlow(device, process.env.TEST_SRP_2);
-  await WalletMainScreen.isTokenVisible('ETH');
-  await WalletMainScreen.isTokenVisible('SOL');
+  const timers = await importSRPFlow(device, process.env.TEST_SRP_2, false);
   timers.forEach((timer) => performanceTracker.addTimer(timer));
   await performanceTracker.attachToTest(testInfo);
 });

@@ -59,7 +59,11 @@ class ImportFromSeedScreen {
       }
     }
     else {
-      return `seed-phrase-input_${String(srpIndex)}`;
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return `seed-phrase-input_${String(srpIndex)}`;
+      } else {
+        return `//*[@label="${srpIndex+1}."]`;
+      }
     }
    }
  
@@ -108,11 +112,11 @@ class ImportFromSeedScreen {
         const lastInput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
         await AppwrightGestures.typeText(lastInput, lastWord);
       } else {
-        const firstWordImput = await AppwrightSelectors.getElementByID(this.device, 'seed-phrase-input');
+        const firstWordImput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, 'seed-phrase-input') : await AppwrightSelectors.getElementByID(this.device, 'textfield');
         await AppwrightGestures.typeText(firstWordImput, `${phraseArray[0]} `);
         for (let i = 1; i < phraseArray.length; i++) {
           const wordElement = await this.inputOfIndex(i, false);
-          const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
+          const input = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
           await AppwrightGestures.typeText(input, `${phraseArray[i]} `);
           await AppwrightGestures.tap(input);
         }
