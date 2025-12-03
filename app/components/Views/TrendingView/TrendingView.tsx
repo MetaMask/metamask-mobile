@@ -79,18 +79,15 @@ const TrendingFeed: React.FC = () => {
   );
 
   // Memoize callbacks for each section to prevent infinite loops
-  const sectionEmptyCallbacks = useMemo(
-    () =>
-      HOME_SECTIONS_ARRAY.reduce(
-        (acc, section) => {
-          acc[section.id] = (isEmpty: boolean) =>
-            handleSectionEmptyChange(section.id, isEmpty);
-          return acc;
-        },
-        {} as Record<SectionId, (isEmpty: boolean) => void>,
-      ),
-    [handleSectionEmptyChange],
-  );
+  const sectionCallbacks = useMemo(() => {
+    const callbacks: Record<SectionId, (isEmpty: boolean) => void> =
+      {} as Record<SectionId, (isEmpty: boolean) => void>;
+    HOME_SECTIONS_ARRAY.forEach((section) => {
+      callbacks[section.id] = (isEmpty: boolean) =>
+        handleSectionEmptyChange(section.id, isEmpty);
+    });
+    return callbacks;
+  }, [handleSectionEmptyChange]);
 
   const handleBrowserPress = useCallback(() => {
     updateLastTrendingScreen('TrendingBrowser');
@@ -174,23 +171,17 @@ const TrendingFeed: React.FC = () => {
         >
           <QuickActions emptySections={emptySections} />
 
-          {HOME_SECTIONS_ARRAY.map((section) => {
-            // Hide section visually but keep mounted so it can report when data arrives
-            const isHidden = emptySections.has(section.id);
-
-            return (
-              <Box
-                key={section.id}
-                twClassName={isHidden ? 'hidden' : undefined}
-              >
-                <SectionHeader sectionId={section.id} />
-                <section.Section
-                  refreshTrigger={refreshTrigger}
-                  toggleSectionEmptyState={sectionEmptyCallbacks[section.id]}
-                />
-              </Box>
-            );
-          })}
+          {HOME_SECTIONS_ARRAY.filter(
+            (section) => !emptySections.has(section.id),
+          ).map((section) => (
+            <Box key={section.id}>
+              <SectionHeader sectionId={section.id} />
+              <section.Section
+                refreshTrigger={refreshTrigger}
+                toggleSectionEmptyState={sectionCallbacks[section.id]}
+              />
+            </Box>
+          ))}
         </ScrollView>
       ) : (
         <BasicFunctionalityEmptyState />

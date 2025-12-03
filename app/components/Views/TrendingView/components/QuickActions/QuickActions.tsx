@@ -14,7 +14,7 @@ import { SECTIONS_ARRAY, SectionId } from '../../config/sections.config';
 
 interface QuickActionsProps {
   /** Set of section IDs that have empty data and should be hidden */
-  emptySections?: Set<SectionId>;
+  emptySections: Set<SectionId>;
 }
 
 /**
@@ -26,9 +26,9 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
 
-  const visibleSections = emptySections
-    ? SECTIONS_ARRAY.filter((s) => !emptySections.has(s.id))
-    : SECTIONS_ARRAY;
+  const visibleSections = SECTIONS_ARRAY.filter(
+    (s) => !emptySections.has(s.id),
+  );
 
   return (
     <Box twClassName="mt-1 mb-4">
