@@ -4,13 +4,6 @@ import { act, waitFor } from '@testing-library/react-native';
 import { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
-import { usePopularNetworks } from '../usePopularNetworks/usePopularNetworks';
-
-jest.mock('../usePopularNetworks/usePopularNetworks');
-
-const mockUsePopularNetworks = usePopularNetworks as jest.MockedFunction<
-  typeof usePopularNetworks
->;
 
 const createMockSearchResult = (overrides = {}) => ({
   assetId: 'eip155:1/erc20:0x123' as CaipChainId,
@@ -30,15 +23,6 @@ describe('useSearchRequest', () => {
   beforeEach(() => {
     spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
     jest.clearAllMocks();
-    mockUsePopularNetworks.mockReturnValue([
-      {
-        id: 'eip155:1',
-        name: 'Ethereum Mainnet',
-        caipChainId: 'eip155:1' as CaipChainId,
-        isSelected: false,
-        imageSource: { uri: 'ethereum' },
-      },
-    ]);
   });
 
   afterEach(() => {
