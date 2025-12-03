@@ -210,7 +210,7 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByText('perps.adjust_margin.margin_available_to_add'),
       ).toBeOnTheScreen();
-      expect(screen.getAllByText('$1000.00')).toHaveLength(2);
+      expect(screen.getByText('$1000.00')).toBeOnTheScreen();
     });
 
     it('displays liquidation price label', () => {
