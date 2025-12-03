@@ -317,6 +317,26 @@ const ExploreHome = () => (
       component={ExploreSearchScreen}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={Routes.SITES_FULL_VIEW}
+      component={SitesFullView}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
   </Stack.Navigator>
 );
 
@@ -1023,25 +1043,7 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen
-        name={Routes.SITES_FULL_VIEW}
-        component={SitesFullView}
-        options={{
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
-      />
+
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
