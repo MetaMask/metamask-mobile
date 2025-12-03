@@ -12,7 +12,6 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
-
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
