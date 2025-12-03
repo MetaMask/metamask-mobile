@@ -81,7 +81,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   // Check opt-in status for rewards
   const { accountOptedIn, account: rewardsAccount } = useRewardsAccountOptedIn({
     trigger: calculations?.totalEstimatedPoints,
-    checkActiveSeason: true, // Perps checks for active season
+    requireActiveSeason: true, // Perps checks for active season
   });
 
   // Track screen viewed event

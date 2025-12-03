@@ -308,7 +308,7 @@ describe('PerpsCloseAllPositionsView', () => {
     // Assert
     expect(mockUseRewardsAccountOptedIn).toHaveBeenCalledWith({
       trigger: mockCalculations.totalEstimatedPoints,
-      checkActiveSeason: true,
+      requireActiveSeason: true,
     });
   });
 

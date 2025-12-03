@@ -184,8 +184,8 @@ describe('useRewardsAccountOptedIn', () => {
     });
   });
 
-  describe('checkActiveSeason parameter', () => {
-    it('checks hasActiveSeason when checkActiveSeason is true', async () => {
+  describe('requireActiveSeason parameter', () => {
+    it('checks hasActiveSeason when requireActiveSeason is true', async () => {
       (Engine.controllerMessenger.call as jest.Mock)
         .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
         .mockResolvedValueOnce(true) // hasActiveSeason
@@ -222,7 +222,7 @@ describe('useRewardsAccountOptedIn', () => {
       });
     });
 
-    it('returns null when rewards not enabled even with checkActiveSeason', async () => {
+    it('returns null when rewards not enabled even with requireActiveSeason', async () => {
       (Engine.controllerMessenger.call as jest.Mock).mockResolvedValueOnce(
         false,
       ); // isRewardsFeatureEnabled
@@ -241,7 +241,7 @@ describe('useRewardsAccountOptedIn', () => {
       );
     });
 
-    it('does not check hasActiveSeason when checkActiveSeason is false', async () => {
+    it('does not check hasActiveSeason when requireActiveSeason is false', async () => {
       (Engine.controllerMessenger.call as jest.Mock)
         .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
         .mockResolvedValueOnce('subscription-id') // getCandidateSubscriptionId

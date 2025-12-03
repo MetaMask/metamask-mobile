@@ -53,7 +53,7 @@ export const usePerpsRewards = ({
   const { accountOptedIn, account: selectedAccount } = useRewardsAccountOptedIn(
     {
       trigger: feeResults?.estimatedPoints,
-      checkActiveSeason: true, // Perps checks for active season
+      requireActiveSeason: true, // Perps checks for active season
     },
   );
 
