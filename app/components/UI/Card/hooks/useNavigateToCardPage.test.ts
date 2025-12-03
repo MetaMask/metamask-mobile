@@ -33,7 +33,7 @@ jest.mock('../../../../util/url', () => ({
 jest.mock('../../../../core/AppConstants', () => ({
   CARD: {
     URL: 'https://card.metamask.io',
-    TRAVEL_URL: 'https://travel.metamask.io',
+    TRAVEL_URL: 'https://travel.metamask.io/access',
     CARD_TOS_URL: 'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
   },
 }));
@@ -55,7 +55,7 @@ const BROWSER_PAGE_CONFIG = [
   },
   {
     page: CardInternalBrowserPage.TRAVEL,
-    url: 'https://travel.metamask.io',
+    url: 'https://travel.metamask.io/access',
     urlCheckFn: isCardTravelUrl,
     action: CardActions.NAVIGATE_TO_TRAVEL_PAGE,
     tabId: 'travel-tab-id',
@@ -406,7 +406,7 @@ describe('useNavigateToCardPage', () => {
         expect.objectContaining({
           screen: Routes.BROWSER.VIEW,
           params: expect.objectContaining({
-            newTabUrl: 'https://travel.metamask.io',
+            newTabUrl: 'https://travel.metamask.io/access',
           }),
         }),
       );
