@@ -96,7 +96,7 @@ export class RPCBridgeAdapter
     while (this.queue.length > 0) {
       const request = this.queue.shift();
       this.client.onMessage(request);
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     this.processing = false;
