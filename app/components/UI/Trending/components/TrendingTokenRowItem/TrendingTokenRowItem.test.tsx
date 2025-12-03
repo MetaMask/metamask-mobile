@@ -4,6 +4,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
+// Mock the trendingNetworksList module to avoid getNetworkImageSource errors
+jest.mock('../../utils/trendingNetworksList', () => ({
+  TRENDING_NETWORKS_LIST: [],
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
