@@ -107,6 +107,10 @@ export const useStopLossPrompt = ({
   }, []);
 
   useEffect(() => {
+    hasBeenShownRef.current = false;
+  }, [position?.coin]);
+
+  useEffect(() => {
     if (!enabled || roePercent === null || hasBeenShownRef.current) {
       return;
     }
