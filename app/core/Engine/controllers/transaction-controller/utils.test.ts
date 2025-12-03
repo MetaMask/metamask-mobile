@@ -49,6 +49,7 @@ jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
 jest.mock('../../../../util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
   isValidHexAddress: jest.fn().mockReturnValue(true),
+  isHardwareAccount: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../../../util/rpc-domain-utils', () => ({
@@ -309,6 +310,7 @@ describe('generateDefaultTransactionMetrics', () => {
       metametricsEvent: mockMetametricsEvent,
       properties: expect.objectContaining({
         account_eip7702_upgraded: undefined,
+        account_hardware_type: null,
         account_type: 'MetaMask',
         additional_property: 'test_value',
         chain_id: '0x1',
@@ -347,6 +349,7 @@ describe('generateDefaultTransactionMetrics', () => {
       metametricsEvent: mockMetametricsEvent,
       properties: expect.objectContaining({
         account_eip7702_upgraded: undefined,
+        account_hardware_type: null,
         account_type: 'MetaMask',
         chain_id: '0x1',
         dapp_host_name: 'N/A',
@@ -770,6 +773,7 @@ describe('generateDefaultTransactionMetrics', () => {
       expect(metrics.properties).toEqual(
         expect.objectContaining({
           account_eip7702_upgraded: undefined,
+          account_hardware_type: null,
           account_type: 'MetaMask',
           api_method: 'wallet_sendCalls',
           batch_transaction_count: 2,
@@ -808,6 +812,7 @@ describe('generateDefaultTransactionMetrics', () => {
       expect(metrics.properties).toEqual(
         expect.objectContaining({
           account_eip7702_upgraded: undefined,
+          account_hardware_type: null,
           account_type: 'MetaMask',
           chain_id: '0xaa36a7',
           dapp_host_name: 'metamask',
@@ -848,6 +853,7 @@ describe('generateDefaultTransactionMetrics', () => {
       expect(metrics.properties).toEqual(
         expect.objectContaining({
           account_eip7702_upgraded: undefined,
+          account_hardware_type: null,
           account_type: 'MetaMask',
           chain_id: '0xaa36a7',
           dapp_host_name: 'metamask',
@@ -884,6 +890,7 @@ describe('generateDefaultTransactionMetrics', () => {
         expect.objectContaining({
           account_eip7702_upgraded:
             '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
+          account_hardware_type: null,
           account_type: 'MetaMask',
           api_method: 'wallet_sendCalls',
           batch_transaction_count: 2,
