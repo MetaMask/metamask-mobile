@@ -854,8 +854,11 @@ elif [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main"
 fi
 
 # Update Expo channel configuration based on environment
-echo "Updating Expo channel configuration..."
-node "${__DIRNAME__}/update-expo-channel.js"
+# Skip when running Expo updates, as channel is managed externally in that flow
+if [ "$PLATFORM" != "expo-update" ]; then
+	echo "Updating Expo channel configuration..."
+	node "${__DIRNAME__}/update-expo-channel.js"
+fi
 
 if [ "$PLATFORM" == "ios" ]; then
 	# we don't care about env file in CI
