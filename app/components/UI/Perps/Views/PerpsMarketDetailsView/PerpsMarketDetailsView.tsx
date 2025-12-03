@@ -359,18 +359,24 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
 
   // Compute TP/SL lines for the chart based on existing position
+  // Always include currentPrice to ensure chart price line matches header (TAT-2112)
   const tpslLines = useMemo(() => {
+    const currentPriceStr =
+      currentPrice > 0 ? currentPrice.toString() : undefined;
+
     if (existingPosition) {
       return {
         entryPrice: existingPosition.entryPrice,
         takeProfitPrice: existingPosition.takeProfitPrice,
         stopLossPrice: existingPosition.stopLossPrice,
         liquidationPrice: existingPosition.liquidationPrice || undefined,
+        currentPrice: currentPriceStr,
       };
     }
 
-    return undefined;
-  }, [existingPosition]);
+    // Even without position, show current price line on chart
+    return currentPriceStr ? { currentPrice: currentPriceStr } : undefined;
+  }, [existingPosition, currentPrice]);
 
   // Stop loss prompt banner logic
   const {
