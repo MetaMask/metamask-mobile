@@ -34,7 +34,6 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     EarnEmptyStateCta: {
       paddingTop: 8,
-      // paddingHorizontal: 16,
     },
     earnings: {
       paddingHorizontal: 16,
