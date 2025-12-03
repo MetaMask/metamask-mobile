@@ -154,7 +154,7 @@ jobs:
   push-update:
     name: Push EAS Update
     runs-on: ubuntu-latest
-    environment: build-exp
+    environment: expo-update
     # Original dependencies on fingerprint-comparison and approval:
     # needs:
     #   - fingerprint-comparison
