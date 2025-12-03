@@ -64,7 +64,7 @@ const fetchAllowances = async (
     const supportedTokensAllowances =
       await sdk.getSupportedTokensAllowances(selectedAddress);
 
-    const supportedTokens = sdk.getSupportedTokensByChainId(sdk.lineaChainId);
+    const supportedTokens = sdk.getSupportedTokensByChainId();
 
     const mappedAllowances = supportedTokensAllowances.map((token) => {
       const tokenInfo = supportedTokens.find(
@@ -279,9 +279,7 @@ export const useGetPriorityCardToken = (
         });
 
         if (!cardTokenAllowances || cardTokenAllowances.length === 0) {
-          const supportedTokens = sdk.getSupportedTokensByChainId(
-            sdk.lineaChainId,
-          );
+          const supportedTokens = sdk.getSupportedTokensByChainId();
 
           if (supportedTokens[0]) {
             const fallbackToken = {
