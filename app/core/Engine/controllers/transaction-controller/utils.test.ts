@@ -981,7 +981,7 @@ describe('generateDefaultTransactionMetrics', () => {
       expect(result.properties.account_hardware_type).toBeNull();
     });
 
-    it('handles error when checking account type and defaults to unknown', async () => {
+    it('defaults to unknown account_type when getAddressAccountType throws', async () => {
       mockIsValidHexAddress.mockReturnValue(true);
       mockGetAddressAccountType.mockImplementation(() => {
         throw new Error('Wallet locked');
