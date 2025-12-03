@@ -165,6 +165,7 @@ jobs:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
+      GIT_BRANCH: ${{ env.BASE_BRANCH_REF }}
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       SEEDLESS_ONBOARDING_ENABLED: 'true'
