@@ -1,4 +1,4 @@
-name: Push OTA Update (Test)
+name: Push OTA Update (EXP Build)
 
 on:
   workflow_dispatch:
@@ -11,6 +11,10 @@ on:
         description: 'Base branch ref to compare fingerprints against (e.g., main)'
         required: true
         type: string
+      message:
+        description: 'EAS update message'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -19,6 +23,7 @@ permissions:
 env:
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
+  UPDATE_MESSAGE: ${{ inputs.message }}
 
 jobs:
   fingerprint-comparison:
@@ -206,7 +211,7 @@ jobs:
           echo "🔧 Configuration:"
           echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
-          echo "  Message: test eas update workflow"
+          echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
           # Fingerprint comparison temporarily disabled
           echo ""
@@ -234,7 +239,7 @@ jobs:
             echo "### ✅ EAS Update Published Successfully"
             echo
             echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
-            echo "**Message:** test eas update workflow"
+            echo "**Message:** ${UPDATE_MESSAGE:-<not set>}"
             echo
             echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
           } >> "$GITHUB_STEP_SUMMARY"

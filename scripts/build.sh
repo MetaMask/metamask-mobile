@@ -688,7 +688,7 @@ buildExpoUpdate() {
 		yarn run eas update \
 			--channel "${EXPO_CHANNEL}" \
 			--private-key-path "./keys/private-key.pem" \
-			--message "test eas update workflow" \
+			--message "${UPDATE_MESSAGE}" \
 			--non-interactive
 }
 
