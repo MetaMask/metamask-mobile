@@ -18,7 +18,7 @@ on:
     # Temporarily run on any push to this repository for testing.
     # You can narrow this to specific branches (e.g., ["my-branch"]) if desired.
     branches:
-      - 'chore/expo-update-env-config'
+      - 'wsun/expo-update-env-config'
 
 permissions:
   contents: read
@@ -154,7 +154,7 @@ jobs:
   push-update:
     name: Push EAS Update
     runs-on: ubuntu-latest
-    environment: expo-update
+    environment: build-exp
     # Original dependencies on fingerprint-comparison and approval:
     # needs:
     #   - fingerprint-comparison
