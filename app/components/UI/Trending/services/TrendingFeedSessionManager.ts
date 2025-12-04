@@ -14,8 +14,6 @@ import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuil
  *
  * Each session gets unique ID and tracks:
  * - Time spent in feed (with AppState pause/resume)
- * - Pages viewed (tab changes + market detail views)
- * - Current active tab
  * - Entry point (how user entered feed)
  */
 class TrendingFeedSessionManager {
