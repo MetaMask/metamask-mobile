@@ -43,29 +43,27 @@ export interface ExtendedRemoteFeatureFlagController
   clearAllOverrides: () => void;
 }
 
-// Helper to check if Engine is ready
-const isEngineReady = (): boolean => {
-  try {
-    return !!(
-      Engine.context &&
-      Engine.context.RemoteFeatureFlagController &&
-      Engine.controllerMessenger
-    );
-  } catch {
-    return false;
-  }
-};
-
 // Helper to safely access the RemoteFeatureFlagController with proper typing
 const getRemoteFeatureFlagController = ():
   | ExtendedRemoteFeatureFlagController
-  | undefined => {
-  if (!isEngineReady()) {
-    return undefined;
-  }
-  return Engine.context?.RemoteFeatureFlagController as
+  | undefined => Engine.context?.RemoteFeatureFlagController as
     | ExtendedRemoteFeatureFlagController
     | undefined;
+
+// Helper to safely execute controller methods with error handling
+const withRemoteFeatureFlagController = (
+  fn: (controller: ExtendedRemoteFeatureFlagController) => void,
+  errorMessage: string,
+): void => {
+  const controller = getRemoteFeatureFlagController();
+  if (!controller) {
+    return;
+  }
+  try {
+    fn(controller);
+  } catch (error) {
+    console.error(errorMessage, error);
+  }
 };
 
 export interface FeatureFlagOverrideContextType {
@@ -104,10 +102,6 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   // Subscribe to controller state changes to ensure we stay in sync
   useEffect(() => {
-    if (!isEngineReady()) {
-      return;
-    }
-
     const handler = () => {
       // State change will trigger Redux update via selector
       // No need to do anything here as Redux will handle the update
@@ -133,52 +127,24 @@ export const FeatureFlagOverrideProvider: React.FC<
   }, []);
 
   const setOverride = useCallback((key: string, value: unknown) => {
-    if (!isEngineReady()) {
-      console.warn('Engine not ready, cannot set feature flag override');
-      return;
-    }
-    try {
-      const controller = getRemoteFeatureFlagController();
-      if (!controller) {
-        return;
-      }
+    withRemoteFeatureFlagController((controller) => {
       // Use the controller's setFlagOverride method which properly updates localOverrides in state
       controller.setFlagOverride(key, value as Json);
-    } catch (error) {
-      console.error('Failed to set feature flag override:', error);
-    }
+    }, 'Failed to set feature flag override:');
   }, []);
 
   const removeOverride = useCallback((key: string) => {
-    if (!isEngineReady()) {
-      console.warn('Engine not ready, cannot remove feature flag override');
-      return;
-    }
-    try {
-      const controller = getRemoteFeatureFlagController();
-      if (!controller) {
-        return;
-      }
-      controller.clearFlagOverride(key);
-    } catch (error) {
-      console.error('Failed to remove feature flag override:', error);
-    }
+    withRemoteFeatureFlagController(
+      (controller) => controller.clearFlagOverride(key),
+      'Failed to remove feature flag override:',
+    );
   }, []);
 
   const clearAllOverrides = useCallback(() => {
-    if (!isEngineReady()) {
-      console.warn('Engine not ready, cannot clear feature flag overrides');
-      return;
-    }
-    try {
-      const controller = getRemoteFeatureFlagController();
-      if (!controller) {
-        return;
-      }
-      controller.clearAllOverrides();
-    } catch (error) {
-      console.error('Failed to clear feature flag overrides:', error);
-    }
+    withRemoteFeatureFlagController(
+      (controller) => controller.clearAllOverrides(),
+      'Failed to clear feature flag overrides:',
+    );
   }, []);
 
   const hasOverride = useCallback(
