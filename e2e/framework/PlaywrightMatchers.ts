@@ -50,15 +50,15 @@ export default class PlaywrightMatchers {
   }
 
   /**
-   * Get element by text content
+   * Get element by text content (cross-platform)
    * @param text - The text to search for
    * @returns The wrapped element
    */
   static async getByText(text: string): Promise<PlaywrightElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
-    const element2 = await drv.$(`android=new UiSelector().text("${text}")`);
-    return wrapElement(element2);
+    const element = await drv.$(`*.=${text}`);
+    return wrapElement(element);
   }
 
   /**

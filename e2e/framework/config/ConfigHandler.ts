@@ -37,6 +37,7 @@ export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {
     use: {
       actionTimeout: 20_000,
       expectTimeout: 20_000,
+      ...config.use,
     },
   });
 }

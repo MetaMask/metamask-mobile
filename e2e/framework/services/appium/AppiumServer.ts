@@ -64,7 +64,7 @@ export function stopAppiumServer(): Promise<string> {
     exec('pkill -f appium', (error, stdout) => {
       if (error) {
         logger.error(`Error stopping Appium server: ${error.message}`);
-        reject(error);
+        return reject(error);
       }
       logger.debug('Appium server stopped successfully.');
       resolve(stdout);
