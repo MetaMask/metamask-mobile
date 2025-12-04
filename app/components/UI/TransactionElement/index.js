@@ -49,6 +49,7 @@ import {
   handleUnifiedSwapsTxHistoryItemClick,
 } from '../Bridge/utils/transaction-history';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import { BadgePosition } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -73,8 +74,8 @@ const createStyles = (colors, typography) =>
     rowWithBorder: {
       backgroundColor: colors.background.default,
       flex: 1,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
+      // borderBottomWidth: 1,
+      //borderBottomColor: colors.border.muted,
     },
     actionContainerStyle: {
       height: 25,
@@ -89,8 +90,8 @@ const createStyles = (colors, typography) =>
       paddingHorizontal: 10,
     },
     icon: {
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
     },
     summaryWrapper: {
       padding: 15,
@@ -122,23 +123,31 @@ const createStyles = (colors, typography) =>
       paddingTop: 0,
     },
     listItemTitle: {
-      ...typography.sBodyLGMedium,
-      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
       marginTop: 0,
+      marginVertical: 0,
     },
     listItemStatus: {
-      ...typography.sBodyMDBold,
-      fontFamily: getFontFamily(TextVariant.BodyMDBold),
+      ...typography.sBodySMMedium,
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
     },
     listItemFiatAmount: {
-      ...typography.sBodyLGMedium,
-      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
+      color: colors.text.default,
       marginTop: 0,
+      marginVertical: 0,
     },
     listItemAmount: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
+      ...typography.sBodySM,
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
       color: colors.text.alternative,
+      marginVertical: 0,
+    },
+    listItem: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
     },
   });
 
@@ -438,6 +447,7 @@ class TransactionElement extends PureComponent {
 
     return (
       <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
@@ -487,7 +497,7 @@ class TransactionElement extends PureComponent {
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}
-        <ListItem>
+        <ListItem style={styles.listItem}>
           <ListItem.Date style={styles.listItemDate}>
             {this.renderTxTime()}
           </ListItem.Date>
@@ -707,16 +717,14 @@ class TransactionElement extends PureComponent {
     if (!transactionElement || !transactionDetails) return null;
     return (
       <>
-        <TouchableHighlight
+        <TouchableOpacity
           style={
             this.props.showBottomBorder ? styles.rowWithBorder : styles.row
           }
           onPress={this.onPressItem}
-          underlayColor={colors.background.alternative}
-          activeOpacity={1}
         >
           {this.renderTxElement(transactionElement)}
-        </TouchableHighlight>
+        </TouchableOpacity>
         {detailsModalVisible && (
           <Modal
             isVisible={detailsModalVisible}

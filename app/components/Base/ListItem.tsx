@@ -16,14 +16,16 @@ import { fontStyles } from '../../styles/common';
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     wrapper: {
-      padding: 15,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
       // TODO(wachunei): check if this can be removed without breaking anything
       // minHeight: Device.isIos() ? 55 : 100
     },
     date: {
-      color: colors.text.default,
-      fontSize: 12,
-      marginBottom: 10,
+      color: colors.text.alternative,
+      fontSize: 14,
+      lineHeight: 22,
+      marginBottom: 12,
       ...fontStyles.normal,
     },
     content: {
@@ -38,7 +40,7 @@ const createStyles = (colors: Theme['colors']) =>
     icon: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginRight: 15,
+      marginRight: 16,
     },
     body: {
       flex: 1,
@@ -48,15 +50,15 @@ const createStyles = (colors: Theme['colors']) =>
       alignItems: 'flex-end',
     },
     title: {
-      fontSize: 15,
+      fontSize: 16,
       color: colors.text.default,
     },
     amount: {
-      fontSize: 15,
+      fontSize: 14,
       color: colors.text.default,
     },
     fiatAmount: {
-      fontSize: 12,
+      fontSize: 16,
       color: colors.text.alternative,
       textTransform: 'uppercase',
     },
