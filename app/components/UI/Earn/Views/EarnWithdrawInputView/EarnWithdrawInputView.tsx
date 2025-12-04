@@ -61,6 +61,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronUnstake from '../../hooks/useTronUnstake';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
@@ -675,7 +676,9 @@ const EarnWithdrawInputView = () => {
             experience: receiptToken?.experience?.type,
             token_symbol: receiptToken?.symbol,
             chain_id: receiptToken?.chainId
-              ? toHex(receiptToken.chainId)
+              ? isNonEvmChainId(receiptToken.chainId)
+                ? receiptToken.chainId
+                : toHex(receiptToken.chainId)
               : undefined,
           })
           .build(),
@@ -694,7 +697,9 @@ const EarnWithdrawInputView = () => {
             experience: receiptToken?.experience?.type,
             token_symbol: receiptToken?.symbol,
             chain_id: receiptToken?.chainId
-              ? toHex(receiptToken.chainId)
+              ? isNonEvmChainId(receiptToken.chainId)
+                ? receiptToken.chainId
+                : toHex(receiptToken.chainId)
               : undefined,
           })
           .build(),

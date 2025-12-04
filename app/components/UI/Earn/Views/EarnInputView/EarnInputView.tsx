@@ -74,6 +74,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronStake from '../../hooks/useTronStake';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
@@ -686,7 +687,11 @@ const EarnInputView = () => {
           currency_type: !isFiat ? 'fiat' : 'native',
           experience: earnToken?.experience?.type,
           token_symbol: earnToken?.symbol,
-          chain_id: earnToken?.chainId ? toHex(earnToken.chainId) : undefined,
+          chain_id: earnToken?.chainId
+            ? isNonEvmChainId(earnToken.chainId)
+              ? earnToken.chainId
+              : toHex(earnToken.chainId)
+            : undefined,
         })
         .build(),
     );
