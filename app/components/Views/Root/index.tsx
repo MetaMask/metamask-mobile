@@ -13,27 +13,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTest, isE2E } from '../../../util/test/utils';
+import { isTest } from '../../../util/test/utils';
 import FontLoadingGate from './FontLoadingGate';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
-
-// Disabled in E2E tests as it can interfere with element visibility
-const ConditionalKeyboardProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  if (isE2E) {
-    // Skip KeyboardProvider in E2E tests to avoid visibility issues
-    return <>{children}</>;
-  }
-  return <KeyboardProvider>{children}</KeyboardProvider>;
-};
 
 /**
  * Top level of the component hierarchy
@@ -80,34 +66,32 @@ const Root = ({ foxCode }: RootProps) => {
 
   return (
     <SafeAreaProvider>
-      <ConditionalKeyboardProvider>
-        <Provider store={store}>
-          <PersistGate persistor={persistor}>
-            {
-              ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-              // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
-              <SnapsExecutionWebView />
-              ///: END:ONLY_INCLUDE_IF
-            }
-            <FeatureFlagOverrideProvider>
-              <ThemeProvider>
-                <NavigationProvider>
-                  <ControllersGate>
-                    <ToastContextWrapper>
-                      <ErrorBoundary view="Root">
-                        <FontLoadingGate>
-                          <ReducedMotionConfig mode={ReduceMotion.Never} />
-                          <App />
-                        </FontLoadingGate>
-                      </ErrorBoundary>
-                    </ToastContextWrapper>
-                  </ControllersGate>
-                </NavigationProvider>
-              </ThemeProvider>
-            </FeatureFlagOverrideProvider>
-          </PersistGate>
-        </Provider>
-      </ConditionalKeyboardProvider>
+      <Provider store={store}>
+        <PersistGate persistor={persistor}>
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+            <SnapsExecutionWebView />
+            ///: END:ONLY_INCLUDE_IF
+          }
+          <FeatureFlagOverrideProvider>
+            <ThemeProvider>
+              <NavigationProvider>
+                <ControllersGate>
+                  <ToastContextWrapper>
+                    <ErrorBoundary view="Root">
+                      <FontLoadingGate>
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </FontLoadingGate>
+                    </ErrorBoundary>
+                  </ToastContextWrapper>
+                </ControllersGate>
+              </NavigationProvider>
+            </ThemeProvider>
+          </FeatureFlagOverrideProvider>
+        </PersistGate>
+      </Provider>
     </SafeAreaProvider>
   );
 };

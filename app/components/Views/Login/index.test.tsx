@@ -168,6 +168,12 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+jest.mock('react-native-keyboard-controller', () => ({
+  KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
+  KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
 jest.mock('../../../util/validators', () => ({
   parseVaultValue: jest.fn(),
 }));
