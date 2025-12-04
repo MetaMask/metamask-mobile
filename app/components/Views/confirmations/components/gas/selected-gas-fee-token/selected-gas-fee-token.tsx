@@ -75,7 +75,7 @@ export function SelectedGasFeeToken() {
           tokenAddress={gasFeeToken?.tokenAddress ?? NATIVE_TOKEN_ADDRESS}
           size={GasFeeTokenIconSize.Sm}
         />
-        <Text>{symbol}</Text>
+        <Text testID="selected-gas-fee-token-symbol">{symbol}</Text>
         {supportsGasFeeTokens && (
           <Icon
             testID="selected-gas-fee-token-arrow"
