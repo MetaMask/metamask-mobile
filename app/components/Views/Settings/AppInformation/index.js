@@ -228,6 +228,9 @@ class AppInformation extends PureComponent {
                 {`Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
+            <Text
+              style={styles.versionInfo}
+            >{`this is OTA update v1 text`}</Text>
 
             {this.state.showEnvironmentInfo && (
               <>
