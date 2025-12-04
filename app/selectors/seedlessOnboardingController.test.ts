@@ -3,7 +3,6 @@ import {
   AuthConnection as SeedlessAuthConnection,
 } from '@metamask/seedless-onboarding-controller';
 import { RootState } from '../reducers';
-import { AuthConnection } from '../core/OAuthService/OAuthInterface';
 import {
   selectSeedlessOnboardingUserId,
   selectSeedlessOnboardingUserEmail,
@@ -70,9 +69,9 @@ describe('Seedless Onboarding Controller Selectors', () => {
 
   describe('selectSeedlessOnboardingAuthConnection', () => {
     it('returns authConnection when it exists', () => {
-      const mockAuthConnection = AuthConnection.Google;
+      const mockAuthConnection = SeedlessAuthConnection.Google;
       const mockState = createMockState({
-        authConnection: mockAuthConnection as SeedlessAuthConnection,
+        authConnection: mockAuthConnection,
       });
 
       const result = selectSeedlessOnboardingAuthConnection(mockState);
