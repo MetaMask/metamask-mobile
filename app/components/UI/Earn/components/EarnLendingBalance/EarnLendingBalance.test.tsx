@@ -473,6 +473,7 @@ describe('EarnLendingBalance', () => {
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
       tokenFilter: jest.fn().mockReturnValue([]),
+      isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
     });
 
@@ -500,6 +501,7 @@ describe('EarnLendingBalance', () => {
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
       tokenFilter: jest.fn().mockReturnValue([]),
+      isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
     });
 
@@ -534,6 +536,7 @@ describe('EarnLendingBalance', () => {
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
       tokenFilter: jest.fn().mockReturnValue([]),
+      isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
     });
 
