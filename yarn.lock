@@ -22041,9 +22041,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appwright@patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::locator=metamask%40workspace%3A.":
+"appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=7499a8&locator=metamask%40workspace%3A."
+  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=988851"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -22059,7 +22059,7 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/e2567f4e57df88b1a3de695ff0132d9fdffed057e50aacf53356374917c0d5d1de48f4c936d7d1bbf38f2ad406432055d09f1fa518892acb066792d812462682
+  checksum: 10/498cb6f4f3422b605c67adf24717910839b5be7e831b0a23ced3b357a9d183d0726d09b9ab7869fdf99d798dacb7b8aff0c3bed0a4527787384d59166f22b1f6
   languageName: node
   linkType: hard
 
@@ -36164,7 +36164,7 @@ __metadata:
     appium-adb: "npm:^9.11.4"
     appium-uiautomator2-driver: "npm:4.2.7"
     appium-xcuitest-driver: "npm:5.16.1"
-    appwright: "npm:^0.1.45"
+    appwright: "patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch"
     assert: "npm:^1.5.0"
     asyncstorage-down: "npm:4.2.0"
     axios: "npm:^1.8.2"

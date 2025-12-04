@@ -561,7 +561,7 @@
     "appium-adb": "^9.11.4",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "5.16.1",
-    "appwright": "^0.1.45",
+    "appwright": "patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch",
     "assert": "^1.5.0",
     "babel-jest": "^29.7.0",
     "babel-loader": "^9.1.3",
