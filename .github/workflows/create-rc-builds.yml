@@ -21,6 +21,7 @@ jobs:
 
   bump-version-and-build-rc:
     runs-on: ubuntu-latest
+    needs: generate-build-version
     steps:
       - uses: actions/checkout@v3
         with:
