@@ -7,6 +7,7 @@ import type { CaipAssetType } from '@metamask/snaps-sdk';
 import {
   confirmTronStake,
   validateTronStakeAmount,
+  computeStakeFee,
   TronStakeResult,
 } from '../utils/tron-staking-snap';
 import { TronResourceType } from '../../../../core/Multichain/constants';
@@ -97,15 +98,12 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
         rest && Object.keys(rest).length > 0 ? rest : undefined;
 
       try {
-        const fee = {
-          type: 'fee',
-          asset: {
-            unit: 'TRX',
-            type: 'TRX',
-            amount: '0.01',
-            fungible: true,
-          },
-        };
+        const feeResult = await computeStakeFee(selectedTronAccount, {
+          fromAccountId: selectedTronAccount.id,
+          value: amount,
+          options: { purpose: resourceType.toUpperCase() as 'ENERGY' | 'BANDWIDTH' },
+        });
+        const fee = feeResult[0];
         nextPreview = { ...(nextPreview ?? {}), fee };
       } catch {
         // ignore for now
