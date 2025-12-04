@@ -34403,6 +34403,7 @@ __metadata:
     webpack: "npm:^5.88.2"
     webpack-cli: "npm:^5.1.4"
     xhr2: "npm:^0.2.1"
+    xml2js: "npm:^0.5.0"
     zxcvbn: "npm:4.4.2"
   dependenciesMeta:
     "@img/sharp-darwin-arm64":

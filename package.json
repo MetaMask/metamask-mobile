@@ -611,8 +611,8 @@
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "xml2js": "^0.5.0",
-    "xhr2": "^0.2.1"
+    "xhr2": "^0.2.1",
+    "xml2js": "^0.5.0"
   },
   "config": {
     "react-native-storybook-loader": {
