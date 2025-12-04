@@ -69,6 +69,7 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
               const tokenParsed = parseCAIP19AssetId(token.assetId);
               return (
                 tokenParsed &&
+                tokenParsed.namespace === intentParsedCaip19.namespace &&
                 tokenParsed.chainId === intentParsedCaip19.chainId &&
                 tokenParsed.assetNamespace === 'slip44'
               );
