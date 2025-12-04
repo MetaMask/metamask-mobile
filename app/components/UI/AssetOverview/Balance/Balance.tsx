@@ -262,6 +262,12 @@ const Balance = ({
               {secondaryBalance}
             </SensitiveText>
           )}
+
+          <View style={styles.stockBadge}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+              {strings('token.stock')}
+            </Text>
+          </View>
         </View>
       </AssetElement>
       <EarnBalance asset={asset} />

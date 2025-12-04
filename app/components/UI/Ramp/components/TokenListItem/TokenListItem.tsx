@@ -22,6 +22,10 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
+import { strings } from '../../../../../../locales/i18n';
+import { View } from 'react-native';
+import { useTheme } from '../../../../../util/theme';
+import createStyles from '../../../Tokens/styles';
 
 interface TokenListItemProps {
   token: DepositCryptoCurrency;
@@ -40,6 +44,8 @@ function TokenListItem({
   isDisabled = false,
   onInfoPress,
 }: Readonly<TokenListItemProps>) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const getTokenNetworkInfo = useTokenNetworkInfo();
   const { networkName, depositNetworkName, networkImageSource } =
     getTokenNetworkInfo(token.chainId);
@@ -77,6 +83,12 @@ function TokenListItem({
         <Text variant={TextVariant.BodyMD} color={textColor}>
           {token.symbol}
         </Text>
+
+        <View style={styles.stockBadge}>
+          <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+            {strings('token.stock')}
+          </Text>
+        </View>
       </ListItemColumn>
       {isDisabled && onInfoPress && (
         <ListItemColumn widthType={WidthType.Auto}>

@@ -205,20 +205,6 @@ export const useTopTokens = ({
         ? bridgeAsset.assetId
         : bridgeAsset.address;
 
-      //TODO hack the metadata for ondo tokens only
-      if (bridgeAsset.aggregators.includes('ondo')) {
-        bridgeAsset.metadata = {
-          assetType: 'stock',
-          containsProfanity: false,
-          market: {
-            openingHour: new Date(),
-            closingHour: new Date(),
-          },
-          isPaused: false,
-          restrictedCountries: [],
-        } as BridgeToken['metadata'];
-      }
-
       bridgeTokenObj[addr] = {
         address: tokenAddress,
         symbol: bridgeAsset.symbol,
