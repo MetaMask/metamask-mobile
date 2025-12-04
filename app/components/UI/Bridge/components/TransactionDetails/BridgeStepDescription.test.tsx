@@ -128,7 +128,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Medium',
+      'Geist-Medium',
     );
   });
 
@@ -157,7 +157,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      'Geist-Regular',
     );
   });
 
@@ -175,7 +175,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      'Geist-Regular',
     );
   });
 
@@ -194,7 +194,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      'Geist-Regular',
     );
   });
 
@@ -215,7 +215,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Medium',
+      'Geist-Medium',
     );
   });
 
@@ -236,7 +236,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#121314');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Medium',
+      'Geist-Medium',
     );
   });
 
@@ -285,7 +285,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      'Geist-Regular',
     );
   });
 
@@ -299,7 +299,7 @@ describe('BridgeStepDescription', () => {
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
-      'Geist Regular',
+      'Geist-Regular',
     );
   });
 

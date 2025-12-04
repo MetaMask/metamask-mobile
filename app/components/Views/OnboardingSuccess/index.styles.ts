@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 
 const createStyles = (colors: ThemeColors) =>
@@ -26,8 +26,7 @@ const createStyles = (colors: ThemeColors) =>
       marginBottom: 16,
       marginHorizontal: 16,
       textAlign: 'center',
-      fontFamily:
-        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
+      fontFamily: 'MMSans-Regular',
     },
     footerLink: {
       paddingVertical: 8,
