@@ -29,8 +29,6 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import Logger from '../../../../../../util/Logger';
 
-// TODO: Rename to MusdConversionAssetListCta
-// We need to differentiate between the CTA that shows on the asset list and the one that shows on the asset overview.
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
