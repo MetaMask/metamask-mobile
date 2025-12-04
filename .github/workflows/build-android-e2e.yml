@@ -147,6 +147,7 @@ jobs:
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           IS_TEST: true
           E2E: 'true'
+          E2E_FRAMEWORK: 'detox'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'

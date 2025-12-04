@@ -19,6 +19,10 @@ import {
   FALLBACK_DAPP_SERVER_PORT,
 } from '../Constants';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+import {
+  FrameworkDetector,
+  PlatformDetector,
+} from '../../../wdio-playwright/framework';
 
 const execAsync = promisify(exec);
 
@@ -57,12 +61,14 @@ function getFallbackPort(resourceType: ResourceType): number {
  * Removes specific test port bindings for the current device.
  * This is called at the start of tests to clean up any stale bindings from previous failed tests.
  *
+ * Works with both Detox (multi-device) and Appium (single emulator) contexts.
+ *
  * IMPORTANT: We only remove known fallback ports to avoid interfering with Detox's
  * own port management. Using --remove-all would remove Detox's ports and cause errors.
  */
 export async function cleanupAllAndroidPortForwarding(): Promise<void> {
   // Only remove port forwarding on Android
-  if (device.getPlatform() !== 'android') {
+  if (await PlatformDetector.isIOS()) {
     return;
   }
 
@@ -72,8 +78,13 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
   }
 
   // Get device ID to target specific device (important for CI with multiple devices)
-  const deviceId = device.id || '';
-  const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+  // In Detox: use device.id for multi-device support
+  // In Appium/Playwright: skip device flag (single emulator assumption)
+  let deviceFlag = '';
+  if (FrameworkDetector.isDetox()) {
+    const deviceId = device.id || '';
+    deviceFlag = deviceId ? `-s ${deviceId}` : '';
+  }
 
   // Clean up only the specific fallback ports we use
   // This prevents conflicts with Detox's own port management
@@ -133,8 +144,8 @@ async function setupAndroidPortForwarding(
   instanceIndex?: number,
 ): Promise<void> {
   try {
-    // Only set up port forwarding on Android
-    if (device.getPlatform() !== 'android') {
+    // Only set up port forwarding on Android in Detox and Appium
+    if (await PlatformDetector.isIOS()) {
       return;
     }
 
@@ -173,8 +184,13 @@ async function setupAndroidPortForwarding(
     }
 
     // Get device ID to target specific device (important for CI with multiple devices)
-    const deviceId = device.id || '';
-    const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+    // In Detox: use device.id for multi-device support
+    // In Appium/Playwright: skip device flag (single emulator assumption)
+    let deviceFlag = '';
+    if (FrameworkDetector.isDetox()) {
+      const deviceId = device.id || '';
+      deviceFlag = deviceId ? `-s ${deviceId}` : '';
+    }
 
     const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
 
@@ -436,8 +452,7 @@ function getServerPort(resourceType: ResourceType): number {
 
 /**
  * Gets the URL for the second test dapp.
- * This function is used instead of a constant to ensure device.getPlatform() is called
- * after Detox is properly initialized, preventing initialization errors in the apiSpecs tests.
+ * This function is async to ensure platform detection works in both Detox and Appium contexts.
  *
  * @returns {string} The URL for the second test dapp
  */
@@ -461,10 +476,14 @@ function getServerPort(resourceType: ResourceType): number {
  * const url2 = getDappUrl(1);
  */
 export function getDappUrl(index: number): string {
-  const port =
-    device.getPlatform() === 'android'
-      ? FALLBACK_DAPP_SERVER_PORT + index
-      : getDappPort(index);
+  // In Detox: use device.getPlatform()
+  // In Appium/Playwright: assume Android for single emulator use case
+  const isAndroid = FrameworkDetector.isDetox()
+    ? device.getPlatform() === 'android'
+    : true; // Appium single emulator assumption
+  const port = isAndroid
+    ? FALLBACK_DAPP_SERVER_PORT + index
+    : getDappPort(index);
   return `http://localhost:${port}`;
 }
 
@@ -542,9 +561,12 @@ export function getTestDappLocalUrl() {
  * const wsUrl = `ws://localhost:${getAnvilPortForTest()}`;
  */
 export function getAnvilPortForTest(): number {
-  return device.getPlatform() === 'android'
-    ? DEFAULT_ANVIL_PORT
-    : getServerPort(ResourceType.ANVIL);
+  // In Detox: use device.getPlatform()
+  // In Appium/Playwright: assume Android for single emulator use case
+  const isAndroid = FrameworkDetector.isDetox()
+    ? device.getPlatform() === 'android'
+    : true; // Appium single emulator assumption
+  return isAndroid ? DEFAULT_ANVIL_PORT : getServerPort(ResourceType.ANVIL);
 }
 
 export function getGanachePort(): number {
