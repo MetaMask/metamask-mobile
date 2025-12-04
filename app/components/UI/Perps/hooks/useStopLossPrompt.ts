@@ -76,7 +76,7 @@ export const useStopLossPrompt = ({
   const [roeDebounceComplete, setRoeDebounceComplete] = useState(false);
 
   // Track when the current position was first detected (client-side)
-  // This is used to enforce the minimum position age requirement (TAT-2161)
+  // This is used to enforce the minimum position age requirement
   const positionFirstSeenRef = useRef<{
     coin: string;
     timestamp: number;
@@ -293,13 +293,13 @@ export const useStopLossPrompt = ({
       // So we'll NOT suppress just for having TP
     }
 
-    // Suppression check: Position age requirement (TAT-2161)
+    // Suppression check: Position age requirement
     // Don't show any banner until position has been open for at least POSITION_MIN_AGE_MS
     if (!positionAgeCheckPassed) {
       return { shouldShowBanner: false, variant: null };
     }
 
-    // Suppression check: Minimum loss requirement (TAT-2161)
+    // Suppression check: Minimum loss requirement
     // No banner shown until ROE drops below MIN_LOSS_THRESHOLD (-10%)
     if (
       roePercent === null ||
