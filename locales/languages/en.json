@@ -52,7 +52,11 @@
     },
     "domain_mismatch": {
       "title": "Suspicious sign-in request",
-      "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
+      "message": "The site making the request is not the site you're signing into. This could be an attempt to steal your login credentials."
+    },
+    "gas_estimate_failed": {
+      "title": "Inaccurate fee",
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you to input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "Insufficient funds",
