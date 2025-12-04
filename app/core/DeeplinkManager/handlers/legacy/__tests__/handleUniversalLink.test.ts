@@ -1289,7 +1289,7 @@ describe('handleUniversalLink', () => {
       );
     });
 
-    describe('external sources always show redirect modal', () => {
+    describe('external sources show modal regardless of signature status', () => {
       const sourcesRequiringModal = [AppConstants.DEEPLINKS.ORIGIN_DEEPLINK];
 
       const validSignature = Buffer.from(new Array(64).fill(0)).toString(
@@ -1361,35 +1361,7 @@ describe('handleUniversalLink', () => {
       );
     });
 
-    describe('non-whitelisted sources', () => {
-      it('displays interstitial modal when source is not whitelisted and URL is not whitelisted', async () => {
-        const nonWhitelistedSource = 'external-browser';
-        const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
-        const testUrlObj = {
-          ...urlObj,
-          hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-          href: nonWhitelistedUrl,
-          pathname: `/${ACTIONS.DAPP}/example.com`,
-        };
-
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj: testUrlObj,
-          browserCallBack: mockBrowserCallBack,
-          url: nonWhitelistedUrl,
-          source: nonWhitelistedSource,
-        });
-
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
-        expect(handled).toHaveBeenCalled();
-      });
-
+    describe('sources not in inAppLinkSources', () => {
       it('skips interstitial modal when URL is whitelisted even with non-whitelisted source', async () => {
         const nonWhitelistedSource = 'external-browser';
         const whitelistedUrl =
