@@ -29,6 +29,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   })),
 }));
 
+const mockSelectMultichainAssetsRates = jest.fn(() => ({}));
 jest.mock('../../../../selectors/multichain', () => ({
   selectNativeTokensAcrossChainsForAddress: jest.fn(() => [
     {
@@ -41,6 +42,12 @@ jest.mock('../../../../selectors/multichain', () => ({
     },
   ]),
   selectAccountTokensAcrossChainsUnified: jest.fn(() => ({})),
+  selectMultichainAssetsRates: () => mockSelectMultichainAssetsRates(),
+}));
+
+const mockIsNonEvmChainId = jest.fn((_chainId: string) => false);
+jest.mock('../../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
 }));
 
 describe('useEarnInputHandlers', () => {
@@ -427,5 +434,226 @@ describe('useEarnInputHandlers', () => {
 
     expect(result.current.isOverMaximum.isOverMaximumEth).toBe(false);
     expect(result.current.isOverMaximum.isOverMaximumToken).toBe(true);
+  });
+
+  describe('non-EVM chain support', () => {
+    const TRON_CHAIN_ID = 'tron:0x2b6653dc';
+    const TRON_ADDRESS = 'tron:0x2b6653dc/slip44:195';
+    const TRX_USD_RATE = 0.28;
+
+    const mockTronToken: EarnTokenDetails = {
+      balanceMinimalUnit: '56000000', // 56 TRX (6 decimals)
+      decimals: 6,
+      ticker: 'TRX',
+      isStaked: false,
+      symbol: 'TRX',
+      isETH: false,
+      balanceFiat: '15.68',
+      balanceFormatted: '56 TRX',
+      balanceFiatNumber: 15.68,
+      address: TRON_ADDRESS,
+      name: 'Tron',
+      logo: 'https://example.com/trx-logo.png',
+      aggregators: [],
+      image: 'https://example.com/trx-logo.png',
+      balance: '56',
+      chainId: TRON_CHAIN_ID,
+      experience: {
+        type: EARN_EXPERIENCES.POOLED_STAKING,
+        apr: '5%',
+        estimatedAnnualRewardsFormatted: '2.8 TRX',
+        estimatedAnnualRewardsFiatNumber: 0.78,
+        estimatedAnnualRewardsTokenMinimalUnit: '2800000',
+        estimatedAnnualRewardsTokenFormatted: '2.8 TRX',
+      },
+      experiences: [
+        {
+          type: EARN_EXPERIENCES.POOLED_STAKING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '2.8 TRX',
+          estimatedAnnualRewardsFiatNumber: 0.78,
+          estimatedAnnualRewardsTokenMinimalUnit: '2800000',
+          estimatedAnnualRewardsTokenFormatted: '2.8 TRX',
+        },
+      ],
+      tokenUsdExchangeRate: TRX_USD_RATE,
+    };
+
+    beforeEach(() => {
+      // Enable non-EVM chain detection for Tron
+      mockIsNonEvmChainId.mockImplementation(
+        (chainId: string) => chainId === TRON_CHAIN_ID,
+      );
+
+      mockSelectMultichainAssetsRates.mockReturnValue({
+        [TRON_ADDRESS]: {
+          rate: TRX_USD_RATE.toString(),
+        },
+      });
+    });
+
+    it('calculates fiat amount using multichain rate for non-EVM token input', () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleTokenInput('10');
+      });
+
+      // 10 TRX * 0.28 = $2.80
+      expect(result.current.amountToken).toBe('10');
+      expect(result.current.amountFiatNumber).toBe('2.80');
+    });
+
+    it('displays correct currency toggle value for non-EVM token', () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleTokenInput('10');
+      });
+
+      // In token mode, toggle shows fiat
+      expect(result.current.currencyToggleValue).toBe('$2.80');
+    });
+
+    it('displays correct currency toggle value in fiat mode for non-EVM token', () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleTokenInput('10');
+        result.current.handleCurrencySwitch();
+      });
+
+      // In fiat mode, toggle shows token
+      expect(result.current.currencyToggleValue).toBe('10 TRX');
+    });
+
+    it('handles fiat input correctly for non-EVM chains', () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleFiatInput('2.80');
+      });
+
+      // $2.80 / 0.28 = 10 TRX
+      expect(result.current.amountFiatNumber).toBe('2.80');
+      expect(result.current.amountToken).toBe('10.00000');
+    });
+
+    it('preserves typed fiat value for non-EVM chains', () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleFiatInput('5.55');
+      });
+
+      // Exact typed value is preserved
+      expect(result.current.amountFiatNumber).toBe('5.55');
+    });
+
+    it('resets typed fiat value when switching currency modes', () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleFiatInput('5.55');
+      });
+
+      expect(result.current.amountFiatNumber).toBe('5.55');
+
+      act(() => {
+        result.current.handleCurrencySwitch();
+      });
+
+      // After switch, fiat is recalculated from token (not preserved)
+      // Token was: 5.55 / 0.28 = 19.82142... → "19.82143"
+      // Fiat recalc: 19.82143 * 0.28 = 5.55
+      const expectedFiat = (
+        (parseFloat('5.55') / TRX_USD_RATE) *
+        TRX_USD_RATE
+      ).toFixed(2);
+      expect(result.current.amountFiatNumber).toBe(expectedFiat);
+    });
+
+    it('resets typed fiat value when using quick amount press', () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleFiatInput('5.55');
+      });
+
+      expect(result.current.amountFiatNumber).toBe('5.55');
+
+      act(() => {
+        result.current.handleQuickAmountPress({ value: 0.5 });
+      });
+
+      // After quick amount, fiat is recalculated from token
+      // 50% of 56 TRX = 28 TRX, 28 * 0.28 = $7.84
+      expect(result.current.amountFiatNumber).toBe('7.84');
+    });
+
+    it('calculates balance value using multichain rate for non-EVM token', () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      // In token mode, shows token balance
+      expect(result.current.balanceValue).toBe('56 TRX');
+
+      act(() => {
+        result.current.handleCurrencySwitch();
+      });
+
+      // In fiat mode, shows fiat balance: 56 * 0.28 = $15.68
+      expect(result.current.balanceValue).toBe('15.68 USD');
+    });
+
+    it('falls back to EVM calculation when multichain rate is unavailable', () => {
+      mockSelectMultichainAssetsRates.mockReturnValue({});
+      // Even with non-EVM chain, if rate is unavailable, falls back
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleTokenInput('10');
+      });
+
+      // Falls back to EVM calculation (which returns '0' due to 0 rates)
+      expect(result.current.amountFiatNumber).toBe('0');
+    });
   });
 });

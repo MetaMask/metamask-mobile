@@ -56,11 +56,11 @@ const useEarnInputHandlers = ({
     currencyToggleValue: evmCurrencyToggleValue,
     isNonZeroAmount,
     handleKeypadChange: evmHandleKeypadChange,
-    handleCurrencySwitch,
+    handleCurrencySwitch: evmHandleCurrencySwitch,
     percentageOptions,
-    handleQuickAmountPress,
+    handleQuickAmountPress: evmHandleQuickAmountPress,
     currentCurrency,
-    handleTokenInput,
+    handleTokenInput: evmHandleTokenInput,
     handleFiatInput: evmHandleFiatInput,
     amountToken,
     amountTokenMinimalUnit,
@@ -74,6 +74,35 @@ const useEarnInputHandlers = ({
     exchangeRate,
   });
 
+  // For non-EVM chains, track the typed fiat value directly to preserve user input
+  const [nonEvmTypedFiatValue, setNonEvmTypedFiatValue] = useState<
+    string | null
+  >(null);
+
+  // Reset typed fiat value when switching currency modes
+  const handleCurrencySwitch = useCallback(() => {
+    setNonEvmTypedFiatValue(null);
+    evmHandleCurrencySwitch();
+  }, [evmHandleCurrencySwitch]);
+
+  // Wrapper for token input that clears the typed fiat value
+  const handleTokenInput = useCallback(
+    (value: string) => {
+      setNonEvmTypedFiatValue(null);
+      evmHandleTokenInput(value);
+    },
+    [evmHandleTokenInput],
+  );
+
+  // Wrapper for quick amount press that clears the typed fiat value
+  const handleQuickAmountPress = useCallback(
+    (params: { value: number }) => {
+      setNonEvmTypedFiatValue(null);
+      evmHandleQuickAmountPress(params);
+    },
+    [evmHandleQuickAmountPress],
+  );
+
   // For non-EVM chains override fiat input to convert fiat → token using correct rate
   const nonEvmHandleFiatInput = useCallback(
     (value: string) => {
@@ -81,14 +110,16 @@ const useEarnInputHandlers = ({
         evmHandleFiatInput(value);
         return;
       }
+      // Store the typed fiat value directly for display
+      setNonEvmTypedFiatValue(value);
       // Convert fiat to token: tokenAmount = fiatValue / rate
       const fiatValue = parseFloat(value) || 0;
       const tokenValue = fiatValue / nonEvmFiatRate;
       const tokenValueString = tokenValue.toFixed(5);
-      // Use the token input handler with the converted value
-      handleTokenInput(tokenValueString);
+      // Use the token input handler with the converted value (without clearing typed fiat)
+      evmHandleTokenInput(tokenValueString);
     },
-    [nonEvmFiatRate, evmHandleFiatInput, handleTokenInput],
+    [nonEvmFiatRate, evmHandleFiatInput, evmHandleTokenInput],
   );
 
   // Select the appropriate fiat input handler
@@ -140,14 +171,26 @@ const useEarnInputHandlers = ({
     ],
   );
 
-  // For non-EVM chains calculate fiat amount using multichain rates
+  // For non-EVM chains, recalculate fiat amount using multichain rates
+  // When user is typing in fiat mode, preserve their exact input
   const amountFiatNumber = useMemo(() => {
     if (!isNonEvm || !nonEvmFiatRate || nonEvmFiatRate <= 0) {
       return evmAmountFiatNumber;
     }
+    // If user typed a fiat value directly, use it
+    if (nonEvmTypedFiatValue !== null) {
+      return nonEvmTypedFiatValue;
+    }
+    // Otherwise, calculate from token amount
     const tokenAmount = parseFloat(amountToken) || 0;
     return (tokenAmount * nonEvmFiatRate).toFixed(2);
-  }, [isNonEvm, nonEvmFiatRate, amountToken, evmAmountFiatNumber]);
+  }, [
+    isNonEvm,
+    nonEvmFiatRate,
+    amountToken,
+    evmAmountFiatNumber,
+    nonEvmTypedFiatValue,
+  ]);
 
   // For non-EVM chains calculate currency toggle value
   const currencyToggleValue = useMemo(() => {

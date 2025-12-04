@@ -22,6 +22,16 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
+const mockSelectMultichainAssetsRates = jest.fn(() => ({}));
+jest.mock('../../../../selectors/multichain', () => ({
+  selectMultichainAssetsRates: () => mockSelectMultichainAssetsRates(),
+}));
+
+const mockIsNonEvmChainId = jest.fn((_chainId: string) => false);
+jest.mock('../../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+}));
+
 describe('useEarnWithdrawInputHandlers', () => {
   const mockEarnToken: EarnTokenDetails = {
     balanceMinimalUnit: '1000000000000000000', // 1 ETH
@@ -266,5 +276,228 @@ describe('useEarnWithdrawInputHandlers', () => {
 
     expect(result.current.isOverMaximum.isOverMaximumEth).toBe(false);
     expect(result.current.isOverMaximum.isOverMaximumToken).toBe(false);
+  });
+
+  describe('non-EVM chain support', () => {
+    const TRON_CHAIN_ID = 'tron:0x2b6653dc';
+    const TRON_ADDRESS = 'tron:0x2b6653dc/slip44:195';
+    const TRX_USD_RATE = 0.28;
+
+    const mockTronToken: EarnTokenDetails = {
+      balanceMinimalUnit: '56000000', // 56 TRX (6 decimals)
+      decimals: 6,
+      ticker: 'sTRX',
+      symbol: 'sTRX',
+      isETH: false,
+      balanceFiat: '15.68',
+      balanceFormatted: '56 sTRX',
+      balanceFiatNumber: 15.68,
+      address: TRON_ADDRESS,
+      name: 'Staked Tron',
+      logo: 'https://example.com/strx-logo.png',
+      aggregators: [],
+      image: 'https://example.com/strx-logo.png',
+      balance: '56',
+      chainId: TRON_CHAIN_ID,
+      isNative: false,
+      tokenUsdExchangeRate: TRX_USD_RATE,
+      experiences: [
+        {
+          type: EARN_EXPERIENCES.POOLED_STAKING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '2.8 TRX',
+          estimatedAnnualRewardsFiatNumber: 0.78,
+          estimatedAnnualRewardsTokenMinimalUnit: '2800000',
+          estimatedAnnualRewardsTokenFormatted: '2.8 TRX',
+        },
+      ],
+      experience: {
+        type: EARN_EXPERIENCES.POOLED_STAKING,
+        apr: '5%',
+        estimatedAnnualRewardsFormatted: '2.8 TRX',
+        estimatedAnnualRewardsFiatNumber: 0.78,
+        estimatedAnnualRewardsTokenMinimalUnit: '2800000',
+        estimatedAnnualRewardsTokenFormatted: '2.8 TRX',
+      },
+    };
+
+    const tronProps = {
+      earnToken: mockTronToken,
+      conversionRate: 0,
+      exchangeRate: 0,
+    };
+
+    beforeEach(() => {
+      // Enable non-EVM chain detection for Tron
+      mockIsNonEvmChainId.mockImplementation(
+        (chainId: string) => chainId === TRON_CHAIN_ID,
+      );
+
+      mockSelectMultichainAssetsRates.mockReturnValue({
+        [TRON_ADDRESS]: {
+          rate: TRX_USD_RATE.toString(),
+        },
+      });
+
+      (useInputHandler as jest.Mock).mockReturnValue({
+        amountToken: '10',
+        amountTokenMinimalUnit: new BN4('10000000'),
+        amountFiatNumber: '0', // EVM calculation returns 0 due to 0 rates
+        isFiat: false,
+        currencyToggleValue: '0 USD',
+        isNonZeroAmount: true,
+        isOverMaximum: false,
+        handleKeypadChange: jest.fn(),
+        handleCurrencySwitch: jest.fn(),
+        percentageOptions: [
+          { value: 0.25, label: '25%' },
+          { value: 0.5, label: '50%' },
+          { value: 0.75, label: '75%' },
+          { value: 1, label: '100%' },
+        ],
+        handleQuickAmountPress: jest.fn(),
+        currentCurrency: 'USD',
+        handleTokenInput: jest.fn(),
+        handleFiatInput: jest.fn(),
+      });
+    });
+
+    it('calculates fiat amount using multichain rate for non-EVM token', () => {
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      // 10 TRX * 0.28 = $2.80 (overrides the EVM '0' value)
+      expect(result.current.amountFiatNumber).toBe('2.80');
+    });
+
+    it('displays correct currency toggle value for non-EVM token', () => {
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      // In token mode, toggle shows fiat
+      expect(result.current.currencyToggleValue).toBe('$2.80');
+    });
+
+    it('displays token amount in currency toggle when in fiat mode', () => {
+      (useInputHandler as jest.Mock).mockReturnValue({
+        amountToken: '10',
+        amountTokenMinimalUnit: new BN4('10000000'),
+        amountFiatNumber: '0',
+        isFiat: true,
+        currencyToggleValue: '10 sTRX',
+        isNonZeroAmount: true,
+        isOverMaximum: false,
+        handleKeypadChange: jest.fn(),
+        handleCurrencySwitch: jest.fn(),
+        percentageOptions: [],
+        handleQuickAmountPress: jest.fn(),
+        currentCurrency: 'USD',
+        handleTokenInput: jest.fn(),
+        handleFiatInput: jest.fn(),
+      });
+
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      // In fiat mode, toggle shows token
+      expect(result.current.currencyToggleValue).toBe('10 sTRX');
+    });
+
+    it('calculates balance fiat value using multichain rate', () => {
+      (useInputHandler as jest.Mock).mockReturnValue({
+        amountToken: '0',
+        amountTokenMinimalUnit: new BN4(0),
+        amountFiatNumber: '0',
+        isFiat: true,
+        currencyToggleValue: '0 sTRX',
+        isNonZeroAmount: false,
+        isOverMaximum: false,
+        handleKeypadChange: jest.fn(),
+        handleCurrencySwitch: jest.fn(),
+        percentageOptions: [],
+        handleQuickAmountPress: jest.fn(),
+        currentCurrency: 'USD',
+        handleTokenInput: jest.fn(),
+        handleFiatInput: jest.fn(),
+      });
+
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      // In fiat mode: 56 TRX * 0.28 = $15.68
+      expect(result.current.earnBalanceValue).toBe('15.68 USD');
+    });
+
+    it('displays token balance when not in fiat mode', () => {
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      // In token mode, shows token balance
+      expect(result.current.earnBalanceValue).toBe('56 sTRX');
+    });
+
+    it('falls back to EVM calculation when multichain rate is unavailable', () => {
+      mockSelectMultichainAssetsRates.mockReturnValue({});
+      // Even with non-EVM chain, if rate is unavailable, falls back
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      // Falls back to EVM calculation (which returns '0')
+      expect(result.current.amountFiatNumber).toBe('0');
+    });
+
+    it('exposes handleCurrencySwitch wrapper function', () => {
+      const mockHandleCurrencySwitch = jest.fn();
+      (useInputHandler as jest.Mock).mockReturnValue({
+        amountToken: '10',
+        amountTokenMinimalUnit: new BN4('10000000'),
+        amountFiatNumber: '0',
+        isFiat: false,
+        currencyToggleValue: '0 USD',
+        isNonZeroAmount: true,
+        isOverMaximum: false,
+        handleKeypadChange: jest.fn(),
+        handleCurrencySwitch: mockHandleCurrencySwitch,
+        percentageOptions: [],
+        handleQuickAmountPress: jest.fn(),
+        currentCurrency: 'USD',
+        handleTokenInput: jest.fn(),
+        handleFiatInput: jest.fn(),
+      });
+
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      result.current.handleCurrencySwitch();
+
+      expect(mockHandleCurrencySwitch).toHaveBeenCalled();
+    });
+
+    it('exposes handleQuickAmountPress wrapper function', () => {
+      const mockHandleQuickAmountPress = jest.fn();
+      (useInputHandler as jest.Mock).mockReturnValue({
+        amountToken: '10',
+        amountTokenMinimalUnit: new BN4('10000000'),
+        amountFiatNumber: '0',
+        isFiat: false,
+        currencyToggleValue: '0 USD',
+        isNonZeroAmount: true,
+        isOverMaximum: false,
+        handleKeypadChange: jest.fn(),
+        handleCurrencySwitch: jest.fn(),
+        percentageOptions: [],
+        handleQuickAmountPress: mockHandleQuickAmountPress,
+        currentCurrency: 'USD',
+        handleTokenInput: jest.fn(),
+        handleFiatInput: jest.fn(),
+      });
+
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      result.current.handleQuickAmountPress({ value: 0.5 });
+
+      expect(mockHandleQuickAmountPress).toHaveBeenCalledWith({ value: 0.5 });
+    });
+
+    it('exposes handleKeypadChange function for non-EVM chains', () => {
+      const { result } = renderHook(mockInitialState, tronProps);
+
+      expect(result.current.handleKeypadChange).toBeDefined();
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipAssetType } from '@metamask/utils';
 import useBalance from '../../Stake/hooks/useBalance';
@@ -24,7 +24,7 @@ const useEarnWithdrawInputHandlers = ({
     stakedBalanceFiatNumber,
   } = useBalance();
 
-  // Non-EVM chain support: get multichain asset rates for fiat conversion
+  // Add support for non-EVM chains to get multichain asset rates for fiat conversion
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
   const isNonEvm = useMemo(
     () => isNonEvmChainId(earnToken?.chainId ?? ''),
@@ -51,11 +51,11 @@ const useEarnWithdrawInputHandlers = ({
     isNonZeroAmount,
     isOverMaximum: isOverMaximumFromInputHandler,
     handleKeypadChange: evmHandleKeypadChange,
-    handleCurrencySwitch,
+    handleCurrencySwitch: evmHandleCurrencySwitch,
     percentageOptions,
-    handleQuickAmountPress,
+    handleQuickAmountPress: evmHandleQuickAmountPress,
     currentCurrency,
-    handleTokenInput,
+    handleTokenInput: evmHandleTokenInput,
     handleFiatInput: evmHandleFiatInput,
   } = useInputHandler({
     balance: balanceMinimalUnit,
@@ -65,6 +65,35 @@ const useEarnWithdrawInputHandlers = ({
     exchangeRate,
   });
 
+  // For non-EVM chains, track the typed fiat value directly to preserve user input
+  const [nonEvmTypedFiatValue, setNonEvmTypedFiatValue] = useState<
+    string | null
+  >(null);
+
+  // Reset typed fiat value when switching currency modes
+  const handleCurrencySwitch = useCallback(() => {
+    setNonEvmTypedFiatValue(null);
+    evmHandleCurrencySwitch();
+  }, [evmHandleCurrencySwitch]);
+
+  // Token input that clears the typed fiat value
+  const handleTokenInput = useCallback(
+    (value: string) => {
+      setNonEvmTypedFiatValue(null);
+      evmHandleTokenInput(value);
+    },
+    [evmHandleTokenInput],
+  );
+
+  // Quick amount press that clears the typed fiat value
+  const handleQuickAmountPress = useCallback(
+    (params: { value: number }) => {
+      setNonEvmTypedFiatValue(null);
+      evmHandleQuickAmountPress(params);
+    },
+    [evmHandleQuickAmountPress],
+  );
+
   // For non-EVM chains override fiat input to convert fiat → token using correct rate
   const nonEvmHandleFiatInput = useCallback(
     (value: string) => {
@@ -72,14 +101,16 @@ const useEarnWithdrawInputHandlers = ({
         evmHandleFiatInput(value);
         return;
       }
-      // Convert fiat to token: tokenAmount = fiatValue / rate
+      // Store the typed fiat value directly for display
+      setNonEvmTypedFiatValue(value);
+      // Convert fiat to token
       const fiatValue = parseFloat(value) || 0;
       const tokenValue = fiatValue / nonEvmFiatRate;
       const tokenValueString = tokenValue.toFixed(5);
-      // Use the token input handler with the converted value
-      handleTokenInput(tokenValueString);
+      // Use the token input handler with the converted value (without clearing typed fiat)
+      evmHandleTokenInput(tokenValueString);
     },
-    [nonEvmFiatRate, evmHandleFiatInput, handleTokenInput],
+    [nonEvmFiatRate, evmHandleFiatInput, evmHandleTokenInput],
   );
 
   // For non-EVM chains override keypad change to use our fiat handler
@@ -128,14 +159,26 @@ const useEarnWithdrawInputHandlers = ({
     ],
   );
 
-  // For non-EVM chains calculate fiat amount using multichain rates
+  // For non-EVM chains, recalculate fiat amount using multichain rates
+  // When user is typing in fiat mode, preserve their exact input
   const amountFiatNumber = useMemo(() => {
     if (!isNonEvm || !nonEvmFiatRate || nonEvmFiatRate <= 0) {
       return evmAmountFiatNumber;
     }
+    // If user typed a fiat value directly, use it
+    if (nonEvmTypedFiatValue !== null) {
+      return nonEvmTypedFiatValue;
+    }
+    // Otherwise, calculate from token amount
     const tokenAmount = parseFloat(amountToken) || 0;
     return (tokenAmount * nonEvmFiatRate).toFixed(2);
-  }, [isNonEvm, nonEvmFiatRate, amountToken, evmAmountFiatNumber]);
+  }, [
+    isNonEvm,
+    nonEvmFiatRate,
+    amountToken,
+    evmAmountFiatNumber,
+    nonEvmTypedFiatValue,
+  ]);
 
   // For non-EVM chains calculate currency toggle value
   const currencyToggleValue = useMemo(() => {
@@ -185,17 +228,10 @@ const useEarnWithdrawInputHandlers = ({
   // For non-EVM chains use the token's formatted balance
   const earnBalanceTokenValue = useMemo(() => {
     if (isNonEvm) {
-      const ticker = earnToken?.ticker ?? earnToken?.symbol ?? '';
-      return `${earnToken?.balanceFormatted ?? '0'} ${ticker}`;
+      return earnToken?.balanceFormatted ?? '0';
     }
     return formattedStakedBalanceETH;
-  }, [
-    isNonEvm,
-    earnToken?.balanceFormatted,
-    earnToken?.ticker,
-    earnToken?.symbol,
-    formattedStakedBalanceETH,
-  ]);
+  }, [isNonEvm, earnToken?.balanceFormatted, formattedStakedBalanceETH]);
 
   const earnBalanceValue = isFiat
     ? `${earnBalanceFiatValue} ${currentCurrency.toUpperCase()}`
