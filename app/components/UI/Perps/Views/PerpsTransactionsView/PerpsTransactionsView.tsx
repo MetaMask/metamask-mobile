@@ -13,6 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   Text,
   TextVariant,
+  TextColor,
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -317,7 +318,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     if (item.type === 'header') {
       return (
         <View style={styles.sectionHeader}>
-          <Text>{item.title}</Text>
+          <Text color={TextColor.TextAlternative}>{item.title}</Text>
         </View>
       );
     }
