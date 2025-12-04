@@ -15,6 +15,13 @@ export interface TabItem {
 }
 
 /**
+ * TabsBar ref interface for imperative methods
+ */
+export interface TabsBarRef {
+  scrollToTab: (index: number) => void;
+}
+
+/**
  * TabsBar component props
  */
 export interface TabsBarProps extends BoxProps {
