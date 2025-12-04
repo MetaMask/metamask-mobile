@@ -19,6 +19,11 @@ import {
 import { merge } from 'lodash';
 
 import { backgroundState } from './initial-root-state';
+import {
+  Reason,
+  ResultType,
+  SecurityAlertSource,
+} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
@@ -487,12 +492,12 @@ export const typedSignV4NFTConfirmationState = {
 
 export const securityAlertResponse = {
   block: 21572398,
-  result_type: 'Malicious',
-  reason: 'permit_farming',
+  result_type: ResultType.Malicious,
+  reason: Reason.permitFarming,
   description:
     'permit_farming to spender 0x1661f1b207629e4f385da89cff535c8e5eb23ee3, classification: A known malicious address is involved in the transaction',
   features: ['A known malicious address is involved in the transaction'],
-  source: 'api',
+  source: SecurityAlertSource.API,
   securityAlertId: '43d40543-463a-4400-993c-85a04017ea2b',
   req: {
     channelId: undefined,
@@ -1047,11 +1052,11 @@ export const upgradeAccountConfirmation = {
   ],
   securityAlertResponse: {
     block: 8082431,
-    result_type: 'Benign',
-    reason: '',
+    result_type: ResultType.Benign,
+    reason: Reason.notApplicable,
     description: '',
     features: [],
-    source: 'api',
+    source: SecurityAlertSource.API,
     securityAlertId: '31cda7d5-9657-4567-b364-d6918f0933a0',
   },
   txParams: {

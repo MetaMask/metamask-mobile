@@ -6,14 +6,21 @@ import {
 } from '../../messengers/snaps';
 import { snapsRegistryInit } from './snaps-registry-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/snaps-controllers');
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.59.0'),
+}));
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<SnapsRegistryMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
@@ -38,6 +45,10 @@ describe('SnapsRegistryInit', () => {
       messenger: expect.any(Object),
       state: undefined,
       refetchOnAllowlistMiss: false,
+      clientConfig: {
+        type: 'mobile',
+        version: '7.59.0',
+      },
     });
   });
 });

@@ -106,17 +106,27 @@ function getAlertNames(alerts: Alert[]): string[] {
 }
 
 const ALERTS_NAME_METRICS: AlertNameMetrics = {
+  [AlertKeys.AddressTrustSignalMalicious]: 'address_trust_signal_malicious',
+  [AlertKeys.AddressTrustSignalWarning]: 'address_trust_signal_warning',
   [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals',
   [AlertKeys.Blockaid]: 'blockaid',
+  [AlertKeys.BurnAddress]: 'burn_address',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
+  [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',
+  [AlertKeys.InsufficientPayTokenFees]: 'insufficient_funds_for_fees',
   [AlertKeys.InsufficientPayTokenNative]: 'insufficient_funds_for_gas',
+  [AlertKeys.InsufficientPredictBalance]: 'insufficient_funds',
   [AlertKeys.NoPayTokenQuotes]: 'no_payment_route_available',
+  [AlertKeys.OriginTrustSignalMalicious]: 'origin_trust_signal_malicious',
+  [AlertKeys.OriginTrustSignalWarning]: 'origin_trust_signal_warning',
   [AlertKeys.PendingTransaction]: 'pending_transaction',
   [AlertKeys.PerpsDepositMinimum]: 'minimum_deposit',
   [AlertKeys.PerpsHardwareAccount]: 'perps_hardware_account',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
+  [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
+  [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
 };
 
 function getAlertName(alertKey: string): string {

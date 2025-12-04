@@ -32,8 +32,8 @@ export const hexToBN = (inputHex) =>
   typeof inputHex !== 'string'
     ? new BN4(inputHex, 16)
     : inputHex
-    ? new BN4(remove0x(inputHex), 16)
-    : new BN4(0);
+      ? new BN4(remove0x(inputHex), 16)
+      : new BN4(0);
 
 /**
  * Converts a BN object to a hex string with a '0x' prefix.
@@ -220,6 +220,35 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 }
 
 /**
+ * Normalizes a localized numeric string to dot-decimal with no grouping.
+ * Examples: "9,336822" -> "9.336822", "1.234,56" -> "1234.56", "1,234.56" -> "1234.56"
+ *
+ * @param {string | number} value - The value to normalize.
+ * @returns {string} - The normalized value.
+ */
+export const normalizeToDotDecimal = (value) => {
+  const s = String(value ?? '0').trim();
+
+  // keep only digits, separators, and sign
+  const cleaned = s.replace(/[^\d.,-]/g, '');
+
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+
+  if (lastComma === -1 && lastDot === -1) {
+    return cleaned;
+  }
+
+  if (lastComma > lastDot) {
+    // comma is decimal separator: remove all dots (grouping), turn comma into dot
+    return cleaned.replace(/\./g, '').replace(',', '.');
+  }
+
+  // dot is decimal separator: remove all commas (grouping)
+  return cleaned.replace(/,/g, '');
+};
+
+/**
  * Converts some token minimal unit to render format string, showing 5 decimals
  *
  * @param {Number|String|BN4} tokenValue - Token value to convert
@@ -289,6 +318,25 @@ export function limitToMaximumDecimalPlaces(num, maxDecimalPlaces = 5) {
   }
   const base = Math.pow(10, maxDecimalPlaces);
   return (Math.round(num * base) / base).toString();
+}
+
+/**
+ * Minimum display threshold for small values
+ */
+export const MINIMUM_DISPLAY_THRESHOLD = 0.00001;
+
+/**
+ * Formats a number with decimal capping and threshold handling.
+ * Shows "< 0.00001" for very small positive values, otherwise caps at maxDecimalPlaces.
+ * @param {number} num - The number to format
+ * @param {number} maxDecimalPlaces - Maximum decimal places to show (default 5)
+ * @returns {string} - Formatted number string
+ */
+export function formatAmountWithThreshold(num, maxDecimalPlaces = 5) {
+  if (num < MINIMUM_DISPLAY_THRESHOLD && num > 0) {
+    return `< ${MINIMUM_DISPLAY_THRESHOLD}`;
+  }
+  return limitToMaximumDecimalPlaces(num, maxDecimalPlaces);
 }
 
 /**

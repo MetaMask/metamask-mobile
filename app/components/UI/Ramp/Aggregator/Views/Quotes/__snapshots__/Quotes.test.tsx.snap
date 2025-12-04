@@ -582,12 +582,12 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -640,29 +640,87 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -716,29 +774,87 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -1046,7 +1162,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1113,25 +1228,25 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 32,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 32,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={20}
+                                    height={24}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
-                                    width={20}
+                                    width={24}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -1249,6 +1364,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -1468,7 +1584,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                           <View
                             style={
                               {
-                                "backgroundColor": "#ffffff",
                                 "flexDirection": "column",
                                 "paddingHorizontal": 8,
                                 "paddingVertical": 4,
@@ -1588,12 +1703,12 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -1646,29 +1761,87 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -1722,29 +1895,87 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -2664,12 +2895,12 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -2722,29 +2953,87 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -2798,29 +3087,87 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -3109,7 +3456,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -3176,25 +3522,25 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 32,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 32,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={20}
+                                    height={24}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
-                                    width={20}
+                                    width={24}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -3349,6 +3695,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     [
                                       {
                                         "padding": 15,
+                                        "paddingHorizontal": 16,
                                       },
                                       undefined,
                                       {
@@ -3437,6 +3784,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                         [
                                           {
                                             "padding": 15,
+                                            "paddingHorizontal": 16,
                                           },
                                           undefined,
                                           {
@@ -4454,12 +4802,12 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -4512,29 +4860,87 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -4588,29 +4994,87 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -4918,7 +5382,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -4985,25 +5448,25 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 32,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 32,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={20}
+                                    height={24}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
-                                    width={20}
+                                    width={24}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -5121,6 +5584,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -5490,7 +5954,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                           <View
                             style={
                               {
-                                "backgroundColor": "#ffffff",
                                 "flexDirection": "column",
                                 "paddingHorizontal": 8,
                                 "paddingVertical": 4,
@@ -5610,12 +6073,12 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -5668,29 +6131,87 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -5744,29 +6265,87 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -6335,12 +6914,12 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -6393,29 +6972,87 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -6469,29 +7106,87 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -7060,12 +7755,12 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -7118,29 +7813,87 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -7194,29 +7947,87 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -7785,12 +8596,12 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -7843,29 +8654,87 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -7919,29 +8788,87 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>

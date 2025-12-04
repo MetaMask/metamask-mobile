@@ -24,7 +24,12 @@ jest.mock('../../../core/Engine');
 jest.mock('../../../selectors/networkEnablementController');
 jest.mock('../useMetrics');
 jest.mock('../../../selectors/networkConnectionBanner');
-jest.mock('../../../core/Engine/controllers/network-controller/utils');
+jest.mock('../../../core/Engine/controllers/network-controller/utils', () => ({
+  ...jest.requireActual(
+    '../../../core/Engine/controllers/network-controller/utils',
+  ),
+  isPublicEndpointUrl: jest.fn(),
+}));
 jest.mock('../../../constants/network', () => ({
   ...jest.requireActual('../../../constants/network'),
   INFURA_PROJECT_ID: 'test-infura-project-id',
@@ -40,7 +45,7 @@ const mockNetworkConfiguration: NetworkConfiguration = {
   name: 'Ethereum Mainnet',
   rpcEndpoints: [
     {
-      url: 'https://mainnet.infura.io/v3/test',
+      url: 'https://mainnet.infura.io/v3/test-infura-project-id',
       networkClientId: '0x1',
       type: RpcEndpointType.Custom,
     },
@@ -103,6 +108,10 @@ const mockNetworkController = {
 
 const mockEngine = {
   lookupEnabledNetworks: jest.fn(),
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
   context: {
     NetworkController: mockNetworkController,
   },
@@ -128,6 +137,8 @@ describe('useNetworkConnectionBanner', () => {
 
     // Mock Engine methods directly (safer than spyOn after jest.mock)
     Engine.lookupEnabledNetworks = mockEngine.lookupEnabledNetworks;
+    // @ts-expect-error - Mocking Engine for testing
+    Engine.controllerMessenger = mockEngine.controllerMessenger;
     // @ts-expect-error - Mocking Engine for testing
     Engine.context = mockEngine.context;
 
@@ -201,7 +212,7 @@ describe('useNetworkConnectionBanner', () => {
   describe('updateRpc function', () => {
     it('should navigate to edit network screen with provided rpcUrl', () => {
       const status = 'degraded';
-      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test-infura-project-id';
       const chainId = '0x1';
       (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
         visible: true,
@@ -221,13 +232,14 @@ describe('useNetworkConnectionBanner', () => {
           network: rpcUrl,
           shouldNetworkSwitchPopToWallet: false,
           shouldShowPopularNetworks: false,
+          trackRpcUpdateFromBanner: true,
         },
       );
     });
 
     it('should track degraded RPC update event', () => {
       const status = 'degraded';
-      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test-infura-project-id';
       const chainId = '0x1';
       (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
         visible: true,
@@ -253,12 +265,13 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:1',
         rpc_endpoint_url: 'mainnet.infura.io',
+        rpc_domain: 'mainnet.infura.io',
       });
     });
 
     it('should track unavailable RPC update event', () => {
       const status = 'unavailable';
-      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test-infura-project-id';
       const chainId = '0x1';
       (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
         visible: true,
@@ -284,6 +297,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'unavailable',
         chain_id_caip: 'eip155:1',
         rpc_endpoint_url: 'mainnet.infura.io',
+        rpc_domain: 'mainnet.infura.io',
       });
     });
 
@@ -318,12 +332,13 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:1',
         rpc_endpoint_url: 'custom',
+        rpc_domain: 'custom',
       });
     });
 
     it('should use mocked Infura project ID from constants', () => {
       const status = 'degraded';
-      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test-infura-project-id';
       const chainId = '0x1';
 
       (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
@@ -347,29 +362,6 @@ describe('useNetworkConnectionBanner', () => {
         'test-infura-project-id',
       );
     });
-
-    it('should dispatch hideNetworkConnectionBanner', () => {
-      const status = 'degraded';
-      const rpcUrl = 'https://mainnet.infura.io/v3/test';
-      const chainId = '0x1';
-      (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
-        visible: true,
-        chainId,
-        status,
-      });
-
-      const { result } = renderHookWithProvider();
-
-      act(() => {
-        result.current.updateRpc(rpcUrl, status, chainId);
-      });
-
-      const actions = store.getActions();
-      expect(actions).toHaveLength(1);
-      expect(actions[0]).toStrictEqual({
-        type: 'HIDE_NETWORK_CONNECTION_BANNER',
-      });
-    });
   });
 
   describe('useEffect', () => {
@@ -392,6 +384,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
     });
 
@@ -402,6 +395,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
 
       renderHookWithProvider();
@@ -420,7 +414,8 @@ describe('useNetworkConnectionBanner', () => {
         chainId: '0x1', // Different from the unavailable network (0x89)
         status: 'degraded',
         networkName: 'Ethereum Mainnet',
-        rpcUrl: 'https://mainnet.infura.io/v3/test',
+        rpcUrl: 'https://mainnet.infura.io/v3/test-infura-project-id',
+        isInfuraEndpoint: true,
       });
 
       renderHookWithProvider();
@@ -437,6 +432,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
     });
 
@@ -448,6 +444,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
 
       // Mock that 0x89 is now available but 0x1 is unavailable
@@ -479,7 +476,8 @@ describe('useNetworkConnectionBanner', () => {
         chainId: '0x1',
         status: 'degraded',
         networkName: 'Ethereum Mainnet',
-        rpcUrl: 'https://mainnet.infura.io/v3/test',
+        rpcUrl: 'https://mainnet.infura.io/v3/test-infura-project-id',
+        isInfuraEndpoint: true,
       });
     });
 
@@ -491,6 +489,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
 
       const allAvailableNetworkMetadata = {
@@ -546,6 +545,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
     });
 
@@ -569,6 +569,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
 
       expect(actions[1]).toStrictEqual({
@@ -577,6 +578,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'unavailable',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
     });
 
@@ -588,6 +590,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl,
+        isInfuraEndpoint: false,
       });
 
       renderHookWithProvider();
@@ -604,6 +607,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:137',
         rpc_endpoint_url: 'polygon-rpc.com',
+        rpc_domain: 'polygon-rpc.com',
       });
     });
 
@@ -615,6 +619,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'unavailable',
         networkName: 'Polygon Mainnet',
         rpcUrl,
+        isInfuraEndpoint: false,
       });
 
       renderHookWithProvider();
@@ -631,6 +636,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'unavailable',
         chain_id_caip: 'eip155:137',
         rpc_endpoint_url: 'polygon-rpc.com',
+        rpc_domain: 'polygon-rpc.com',
       });
     });
 
@@ -653,6 +659,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
 
       renderHookWithProvider();
@@ -670,6 +677,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'unavailable',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
     });
 
@@ -681,6 +689,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'unavailable',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
 
       renderHookWithProvider();
@@ -698,6 +707,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
     });
 
@@ -741,6 +751,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
       expect(actions[1]).toStrictEqual({
         type: 'SHOW_NETWORK_CONNECTION_BANNER',
@@ -748,6 +759,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'unavailable',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
       expect(actions[1].status).toBe('unavailable');
       expect(actions[1].networkName).toBe('Polygon Mainnet');
@@ -762,6 +774,7 @@ describe('useNetworkConnectionBanner', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl,
+        isInfuraEndpoint: false,
       });
 
       renderHookWithProvider();
@@ -778,6 +791,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:137',
         rpc_endpoint_url: 'polygon-rpc.com',
+        rpc_domain: 'polygon-rpc.com',
       });
     });
 
@@ -886,6 +900,114 @@ describe('useNetworkConnectionBanner', () => {
 
       act(() => {
         jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(0);
+    });
+  });
+
+  describe('NetworkController:rpcEndpointChainAvailable event subscription', () => {
+    it('subscribes to rpcEndpointChainAvailable event on mount', () => {
+      renderHookWithProvider();
+
+      expect(mockEngine.controllerMessenger.subscribe).toHaveBeenCalledWith(
+        'NetworkController:rpcEndpointChainAvailable',
+        expect.any(Function),
+      );
+    });
+
+    it('unsubscribes from rpcEndpointChainAvailable event on unmount', () => {
+      const { unmount } = renderHookWithProvider();
+
+      const subscribeCall = (
+        mockEngine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        (call) => call[0] === 'NetworkController:rpcEndpointChainAvailable',
+      );
+      const subscribedHandler = subscribeCall?.[1];
+
+      unmount();
+
+      expect(mockEngine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
+        'NetworkController:rpcEndpointChainAvailable',
+        subscribedHandler,
+      );
+    });
+
+    it('hides banner when rpcEndpointChainAvailable event fires for matching chain', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+      });
+
+      renderHookWithProvider();
+
+      const subscribeCall = (
+        mockEngine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        (call) => call[0] === 'NetworkController:rpcEndpointChainAvailable',
+      );
+      const subscribedHandler = subscribeCall?.[1];
+
+      act(() => {
+        subscribedHandler({ chainId: '0x89' });
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0]).toStrictEqual({
+        type: 'HIDE_NETWORK_CONNECTION_BANNER',
+      });
+    });
+
+    it('does not hide banner when rpcEndpointChainAvailable event fires for different chain', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+      });
+
+      renderHookWithProvider();
+
+      const subscribeCall = (
+        mockEngine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        (call) => call[0] === 'NetworkController:rpcEndpointChainAvailable',
+      );
+      const subscribedHandler = subscribeCall?.[1];
+
+      act(() => {
+        subscribedHandler({ chainId: '0x1' }); // Different chain
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(0);
+    });
+
+    it('does not hide banner when banner is not visible', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      renderHookWithProvider();
+
+      const subscribeCall = (
+        mockEngine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        (call) => call[0] === 'NetworkController:rpcEndpointChainAvailable',
+      );
+      const subscribedHandler = subscribeCall?.[1];
+
+      act(() => {
+        subscribedHandler({ chainId: '0x89' });
       });
 
       const actions = store.getActions();

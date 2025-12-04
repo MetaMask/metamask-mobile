@@ -136,7 +136,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
     secrets: inherit
-  
+
   regression-ux-ios:
     name: 'UX Regression (iOS) - ${{ matrix.split }}'
     needs: [build-ios-apps]
@@ -171,29 +171,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download all test results
+      - name: Download shards test artifacts (XMLs + Screenshots)
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
-          path: all-test-results/
-          pattern: '*-ios-*-test-results'
+          path: all-test-artifacts/
+          pattern: '*-ios-*-test-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: 'iOS E2E Regression Test Results'
-          path: 'all-test-results/**/*.xml'
+          path: 'all-test-artifacts/**/junit.xml'
           reporter: 'jest-junit'
           fail-on-error: false
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Upload merged report
+      - name: Upload all test artifacts (XMLs + Screenshots)
         uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
-          name: ios-merged-test-report
-          path: all-test-results/**/*.xml
+          name: e2e-regression-ios-all-test-artifacts
+          path: all-test-artifacts/
 
       - name: Generate Test Summary
         id: summary

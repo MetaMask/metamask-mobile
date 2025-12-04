@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Nft } from '@metamask/assets-controllers';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 import { strings } from '../../../../../../../locales/i18n';
 import Icon, {
@@ -18,6 +20,7 @@ import Text, {
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
+import Device from '../../../../../../util/device';
 import { AssetType, TokenStandard } from '../../../types/token';
 import { formatToFixedDecimals } from '../../../utils/send';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
@@ -26,11 +29,15 @@ import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
 import { styleSheet } from './amount.styles';
+import { InitSendLocation } from '../../../constants/send';
 
 export const Amount = () => {
+  const navigation = useNavigation();
+  const { location } = useParams<{ location?: string }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, value } = useSendContext();
   const { balance } = useBalance();
@@ -46,12 +53,12 @@ export const Amount = () => {
   const isNFT = asset?.standard === TokenStandard.ERC1155;
   const assetSymbol = isNFT
     ? undefined
-    : (asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol;
+    : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles } = useStyles(styleSheet, {
     contentLength: amount.length + assetDisplaySymbol.length,
-    isNFT,
   });
+  const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
   useRouteParams();
@@ -59,6 +66,14 @@ export const Amount = () => {
   useEffect(() => {
     setFiatMode(primaryCurrency === 'Fiat');
   }, [primaryCurrency, setFiatMode]);
+
+  useEffect(() => {
+    if (location && location === InitSendLocation.AssetOverview) {
+      navigation.setOptions({
+        headerRight: () => null,
+      });
+    }
+  }, [navigation, location]);
 
   const alternateDisplayValue = useMemo(
     () =>
@@ -95,6 +110,14 @@ export const Amount = () => {
     assetSymbol ??
     (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
 
+  const balanceDisplayValue = useMemo(
+    () =>
+      fiatMode
+        ? `${getFiatDisplayValue(balance)} ${strings('send.available')}`
+        : `${balance} ${balanceUnit} ${strings('send.available')}`,
+    [balance, balanceUnit, fiatMode, getFiatDisplayValue],
+  );
+
   const defaultValue = fiatMode ? '0.00' : '0';
   let textColor = TextColor.Default;
   if (amountError) {
@@ -105,7 +128,10 @@ export const Amount = () => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaView
+      edges={isIos ? ['left', 'right'] : ['left', 'right', 'bottom']}
+      style={styles.container}
+    >
       <View style={styles.topSection}>
         {isNFT && (
           <View style={styles.nftImageWrapper}>
@@ -157,19 +183,15 @@ export const Amount = () => {
             </TagBase>
           </TouchableOpacity>
         )}
+        <Text style={styles.balanceText} color={TextColor.Alternative}>
+          {balanceDisplayValue}
+        </Text>
       </View>
-      <View>
-        <View style={styles.balanceSection}>
-          <Text
-            color={TextColor.Alternative}
-          >{`${balance} ${balanceUnit} ${strings('send.available')}`}</Text>
-        </View>
-        <AmountKeyboard
-          amount={amount}
-          fiatMode={fiatMode}
-          updateAmount={setAmount}
-        />
-      </View>
-    </ScrollView>
+      <AmountKeyboard
+        amount={amount}
+        fiatMode={fiatMode}
+        updateAmount={setAmount}
+      />
+    </SafeAreaView>
   );
 };

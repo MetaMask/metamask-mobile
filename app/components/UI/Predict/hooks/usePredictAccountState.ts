@@ -2,6 +2,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import { AccountState } from '../providers/types';
 
 interface UsePredictWalletParams {
@@ -37,7 +40,6 @@ export const usePredictAccountState = ({
     () => !!accountState?.hasAllowances,
     [accountState],
   );
-  const balance = useMemo(() => accountState?.balance ?? 0, [accountState]);
 
   const loadAccountState = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
@@ -62,7 +64,6 @@ export const usePredictAccountState = ({
           address: accountStateResponse?.address,
           isDeployed: accountStateResponse?.isDeployed,
           hasAllowances: accountStateResponse?.hasAllowances,
-          balance: accountStateResponse?.balance,
         });
       } catch (err) {
         const errorMessage =
@@ -72,6 +73,23 @@ export const usePredictAccountState = ({
           'usePredictAccountState: Error loading account state',
           err,
         );
+
+        // Capture exception with account state loading context (no user address)
+        Logger.error(ensureError(err), {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            component: 'usePredictAccountState',
+          },
+          context: {
+            name: 'usePredictAccountState',
+            data: {
+              method: 'loadAccountState',
+              action: 'account_state_load',
+              operation: 'data_fetching',
+              providerId,
+            },
+          },
+        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
@@ -102,7 +120,6 @@ export const usePredictAccountState = ({
     address,
     isDeployed,
     hasAllowances,
-    balance,
     isLoading,
     isRefreshing,
     error,

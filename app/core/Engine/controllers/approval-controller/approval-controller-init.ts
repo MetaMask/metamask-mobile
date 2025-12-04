@@ -1,9 +1,11 @@
-import { ApprovalController } from '@metamask/approval-controller';
+import {
+  ApprovalController,
+  ApprovalControllerMessenger,
+} from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
 import Logger from '../../../../util/Logger';
 import { ApprovalTypes } from '../../../RPCMethods/RPCMethodMiddleware';
-import { type ApprovalControllerMessenger } from '../../messengers/approval-controller-messenger';
 import type { ControllerInitFunction } from '../../types';
 
 export const ApprovalControllerInit: ControllerInitFunction<

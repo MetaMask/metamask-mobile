@@ -174,6 +174,13 @@ jest.mock('../../../Stake/hooks/usePoolStakedUnstake', () => ({
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/trxStakingEnabled',
+  () => ({
+    selectTrxStakingEnabled: jest.fn(() => true),
+  }),
+);
+
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
@@ -554,11 +561,11 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('title bar', () => {
-    it('renders "Withdraw" for pooled-staking withdrawals', () => {
+    it('renders "Unstake <token name>" for pooled-staking withdrawals', () => {
       render(EarnWithdrawInputView);
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Withdraw',
+        'Unstake ETH',
         expect.anything(),
         expect.anything(),
         expect.anything(),
@@ -566,7 +573,7 @@ describe('EarnWithdrawInputView', () => {
       );
     });
 
-    it('renders "Withdraw" for supported stablecoin lending assets', () => {
+    it('renders "Withdraw <token name>" for supported stablecoin lending assets', () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -602,7 +609,7 @@ describe('EarnWithdrawInputView', () => {
       render(EarnWithdrawInputView, mockLendingToken);
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Withdraw',
+        'Withdraw USDC',
         expect.anything(),
         expect.anything(),
         expect.anything(),
@@ -750,6 +757,32 @@ describe('EarnWithdrawInputView', () => {
           amountWei: '1000000000000000000',
           amountFiat: '2000',
         },
+      });
+    });
+  });
+
+  describe('TRON unstake flow', () => {
+    it('renders Unstake label when TRX staking is enabled and TRON asset is used', async () => {
+      const tronToken: TokenI = {
+        name: 'Tron',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        balance: '1000',
+        balanceFiat: '$100',
+        isNative: true,
+      } as unknown as TokenI;
+
+      render(EarnWithdrawInputView, tronToken);
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('1'));
+      });
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Unstake')[0]).toBeTruthy();
       });
     });
   });

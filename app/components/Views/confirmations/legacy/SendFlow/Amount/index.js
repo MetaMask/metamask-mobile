@@ -87,7 +87,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../../constants/bridge';
 import { regex } from '../../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
@@ -523,13 +523,13 @@ class Amount extends PureComponent {
     const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle(
-        'send.amount',
+      getSendFlowTitle({
+        title: 'send.amount',
         navigation,
         route,
-        colors,
+        themeColors: colors,
         resetTransaction,
-      ),
+      }),
     );
   };
 
@@ -1281,7 +1281,7 @@ class Amount extends PureComponent {
       navigation.replace('Swaps', {
         screen: 'SwapsAmountView',
         params: {
-          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourceToken: NATIVE_SWAPS_TOKEN_ADDRESS,
           destinationToken: selectedAsset.address,
           sourcePage: 'SendFlow',
         },

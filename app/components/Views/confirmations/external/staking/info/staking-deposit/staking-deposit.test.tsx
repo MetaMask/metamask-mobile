@@ -11,6 +11,7 @@ import { endTrace, TraceName } from '../../../../../../../util/trace';
 import StakingDeposit from './staking-deposit';
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
@@ -114,7 +115,7 @@ describe('StakingDeposit', () => {
     expect(getByText('Est. annual reward')).toBeDefined();
     expect(getByText('Reward frequency')).toBeDefined();
     expect(getByText('Withdrawal time')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
 
     expect(mockGetNavbar).toHaveBeenCalled();

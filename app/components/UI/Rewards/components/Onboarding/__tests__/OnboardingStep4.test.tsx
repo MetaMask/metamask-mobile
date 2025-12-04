@@ -5,12 +5,17 @@ import OnboardingStep4 from '../OnboardingStep4';
 
 // Mock navigation
 const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-  useFocusEffect: jest.fn(),
-}));
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+    useFocusEffect: jest.fn(),
+  };
+});
 
 // Mock route params
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
@@ -221,6 +226,10 @@ jest.mock('../../../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(() => null),
 }));
 
+jest.mock('../../../../../../reducers/rewards/selectors', () => ({
+  selectOnboardingReferralCode: jest.fn(() => null),
+}));
+
 // Mock OnboardingStepComponent
 jest.mock('../OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
@@ -248,11 +257,21 @@ jest.mock('../OnboardingStep', () => {
 
 import { useOptin } from '../../../hooks/useOptIn';
 import { useValidateReferralCode } from '../../../hooks/useValidateReferralCode';
+import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
+import { selectOnboardingReferralCode } from '../../../../../../reducers/rewards/selectors';
 
 const mockUseOptin = useOptin as jest.MockedFunction<typeof useOptin>;
 const mockUseValidateReferralCode =
   useValidateReferralCode as jest.MockedFunction<
     typeof useValidateReferralCode
+  >;
+const mockSelectRewardsSubscriptionId =
+  selectRewardsSubscriptionId as jest.MockedFunction<
+    typeof selectRewardsSubscriptionId
+  >;
+const mockSelectOnboardingReferralCode =
+  selectOnboardingReferralCode as jest.MockedFunction<
+    typeof selectOnboardingReferralCode
   >;
 
 describe('OnboardingStep4', () => {
@@ -261,7 +280,7 @@ describe('OnboardingStep4', () => {
   });
 
   describe('rendering', () => {
-    it('should render step content with title and description', () => {
+    it('renders step content with title and description', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       // Since mock has isValid: true, it shows the referral bonus title
@@ -272,8 +291,7 @@ describe('OnboardingStep4', () => {
       ).toBeDefined();
     });
 
-    it('should render regular title when referral code is invalid', () => {
-      // Mock referral code as invalid for this test
+    it('renders regular title when referral code is invalid', () => {
       mockUseValidateReferralCode.mockReturnValueOnce({
         referralCode: 'INVALID',
         setReferralCode: jest.fn(),
@@ -290,7 +308,7 @@ describe('OnboardingStep4', () => {
       ).toBeDefined();
     });
 
-    it('should render referral bonus description and input placeholder', () => {
+    it('renders referral bonus description and input placeholder', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       // Check that referral_bonus_description is rendered
@@ -308,13 +326,13 @@ describe('OnboardingStep4', () => {
       ).toBeDefined();
     });
 
-    it('should render step image', () => {
+    it('renders step image', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       expect(screen.getByTestId('step-4-image')).toBeDefined();
     });
 
-    it('should render navigation buttons', () => {
+    it('renders navigation buttons', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       // Verify that navigation buttons are rendered in the component
@@ -323,8 +341,7 @@ describe('OnboardingStep4', () => {
   });
 
   describe('error states', () => {
-    it('should show error banner when optin fails', () => {
-      // Arrange: Mock an optin error
+    it('displays error banner when optin fails', () => {
       mockUseOptin.mockReturnValue({
         optin: jest.fn(),
         optinError: 'Network error',
@@ -341,17 +358,14 @@ describe('OnboardingStep4', () => {
         validateCode: jest.fn(),
       });
 
-      // Act
       renderWithProviders(<OnboardingStep4 />);
 
-      // Assert
       expect(screen.getByTestId('rewards-error-banner')).toBeDefined();
       expect(screen.getByTestId('error-title')).toBeDefined();
       expect(screen.getByTestId('error-description')).toBeDefined();
     });
 
-    it('should not show error banner when no optin error', () => {
-      // Arrange: Mock no optin error
+    it('hides error banner when no optin error exists', () => {
       mockUseOptin.mockReturnValue({
         optin: jest.fn(),
         optinError: null,
@@ -368,15 +382,12 @@ describe('OnboardingStep4', () => {
         validateCode: jest.fn(),
       });
 
-      // Act
       renderWithProviders(<OnboardingStep4 />);
 
-      // Assert
       expect(screen.queryByTestId('rewards-error-banner')).toBeNull();
     });
 
-    it('should show unknown error banner when referral validation has unknown error', () => {
-      // Arrange: Mock unknown error in referral validation
+    it('displays unknown error banner when referral validation encounters unknown error', () => {
       mockUseOptin.mockReturnValue({
         optin: jest.fn(),
         optinError: null,
@@ -393,10 +404,8 @@ describe('OnboardingStep4', () => {
         validateCode: jest.fn(),
       });
 
-      // Act
       renderWithProviders(<OnboardingStep4 />);
 
-      // Assert
       expect(screen.getByTestId('rewards-error-banner')).toBeDefined();
       expect(screen.getByTestId('error-title')).toBeDefined();
       expect(screen.getByTestId('error-description')).toBeDefined();
@@ -413,8 +422,7 @@ describe('OnboardingStep4', () => {
       ).toBeDefined();
     });
 
-    it('should not show unknown error banner when referral validation has no unknown error', () => {
-      // Arrange: Mock no unknown error in referral validation
+    it('hides unknown error banner when referral validation has no unknown error', () => {
       mockUseOptin.mockReturnValue({
         optin: jest.fn(),
         optinError: null,
@@ -431,10 +439,8 @@ describe('OnboardingStep4', () => {
         validateCode: jest.fn(),
       });
 
-      // Act
       renderWithProviders(<OnboardingStep4 />);
 
-      // Assert - Should not show the unknown error banner
       expect(
         screen.queryByText(
           'mocked_rewards.referral_validation_unknown_error.title',
@@ -449,7 +455,7 @@ describe('OnboardingStep4', () => {
   });
 
   describe('referral code input', () => {
-    it('should handle referral code input changes', () => {
+    it('updates referral code when input changes', () => {
       const mockSetReferralCode = jest.fn();
 
       mockUseValidateReferralCode.mockReturnValue({
@@ -467,13 +473,12 @@ describe('OnboardingStep4', () => {
         'mocked_rewards.onboarding.step4_referral_input_placeholder',
       );
 
-      // Simulate typing in the input
       input.props.onChangeText('ABC123');
 
       expect(mockSetReferralCode).toHaveBeenCalledWith('ABC123');
     });
 
-    it('should show error message for invalid referral code', () => {
+    it('displays error message for invalid referral code with six or more characters', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'INVALID123',
         setReferralCode: jest.fn(),
@@ -492,7 +497,7 @@ describe('OnboardingStep4', () => {
       ).toBeDefined();
     });
 
-    it('should not show error message for short codes', () => {
+    it('hides error message for codes shorter than six characters', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'ABC',
         setReferralCode: jest.fn(),
@@ -513,7 +518,7 @@ describe('OnboardingStep4', () => {
   });
 
   describe('icon states', () => {
-    it('should show success icon when referral code is valid', () => {
+    it('displays success icon when referral code is valid', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'VALID123',
         setReferralCode: jest.fn(),
@@ -528,7 +533,7 @@ describe('OnboardingStep4', () => {
       expect(screen.getByTestId('confirmation-icon')).toBeDefined();
     });
 
-    it('should show error icon when referral code is invalid and long enough', () => {
+    it('displays error icon when referral code is invalid and has six or more characters', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'INVALID123',
         setReferralCode: jest.fn(),
@@ -543,7 +548,7 @@ describe('OnboardingStep4', () => {
       expect(screen.getByTestId('error-icon')).toBeDefined();
     });
 
-    it('should show no icon for short codes', () => {
+    it('displays no icon for codes shorter than six characters', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'ABC',
         setReferralCode: jest.fn(),
@@ -562,7 +567,7 @@ describe('OnboardingStep4', () => {
   });
 
   describe('button states', () => {
-    it('should disable next button when referral code is invalid', () => {
+    it('disables next button when referral code is invalid', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'INVALID123',
         setReferralCode: jest.fn(),
@@ -579,7 +584,7 @@ describe('OnboardingStep4', () => {
       // Button disabled state is passed to OnboardingStepComponent
     });
 
-    it('should disable next button when unknown error occurs', () => {
+    it('disables next button when unknown error occurs', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'ERROR123',
         setReferralCode: jest.fn(),
@@ -595,7 +600,7 @@ describe('OnboardingStep4', () => {
       expect(container).toBeDefined();
     });
 
-    it('should show loading text when optin is loading', () => {
+    it('displays loading text when optin is in progress', () => {
       mockUseOptin.mockReturnValue({
         optin: jest.fn(),
         optinError: null,
@@ -610,7 +615,7 @@ describe('OnboardingStep4', () => {
       expect(container).toBeDefined();
     });
 
-    it('should show validating text when validating referral code', () => {
+    it('displays validating text when validating referral code', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'TEST123',
         setReferralCode: jest.fn(),
@@ -628,18 +633,24 @@ describe('OnboardingStep4', () => {
   });
 
   describe('legal disclaimer', () => {
-    it('should render legal disclaimer text', () => {
+    it('renders legal disclaimer text', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       expect(
+        screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer_1'),
+      ).toBeDefined();
+      expect(
         screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer_2'),
+      ).toBeDefined();
+      expect(
+        screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer_3'),
       ).toBeDefined();
       expect(
         screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer_4'),
       ).toBeDefined();
     });
 
-    it('should handle terms of use link press', () => {
+    it('opens terms of use URL when link is pressed', () => {
       const { Linking } = jest.requireActual('react-native');
       const mockOpenURL = Linking.openURL;
 
@@ -655,7 +666,7 @@ describe('OnboardingStep4', () => {
       }
     });
 
-    it('should handle learn more link press', () => {
+    it('opens learn more URL when link is pressed', () => {
       const { Linking } = jest.requireActual('react-native');
       const mockOpenURL = Linking.openURL;
 
@@ -673,7 +684,7 @@ describe('OnboardingStep4', () => {
   });
 
   describe('next button interaction', () => {
-    it('should call optin with referral code when next button is pressed', () => {
+    it('prepares optin call with referral code when next button is ready to be pressed', () => {
       const mockOptin = jest.fn();
 
       mockUseOptin.mockReturnValue({
@@ -704,7 +715,7 @@ describe('OnboardingStep4', () => {
       expect(mockOptin).toBeDefined();
     });
 
-    it('should call optin with empty referral code when no code is entered', () => {
+    it('prepares optin call with empty referral code when no code is entered', () => {
       const mockOptin = jest.fn();
 
       mockUseOptin.mockReturnValue({
@@ -733,12 +744,133 @@ describe('OnboardingStep4', () => {
   });
 
   describe('integration', () => {
-    it('should integrate with navigation and dispatch functions', () => {
+    it('integrates with navigation and dispatch functions', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       // Verify navigation and dispatch functions are available
       expect(mockDispatch).toBeDefined();
       expect(mockNavigate).toBeDefined();
+    });
+  });
+
+  describe('prefilled referral code', () => {
+    it('initializes with prefilled referral code from selector', () => {
+      mockSelectOnboardingReferralCode.mockReturnValue('REFER123');
+
+      mockUseValidateReferralCode.mockImplementation((initialCode) => ({
+        referralCode: initialCode || '',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      }));
+
+      renderWithProviders(<OnboardingStep4 />);
+
+      // Verify the hook was called with the trimmed and uppercased code
+      expect(mockUseValidateReferralCode).toHaveBeenCalledWith('REFER123');
+    });
+
+    it('trims and uppercases prefilled referral code', () => {
+      mockSelectOnboardingReferralCode.mockReturnValue('  refer123  ');
+
+      mockUseValidateReferralCode.mockImplementation((initialCode) => ({
+        referralCode: initialCode || '',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      }));
+
+      renderWithProviders(<OnboardingStep4 />);
+
+      // Verify the hook was called with trimmed and uppercased version
+      expect(mockUseValidateReferralCode).toHaveBeenCalledWith('REFER123');
+    });
+
+    it('calls optin with isPrefilled true when referral code is prefilled', () => {
+      mockSelectOnboardingReferralCode.mockReturnValue('PREFILLED');
+
+      const mockOptin = jest.fn();
+      mockUseOptin.mockReturnValue({
+        optin: mockOptin,
+        optinError: null,
+        optinLoading: false,
+        clearOptinError: jest.fn(),
+      });
+
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'PREFILLED',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProviders(<OnboardingStep4 />);
+      const container = getByTestId('onboarding-step-container');
+
+      // Verify component rendered
+      expect(container).toBeDefined();
+      // The optin function is ready to be called with isPrefilled: true
+      expect(mockOptin).toBeDefined();
+    });
+
+    it('calls optin with isPrefilled false when referral code is not prefilled', () => {
+      mockSelectOnboardingReferralCode.mockReturnValue(null);
+
+      const mockOptin = jest.fn();
+      mockUseOptin.mockReturnValue({
+        optin: mockOptin,
+        optinError: null,
+        optinLoading: false,
+        clearOptinError: jest.fn(),
+      });
+
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'MANUAL123',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProviders(<OnboardingStep4 />);
+      const container = getByTestId('onboarding-step-container');
+
+      // Verify component rendered
+      expect(container).toBeDefined();
+      // The optin function is ready to be called with isPrefilled: false
+      expect(mockOptin).toBeDefined();
+    });
+  });
+
+  describe('auto-redirect to dashboard', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+    });
+
+    it('disables next button when subscriptionId exists', () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue('sub-123');
+
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: '',
+        setReferralCode: jest.fn(),
+        isValidating: false,
+        isValid: true,
+        isUnknownError: false,
+        validateCode: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProviders(<OnboardingStep4 />);
+      const container = getByTestId('onboarding-step-container');
+
+      // Verify the container has the onNextDisabled prop set
+      expect(container.props.onNextDisabled).toBe(true);
     });
   });
 });

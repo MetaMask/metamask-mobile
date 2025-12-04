@@ -5,11 +5,16 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import {
+  BuyQuote,
+  NativeTransakUserDetails,
+} from '@consensys/native-ramps-sdk';
+import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { trace, endTrace } from '../../../../../../util/trace';
 import { useRegions } from '../../hooks/useRegions';
 import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
 import { usePaymentMethods } from '../../hooks/usePaymentMethods';
+import { useDepositUser } from '../../hooks/useDepositUser';
 import {
   createMockSDKReturn,
   MOCK_USE_REGIONS_ERROR,
@@ -30,7 +35,11 @@ import {
   MOCK_USE_PAYMENT_METHODS_RETURN,
   MOCK_CRYPTOCURRENCIES,
   MOCK_PAYMENT_METHODS,
+  MOCK_USER_DETAILS_US,
+  MOCK_USER_DETAILS_FR,
+  MOCK_USE_DEPOSIT_USER_RETURN,
   MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
+  MOCK_USE_DEPOSIT_USER_ERROR,
 } from '../../testUtils';
 
 const createMockInteractionManager = () => ({
@@ -115,6 +124,10 @@ jest.mock('../../hooks/useCryptoCurrencies', () => ({
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../hooks/useDepositUser', () => ({
+  useDepositUser: jest.fn(),
+}));
+
 jest.mock('../../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../../util/trace'),
   trace: jest.fn(),
@@ -129,7 +142,7 @@ jest.mock('react-native', () => {
   };
 });
 
-function render(Component: React.ComponentType) {
+function render(Component: React.ComponentType, orders: FiatOrder[] = []) {
   return renderScreen(
     Component,
     {
@@ -139,6 +152,9 @@ function render(Component: React.ComponentType) {
       state: {
         engine: {
           backgroundState,
+        },
+        fiatOrders: {
+          orders,
         },
       },
     },
@@ -163,6 +179,7 @@ describe('BuildQuote Component', () => {
     jest
       .mocked(usePaymentMethods)
       .mockReturnValue(MOCK_USE_PAYMENT_METHODS_RETURN);
+    jest.mocked(useDepositUser).mockReturnValue(MOCK_USE_DEPOSIT_USER_RETURN);
 
     mockTrackEvent.mockClear();
     (trace as jest.MockedFunction<typeof trace>).mockClear();
@@ -262,6 +279,23 @@ describe('BuildQuote Component', () => {
         params: expect.any(Object),
       });
     });
+
+    it('does not open region modal when user region is locked', () => {
+      jest.mocked(useRegions).mockReturnValue({
+        ...MOCK_USE_REGIONS_RETURN,
+        userRegionLocked: true,
+      });
+
+      render(BuildQuote);
+
+      const regionButton = screen.getByText('US');
+      fireEvent.press(regionButton);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: expect.any(Object),
+      });
+    });
   });
 
   describe('Payment Method Selection', () => {
@@ -343,6 +377,48 @@ describe('BuildQuote Component', () => {
       });
     });
 
+    it('tracks RAMPS_TOKEN_SELECTOR_CLICKED event when token button is pressed', () => {
+      render(BuildQuote);
+
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TOKEN_SELECTOR_CLICKED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: MOCK_US_REGION.isoCode,
+          location: 'build_quote',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        },
+      );
+    });
+
+    it('tracks RAMPS_TOKEN_SELECTOR_CLICKED event with undefined currency_destination_network when selectedCryptoCurrency is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      const tokenButton = screen.getByText('mUSD');
+      fireEvent.press(tokenButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TOKEN_SELECTOR_CLICKED',
+        expect.objectContaining({
+          currency_destination_network: undefined,
+        }),
+      );
+    });
+
     it('does not open token modal when crypto currencies error occurs', () => {
       jest
         .mocked(useCryptoCurrencies)
@@ -395,6 +471,16 @@ describe('BuildQuote Component', () => {
     });
   });
 
+  describe('User Details Error', () => {
+    it('displays user details error alert when fetching fails', () => {
+      jest.mocked(useDepositUser).mockReturnValue(MOCK_USE_DEPOSIT_USER_ERROR);
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('Continue button functionality', () => {
     it('calls getQuote with transformed parameters using utility functions', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
@@ -418,7 +504,7 @@ describe('BuildQuote Component', () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
 
-      render(BuildQuote);
+      render(BuildQuote, []);
 
       const continueButton = screen.getByText('Continue');
       fireEvent.press(continueButton);
@@ -432,8 +518,46 @@ describe('BuildQuote Component', () => {
           region: MOCK_US_REGION.isoCode,
           chain_id: MOCK_USDC_TOKEN.chainId,
           currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
           currency_source: MOCK_US_REGION.currency,
           is_authenticated: false,
+          first_time_order: true,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED event with first_time_order false when orders exist', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+      const mockOrder = {
+        id: 'test-order-id',
+        provider: 'DEPOSIT',
+        account: '0x123',
+        state: 'COMPLETED',
+      } as FiatOrder;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote, [mockOrder]);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+          first_time_order: false,
         });
       });
     });
@@ -531,6 +655,8 @@ describe('BuildQuote Component', () => {
           region: MOCK_US_REGION.isoCode,
           chain_id: MOCK_USDC_TOKEN.chainId,
           currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
           currency_source: MOCK_US_REGION.currency,
         });
       });
@@ -572,6 +698,8 @@ describe('BuildQuote Component', () => {
           region: MOCK_US_REGION.isoCode,
           chain_id: MOCK_USDC_TOKEN.chainId,
           currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
           currency_source: MOCK_US_REGION.currency,
           error_message: 'BuildQuote - Error fetching quote',
           is_authenticated: false,
@@ -615,6 +743,8 @@ describe('BuildQuote Component', () => {
           region: MOCK_US_REGION.isoCode,
           chain_id: MOCK_USDC_TOKEN.chainId,
           currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
           currency_source: MOCK_US_REGION.currency,
           error_message: 'BuildQuote - Error fetching quote',
           is_authenticated: false,
@@ -678,6 +808,8 @@ describe('BuildQuote Component', () => {
           region: MOCK_US_REGION.isoCode,
           chain_id: MOCK_USDC_TOKEN.chainId,
           currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
           currency_source: MOCK_US_REGION.currency,
           error_message: 'BuildQuote - Error handling authentication',
           is_authenticated: true,
@@ -697,6 +829,132 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
 
       await waitFor(() => {
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('does not call handleOnPressContinue when shouldRouteImmediately is true but user region does not match selected region', async () => {
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: MOCK_USER_DETAILS_FR,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+      });
+
+      expect(mockGetQuote).not.toHaveBeenCalled();
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user region matches selected region', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: MOCK_USER_DETAILS_US,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user details are not available', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: null,
+      });
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user details do not have address', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      const userDetailsWithoutAddress = {
+        id: 'user-id-no-address',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+        mobileNumber: '1234567890',
+        status: 'active',
+        dob: '1990-01-01',
+        kyc: {
+          l1: {
+            status: 'APPROVED',
+            type: 'BASIC',
+            updatedAt: '2023-01-01',
+            kycSubmittedAt: '2023-01-01',
+          },
+        },
+        createdAt: '2023-01-01',
+        isKycApproved: jest.fn().mockReturnValue(true),
+      } as unknown as NativeTransakUserDetails;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: userDetailsWithoutAddress,
+      });
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
         expect(mockGetQuote).toHaveBeenCalled();
       });
     });

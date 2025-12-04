@@ -1,23 +1,24 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { usePerpsTrading } from './usePerpsTrading';
 import Engine from '../../../../core/Engine';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectChainId } from '../../../../selectors/networkController';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+
+import { setMeasurement } from '@sentry/react-native';
+import performance from 'react-native-performance';
 import {
   EstimatePointsDto,
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   DEVELOPMENT_CONFIG,
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
-import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
+import { usePerpsTrading } from './usePerpsTrading';
+import { determineMakerStatus } from '../utils/orderUtils';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -46,15 +47,15 @@ export interface OrderFeesResult {
   protocolFee: number;
   /** MetaMask service fee in USD */
   metamaskFee: number;
-  /** Protocol fee rate as decimal (e.g., 0.00045 for 0.045%) */
-  protocolFeeRate: number;
-  /** MetaMask fee rate as decimal (e.g., 0.01 for 1%) */
-  metamaskFeeRate: number;
+  /** Protocol fee rate as decimal (e.g., 0.00045 for 0.045%) - undefined means unavailable/error state */
+  protocolFeeRate: number | undefined;
+  /** MetaMask fee rate as decimal (e.g., 0.01 for 1%) - undefined means unavailable/error state */
+  metamaskFeeRate: number | undefined;
   /** Loading state for MetaMask fee (future API integration) */
   isLoadingMetamaskFee: boolean;
   /** Error state for fee calculation */
   error: string | null;
-  /** Original MetaMask fee rate before any discounts */
+  /** Original MetaMask fee rate before any discounts - undefined means unavailable/error state */
   originalMetamaskFeeRate?: number;
   /** Fee discount percentage applied (e.g., 30 for 30% off) */
   feeDiscountPercentage?: number;
@@ -69,12 +70,18 @@ interface UsePerpsOrderFeesParams {
   orderType: 'market' | 'limit';
   /** Order amount in USD */
   amount: string;
-  /** Whether this is a maker order (for protocols that differentiate) */
-  isMaker?: boolean;
   /** Coin symbol for the trade (e.g., 'BTC', 'ETH') */
   coin?: string;
   /** Whether this is opening or closing a position */
   isClosing?: boolean;
+  /** User's limit price */
+  limitPrice?: string;
+  /** Order direction */
+  direction?: 'long' | 'short';
+  /** Real ask price from L2 order book */
+  currentAskPrice?: number;
+  /** Real bid price from L2 order book */
+  currentBidPrice?: number;
 }
 
 /**
@@ -97,16 +104,40 @@ export function clearRewardsCaches(): void {
 export function usePerpsOrderFees({
   orderType,
   amount,
-  isMaker = false,
   coin = 'ETH',
   isClosing = false,
+  limitPrice,
+  direction,
+  currentAskPrice,
+  currentBidPrice,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
-  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
   const currentChainId = useSelector(selectChainId);
+
+  const isMaker = useMemo(() => {
+    if (!direction) {
+      return false;
+    }
+
+    return determineMakerStatus({
+      orderType,
+      limitPrice,
+      direction,
+      bestAsk: currentAskPrice,
+      bestBid: currentBidPrice,
+      coin,
+    });
+  }, [
+    orderType,
+    limitPrice,
+    direction,
+    currentAskPrice,
+    currentBidPrice,
+    coin,
+  ]);
 
   // Clear stale cache on component mount to force fresh API call
   useEffect(() => {
@@ -120,16 +151,10 @@ export function usePerpsOrderFees({
     async (
       address: string,
     ): Promise<{ discountBips?: number; tier?: string }> => {
-      // Early return if feature flag is disabled - never make API call
-      if (!rewardsEnabled) {
-        return {};
-      }
-
       // Check cache first
       const now = Date.now();
       if (
-        feeDiscountCache &&
-        feeDiscountCache.address === address &&
+        feeDiscountCache?.address === address &&
         now - feeDiscountCache.timestamp < feeDiscountCache.ttl
       ) {
         DevLogger.log('Rewards: Using cached fee discount', {
@@ -158,9 +183,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const feeDiscountStartTime = performance.now();
-        const discountBips = await RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        );
+        const discountBips =
+          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
         const feeDiscountDuration = performance.now() - feeDiscountStartTime;
 
         // Measure fee discount API call performance
@@ -194,7 +218,7 @@ export function usePerpsOrderFees({
         return {};
       }
     },
-    [rewardsEnabled, currentChainId],
+    [currentChainId],
   );
 
   /**
@@ -208,13 +232,8 @@ export function usePerpsOrderFees({
       isClose: boolean,
       actualFeeUSD?: number,
     ): Promise<EstimatedPointsDto | null> => {
-      // Early return if feature flag is disabled - never make API call
-      if (!rewardsEnabled) {
-        return null;
-      }
-
       try {
-        const amountNum = parseFloat(tradeAmount || '0');
+        const amountNum = Number.parseFloat(tradeAmount || '0');
         if (amountNum <= 0) {
           return null;
         }
@@ -251,9 +270,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const pointsEstimationStartTime = performance.now();
-        const result = await RewardsController.estimatePoints(
-          estimatePointsDto,
-        );
+        const result =
+          await RewardsController.estimatePoints(estimatePointsDto);
         const pointsEstimationDuration =
           performance.now() - pointsEstimationStartTime;
 
@@ -284,14 +302,22 @@ export function usePerpsOrderFees({
         return null;
       }
     },
-    [rewardsEnabled, currentChainId],
+    [currentChainId],
   );
 
   // State for fees from provider
-  const [protocolFeeRate, setProtocolFeeRate] = useState(0);
-  const [metamaskFeeRate, setMetamaskFeeRate] = useState(0);
-  const [originalMetamaskFeeRate, setOriginalMetamaskFeeRate] = useState(0);
-  const [totalFeeRate, setTotalFeeRate] = useState(0);
+  const [protocolFeeRate, setProtocolFeeRate] = useState<number | undefined>(
+    undefined,
+  );
+  const [metamaskFeeRate, setMetamaskFeeRate] = useState<number | undefined>(
+    undefined,
+  );
+  const [originalMetamaskFeeRate, setOriginalMetamaskFeeRate] = useState<
+    number | undefined
+  >(undefined);
+  const [totalFeeRate, setTotalFeeRate] = useState<number | undefined>(
+    undefined,
+  );
   const [isLoadingFees, setIsLoadingFees] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -307,7 +333,7 @@ export function usePerpsOrderFees({
    */
   const applyFeeDiscount = useCallback(
     async (originalRate: number) => {
-      if (!rewardsEnabled || !selectedAddress) {
+      if (!selectedAddress) {
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
 
@@ -315,7 +341,7 @@ export function usePerpsOrderFees({
         // Development-only simulation for testing fee discount UI
         const shouldSimulateFeeDiscount =
           __DEV__ &&
-          parseFloat(amount) ===
+          Number.parseFloat(amount) ===
             DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
 
         let discountData: { discountBips?: number };
@@ -352,7 +378,7 @@ export function usePerpsOrderFees({
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
     },
-    [rewardsEnabled, fetchFeeDiscount, amount, selectedAddress],
+    [fetchFeeDiscount, amount, selectedAddress],
   );
 
   /**
@@ -363,18 +389,17 @@ export function usePerpsOrderFees({
       userAddress: string,
       actualFeeUSD: number,
     ): Promise<{ points?: number; bonusBips?: number }> => {
-      if (!rewardsEnabled || parseFloat(amount) <= 0) {
+      if (Number.parseFloat(amount) <= 0) {
         return {};
       }
 
       try {
         const now = Date.now();
         const cacheValid =
-          pointsCalculationCache &&
-          pointsCalculationCache.address === userAddress &&
+          pointsCalculationCache?.address === userAddress &&
           now - pointsCalculationCache.timestamp < pointsCalculationCache.ttl &&
           pointsCalculationCache.basePointsPerDollar > 0 &&
-          isFinite(pointsCalculationCache.basePointsPerDollar);
+          Number.isFinite(pointsCalculationCache.basePointsPerDollar);
 
         if (cacheValid && pointsCalculationCache) {
           // Calculate points locally using cached data
@@ -416,7 +441,7 @@ export function usePerpsOrderFees({
           const basePointsPerDollar =
             denominator > 0 ? pointsData.pointsEstimate / denominator : 0;
 
-          if (isFinite(basePointsPerDollar)) {
+          if (Number.isFinite(basePointsPerDollar)) {
             pointsCalculationCache = {
               address: userAddress,
               bonusBips: pointsData.bonusBips,
@@ -454,7 +479,7 @@ export function usePerpsOrderFees({
         return {};
       }
     },
-    [rewardsEnabled, amount, coin, isClosing, estimatePoints],
+    [amount, coin, isClosing, estimatePoints],
   );
 
   /**
@@ -462,9 +487,9 @@ export function usePerpsOrderFees({
    */
   const updateFeeState = useCallback(
     (
-      protocolRate: number,
-      originalMetamaskRate: number,
-      adjustedMetamaskRate: number,
+      protocolRate: number | undefined,
+      originalMetamaskRate: number | undefined,
+      adjustedMetamaskRate: number | undefined,
       discountPercentage?: number,
       points?: number,
       bonusBipsValue?: number,
@@ -472,7 +497,12 @@ export function usePerpsOrderFees({
       setProtocolFeeRate(protocolRate);
       setOriginalMetamaskFeeRate(originalMetamaskRate);
       setMetamaskFeeRate(adjustedMetamaskRate);
-      setTotalFeeRate(protocolRate + adjustedMetamaskRate);
+      // Only calculate total if both rates are defined (not undefined = error state)
+      setTotalFeeRate(
+        protocolRate !== undefined && adjustedMetamaskRate !== undefined
+          ? protocolRate + adjustedMetamaskRate
+          : undefined,
+      );
       setFeeDiscountPercentage(discountPercentage);
       setEstimatedPoints(points);
       setBonusBips(bonusBipsValue);
@@ -510,26 +540,46 @@ export function usePerpsOrderFees({
           orderType,
           isMaker,
           amount,
+          coin,
         });
 
         if (!isComponentMounted) return;
 
-        // Step 2: Apply fee discount if rewards are enabled
+        // Step 2: Check if rates are available (not undefined)
+        // Undefined means error/unavailable state - UI will display "--" fallback
+        if (
+          coreFeesResult.metamaskFeeRate === undefined ||
+          coreFeesResult.protocolFeeRate === undefined
+        ) {
+          // Rates unavailable - set all states to undefined for UI fallback display
+          // UI will show FALLBACK_DATA_DISPLAY ('--') instead of misleading $0
+          updateFeeState(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+          );
+          return;
+        }
+
+        // Step 3: Apply fee discount if rewards are enabled (rates are guaranteed defined here)
         const { adjustedRate, discountPercentage } = await applyFeeDiscount(
           coreFeesResult.metamaskFeeRate,
         );
 
         if (!isComponentMounted) return;
 
-        // Step 3: Handle points estimation if user has address and valid amount
+        // Step 4: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
-        if (selectedAddress && parseFloat(amount) > 0) {
-          const actualFeeUSD = parseFloat(amount) * adjustedRate;
+        if (selectedAddress && Number.parseFloat(amount) > 0) {
+          const actualFeeUSD = Number.parseFloat(amount) * adjustedRate;
           DevLogger.log('Rewards: Calculating points with discounted fee', {
             originalRate: coreFeesResult.metamaskFeeRate,
             discountPercentage,
             adjustedRate,
-            amount: parseFloat(amount),
+            amount: Number.parseFloat(amount),
             actualFeeUSD,
           });
 
@@ -541,7 +591,7 @@ export function usePerpsOrderFees({
 
         if (!isComponentMounted) return;
 
-        // Step 4: Update all state
+        // Step 5: Update all state with actual values (all rates are defined)
         updateFeeState(
           coreFeesResult.protocolFeeRate,
           coreFeesResult.metamaskFeeRate,
@@ -574,6 +624,7 @@ export function usePerpsOrderFees({
     orderType,
     isMaker,
     amount,
+    coin,
     calculateFees,
     applyFeeDiscount,
     handlePointsEstimation,
@@ -584,12 +635,15 @@ export function usePerpsOrderFees({
   ]);
 
   return useMemo(() => {
-    const amountNum = parseFloat(amount || '0');
+    const amountNum = Number.parseFloat(amount || '0');
 
     // Calculate fee amounts based on rates
-    const protocolFee = amountNum * protocolFeeRate;
-    const metamaskFee = amountNum * metamaskFeeRate;
-    const totalFee = amountNum * totalFeeRate;
+    // If rates are undefined (unavailable/error state), fees are 0
+    const protocolFee =
+      protocolFeeRate !== undefined ? amountNum * protocolFeeRate : 0;
+    const metamaskFee =
+      metamaskFeeRate !== undefined ? amountNum * metamaskFeeRate : 0;
+    const totalFee = totalFeeRate !== undefined ? amountNum * totalFeeRate : 0;
 
     return {
       totalFee,
@@ -625,7 +679,7 @@ export function usePerpsOrderFees({
  * @returns Formatted percentage string (e.g., "0.045%") or "N/A" if invalid
  */
 export function formatFeeRate(rate: number | undefined | null): string {
-  if (rate === undefined || rate === null || isNaN(rate)) {
+  if (rate === undefined || rate === null || Number.isNaN(rate)) {
     return 'N/A';
   }
   return `${(rate * 100).toFixed(3)}%`;

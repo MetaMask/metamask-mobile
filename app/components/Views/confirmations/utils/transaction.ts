@@ -103,10 +103,10 @@ export function get4ByteCode(data: string) {
 }
 
 export function hasTransactionType(
-  transactionMeta: TransactionMeta,
+  transactionMeta: TransactionMeta | undefined,
   types: TransactionType[],
 ) {
-  const { nestedTransactions, type } = transactionMeta;
+  const { nestedTransactions, type } = transactionMeta ?? {};
 
   if (types.includes(type as TransactionType)) {
     return true;

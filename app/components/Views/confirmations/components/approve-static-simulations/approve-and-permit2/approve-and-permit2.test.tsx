@@ -105,7 +105,9 @@ describe('ApproveAndPermit2', () => {
       tokenStandard: TokenStandard.ERC20,
       rawAmount: undefined,
       spender: '0x123456789',
-    } as ReturnType<typeof useApproveTransactionDataModule.useApproveTransactionData>);
+    } as ReturnType<
+      typeof useApproveTransactionDataModule.useApproveTransactionData
+    >);
     const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
       state: approveERC721TransactionStateMock,
     });

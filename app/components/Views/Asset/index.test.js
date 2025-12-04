@@ -1,6 +1,5 @@
 import React from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
-import { swapsUtils } from '@metamask/swaps-controller/';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
@@ -217,11 +216,6 @@ const createMockStateWithAccount = (accountType = EthAccountType.Eoa) => ({
 
 jest.unmock('react-native/Libraries/Interaction/InteractionManager');
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
   getBuildNumber: jest.fn().mockReturnValue(1),
@@ -356,7 +350,6 @@ describe('Asset', () => {
   });
 
   it('should not display swaps button if the asset is not allowed', () => {
-    jest.spyOn(swapsUtils, 'fetchSwapsFeatureFlags').mockRejectedValue('error');
     const { toJSON } = renderWithProvider(
       <Asset
         navigation={{ setOptions: jest.fn() }}

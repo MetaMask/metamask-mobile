@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextColor,
@@ -15,11 +15,12 @@ import {
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
-import { TouchablePerpsComponent } from '../PressablePerpsComponent/PressablePerpsComponent';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 /**
  * PerpsCard Component
@@ -33,8 +34,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   onPress,
   testID,
   source,
+  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Determine which type of data we have
@@ -53,8 +55,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   if (position) {
     const leverage = position.leverage.value;
     const isLong = parseFloat(position.size) > 0;
-    primaryText = `${position.coin} ${leverage}x ${isLong ? 'long' : 'short'}`;
-    secondaryText = `${Math.abs(parseFloat(position.size))} ${position.coin}`;
+    const displaySymbol = getPerpsDisplaySymbol(position.coin);
+    primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
+    secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
 
     // Calculate PnL display
     const pnlValue = parseFloat(position.unrealizedPnl);
@@ -65,8 +68,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     const roeValue = parseFloat(position.returnOnEquity) * 100;
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
-    primaryText = `${order.symbol} ${order.side === 'buy' ? 'long' : 'short'}`;
-    secondaryText = `${order.originalSize} ${order.symbol}`;
+    const displaySymbol = getPerpsDisplaySymbol(order.symbol);
+    primaryText = `${displaySymbol} ${order.side === 'buy' ? 'long' : 'short'}`;
+    secondaryText = `${order.originalSize} ${displaySymbol}`;
     const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
     valueText = formatPerpsFiat(orderValue, {
       ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -74,41 +78,44 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     labelText = strings('perps.order.limit');
   }
 
+  // Memoize market lookup to avoid array search on every press
+  const market = useMemo(
+    () => markets.find((m) => m.symbol === symbol),
+    [markets, symbol],
+  );
+
   const handlePress = useCallback(() => {
     if (onPress) {
       onPress();
-    } else if (markets.length > 0 && symbol) {
-      // Find the market data for this symbol
-      const market = markets.find((m) => m.symbol === symbol);
-      if (market) {
-        const initialTab = order ? 'orders' : position ? 'position' : undefined;
-        // Navigate to market details with the full market data
-        // When navigating from a tab, we need to navigate through the root stack
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market,
-            initialTab,
-            source,
-          },
-        });
+    } else if (market) {
+      let initialTab: 'position' | 'orders' | undefined;
+      if (order) {
+        initialTab = 'orders';
+      } else if (position) {
+        initialTab = 'position';
       }
+      // Navigate to market details with the full market data
+      // When navigating from a tab, we need to navigate through the root stack
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market,
+          initialTab,
+          source,
+        },
+      });
     }
-  }, [onPress, markets, symbol, navigation, order, position, source]);
-
-  const memoizedPressHandler = useCallback(() => {
-    handlePress();
-  }, [handlePress]);
+  }, [onPress, market, navigation, order, position, source]);
 
   if (!position && !order) {
     return null;
   }
 
   return (
-    <TouchablePerpsComponent
+    <TouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
-      onPress={memoizedPressHandler}
+      onPress={handlePress}
       testID={testID}
     >
       <View style={styles.cardContent}>
@@ -117,7 +124,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           {symbol && (
             <PerpsTokenLogo
               symbol={symbol}
-              size={40}
+              size={iconSize}
               style={styles.assetIcon}
             />
           )}
@@ -141,7 +148,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           </Text>
         </View>
       </View>
-    </TouchablePerpsComponent>
+    </TouchableOpacity>
   );
 };
 

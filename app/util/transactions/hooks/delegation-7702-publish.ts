@@ -9,7 +9,7 @@ import {
   PublishHookResult,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import { Hex, createProjectLogger } from '@metamask/utils';
+import { Hex, add0x, createProjectLogger } from '@metamask/utils';
 import {
   ANY_BENEFICIARY,
   BATCH_DEFAULT_MODE,
@@ -37,6 +37,9 @@ import {
   submitRelayTransaction,
   waitForRelayResult,
 } from '../transaction-relay';
+import { NetworkClientId } from '@metamask/network-controller';
+import { toHex } from '@metamask/controller-utils';
+import { stripSingleLeadingZero } from '../util';
 
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
@@ -54,17 +57,28 @@ export class Delegation7702PublishHook {
 
   #messenger: TransactionControllerInitMessenger;
 
+  #getNextNonce: (
+    address: string,
+    networkClientId: NetworkClientId,
+  ) => Promise<Hex>;
+
   constructor({
     isAtomicBatchSupported,
     messenger,
+    getNextNonce,
   }: {
     isAtomicBatchSupported: (
       request: IsAtomicBatchSupportedRequest,
     ) => Promise<IsAtomicBatchSupportedResult>;
     messenger: TransactionControllerInitMessenger;
+    getNextNonce: (
+      address: string,
+      networkClientId: NetworkClientId,
+    ) => Promise<Hex>;
   }) {
     this.#isAtomicBatchSupported = isAtomicBatchSupported;
     this.#messenger = messenger;
+    this.#getNextNonce = getNextNonce;
   }
 
   getHook(): PublishHook {
@@ -116,20 +130,27 @@ export class Delegation7702PublishHook {
 
     const isGaslessBridge = transactionMeta.isGasFeeIncluded;
 
-    if ((!selectedGasFeeToken || !gasFeeTokens?.length) && !isGaslessBridge) {
+    const isSponsored = Boolean(transactionMeta.isGasFeeSponsored);
+
+    if (
+      (!selectedGasFeeToken || !gasFeeTokens?.length) &&
+      !isGaslessBridge &&
+      !isSponsored
+    ) {
       log('Skipping as no selected gas fee token');
       return EMPTY_RESULT;
     }
 
-    const gasFeeToken = isGaslessBridge
-      ? undefined
-      : gasFeeTokens?.find(
-          (token) =>
-            token.tokenAddress.toLowerCase() ===
-            selectedGasFeeToken?.toLowerCase(),
-        );
+    const gasFeeToken =
+      isGaslessBridge || isSponsored
+        ? undefined
+        : gasFeeTokens?.find(
+            (token) =>
+              token.tokenAddress.toLowerCase() ===
+              selectedGasFeeToken?.toLowerCase(),
+          );
 
-    if (!gasFeeToken && !isGaslessBridge) {
+    if (!gasFeeToken && !isGaslessBridge && !isSponsored) {
       throw new Error('Selected gas fee token not found');
     }
 
@@ -137,7 +158,8 @@ export class Delegation7702PublishHook {
       parseInt(transactionMeta.chainId, 16),
     );
     const delegationManagerAddress = delegationEnvironment.DelegationManager;
-    const includeTransfer = !isGaslessBridge;
+    const includeTransfer =
+      !isGaslessBridge && !transactionMeta.isGasFeeSponsored;
 
     if (includeTransfer && (!gasFeeToken || gasFeeToken === undefined)) {
       throw new Error('Gas fee token not found');
@@ -180,6 +202,24 @@ export class Delegation7702PublishHook {
 
     log('Relay request', relayRequest);
 
+    const initialTxMeta = this.#messenger
+      .call('TransactionController:getState')
+      .transactions.find((tx) => tx.id === transactionMeta.id);
+
+    if (initialTxMeta) {
+      this.#messenger.call(
+        'TransactionController:updateTransaction',
+        {
+          ...initialTxMeta,
+          txParams: {
+            ...initialTxMeta.txParams,
+            nonce: undefined,
+          },
+        },
+        'Delegation7702PublishHook - Remove nonce from transaction before relay',
+      );
+    }
+
     const { uuid } = await submitRelayTransaction(relayRequest);
 
     const { transactionHash, status } = await waitForRelayResult({
@@ -190,6 +230,24 @@ export class Delegation7702PublishHook {
 
     if (status !== RelayStatus.Success) {
       throw new Error(`Transaction relay error - ${status}`);
+    }
+
+    // Mark 7702 relay transaction as intent complete so PendingTransactionTracker
+    // skips dropped checks
+    log('Setting isIntentComplete after relay success', transactionMeta.id);
+    const finalTxMeta = this.#messenger
+      .call('TransactionController:getState')
+      .transactions.find((tx) => tx.id === transactionMeta.id);
+
+    if (finalTxMeta) {
+      this.#messenger.call(
+        'TransactionController:updateTransaction',
+        {
+          ...finalTxMeta,
+          isIntentComplete: true,
+        },
+        'Delegation7702PublishHook - Set isIntentComplete after relay confirmed',
+      );
     }
 
     return {
@@ -242,10 +300,11 @@ export class Delegation7702PublishHook {
   ): ExecutionStruct[][] {
     const { txParams } = transactionMeta;
     const { data, to, value } = txParams;
+    const normalizedData = this.#normalizeCallData(data);
     const userExecution: ExecutionStruct = {
       target: to as Hex,
       value: BigInt((value as Hex) ?? '0x0'),
-      callData: (data as Hex) ?? EMPTY_HEX,
+      callData: normalizedData,
     };
 
     if (!includeTransfer) {
@@ -303,6 +362,7 @@ export class Delegation7702PublishHook {
 
     const { txParams } = transactionMeta;
     const { to, value, data } = txParams;
+    const normalizedData = this.#normalizeCallData(data);
 
     if (includeTransfer && gasFeeToken !== undefined) {
       const { tokenAddress, recipient, amount } = gasFeeToken;
@@ -316,12 +376,17 @@ export class Delegation7702PublishHook {
           amount,
           to,
           (value as Hex) ?? '0x0',
-          data,
+          normalizedData,
         );
       }
     } else if (to !== undefined) {
       // contract deployments can't be delegated
-      caveatBuilder.addCaveat(exactExecution, to, value ?? '0x0', data ?? '0x');
+      caveatBuilder.addCaveat(
+        exactExecution,
+        to,
+        value ?? '0x0',
+        normalizedData,
+      );
     }
 
     // the relay may only execute this delegation once for security reasons
@@ -334,8 +399,11 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     upgradeContractAddress?: Hex,
   ): Promise<AuthorizationList> {
-    const { chainId, txParams } = transactionMeta;
-    const { from, nonce } = txParams;
+    const { chainId, txParams, networkClientId } = transactionMeta;
+    const { from, nonce: txNonce } = txParams;
+    const nextNonce = await this.#getNextNonce(from, networkClientId);
+
+    const nonce = txNonce ?? nextNonce;
 
     log('Including authorization as not upgraded');
 
@@ -379,15 +447,41 @@ export class Delegation7702PublishHook {
   }
 
   #decodeAuthorizationSignature(signature: Hex) {
-    const r = signature.slice(0, 66) as Hex;
-    const s = `0x${signature.slice(66, 130)}` as Hex;
+    const r = stripSingleLeadingZero(signature.slice(0, 66)) as Hex;
+    const s = stripSingleLeadingZero(add0x(signature.slice(66, 130))) as Hex;
     const v = parseInt(signature.slice(130, 132), 16);
-    const yParity = v - 27 === 0 ? ('0x' as const) : ('0x1' as const);
+    const yParity = toHex(v - 27 === 0 ? 0 : 1);
 
     return {
       r,
       s,
       yParity,
     };
+  }
+
+  #normalizeCallData(data: unknown): Hex {
+    if (typeof data !== 'string' || data.length === 0) {
+      return EMPTY_HEX;
+    }
+
+    const hasHexPrefix = data.slice(0, 2).toLowerCase() === '0x';
+    const normalizedData = data.toLowerCase();
+    const prefixed = hasHexPrefix
+      ? `0x${normalizedData.slice(2)}`
+      : `0x${normalizedData}`;
+    const hexBody = prefixed.slice(2);
+
+    if (hexBody.length === 0) {
+      return EMPTY_HEX;
+    }
+
+    if (hexBody.length % 2 !== 0) {
+      // The EVM works with byte arrays, and each byte is represented by exactly
+      // two hexadecimal characters. Ensure the hex string is byte-aligned by
+      // prefixing a leading zero.
+      return this.#normalizeCallData(`0x0${hexBody}`);
+    }
+
+    return prefixed as Hex;
   }
 }

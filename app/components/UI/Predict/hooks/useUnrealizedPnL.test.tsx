@@ -2,12 +2,45 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useUnrealizedPnL } from './useUnrealizedPnL';
 import { UnrealizedPnL } from '../types';
 
+// Mock react-redux
+const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockSelectedAddress),
+}));
+
+// Mock react-navigation
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 const mockGetUnrealizedPnL = jest.fn();
+const mockGetPositions = jest.fn();
+
+// Mock DevLogger
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  DevLogger: {
+    log: jest.fn(),
+  },
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       getUnrealizedPnL: mockGetUnrealizedPnL,
+      getPositions: mockGetPositions,
+    },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
     },
   },
 }));
@@ -19,6 +52,10 @@ interface MockEngine {
   context: {
     PredictController?: {
       getUnrealizedPnL: jest.Mock;
+      getPositions: jest.Mock;
+    };
+    AccountTreeController?: {
+      getAccountsFromSelectedAccountGroup: jest.Mock;
     };
   } | null;
 }
@@ -34,20 +71,42 @@ describe('useUnrealizedPnL', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: return positions with at least one item so tests pass by default
+    mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
     engine.context = {
       PredictController: {
         getUnrealizedPnL: mockGetUnrealizedPnL,
+        getPositions: mockGetPositions,
+      },
+      AccountTreeController: {
+        getAccountsFromSelectedAccountGroup: jest.fn(() => [
+          {
+            id: 'test-account-id',
+            address: '0x1234567890123456789012345678901234567890',
+            type: 'eip155:eoa',
+            name: 'Test Account',
+            metadata: {
+              lastSelected: 0,
+            },
+          },
+        ]),
       },
     };
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns initial state when disabled', () => {
-    const { result } = renderHook(() => useUnrealizedPnL({ enabled: false }));
+    const { result } = renderHook(() =>
+      useUnrealizedPnL({ loadOnMount: false }),
+    );
 
     expect(result.current.unrealizedPnL).toBeNull();
-    expect(result.current.isFetching).toBe(false);
+    expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBeNull();
-    expect(typeof result.current.refetch).toBe('function');
+    expect(typeof result.current.loadUnrealizedPnL).toBe('function');
     expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
   });
 
@@ -57,13 +116,13 @@ describe('useUnrealizedPnL', () => {
     const { result } = renderHook(() => useUnrealizedPnL());
 
     await waitFor(() => {
-      expect(result.current.isFetching).toBe(false);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.unrealizedPnL).toEqual(basePnL);
       expect(result.current.error).toBeNull();
     });
 
     expect(mockGetUnrealizedPnL).toHaveBeenCalledWith({
-      address: undefined,
+      address: mockSelectedAddress,
       providerId: undefined,
     });
   });
@@ -96,7 +155,7 @@ describe('useUnrealizedPnL', () => {
     await waitFor(() => {
       expect(result.current.unrealizedPnL).toBeNull();
       expect(result.current.error).toBeNull();
-      expect(result.current.isFetching).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -108,7 +167,7 @@ describe('useUnrealizedPnL', () => {
     await waitFor(() => {
       expect(result.current.error).toBe('Network error');
       expect(result.current.unrealizedPnL).toBeNull();
-      expect(result.current.isFetching).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -120,34 +179,6 @@ describe('useUnrealizedPnL', () => {
     await waitFor(() => {
       expect(result.current.error).toBe('Failed to fetch unrealized P&L');
     });
-  });
-
-  it('returns engine initialization error when context is missing', async () => {
-    engine.context = null;
-
-    const { result } = renderHook(() => useUnrealizedPnL());
-
-    await waitFor(() => {
-      expect(result.current.error).toBe('Engine not initialized');
-      expect(result.current.isFetching).toBe(false);
-    });
-
-    expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
-  });
-
-  it('returns controller availability error when controller is missing', async () => {
-    engine.context = {
-      PredictController: undefined,
-    } as unknown as MockEngine['context'];
-
-    const { result } = renderHook(() => useUnrealizedPnL());
-
-    await waitFor(() => {
-      expect(result.current.error).toBe('Predict controller not available');
-      expect(result.current.unrealizedPnL).toBeNull();
-    });
-
-    expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
   });
 
   it('supports manual refetching', async () => {
@@ -168,7 +199,7 @@ describe('useUnrealizedPnL', () => {
     mockGetUnrealizedPnL.mockResolvedValue(updatedPnL);
 
     await act(async () => {
-      await result.current.refetch();
+      await result.current.loadUnrealizedPnL();
     });
 
     await waitFor(() => {
@@ -179,30 +210,23 @@ describe('useUnrealizedPnL', () => {
     expect(mockGetUnrealizedPnL).toHaveBeenCalledTimes(2);
   });
 
-  it('honors enabled flag changes', async () => {
+  it('loads data when loadOnMount changes from false to true', async () => {
     mockGetUnrealizedPnL.mockResolvedValue(basePnL);
 
     const { result, rerender } = renderHook(
-      ({ enabled }) => useUnrealizedPnL({ enabled }),
+      ({ loadOnMount }) => useUnrealizedPnL({ loadOnMount }),
       {
-        initialProps: { enabled: false },
+        initialProps: { loadOnMount: false },
       },
     );
 
     expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
 
-    rerender({ enabled: true });
+    rerender({ loadOnMount: true });
 
     await waitFor(() => {
       expect(result.current.unrealizedPnL).toEqual(basePnL);
-    });
-
-    rerender({ enabled: false });
-
-    await waitFor(() => {
-      expect(result.current.unrealizedPnL).toBeNull();
-      expect(result.current.error).toBeNull();
-      expect(result.current.isFetching).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -240,6 +264,110 @@ describe('useUnrealizedPnL', () => {
     expect(mockGetUnrealizedPnL).toHaveBeenNthCalledWith(2, {
       address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
       providerId: 'other-provider',
+    });
+  });
+
+  describe('positions-based visibility', () => {
+    it('returns null when user has no positions', async () => {
+      mockGetUnrealizedPnL.mockResolvedValue(basePnL);
+      mockGetPositions.mockResolvedValue([]);
+
+      const { result } = renderHook(() => useUnrealizedPnL());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.unrealizedPnL).toBeNull();
+      expect(result.current.error).toBeNull();
+      expect(mockGetPositions).toHaveBeenCalledWith({
+        providerId: undefined,
+        limit: 1,
+        offset: 0,
+        claimable: false,
+      });
+    });
+
+    it('returns unrealized P&L when user has positions', async () => {
+      mockGetUnrealizedPnL.mockResolvedValue(basePnL);
+      mockGetPositions.mockResolvedValue([
+        { id: 'position-1' },
+        { id: 'position-2' },
+      ]);
+
+      const { result } = renderHook(() => useUnrealizedPnL());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.unrealizedPnL).toEqual(basePnL);
+      expect(result.current.error).toBeNull();
+    });
+
+    it('calls getPositions with providerId when specified', async () => {
+      mockGetUnrealizedPnL.mockResolvedValue(basePnL);
+      mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
+
+      const { result } = renderHook(() =>
+        useUnrealizedPnL({
+          providerId: 'polymarket',
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.unrealizedPnL).toEqual(basePnL);
+      });
+
+      expect(mockGetPositions).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+        limit: 1,
+        offset: 0,
+        claimable: false,
+      });
+    });
+
+    it('returns null when getUnrealizedPnL returns null and user has positions', async () => {
+      mockGetUnrealizedPnL.mockResolvedValue(null);
+      mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
+
+      const { result } = renderHook(() => useUnrealizedPnL());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.unrealizedPnL).toBeNull();
+      expect(result.current.error).toBeNull();
+    });
+
+    it('returns null when both getUnrealizedPnL and getPositions return empty', async () => {
+      mockGetUnrealizedPnL.mockResolvedValue(null);
+      mockGetPositions.mockResolvedValue([]);
+
+      const { result } = renderHook(() => useUnrealizedPnL());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.unrealizedPnL).toBeNull();
+      expect(result.current.error).toBeNull();
+    });
+
+    it('calls both getUnrealizedPnL and getPositions in parallel', async () => {
+      mockGetUnrealizedPnL.mockResolvedValue(basePnL);
+      mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
+
+      renderHook(() => useUnrealizedPnL());
+
+      await waitFor(() => {
+        expect(mockGetUnrealizedPnL).toHaveBeenCalled();
+        expect(mockGetPositions).toHaveBeenCalled();
+      });
+
+      expect(mockGetUnrealizedPnL).toHaveBeenCalledTimes(1);
+      expect(mockGetPositions).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -14,7 +14,6 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "gap": 16,
           "padding": 16,
@@ -38,11 +37,13 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "Geist Bold",
-            "fontSize": 18,
+            "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
+            "textAlign": "center",
           }
         }
+        testID="header-title"
       >
         Permitted networks
       </Text>

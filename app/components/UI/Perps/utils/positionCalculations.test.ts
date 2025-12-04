@@ -3,6 +3,7 @@ import {
   validateCloseAmountLimits,
   formatCloseAmountDisplay,
   calculateCloseValue,
+  formatCloseAmountUSD,
   calculatePercentageFromTokenAmount,
   calculatePercentageFromUSDAmount,
   getPositionDirection,
@@ -15,6 +16,7 @@ describe('Position Calculations Utils', () => {
         percentage: 50,
         positionSize: 10,
         currentPrice: 100,
+        szDecimals: 6,
       });
 
       expect(result.tokenAmount).toBe(5);
@@ -26,6 +28,7 @@ describe('Position Calculations Utils', () => {
         percentage: NaN,
         positionSize: 10,
         currentPrice: 100,
+        szDecimals: 6,
       });
 
       expect(result.tokenAmount).toBe(0);
@@ -37,10 +40,110 @@ describe('Position Calculations Utils', () => {
         percentage: 25,
         positionSize: -8,
         currentPrice: 50,
+        szDecimals: 6,
       });
 
       expect(result.tokenAmount).toBe(2);
       expect(result.usdValue).toBe(100);
+    });
+
+    it('should ensure rounded size meets USD minimum for close position', () => {
+      // Test BTC-like asset: $10.53 close at $105,258 price, szDecimals=5
+      // (10/100) * 0.001 BTC = 0.0001 BTC
+      // 0.0001 * 105258 = $10.5258
+      // After rounding: 0.00010 → $10.5258 (meets minimum)
+      const result = calculateCloseAmountFromPercentage({
+        percentage: 10,
+        positionSize: 0.001,
+        currentPrice: 105258,
+        szDecimals: 5,
+      });
+
+      // Verify token amount is rounded correctly
+      expect(result.tokenAmount).toBe(0.0001);
+
+      // Verify actual USD value from token amount
+      // Note: result.usdValue is rounded to 2 decimals for display ($10.53)
+      // but tokenAmount * price gives the actual value ($10.5258)
+      const actualUsd = result.tokenAmount * 105258;
+      expect(actualUsd).toBeCloseTo(10.5258, 2);
+
+      // The returned usdValue should be the rounded display value
+      expect(result.usdValue).toBe(10.53);
+    });
+
+    it('should handle low precision assets (ASTER with szDecimals=0)', () => {
+      // ASTER-like asset: Close 10% of 100 tokens at $1.07575, szDecimals=0
+      // (10/100) * 100 = 10 tokens
+      // 10 * 1.07575 = $10.7575
+      // After rounding: 10 tokens → $10.7575 (meets minimum)
+      const result = calculateCloseAmountFromPercentage({
+        percentage: 10,
+        positionSize: 100,
+        currentPrice: 1.07575,
+        szDecimals: 0,
+      });
+
+      expect(result.tokenAmount).toBe(10);
+
+      // Verify actual USD value from token amount
+      const actualUsd = result.tokenAmount * 1.07575;
+      expect(actualUsd).toBeCloseTo(10.7575, 2);
+
+      // The returned usdValue should be the rounded display value
+      expect(result.usdValue).toBe(10.76);
+    });
+
+    it('should add minimum increment when rounded size falls below USD value', () => {
+      // Edge case: rounding causes USD value to fall below minimum
+      // Close 1% of 1 BTC at $105,000, szDecimals=5
+      // (1/100) * 1 = 0.01 BTC → USD = $1,050
+      // After rounding to 5 decimals: 0.01000 BTC
+      // Should verify this still equals at least $1,050
+      const result = calculateCloseAmountFromPercentage({
+        percentage: 1,
+        positionSize: 1,
+        currentPrice: 105000,
+        szDecimals: 5,
+      });
+
+      const actualUsd = result.tokenAmount * 105000;
+      expect(actualUsd).toBeGreaterThanOrEqual(result.usdValue);
+    });
+
+    it('should throw error when szDecimals is undefined', () => {
+      expect(() =>
+        calculateCloseAmountFromPercentage({
+          percentage: 50,
+          positionSize: 10,
+          currentPrice: 100,
+          // @ts-expect-error Testing runtime validation
+          szDecimals: undefined,
+        }),
+      ).toThrow('szDecimals is required for close position calculation');
+    });
+
+    it('should throw error when szDecimals is null', () => {
+      expect(() =>
+        calculateCloseAmountFromPercentage({
+          percentage: 50,
+          positionSize: 10,
+          currentPrice: 100,
+          // @ts-expect-error Testing runtime validation
+          szDecimals: null,
+        }),
+      ).toThrow('szDecimals is required for close position calculation');
+    });
+
+    it('should throw error when szDecimals is negative', () => {
+      expect(() =>
+        calculateCloseAmountFromPercentage({
+          percentage: 50,
+          positionSize: 10,
+          currentPrice: 100,
+          szDecimals: -1,
+        }),
+      ).toThrow('szDecimals must be >= 0, got: -1');
     });
   });
 
@@ -148,6 +251,68 @@ describe('Position Calculations Utils', () => {
       });
 
       expect(result).toBe(0);
+    });
+  });
+
+  describe('formatCloseAmountUSD', () => {
+    it('formats USD value with 2 decimal places', () => {
+      const result = formatCloseAmountUSD(1234.56);
+
+      expect(result).toBe('1234.56');
+    });
+
+    it('formats whole numbers with 2 decimal places', () => {
+      const result = formatCloseAmountUSD(500);
+
+      expect(result).toBe('500.00');
+    });
+
+    it('rounds to 2 decimal places for values with more decimals', () => {
+      const result = formatCloseAmountUSD(123.456789);
+
+      expect(result).toBe('123.46');
+    });
+
+    it('formats zero as string with 2 decimal places', () => {
+      const result = formatCloseAmountUSD(0);
+
+      expect(result).toBe('0.00');
+    });
+
+    it('returns "0" for negative values', () => {
+      const result = formatCloseAmountUSD(-100);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" for NaN values', () => {
+      const result = formatCloseAmountUSD(NaN);
+
+      expect(result).toBe('0');
+    });
+
+    it('formats very small positive values correctly', () => {
+      const result = formatCloseAmountUSD(0.01);
+
+      expect(result).toBe('0.01');
+    });
+
+    it('formats large values correctly', () => {
+      const result = formatCloseAmountUSD(1234567.89);
+
+      expect(result).toBe('1234567.89');
+    });
+
+    it('rounds down for values ending in .xx4', () => {
+      const result = formatCloseAmountUSD(10.004);
+
+      expect(result).toBe('10.00');
+    });
+
+    it('rounds up for values ending in .xx5', () => {
+      const result = formatCloseAmountUSD(10.005);
+
+      expect(result).toBe('10.01');
     });
   });
 

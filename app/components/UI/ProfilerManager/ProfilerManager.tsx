@@ -11,14 +11,23 @@ import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { isRc } from '../../../util/test/utils';
+
+const shouldEnableProfiler = (() => {
+  switch (process.env.METAMASK_ENVIRONMENT) {
+    case 'rc':
+      return true;
+    case 'exp':
+      return true;
+    default:
+      return false;
+  }
+})();
 
 interface ProfilerManagerProps {
   enabled?: boolean;
 }
-
 const ProfilerManager: React.FC<ProfilerManagerProps> = ({
-  enabled = isRc,
+  enabled = shouldEnableProfiler,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -151,8 +160,8 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
                       isRecording || !lastProfilePath
                         ? 'bg-muted'
                         : pressed
-                        ? 'bg-pressed'
-                        : 'bg-primary-default',
+                          ? 'bg-pressed'
+                          : 'bg-primary-default',
                     )
                   }
                   onPress={exportTrace}

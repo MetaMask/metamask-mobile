@@ -1,23 +1,24 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import {
-  getTokenSearchDiscoveryControllerMessenger,
-  type TokenSearchDiscoveryControllerMessenger,
-} from '../messengers/token-search-discovery-controller-messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getTokenSearchDiscoveryControllerMessenger } from '../messengers/token-search-discovery-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { tokenSearchDiscoveryControllerInit } from './token-search-discovery-controller-init';
 import {
   TokenSearchDiscoveryController,
   TokenDiscoveryApiService,
   TokenSearchApiService,
+  TokenSearchDiscoveryControllerMessenger,
 } from '@metamask/token-search-discovery-controller';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/token-search-discovery-controller');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<TokenSearchDiscoveryControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
@@ -31,9 +32,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('TokenSearchDiscoveryControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = tokenSearchDiscoveryControllerInit(
-      getInitRequestMock(),
-    );
+    const { controller } =
+      tokenSearchDiscoveryControllerInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(TokenSearchDiscoveryController);
   });
 

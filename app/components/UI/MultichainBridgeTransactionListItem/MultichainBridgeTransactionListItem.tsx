@@ -22,6 +22,13 @@ import {
   handleUnifiedSwapsTxHistoryItemClick,
 } from '../Bridge/utils/transaction-history';
 import { ethers } from 'ethers';
+import { formatAmountWithThreshold } from '../../../util/number';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
+import { getNetworkImageSource } from '../../../util/networks';
+import { parseCaipAssetType } from '@metamask/utils';
 
 const MultichainBridgeTransactionListItem = ({
   transaction,
@@ -59,7 +66,25 @@ const MultichainBridgeTransactionListItem = ({
       appTheme,
       osColorScheme,
     );
-    return <Image source={icon} style={style.icon} resizeMode="stretch" />;
+    const chainId = parseCaipAssetType(
+      bridgeHistoryItem.quote.srcAsset.assetId,
+    ).chainId;
+    if (!chainId)
+      return <Image source={icon} style={style.icon} resizeMode="stretch" />;
+
+    const networkImageSource = getNetworkImageSource({ chainId });
+    return (
+      <BadgeWrapper
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+          />
+        }
+      >
+        <Image source={icon} style={style.icon} resizeMode="stretch" />
+      </BadgeWrapper>
+    );
   };
 
   // Does not apply to swaps
@@ -68,10 +93,14 @@ const MultichainBridgeTransactionListItem = ({
       bridgeHistoryItem.status.destChain?.txHash,
   );
 
-  const displayAmount = ethers.utils.formatUnits(
-    bridgeHistoryItem.quote.srcTokenAmount,
-    bridgeHistoryItem.quote.srcAsset.decimals,
+  const rawAmount = parseFloat(
+    ethers.utils.formatUnits(
+      bridgeHistoryItem.quote.srcTokenAmount,
+      bridgeHistoryItem.quote.srcAsset.decimals,
+    ),
   );
+
+  const displayAmount = formatAmountWithThreshold(rawAmount, 5);
 
   return (
     <>

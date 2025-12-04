@@ -1,19 +1,12 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View, ViewStyle } from 'react-native';
-import { ThemeColors } from '@metamask/design-tokens';
-import { strings } from '../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../component-library/hooks';
+import { TouchableOpacity, ViewStyle } from 'react-native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { TextColor } from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks';
 import { AlertTypeIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
-import { IconSizes } from '../../../../../../component-library/components-temp/KeyValueRow';
-import { useTheme } from '../../../../../../util/theme';
 import { Alert, Severity } from '../../../types/alerts';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
@@ -24,18 +17,9 @@ export interface InlineAlertProps {
   alertObj: Alert;
   /** Additional styles to apply to the inline alert */
   style?: ViewStyle;
+  /** Disable click interaction */
+  disabled?: boolean;
 }
-
-const getBackgroundColor = (severity: Severity, colors: ThemeColors) => {
-  switch (severity) {
-    case Severity.Danger:
-      return colors.error.muted;
-    case Severity.Warning:
-      return colors.warning.muted;
-    default:
-      return colors.info.muted;
-  }
-};
 
 const getTextColor = (severity: Severity) => {
   switch (severity) {
@@ -48,50 +32,44 @@ const getTextColor = (severity: Severity) => {
   }
 };
 
-export default function InlineAlert({ alertObj, style }: InlineAlertProps) {
+export default function InlineAlert({
+  alertObj,
+  style,
+  disabled = false,
+}: InlineAlertProps) {
   const { showAlertModal, setAlertKey } = useAlerts();
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
+  const { styles } = useStyles(styleSheet, {});
 
   const handleInlineAlertClick = useCallback(() => {
-    if (!alertObj) return;
+    if (!alertObj || disabled) return;
     setAlertKey(alertObj.key);
     showAlertModal();
     trackInlineAlertClicked(alertObj.field);
-  }, [alertObj, setAlertKey, showAlertModal, trackInlineAlertClicked]);
+  }, [
+    alertObj,
+    disabled,
+    setAlertKey,
+    showAlertModal,
+    trackInlineAlertClicked,
+  ]);
 
   const severity = alertObj.severity ?? Severity.Info;
-  const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View
-      style={[
-        styles.wrapper,
-        { backgroundColor: getBackgroundColor(severity, colors) },
-        style,
-      ]}
+    <TouchableOpacity
+      testID={AlertTypeIDs.INLINE_ALERT}
+      onPress={handleInlineAlertClick}
+      style={[styles.iconContainer, style]}
+      disabled={disabled}
     >
-      <TouchableOpacity
-        testID={AlertTypeIDs.INLINE_ALERT}
-        onPress={handleInlineAlertClick}
-        style={styles.inlineContainer}
-      >
-        <Icon
-          name={severity === Severity.Info ? IconName.Info : IconName.Danger}
-          size={IconSize.Sm}
-          color={getTextColor(severity)}
-          style={styles.icon}
-          testID="inline-alert-icon"
-        />
-        <Text variant={TextVariant.BodySM} color={getTextColor(severity)}>
-          {strings('alert_system.inline_alert_label')}
-        </Text>
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSizes.Xs}
-          color={getTextColor(severity)}
-        />
-      </TouchableOpacity>
-    </View>
+      <Icon
+        // Show info icon for all severities except danger
+        name={severity === Severity.Danger ? IconName.Danger : IconName.Info}
+        size={IconSize.Sm}
+        color={getTextColor(severity)}
+        testID="inline-alert-icon"
+      />
+    </TouchableOpacity>
   );
 }

@@ -33,6 +33,11 @@ enum EVENT_NAME {
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
+  ///: END:ONLY_INCLUDE_IF
+
   // Approval
   APPROVAL_STARTED = 'Approval Started',
   APPROVAL_COMPLETED = 'Approval Completed',
@@ -68,16 +73,14 @@ enum EVENT_NAME {
   WALLET_OPENED = 'Wallet Opened',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
-  COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
-  COLLECTIBLE_REMOVED = 'Collectible Removed',
-  TOKEN_LIST_ITEM_PRESSED = 'Token List Item Pressed',
+  NFT_DETAILS_OPENED = 'NFT Details Opened',
+  TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
+  VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
-  NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN = 'Network Switch Requested and Modal Shown',
-  NETWORK_SWITCH_CONFIRM_PRESSED = 'Network Switch Confirm Pressed',
   NETWORK_ADDED = 'Network Added',
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
@@ -136,6 +139,7 @@ enum EVENT_NAME {
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
+  SOCIAL_LOGIN_FAILED = 'Social Login Failed',
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
   ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
@@ -143,6 +147,7 @@ enum EVENT_NAME {
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
   PASSWORD_CHANGED = 'Password Changed',
   FORGOT_PASSWORD_CLICKED = 'Forgot Password Clicked',
+  USE_DIFFERENT_LOGIN_METHOD_CLICKED = 'Use Different Login Method Clicked',
   RESET_WALLET = 'Reset Wallet',
 
   // Account
@@ -195,12 +200,19 @@ enum EVENT_NAME {
   // Key Management
   ANDROID_HARDWARE_KEYSTORE = 'Android Hardware Keystore',
 
-  // QR Hardware Wallet
-  CONNECT_HARDWARE_WALLET = 'Clicked Connect Hardware Wallet',
-  CONTINUE_QR_HARDWARE_WALLET = 'Clicked Continue QR Hardware Wallet',
-  CONNECT_HARDWARE_WALLET_SUCCESS = 'Connected Account with hardware wallet',
-  QR_HARDWARE_TRANSACTION_CANCELED = 'User canceled QR hardware transaction',
-  HARDWARE_WALLET_ERROR = 'Hardware wallet error',
+  // Common Hardware Wallet
+  ADD_HARDWARE_WALLET = 'Add Hardware Wallet Clicked',
+  CONNECT_HARDWARE_WALLET = 'Connect Hardware Wallet Clicked',
+  HARDWARE_WALLET_FOUND = 'Connect Hardware Wallet Device Found',
+  HARDWARE_WALLET_CONTINUE_CONNECTION = 'Connect Hardware Wallet Continue Button Clicked',
+  HARDWARE_WALLET_PERMISSION_REQUEST = 'Hardware Wallet Permission Request Clicked',
+  HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN = 'Connect Hardware Wallet Account Selector Viewed',
+  HARDWARE_WALLET_MARKETING = 'Hardware Wallet Marketing Button Clicked',
+  HARDWARE_WALLET_CONNECT_INSTRUCTIONS = 'Connect Hardware Wallet Instructions Viewed',
+  HARDWARE_WALLET_CONNECTION_RETRY = 'Hardware Wallet Connection Error Retry Button Clicked',
+  HARDWARE_WALLET_ADD_ACCOUNT = 'Hardware Wallet Account Connected',
+  HARDWARE_WALLET_FORGOTTEN = 'Hardware Wallet Forgotten',
+  HARDWARE_WALLET_ERROR = 'Hardware Wallet Connection Failed',
 
   // Tokens
   TOKEN_DETECTED = 'Token Detected',
@@ -262,6 +274,7 @@ enum EVENT_NAME {
   RAMPS_BUTTON_CLICKED = 'Ramps Button Clicked',
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED = 'Ramps Deposit Cash Button Clicked',
   RAMPS_PAYMENT_METHOD_SELECTED = 'Ramps Payment Method Selected',
+  RAMPS_TOKEN_SELECTOR_CLICKED = 'Ramps Token Selector Clicked',
   RAMPS_TOKEN_SELECTED = 'Ramps Token Selected',
   RAMPS_REGION_SELECTED = 'Ramps Region Selected',
   RAMPS_ORDER_PROPOSED = 'Ramps Order Proposed',
@@ -280,6 +293,7 @@ enum EVENT_NAME {
   RAMPS_KYC_APPLICATION_FAILED = 'Ramps KYC Application Failed',
   RAMPS_KYC_APPLICATION_APPROVED = 'Ramps KYC Application Approved',
   RAMPS_PAYMENT_METHOD_ADDED = 'Ramps Payment Method Added',
+  RAMPS_USER_DETAILS_FETCHED = 'Ramps User Details Fetched',
 
   ACCOUNTS = 'Accounts',
   DAPP_VIEW = 'Dapp View',
@@ -292,6 +306,7 @@ enum EVENT_NAME {
   SEND_FLOW = 'Send Flow',
   SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
+  TOAST_DISPLAYED = 'Toast Displayed',
 
   // Send Flow
   SEND_ASSET_SELECTED = 'Send Asset Selected',
@@ -432,19 +447,10 @@ enum EVENT_NAME {
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
   SWAP_BUTTON_CLICKED = 'Unified SwapBridge Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
+  ACTION_BUTTON_CLICKED = 'Action Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
-
-  //Ledger
-  CONNECT_LEDGER = 'Clicked Connect Ledger',
-  CONTINUE_LEDGER_HARDWARE_WALLET = 'Clicked Continue Ledger Hardware Wallet',
-  CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
-  LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
-  LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-
-  // common hardware wallet
-  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
 
   // Remove an account
   ACCOUNT_REMOVED = 'Account removed',
@@ -462,11 +468,9 @@ enum EVENT_NAME {
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
   NOTIFICATIONS_ACTIVATED = 'Notifications Activated',
   NOTIFICATIONS_MENU_OPENED = 'Notifications Menu Opened',
-  NOTIFICATIONS_SETTINGS_UPDATED = 'Notifications Settings Updated',
   NOTIFICATION_CLICKED = 'Notification Clicked',
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
-  NOTIFICATION_STORAGE_KEY_DELETED = 'Notification Storage Key Deleted',
 
   // Push Notifications
   PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
@@ -484,12 +488,6 @@ enum EVENT_NAME {
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
 
-  // Nft auto detection modal
-  NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
-  NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
-  // NFT auto detection events
-  NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
-  PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
   // Backup and sync
@@ -514,6 +512,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Modal Viewed
   DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
@@ -544,14 +543,19 @@ enum EVENT_NAME {
   PERPS_ERROR = 'Perp Error',
 
   // Card
-  CARD_VIEWED = 'Card Viewed',
+  CARD_BUTTON_VIEWED = 'Card Button Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',
   CARD_HOME_VIEWED = 'Card Home Viewed',
   CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
-
+  CARD_VIEWED = 'Card Viewed',
+  CARD_BUTTON_CLICKED = 'Card Button Clicked',
+  CARD_DELEGATION_PROCESS_STARTED = 'Card Delegation Process Started',
+  CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
+  CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
+  CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -573,6 +577,39 @@ enum EVENT_NAME {
   REWARDS_REWARD_VIEWED = 'Rewards Reward Viewed',
   REWARDS_SETTINGS_VIEWED = 'Rewards Settings Viewed',
   REWARDS_WAYS_TO_EARN_CTA_CLICKED = 'Rewards Ways to Earn CTA Clicked',
+
+  // Predict
+  PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
+  PREDICT_MARKET_DETAILS_OPENED = 'Predict Market Details Opened',
+  PREDICT_POSITION_VIEWED = 'Predict Position Viewed',
+  PREDICT_ACTIVITY_VIEWED = 'Predict Activity Viewed',
+  PREDICT_GEO_BLOCKED_TRIGGERED = 'Geo Blocked Triggered',
+  PREDICT_FEED_VIEWED = 'Predict Feed Viewed',
+
+  // Share
+  SHARE_ACTION = 'Share Action',
+
+  // QR Scanner
+  QR_SCANNER_OPENED = 'QR Scanner Opened',
+  QR_SCANNED = 'QR Scanned',
+}
+
+export enum HARDWARE_WALLET_BUTTON_TYPE {
+  TUTORIAL = 'Tutorial',
+  PICKER = 'Picker',
+  BUY_NOW = 'Buy Now',
+  LEARN_MORE = 'Learn More',
+}
+
+export enum HARDWARE_WALLET_DEVICE_TYPE {
+  LEDGER = 'Ledger',
+  Keystone = 'Keystone',
+  NgraveZero = 'Ngrave Zero',
+  AIRGAP_VAULT = 'AirGap Vault',
+  COOL_WALLET = 'Cool Wallet',
+  DCENT = 'DCent',
+  GRID_PLUS = 'Grid Plus',
+  IMToken = 'IMToken',
 }
 
 enum ACTIONS {
@@ -612,9 +649,29 @@ enum ACTIONS {
   SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
 }
 
+export enum PERMISSION_RESULT {
+  GRANTED = 'granted',
+  DENIED = 'denied',
+  BLOCKED = 'blocked',
+  LIMITED = 'limited',
+  UNAVAILABLE = 'unavailable',
+}
+
+export enum PERMISSION_TYPE {
+  CAMERA = 'Camera',
+  BLUETOOTH = 'Bluetooth',
+}
+
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
+
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
+  ///: END:ONLY_INCLUDE_IF
+
+  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -651,22 +708,14 @@ const events = {
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
-  COLLECTIBLE_DETAILS_OPENED: generateOpt(
-    EVENT_NAME.COLLECTIBLE_DETAILS_OPENED,
-  ),
-  COLLECTIBLE_REMOVED: generateOpt(EVENT_NAME.COLLECTIBLE_REMOVED),
+  NFT_DETAILS_OPENED: generateOpt(EVENT_NAME.NFT_DETAILS_OPENED),
   DEFI_TAB_SELECTED: generateOpt(EVENT_NAME.DEFI_TAB_SELECTED),
   DEFI_PROTOCOL_DETAILS_OPENED: generateOpt(
     EVENT_NAME.DEFI_PROTOCOL_DETAILS_OPENED,
   ),
+  VIEW_ALL_ASSETS_CLICKED: generateOpt(EVENT_NAME.VIEW_ALL_ASSETS_CLICKED),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
-  NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN: generateOpt(
-    EVENT_NAME.NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN,
-  ),
-  NETWORK_SWITCH_CONFIRM_PRESSED: generateOpt(
-    EVENT_NAME.NETWORK_SWITCH_CONFIRM_PRESSED,
-  ),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
   NETWORK_REQUEST_REJECTED: generateOpt(EVENT_NAME.NETWORK_REQUEST_REJECTED),
@@ -742,6 +791,7 @@ const events = {
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
+  SOCIAL_LOGIN_FAILED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_FAILED),
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
     EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
   ),
@@ -758,6 +808,9 @@ const events = {
   ),
   PASSWORD_CHANGED: generateOpt(EVENT_NAME.PASSWORD_CHANGED),
   FORGOT_PASSWORD_CLICKED: generateOpt(EVENT_NAME.FORGOT_PASSWORD_CLICKED),
+  USE_DIFFERENT_LOGIN_METHOD_CLICKED: generateOpt(
+    EVENT_NAME.USE_DIFFERENT_LOGIN_METHOD_CLICKED,
+  ),
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
   BROWSER_OPENED: generateOpt(EVENT_NAME.BROWSER_OPENED),
@@ -808,17 +861,34 @@ const events = {
     EVENT_NAME.REVEAL_PRIVATE_KEY_COMPLETED,
   ),
   ANDROID_HARDWARE_KEYSTORE: generateOpt(EVENT_NAME.ANDROID_HARDWARE_KEYSTORE),
+
+  // Hardware Wallet
+  ADD_HARDWARE_WALLET: generateOpt(EVENT_NAME.ADD_HARDWARE_WALLET),
   CONNECT_HARDWARE_WALLET: generateOpt(EVENT_NAME.CONNECT_HARDWARE_WALLET),
-  CONTINUE_QR_HARDWARE_WALLET: generateOpt(
-    EVENT_NAME.CONTINUE_QR_HARDWARE_WALLET,
+
+  HARDWARE_WALLET_MARKETING: generateOpt(EVENT_NAME.HARDWARE_WALLET_MARKETING),
+  HARDWARE_WALLET_PERMISSION_REQUEST: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_PERMISSION_REQUEST,
   ),
-  CONNECT_HARDWARE_WALLET_SUCCESS: generateOpt(
-    EVENT_NAME.CONNECT_HARDWARE_WALLET_SUCCESS,
+  HARDWARE_WALLET_CONNECT_INSTRUCTIONS: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECT_INSTRUCTIONS,
   ),
-  QR_HARDWARE_TRANSACTION_CANCELED: generateOpt(
-    EVENT_NAME.QR_HARDWARE_TRANSACTION_CANCELED,
+  HARDWARE_WALLET_FOUND: generateOpt(EVENT_NAME.HARDWARE_WALLET_FOUND),
+  HARDWARE_WALLET_CONTINUE_CONNECTION: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONTINUE_CONNECTION,
   ),
+  HARDWARE_WALLET_CONNECTION_RETRY: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECTION_RETRY,
+  ),
+  HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
+  ),
+  HARDWARE_WALLET_ADD_ACCOUNT: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_ADD_ACCOUNT,
+  ),
+  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
   HARDWARE_WALLET_ERROR: generateOpt(EVENT_NAME.HARDWARE_WALLET_ERROR),
+
   TOKEN_DETECTED: generateOpt(EVENT_NAME.TOKEN_DETECTED),
   TOKEN_IMPORT_CLICKED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CLICKED),
   TOKEN_IMPORT_CANCELED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CANCELED),
@@ -923,6 +993,9 @@ const events = {
   RAMPS_PAYMENT_METHOD_SELECTED: generateOpt(
     EVENT_NAME.RAMPS_PAYMENT_METHOD_SELECTED,
   ),
+  RAMPS_TOKEN_SELECTOR_CLICKED: generateOpt(
+    EVENT_NAME.RAMPS_TOKEN_SELECTOR_CLICKED,
+  ),
   RAMPS_TOKEN_SELECTED: generateOpt(EVENT_NAME.RAMPS_TOKEN_SELECTED),
   RAMPS_REGION_SELECTED: generateOpt(EVENT_NAME.RAMPS_REGION_SELECTED),
   RAMPS_ORDER_PROPOSED: generateOpt(EVENT_NAME.RAMPS_ORDER_PROPOSED),
@@ -950,6 +1023,9 @@ const events = {
   ),
   RAMPS_PAYMENT_METHOD_ADDED: generateOpt(
     EVENT_NAME.RAMPS_PAYMENT_METHOD_ADDED,
+  ),
+  RAMPS_USER_DETAILS_FETCHED: generateOpt(
+    EVENT_NAME.RAMPS_USER_DETAILS_FETCHED,
   ),
 
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(
@@ -1054,6 +1130,7 @@ const events = {
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
+  ACTION_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTION_BUTTON_CLICKED),
   EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
 
@@ -1065,20 +1142,6 @@ const events = {
 
   // Experimental Settings
   SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
-
-  // Ledger
-  CONNECT_LEDGER: generateOpt(EVENT_NAME.CONNECT_LEDGER),
-  CONTINUE_LEDGER_HARDWARE_WALLET: generateOpt(
-    EVENT_NAME.CONTINUE_LEDGER_HARDWARE_WALLET,
-  ),
-  CONNECT_LEDGER_SUCCESS: generateOpt(EVENT_NAME.CONNECT_LEDGER_SUCCESS),
-  LEDGER_HARDWARE_TRANSACTION_CANCELLED: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
-  ),
-  LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
-  ),
-  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
 
   // Remove an account
   ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
@@ -1111,18 +1174,12 @@ const events = {
   ),
   NOTIFICATIONS_ACTIVATED: generateOpt(EVENT_NAME.NOTIFICATIONS_ACTIVATED),
   NOTIFICATIONS_MENU_OPENED: generateOpt(EVENT_NAME.NOTIFICATIONS_MENU_OPENED),
-  NOTIFICATIONS_SETTINGS_UPDATED: generateOpt(
-    EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
-  ),
   NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.NOTIFICATION_CLICKED),
   NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
     EVENT_NAME.NOTIFICATIONS_MARKED_ALL_AS_READ,
   ),
   NOTIFICATION_DETAIL_CLICKED: generateOpt(
     EVENT_NAME.NOTIFICATION_DETAIL_CLICKED,
-  ),
-  NOTIFICATION_STORAGE_KEY_DELETED: generateOpt(
-    EVENT_NAME.NOTIFICATION_STORAGE_KEY_DELETED,
   ),
 
   // Push Notifications Flow
@@ -1136,20 +1193,9 @@ const events = {
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
   // Nft auto detection modal
-  NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
-    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
-  ),
   MULTI_RPC_MIGRATION_MODAL_ACCEPTED: generateOpt(
     EVENT_NAME.MULTI_RPC_MIGRATION_MODAL_ACCEPTED,
   ),
-  NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
-    EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,
-  ),
-  // Nft detection event
-  NFT_AUTO_DETECTION_ENABLED: generateOpt(
-    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED,
-  ),
-  PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
   // Backup and sync
   ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
@@ -1303,7 +1349,7 @@ const events = {
   EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
-  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1318,6 +1364,9 @@ const events = {
   ),
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
+  ),
+  NetworkConnectionBannerRpcUpdated: generateOpt(
+    EVENT_NAME.NetworkConnectionBannerRpcUpdated,
   ),
 
   // Multi SRP
@@ -1390,7 +1439,7 @@ const events = {
     EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
   ),
   // Card
-  CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
+  CARD_BUTTON_VIEWED: generateOpt(EVENT_NAME.CARD_BUTTON_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
   CARD_HOME_VIEWED: generateOpt(EVENT_NAME.CARD_HOME_VIEWED),
   CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
@@ -1402,6 +1451,20 @@ const events = {
   ),
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
+  ),
+  CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
+  CARD_BUTTON_CLICKED: generateOpt(EVENT_NAME.CARD_BUTTON_CLICKED),
+  CARD_DELEGATION_PROCESS_STARTED: generateOpt(
+    EVENT_NAME.CARD_DELEGATION_PROCESS_STARTED,
+  ),
+  CARD_DELEGATION_PROCESS_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_DELEGATION_PROCESS_COMPLETED,
+  ),
+  CARD_DELEGATION_PROCESS_FAILED: generateOpt(
+    EVENT_NAME.CARD_DELEGATION_PROCESS_FAILED,
+  ),
+  CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
@@ -1442,6 +1505,27 @@ const events = {
   REWARDS_WAYS_TO_EARN_CTA_CLICKED: generateOpt(
     EVENT_NAME.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
   ),
+  // Predict
+  PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
+  PREDICT_MARKET_DETAILS_OPENED: generateOpt(
+    EVENT_NAME.PREDICT_MARKET_DETAILS_OPENED,
+  ),
+  PREDICT_POSITION_VIEWED: generateOpt(EVENT_NAME.PREDICT_POSITION_VIEWED),
+  PREDICT_ACTIVITY_VIEWED: generateOpt(EVENT_NAME.PREDICT_ACTIVITY_VIEWED),
+  PREDICT_GEO_BLOCKED_TRIGGERED: generateOpt(
+    EVENT_NAME.PREDICT_GEO_BLOCKED_TRIGGERED,
+  ),
+  PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
+
+  // Share
+  SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
+
+  // QR Scanner
+  QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
+  QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
+
+  // Toast
+  TOAST_DISPLAYED: generateOpt(EVENT_NAME.TOAST_DISPLAYED),
 };
 
 /**
@@ -1461,6 +1545,7 @@ enum DESCRIPTION {
   NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
   NAVIGATION_TAPS_SETTINGS = 'Settings',
   NAVIGATION_TAPS_REWARDS = 'Rewards',
+  NAVIGATION_TAPS_TRENDING = 'Trending',
   NAVIGATION_TAPS_LOGOUT = 'Logout',
   // Dapp
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
@@ -1572,6 +1657,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.NAVIGATION_DRAWER,
     ACTIONS.NAVIGATION_DRAWER,
     DESCRIPTION.NAVIGATION_TAPS_REWARDS,
+  ),
+  NAVIGATION_TAPS_TRENDING: generateOpt(
+    EVENT_NAME.NAVIGATION_DRAWER,
+    ACTIONS.NAVIGATION_DRAWER,
+    DESCRIPTION.NAVIGATION_TAPS_TRENDING,
   ),
   NAVIGATION_TAPS_LOGOUT: generateOpt(
     EVENT_NAME.NAVIGATION_DRAWER,

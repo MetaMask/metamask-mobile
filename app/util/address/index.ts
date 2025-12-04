@@ -33,6 +33,7 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../app/constants/error';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../constants/address';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
@@ -146,6 +147,24 @@ export function renderShortAddress(address: string, chars = 5) {
   return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
     -chars,
   )}`;
+}
+
+/**
+ * Returns short account name format
+ * @param {String} accountName - String corresponding to an account name
+ * @param {Number} chars - Number of characters to show at the end and beginning.
+ * Defaults to 20.
+ * @returns {String} - String corresponding to short account name format
+ */
+export function renderShortAccountName(
+  accountName: string,
+  chars: number = 20,
+): string {
+  if (!accountName) return accountName;
+  if (accountName.length <= chars) {
+    return accountName;
+  }
+  return `${accountName.substr(0, chars)}...`;
 }
 
 export function renderSlightlyLongAddress(
@@ -628,6 +647,22 @@ export async function validateAddressOrENS(
   let [addressReady, addToAddressToAddressBook] = [false, false];
 
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+    // Check if address is a burn address
+    if (LOWER_CASED_BURN_ADDRESSES.includes(toAccount.toLowerCase())) {
+      addressError = strings('transaction.invalid_address');
+      addressReady = false;
+      return {
+        addressError,
+        toEnsName,
+        addressReady,
+        toEnsAddress,
+        addToAddressToAddressBook,
+        toAddressName,
+        errorContinue,
+        confusableCollection,
+      };
+    }
+
     const contactAlreadySaved = checkIfAddressAlreadySaved(
       toAccount,
       addressBook,
@@ -662,9 +697,10 @@ export async function validateAddressOrENS(
       // Check if it's token contract address on mainnet
       if (isMainnet) {
         try {
-          const symbol = await AssetsContractController.getERC721AssetSymbol(
-            checksummedAddress,
-          );
+          const symbol =
+            await AssetsContractController.getERC721AssetSymbol(
+              checksummedAddress,
+            );
           if (symbol) {
             addressError = SYMBOL_ERROR;
             errorContinue = true;
@@ -698,6 +734,22 @@ export async function validateAddressOrENS(
     );
 
     if (resolvedAddress) {
+      // Check if resolved ENS address is a burn address
+      if (LOWER_CASED_BURN_ADDRESSES.includes(resolvedAddress.toLowerCase())) {
+        addressError = strings('transaction.invalid_address');
+        addressReady = false;
+        return {
+          addressError,
+          toEnsName,
+          addressReady,
+          toEnsAddress,
+          addToAddressToAddressBook,
+          toAddressName,
+          errorContinue,
+          confusableCollection,
+        };
+      }
+
       if (!contactAlreadySaved) {
         addToAddressToAddressBook = true;
       } else {

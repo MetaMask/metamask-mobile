@@ -1,23 +1,43 @@
 import { IconName } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import {
   PointsEventDto,
   SwapEventPayload,
   PerpsEventPayload,
   CardEventPayload,
   EventAssetDto,
+  SeasonActivityTypeDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
-import { formatNumber } from './formatUtils';
+import { formatWithThreshold } from '../../../../util/assets';
 import { PerpsEventType } from './eventConstants';
+import {
+  formatRewardsMusdDepositPayloadDate,
+  getIconName,
+  resolveTemplate,
+} from './formatUtils';
 
 /**
  * Formats an asset amount with proper decimals
  */
 export const formatAssetAmount = (amount: string, decimals: number): string => {
+  const oneHundredThousandths = 0.00001;
   const rawAmount = formatUnits(BigInt(amount), decimals);
-  return formatNumber(parseFloat(Number(rawAmount).toFixed(3)));
+  const numericAmount = parseFloat(rawAmount);
+
+  // Check if the number is a whole number (no significant decimals)
+  const isWholeNumber = numericAmount === Math.floor(numericAmount);
+
+  return formatWithThreshold(
+    numericAmount,
+    oneHundredThousandths,
+    I18n.locale,
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: isWholeNumber ? 0 : 5,
+    },
+  );
 };
 
 /**
@@ -72,12 +92,7 @@ const getPerpsEventDetails = (
     return undefined;
 
   const { amount, decimals, symbol } = payload.asset;
-  const rawAmount = formatUnits(BigInt(amount), decimals);
-  // Limit to at most 2 decimal places without padding zeros
-  const formattedAmount = formatNumber(
-    parseFloat(Number(rawAmount).toFixed(5)),
-    decimals,
-  );
+  const formattedAmount = formatAssetAmount(amount, decimals);
 
   switch (payload.type) {
     case PerpsEventType.OPEN_POSITION:
@@ -149,17 +164,23 @@ export const getCardEventDetails = (
 /**
  * Formats an event details
  * @param event - The event
+ * @param activityTypes - The activity types
  * @param accountName - Optional account name to display for bonus events
  * @returns The event details
  */
 export const getEventDetails = (
   event: PointsEventDto,
+  activityTypes: SeasonActivityTypeDto[],
   accountName: string | undefined,
 ): {
   title: string;
   details: string | undefined;
   icon: IconName;
 } => {
+  const matchingActivityType = activityTypes.find(
+    (activity) => activity.type === event.type,
+  );
+
   switch (event.type) {
     case 'SWAP':
       return {
@@ -203,11 +224,43 @@ export const getEventDetails = (
         details: undefined,
         icon: IconName.Gift,
       };
-    default:
+    case 'PREDICT':
+      return {
+        title: strings('rewards.events.type.predict'),
+        details: undefined,
+        icon: IconName.Speedometer,
+      };
+    case 'MUSD_DEPOSIT': {
+      const formattedDate = formatRewardsMusdDepositPayloadDate(
+        event.payload?.date,
+      );
+      return {
+        title: strings('rewards.events.type.musd_deposit'),
+        details: formattedDate
+          ? strings('rewards.events.musd_deposit_for', {
+              date: formattedDate,
+            })
+          : undefined,
+        icon: IconName.Coin,
+      };
+    }
+    default: {
+      if (matchingActivityType) {
+        return {
+          title: matchingActivityType.title,
+          details: resolveTemplate(
+            matchingActivityType.description,
+            (event.payload ?? {}) as Record<string, string>,
+          ),
+          icon: getIconName(matchingActivityType.icon),
+        };
+      }
+
       return {
         title: strings('rewards.events.type.uncategorized_event'),
         details: undefined,
         icon: IconName.Star,
       };
+    }
   }
 };

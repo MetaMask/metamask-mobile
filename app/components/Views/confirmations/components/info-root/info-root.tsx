@@ -23,6 +23,8 @@ import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
+import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
+import { MusdConversionInfo } from '../info/musd-conversion-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -92,6 +94,13 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
+  ) {
+    return <MusdConversionInfo />;
+  }
+
+  if (
+    transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
   ) {
     return <PredictDepositInfo />;
@@ -102,6 +111,13 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
   ) {
     return <PredictClaimInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictWithdraw])
+  ) {
+    return <PredictWithdrawInfo />;
   }
 
   const { requestData } = approvalRequest ?? {

@@ -10,7 +10,7 @@ import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
-import PerpsE2E from '../../framework/PerpsE2E';
+import PerpsE2EModifiers from './helpers/perps-modifiers';
 
 describe(RegressionTrade('Perps - ETH limit long fill'), () => {
   it.skip('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
@@ -63,7 +63,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
 
         // Push the price -15% to ensure the order is executed
         // Default ETH price in mock is 2500.00, -15% => 2125.00
-        await PerpsE2E.updateMarketPrice('ETH', '2125.00');
+        await PerpsE2EModifiers.updateMarketPrice('ETH', '2125.00');
 
         // Navigate to ETH again to verify order is gone and position is present
         await TabBarComponent.tapActions();

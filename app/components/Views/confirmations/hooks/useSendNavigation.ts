@@ -1,11 +1,9 @@
-import { Nft } from '@metamask/assets-controllers';
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import { selectSendRedesignFlags } from '../../../../selectors/featureFlagController/confirmations';
-import { handleSendPageNavigation } from '../utils/send';
-import { AssetType } from '../types/token';
+import { handleSendPageNavigation, SendNavigationParams } from '../utils/send';
 
 export const useSendNavigation = () => {
   const { navigate } = useNavigation();
@@ -14,13 +12,11 @@ export const useSendNavigation = () => {
   );
 
   const navigateToSendPage = useCallback(
-    (location: string, asset?: AssetType | Nft) => {
-      handleSendPageNavigation(
-        navigate,
-        location,
+    (params: Omit<SendNavigationParams, 'isSendRedesignEnabled'>) => {
+      handleSendPageNavigation(navigate, {
+        ...params,
         isSendRedesignEnabled,
-        asset,
-      );
+      });
     },
     [navigate, isSendRedesignEnabled],
   );

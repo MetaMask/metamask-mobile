@@ -9,6 +9,7 @@ const styleSheet = () =>
     },
     assetName: {
       flexDirection: 'row',
+      marginBottom: 8,
     },
     allowanceStatusContainer: {
       flexDirection: 'row',
@@ -23,6 +24,10 @@ const styleSheet = () =>
     },
     badge: {
       marginTop: 12,
+    },
+    percentageChange: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
   });
 

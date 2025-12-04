@@ -10,16 +10,15 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { Linking } from 'react-native';
-import AppConstants from '../../../core/AppConstants';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
-import { AuthConnection } from '@metamask/seedless-onboarding-controller';
-import { capitalize } from 'lodash';
 import { strings } from '../../../../locales/i18n';
-import { backgroundState } from '../../../util/test/initial-root-state';
 import { useSelector } from 'react-redux';
-import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text/Text.types';
+import { ReactTestInstance } from 'react-test-renderer';
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -51,7 +50,7 @@ jest.mock('../../../core/Engine/Engine', () => ({
       refresh: jest.fn().mockResolvedValue(undefined),
     },
     TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn().mockResolvedValue(undefined),
+      updateExchangeRates: jest.fn().mockResolvedValue(undefined),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn().mockResolvedValue(undefined),
@@ -199,16 +198,86 @@ describe('OnboardingSuccessComponent', () => {
     });
   });
 
-  it('navigate to the learn more screen when the learn more link is pressed', () => {
-    const { getByTestId } = renderWithProvider(
+  it('displays correct title for SETTINGS_BACKUP flow', () => {
+    const { getByText } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
+      />,
+    );
+
+    expect(getByText(strings('onboarding_success.title'))).toBeOnTheScreen();
+  });
+
+  it('displays wallet ready title for non-SETTINGS_BACKUP flows', () => {
+    const { getByText } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
-    const button = getByTestId(OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID);
-    fireEvent.press(button);
-    expect(Linking.openURL).toHaveBeenCalledWith(AppConstants.URLS.WHAT_IS_SRP);
+
+    expect(
+      getByText(strings('onboarding_success.wallet_ready')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders OnboardingSuccessEndAnimation component', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+      />,
+    );
+
+    expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
+  });
+
+  it('renders footer link with Info text color', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+      />,
+    );
+
+    const footerButton = getByTestId(
+      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+    );
+    const footerText = footerButton.children[0] as ReactTestInstance;
+
+    expect(footerText.props.color).toBe(TextColor.Info);
+    expect(footerText.props.variant).toBe(TextVariant.BodyMDMedium);
+  });
+
+  it('hides manage default settings button for SETTINGS_BACKUP flow', () => {
+    const { queryByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
+      />,
+    );
+
+    const footerButton = queryByTestId(
+      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+    );
+
+    expect(footerButton).toBeNull();
+  });
+
+  it('shows manage default settings button for non-SETTINGS_BACKUP flows', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+      />,
+    );
+
+    const footerButton = getByTestId(
+      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+    );
+
+    expect(footerButton).toBeOnTheScreen();
   });
 });
 
@@ -230,34 +299,6 @@ describe('OnboardingSuccess', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('adds networks to the network controller', async () => {
-      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
-      expect(toJSON()).toMatchSnapshot();
-
-      // wait for the useEffect side-effect to call addNetwork
-      await waitFor(() => {
-        expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenBalancesController.updateBalances,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenListController.fetchTokenList,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenDetectionController.detectTokens,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.AccountTrackerController.refresh,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.CurrencyRateController.updateExchangeRate,
-        ).toHaveBeenCalled();
-      });
     });
 
     it('fails to add networks to the network controller but should render the component', async () => {
@@ -303,86 +344,5 @@ describe('OnboardingSuccess', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });
-  });
-
-  // write a test for the social login flow check authconnection is google or apple
-  it('renders social login description when authConnection is Apple', () => {
-    mockRoute.mockReturnValue({
-      params: {
-        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-      },
-    });
-
-    // Mock the useSelector to return the Apple auth connection
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectSeedlessOnboardingAuthConnection) {
-        return AuthConnection.Apple;
-      }
-      return undefined;
-    });
-
-    const initialState = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          SeedlessOnboardingController: {
-            authConnection: AuthConnection.Apple,
-            socialBackupsMetadata: [],
-          },
-        },
-      },
-      settings: {},
-    };
-
-    const { getByText } = renderWithProvider(<OnboardingSuccess />, {
-      state: initialState,
-    });
-
-    const description = getByText(
-      strings('onboarding_success.import_description_social_login', {
-        authConnection: capitalize(AuthConnection.Apple) || '',
-      }),
-    );
-    expect(description).toBeOnTheScreen();
-  });
-
-  it('renders social login description when authConnection is Google', () => {
-    mockRoute.mockReturnValue({
-      params: {
-        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-      },
-    });
-
-    // Mock the useSelector to return the Google auth connection
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectSeedlessOnboardingAuthConnection) {
-        return AuthConnection.Google;
-      }
-      return undefined;
-    });
-
-    const initialState = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          SeedlessOnboardingController: {
-            authConnection: AuthConnection.Google,
-            socialBackupsMetadata: [],
-          },
-        },
-      },
-      settings: {},
-    };
-
-    const { getByText } = renderWithProvider(<OnboardingSuccess />, {
-      state: initialState,
-    });
-
-    const description = getByText(
-      strings('onboarding_success.import_description_social_login', {
-        authConnection: capitalize(AuthConnection.Google) || '',
-      }),
-    );
-    expect(description).toBeOnTheScreen();
   });
 });

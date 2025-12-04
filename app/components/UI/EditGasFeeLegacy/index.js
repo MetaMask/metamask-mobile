@@ -14,7 +14,7 @@ import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '../Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
@@ -489,8 +489,8 @@ const EditGasFeeLegacy = ({
                 showRangeInfoModal === 'gas_limit'
                   ? strings('edit_gas_fee_eip1559.gas_limit')
                   : showRangeInfoModal === 'gas_price'
-                  ? strings('edit_gas_fee_eip1559.gas_price')
-                  : null
+                    ? strings('edit_gas_fee_eip1559.gas_price')
+                    : null
               }
               toggleModal={() => setShowRangeInfoModal(null)}
               body={

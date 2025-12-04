@@ -46,8 +46,14 @@ export const selectSeasonEndDate = (state: RootState) =>
 export const selectSeasonTiers = (state: RootState) =>
   state.rewards.seasonTiers;
 
+export const selectSeasonActivityTypes = (state: RootState) =>
+  state.rewards.seasonActivityTypes;
+
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
+
+export const selectOnboardingReferralCode = (state: RootState) =>
+  state.rewards.onboardingReferralCode;
 
 export const selectGeoLocation = (state: RootState) =>
   state.rewards.geoLocation;
@@ -103,3 +109,6 @@ export const selectSeasonRewardById =
 
 export const selectPointsEvents = (state: RootState) =>
   state.rewards.pointsEvents;
+
+export const selectSeasonShouldInstallNewVersion = (state: RootState) =>
+  state.rewards.seasonShouldInstallNewVersion;

@@ -17,12 +17,17 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { accountTypeLabel } from '../../../constants/network';
 import { AccountTypeLabel } from '../account-type-label';
+import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
+import { AccountGroupId } from '@metamask/account-api';
+import { useSelector } from 'react-redux';
+import { selectIconSeedAddressByAccountGroupId } from '../../../../../../selectors/multichainAccounts/accounts';
+import { RootState } from '../../../../../../reducers';
 
 export interface RecipientType {
   address: string;
   accountName?: string;
+  accountGroupId?: AccountGroupId;
   accountGroupName?: string;
   accountType?: string;
   contactName?: string;
@@ -46,12 +51,26 @@ export function Recipient({
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
 
+  // Always default to recipient address if account group has no associated icon seed
+  // address (which should never really happen).
+  const accountAvatarSeedAddress = useSelector((state: RootState) => {
+    if (!recipient.accountGroupId) return recipient.address;
+    try {
+      const selector = selectIconSeedAddressByAccountGroupId(
+        recipient.accountGroupId,
+      );
+      return selector(state);
+    } catch {
+      return recipient.address;
+    }
+  });
+
   const handlePressRecipient = useCallback(() => {
     onPress?.(recipient);
   }, [recipient, onPress]);
 
   const typeLabel =
-    accountTypeLabel[recipient.accountType as KeyringAccountType];
+    ACCOUNT_TYPE_LABELS[recipient.accountType as KeyringAccountType];
 
   return (
     <ButtonBase
@@ -73,7 +92,7 @@ export function Recipient({
           <Avatar
             variant={AvatarVariant.Account}
             type={accountAvatarType}
-            accountAddress={recipient.address}
+            accountAddress={accountAvatarSeedAddress}
             size={AvatarSize.Md}
           />
         </Box>

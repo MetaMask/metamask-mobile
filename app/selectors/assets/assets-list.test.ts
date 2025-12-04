@@ -10,6 +10,7 @@ import {
   selectAsset,
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
+  selectTronResourcesBySelectedAccountGroup,
 } from './assets-list';
 
 const mockState = ({
@@ -260,6 +261,7 @@ const mockState = ({
                 ],
               },
           },
+          allIgnoredAssets: {},
         },
         MultichainBalancesController: {
           balances: {
@@ -344,13 +346,12 @@ const mockState = ({
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 describe('selectAssetsBySelectedAccountGroup', () => {
   it('builds the initial state object', () => {
     const result = selectAssetsBySelectedAccountGroup(mockState());
-
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       '0x1': [
         {
           accountType: 'eip155:eoa',
@@ -616,6 +617,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
                 units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
               },
             },
+            allIgnoredAssets: {},
           },
           MultichainBalancesController: {
             balances: {
@@ -829,5 +831,158 @@ describe('selectAsset', () => {
     // Assert - isStaked should be false instead of undefined
     expect(result?.isStaked).toBe(false);
     expect(result?.isStaked).not.toBeUndefined();
+  });
+});
+
+describe('selectTronResourcesBySelectedAccountGroup', () => {
+  it('returns Tron energy and bandwidth resources when Tron network is enabled', () => {
+    const stateWithTronAssets = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          MultichainAssetsController: {
+            accountsAssets: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
+                'tron:728126428/slip44:energy',
+                'tron:728126428/slip44:bandwidth',
+                'tron:728126428/slip44:195',
+              ],
+            },
+            assetsMetadata: {
+              'tron:728126428/slip44:energy': {
+                name: 'Energy',
+                symbol: 'ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'Energy', symbol: 'ENERGY', decimals: 0 }],
+              },
+              'tron:728126428/slip44:bandwidth': {
+                name: 'Bandwidth',
+                symbol: 'BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
+                ],
+              },
+              'tron:728126428/slip44:195': {
+                name: 'TRON',
+                symbol: 'TRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
+              },
+            },
+            allIgnoredAssets: {},
+          },
+          MultichainBalancesController: {
+            balances: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+                'tron:728126428/slip44:energy': {
+                  amount: '400',
+                  unit: 'ENERGY',
+                },
+                'tron:728126428/slip44:bandwidth': {
+                  amount: '604',
+                  unit: 'BANDWIDTH',
+                },
+                'tron:728126428/slip44:195': { amount: '1000', unit: 'TRX' },
+              },
+            },
+          },
+          MultichainAssetsRatesController: {
+            conversionRates: {
+              'tron:728126428/slip44:195': {
+                rate: '0.12',
+                currency: 'swift:0/iso4217:USD',
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: true,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result =
+      selectTronResourcesBySelectedAccountGroup(stateWithTronAssets);
+
+    expect(result.map((a) => a.assetId).sort()).toEqual([
+      'tron:728126428/slip44:bandwidth',
+      'tron:728126428/slip44:energy',
+    ]);
+  });
+
+  it('returns empty list when Tron network is disabled', () => {
+    const stateWithTronDisabled = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          MultichainAssetsController: {
+            accountsAssets: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
+                'tron:728126428/slip44:energy',
+                'tron:728126428/slip44:bandwidth',
+              ],
+            },
+            assetsMetadata: {
+              'tron:728126428/slip44:energy': {
+                name: 'Energy',
+                symbol: 'ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'Energy', symbol: 'ENERGY', decimals: 0 }],
+              },
+              'tron:728126428/slip44:bandwidth': {
+                name: 'Bandwidth',
+                symbol: 'BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
+                ],
+              },
+            },
+            allIgnoredAssets: {},
+          },
+          MultichainBalancesController: {
+            balances: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+                'tron:728126428/slip44:energy': {
+                  amount: '400',
+                  unit: 'ENERGY',
+                },
+                'tron:728126428/slip44:bandwidth': {
+                  amount: '604',
+                  unit: 'BANDWIDTH',
+                },
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: false,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectTronResourcesBySelectedAccountGroup(
+      stateWithTronDisabled,
+    );
+
+    expect(result).toEqual([]);
   });
 });

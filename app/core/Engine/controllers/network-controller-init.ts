@@ -3,12 +3,10 @@ import {
   getDefaultNetworkControllerState,
   NetworkController,
   NetworkState,
+  type NetworkControllerMessenger,
 } from '@metamask/network-controller';
-import {
-  NetworkControllerInitMessenger,
-  NetworkControllerMessenger,
-} from '../messengers/network-controller-messenger';
-import { ChainId } from '@metamask/controller-utils';
+import { NetworkControllerInitMessenger } from '../messengers/network-controller-messenger';
+import { ChainId, DEFAULT_MAX_RETRIES } from '@metamask/controller-utils';
 import { getFailoverUrlsForInfuraNetwork } from '../../../util/networks/customNetworks';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
 import { SECOND } from '../../../constants/time';
@@ -19,7 +17,8 @@ import {
 } from './network-controller/messenger-action-handlers';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
 import { MetaMetrics } from '../../Analytics';
-import { Hex } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
+import Logger from '../../../util/Logger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -52,6 +51,22 @@ export function getInitialNetworkControllerState(persistedState: {
       ChainId['base-mainnet']
     ].rpcEndpoints[0].failoverUrls =
       getFailoverUrlsForInfuraNetwork('base-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['arbitrum-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('arbitrum-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['bsc-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('bsc-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['optimism-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('optimism-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('polygon-mainnet');
 
     // Update default popular network names
     initialNetworkControllerState.networkConfigurationsByChainId[
@@ -63,6 +78,24 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState.networkConfigurationsByChainId[
       ChainId['base-mainnet']
     ].name = 'Base';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['arbitrum-mainnet']
+    ].name = 'Arbitrum';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['bsc-mainnet']
+    ].name = 'BNB Chain';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['optimism-mainnet']
+    ].name = 'OP';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ].name = 'Polygon';
+
+    // Remove Sei from initial state so it appears in Additional Networks section
+    // Users can add it manually, and it will be available in FEATURED_RPCS
+    delete initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['sei-mainnet']
+    ];
   }
 
   return initialNetworkControllerState;
@@ -96,25 +129,32 @@ export const networkControllerInit: ControllerInitFunction<
             // failures quickly.
             retryTimeout: 20 * SECOND,
           },
-
     getRpcServiceOptions: (rpcEndpointUrl: string) => {
-      const maxRetries = 4;
+      // Note that the total number of attempts is 1 more than this
+      // (which is why we add 1 below).
+      const maxRetries = DEFAULT_MAX_RETRIES;
       const commonOptions = {
         fetch: globalThis.fetch.bind(globalThis),
         btoa: globalThis.btoa.bind(globalThis),
+      };
+      const commonPolicyOptions = {
+        // Ensure that the "cooldown" period after breaking the circuit is short.
+        circuitBreakDuration: 30 * SECOND,
+        maxRetries,
       };
 
       if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
         return {
           ...commonOptions,
           policyOptions: {
-            maxRetries,
-            // When we fail over to Quicknode, we expect it to be down at
-            // first while it is being automatically activated. If an endpoint
-            // is down, the failover logic enters a "cooldown period" of 30
-            // minutes. We'd really rather not enter that for Quicknode, so
-            // keep retrying longer.
-            maxConsecutiveFailures: (maxRetries + 1) * 14,
+            ...commonPolicyOptions,
+            // The number of rounds of retries that will break the circuit,
+            // triggering a "cooldown".
+            //
+            // When we fail over to QuickNode, we expect it to be down at first
+            // while it is being automatically activated, and we don't want to
+            // activate the "cooldown" accidentally.
+            maxConsecutiveFailures: (maxRetries + 1) * 10,
           },
         };
       }
@@ -122,9 +162,14 @@ export const networkControllerInit: ControllerInitFunction<
       return {
         ...commonOptions,
         policyOptions: {
-          maxRetries,
-          // Ensure that the circuit does not break too quickly.
-          maxConsecutiveFailures: (maxRetries + 1) * 7,
+          ...commonPolicyOptions,
+          // Ensure that if the endpoint continually responds with errors, we
+          // break the circuit relatively fast (but not prematurely).
+          //
+          // Note that the circuit will break much faster if the errors are
+          // retriable (e.g. 503) than if not (e.g. 500), so we attempt to strike
+          // a balance here.
+          maxConsecutiveFailures: (maxRetries + 1) * 3,
         },
       };
     },
@@ -186,6 +231,32 @@ export const networkControllerInit: ControllerInitFunction<
   );
 
   controller.initializeProvider();
+
+  // TODO: Move this to `network-controller`
+  const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
+    if (isRpcFailoverEnabled) {
+      Logger.log('Enabling RPC failover.');
+      controller.enableRpcFailover();
+    } else {
+      Logger.log('Disabling RPC failover.');
+      controller.disableRpcFailover();
+    }
+  };
+
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    toggleRpcFailover,
+    (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
+  );
+
+  const remoteFeatureFlagControllerState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+
+  toggleRpcFailover(
+    remoteFeatureFlagControllerState.remoteFeatureFlags
+      .walletFrameworkRpcFailoverEnabled,
+  );
 
   return {
     controller,

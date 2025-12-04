@@ -1,9 +1,9 @@
 import { ControllerInitFunction } from '../types';
-import { TokenListController } from '@metamask/assets-controllers';
 import {
-  TokenListControllerInitMessenger,
-  TokenListControllerMessenger,
-} from '../messengers/token-list-controller-messenger';
+  TokenListController,
+  type TokenListControllerMessenger,
+} from '@metamask/assets-controllers';
+import { TokenListControllerInitMessenger } from '../messengers/token-list-controller-messenger';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 
 /**
@@ -24,7 +24,14 @@ export const tokenListControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
     onNetworkStateChange: (listener) =>
-      initMessenger.subscribe('NetworkController:stateChange', listener),
+      initMessenger.subscribe(
+        'NetworkController:stateChange',
+        // TODO: Remove type assertion once @metamask/network-controller versions are aligned.
+        // Currently there's a version mismatch between the direct dependency and the one
+        // nested in @metamask/transaction-controller, causing NetworkState type incompatibility.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (networkState) => listener(networkState as any),
+      ),
   });
 
   return {

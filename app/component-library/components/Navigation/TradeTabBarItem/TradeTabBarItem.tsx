@@ -81,8 +81,8 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
     themeAppearance === 'light'
       ? IconColor.Inverse
       : isActive
-      ? IconColor.Inverse
-      : IconColor.Default;
+        ? IconColor.Inverse
+        : IconColor.Default;
   return (
     <Pressable
       style={tw.style(

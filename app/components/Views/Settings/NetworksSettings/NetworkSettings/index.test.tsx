@@ -18,15 +18,12 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../../../util/test/network';
 // eslint-disable-next-line import/no-namespace
 import * as jsonRequest from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../../../util/networks';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 const { PreferencesController } = Engine.context;
 
 jest.mock(
@@ -41,34 +38,38 @@ jest.mock(
   }),
 );
 
+const mockTrackEvent = jest.fn();
+
+const mockCreateEventBuilder = jest.fn((eventName) => {
+  let properties = {};
+  return {
+    addProperties(props: Record<string, unknown>) {
+      properties = { ...properties, ...props };
+      return this;
+    },
+    build() {
+      return {
+        name: eventName,
+        properties,
+      };
+    },
+  };
+});
+
 jest.mock('../../../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({
-        build: jest.fn(),
-      })),
-    })),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
   withMetricsAwareness: (Component: unknown) => Component,
-}));
-
-// Mock the entire module
-jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
-  isNetworkUiRedesignEnabled: jest.fn(),
 }));
 
 // Mock the feature flag
 jest.mock('../../../../../util/networks', () => {
   const mockGetAllNetworks = jest.fn(() => ['mainnet', 'sepolia']);
-  const mockIsRemoveGlobalNetworkSelectorEnabled = jest.fn();
-  const mockIsPortfolioViewEnabled = jest.fn();
 
   return {
     ...jest.requireActual('../../../../../util/networks'),
-    isRemoveGlobalNetworkSelectorEnabled:
-      mockIsRemoveGlobalNetworkSelectorEnabled,
-    isPortfolioViewEnabled: mockIsPortfolioViewEnabled,
     getAllNetworks: mockGetAllNetworks,
     mainnet: {
       name: 'Ethereum Main Network',
@@ -288,9 +289,7 @@ describe('NetworkSettings', () => {
     expect(component).toMatchSnapshot();
   });
 
-  it('should render the component correctly when isNetworkUiRedesignEnabled is true', () => {
-    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-
+  it('should render the component correctly', () => {
     const component = shallow(
       <Provider store={store}>
         <NetworkSettings />
@@ -298,20 +297,6 @@ describe('NetworkSettings', () => {
     );
 
     expect(component).toMatchSnapshot();
-    expect(isNetworkUiRedesignEnabled()).toBe(true);
-  });
-
-  it('should render the component correctly when isNetworkUiRedesignEnabled is false', () => {
-    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-
-    const component = shallow(
-      <Provider store={store}>
-        <NetworkSettings />
-      </Provider>,
-    );
-
-    expect(component).toMatchSnapshot();
-    expect(isNetworkUiRedesignEnabled()).toBe(false);
   });
 
   it('should update state and call getCurrentState on RPC URL change', async () => {
@@ -722,7 +707,7 @@ describe('NetworkSettings', () => {
       const instance = wrapper.instance();
 
       // Test with a valid chainId
-      await instance.onChainIDChange('0x1');
+      await instance.onChainIDChange('0x2');
       await instance.validateChainId();
 
       expect(wrapper.state('warningChainId')).toBe(undefined);
@@ -746,89 +731,6 @@ describe('NetworkSettings', () => {
 
       instance.closeAddBlockExplorerRpcForm();
       expect(wrapper.state('showAddBlockExplorerForm').isVisible).toBe(false);
-    });
-
-    it('should validate RPC URL and set a warning if the format is invalid', async () => {
-      const instance = wrapper.instance();
-
-      // Test with an invalid RPC URL
-      await instance.onRpcUrlChange('invalidUrl');
-      await instance.validateRpcUrl('invalidUrl');
-
-      expect(wrapper.state('warningRpcUrl')).toBe(
-        'URIs require the appropriate HTTPS prefix',
-      );
-    });
-
-    it('should not set warning for a valid RPC URL', async () => {
-      const instance = wrapper.instance();
-
-      // Test with a valid RPC URL
-      await instance.onRpcUrlChange(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-      );
-      await instance.validateRpcUrl(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID-2',
-      );
-
-      expect(wrapper.state('warningRpcUrl')).toBe(undefined);
-    });
-
-    it('should set warning for a duplicated RPC URL', async () => {
-      const instance = wrapper.instance();
-
-      // Test with a valid RPC URL
-      await instance.onRpcUrlChange(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-      );
-      await instance.validateRpcUrl(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-      );
-
-      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
-    });
-
-    it('should set a warning if the RPC URL format is invalid', async () => {
-      const instance = wrapper.instance();
-
-      await instance.validateRpcUrl('invalidUrl');
-      expect(wrapper.state('warningRpcUrl')).toBe(
-        'URIs require the appropriate HTTPS prefix',
-      );
-    });
-
-    it('should set a warning for a duplicated RPC URL', async () => {
-      const instance = wrapper.instance();
-
-      await instance.validateRpcUrl(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-      );
-      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
-    });
-
-    it('should set a warning if the RPC URL already exists in networkConfigurations and UI redesign is disabled', async () => {
-      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-      const instance = wrapper.instance();
-
-      await instance.validateRpcUrl(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-      );
-      await instance.validateRpcUrl(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-      );
-      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
-      expect(wrapper.state('validatedRpcURL')).toBe(true);
-    });
-
-    it('should set a warning if the RPC URL exists and UI redesign is enabled', async () => {
-      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-      const instance = wrapper.instance();
-
-      await instance.validateRpcUrl(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-      );
-      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
-      expect(wrapper.state('validatedRpcURL')).toBe(true);
     });
 
     it('should correctly add RPC URL through modal and update state', async () => {
@@ -1089,6 +991,54 @@ describe('NetworkSettings', () => {
       await instance.validateSymbol();
 
       expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
+    });
+
+    it('should not show warning symbol for Sepolia when getting symbol from network configuration', async () => {
+      const instance = wrapper.instance();
+
+      wrapper.setProps({
+        useSafeChainsListValidation: true,
+        networkConfigurations: {
+          '0xaa36a7': {
+            chainId: '0xaa36a7',
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            name: 'Sepolia',
+            nativeCurrency: 'SepoliaETH',
+          },
+        },
+      });
+
+      instance.setState({
+        chainId: '0xaa36a7', // Sepolia chain ID
+        ticker: 'SepoliaETH',
+      });
+
+      await instance.validateSymbol();
+
+      expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
+    });
+
+    it('should fallback to chainToMatch symbol if network configuration is not found and show warning symbol', async () => {
+      const instance = wrapper.instance();
+
+      wrapper.setProps({
+        useSafeChainsListValidation: true,
+        networkConfigurations: {},
+      });
+
+      instance.setState({
+        chainId: '0xaa36a7', // Sepolia chain ID
+        ticker: 'SepoliaETH',
+      });
+
+      const chainToMatch = {
+        name: 'Test Network',
+        nativeCurrency: { symbol: 'TEST' },
+      };
+      await instance.validateSymbol(chainToMatch);
+
+      expect(instance.state.warningSymbol).toBe('TEST');
     });
 
     it('should validateChainIdOnSubmit', async () => {
@@ -1471,6 +1421,274 @@ describe('NetworkSettings', () => {
         { replacementSelectedRpcEndpointIndex: 0 },
       );
     });
+
+    it('tracks RPC update event when trackRpcUpdateFromBanner is true', async () => {
+      const PROPS_WITH_METRICS = {
+        ...SAMPLE_PROPS,
+        metrics: {
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        },
+        networkConfigurations: {
+          '0x64': {
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            chainId: '0x64',
+            rpcEndpoints: [
+              {
+                networkClientId: 'custom',
+                type: 'custom',
+                url: 'https://mainnet.infura.io/v3/',
+              },
+            ],
+            name: 'Custom Network',
+            nativeCurrency: 'ETH',
+          },
+        },
+      };
+
+      const wrapper5 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...PROPS_WITH_METRICS} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance = wrapper5.instance() as NetworkSettings;
+
+      await instance.handleNetworkUpdate({
+        rpcUrl: 'https://monad-mainnet.infura.io/v3/',
+        rpcUrls: [
+          {
+            url: 'https://monad-mainnet.infura.io/v3/',
+            type: 'custom',
+            name: 'Monad RPC',
+          },
+        ],
+        blockExplorerUrls: ['https://etherscan.io'],
+        blockExplorerUrl: 'https://etherscan.io',
+        nickname: 'Custom Network',
+        ticker: 'ETH',
+        isNetworkExists: [],
+        chainId: '0x64',
+        navigation: mockNavigation,
+        isCustomMainnet: false,
+        shouldNetworkSwitchPopToWallet: true,
+        trackRpcUpdateFromBanner: true,
+      });
+
+      expect(Engine.context.NetworkController.updateNetwork).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(
+          MetaMetricsEvents.NetworkConnectionBannerRpcUpdated,
+        )
+          .addProperties({
+            chain_id_caip: 'eip155:100',
+            from_rpc_domain: 'mainnet.infura.io',
+            to_rpc_domain: 'monad-mainnet.infura.io',
+          })
+          .build(),
+      );
+    });
+
+    it('does not track RPC update event when trackRpcUpdateFromBanner is false', async () => {
+      const PROPS_WITHOUT_TRACKING = {
+        ...SAMPLE_PROPS,
+        metrics: {
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        },
+        networkConfigurations: {
+          '0x64': {
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            chainId: '0x64',
+            rpcEndpoints: [
+              {
+                networkClientId: 'custom',
+                type: 'custom',
+                url: 'https://mainnet.infura.io/v3/',
+              },
+            ],
+            name: 'Custom Network',
+            nativeCurrency: 'ETH',
+          },
+        },
+      };
+
+      const wrapper6 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...PROPS_WITHOUT_TRACKING} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance = wrapper6.instance() as NetworkSettings;
+
+      await instance.handleNetworkUpdate({
+        rpcUrl: 'https://monad-mainnet.infura.io/v3/',
+        rpcUrls: [
+          {
+            url: 'https://monad-mainnet.infura.io/v3/',
+            type: 'custom',
+            name: 'Monad RPC',
+          },
+        ],
+        blockExplorerUrls: ['https://etherscan.io'],
+        blockExplorerUrl: 'https://etherscan.io',
+        nickname: 'Custom Network',
+        ticker: 'ETH',
+        isNetworkExists: [],
+        chainId: '0x64',
+        navigation: mockNavigation,
+        isCustomMainnet: false,
+        shouldNetworkSwitchPopToWallet: true,
+        trackRpcUpdateFromBanner: false,
+      });
+
+      expect(Engine.context.NetworkController.updateNetwork).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('sanitizes custom RPC URLs as "custom" in tracking event', async () => {
+      const PROPS_WITH_CUSTOM_RPC = {
+        ...SAMPLE_PROPS,
+        metrics: {
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        },
+        networkConfigurations: {
+          '0x64': {
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            chainId: '0x64',
+            rpcEndpoints: [
+              {
+                networkClientId: 'custom',
+                type: 'custom',
+                url: 'https://my-private-rpc.com',
+              },
+            ],
+            name: 'Custom Network',
+            nativeCurrency: 'ETH',
+          },
+        },
+      };
+
+      const wrapper7 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...PROPS_WITH_CUSTOM_RPC} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance = wrapper7.instance() as NetworkSettings;
+
+      await instance.handleNetworkUpdate({
+        rpcUrl: 'https://another-private-rpc.com',
+        rpcUrls: [
+          {
+            url: 'https://another-private-rpc.com',
+            type: 'custom',
+            name: 'Another Custom RPC',
+          },
+        ],
+        blockExplorerUrls: ['https://etherscan.io'],
+        blockExplorerUrl: 'https://etherscan.io',
+        nickname: 'Custom Network',
+        ticker: 'ETH',
+        isNetworkExists: [],
+        chainId: '0x64',
+        navigation: mockNavigation,
+        isCustomMainnet: false,
+        shouldNetworkSwitchPopToWallet: true,
+        trackRpcUpdateFromBanner: true,
+      });
+
+      expect(Engine.context.NetworkController.updateNetwork).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(
+          MetaMetricsEvents.NetworkConnectionBannerRpcUpdated,
+        )
+          .addProperties({
+            chain_id_caip: 'eip155:100',
+            from_rpc_domain: 'custom',
+            to_rpc_domain: 'custom',
+          })
+          .build(),
+      );
+    });
+
+    it('tracks unknown for missing old RPC endpoint', async () => {
+      const PROPS_WITHOUT_OLD_ENDPOINT = {
+        ...SAMPLE_PROPS,
+        metrics: {
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        },
+        networkConfigurations: {
+          '0x64': {
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: undefined,
+            chainId: '0x64',
+            rpcEndpoints: [],
+            name: 'Custom Network',
+            nativeCurrency: 'ETH',
+          },
+        },
+      };
+
+      const wrapper8 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...PROPS_WITHOUT_OLD_ENDPOINT} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance = wrapper8.instance() as NetworkSettings;
+
+      await instance.handleNetworkUpdate({
+        rpcUrl: 'https://new-rpc.infura.io/v3/',
+        rpcUrls: [
+          {
+            url: 'https://new-rpc.infura.io/v3/',
+            type: 'custom',
+            name: 'New RPC',
+          },
+        ],
+        blockExplorerUrls: ['https://etherscan.io'],
+        blockExplorerUrl: 'https://etherscan.io',
+        nickname: 'Custom Network',
+        ticker: 'ETH',
+        isNetworkExists: [],
+        chainId: '0x64',
+        navigation: mockNavigation,
+        isCustomMainnet: false,
+        shouldNetworkSwitchPopToWallet: true,
+        trackRpcUpdateFromBanner: true,
+      });
+
+      expect(Engine.context.NetworkController.updateNetwork).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(
+          MetaMetricsEvents.NetworkConnectionBannerRpcUpdated,
+        )
+          .addProperties({
+            chain_id_caip: 'eip155:100',
+            from_rpc_domain: 'unknown',
+            to_rpc_domain: 'new-rpc.infura.io',
+          })
+          .build(),
+      );
+    });
   });
 
   describe('checkIfRpcUrlExists', () => {
@@ -1702,7 +1920,6 @@ describe('NetworkSettings', () => {
 
     beforeEach(() => {
       instance = wrapper.instance();
-      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
 
       // Mocking dependent methods
       jest.spyOn(instance, 'disabledByChainId').mockReturnValue(false);
@@ -1785,24 +2002,6 @@ describe('NetworkSettings', () => {
       expect(instance.checkIfNetworkExists).not.toHaveBeenCalled();
     });
 
-    it('should check if network exists in edit mode', async () => {
-      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-
-      wrapper.setState({
-        chainId: '0x1',
-        editable: false,
-        rpcUrl: 'http://localhost:8545',
-        enableAction: true,
-      });
-
-      await instance.addRpcUrl();
-
-      expect(instance.checkIfNetworkExists).toHaveBeenCalledWith(
-        'http://localhost:8545',
-      );
-      expect(instance.checkIfNetworkNotExistsByChainId).not.toHaveBeenCalled();
-    });
-
     it('should handle custom mainnet condition', async () => {
       wrapper.setProps({
         route: {
@@ -1860,8 +2059,7 @@ describe('NetworkSettings', () => {
       );
     });
 
-    it('should not call setTokenNetworkFilter when portfolio view is disabled', async () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+    it('should always call setTokenNetworkFilter when adding a network', async () => {
       const tokenNetworkFilterSpy = jest.spyOn(
         PreferencesController,
         'setTokenNetworkFilter',
@@ -1876,11 +2074,11 @@ describe('NetworkSettings', () => {
       });
 
       await wrapper.instance().addRpcUrl();
-      expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(0);
+      // setTokenNetworkFilter is always called regardless of feature flags
+      expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should call setTokenNetworkFilter when portfolio view is enabled', async () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+    it('should call setTokenNetworkFilter with correct chainId when adding a network', async () => {
       const tokenNetworkFilterSpy = jest.spyOn(
         PreferencesController,
         'setTokenNetworkFilter',
@@ -1896,6 +2094,7 @@ describe('NetworkSettings', () => {
 
       await wrapper.instance().addRpcUrl();
       expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(1);
+      expect(tokenNetworkFilterSpy).toHaveBeenCalledWith({ '0x1': true });
     });
   });
 
@@ -1907,31 +2106,10 @@ describe('NetworkSettings', () => {
       instance = wrapper.instance();
 
       jest.spyOn(instance, 'setState');
-      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     });
 
     afterEach(() => {
       jest.clearAllMocks(); // Clear all spies after each test
-    });
-
-    it('should return custom network if rpcUrl exists in networkConfigurations and UI redesign is disabled', async () => {
-      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-
-      const rpcUrl = 'http://localhost:8545';
-
-      // Mocking props
-      wrapper.setProps({
-        networkConfigurations: {
-          customNetwork1: { rpcUrl },
-        },
-      });
-
-      const result = await instance.checkIfNetworkExists(rpcUrl);
-
-      expect(result).toEqual([{ rpcUrl }]);
-      expect(instance.setState).toHaveBeenCalledWith({
-        warningRpcUrl: 'This network has already been added.',
-      });
     });
 
     it('should return custom network if rpcUrl exists in networkConfigurations and UI redesign is enabled', async () => {
@@ -1951,115 +2129,49 @@ describe('NetworkSettings', () => {
     });
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    const mockIsRemoveGlobalNetworkSelectorEnabled =
-      isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
-        typeof isRemoveGlobalNetworkSelectorEnabled
-      >;
+  describe('Network Manager Integration', () => {
+    it('calls NetworkEnablementController.enableNetwork when adding a network', async () => {
+      const { NetworkEnablementController } = Engine.context;
+      const enableNetworkSpy = jest.spyOn(
+        NetworkEnablementController,
+        'enableNetwork',
+      );
 
-    beforeEach(() => {
-      // Reset feature flag mock
-      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      const instance = wrapper.instance();
+
+      jest.spyOn(instance, 'disabledByChainId').mockReturnValue(false);
+      jest.spyOn(instance, 'disabledBySymbol').mockReturnValue(false);
+      jest
+        .spyOn(instance, 'checkIfNetworkNotExistsByChainId')
+        .mockResolvedValue([]);
+      jest.spyOn(instance, 'validateChainIdOnSubmit').mockResolvedValue(true);
+      jest.spyOn(instance, 'handleNetworkUpdate').mockResolvedValue({});
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+        addMode: true,
+        editable: false,
+        rpcUrls: [{ url: 'http://localhost:8545' }],
+        blockExplorerUrls: [],
+      });
+
+      await instance.addRpcUrl();
+
+      // Verify that enableNetwork was called with the correct chainId
+      expect(enableNetworkSpy).toHaveBeenCalledWith('0x1');
     });
 
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-      });
-
-      it('should call NetworkEnablementController.enableNetwork when feature flag is enabled', async () => {
-        const { NetworkEnablementController } = Engine.context;
-        const enableNetworkSpy = jest.spyOn(
-          NetworkEnablementController,
-          'enableNetwork',
-        );
-
-        // Mock validateChainIdOnSubmit to return true so it doesn't return early
-        jest
-          .spyOn(wrapper.instance(), 'validateChainIdOnSubmit')
-          .mockResolvedValue(true);
-
-        // Mock handleNetworkUpdate to prevent actual network addition
-        jest
-          .spyOn(wrapper.instance(), 'handleNetworkUpdate')
-          .mockResolvedValue({});
-
-        wrapper.setState({
-          rpcUrl: 'http://localhost:8545',
-          chainId: '0x1',
-          ticker: 'ETH',
-          nickname: 'Localhost',
-          enableAction: true,
-          addMode: true,
-          editable: false,
-          rpcUrls: [{ url: 'http://localhost:8545' }],
-          blockExplorerUrls: [],
-        });
-
-        await wrapper.instance().addRpcUrl();
-
-        // Verify that the feature flag is enabled
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-
-        // Verify that enableNetwork was called with the correct chainId
-        expect(enableNetworkSpy).toHaveBeenCalledWith('0x1');
-      });
-
-      it('should have proper Engine controller setup when feature flag is enabled', () => {
-        // Verify that the feature flag is enabled
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-
-        // Verify that the necessary controllers are available
-        expect(
-          Engine.context.NetworkEnablementController.enableNetwork,
-        ).toBeDefined();
-        expect(Engine.context.NetworkController.addNetwork).toBeDefined();
-        expect(Engine.context.NetworkController.updateNetwork).toBeDefined();
-      });
-    });
-
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-      });
-
-      it('should not call NetworkEnablementController.enableNetwork when feature flag is disabled', async () => {
-        const { NetworkEnablementController } = Engine.context;
-        const setEnabledNetworkSpy = jest.spyOn(
-          NetworkEnablementController,
-          'enableNetwork',
-        );
-
-        wrapper.setState({
-          rpcUrl: 'http://localhost:8545',
-          chainId: '0x1',
-          ticker: 'ETH',
-          nickname: 'Localhost',
-          enableAction: true,
-          addMode: true,
-          editable: false,
-        });
-
-        await wrapper.instance().addRpcUrl();
-
-        // Verify that the feature flag is disabled
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-
-        // Verify that setEnabledNetwork was not called
-        expect(setEnabledNetworkSpy).not.toHaveBeenCalled();
-      });
-
-      it('should still have proper Engine controller setup when feature flag is disabled', () => {
-        // Verify that the feature flag is disabled
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-
-        // Verify that the necessary controllers are still available
-        expect(
-          Engine.context.NetworkEnablementController.enableNetwork,
-        ).toBeDefined();
-        expect(Engine.context.NetworkController.addNetwork).toBeDefined();
-        expect(Engine.context.NetworkController.updateNetwork).toBeDefined();
-      });
+    it('should have proper Engine controller setup', () => {
+      // Verify that the necessary controllers are available
+      expect(
+        Engine.context.NetworkEnablementController.enableNetwork,
+      ).toBeDefined();
+      expect(Engine.context.NetworkController.addNetwork).toBeDefined();
+      expect(Engine.context.NetworkController.updateNetwork).toBeDefined();
     });
   });
 });

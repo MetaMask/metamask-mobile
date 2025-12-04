@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
@@ -12,9 +12,12 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import Assertions from '../../framework/Assertions';
 import TokenOverview from '../../pages/wallet/TokenOverview';
+import { LocalNode } from '../../framework/types';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeConfirmations('Send ETH'), () => {
+describe(RegressionConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
   const AMOUNT = '0.12345';
 
@@ -27,7 +30,25 @@ describe(SmokeConfirmations('Send ETH'), () => {
     const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .build();
+        },
         restartDevice: true,
       },
       async () => {
@@ -54,14 +75,31 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .build();
+        },
         restartDevice: true,
         smartContracts: [MULTISIG_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const multisigAddress = await contractRegistry?.getContractAddress(
-          MULTISIG_CONTRACT,
-        );
+        const multisigAddress =
+          await contractRegistry?.getContractAddress(MULTISIG_CONTRACT);
         await loginToApp();
 
         await WalletView.tapWalletSendButton();
@@ -85,7 +123,25 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .build();
+        },
         restartDevice: true,
       },
       async () => {

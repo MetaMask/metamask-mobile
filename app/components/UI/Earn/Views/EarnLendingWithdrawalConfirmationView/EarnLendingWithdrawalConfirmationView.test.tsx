@@ -171,6 +171,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
                 groups: {
                   'keyring:test-wallet/ethereum': {
                     accounts: [mockSelectedAccount.id],
+                    metadata: {
+                      name: 'Test Wallet Group',
+                    },
                   },
                 },
               },
@@ -226,7 +229,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
 
     // Assert Navbar was updated
     expect(getStakingNavbarSpy).toHaveBeenCalledWith(
-      strings('earn.withdraw'),
+      `${strings('earn.withdraw')} ${mockLineaAUsdc.symbol}`,
       expect.any(Object), // navigation object
       expect.any(Object), // theme.colors
       {
@@ -1009,6 +1012,55 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('Account Display', () => {
+    it('should display account group name when available', () => {
+      const { getByText } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByText('Test Wallet Group')).toBeTruthy();
+    });
+
+    it('should display account name as fallback when account group metadata is not available', () => {
+      const stateWithoutGroupMetadata: DeepPartial<RootState> = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        accounts: [mockSelectedAccount.id],
+                        // No metadata field
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        {
+          state: stateWithoutGroupMetadata,
+        },
+      );
+
+      expect(getByText(mockSelectedAccount.metadata.name)).toBeTruthy();
     });
   });
 

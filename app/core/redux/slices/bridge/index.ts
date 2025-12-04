@@ -55,6 +55,10 @@ export interface BridgeState {
   slippage: string | undefined;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
+  isMaxSourceAmount?: boolean;
+  isSelectingRecipient: boolean;
+  isGasIncludedSTXSendBundleSupported: boolean;
+  isGasIncluded7702Supported: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -68,6 +72,10 @@ export const initialState: BridgeState = {
   slippage: '0.5',
   isSubmittingTx: false,
   bridgeViewMode: undefined,
+  isMaxSourceAmount: false,
+  isSelectingRecipient: false,
+  isGasIncludedSTXSendBundleSupported: false,
+  isGasIncluded7702Supported: false,
 };
 
 const name = 'bridge';
@@ -91,6 +99,15 @@ const slice = createSlice({
     },
     setSourceAmount: (state, action: PayloadAction<string | undefined>) => {
       state.sourceAmount = action.payload;
+      // Clears max flag when amount is set via keypad
+      state.isMaxSourceAmount = false;
+    },
+    setSourceAmountAsMax: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.sourceAmount = action.payload;
+      state.isMaxSourceAmount = true;
     },
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
@@ -124,6 +141,18 @@ const slice = createSlice({
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
+    },
+    setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
+      state.isSelectingRecipient = action.payload;
+    },
+    setIsGasIncludedSTXSendBundleSupported: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.isGasIncludedSTXSendBundleSupported = action.payload;
+    },
+    setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
+      state.isGasIncluded7702Supported = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -176,6 +205,11 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectIsMaxSourceAmount = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isMaxSourceAmount ?? false,
 );
 
 export const selectBridgeViewMode = createSelector(
@@ -378,6 +412,14 @@ export const selectDestAddress = createSelector(
   (bridgeState) => bridgeState.destAddress,
 );
 
+// Selectors for gas included STX/SendBundle support
+export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
+  state.bridge.isGasIncludedSTXSendBundleSupported;
+
+// Selector for 7702 gas included support
+export const selectIsGasIncluded7702Supported = (state: RootState) =>
+  state.bridge.isGasIncluded7702Supported;
+
 const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
   gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
@@ -479,6 +521,34 @@ export const selectIsSwap = createSelector(
     sourceToken.chainId === destToken.chainId,
 );
 
+/**
+ * Selector that returns the gas included quote params for bridge and swap transactions.
+ * Combines isSwap, STX/SendBundle support, and 7702 support to determine the correct
+ * gas included parameters.
+ */
+export const selectGasIncludedQuoteParams = createSelector(
+  [
+    selectIsSwap,
+    selectIsGasIncludedSTXSendBundleSupported,
+    selectIsGasIncluded7702Supported,
+  ],
+  (isSwap, gasIncludedSTXSendBundleSupport, gasIncluded7702Support) => {
+    // If STX send bundle support is true, we favor it over 7702.
+    if (gasIncludedSTXSendBundleSupport) {
+      return { gasIncluded: true, gasIncluded7702: false };
+    }
+
+    // If 7702 support is true, we use it for swap transactions.
+    const gasIncludedWith7702Enabled =
+      Boolean(isSwap) && gasIncluded7702Support;
+
+    return {
+      gasIncluded: gasIncludedWith7702Enabled,
+      gasIncluded7702: gasIncludedWith7702Enabled,
+    };
+  },
+);
+
 export const selectIsEvmSwap = createSelector(
   selectIsSwap,
   selectIsSolanaSwap,
@@ -488,6 +558,11 @@ export const selectIsEvmSwap = createSelector(
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSubmittingTx,
+);
+
+export const selectIsSelectingRecipient = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSelectingRecipient,
 );
 
 export const selectIsGaslessSwapEnabled = createSelector(
@@ -545,6 +620,7 @@ export const selectBip44DefaultPair = createSelector(
 // Actions
 export const {
   setSourceAmount,
+  setSourceAmountAsMax,
   setDestAmount,
   resetBridgeState,
   setSourceToken,
@@ -555,4 +631,7 @@ export const {
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,
+  setIsSelectingRecipient,
+  setIsGasIncludedSTXSendBundleSupported,
+  setIsGasIncluded7702Supported,
 } = actions;

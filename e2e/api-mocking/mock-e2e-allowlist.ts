@@ -9,7 +9,6 @@ export const ALLOWLISTED_HOSTS = [
   'api.tenderly.co',
   'rpc.tenderly.co',
   'virtual.mainnet.rpc.tenderly.co',
-  '*.infura.io',
   'testnet-rpc.monad.xyz',
   'virtual.linea.rpc.tenderly.co',
   'portfolio.dev-api.cx.metamask.io',
@@ -25,7 +24,6 @@ export const ALLOWLISTED_URLS = [
   'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
   'https://clients3.google.com/generate_204',
   'https://api.avax.network/ext/bc/C/rpc',
-  'https://chainid.network/chains.json',
   // Token SVGs in notifications list
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdc.svg',
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/shib.svg',
@@ -43,8 +41,6 @@ export const ALLOWLISTED_URLS = [
   'https://eth.llamarpc.com/',
   'https://rpc.atlantischain.network/',
   'https://rewards.dev-api.cx.metamask.io/auth/mobile-login',
-  'https://tx-sentinel-localhost.api.cx.metamask.io/',
-  'https://tx-sentinel-127.0.0.1.api.cx.metamask.io/',
   'https://nft.api.cx.metamask.io/collections?chainId=0x539&contract=0xb2552e4f4bc23e1572041677234d192774558bf0',
   'https://metamask.github.io/test-dapp/metamask-fox.svg',
   'https://dapp-scanning.api.cx.metamask.io/bulk-scan',
@@ -55,4 +51,5 @@ export const ALLOWLISTED_URLS = [
   'https://acl.execution.metamask.io/latest/registry.json',
   'https://acl.execution.metamask.io/latest/signature.json',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
+  'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
 ];

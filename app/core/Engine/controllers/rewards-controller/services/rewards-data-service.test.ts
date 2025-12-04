@@ -1,6 +1,8 @@
 import {
   InvalidTimestampError,
   AuthorizationFailedError,
+  AccountAlreadyRegisteredError,
+  SeasonNotFoundError,
   RewardsDataService,
   type RewardsDataServiceMessenger,
 } from './rewards-data-service';
@@ -8,13 +10,15 @@ import type {
   LoginResponseDto,
   EstimatePointsDto,
   EstimatedPointsDto,
-  SeasonStatusDto,
-  SubscriptionReferralDetailsDto,
+  SeasonStateDto,
+  SubscriptionSeasonReferralDetailsDto,
   PointsBoostEnvelopeDto,
   ClaimRewardDto,
   GetPointsEventsLastUpdatedDto,
   MobileLoginDto,
   MobileOptinDto,
+  DiscoverSeasonsDto,
+  SeasonMetadataDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -138,6 +142,14 @@ describe('RewardsDataService', () => {
         'RewardsDataService:claimReward',
         expect.any(Function),
       );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getDiscoverSeasons',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonMetadata',
+        expect.any(Function),
+      );
     });
   });
 
@@ -218,6 +230,80 @@ describe('RewardsDataService', () => {
         );
         expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
       }
+    });
+
+    it('throws AccountAlreadyRegisteredError when 409 response with already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest
+          .fn()
+          .mockResolvedValue({ message: 'Account is already registered' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        );
+        fail('Expected AccountAlreadyRegisteredError to be thrown');
+      } catch (error) {
+        expect((error as AccountAlreadyRegisteredError).name).toBe(
+          'AccountAlreadyRegisteredError',
+        );
+        expect((error as AccountAlreadyRegisteredError).message).toBe(
+          'Account is already registered',
+        );
+      }
+    });
+
+    it('throws AccountAlreadyRegisteredError when 409 response with lowercase already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest.fn().mockResolvedValue({
+          message: 'User is already registered with this account',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        );
+        fail('Expected AccountAlreadyRegisteredError to be thrown');
+      } catch (error) {
+        expect((error as AccountAlreadyRegisteredError).name).toBe(
+          'AccountAlreadyRegisteredError',
+        );
+        expect((error as AccountAlreadyRegisteredError).message).toBe(
+          'User is already registered with this account',
+        );
+      }
+    });
+
+    it('throws generic error when 409 response without already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest.fn().mockResolvedValue({ message: 'Conflict error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      await expect(
+        service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Mobile join failed: 409 Conflict error');
     });
   });
 
@@ -859,43 +945,10 @@ describe('RewardsDataService', () => {
     });
   });
 
-  const mockSeasonStatusResponse: SeasonStatusDto = {
-    season: {
-      id: 'season-123',
-      name: 'Test Season',
-      startDate: new Date('2023-06-01T00:00:00Z'),
-      endDate: new Date('2023-08-31T23:59:59Z'),
-      tiers: [
-        {
-          id: 'tier-gold',
-          name: 'Gold Tier',
-          pointsNeeded: 1000,
-          image: {
-            lightModeUrl: 'https://example.com/gold-light.png',
-            darkModeUrl: 'https://example.com/gold-dark.png',
-          },
-          levelNumber: '3',
-          rewards: [],
-        },
-        {
-          id: 'tier-silver',
-          name: 'Silver Tier',
-          pointsNeeded: 500,
-          image: {
-            lightModeUrl: 'https://example.com/silver-light.png',
-            darkModeUrl: 'https://example.com/silver-dark.png',
-          },
-          levelNumber: '2',
-          rewards: [],
-        },
-      ],
-    },
-    balance: {
-      total: 1000,
-      refereePortion: 500,
-      updatedAt: new Date('2023-12-01T10:00:00Z'),
-    },
+  const mockSeasonStateResponse: SeasonStateDto = {
+    balance: 1000,
     currentTierId: 'tier-gold',
+    updatedAt: new Date('2023-12-01T10:00:00Z'),
   };
 
   describe('getSeasonStatus', () => {
@@ -903,34 +956,27 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'subscription-456';
 
     beforeEach(() => {
-      // Mock successful fetch response for season status
+      // Mock successful fetch response for season state
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
-          season: {
-            ...mockSeasonStatusResponse.season,
-            startDate: '2023-06-01T00:00:00Z', // API returns strings, not Date objects
-            endDate: '2023-08-31T23:59:59Z',
-          },
-          balance: {
-            ...mockSeasonStatusResponse.balance,
-            updatedAt: '2023-12-01T10:00:00Z', // API returns string, not Date
-          },
-          currentTierId: mockSeasonStatusResponse.currentTierId,
+          balance: mockSeasonStateResponse.balance,
+          currentTierId: mockSeasonStateResponse.currentTierId,
+          updatedAt: '2023-12-01T10:00:00Z', // API returns string, not Date
         }),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
     });
 
-    it('should successfully get season status', async () => {
+    it('fetches season state from the correct endpoint', async () => {
       const result = await service.getSeasonStatus(
         mockSeasonId,
         mockSubscriptionId,
       );
 
-      expect(result).toEqual(mockSeasonStatusResponse);
+      expect(result).toEqual(mockSeasonStateResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL.DEV}/seasons/${mockSeasonId}/status`,
+        `${AppConstants.REWARDS_API_URL.DEV}/seasons/${mockSeasonId}/state`,
         {
           credentials: 'omit',
           method: 'GET',
@@ -945,30 +991,19 @@ describe('RewardsDataService', () => {
       );
     });
 
-    it('should convert date strings to Date objects', async () => {
+    it('converts updatedAt string to Date object', async () => {
       const result = await service.getSeasonStatus(
         mockSeasonId,
         mockSubscriptionId,
       );
 
-      // Check balance updatedAt
-      expect(result.balance.updatedAt).toBeInstanceOf(Date);
-      expect(result.balance.updatedAt?.getTime()).toBe(
+      expect(result.updatedAt).toBeInstanceOf(Date);
+      expect(result.updatedAt.getTime()).toBe(
         new Date('2023-12-01T10:00:00Z').getTime(),
-      );
-
-      // Check season dates
-      expect(result.season.startDate).toBeInstanceOf(Date);
-      expect(result.season.startDate?.getTime()).toBe(
-        new Date('2023-06-01T00:00:00Z').getTime(),
-      );
-      expect(result.season.endDate).toBeInstanceOf(Date);
-      expect(result.season.endDate.getTime()).toBe(
-        new Date('2023-08-31T23:59:59Z').getTime(),
       );
     });
 
-    it('should include authentication headers with subscription token', async () => {
+    it('includes authentication headers with subscription token', async () => {
       await service.getSeasonStatus(mockSeasonId, mockSubscriptionId);
 
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
@@ -983,7 +1018,7 @@ describe('RewardsDataService', () => {
       );
     });
 
-    it('should throw error when response is not ok', async () => {
+    it('throws error when response is not ok', async () => {
       const mockResponse = {
         ok: false,
         status: 404,
@@ -993,10 +1028,10 @@ describe('RewardsDataService', () => {
 
       await expect(
         service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
-      ).rejects.toThrow('Get season status failed: 404');
+      ).rejects.toThrow('Get season state failed: 404');
     });
 
-    it('should throw AuthorizationFailedError when rewards authorization fails', async () => {
+    it('throws AuthorizationFailedError when rewards authorization fails', async () => {
       const mockResponse = {
         ok: false,
         status: 401,
@@ -1021,7 +1056,7 @@ describe('RewardsDataService', () => {
       );
     });
 
-    it('should detect authorization failure when message contains the phrase', async () => {
+    it('detects authorization failure when message contains the phrase', async () => {
       const mockResponse = {
         ok: false,
         status: 403,
@@ -1037,7 +1072,47 @@ describe('RewardsDataService', () => {
       ).rejects.toBeInstanceOf(AuthorizationFailedError);
     });
 
-    it('should throw error when fetch fails', async () => {
+    it('throws SeasonNotFoundError when season is not found', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({
+          message: 'Season not found',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      let caughtError: unknown;
+      try {
+        await service.getSeasonStatus(mockSeasonId, mockSubscriptionId);
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(caughtError).toBeInstanceOf(SeasonNotFoundError);
+      const seasonNotFoundError = caughtError as SeasonNotFoundError;
+      expect(seasonNotFoundError.name).toBe('SeasonNotFoundError');
+      expect(seasonNotFoundError.message).toBe(
+        'Season not found. Please try again with a different season.',
+      );
+    });
+
+    it('detects season not found when message contains the phrase', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({
+          message: 'The requested Season not found in the system',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
+      ).rejects.toBeInstanceOf(SeasonNotFoundError);
+    });
+
+    it('throws error when fetch fails', async () => {
       const fetchError = new Error('Network error');
       mockFetch.mockRejectedValue(fetchError);
 
@@ -1046,8 +1121,7 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Network error');
     });
 
-    it('should handle missing subscription token gracefully', async () => {
-      // Mock token retrieval failure
+    it('handles missing subscription token gracefully', async () => {
       mockGetSubscriptionToken.mockResolvedValue({
         success: false,
         token: undefined,
@@ -1058,7 +1132,7 @@ describe('RewardsDataService', () => {
         mockSubscriptionId,
       );
 
-      expect(result).toEqual(mockSeasonStatusResponse);
+      expect(result).toEqual(mockSeasonStateResponse);
       expect(mockFetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -1070,12 +1144,290 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getDiscoverSeasons', () => {
+    const mockDiscoverSeasonsResponse: DiscoverSeasonsDto = {
+      previous: null,
+      current: {
+        id: '7444682d-9050-43b8-9038-28a6a62d6264',
+        startDate: new Date('2025-09-01T04:00:00.000Z'),
+        endDate: new Date('2025-11-30T04:00:00.000Z'),
+      },
+      next: null,
+    };
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          previous: null,
+          current: {
+            id: mockDiscoverSeasonsResponse.current?.id,
+            startDate: '2025-09-01T04:00:00.000Z',
+            endDate: '2025-11-30T04:00:00.000Z',
+          },
+          next: null,
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('fetches discover seasons from the correct public endpoint', async () => {
+      const result = await service.getDiscoverSeasons();
+
+      expect(result).toEqual(mockDiscoverSeasonsResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${AppConstants.REWARDS_API_URL.DEV}/public/seasons/status`,
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('converts date strings to Date objects for previous season', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          previous: {
+            id: '6333571c-8049-32a7-8027-17a5a51c5153',
+            startDate: '2025-06-01T04:00:00.000Z',
+            endDate: '2025-08-31T04:00:00.000Z',
+          },
+          current: null,
+          next: null,
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getDiscoverSeasons();
+
+      expect(result.previous?.startDate).toBeInstanceOf(Date);
+      expect(result.previous?.startDate.getTime()).toBe(
+        new Date('2025-06-01T04:00:00.000Z').getTime(),
+      );
+      expect(result.previous?.endDate).toBeInstanceOf(Date);
+      expect(result.previous?.endDate.getTime()).toBe(
+        new Date('2025-08-31T04:00:00.000Z').getTime(),
+      );
+    });
+
+    it('converts date strings to Date objects for current season', async () => {
+      const result = await service.getDiscoverSeasons();
+
+      expect(result.current?.startDate).toBeInstanceOf(Date);
+      expect(result.current?.startDate.getTime()).toBe(
+        new Date('2025-09-01T04:00:00.000Z').getTime(),
+      );
+      expect(result.current?.endDate).toBeInstanceOf(Date);
+      expect(result.current?.endDate.getTime()).toBe(
+        new Date('2025-11-30T04:00:00.000Z').getTime(),
+      );
+    });
+
+    it('handles response with previous, current and next seasons', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          previous: {
+            id: '6333571c-8049-32a7-8027-17a5a51c5153',
+            startDate: '2025-06-01T04:00:00.000Z',
+            endDate: '2025-08-31T04:00:00.000Z',
+          },
+          current: {
+            id: '7444682d-9050-43b8-9038-28a6a62d6264',
+            startDate: '2025-09-01T04:00:00.000Z',
+            endDate: '2025-11-30T04:00:00.000Z',
+          },
+          next: {
+            id: '8555793e-0161-54c9-0149-39b7b73e7375',
+            startDate: '2025-12-01T04:00:00.000Z',
+            endDate: '2026-02-28T04:00:00.000Z',
+          },
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getDiscoverSeasons();
+
+      expect(result.previous).not.toBeNull();
+      expect(result.previous?.id).toBe('6333571c-8049-32a7-8027-17a5a51c5153');
+      expect(result.previous?.startDate).toBeInstanceOf(Date);
+      expect(result.previous?.endDate).toBeInstanceOf(Date);
+      expect(result.current).not.toBeNull();
+      expect(result.next).not.toBeNull();
+      expect(result.next?.id).toBe('8555793e-0161-54c9-0149-39b7b73e7375');
+      expect(result.next?.startDate).toBeInstanceOf(Date);
+      expect(result.next?.endDate).toBeInstanceOf(Date);
+    });
+
+    it('handles response with null previous, current and next seasons', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          previous: null,
+          current: null,
+          next: null,
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getDiscoverSeasons();
+
+      expect(result.previous).toBeNull();
+      expect(result.current).toBeNull();
+      expect(result.next).toBeNull();
+    });
+
+    it('throws error when response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ message: 'Server error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(service.getDiscoverSeasons()).rejects.toThrow(
+        'Get discover seasons failed: 500',
+      );
+    });
+
+    it('throws error when fetch fails', async () => {
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      await expect(service.getDiscoverSeasons()).rejects.toThrow(
+        'Network error',
+      );
+    });
+  });
+
+  describe('getSeasonMetadata', () => {
+    const mockSeasonId = '7444682d-9050-43b8-9038-28a6a62d6264';
+    const mockSeasonMetadataResponse: SeasonMetadataDto = {
+      id: mockSeasonId,
+      name: 'Season 1',
+      startDate: new Date('2025-09-01T04:00:00.000Z'),
+      endDate: new Date('2025-11-30T04:00:00.000Z'),
+      tiers: [
+        {
+          id: 'tier-bronze',
+          name: 'Bronze Tier',
+          pointsNeeded: 0,
+          image: {
+            lightModeUrl: 'https://example.com/bronze-light.png',
+            darkModeUrl: 'https://example.com/bronze-dark.png',
+          },
+          levelNumber: '1',
+          rewards: [],
+        },
+        {
+          id: 'tier-silver',
+          name: 'Silver Tier',
+          pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'https://example.com/silver-light.png',
+            darkModeUrl: 'https://example.com/silver-dark.png',
+          },
+          levelNumber: '2',
+          rewards: [],
+        },
+      ],
+      activityTypes: [],
+    };
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          id: mockSeasonMetadataResponse.id,
+          name: mockSeasonMetadataResponse.name,
+          startDate: '2025-09-01T04:00:00.000Z',
+          endDate: '2025-11-30T04:00:00.000Z',
+          tiers: mockSeasonMetadataResponse.tiers,
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('fetches season metadata from the correct public endpoint', async () => {
+      const result = await service.getSeasonMetadata(mockSeasonId);
+
+      expect(result).toEqual(mockSeasonMetadataResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${AppConstants.REWARDS_API_URL.DEV}/public/seasons/${mockSeasonId}/meta`,
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('converts date strings to Date objects', async () => {
+      const result = await service.getSeasonMetadata(mockSeasonId);
+
+      expect(result.startDate).toBeInstanceOf(Date);
+      expect(result.startDate.getTime()).toBe(
+        new Date('2025-09-01T04:00:00.000Z').getTime(),
+      );
+      expect(result.endDate).toBeInstanceOf(Date);
+      expect(result.endDate.getTime()).toBe(
+        new Date('2025-11-30T04:00:00.000Z').getTime(),
+      );
+    });
+
+    it('includes tiers in the response', async () => {
+      const result = await service.getSeasonMetadata(mockSeasonId);
+
+      expect(result.tiers).toHaveLength(2);
+      expect(result.tiers[0].id).toBe('tier-bronze');
+      expect(result.tiers[0].name).toBe('Bronze Tier');
+      expect(result.tiers[1].id).toBe('tier-silver');
+      expect(result.tiers[1].name).toBe('Silver Tier');
+    });
+
+    it('throws error when response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({ message: 'Season not found' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(service.getSeasonMetadata(mockSeasonId)).rejects.toThrow(
+        'Get season metadata failed: 404',
+      );
+    });
+
+    it('throws error when fetch fails', async () => {
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      await expect(service.getSeasonMetadata(mockSeasonId)).rejects.toThrow(
+        'Network error',
+      );
+    });
+  });
+
   describe('getReferralDetails', () => {
     const mockSubscriptionId = 'test-subscription-123';
+    const mockSeasonId = 'test-season-456';
 
-    const mockReferralDetailsResponse: SubscriptionReferralDetailsDto = {
+    const mockReferralDetailsResponse: SubscriptionSeasonReferralDetailsDto = {
       referralCode: 'TEST123',
       totalReferees: 5,
+      referralPoints: 100,
     };
 
     beforeEach(() => {
@@ -1087,12 +1439,15 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
     });
 
-    it('should successfully get referral details', async () => {
-      const result = await service.getReferralDetails(mockSubscriptionId);
+    it('gets referral details for a season', async () => {
+      const result = await service.getReferralDetails(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/subscriptions/referral-details',
+        `https://api.rewards.test/seasons/${mockSeasonId}/referral-details`,
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -1105,8 +1460,8 @@ describe('RewardsDataService', () => {
       );
     });
 
-    it('should include subscription ID in token retrieval', async () => {
-      await service.getReferralDetails(mockSubscriptionId);
+    it('includes subscription ID in token retrieval', async () => {
+      await service.getReferralDetails(mockSeasonId, mockSubscriptionId);
 
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1120,7 +1475,7 @@ describe('RewardsDataService', () => {
       );
     });
 
-    it('should throw error when response is not ok', async () => {
+    it('throws error when response is not ok', async () => {
       const mockResponse = {
         ok: false,
         status: 404,
@@ -1128,27 +1483,30 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
-        service.getReferralDetails(mockSubscriptionId),
+        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
       ).rejects.toThrow('Get referral details failed: 404');
     });
 
-    it('should throw error when fetch fails', async () => {
+    it('throws error when fetch fails', async () => {
       const fetchError = new Error('Network error');
       mockFetch.mockRejectedValue(fetchError);
 
       await expect(
-        service.getReferralDetails(mockSubscriptionId),
+        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
       ).rejects.toThrow('Network error');
     });
 
-    it('should handle missing subscription token gracefully', async () => {
+    it('handles missing subscription token gracefully', async () => {
       // Mock token retrieval failure
       mockGetSubscriptionToken.mockResolvedValue({
         success: false,
         token: undefined,
       });
 
-      const result = await service.getReferralDetails(mockSubscriptionId);
+      const result = await service.getReferralDetails(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1161,11 +1519,14 @@ describe('RewardsDataService', () => {
       );
     });
 
-    it('should handle subscription token retrieval error', async () => {
+    it('handles subscription token retrieval error', async () => {
       // Mock token retrieval throwing an error
       mockGetSubscriptionToken.mockRejectedValue(new Error('Token error'));
 
-      const result = await service.getReferralDetails(mockSubscriptionId);
+      const result = await service.getReferralDetails(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1178,7 +1539,7 @@ describe('RewardsDataService', () => {
       );
     });
 
-    it('should handle timeout correctly', async () => {
+    it('handles timeout correctly', async () => {
       // Mock fetch that never resolves (simulate timeout)
       mockFetch.mockImplementation(
         () =>
@@ -1188,7 +1549,7 @@ describe('RewardsDataService', () => {
       );
 
       await expect(
-        service.getReferralDetails(mockSubscriptionId),
+        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
       ).rejects.toThrow('AbortError');
     });
   });
@@ -1484,6 +1845,71 @@ describe('RewardsDataService', () => {
       }
     });
 
+    it('throws AccountAlreadyRegisteredError when 409 response with already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest
+          .fn()
+          .mockResolvedValue({ message: 'Account is already registered' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileOptin(mockOptinRequest);
+        fail('Expected AccountAlreadyRegisteredError to be thrown');
+      } catch (error) {
+        expect((error as AccountAlreadyRegisteredError).name).toBe(
+          'AccountAlreadyRegisteredError',
+        );
+        expect((error as AccountAlreadyRegisteredError).message).toBe(
+          'Account is already registered',
+        );
+      }
+    });
+
+    it('throws AccountAlreadyRegisteredError when 409 response with uppercase already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest.fn().mockResolvedValue({
+          message: 'User is ALREADY REGISTERED with this account',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileOptin(mockOptinRequest);
+        fail('Expected AccountAlreadyRegisteredError to be thrown');
+      } catch (error) {
+        expect((error as AccountAlreadyRegisteredError).name).toBe(
+          'AccountAlreadyRegisteredError',
+        );
+        expect((error as AccountAlreadyRegisteredError).message).toBe(
+          'User is ALREADY REGISTERED with this account',
+        );
+      }
+    });
+
+    it('throws generic error when 409 response without already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest.fn().mockResolvedValue({ message: 'Conflict error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      await expect(service.mobileOptin(mockOptinRequest)).rejects.toThrow(
+        'Optin failed: 409',
+      );
+    });
+
     it('should handle network errors during optin', async () => {
       // Arrange
       mockFetch.mockRejectedValue(new Error('Network error'));
@@ -1608,7 +2034,7 @@ describe('RewardsDataService', () => {
       jest.clearAllMocks();
     });
 
-    it('should successfully fetch geolocation in DEV environment', async () => {
+    it('should successfully fetch geolocation using PROD URL', async () => {
       // Arrange
       const mockLocation = 'US';
       const mockResponse = {
@@ -1616,9 +2042,6 @@ describe('RewardsDataService', () => {
         text: jest.fn().mockResolvedValue(mockLocation),
       };
 
-      // Mock AppConstants to use DEV environment
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (AppConstants as any).IS_DEV = true;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
@@ -1628,21 +2051,18 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toBe(mockLocation);
       expect(mockSuccessfulFetch).toHaveBeenCalledWith(
-        'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+        'https://on-ramp.api.cx.metamask.io/geolocation',
       );
     });
 
-    it('should successfully fetch geolocation in PROD environment', async () => {
+    it('should always use PROD geolocation URL regardless of environment', async () => {
       // Arrange
-      const mockLocation = 'US';
+      const mockLocation = 'UK';
       const mockResponse = {
         ok: true,
         text: jest.fn().mockResolvedValue(mockLocation),
       };
 
-      // Mock AppConstants to use PROD environment
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (AppConstants as any).IS_DEV = false;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
@@ -1651,6 +2071,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(result).toBe(mockLocation);
+      // Always uses PROD URL, not DEV
       expect(mockSuccessfulFetch).toHaveBeenCalledWith(
         'https://on-ramp.api.cx.metamask.io/geolocation',
       );

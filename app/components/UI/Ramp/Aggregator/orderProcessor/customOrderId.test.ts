@@ -87,7 +87,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
@@ -125,7 +125,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
@@ -143,7 +143,7 @@ describe('CustomOrderId processor', () => {
             .mockResolvedValue({ status: OrderStatusEnum.Pending }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     jest.spyOn(Date, 'now').mockImplementation(() => 1000);
@@ -173,7 +173,7 @@ describe('CustomOrderId processor', () => {
             .mockResolvedValue({ status: OrderStatusEnum.Precreated }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     jest.spyOn(Date, 'now').mockImplementation(() => 12345689);
@@ -203,7 +203,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     jest.spyOn(Date, 'now').mockImplementation(() => 1000);
@@ -233,7 +233,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     const now = 123123123;
@@ -268,7 +268,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     const now = 123123123;
@@ -303,7 +303,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     const errorCount = MAX_ERROR_COUNT;
@@ -340,7 +340,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     const errorCount = MAX_ERROR_COUNT;
@@ -377,7 +377,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     const now = 123123123;
@@ -412,7 +412,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     const now = 123123123;
@@ -447,7 +447,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     const now = 123123123;
@@ -483,7 +483,7 @@ describe('CustomOrderId processor', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
 
     const now = 123123123;

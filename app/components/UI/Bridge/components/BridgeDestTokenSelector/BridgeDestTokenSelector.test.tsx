@@ -20,8 +20,6 @@ import {
   ARBITRUM_DISPLAY_NAME,
   AVALANCHE_DISPLAY_NAME,
   BASE_DISPLAY_NAME,
-  BNB_DISPLAY_NAME,
-  OPTIMISM_DISPLAY_NAME,
 } from '../../../../../core/Engine/constants';
 
 const mockNavigate = jest.fn();
@@ -104,7 +102,7 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 describe('getNetworkName', () => {
-  it('returns network name from network configurations when available', () => {
+  it('returns short name from NETWORK_TO_SHORT_NETWORK_NAME_MAP when available', () => {
     const chainId = toHex('1') as Hex;
     const networkConfigurations: Record<
       string,
@@ -121,8 +119,9 @@ describe('getNetworkName', () => {
       } as MultichainNetworkConfiguration,
     };
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority, returning 'Ethereum'
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Ethereum Mainnet');
+    expect(result).toBe('Ethereum');
   });
 
   it('returns nickname from PopularList when network not in configurations', () => {
@@ -147,15 +146,16 @@ describe('getNetworkName', () => {
     expect(result).toBe(ARBITRUM_DISPLAY_NAME);
   });
 
-  it('returns nickname from PopularList for BNB Smart Chain', () => {
+  it('returns short name from NETWORK_TO_SHORT_NETWORK_NAME_MAP for BNB', () => {
     const chainId = toHex('56') as Hex;
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration
     > = {};
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP returns 'BNB' for this chain
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe(BNB_DISPLAY_NAME);
+    expect(result).toBe('BNB');
   });
 
   it('returns nickname from PopularList for Base', () => {
@@ -169,15 +169,16 @@ describe('getNetworkName', () => {
     expect(result).toBe(BASE_DISPLAY_NAME);
   });
 
-  it('returns nickname from PopularList for OP', () => {
+  it('returns short name from NETWORK_TO_SHORT_NETWORK_NAME_MAP for Optimism', () => {
     const chainId = toHex('10') as Hex;
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration
     > = {};
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP returns 'Optimism' for this chain
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe(OPTIMISM_DISPLAY_NAME);
+    expect(result).toBe('Optimism');
   });
 
   it('returns "Unknown Network" when network not found anywhere', () => {
@@ -191,7 +192,7 @@ describe('getNetworkName', () => {
     expect(result).toBe('Unknown Network');
   });
 
-  it('prioritizes network configurations over PopularList', () => {
+  it('prioritizes NETWORK_TO_SHORT_NETWORK_NAME_MAP over network configurations', () => {
     const chainId = toHex('43114') as Hex; // Avalanche
     const networkConfigurations: Record<
       string,
@@ -208,30 +209,33 @@ describe('getNetworkName', () => {
       } as MultichainNetworkConfiguration,
     };
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority over network configurations
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Custom Avalanche Name');
+    expect(result).toBe('Avalanche');
   });
 
-  it('handles undefined network configurations gracefully', () => {
+  it('returns short name when network configurations is undefined', () => {
     const chainId = toHex('1') as Hex;
     const networkConfigurations = undefined as unknown as Record<
       string,
       MultichainNetworkConfiguration
     >;
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority, returning 'Ethereum'
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Unknown Network');
+    expect(result).toBe('Ethereum');
   });
 
-  it('handles null network configurations gracefully', () => {
+  it('returns short name when network configurations is null', () => {
     const chainId = toHex('1') as Hex;
     const networkConfigurations = null as unknown as Record<
       string,
       MultichainNetworkConfiguration
     >;
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority, returning 'Ethereum'
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Unknown Network');
+    expect(result).toBe('Ethereum');
   });
 
   it('handles empty string chainId', () => {
@@ -245,7 +249,7 @@ describe('getNetworkName', () => {
     expect(result).toBe('Unknown Network');
   });
 
-  it('handles network configuration without name property', () => {
+  it('returns short name when network configuration lacks name property', () => {
     const chainId = toHex('1') as Hex;
     const networkConfigurations = {
       [chainId]: {
@@ -259,8 +263,9 @@ describe('getNetworkName', () => {
       } as unknown as MultichainNetworkConfiguration,
     };
 
+    // NETWORK_TO_SHORT_NETWORK_NAME_MAP takes priority, returning 'Ethereum'
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Unknown Network');
+    expect(result).toBe('Ethereum');
   });
 });
 
@@ -335,7 +340,7 @@ describe('BridgeDestTokenSelector', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('handles info button click correctly, navigates to Asset screen', async () => {
+  it('handles info button click correctly, navigates to Token Insights sheet', async () => {
     const { getAllByTestId, getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
@@ -358,27 +363,23 @@ describe('BridgeDestTokenSelector', () => {
     // Press the info button
     fireEvent.press(infoButton);
 
-    // Verify navigation to Asset screen with the correct token params via dispatch
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'NAVIGATE',
-        payload: expect.objectContaining({
-          name: 'Asset',
-          key: expect.stringMatching(/^Asset-.*-\d+$/), // Should match pattern "Asset-{address}-{chainId}-{timestamp}"
-          params: expect.objectContaining({
-            address: ethToken2Address,
-            balance: '2.0',
-            balanceFiat: '$200000',
-            chainId: '0x1',
-            decimals: 18,
-            image: 'https://token2.com/logo.png',
-            name: 'Hello Token',
-            symbol: 'HELLO',
-            tokenFiatAmount: 200000,
-          }),
+    // Verify navigation to Token Insights sheet with the correct params
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.TOKEN_INSIGHTS,
+      params: expect.objectContaining({
+        token: expect.objectContaining({
+          address: ethToken2Address,
+          balance: '2.0',
+          balanceFiat: '$200000',
+          chainId: '0x1',
+          decimals: 18,
+          name: 'Hello Token',
+          symbol: 'HELLO',
+          tokenFiatAmount: 200000,
         }),
+        networkName: 'Ethereum',
       }),
-    );
+    });
   });
 
   it('handles close button correctly', () => {
@@ -526,7 +527,7 @@ describe('BridgeDestTokenSelector', () => {
           token_name: 'Hello Token',
           token_symbol: 'HELLO',
           token_contract: ethToken2Address,
-          chain_name: 'Ethereum Mainnet',
+          chain_name: 'Ethereum',
           chain_id: '0x1',
         },
       );

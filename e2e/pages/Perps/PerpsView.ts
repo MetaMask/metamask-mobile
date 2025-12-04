@@ -1,11 +1,11 @@
 import {
-  PerpsPositionCardSelectorsIDs,
   PerpsGeneralSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
-  getPerpsTPSLBottomSheetSelector,
+  PerpsMarketDetailsViewSelectorsIDs,
+  getPerpsTPSLViewSelector,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -14,7 +14,9 @@ import Utilities from '../../framework/Utilities';
 
 class PerpsView {
   get closePositionButton() {
-    return Matchers.getElementByID(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON);
+    return Matchers.getElementByID(
+      PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+    );
   }
 
   getPositionItem(
@@ -108,7 +110,7 @@ class PerpsView {
     // TP quick buttons: [10, 25, 50, 100]
     const mapped = [0, 10, 25, 50, 100][percentage] || percentage;
     return Matchers.getElementByID(
-      getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(mapped),
+      getPerpsTPSLViewSelector.takeProfitPercentageButton(mapped),
     );
   }
 
@@ -117,7 +119,7 @@ class PerpsView {
     // SL quick buttons: [5, 10, 25, 50]
     const mapped = [0, 5, 10, 25, 50][percentage] || percentage;
     return Matchers.getElementByID(
-      getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(mapped),
+      getPerpsTPSLViewSelector.stopLossPercentageButton(mapped),
     );
   }
 

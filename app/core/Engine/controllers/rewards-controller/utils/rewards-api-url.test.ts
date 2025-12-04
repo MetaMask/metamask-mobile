@@ -23,9 +23,23 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
     expect(apiUrl).toEqual('https://api.uat');
   });
 
-  it('returns UAT api url for rc or exp env', async () => {
+  it('returns UAT api url for undefined or unknown env', async () => {
     // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc');
+    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv(undefined);
+
+    // Assert
+    expect(apiUrl).toEqual('https://api.uat');
+
+    // Act
+    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('unknown');
+
+    // Assert
+    expect(apiUrl).toEqual('https://api.uat');
+  });
+
+  it('returns UAT api url for e2e or exp env', async () => {
+    // Act
+    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('e2e');
 
     // Assert
     expect(apiUrl).toEqual('https://api.uat');
@@ -37,15 +51,27 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
     expect(apiUrl).toEqual('https://api.uat');
   });
 
-  it('returns PRD api url for beta or production env', async () => {
+  it('returns PRD api url for production, beta, pre-release, or rc env', async () => {
     // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('beta');
+    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('production');
 
     // Assert
     expect(apiUrl).toEqual('https://api.prd');
 
     // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('production');
+    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('beta');
+
+    // Assert
+    expect(apiUrl).toEqual('https://api.prd');
+
+    // Act
+    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('pre-release');
+
+    // Assert
+    expect(apiUrl).toEqual('https://api.prd');
+
+    // Act
+    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc');
 
     // Assert
     expect(apiUrl).toEqual('https://api.prd');

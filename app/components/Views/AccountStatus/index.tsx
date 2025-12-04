@@ -1,12 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
-import {
-  View,
-  Image,
-  ScrollView,
-  Dimensions,
-  SafeAreaView,
-  Platform,
-} from 'react-native';
+import { View, Image, ScrollView, Dimensions, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import Text from '../../../component-library/components/Texts/Text';
@@ -58,6 +52,7 @@ interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
   onboardingTraceCtx?: TraceContext;
+  provider?: string;
 }
 
 const AccountStatus = ({
@@ -72,6 +67,7 @@ const AccountStatus = ({
     ?.oauthLoginSuccess;
   const onboardingTraceCtx = (route.params as AccountRouteParams)
     ?.onboardingTraceCtx;
+  const provider = (route.params as AccountRouteParams)?.provider;
 
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
@@ -134,6 +130,7 @@ const AccountStatus = ({
         [PREVIOUS_SCREEN]: previousScreen,
         oauthLoginSuccess,
         onboardingTraceCtx,
+        provider,
       }),
     );
     track(
@@ -158,7 +155,7 @@ const AccountStatus = ({
   }, []);
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.root}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>

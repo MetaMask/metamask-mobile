@@ -1,7 +1,7 @@
 import { DefiEmptyState } from './DefiEmptyState';
 
 const DefiEmptyStateMeta = {
-  title: 'Components/UI/DefiEmptyState',
+  title: 'Components / UI / DefiEmptyState',
   component: DefiEmptyState,
 };
 

@@ -1,14 +1,17 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getTokenBalancesControllerInitMessenger,
   getTokenBalancesControllerMessenger,
   TokenBalancesControllerInitMessenger,
-  type TokenBalancesControllerMessenger,
 } from '../messengers/token-balances-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { tokenBalancesControllerInit } from './token-balances-controller-init';
-import { TokenBalancesController } from '@metamask/assets-controllers';
+import {
+  TokenBalancesController,
+  TokenBalancesControllerMessenger,
+} from '@metamask/assets-controllers';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/assets-controllers');
 
@@ -18,7 +21,9 @@ function getInitRequestMock(): jest.Mocked<
     TokenBalancesControllerInitMessenger
   >
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
@@ -47,10 +52,11 @@ describe('TokenBalancesControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       state: undefined,
-      interval: 180_000,
+      interval: 30_000,
       allowExternalServices: expect.any(Function),
       queryMultipleAccounts: expect.any(Boolean),
       accountsApiChainIds: expect.any(Function),
+      platform: 'mobile',
     });
   });
 });

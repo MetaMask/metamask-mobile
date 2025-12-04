@@ -1,6 +1,8 @@
 import { ControllerInitFunction } from '../types';
-import { NftController } from '@metamask/assets-controllers';
-import { NftControllerMessenger } from '../messengers/nft-controller-messenger';
+import {
+  NftController,
+  type NftControllerMessenger,
+} from '@metamask/assets-controllers';
 
 /**
  * Initialize the NFT controller.
@@ -17,6 +19,7 @@ export const nftControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: persistedState.NftController,
     useIpfsSubdomains: false,
+    displayNftMedia: persistedState.PreferencesController?.displayNftMedia,
   });
 
   return {

@@ -38,7 +38,7 @@ const useDepositTokenExchange = ({
 
   const currentToken = tokens.find(({ assetId }) => assetId === token?.assetId);
 
-  const rate = currentToken ? rates[currentToken.assetId] ?? null : null;
+  const rate = currentToken ? (rates[currentToken.assetId] ?? null) : null;
 
   let tokenAmount = '0';
 

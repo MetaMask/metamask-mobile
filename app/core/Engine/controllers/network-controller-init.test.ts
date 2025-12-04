@@ -1,10 +1,9 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getNetworkControllerInitMessenger,
   getNetworkControllerMessenger,
   NetworkControllerInitMessenger,
-  type NetworkControllerMessenger,
 } from '../messengers/network-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import {
@@ -15,28 +14,51 @@ import {
 import {
   getDefaultNetworkControllerState,
   NetworkController,
+  NetworkControllerMessenger,
 } from '@metamask/network-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/network-controller');
 
-function getInitRequestMock(): jest.Mocked<
+function getInitRequestMock(
+  baseMessenger: ExtendedMessenger<
+    MockAnyNamespace,
+    never,
+    never
+  > = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  }),
+): jest.Mocked<
   ControllerInitRequest<
     NetworkControllerMessenger,
     NetworkControllerInitMessenger
   >
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
-
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getNetworkControllerMessenger(baseMessenger),
     initMessenger: getNetworkControllerInitMessenger(baseMessenger),
   };
 
+  baseMessenger.registerActionHandler(
+    // @ts-expect-error: Action not allowed.
+    'RemoteFeatureFlagController:getState',
+    jest.fn().mockReturnValue({
+      remoteFeatureFlags: {
+        walletFrameworkRpcFailoverEnabled: true,
+      },
+    }),
+  );
+
   return requestMock;
 }
 
 describe('networkControllerInit', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   jest
     .mocked(getDefaultNetworkControllerState)
     .mockImplementation((additionalNetworks) =>
@@ -62,5 +84,113 @@ describe('networkControllerInit', () => {
       getRpcServiceOptions: expect.any(Function),
       infuraProjectId: 'NON_EMPTY',
     });
+  });
+
+  it('enables RPC failover when initialized with the `walletFrameworkRpcFailoverEnabled` feature flag enabled', () => {
+    const baseMessenger = new ExtendedMessenger<
+      MockAnyNamespace,
+      RemoteFeatureFlagControllerGetStateAction,
+      never
+    >({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+
+    const initRequest = getInitRequestMock(baseMessenger);
+
+    baseMessenger.unregisterActionHandler(
+      'RemoteFeatureFlagController:getState',
+    );
+    baseMessenger.registerActionHandler(
+      'RemoteFeatureFlagController:getState',
+      jest.fn().mockReturnValue({
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: true,
+        },
+      }),
+    );
+
+    networkControllerInit(initRequest);
+
+    const controllerMock = jest.mocked(NetworkController);
+    expect(
+      controllerMock.mock.instances[0].enableRpcFailover,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables RPC failover when initialized with the `walletFrameworkRpcFailoverEnabled` feature flag disabled', () => {
+    const baseMessenger = new ExtendedMessenger<
+      MockAnyNamespace,
+      RemoteFeatureFlagControllerGetStateAction,
+      never
+    >({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+
+    const initRequest = getInitRequestMock(baseMessenger);
+
+    baseMessenger.unregisterActionHandler(
+      'RemoteFeatureFlagController:getState',
+    );
+    baseMessenger.registerActionHandler(
+      'RemoteFeatureFlagController:getState',
+      jest.fn().mockReturnValue({
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: false,
+        },
+      }),
+    );
+
+    networkControllerInit(initRequest);
+
+    const controllerMock = jest.mocked(NetworkController);
+    expect(
+      controllerMock.mock.instances[0].disableRpcFailover,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('enables RPC failover when the `walletFrameworkRpcFailoverEnabled` feature flag is enabled on state change', () => {
+    const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>(
+      {
+        namespace: MOCK_ANY_NAMESPACE,
+      },
+    );
+    const initRequest = getInitRequestMock(baseMessenger);
+    networkControllerInit(initRequest);
+
+    const controllerMock = jest.mocked(NetworkController);
+
+    // @ts-expect-error: Partial mock.
+    baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+      remoteFeatureFlags: {
+        walletFrameworkRpcFailoverEnabled: true,
+      },
+    });
+
+    expect(
+      controllerMock.mock.instances[0].enableRpcFailover,
+    ).toHaveBeenCalledTimes(2);
+  });
+
+  it('disables RPC failover when the `walletFrameworkRpcFailoverEnabled` feature flag is disabled on state change', () => {
+    const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>(
+      {
+        namespace: MOCK_ANY_NAMESPACE,
+      },
+    );
+    const initRequest = getInitRequestMock(baseMessenger);
+    networkControllerInit(initRequest);
+
+    const controllerMock = jest.mocked(NetworkController);
+
+    // @ts-expect-error: Partial mock.
+    baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+      remoteFeatureFlags: {
+        walletFrameworkRpcFailoverEnabled: false,
+      },
+    });
+
+    expect(
+      controllerMock.mock.instances[0].disableRpcFailover,
+    ).toHaveBeenCalledTimes(1);
   });
 });

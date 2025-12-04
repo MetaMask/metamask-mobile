@@ -210,17 +210,19 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
 
     return (
       <View style={styles.absoluteFill} {...props}>
-        <Animated.View style={combinedOverlayStyle}></Animated.View>
+        <TouchableOpacity
+          style={styles.absoluteFill}
+          activeOpacity={1}
+          disabled={!isInteractable}
+          onPress={debouncedHide}
+        >
+          <Animated.View style={combinedOverlayStyle} />
+        </TouchableOpacity>
         <PanGestureHandler
           enabled={isInteractable}
           onGestureEvent={gestureHandler}
         >
           <Animated.View style={[combinedModalStyle, style]}>
-            <TouchableOpacity
-              disabled={!isInteractable}
-              style={styles.absoluteFill}
-              onPress={debouncedHide}
-            />
             {children}
           </Animated.View>
         </PanGestureHandler>

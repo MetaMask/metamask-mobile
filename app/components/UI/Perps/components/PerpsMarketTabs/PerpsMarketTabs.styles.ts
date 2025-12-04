@@ -3,29 +3,21 @@ import type { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
-    // Tab bar styles
-    tabBar: {
-      flexDirection: 'row',
-      backgroundColor: theme.colors.background.default,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
-    },
-    tab: {
+    // Container for TabsList - ensures full width
+    container: {
+      width: '100%', // Explicit width needed for consistent Android layout
       flex: 1,
-      paddingVertical: 16,
-      alignItems: 'center',
-      position: 'relative',
     },
-    activeTabIndicator: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 2,
-      backgroundColor: theme.colors.text.default,
-    },
-    // Tab content styles
+    // Tab content styles (TabsList provides tab bar styling and spacing)
     tabContent: {
+      paddingTop: 16, // Add spacing between tabs and content
+    },
+    // Full-width tab wrapper
+    fullWidthTabWrapper: {
+      flex: 1,
+    },
+    // Navigation panel styles
+    navigationPanel: {
       paddingTop: 16,
     },
     // ... existing styles ...
@@ -37,6 +29,9 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     },
     statisticsTitle: {
       marginBottom: 16,
+    },
+    singleTabContainer: {
+      paddingHorizontal: 16, // Match TabsList px-4 padding for consistent alignment
     },
     statisticsGrid: {
       gap: 12,

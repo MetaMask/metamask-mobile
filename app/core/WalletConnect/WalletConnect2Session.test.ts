@@ -5,6 +5,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
 import { selectEvmChainId } from '../../selectors/networkController';
+import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { Platform, Linking } from 'react-native';
 import Routes from '../../../app/constants/navigation/Routes';
 import Device from '../../util/device';
@@ -187,10 +188,6 @@ jest.mock('../../selectors/util', () => ({
   }),
 }));
 
-jest.mock('../../util/networks', () => ({
-  isPerDappSelectedNetworkEnabled: jest.fn().mockReturnValue(false),
-}));
-
 jest.mock('../../util/networks/global-network', () => ({
   getGlobalNetworkClientId: jest.fn().mockReturnValue('1'),
 }));
@@ -200,12 +197,20 @@ jest.mock('../../actions/sdk', () => ({
 }));
 
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
-  findExistingNetwork: jest.fn().mockImplementation((chainId) => ({
-    chainId,
-    type: 'custom',
-    nickname: 'Test Network',
-    rpcUrl: 'https://test.com',
-  })),
+  findExistingNetwork: jest.fn().mockImplementation((chainId) => {
+    const networkClientId = `network-client-id-${chainId}`;
+
+    return [
+      networkClientId,
+      {
+        chainId,
+        name: 'Test Network',
+        rpcEndpoints: [{ networkClientId, url: 'https://test.com' }],
+        defaultRpcEndpointIndex: 0,
+        nativeCurrency: 'ETH',
+      },
+    ];
+  }),
   switchToNetwork: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -469,7 +474,7 @@ describe('WalletConnect2Session', () => {
     );
 
     // Mock initial chain ID
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -485,7 +490,7 @@ describe('WalletConnect2Session', () => {
     );
 
     // Change the chain ID
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
 
     subscriberCallback();
 
@@ -508,7 +513,7 @@ describe('WalletConnect2Session', () => {
       },
     );
 
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -525,7 +530,7 @@ describe('WalletConnect2Session', () => {
       'handleChainChange',
     );
 
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
 
     subscriberCallback();
 
@@ -547,7 +552,7 @@ describe('WalletConnect2Session', () => {
 
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -562,7 +567,7 @@ describe('WalletConnect2Session', () => {
       .spyOn(session as any, 'handleChainChange')
       .mockRejectedValueOnce(error);
 
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
 
     subscriberCallback();
 
@@ -856,9 +861,6 @@ describe('WalletConnect2Session', () => {
   });
 
   describe('handles wc grpc operations correctly', () => {
-    const {
-      isPerDappSelectedNetworkEnabled: isPerDappSelectedNetworkEnabledMock,
-    } = jest.requireMock('../../util/networks');
     const mockedEngine = jest.requireMock('../Engine/Engine');
 
     async function buildCase(
@@ -895,7 +897,7 @@ describe('WalletConnect2Session', () => {
       await session.handleRequest(request);
     }
 
-    it('handles wallet_switchEthereumChain correctly with isPerDappSelectedNetworkEnabled()', async () => {
+    it('handles wallet_switchEthereumChain correctly', async () => {
       jest.mock('./wc-utils', () => jest.requireActual('./wc-utils'));
 
       const requestId = Math.floor(Math.random() * 1000000);
@@ -923,54 +925,11 @@ describe('WalletConnect2Session', () => {
       );
       const approveRequestSpy = jest.spyOn(session, 'approveRequest');
       handleChainChangeSpy.mockResolvedValue(undefined);
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(true);
 
       await buildCase(request, testChainId, testChainCaip);
       expect(handleChainChangeSpy).toHaveBeenCalledWith(
         parseInt(testChainId, 16),
       );
-      expect(isPerDappSelectedNetworkEnabledMock).toHaveReturnedWith(true);
-      expect(approveRequestSpy).toHaveBeenCalledWith({
-        id: request.id + '',
-        result: true,
-      });
-    });
-
-    it('handles wallet_switchEthereumChain correctly with isPerDappSelectedNetworkEnabled() = false', async () => {
-      jest.mock('./wc-utils', () => jest.requireActual('./wc-utils'));
-
-      const requestId = Math.floor(Math.random() * 1000000);
-      const request: WalletKitTypes.SessionRequest = {
-        id: requestId,
-        topic: mockSession.topic,
-        params: {
-          request: {
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: testChainId }],
-          },
-          chainId: 'eip155:1', // Current chain before switch
-        },
-        verifyContext: {
-          verified: {
-            origin: 'https://example.com',
-            validation: 'UNKNOWN',
-            verifyUrl: '',
-          },
-        },
-      };
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
-      const approveRequestSpy = jest.spyOn(session, 'approveRequest');
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(false);
-      handleChainChangeSpy.mockResolvedValue(undefined);
-
-      await buildCase(request, testChainId, testChainCaip);
-      expect(handleChainChangeSpy).toHaveBeenCalledWith(
-        parseInt(testChainId, 16),
-      );
-      expect(isPerDappSelectedNetworkEnabledMock).toHaveReturnedWith(false);
       expect(approveRequestSpy).toHaveBeenCalledWith({
         id: request.id + '',
         result: true,
@@ -1008,7 +967,6 @@ describe('WalletConnect2Session', () => {
         .spyOn(mockClient, 'respondSessionRequest')
         .mockResolvedValue(undefined);
 
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(false);
       handleChainChangeSpy.mockResolvedValue(undefined);
 
       // Test with an invalid chainId that should cause handleSwitchToChain to throw
@@ -1062,7 +1020,6 @@ describe('WalletConnect2Session', () => {
         session as any,
         'handleChainChange',
       );
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(false);
       handleChainChangeSpy.mockResolvedValue(undefined);
 
       // Test with an invalid chainId that should cause handleSwitchToChain to throw
@@ -1108,7 +1065,6 @@ describe('WalletConnect2Session', () => {
         .spyOn(mockClient, 'respondSessionRequest')
         .mockResolvedValue(undefined);
 
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(false);
       handleChainChangeSpy.mockResolvedValue(undefined);
 
       // Test with an invalid chainId that should cause handleSwitchToChain to throw
@@ -1163,7 +1119,6 @@ describe('WalletConnect2Session', () => {
         .spyOn(session, 'emitEvent')
         .mockResolvedValue(undefined);
 
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(false);
       handleChainChangeSpy.mockResolvedValue(undefined);
       await buildCase(request, testChainId, testChainCaip);
       // Verify that handleSwitchToChain was called
@@ -1214,7 +1169,6 @@ describe('WalletConnect2Session', () => {
         .spyOn(session, 'emitEvent')
         .mockResolvedValue(undefined);
 
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(false);
       handleChainChangeSpy.mockResolvedValue(undefined);
       await buildCase(request, testChainId, testChainCaip);
 
@@ -1226,7 +1180,7 @@ describe('WalletConnect2Session', () => {
       );
     });
 
-    it('handles eth_sendTransaction correctly with valid chainId that it has permissions for isPerDappSelectedNetworkEnabled() = false', async () => {
+    it('handles eth_sendTransaction correctly with valid chainId that it has permissions for', async () => {
       jest.mock('./wc-utils', () => jest.requireActual('./wc-utils'));
       const requestId = Math.floor(Math.random() * 1000000);
       const request: WalletKitTypes.SessionRequest = {
@@ -1266,7 +1220,6 @@ describe('WalletConnect2Session', () => {
         .spyOn(session, 'emitEvent')
         .mockResolvedValue(undefined);
 
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(true);
       handleChainChangeSpy.mockResolvedValue(undefined);
       await buildCase(request, testChainId, testChainCaip);
 
@@ -1339,7 +1292,6 @@ describe('WalletConnect2Session', () => {
         .spyOn(session, 'emitEvent')
         .mockResolvedValue(undefined);
 
-      isPerDappSelectedNetworkEnabledMock.mockReturnValue(false);
       handleChainChangeSpy.mockResolvedValue(undefined);
       await buildCase(request, testChainId, testChainCaip);
 

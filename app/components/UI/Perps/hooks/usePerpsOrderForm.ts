@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import type { OrderFormState } from '../types';
-import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
-import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
+import type { OrderFormState } from '../types/perps-types';
+import { getMaxAllowedAmount } from '../utils/orderCalculations';
 import {
-  findOptimalAmount,
-  getMaxAllowedAmount as getMaxAllowedAmountUtils,
-} from '../utils/orderCalculations';
+  usePerpsLiveAccount,
+  usePerpsLivePositions,
+  usePerpsLivePrices,
+} from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { debounce } from 'lodash';
+import { usePerpsNetwork } from './usePerpsNetwork';
+import {
+  selectTradeConfiguration,
+  selectPendingTradeConfiguration,
+} from '../controllers/selectors';
+import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -34,7 +39,6 @@ export interface UsePerpsOrderFormReturn {
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
-  optimizeOrderAmount: (price: number, szDecimals?: number) => void;
   maxPossibleAmount: number;
 }
 
@@ -55,6 +59,7 @@ export function usePerpsOrderForm(
 
   const currentNetwork = usePerpsNetwork();
   const { account } = usePerpsLiveAccount();
+  const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     symbols: [initialAsset],
     throttleMs: 1000,
@@ -62,8 +67,25 @@ export function usePerpsOrderForm(
   const currentPrice = prices[initialAsset];
   const { marketData } = usePerpsMarketData(initialAsset);
 
+  // Get existing position leverage for this asset (protocol constraint)
+  // Positions load asynchronously via WebSocket, so this may be undefined initially
+  const existingPositionLeverage = useMemo(
+    () => positions.find((p) => p.coin === initialAsset)?.leverage?.value,
+    [positions, initialAsset],
+  );
+
+  // Get saved trade configuration for this asset (user preference for new positions)
+  const savedConfig = usePerpsSelector((state) =>
+    selectTradeConfiguration(state, initialAsset),
+  );
+
+  // Get pending trade configuration for this asset (temporary, expires after 5 minutes)
+  const pendingConfig = usePerpsSelector((state) =>
+    selectPendingTradeConfiguration(state, initialAsset),
+  );
+
   // Get available balance from live account data
-  const availableBalance = parseFloat(
+  const availableBalance = Number.parseFloat(
     account?.availableBalance?.toString() || '0',
   );
 
@@ -73,38 +95,49 @@ export function usePerpsOrderForm(
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
 
-  // Calculate the maximum possible amount based on available balance and leverage
-  const defaultLeverage = initialLeverage || TRADING_DEFAULTS.leverage;
+  // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
+  const defaultLeverage =
+    initialLeverage ||
+    existingPositionLeverage ||
+    pendingConfig?.leverage ||
+    savedConfig?.leverage ||
+    TRADING_DEFAULTS.leverage;
 
+  // Priority for amount: navigation param > pending config > calculated default
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
   const initialAmountValue = useMemo(() => {
+    // If we have a pending config with amount, use it (unless overridden by navigation param)
+    if (initialAmount) {
+      return initialAmount;
+    }
+
+    if (pendingConfig?.amount) {
+      return pendingConfig.amount;
+    }
+
     // Don't calculate if price is not available yet to avoid temporary 0 values
     if (!currentPrice?.price) {
       return defaultAmount.toString();
     }
 
-    const tempMaxAmount = getMaxAllowedAmountUtils({
+    const tempMaxAmount = getMaxAllowedAmount({
       availableBalance,
-      assetPrice: parseFloat(currentPrice.price),
-      assetSzDecimals:
-        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+      assetPrice: Number.parseFloat(currentPrice.price),
+      assetSzDecimals: marketData?.szDecimals ?? 6,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
-    return findOptimalAmount({
-      targetAmount:
-        initialAmount ||
-        (tempMaxAmount < defaultAmount
-          ? tempMaxAmount.toString()
-          : defaultAmount.toString()),
-      price: parseFloat(currentPrice.price),
-      szDecimals:
-        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
-      maxAllowedAmount: tempMaxAmount,
-      minAllowedAmount: defaultAmount,
-    });
+    // Return the target amount directly (USD as source of truth, no optimization)
+    // Use conservative default ($10) unless explicitly provided via navigation param
+    const targetAmount =
+      tempMaxAmount < defaultAmount
+        ? tempMaxAmount.toString()
+        : defaultAmount.toString();
+
+    return targetAmount;
   }, [
     initialAmount,
+    pendingConfig?.amount,
     availableBalance,
     defaultAmount,
     currentPrice?.price,
@@ -112,83 +145,45 @@ export function usePerpsOrderForm(
     defaultLeverage,
   ]);
 
+  // Priority for order type: pending config > navigation param > default (market)
+  const defaultOrderType = pendingConfig?.orderType || initialType || 'market';
+
   // Calculate initial balance percentage
   const initialMarginRequired =
-    parseFloat(initialAmountValue) / defaultLeverage;
+    Number.parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
     availableBalance > 0
       ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
       : TRADING_DEFAULTS.marginPercent;
 
-  // Initialize form state
+  // Initialize form state with pending config if available
   const [orderForm, setOrderForm] = useState<OrderFormState>({
     asset: initialAsset,
     direction: initialDirection,
     amount: initialAmountValue, // Will be updated by useEffect when initialAmountValue is calculated
     leverage: defaultLeverage,
     balancePercent: Math.round(initialBalancePercent * 100) / 100,
-    takeProfitPrice: undefined,
-    stopLossPrice: undefined,
-    limitPrice: undefined,
-    type: initialType,
+    takeProfitPrice: pendingConfig?.takeProfitPrice,
+    stopLossPrice: pendingConfig?.stopLossPrice,
+    limitPrice: pendingConfig?.limitPrice,
+    type: defaultOrderType,
   });
 
   // Calculate the maximum possible amount based on available balance and current leverage
-  const maxPossibleAmount = useMemo(() => getMaxAllowedAmountUtils({
+  const maxPossibleAmount = useMemo(
+    () =>
+      getMaxAllowedAmount({
+        availableBalance,
+        assetPrice: Number.parseFloat(currentPrice?.price) || 0,
+        assetSzDecimals: marketData?.szDecimals ?? 6,
+        leverage: orderForm.leverage, // Use current leverage instead of default
+      }),
+    [
       availableBalance,
-      assetPrice: parseFloat(currentPrice?.price) || 0,
-      assetSzDecimals:
-        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
-      leverage: orderForm.leverage, // Use current leverage instead of default
-    }), [
-    availableBalance,
-    currentPrice?.price,
-    marketData?.szDecimals,
-    orderForm.leverage, // Include current leverage in dependencies
-  ]);
-
-  // Optimize order amount to get the optimal USD value for the position size
-  const optimizeOrderAmount = useMemo(() => {
-    const optimizeFunction = (price: number, szDecimals?: number) => {
-      setOrderForm((prev) => {
-        if (!prev.amount || parseFloat(prev.amount) === 0) {
-          return prev;
-        }
-
-        const optimizedAmount = findOptimalAmount({
-          targetAmount: prev.amount,
-          price,
-          szDecimals,
-          maxAllowedAmount: maxPossibleAmount,
-          minAllowedAmount: defaultAmount,
-        });
-
-        const optimizedAmountNum = parseFloat(optimizedAmount);
-
-        // Only update if the optimized amount is different
-        if (
-          optimizedAmount !== prev.amount &&
-          optimizedAmountNum <= maxPossibleAmount
-        ) {
-          return {
-            ...prev,
-            amount: optimizedAmount,
-          };
-        }
-
-        return prev;
-      });
-    };
-
-    return debounce(optimizeFunction, 100);
-  }, [maxPossibleAmount, defaultAmount]);
-
-  // Cleanup debounced function on unmount
-  useEffect(
-    () => () => {
-      optimizeOrderAmount.cancel();
-    },
-    [optimizeOrderAmount],
+      currentPrice?.price,
+      marketData?.szDecimals,
+      orderForm.leverage, // Include current leverage in dependencies
+    ],
   );
 
   // Update amount only once when the hook first calculates the initial value
@@ -200,6 +195,49 @@ export function usePerpsOrderForm(
       hasSetInitialAmount.current = true;
     }
   }, [initialAmountValue]);
+
+  // Restore pending config values on mount (only once)
+  const hasRestoredPendingConfig = useRef(false);
+  useEffect(() => {
+    if (!hasRestoredPendingConfig.current && pendingConfig) {
+      setOrderForm((prev) => ({
+        ...prev,
+        ...(pendingConfig.amount && { amount: pendingConfig.amount }),
+        ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
+        ...(pendingConfig.takeProfitPrice !== undefined && {
+          takeProfitPrice: pendingConfig.takeProfitPrice,
+        }),
+        ...(pendingConfig.stopLossPrice !== undefined && {
+          stopLossPrice: pendingConfig.stopLossPrice,
+        }),
+        ...(pendingConfig.limitPrice !== undefined && {
+          limitPrice: pendingConfig.limitPrice,
+        }),
+        ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
+      }));
+      hasRestoredPendingConfig.current = true;
+    }
+  }, [pendingConfig]);
+
+  // Sync leverage from existing position when it loads asynchronously
+  // This handles the case where positions haven't loaded yet when form initializes
+  const hasSyncedLeverage = useRef(false);
+  useEffect(() => {
+    // Only update if:
+    // 1. Haven't synced yet (avoid fighting with user input)
+    // 2. No explicit initialLeverage was provided (respect navigation params)
+    // 3. existingPositionLeverage loaded (was undefined, now has value)
+    // 4. Current leverage would cause protocol violation (< existing)
+    if (
+      !hasSyncedLeverage.current &&
+      !initialLeverage &&
+      existingPositionLeverage &&
+      orderForm.leverage < existingPositionLeverage
+    ) {
+      setOrderForm((prev) => ({ ...prev, leverage: existingPositionLeverage }));
+      hasSyncedLeverage.current = true;
+    }
+  }, [existingPositionLeverage, initialLeverage, orderForm.leverage]);
 
   // Update entire form
   const updateOrderForm = (updates: Partial<OrderFormState>) => {
@@ -302,7 +340,6 @@ export function usePerpsOrderForm(
     handlePercentageAmount,
     handleMaxAmount,
     handleMinAmount,
-    optimizeOrderAmount,
     maxPossibleAmount,
   };
 }

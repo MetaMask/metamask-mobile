@@ -169,9 +169,15 @@ jest.mock('@metamask/design-system-react-native', () => {
       Lg: 'lg',
     },
     IconName: {
-      QrCode: 'qr-code',
+      Details: 'details',
       Check: 'check',
       Add: 'add',
+      Minus: 'minus',
+    },
+    TextColor: {
+      TextAlternative: 'textAlternative',
+      TextDefault: 'textDefault',
+      TextMuted: 'textMuted',
     },
   };
 });
@@ -254,7 +260,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     __esModule: true,
     default: MockIcon,
     IconName: {
-      QrCode: 'qr-code',
+      Details: 'details',
       Check: 'check',
       Add: 'add',
     },
@@ -325,21 +331,10 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => ({
 }));
 
 // Mock selectors
+const mockSelectIconSeedAddressByAccountGroupId = jest.fn();
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectIconSeedAddressByAccountGroupId: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/assets/balances', () => ({
-  selectBalanceByAccountGroup: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/preferencesController', () => ({
-  selectPrivacyMode: jest.fn(),
-}));
-
-// Mock utility functions
-jest.mock('../../../../../util/assets', () => ({
-  formatWithThreshold: jest.fn((value: number) => `$${value.toFixed(2)}`),
+  selectIconSeedAddressByAccountGroupId: (groupId: string) =>
+    mockSelectIconSeedAddressByAccountGroupId(groupId),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -353,6 +348,7 @@ const mockUseLinkAccountGroup = useLinkAccountGroup as jest.MockedFunction<
 describe('RewardSettingsAccountGroup', () => {
   const mockNavigate = jest.fn();
   const mockLinkAccountGroup = jest.fn();
+  const mockEvmAddress = '0x1234567890123456789012345678901234567890';
 
   const mockAccountGroup: AccountGroupWithOptInStatus = {
     id: 'keyring:wallet-1/ethereum',
@@ -410,6 +406,11 @@ describe('RewardSettingsAccountGroup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Mock selectIconSeedAddressByAccountGroupId to return a selector function
+    mockSelectIconSeedAddressByAccountGroupId.mockReturnValue(
+      () => mockEvmAddress,
+    );
+
     // Mock useNavigation
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -430,28 +431,14 @@ describe('RewardSettingsAccountGroup', () => {
       isError: false,
     });
 
-    // Mock useSelector calls
+    // Mock useSelector to execute the selector function
     mockUseSelector.mockImplementation((selector) => {
-      // Mock selectIconSeedAddressByAccountGroupId
-      if (
-        selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-      ) {
-        return '0x1234567890123456789012345678901234567890';
+      // The selector is a function that takes state and returns a value
+      // In the component, it calls selectIconSeedAddressByAccountGroupId(accountGroup.id)
+      // which returns a selector function, then calls that with state
+      if (typeof selector === 'function') {
+        return selector({} as never);
       }
-
-      // Mock selectBalanceByAccountGroup
-      if (selector.toString().includes('selectBalanceByAccountGroup')) {
-        return {
-          totalBalanceInUserCurrency: 100.5,
-          userCurrency: 'usd',
-        };
-      }
-
-      // Mock selectPrivacyMode
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
-      }
-
       return null;
     });
   });
@@ -496,7 +483,7 @@ describe('RewardSettingsAccountGroup', () => {
       ).toBeOnTheScreen();
     });
 
-    it('should render account group balance when available', () => {
+    it('should render tracked accounts count', () => {
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
@@ -505,7 +492,7 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       expect(
-        getByTestId(`rewards-account-group-balance-${mockAccountGroup.id}`),
+        getByTestId(`rewards-account-group-tracked-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
     });
 
@@ -546,7 +533,27 @@ describe('RewardSettingsAccountGroup', () => {
       expect(getByTestId('icon-check')).toBeOnTheScreen();
     });
 
-    it('should show add icon when there are opted out accounts', () => {
+    it('should show add icon when there are only opted out accounts', () => {
+      const itemWithOnlyOptedOut: RewardSettingsAccountGroupListFlatListItem = {
+        type: 'accountGroup',
+        accountGroup: {
+          ...mockAccountGroup,
+          optedInAccounts: [],
+          optedOutAccounts: mockAccountGroup.optedOutAccounts,
+        },
+      };
+
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={itemWithOnlyOptedOut}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      expect(getByTestId('icon-add')).toBeOnTheScreen();
+    });
+
+    it('should show add icon when there are both opted in and opted out accounts', () => {
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
@@ -611,7 +618,7 @@ describe('RewardSettingsAccountGroup', () => {
       expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroup.id);
     });
 
-    it('should navigate to modal when QR button is pressed', () => {
+    it('navigates to modal when addresses button is pressed', () => {
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
@@ -619,10 +626,10 @@ describe('RewardSettingsAccountGroup', () => {
         />,
       );
 
-      const qrButton = getByTestId(
+      const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      fireEvent.press(qrButton);
+      fireEvent.press(addressesButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'RewardOptInAccountGroupModal',
@@ -646,7 +653,7 @@ describe('RewardSettingsAccountGroup', () => {
       );
     });
 
-    it('should navigate to modal with unsupported accounts included in addressData', () => {
+    it('navigates to modal with unsupported accounts included in addressData', () => {
       const itemWithUnsupported: RewardSettingsAccountGroupListFlatListItem = {
         type: 'accountGroup',
         accountGroup: {
@@ -681,10 +688,10 @@ describe('RewardSettingsAccountGroup', () => {
         />,
       );
 
-      const qrButton = getByTestId(
+      const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      fireEvent.press(qrButton);
+      fireEvent.press(addressesButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'RewardOptInAccountGroupModal',
@@ -781,82 +788,10 @@ describe('RewardSettingsAccountGroup', () => {
       ).toBeNull();
     });
 
-    it('should not render balance when balance data is unavailable', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectBalanceByAccountGroup')) {
-          return null;
-        }
-        if (
-          selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-        ) {
-          return '0x1234567890123456789012345678901234567890';
-        }
-        if (selector.toString().includes('selectPrivacyMode')) {
-          return false;
-        }
-        return null;
-      });
-
-      const { queryByTestId } = render(
-        <RewardSettingsAccountGroup
-          item={mockItem}
-          avatarAccountType={AvatarAccountType.Maskicon}
-        />,
-      );
-
-      expect(
-        queryByTestId(`rewards-account-group-balance-${mockAccountGroup.id}`),
-      ).toBeNull();
-    });
-
-    it('should not render balance when totalBalanceInUserCurrency is zero', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectBalanceByAccountGroup')) {
-          return {
-            totalBalanceInUserCurrency: 0,
-            userCurrency: 'usd',
-          };
-        }
-        if (
-          selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-        ) {
-          return '0x1234567890123456789012345678901234567890';
-        }
-        if (selector.toString().includes('selectPrivacyMode')) {
-          return false;
-        }
-        return null;
-      });
-
-      const { queryByTestId } = render(
-        <RewardSettingsAccountGroup
-          item={mockItem}
-          avatarAccountType={AvatarAccountType.Maskicon}
-        />,
-      );
-
-      expect(
-        queryByTestId(`rewards-account-group-balance-${mockAccountGroup.id}`),
-      ).toBeNull();
-    });
-
     it('should use fallback address when evmAddress is undefined', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (
-          selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-        ) {
-          return undefined;
-        }
-        if (selector.toString().includes('selectBalanceByAccountGroup')) {
-          return {
-            totalBalanceInUserCurrency: 100.5,
-            userCurrency: 'usd',
-          };
-        }
-        if (selector.toString().includes('selectPrivacyMode')) {
-          return false;
-        }
-        return null;
+      // Mock selector to throw an error (simulating no accounts found)
+      mockSelectIconSeedAddressByAccountGroupId.mockReturnValue(() => {
+        throw new Error('No accounts found');
       });
 
       const { getByTestId } = render(
@@ -872,24 +807,11 @@ describe('RewardSettingsAccountGroup', () => {
       ).toBeOnTheScreen();
     });
 
-    it('should hide balance when privacy mode is enabled', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectBalanceByAccountGroup')) {
-          return {
-            totalBalanceInUserCurrency: 100.5,
-            userCurrency: 'usd',
-          };
-        }
-        if (
-          selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-        ) {
-          return '0x1234567890123456789012345678901234567890';
-        }
-        if (selector.toString().includes('selectPrivacyMode')) {
-          return true;
-        }
-        return null;
-      });
+    it('should use fallback address when selector returns undefined', () => {
+      // Mock selector to return undefined
+      mockSelectIconSeedAddressByAccountGroupId.mockReturnValue(
+        () => undefined,
+      );
 
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
@@ -898,11 +820,44 @@ describe('RewardSettingsAccountGroup', () => {
         />,
       );
 
-      // Balance should render but be hidden
-      const balance = getByTestId(
-        `rewards-account-group-balance-${mockAccountGroup.id}`,
+      // Component should still render with fallback address
+      expect(
+        getByTestId(`rewards-account-group-avatar-${mockAccountGroup.id}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('should call selectIconSeedAddressByAccountGroupId with correct account group ID', () => {
+      render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
       );
-      expect(balance).toBeOnTheScreen();
+
+      // Verify the selector factory was called with the correct account group ID
+      expect(mockSelectIconSeedAddressByAccountGroupId).toHaveBeenCalledWith(
+        mockAccountGroup.id,
+      );
+    });
+
+    it('should not call selector when accountGroup.id is undefined', () => {
+      const itemWithoutId: RewardSettingsAccountGroupListFlatListItem = {
+        type: 'accountGroup',
+        accountGroup: {
+          ...mockAccountGroup,
+          id: undefined as never,
+        },
+      };
+
+      render(
+        <RewardSettingsAccountGroup
+          item={itemWithoutId}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      // Verify the selector was not called when accountGroup.id is undefined
+      expect(mockSelectIconSeedAddressByAccountGroupId).not.toHaveBeenCalled();
     });
   });
 
@@ -926,7 +881,7 @@ describe('RewardSettingsAccountGroup', () => {
         getByTestId(`rewards-account-group-name-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(`rewards-account-group-balance-${mockAccountGroup.id}`),
+        getByTestId(`rewards-account-group-tracked-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
       expect(
         getByTestId(`rewards-account-addresses-${mockAccountGroup.id}`),
@@ -1008,7 +963,7 @@ describe('RewardSettingsAccountGroup', () => {
       ).toBeNull();
     });
 
-    it('should disable QR button when loading', () => {
+    it('disables addresses button when loading', () => {
       // Arrange
       mockUseLinkAccountGroup.mockReturnValue({
         linkAccountGroup: mockLinkAccountGroup,
@@ -1025,10 +980,10 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       // Assert
-      const qrButton = getByTestId(
+      const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      expect(qrButton).toHaveProp('disabled', true);
+      expect(addressesButton).toHaveProp('disabled', true);
     });
   });
 });

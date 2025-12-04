@@ -4,6 +4,9 @@ import {
   PersistedState,
   createMigrate,
 } from 'redux-persist';
+import { ControllerStorage } from '../persistConfig';
+import { captureException } from '@sentry/react-native';
+
 const defaultNodeEnv = process.env.NODE_ENV;
 jest.unmock('redux-persist');
 jest.mock('../../store', () => jest.fn());
@@ -11,6 +14,19 @@ jest.mock('react-native-default-preference', () => ({
   set: jest.fn(),
   clear: jest.fn(),
   getAll: jest.fn().mockReturnValue({}),
+}));
+
+// Mock ControllerStorage
+jest.mock('../persistConfig', () => ({
+  ControllerStorage: {
+    getAllPersistedState: jest.fn(),
+    setItem: jest.fn(),
+  },
+}));
+
+// Mock captureException
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
 // Only test migrations 25 and up
@@ -49,17 +65,15 @@ const asyncMigration = async (state: any) => {
 };
 
 describe('asyncifyMigrations', () => {
-  it('should convert synchronous migrations to asynchronous', async () => {
+  it('converts synchronous migrations to asynchronous', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,
       [numberOfMigrations + 1]: synchronousMigration,
     };
 
-    // Convert all migrations to async
     const asyncMigrations = asyncifyMigrations(testMigrationList);
 
-    // Check that all migrations are Promises
     let isPromiseMigrations = true;
     for (const migrationKey in asyncMigrations) {
       const migratedState = asyncMigrations[migrationKey](initialState);
@@ -71,42 +85,10 @@ describe('asyncifyMigrations', () => {
 
     expect(isPromiseMigrations).toEqual(true);
   });
-
-  it('should only call validation callback after all migrations complete', async () => {
-    const mockValidation = jest.fn();
-    const testMigrationList = {
-      0: synchronousMigration,
-      1: asyncMigration,
-      2: synchronousMigration,
-    };
-
-    // Convert all migrations to async with validation callback
-    const asyncMigrations = asyncifyMigrations(
-      testMigrationList,
-      mockValidation,
-    );
-
-    // Run migrations in sequence and verify validation is only called after the highest migration
-    let state: PersistedState = initialState;
-
-    for (const migrationKey in asyncMigrations) {
-      state = (await asyncMigrations[migrationKey](state)) as PersistedState;
-
-      if (Number(migrationKey) === 2) {
-        // Should be called exactly once after the last migration
-        expect(mockValidation).toHaveBeenCalledTimes(1);
-        expect(mockValidation).toHaveBeenCalledWith(state);
-      } else {
-        // Should not be called for any other migration
-        expect(mockValidation).not.toHaveBeenCalled();
-      }
-    }
-  });
 });
 
 describe('migrations', () => {
   beforeAll(() => {
-    // Used by redux-persist library to function properly
     Object.defineProperty(process.env, 'NODE_ENV', {
       value: 'production',
       writable: true,
@@ -114,8 +96,8 @@ describe('migrations', () => {
       configurable: true,
     });
   });
+
   afterAll(() => {
-    // Reset to default value
     Object.defineProperty(process.env, 'NODE_ENV', {
       value: defaultNodeEnv,
       writable: true,
@@ -124,21 +106,16 @@ describe('migrations', () => {
     });
   });
 
-  it('should migrate successfully when latest migration is synchronous', async () => {
+  it('completes migration when latest migration is synchronous', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: synchronousMigration,
     };
-
-    // Convert all migrations to async
     const asyncifiedMigrations = asyncifyMigrations(
       testMigrationList,
     ) as unknown as MigrationManifest;
 
-    // Perform migration
     const migratedStatePromise = createMigrate(asyncifiedMigrations);
-
-    // Resolve migration
     const migratedState = await migratedStatePromise(
       initialState,
       numberOfMigrations,
@@ -147,21 +124,16 @@ describe('migrations', () => {
     expect((migratedState as Record<string, unknown>).test).toEqual('sync');
   });
 
-  it('should migrate successfully when latest migration is asynchronous', async () => {
+  it('completes migration when latest migration is asynchronous', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,
     };
-
-    // Convert all migrations to async
     const asyncifiedMigrations = asyncifyMigrations(
       testMigrationList,
     ) as unknown as MigrationManifest;
 
-    // Perform migration
     const migratedStatePromise = createMigrate(asyncifiedMigrations);
-
-    // Resolve migration
     const migratedState = await migratedStatePromise(
       initialState,
       numberOfMigrations,
@@ -170,7 +142,7 @@ describe('migrations', () => {
     expect((migratedState as Record<string, unknown>).test).toEqual('async');
   });
 
-  it('should migrate successfully when using both synchronous and asynchronous migrations', async () => {
+  it('completes migration when using both synchronous and asynchronous migrations', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,
@@ -178,21 +150,224 @@ describe('migrations', () => {
       [numberOfMigrations + 2]: asyncMigration,
       [numberOfMigrations + 3]: synchronousMigration,
     };
-
-    // Convert migrations to async
     const asyncifiedMigrations = asyncifyMigrations(testMigrationList);
-
-    // Perform migration
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const migratedStatePromise = createMigrate(asyncifiedMigrations as any);
 
-    // Resolve migration
     const migratedState = await migratedStatePromise(
       initialState,
       numberOfMigrations + 3,
     );
 
     expect((migratedState as Record<string, unknown>).test).toEqual('sync');
+  });
+});
+
+describe('Critical Error Handling', () => {
+  const mockedControllerStorage = jest.mocked(ControllerStorage);
+  const mockedCaptureException = jest.mocked(captureException);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
+    mockedControllerStorage.setItem.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  describe('inflateFromControllers error handling', () => {
+    it('throws critical error when ControllerStorage.getAllPersistedState fails', async () => {
+      const storageError = new Error('Storage access failed');
+      mockedControllerStorage.getAllPersistedState.mockRejectedValue(
+        storageError,
+      );
+      const testMigrationList = {
+        108: (state: unknown) => state,
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      await expect(asyncMigrations['108'](initialState)).rejects.toThrow(
+        'Critical: Failed to load controller data for migration. Cannot continue safely as migrations may corrupt data without complete state. App will restart to attempt recovery. Error: Error: Storage access failed',
+      );
+
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        new Error(
+          'inflateFromControllers: Critical error loading controller data: Error: Storage access failed',
+        ),
+      );
+    });
+
+    it('completes migration when no controllers are found', async () => {
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
+      const testMigrationList = {
+        108: (state: unknown) => ({ ...(state as object), test: 'passed' }),
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      const result = await asyncMigrations['108'](initialState);
+
+      expect((result as Record<string, unknown>).test).toEqual('passed');
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deflateToControllersAndStrip error handling', () => {
+    it('throws critical error when any controller fails to save during deflation', async () => {
+      const stateWithControllers = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            TestController: { test: 'data' },
+            AnotherController: { another: 'data' },
+          },
+        },
+      };
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: {
+          TestController: { test: 'data' },
+          AnotherController: { another: 'data' },
+        },
+      });
+      const saveError = new Error('Disk full');
+      mockedControllerStorage.setItem.mockImplementation((key: string) => {
+        if (key === 'persist:TestController') {
+          return Promise.reject(saveError);
+        }
+        return Promise.resolve();
+      });
+      const testMigrationList = {
+        107: (state: unknown) => state,
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      await expect(
+        asyncMigrations['107'](stateWithControllers),
+      ).rejects.toThrow(
+        "Critical: Migration failed for controller 'TestController'. Cannot continue with partial migration as this would corrupt user data. App will restart to attempt recovery. Error: Error: Disk full",
+      );
+
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        new Error(
+          'deflateToControllersAndStrip: Failed to save TestController to individual storage: Error: Disk full',
+        ),
+      );
+    });
+
+    it('saves all controllers and strips engine slice when deflation completes', async () => {
+      const stateWithControllers = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            TestController: { test: 'data' },
+            AnotherController: { another: 'data' },
+          },
+        },
+      };
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: {
+          TestController: { test: 'data' },
+          AnotherController: { another: 'data' },
+        },
+      });
+      mockedControllerStorage.setItem.mockResolvedValue();
+      const testMigrationList = {
+        107: (state: unknown) => ({ ...(state as object), migrated: true }),
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      const result = (await asyncMigrations['107'](
+        stateWithControllers,
+      )) as Record<string, unknown>;
+
+      expect(result.engine).toBeUndefined();
+      expect(result.migrated).toBe(true);
+      expect(mockedControllerStorage.setItem).toHaveBeenCalledTimes(2);
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    });
+
+    it('throws critical error when deflation fails catastrophically', async () => {
+      const stateWithControllers = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            TestController: { test: 'data' },
+          },
+        },
+      };
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: {
+          TestController: { test: 'data' },
+        },
+      });
+      const catastrophicError = new Error('File system corrupted');
+      mockedControllerStorage.setItem.mockRejectedValue(catastrophicError);
+      const testMigrationList = {
+        107: (state: unknown) => state,
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      await expect(
+        asyncMigrations['107'](stateWithControllers),
+      ).rejects.toThrow(
+        "Critical: Migration failed for controller 'TestController'. Cannot continue with partial migration as this would corrupt user data. App will restart to attempt recovery. Error: Error: File system corrupted",
+      );
+
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        new Error(
+          'deflateToControllersAndStrip: Failed to save TestController to individual storage: Error: File system corrupted',
+        ),
+      );
+    });
+  });
+
+  describe('Migration flow integration', () => {
+    it('skips inflation and deflation for migrations before version 107', async () => {
+      const testMigrationList = {
+        105: (state: unknown) => ({
+          ...(state as object),
+          test: 'migration105',
+        }),
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      const result = await asyncMigrations['105'](initialState);
+
+      expect((result as Record<string, unknown>).test).toEqual('migration105');
+      expect(
+        mockedControllerStorage.getAllPersistedState,
+      ).not.toHaveBeenCalled();
+      expect(mockedControllerStorage.setItem).not.toHaveBeenCalled();
+    });
+
+    it('runs mixed migration versions in sequence with correct inflation timing', async () => {
+      jest.clearAllMocks();
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
+      mockedControllerStorage.setItem.mockResolvedValue();
+      const stateWithoutControllers = {
+        _persist: { version: 0, rehydrated: false },
+      } as PersistedState;
+      const testMigrationList = {
+        106: (state: unknown) => ({ ...(state as object), step106: true }),
+        107: (state: unknown) => ({ ...(state as object), step107: true }),
+        108: (state: unknown) => ({ ...(state as object), step108: true }),
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      let state = stateWithoutControllers;
+      state = (await asyncMigrations['106'](state)) as PersistedState;
+      state = (await asyncMigrations['107'](state)) as PersistedState;
+      const finalState = await asyncMigrations['108'](state);
+
+      expect((finalState as Record<string, unknown>).step106).toBe(true);
+      expect((finalState as Record<string, unknown>).step107).toBe(true);
+      expect((finalState as Record<string, unknown>).step108).toBe(true);
+      expect(
+        mockedControllerStorage.getAllPersistedState,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockedControllerStorage.setItem).not.toHaveBeenCalled();
+    });
   });
 });

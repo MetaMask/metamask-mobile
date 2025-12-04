@@ -67,7 +67,6 @@ export const createTransactionDetailStyles = (theme: Theme) => {
       fontSize: 14,
       fontWeight: '400',
     },
-
     // Section separator
     sectionSeparator: {
       height: 16,
@@ -75,17 +74,19 @@ export const createTransactionDetailStyles = (theme: Theme) => {
       borderBottomWidth: 1,
       borderBottomColor: colors.border.muted,
     },
-
     // Block explorer button
     blockExplorerButton: {
       marginTop: 16,
       marginBottom: 16,
     },
-
     // Status-specific styles
     profitValue: {
       color: colors.success.default,
       fontWeight: '500',
+    },
+    buttonsContainer: {
+      paddingVertical: 20,
+      gap: 16,
     },
   });
 };

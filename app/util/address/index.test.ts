@@ -23,7 +23,10 @@ import {
   getTokenDetails,
   areAddressesEqual,
   toChecksumAddress,
+  renderShortAccountName,
+  validateAddressOrENS,
 } from '.';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
@@ -92,6 +95,8 @@ jest.mock('../../selectors/networkController', () => ({
 jest.mock('../../util/ENSUtils', () => ({
   getCachedENSName: jest.fn().mockReturnValue(''),
   isDefaultAccountName: jest.fn().mockReturnValue(false),
+  doENSLookup: jest.fn().mockResolvedValue(null),
+  doENSReverseLookup: jest.fn().mockResolvedValue(null),
 }));
 
 describe('isENS', () => {
@@ -632,6 +637,24 @@ describe('getTokenDetails,', () => {
   });
 });
 
+describe('renderShortAccountName', () => {
+  it('returns the short account name', () => {
+    expect(renderShortAccountName('Account 12345678')).toBe('Account 12345678');
+  });
+
+  it('returns the short account name with the default number of characters', () => {
+    expect(renderShortAccountName('Account 12345678901234567890')).toBe(
+      'Account 123456789012...',
+    );
+  });
+
+  it('returns the short account name with the specified number of characters', () => {
+    expect(renderShortAccountName('Account 12345678', 13)).toBe(
+      'Account 12345...',
+    );
+  });
+});
+
 describe('areAddressesEqual', () => {
   const ethAddress1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
   const ethAddress1Lower = ethAddress1.toLowerCase();
@@ -717,5 +740,88 @@ describe('areAddressesEqual', () => {
     it('returns false when comparing Solana address with EVM address', () => {
       expect(areAddressesEqual(solanaAddress, ethAddress1)).toBe(false);
     });
+  });
+});
+
+describe('validateAddressOrENS', () => {
+  const mockAddressBook = {};
+  const mockInternalAccounts: InternalAccount[] = [];
+  const chainId = '0x1' as const;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('rejects burn address 0x0000000000000000000000000000000000000000', async () => {
+    const burnAddress = '0x0000000000000000000000000000000000000000';
+    const result = await validateAddressOrENS(
+      burnAddress,
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeDefined();
+    expect(result.addressReady).toBe(false);
+    expect(result.addToAddressToAddressBook).toBe(false);
+  });
+
+  it('rejects burn address 0x000000000000000000000000000000000000dEaD', async () => {
+    const burnAddress = '0x000000000000000000000000000000000000dEaD';
+    const result = await validateAddressOrENS(
+      burnAddress,
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeDefined();
+    expect(result.addressReady).toBe(false);
+    expect(result.addToAddressToAddressBook).toBe(false);
+  });
+
+  it('rejects burn address with different case', async () => {
+    const burnAddress = '0x000000000000000000000000000000000000DEAD';
+    const result = await validateAddressOrENS(
+      burnAddress,
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeDefined();
+    expect(result.addressReady).toBe(false);
+    expect(result.addToAddressToAddressBook).toBe(false);
+  });
+
+  it('rejects ENS that resolves to burn address', async () => {
+    const { doENSLookup } = jest.requireMock('../../util/ENSUtils');
+    const burnAddress = '0x0000000000000000000000000000000000000000';
+    doENSLookup.mockResolvedValueOnce(burnAddress);
+
+    const result = await validateAddressOrENS(
+      'test.eth',
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeDefined();
+    expect(result.addressReady).toBe(false);
+    expect(result.addToAddressToAddressBook).toBe(false);
+    expect(doENSLookup).toHaveBeenCalledWith('test.eth', chainId);
+  });
+
+  it('accepts valid non-burn address', async () => {
+    const validAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+    const result = await validateAddressOrENS(
+      validAddress,
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeFalsy();
+    expect(result.addressReady).toBe(true);
   });
 });

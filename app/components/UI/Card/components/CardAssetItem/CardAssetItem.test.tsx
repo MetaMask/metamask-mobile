@@ -4,11 +4,8 @@ import CardAssetItem from './CardAssetItem';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { TokenI } from '../../../Tokens/types';
-import { AllowanceState, CardTokenAllowance } from '../../types';
-import { ethers } from 'ethers';
 
 // Mock dependencies
-jest.mock('../../hooks/useAssetBalance');
 jest.mock('../../../../../util/networks');
 jest.mock('../../../../../util/networks/customNetworks');
 jest.mock(
@@ -16,21 +13,12 @@ jest.mock(
 );
 jest.mock('../../../../Base/RemoteImage', () => 'RemoteImage');
 
-import { useAssetBalance } from '../../hooks/useAssetBalance';
 import {
   isTestNet,
-  getDefaultNetworkByChainId,
   getTestNetImageByChainId,
 } from '../../../../../util/networks';
 
-const mockUseAssetBalance = useAssetBalance as jest.MockedFunction<
-  typeof useAssetBalance
->;
 const mockIsTestNet = isTestNet as jest.MockedFunction<typeof isTestNet>;
-const mockGetDefaultNetworkByChainId =
-  getDefaultNetworkByChainId as jest.MockedFunction<
-    typeof getDefaultNetworkByChainId
-  >;
 const mockGetTestNetImageByChainId =
   getTestNetImageByChainId as jest.MockedFunction<
     typeof getTestNetImageByChainId
@@ -67,40 +55,20 @@ describe('CardAssetItem Component', () => {
     ticker: 'ETH',
     aggregators: [],
     balance: '1000000000000000000',
+    balanceFiat: '$3,000.00',
     logo: undefined,
     isETH: true,
-  };
-
-  const mockAssetKey: CardTokenAllowance = {
     chainId: '0x1',
-    address: '0x0000000000000000000000000000000000000000',
-    isStaked: false,
-    allowanceState: AllowanceState.NotEnabled,
-    allowance: ethers.BigNumber.from('1000000000000000000'),
-    decimals: 18,
-    symbol: 'ETH',
-    name: 'Ethereum',
-  };
-
-  const mockAssetBalance = {
-    asset: mockAsset,
-    mainBalance: '1.5 ETH',
-    secondaryBalance: '$3,000.00',
-    balanceFiat: '$3,000.00',
-    rawFiatNumber: 3000,
-    rawTokenBalance: 1.5,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAssetBalance.mockReturnValue(mockAssetBalance);
     mockIsTestNet.mockReturnValue(false);
-    mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
   });
 
   it('renders with required props and matches snapshot', () => {
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />
+      <CardAssetItem asset={mockAsset} privacyMode={false} />
     ));
 
     expect(toJSON()).toMatchSnapshot();
@@ -109,7 +77,7 @@ describe('CardAssetItem Component', () => {
   it('renders with all props and matches snapshot', () => {
     const { toJSON } = renderWithProvider(() => (
       <CardAssetItem
-        assetKey={mockAssetKey}
+        asset={mockAsset}
         privacyMode={false}
         onPress={mockOnPress}
       />
@@ -120,37 +88,23 @@ describe('CardAssetItem Component', () => {
 
   it('renders with privacy mode enabled and matches snapshot', () => {
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem
-        assetKey={mockAssetKey}
-        privacyMode
-        onPress={mockOnPress}
-      />
+      <CardAssetItem asset={mockAsset} privacyMode onPress={mockOnPress} />
     ));
 
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders non-native token and matches snapshot', () => {
-    const nonNativeAsset = {
+    const nonNativeAsset: TokenI = {
       ...mockAsset,
       name: 'USD Coin',
       symbol: 'USDC',
       isNative: false,
       address: '0xa0b86a33e6c8e2c3c5b5f7ae5f7c5b5f7ae5f7c5b5f',
     };
-    mockUseAssetBalance.mockReturnValue({
-      ...mockAssetBalance,
-      asset: nonNativeAsset,
-    });
 
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem
-        assetKey={{
-          ...mockAssetKey,
-          address: '0xa0b86a33e6c8e2c3c5b5f7ae5f7c5b5f7ae5f7c5b5f',
-        }}
-        privacyMode={false}
-      />
+      <CardAssetItem asset={nonNativeAsset} privacyMode={false} />
     ));
 
     expect(toJSON()).toMatchSnapshot();
@@ -159,7 +113,7 @@ describe('CardAssetItem Component', () => {
   it('calls onPress when pressed', () => {
     const { getByTestId } = renderWithProvider(() => (
       <CardAssetItem
-        assetKey={mockAssetKey}
+        asset={mockAsset}
         privacyMode={false}
         onPress={mockOnPress}
       />
@@ -173,26 +127,21 @@ describe('CardAssetItem Component', () => {
   });
 
   it('returns null when chainId is missing', () => {
-    const assetKeyWithoutChainId = {
-      ...mockAssetKey,
+    const assetWithoutChainId: TokenI = {
+      ...mockAsset,
       chainId: undefined as string | undefined,
     };
 
     const { toJSON } = render(
-      <CardAssetItem assetKey={assetKeyWithoutChainId} privacyMode={false} />,
+      <CardAssetItem asset={assetWithoutChainId} privacyMode={false} />,
     );
 
     expect(toJSON()).toBeNull();
   });
 
   it('returns null when asset is undefined', () => {
-    mockUseAssetBalance.mockReturnValue({
-      ...mockAssetBalance,
-      asset: undefined,
-    });
-
     const { toJSON } = render(
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />,
+      <CardAssetItem asset={undefined} privacyMode={false} />,
     );
 
     expect(toJSON()).toBeNull();
@@ -205,7 +154,7 @@ describe('CardAssetItem Component', () => {
     });
 
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />
+      <CardAssetItem asset={mockAsset} privacyMode={false} />
     ));
 
     expect(toJSON()).toMatchSnapshot();
@@ -213,26 +162,44 @@ describe('CardAssetItem Component', () => {
 
   it('displays asset name when available', () => {
     const { getByText } = renderWithProvider(() => (
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />
+      <CardAssetItem asset={mockAsset} privacyMode={false} />
     ));
 
-    expect(getByText('Ethereum')).toBeTruthy();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
   });
 
   it('displays asset symbol when name is not available', () => {
-    const assetWithoutName = {
+    const assetWithoutName: TokenI = {
       ...mockAsset,
       name: '',
     };
-    mockUseAssetBalance.mockReturnValue({
-      ...mockAssetBalance,
-      asset: assetWithoutName,
-    });
 
     const { getByText } = renderWithProvider(() => (
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />
+      <CardAssetItem asset={assetWithoutName} privacyMode={false} />
     ));
 
-    expect(getByText('ETH')).toBeTruthy();
+    expect(getByText('ETH')).toBeOnTheScreen();
+  });
+
+  it('uses balanceFormatted when provided', () => {
+    const balanceFormatted = '1.234567 ETH';
+
+    renderWithProvider(() => (
+      <CardAssetItem
+        asset={mockAsset}
+        privacyMode={false}
+        balanceFormatted={balanceFormatted}
+      />
+    ));
+
+    expect(mockAsset.balance).toBe('1000000000000000000');
+  });
+
+  it('falls back to asset balance when balanceFormatted is not provided', () => {
+    renderWithProvider(() => (
+      <CardAssetItem asset={mockAsset} privacyMode={false} />
+    ));
+
+    expect(mockAsset.balance).toBe('1000000000000000000');
   });
 });

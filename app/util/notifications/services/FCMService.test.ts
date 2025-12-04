@@ -236,9 +236,8 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
   it('sets up listeners for push notifications and returns an unsubscribe handler', async () => {
     const { mockHandler, firebaseMocks } = arrangeMocks();
 
-    const result = await FCMService.listenToPushNotificationsReceived(
-      mockHandler,
-    );
+    const result =
+      await FCMService.listenToPushNotificationsReceived(mockHandler);
     expect(result).toBeDefined();
     expect(firebaseMocks.mockOnMessage).toHaveBeenCalled();
   });
@@ -249,9 +248,8 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
       throw new Error('TEST ERROR');
     });
 
-    const result = await FCMService.listenToPushNotificationsReceived(
-      mockHandler,
-    );
+    const result =
+      await FCMService.listenToPushNotificationsReceived(mockHandler);
     expect(result).toBe(null);
   });
 
@@ -315,15 +313,19 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
   });
 });
 
+// Remote message data only contains string entries
+const createMockPlatformMetaData = (deeplink?: string) => ({
+  ...(deeplink && { deeplink }),
+  metadata: JSON.stringify({
+    kind: 'take_profit_executed',
+    position_type: 'short',
+    asset: 'POL',
+  }),
+});
+
 describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  // Remote message data only contains string entries
-  const createTestData = (deeplink?: string) => ({
-    ...(deeplink && { deeplink }),
-    data: JSON.stringify({ data: { kind: 'take_profit_executed' } }),
   });
 
   const assertTrackEventCalledWith = (
@@ -354,7 +356,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
   ): FirebaseMessagingTypes.RemoteMessage =>
     ({
       data,
-    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+    }) as unknown as FirebaseMessagingTypes.RemoteMessage;
 
   const platformTestConfigs = [
     {
@@ -410,7 +412,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
       };
 
       it('returns deeplink when notification has deeplink data', async () => {
-        const testData = createTestData(
+        const testData = createMockPlatformMetaData(
           'https://test.metamask.io/perps-asset?symbol=ETH',
         );
         const { result, mocks } = await arrangeAct(testData);
@@ -419,29 +421,31 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
           deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-          kind: 'take_profit_executed',
-          data: JSON.parse(testData.data),
+          notification_type: 'take_profit_executed',
+          data: JSON.parse(testData.metadata),
         });
       });
 
       it('tracks click event but does not return deeplink when no deeplink present', async () => {
-        const testData = createTestData();
+        const testData = createMockPlatformMetaData();
         const { result, mocks } = await arrangeAct(testData);
 
         expect(result).toBeFalsy();
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
-          kind: 'take_profit_executed',
-          data: JSON.parse(testData.data),
+          notification_type: 'take_profit_executed',
+          data: JSON.parse(testData.metadata),
         });
       });
 
-      it('does not track event or return deeplink when notification is null', async () => {
+      it('tracks click event with no properties provided', async () => {
         const { result, mocks } = await arrangeAct(null);
 
         expect(result).toBeFalsy();
         assertMockInitialNotificationCalled(mocks);
-        expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
+        expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({}), //Called with no additional properties
+        );
       });
     },
   );
@@ -450,11 +454,6 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
 describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  const createTestData = (deeplink?: string) => ({
-    ...(deeplink && { deeplink }),
-    data: JSON.stringify({ data: { kind: 'take_profit_executed' } }),
   });
 
   const assertTrackEventCalledWith = (
@@ -486,7 +485,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
   ): FirebaseMessagingTypes.RemoteMessage =>
     ({
       data,
-    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+    }) as unknown as FirebaseMessagingTypes.RemoteMessage;
 
   const arrangeAct = (
     // Remote Message Data prop only contains string entries
@@ -511,7 +510,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
   };
 
   it('calls deeplink callback with deeplink when notification has deeplink data', () => {
-    const testData = createTestData(
+    const testData = createMockPlatformMetaData(
       'https://test.metamask.io/perps-asset?symbol=ETH',
     );
     const { mocks, deeplinkCallback } = arrangeAct(testData);
@@ -521,19 +520,19 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     );
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-      kind: 'take_profit_executed',
-      data: JSON.parse(testData.data),
+      notification_type: 'take_profit_executed',
+      data: JSON.parse(testData.metadata),
     });
   });
 
   it('calls deeplink callback with undefined when notification has no deeplink', () => {
-    const testData = createTestData();
+    const testData = createMockPlatformMetaData();
     const { mocks, deeplinkCallback } = arrangeAct(testData);
 
     expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
-      kind: 'take_profit_executed',
-      data: JSON.parse(testData.data),
+      notification_type: 'take_profit_executed',
+      data: JSON.parse(testData.metadata),
     });
   });
 
@@ -541,11 +540,13 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     const { mocks, deeplinkCallback } = arrangeAct(null);
 
     expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
-    expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
+    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({}), //Called with no additional properties
+    );
   });
 
   it('handles deeplink callback that throws an error gracefully', () => {
-    const testData = createTestData(
+    const testData = createMockPlatformMetaData(
       'https://test.metamask.io/perps-asset?symbol=ETH',
     );
     expect(() => {
@@ -558,8 +559,8 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       // Assert - Analytics should still be tracked even if callback fails
       assertTrackEventCalledWith(mocks.mockTrackEvent, {
         deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-        kind: 'take_profit_executed',
-        data: JSON.parse(testData.data),
+        notification_type: 'take_profit_executed',
+        data: JSON.parse(testData.metadata),
       });
     }).not.toThrow();
   });

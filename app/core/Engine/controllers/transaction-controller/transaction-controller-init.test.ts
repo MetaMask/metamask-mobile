@@ -1,3 +1,5 @@
+import { NetworkController } from '@metamask/network-controller';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import {
   PublishHook,
   TransactionController,
@@ -7,18 +9,20 @@ import {
   TransactionType,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
-import { NetworkController } from '@metamask/network-controller';
 
+import { toHex } from '@metamask/controller-utils';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { Hex } from '@metamask/utils';
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
+import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import { ControllerInitRequest } from '../../types';
-import { TransactionControllerInit } from './transaction-controller-init';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -26,10 +30,8 @@ import {
   handleTransactionRejectedEventForMetrics,
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
-import { Hex } from '@metamask/utils';
-import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
-import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
-import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import { TransactionControllerInit } from './transaction-controller-init';
+import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
@@ -37,9 +39,9 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
-jest.mock('../../../../util/transactions/hooks/pay-hook');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
 jest.mock('../../../../util/transactions/sentinel-api');
+jest.mock('@metamask/transaction-pay-controller');
 
 jest.mock('../../../../util/transactions', () => ({
   getTransactionById: jest.fn((_id) => ({
@@ -92,8 +94,12 @@ function buildInitRequestMock(
     TransactionControllerInitMessenger
   >
 > {
-  const initMessenger = new ExtendedControllerMessenger();
-  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     initMessenger:
@@ -138,7 +144,7 @@ describe('Transaction Controller Init', () => {
     handleTransactionAddedEventForMetrics,
   );
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
-  const payHookClassMock = jest.mocked(PayHook);
+  const payHookClassMock = jest.mocked(TransactionPayPublishHook);
   const payHookMock: jest.MockedFn<PublishHook> = jest.fn();
 
   /**
@@ -174,7 +180,7 @@ describe('Transaction Controller Init', () => {
 
     payHookClassMock.mockReturnValue({
       getHook: () => payHookMock,
-    } as unknown as PayHook);
+    } as unknown as TransactionPayPublishHook);
 
     payHookMock.mockResolvedValue({
       transactionHash: undefined,
@@ -385,7 +391,7 @@ describe('Transaction Controller Init', () => {
           () =>
             ({
               getHook: () => mockDelegation7702Hook,
-            } as unknown as InstanceType<typeof Delegation7702PublishHook>),
+            }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
         );
       });
 
@@ -400,6 +406,7 @@ describe('Transaction Controller Init', () => {
         expect(Delegation7702PublishHookMock).toHaveBeenCalledWith({
           isAtomicBatchSupported: expect.any(Function),
           messenger: expect.any(Object),
+          getNextNonce: expect.any(Function),
         });
         expect(mockDelegation7702Hook).toHaveBeenCalled();
         expect(result).toEqual({ transactionHash: '0xde702' });
@@ -590,5 +597,97 @@ describe('Transaction Controller Init', () => {
       subscribeCallbacks[event](payload);
       expect(handler).toHaveBeenCalledWith(...expectedArgs);
     });
+  });
+
+  describe('option isEIP7702GasFeeTokensEnabled', () => {
+    it('returns false when feature flag is enabled for current chain', async () => {
+      const mockTransactionMeta = {
+        id: '123',
+        status: 'approved',
+        chainId: '0x1',
+      } as unknown as TransactionMeta;
+      const optionFn = testConstructorOption('isEIP7702GasFeeTokensEnabled');
+
+      expect(await optionFn?.(mockTransactionMeta)).toBe(false);
+    });
+
+    it('returns true if isExternalSign', async () => {
+      const mockTransactionMeta = {
+        id: '123',
+        status: 'approved',
+        chainId: '0x13',
+        isExternalSign: true,
+      } as unknown as TransactionMeta;
+
+      const optionFn = testConstructorOption('isEIP7702GasFeeTokensEnabled');
+
+      expect(await optionFn?.(mockTransactionMeta)).toBe(true);
+    });
+  });
+
+  it('calls getNonceLock and releaseLock via Delegation7702PublishHook getNextNonce', async () => {
+    const releaseLockMock = jest.fn();
+    const getNonceLockMock = jest.fn().mockResolvedValue({
+      nextNonce: 99,
+      releaseLock: releaseLockMock,
+    });
+
+    isSendBundleSupportedMock.mockResolvedValue(false);
+    transactionControllerClassMock.mockImplementation(
+      () =>
+        ({
+          getNonceLock: getNonceLockMock,
+          isAtomicBatchSupported: jest.fn().mockResolvedValue([]),
+        }) as unknown as TransactionController,
+    );
+
+    let capturedGetNextNonce:
+      | ((address: string, networkClientId: string) => Promise<Hex>)
+      | undefined;
+    jest.mocked(Delegation7702PublishHook).mockImplementation((opts) => {
+      capturedGetNextNonce = opts.getNextNonce;
+      return {
+        getHook: () => async () => ({ transactionHash: '0xde702' }),
+      } as unknown as InstanceType<typeof Delegation7702PublishHook>;
+    });
+
+    const hooks = testConstructorOption('hooks', {
+      getNonceLock: getNonceLockMock,
+    });
+
+    await hooks?.publish?.({
+      ...MOCK_TRANSACTION_META,
+      chainId: '0x13',
+    });
+
+    const resultNonce = await capturedGetNextNonce?.('0xabc', 'testNetwork');
+    expect(getNonceLockMock).toHaveBeenCalledWith('0xabc', 'testNetwork');
+    expect(releaseLockMock).toHaveBeenCalled();
+    expect(resultNonce).toBe(toHex(99));
+  });
+
+  it('calls 7702 publish hook if isExternalSign', async () => {
+    const delegation7702Mock: jest.MockedFn<PublishHook> = jest.fn();
+
+    jest.mocked(Delegation7702PublishHook).mockImplementation(
+      () =>
+        ({
+          getHook: () => delegation7702Mock,
+        }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
+    );
+
+    delegation7702Mock.mockResolvedValue({ transactionHash: '0xde702' });
+
+    const hooks = testConstructorOption('hooks');
+
+    const transactionMeta = {
+      ...MOCK_TRANSACTION_META,
+      isExternalSign: true,
+    } as TransactionMeta;
+
+    const result = await hooks?.publish?.(transactionMeta);
+
+    expect(delegation7702Mock).toHaveBeenCalled();
+    expect(result).toEqual({ transactionHash: '0xde702' });
   });
 });

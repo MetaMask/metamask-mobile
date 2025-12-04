@@ -17,6 +17,7 @@ import {
   startAppServices,
   initializeSDKServices,
   handleDeeplinkSaga,
+  handleSnapsRegistry,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
@@ -25,7 +26,7 @@ import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkMana
 import Engine from '../../core/Engine';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import branch from 'react-native-branch';
-import { handleDeeplink } from '../../core/DeeplinkManager/Handlers/handleDeeplink';
+import { handleDeeplink } from '../../core/DeeplinkManager/handleDeeplink';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
@@ -86,6 +87,9 @@ jest.mock('../../core/Engine', () => ({
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValue(false),
     },
+    SnapController: {
+      updateRegistry: jest.fn(),
+    },
   },
 }));
 
@@ -114,7 +118,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../core/DeeplinkManager/Handlers/handleDeeplink', () => ({
+jest.mock('../../core/DeeplinkManager/handleDeeplink', () => ({
   handleDeeplink: jest.fn(),
 }));
 
@@ -141,6 +145,22 @@ jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
     getInstance: jest.fn().mockReturnValue({}),
   },
 }));
+
+const defaultMockState = {
+  onboarding: { completedOnboarding: false },
+  user: { existingUser: true },
+  engine: { backgroundState: {} },
+  confirmation: {},
+  navigation: {},
+  security: {},
+  sdk: {},
+  inpageProvider: {},
+  confirmationMetrics: {},
+  originThrottling: {},
+  notifications: {},
+  bridge: {},
+  banners: {},
+};
 
 describe('authStateMachine', () => {
   beforeEach(() => {
@@ -253,7 +273,7 @@ describe('startAppServices', () => {
     await expectSaga(startAppServices)
       .withState({
         onboarding: { completedOnboarding: false },
-        user: {},
+        user: { existingUser: true },
       })
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
@@ -327,7 +347,7 @@ describe('handleDeeplinkSaga', () => {
       await expectSaga(handleDeeplinkSaga)
         .withState({
           onboarding: { completedOnboarding: false },
-          user: {},
+          user: { existingUser: true },
           engine: { backgroundState: {} },
           confirmation: {},
           navigation: {},
@@ -361,7 +381,7 @@ describe('handleDeeplinkSaga', () => {
         await expectSaga(handleDeeplinkSaga)
           .withState({
             onboarding: { completedOnboarding: false },
-            user: {},
+            user: { existingUser: true },
             engine: { backgroundState: {} },
             confirmation: {},
             navigation: {},
@@ -393,6 +413,9 @@ describe('handleDeeplinkSaga', () => {
 
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
+            .withState({
+              user: { existingUser: true },
+            })
             .dispatch(setCompletedOnboarding(false))
             .silentRun();
 
@@ -416,6 +439,9 @@ describe('handleDeeplinkSaga', () => {
 
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
+            .withState({
+              user: { existingUser: true },
+            })
             .dispatch(setCompletedOnboarding(true))
             .silentRun();
 
@@ -441,7 +467,7 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               onboarding: { completedOnboarding: true },
-              user: {},
+              user: { existingUser: true },
               engine: { backgroundState: {} },
               confirmation: {},
               navigation: {},
@@ -466,6 +492,67 @@ describe('handleDeeplinkSaga', () => {
           ).toHaveBeenCalled();
           expect(WC2Manager.init).toHaveBeenCalledWith({});
           expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+        });
+      });
+    });
+    describe('onboarding deeplink', () => {
+      describe('when existing user is true', () => {
+        it('skip onboarding deeplink handling and continue to normal deeplink flow', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/onboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('when existing user is false', () => {
+        it('handle onboarding deeplink when completed onboarding is false', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/onboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+        });
+
+        it('not handle onboarding deeplink when pathname is not /onboarding', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/invalidonboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });
     });
@@ -512,5 +599,47 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     callback({ uri: mockUri });
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+});
+
+describe('handleSnapsRegistry', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('triggers on login', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: true } })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).toHaveBeenCalled();
+  });
+
+  it('triggers when onboarding has finished', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch(setCompletedOnboarding(true))
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).toHaveBeenCalled();
+  });
+
+  it('does not trigger if onboarding has not been completed', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).not.toHaveBeenCalled();
+  });
+
+  it('does not trigger when onboarding is reset', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch(setCompletedOnboarding(false))
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).not.toHaveBeenCalled();
   });
 });

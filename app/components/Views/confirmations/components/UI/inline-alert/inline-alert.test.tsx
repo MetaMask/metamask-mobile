@@ -43,12 +43,13 @@ const mockAlerts = [
 ];
 
 describe('InlineAlert', () => {
-  const INLINE_ALERT_LABEL = 'Alert';
   const mockShowAlertModal = jest.fn();
   const mockSetAlertKey = jest.fn();
   const mockTrackInlineAlertClicked = jest.fn();
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     const useAlertsBase = {
       alerts: mockAlerts,
       fieldAlerts: mockAlerts,
@@ -62,16 +63,16 @@ describe('InlineAlert', () => {
     });
   });
 
-  const renderComponent = (alertObj: Alert = mockAlerts[0]) =>
-    render(<InlineAlert alertObj={alertObj} />);
+  const renderComponent = (alertObj: Alert = mockAlerts[0], disabled = false) =>
+    render(<InlineAlert alertObj={alertObj} disabled={disabled} />);
 
   it('renders correctly with default props', () => {
-    const { getByTestId, getByText } = renderComponent();
+    const { getByTestId } = renderComponent();
     const inlineAlert = getByTestId('inline-alert');
-    const label = getByText(INLINE_ALERT_LABEL);
+    const icon = getByTestId('inline-alert-icon');
 
     expect(inlineAlert).toBeDefined();
-    expect(label).toBeDefined();
+    expect(icon).toBeDefined();
   });
 
   it('renders with danger severity', () => {
@@ -85,7 +86,7 @@ describe('InlineAlert', () => {
     const { getByTestId } = renderComponent(mockAlerts[1]);
     const icon = getByTestId('inline-alert-icon');
 
-    expect(icon.props.name).toBe(IconName.Danger);
+    expect(icon.props.name).toBe(IconName.Info);
   });
 
   it('renders with info severity', () => {
@@ -116,5 +117,16 @@ describe('InlineAlert', () => {
     expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(
       ALERT_FIELD_DANGER,
     );
+  });
+
+  it('does not call showAlertModal when inline alert is disabled and clicked', () => {
+    const { getByTestId } = renderComponent(mockAlerts[0], true);
+    const inlineAlert = getByTestId('inline-alert');
+
+    fireEvent.press(inlineAlert);
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
   });
 });
