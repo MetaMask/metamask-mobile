@@ -67,6 +67,18 @@ export const test = base.extend<TestLevelFixtures>({
       const testError = testInfo.error?.message;
 
       try {
+        // Sync final test status to provider (e.g., BrowserStack dashboard)
+        // This must happen BEFORE session deletion to ensure reliable status reporting
+        await deviceProvider.syncTestDetails?.({
+          name: testInfo.title,
+          status: testStatus,
+          reason: testError,
+        });
+      } catch (error) {
+        console.error('Failed to sync test details:', error);
+      }
+
+      try {
         // Close WebDriver session
         if (driver) {
           await driver.deleteSession();
@@ -87,17 +99,6 @@ export const test = base.extend<TestLevelFixtures>({
         await deviceProvider.cleanup?.();
       } catch (error) {
         console.error('Provider cleanup failed:', error);
-      }
-
-      try {
-        // Sync final test status to provider (e.g., BrowserStack dashboard)
-        await deviceProvider.syncTestDetails?.({
-          name: testInfo.title,
-          status: testStatus,
-          reason: testError,
-        });
-      } catch (error) {
-        console.error('Failed to sync test details:', error);
       }
     }
   },
