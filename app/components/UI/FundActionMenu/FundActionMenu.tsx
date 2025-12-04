@@ -214,7 +214,7 @@ const FundActionMenu = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <Box twClassName="pt-4 pb-4">
+      <Box twClassName="py-4">
         {actionConfigs.map(
           (config) =>
             config.isVisible && (
