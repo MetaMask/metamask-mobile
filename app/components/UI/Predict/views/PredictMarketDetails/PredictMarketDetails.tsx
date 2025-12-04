@@ -114,7 +114,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketDetails'>>();
   const tw = useTailwind();
   const [selectedTimeframe, setSelectedTimeframe] =
-    useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
+    useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.MAX);
   const [maxIntervalAdaptiveFidelity, setMaxIntervalAdaptiveFidelity] =
     useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<number | null>(null);
