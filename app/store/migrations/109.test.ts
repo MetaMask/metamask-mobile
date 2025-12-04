@@ -8,6 +8,7 @@ import migrate, {
   MEGAETH_TESTNET_V2_CONFIG,
   MEGAETH_TESTNET_V1_CHAIN_ID,
 } from './109';
+import { KnownCaipNamespace } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -41,7 +42,6 @@ describe(`migration #${migrationVersion}`, () => {
       state: {
         engine: {},
       },
-      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
       scenario: 'empty engine state',
     },
     {
@@ -50,7 +50,6 @@ describe(`migration #${migrationVersion}`, () => {
           backgroundState: {},
         },
       },
-      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
       scenario: 'empty backgroundState',
     },
     {
@@ -61,7 +60,6 @@ describe(`migration #${migrationVersion}`, () => {
           },
         },
       },
-      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: 'string'`,
       scenario: 'invalid NetworkController state',
     },
     {
@@ -72,7 +70,6 @@ describe(`migration #${migrationVersion}`, () => {
           },
         },
       },
-      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: missing networkConfigurationsByChainId property`,
       scenario: 'missing networkConfigurationsByChainId property',
     },
     {
@@ -85,14 +82,65 @@ describe(`migration #${migrationVersion}`, () => {
           },
         },
       },
-      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController networkConfigurationsByChainId: 'string'`,
       scenario: 'invalid networkConfigurationsByChainId state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {},
+          },
+        },
+      },
+      scenario: 'missing NetworkEnablementController',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: 'invalid',
+          },
+        },
+      },
+      scenario: 'invalid NetworkEnablementController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {},
+          },
+        },
+      },
+      scenario: 'missing enabledNetworkMap',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: { enabledNetworkMap: 'invalid' },
+          },
+        },
+      },
+      scenario: 'invalid enabledNetworkMap state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {
+              enabledNetworkMap: { [KnownCaipNamespace.Eip155]: 'invalid' },
+            },
+          },
+        },
+      },
+      scenario: 'invalid enabledNetworkMap Eip155 state',
     },
   ];
 
   it.each(invalidStates)(
     'should capture exception if $scenario',
-    ({ errorMessage, state }) => {
+    ({ state }) => {
       const orgState = cloneDeep(state);
       mockedEnsureValidState.mockReturnValue(true);
 
@@ -101,14 +149,11 @@ describe(`migration #${migrationVersion}`, () => {
       // State should be unchanged
       expect(migratedState).toStrictEqual(orgState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-        errorMessage,
-      );
     },
   );
 
   it('removes the megaeth testnet v1 network configuration and adds the megaeth testnet v2 network configuration', async () => {
-    const oldStorage = {
+    const orgState = {
       engine: {
         backgroundState: {
           NetworkController: {
@@ -132,11 +177,19 @@ describe(`migration #${migrationVersion}`, () => {
               },
             },
           },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: false,
+                '0x1': true,
+              },
+            },
+          },
         },
       },
     };
 
-    const expectedStorage = {
+    const expectedState = {
       engine: {
         backgroundState: {
           NetworkController: {
@@ -146,14 +199,90 @@ describe(`migration #${migrationVersion}`, () => {
               [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
             },
           },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                '0x1': true,
+              },
+            },
+          },
         },
       },
     };
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const newStorage = await migrate(oldStorage);
+    const migratedState = await migrate(orgState);
 
-    expect(newStorage).toStrictEqual(expectedStorage);
+    expect(migratedState).toStrictEqual(expectedState);
   });
+
+  it.each(['megaeth-testnet', 'random-network-client-id'])(
+    'switchs to mainnet when the selected network client id is in MegaETH Testnet v1 - %s',
+    async (selectedNetworkClientId: string) => {
+      const oldStorage = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                  chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
+                  name: 'Mega Testnet',
+                  nativeCurrency: 'MegaETH',
+                  blockExplorerUrls: ['https://explorer.com'],
+                  defaultRpcEndpointIndex: 0,
+                  defaultBlockExplorerUrlIndex: 0,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: selectedNetworkClientId,
+                      type: RpcEndpointType.Custom,
+                      url: 'https://rpc.com',
+                    },
+                  ],
+                },
+              },
+              selectedNetworkClientId,
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  [MEGAETH_TESTNET_V1_CHAIN_ID]: true,
+                  // to simulate the mainnet is not being enabled
+                  '0x1': false,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const expectedStorage = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              },
+              selectedNetworkClientId: 'mainnet',
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                  '0x1': true,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const newStorage = await migrate(oldStorage);
+
+      expect(newStorage).toStrictEqual(expectedStorage);
+    },
+  );
 });

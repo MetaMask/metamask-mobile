@@ -1,8 +1,17 @@
 import { captureException } from '@sentry/react-native';
-import { hasProperty, isObject } from '@metamask/utils';
-import { RpcEndpointType } from '@metamask/network-controller';
+import {
+  getErrorMessage,
+  hasProperty,
+  isObject,
+  KnownCaipNamespace,
+} from '@metamask/utils';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
 
 import { ensureValidState } from './util';
+import { cloneDeep } from 'lodash';
 
 export const migrationVersion = 109;
 
@@ -26,9 +35,16 @@ export const MEGAETH_TESTNET_V2_CONFIG = {
 };
 
 /**
- * Migration 108: Migrate Social Login Metrics Opt-In to Metrics Enable System
+ * This migration adds MegaETH Testnet v2 to the network controller
+ * as a default Testnet.
+ *
+ * @param versionedState - MetaMask state, exactly
+ * what we persist to disk.
+ * @returns Updated MetaMask state.
  */
-export default function migrate(state: unknown) {
+export default function migrate(versionedState: unknown) {
+  const state = cloneDeep(versionedState);
+
   try {
     if (!ensureValidState(state, migrationVersion)) {
       return state;
@@ -48,21 +64,18 @@ export default function migrate(state: unknown) {
       return state;
     }
 
-    if (!isObject(state.engine.backgroundState.NetworkController)) {
+    const networkState = state.engine.backgroundState.NetworkController;
+
+    if (!isObject(networkState)) {
       captureException(
         new Error(
-          `Migration ${migrationVersion}: Invalid NetworkController state: '${typeof state.engine.backgroundState.NetworkController}'`,
+          `Migration ${migrationVersion}: Invalid NetworkController state: '${typeof networkState}'`,
         ),
       );
       return state;
     }
 
-    if (
-      !hasProperty(
-        state.engine.backgroundState.NetworkController,
-        'networkConfigurationsByChainId',
-      )
-    ) {
+    if (!hasProperty(networkState, 'networkConfigurationsByChainId')) {
       captureException(
         new Error(
           `Migration ${migrationVersion}: Invalid NetworkController state: missing networkConfigurationsByChainId property`,
@@ -71,12 +84,7 @@ export default function migrate(state: unknown) {
       return state;
     }
 
-    if (
-      !isObject(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId,
-      )
-    ) {
+    if (!isObject(networkState.networkConfigurationsByChainId)) {
       captureException(
         new Error(
           `Migration ${migrationVersion}: Invalid NetworkController networkConfigurationsByChainId: '${typeof state.engine.backgroundState.NetworkController.networkConfigurationsByChainId}'`,
@@ -85,12 +93,112 @@ export default function migrate(state: unknown) {
       return state;
     }
 
-    const { networkConfigurationsByChainId } =
-      state.engine.backgroundState.NetworkController;
+    if (
+      !hasProperty(state.engine.backgroundState, 'NetworkEnablementController')
+    ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkEnablementController state structure: missing required properties`,
+        ),
+      );
+      return state;
+    }
+
+    const networkEnablementState =
+      state.engine.backgroundState.NetworkEnablementController;
+
+    if (!isObject(networkEnablementState)) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkEnablementController state: '${typeof state.engine.backgroundState.NetworkEnablementController}'`,
+        ),
+      );
+      return state;
+    }
+
+    if (!hasProperty(networkEnablementState, 'enabledNetworkMap')) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkEnablementController state: missing property enabledNetworkMap.`,
+        ),
+      );
+      return state;
+    }
+
+    if (!isObject(networkEnablementState.enabledNetworkMap)) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkEnablementController state: NetworkEnablementController.enabledNetworkMap is not an object: ${typeof networkEnablementState.enabledNetworkMap}.`,
+        ),
+      );
+      return state;
+    }
+
+    if (
+      !hasProperty(
+        networkEnablementState.enabledNetworkMap,
+        KnownCaipNamespace.Eip155,
+      )
+    ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkEnablementController state: NetworkEnablementController.enabledNetworkMap missing property Eip155.`,
+        ),
+      );
+      return state;
+    }
+
+    if (
+      !isObject(
+        networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155],
+      )
+    ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkEnablementController state: NetworkEnablementController.enabledNetworkMap[Eip155] is not an object: ${typeof networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155]}.`,
+        ),
+      );
+      return state;
+    }
+
+    const { networkConfigurationsByChainId } = networkState;
+    const {
+      enabledNetworkMap: { [KnownCaipNamespace.Eip155]: eip155NetworkMap },
+    } = networkEnablementState;
+
+    const megaethTestnetV1Configuration = networkConfigurationsByChainId[
+      MEGAETH_TESTNET_V1_CHAIN_ID
+    ] as unknown as NetworkConfiguration;
 
     // Add the MegaETH Testnet v2 network configuration.
     networkConfigurationsByChainId[MEGAETH_TESTNET_V2_CONFIG.chainId] =
       MEGAETH_TESTNET_V2_CONFIG;
+
+    // Add the MegaETH Testnet v2 network configuration to the enabled network map.
+    eip155NetworkMap[MEGAETH_TESTNET_V2_CONFIG.chainId] = false;
+
+    // If the selected network client id is the old MegaETH Testnet v1,
+    // then update it to the mainnet
+    if (
+      hasProperty(networkState, 'selectedNetworkClientId') &&
+      typeof networkState.selectedNetworkClientId === 'string' &&
+      megaethTestnetV1Configuration &&
+      isObject(megaethTestnetV1Configuration) &&
+      hasProperty(megaethTestnetV1Configuration, 'rpcEndpoints') &&
+      Array.isArray(megaethTestnetV1Configuration.rpcEndpoints) &&
+      megaethTestnetV1Configuration.rpcEndpoints.some(
+        (rpcEndpoint) =>
+          rpcEndpoint.networkClientId === networkState.selectedNetworkClientId,
+      )
+    ) {
+      networkState.selectedNetworkClientId = 'mainnet';
+      // force mainnet to be enabled
+      eip155NetworkMap['0x1'] = true;
+    }
+    // If the MegaETH Testnet v1 network configuration is enabled, then remove it.
+    if (hasProperty(eip155NetworkMap, MEGAETH_TESTNET_V1_CHAIN_ID)) {
+      delete eip155NetworkMap[MEGAETH_TESTNET_V1_CHAIN_ID];
+    }
 
     // If the MegaETH Testnet v1 network configuration exists, then remove it.
     if (networkConfigurationsByChainId[MEGAETH_TESTNET_V1_CHAIN_ID]) {
@@ -99,10 +207,9 @@ export default function migrate(state: unknown) {
 
     return state;
   } catch (error) {
+    console.error(error);
     captureException(
-      new Error(
-        `Migration ${migrationVersion}: Failed to add failoverUrls to SEI network configuration: ${error}`,
-      ),
+      new Error(`Migration ${migrationVersion}: ${getErrorMessage(error)}`),
     );
   }
 
