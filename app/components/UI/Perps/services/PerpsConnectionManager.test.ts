@@ -158,6 +158,7 @@ describe('PerpsConnectionManager', () => {
     >;
     disconnect: jest.MockedFunction<() => Promise<void>>;
     reconnectWithNewContext: jest.MockedFunction<() => Promise<void>>;
+    getActiveProvider: jest.MockedFunction<() => typeof mockProvider>;
   };
 
   // No need for beforeAll - singleton is created on first access
