@@ -1021,21 +1021,21 @@
       "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
       "processing_title": "Processing deposit",
       "preview": {
-        "title": "Deposit Preview"
+        "title": "Deposit preview"
       },
       "processing": {
-        "title": "Processing Deposit"
+        "title": "Processing deposit"
       },
       "deposit_completed": "Deposit completed successfully!",
-      "deposit_failed": "Deposit Failed",
-      "retry_deposit": "Retry Deposit",
-      "go_back": "Go Back",
-      "view_balance": "View Balance",
+      "deposit_failed": "Deposit failed",
+      "retry_deposit": "Retry deposit",
+      "go_back": "Go back",
+      "view_balance": "View balance",
       "calculating_fee": "Calculating...",
       "quote_expired_modal": {
-        "title": "Quote Expired",
+        "title": "Quote expired",
         "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
-        "get_new_quote": "Get New Quote"
+        "get_new_quote": "Get new quote"
       },
       "steps": {
         "preparing": "Preparing deposit...",
@@ -1056,14 +1056,14 @@
       "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
       "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
       "success": {
-        "title": "Deposit Successful!",
+        "title": "Deposit successful!",
         "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
         "amount": "Amount",
-        "processing_time": "Processing Time",
+        "processing_time": "Processing time",
         "status": "Status",
         "completed": "Completed",
-        "view_balance": "View Balance",
-        "view_transaction": "View Transaction"
+        "view_balance": "View balance",
+        "view_transaction": "View transaction"
       },
       "success_toast": "Your Perps account was funded",
       "success_message": "{{amount}} available to trade",
@@ -1125,7 +1125,7 @@
       "metamask_fee_tooltip_withdrawal": "MetaMask does not charge any fees for withdrawals from Hyperliquid"
     },
     "order": {
-      "title": "New Order",
+      "title": "New order",
       "leverage": "Leverage",
       "limit_price": "Limit price",
       "enter_price": "Enter price",
@@ -1174,7 +1174,7 @@
         "unknown": "Unknown error occurred",
         "dismiss": "Dismiss",
         "invalid_asset": "Invalid asset",
-        "go_back": "Go Back",
+        "go_back": "Go back",
         "asset_not_tradable": "{{asset}} is not a tradable asset"
       },
       "off": "Off",
@@ -1216,10 +1216,10 @@
       "leverage_modal": {
         "title": "Leverage",
         "confirm": "Confirm",
-        "entry_price": "Entry Price",
+        "entry_price": "Entry price",
         "current_price": "Current price",
-        "liquidation_price": "Liquidation Price",
-        "liquidation_distance": "Liquidation Distance",
+        "liquidation_price": "Liquidation price",
+        "liquidation_distance": "Liquidation distance",
         "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
         "drops": "drops",
         "rises": "rises",
@@ -1237,18 +1237,18 @@
         }
       },
       "success": {
-        "title": "Order Placed Successfully",
+        "title": "Order placed successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
         "asset": "Asset",
         "direction": "Direction",
         "amount": "Amount",
         "orderId": "Order ID",
-        "viewPositions": "View Positions",
-        "placeAnother": "Place Another Order",
+        "viewPositions": "View positions",
+        "placeAnother": "Place another order",
         "backToPerps": "Back to Perps"
       },
-      "submitted": "Order Submitted",
-      "confirmed": "Order Confirmed",
+      "submitted": "Order submitted",
+      "confirmed": "Order confirmed",
       "cancelling_order": "Cancelling order",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "cancelling_order_in_progress": "Cancelling {{detailedOrderType}} order",
@@ -1306,7 +1306,7 @@
       "you_receive": "You'll receive",
       "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
-      "success_title": "Position Closed Successfully",
+      "success_title": "Position closed successfully",
       "position_closed": "Position closed",
       "funds_are_available_to_trade": "Funds are available to trade",
       "failed_to_close_position": "Failed to close position",
@@ -1333,22 +1333,24 @@
       "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
     },
     "flip_position": {
-      "title": "Flip Position",
+      "title": "Reverse Position",
       "direction": "Direction",
       "est_size": "Est. Size",
-      "flip": "Flip",
-      "flipping": "Flipping...",
+      "flip": "Reverse",
+      "flipping": "Reversing...",
       "cancel": "Cancel"
     },
     "adjust_margin": {
       "title": "Adjust Margin",
       "add_margin": "Add Margin",
       "add_margin_description": "Increase margin to reduce liquidation risk",
-      "reduce_margin": "Reduce Margin",
+      "reduce_margin": "Remove Margin",
       "reduce_margin_description": "Withdraw excess margin from position",
       "add_title": "Add Margin",
-      "remove_title": "Reduce Margin",
+      "remove_title": "Remove Margin",
       "margin_in_position": "Margin in position",
+      "margin_available_to_add": "Margin available to add",
+      "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance"
@@ -1450,12 +1452,12 @@
         "go_back": "Go back"
       },
       "networkError": {
-        "title": "Network Error",
+        "title": "Network error",
         "description": "There was a problem connecting to the network. Please try again.",
-        "retry": "Try Again"
+        "retry": "Try again"
       },
       "unknown": {
-        "title": "Something Went Wrong",
+        "title": "Something went wrong",
         "description": "An unexpected error occurred. Please try again later.",
         "retry": "Retry"
       },
@@ -1492,14 +1494,14 @@
       },
       "list": {
         "loading": "Loading positions...",
-        "error_title": "Error Loading Positions",
-        "empty_title": "No Open Positions",
+        "error_title": "Error loading positions",
+        "empty_title": "No open positions",
         "empty_description": "You don't have any open positions yet.\nStart trading to see your positions here.",
         "first_time_title": "Perps",
         "first_time_description": "Bet on price movements with up to 40x leverage.",
         "start_trading": "Start trading",
         "start_new_trade": "Start a new trade",
-        "open_positions": "Open Positions",
+        "open_positions": "Open positions",
         "position_count": "{{count}} position",
         "position_count_plural": "{{count}} positions"
       },
@@ -1508,10 +1510,10 @@
         "section_title": "Position"
       },
       "account": {
-        "summary_title": "Account Summary",
-        "total_balance": "Total Balance",
-        "available_balance": "Available Balance",
-        "margin_used": "Margin Used",
+        "summary_title": "Account summary",
+        "total_balance": "Total balance",
+        "available_balance": "Available balance",
+        "margin_used": "Margin used",
         "total_unrealized_pnl": "Total Unrealized P&L",
         "unrealized_pnl": "Unrealized P&L"
       },
@@ -1530,7 +1532,7 @@
     },
     "market": {
       "details": {
-        "title": "Market Details",
+        "title": "Market details",
         "error_message": "Market data not found. Please go back and try again."
       },
       "statistics": "Overview",
@@ -1570,11 +1572,11 @@
       }
     },
     "buttons": {
-      "get_account_balance": "Get Account Balance",
-      "deposit_funds": "Deposit Funds",
+      "get_account_balance": "Get account balance",
+      "deposit_funds": "Deposit funds",
       "switch_to_mainnet": "Switch to Mainnet",
       "switch_to_testnet": "Switch to Testnet",
-      "view_markets": "View Markets",
+      "view_markets": "View markets",
       "positions": "Positions"
     },
     "tooltips": {
@@ -1603,7 +1605,7 @@
         "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
       },
       "closing_fees": {
-        "title": "Closing Fees",
+        "title": "Closing fees",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee"
       },
@@ -1612,7 +1614,7 @@
         "content": "Your estimated profit or loss when closing this position at the current market price. This is calculated based on your entry price and includes the portion of the position you're closing."
       },
       "limit_price": {
-        "title": "Limit Price",
+        "title": "Limit price",
         "content": "The specific price at which your limit order will execute. For closing long positions, the order executes when the price rises to this level. For closing short positions, it executes when the price falls to this level."
       },
       "open_interest": {
@@ -1640,11 +1642,11 @@
         "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
       },
       "withdrawal_fees": {
-        "title": "Provider Fee",
+        "title": "Provider fee",
         "content": "A flat fee charged by the provider on each withdrawal."
       },
       "tp_sl": {
-        "title": "Take Profit & Stop Loss",
+        "title": "Take profit & stop loss",
         "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
       },
       "close_position_you_receive": {
@@ -1676,12 +1678,16 @@
         "title": "After-hours trading",
         "reopens_in": "Reopens in {{time}}",
         "content": "You're trading outside of regular market hours (9:30 am to 4pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+      },
+      "spread": {
+        "title": "Spread",
+        "content": "The spread is the difference between the best bid (highest buy price) and best ask (lowest sell price). A smaller spread indicates higher liquidity."
       }
     },
     "connection": {
-      "failed": "Connection Failed",
+      "failed": "Connection failed",
       "error_message": "Unable to connect to Perps trading service.",
-      "retry_connection": "Retry Connection",
+      "retry_connection": "Retry connection",
       "retrying_connection": "Connecting...",
       "connecting_to_perps": "Connecting to Perps",
       "timeout_title": "Connection taking longer than expected"
@@ -1770,15 +1776,15 @@
       "error_message": "Failed to cancel {{count}} order(s)"
     },
     "crossMargin": {
-      "title": "Cross Margin Not Supported",
+      "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
       "dismiss": "Got it"
     },
     "sort": {
       "volume": "Volume",
-      "price_change": "Price Change",
-      "funding_rate": "Funding Rate",
-      "open_interest": "Open Interest",
+      "price_change": "Price change",
+      "funding_rate": "Funding rate",
+      "open_interest": "Open interest",
       "high_to_low": "High to Low",
       "low_to_high": "Low to High",
       "high": "High",
@@ -1807,7 +1813,7 @@
     "mainnet": "Mainnet",
     "developer_options": {
       "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
-      "simulate_connection_error": "Simulate Connection Error"
+      "simulate_connection_error": "Simulate connection error"
     },
     "transactions": {
       "title": "Perps",
@@ -1925,8 +1931,8 @@
   },
   "predict": {
     "title": "MetaMask Predict",
-    "prediction_markets": "Prediction Markets",
-    "market_list": "Market List",
+    "prediction_markets": "Prediction markets",
+    "market_list": "Market list",
     "loading": "Loading...",
     "buttons": {
       "back": "Back",
@@ -1942,7 +1948,7 @@
       "not_now": "Not now"
     },
     "market_details": {
-      "title": "Market Details",
+      "title": "Market details",
       "market_ended_on": "Market ended on {{outcome}}",
       "market_resulted_to": "Market resulted to {{outcome}}",
       "waiting_for_final_resolution": "Waiting for final resolution",
@@ -1975,7 +1981,7 @@
       "positions": "Positions",
       "outcomes": "Outcomes"
     },
-    "sell_position": "Sell Position",
+    "sell_position": "Sell position",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "at_price_per_share": "Selling {{size}} shares at {{price}}",
@@ -2109,6 +2115,7 @@
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
+      "no_funds_enough": "Not enough funds.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again."
@@ -2434,6 +2441,7 @@
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "gather_basic_usage_title": "Gather basic usage data",
     "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
+    "gather_basic_usage_description_updated": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "Learn more",
     "checkbox_marketing": "Marketing updates",
     "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
@@ -2461,7 +2469,8 @@
     "action_description_never_legacy": "Never",
     "toast_message": "We’ve updated our privacy policy",
     "toast_action_button": "Close",
-    "toast_read_more": "Read more"
+    "toast_read_more": "Read more",
+    "pna25_toast_message": "We’re updating MetaMetrics. We'll associate some in-app activity to on-chain data to better understand usage. You can opt out via Settings."
   },
   "template_confirmation": {
     "ok": "OK",
@@ -2846,7 +2855,7 @@
     "clear_history_desc": "Choose this option to clear your entire browsing history.",
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
+    "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
     "data_collection_title": "Data collection for marketing",
     "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
     "batch_balance_requests_title": "Batch account balance requests",
@@ -3216,9 +3225,12 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
-    "convert": "Convert",
+    "convert_to_musd": "Convert to mUSD",
     "tron": {
-      "daily_resource": "Daily resources",
+      "daily_resource_new_energy": "New daily energy",
+      "sufficient_to_cover": "Sufficient to cover",
+      "transactions": "transactions",
+      "daily_resource": "Daily resource",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
       "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
@@ -5643,6 +5655,9 @@
       "staking": "Payout history"
     },
     "allowance_reset": "Allowance Reset",
+    "tron": {
+      "fee": "Fee"
+    },
     "musd_conversion": {
       "confirmation_button": "Convert to mUSD",
       "earn_rewards_with": "Earn rewards with mUSD",
@@ -5655,15 +5670,36 @@
         "heading": "Earn rewards with mUSD",
         "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
         "continue_button": "Continue"
-      }
+      },
+      "earn_points_daily": "Earn points daily",
+      "buy_musd": "Buy mUSD",
+      "get_musd": "Get mUSD"
+    },
+    "rewards": {
+      "rewards_tag_label": "Rewards",
+      "tooltip_title": "Earn rewards with mUSD",
+      "tooltip_points_suffix": "per $100",
+      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
+      "tooltip_opted_in_footer": "Points will be automatically added to your account.",
+      "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
+      "tooltip_close": "Close"
     }
   },
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
     "tron": {
+      "stake_completed": "Staking completed",
+      "stake_completed_description": "Your staking transaction has been completed successfully.",
+      "stake_failed": "Staking failed",
+      "unstake_completed": "Unstaking completed",
+      "unstake_completed_description": "Your unstaking transaction has been completed successfully.",
+      "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
-      "energy": "Energy"
+      "energy": "Energy",
+      "estimated_annual_reward": "Estimated annual reward",
+      "trx_locked_for": "TRX locked for",
+      "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
@@ -7202,6 +7238,11 @@
     "search_sites": "Search sites",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
-    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled."
+    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
+    "empty_error_trending_state": {
+      "title": "Trending tokens is not available",
+      "description": "We can't fetch this page right now",
+      "try_again": "Try again"
+    }
   }
 }

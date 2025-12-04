@@ -95,27 +95,39 @@ async function buildAuthorizationList<MessengerType extends SignMessenger>(
   messenger: MessengerType,
 ): Promise<AuthorizationList | undefined> {
   const { TransactionController } = Engine.context;
-
-  const { chainId, delegationAddress, networkClientId, txParams } =
-    transactionMeta;
-
+  const { chainId, networkClientId, txParams } = transactionMeta;
   const { from } = txParams;
-
-  if (delegationAddress) {
-    log('Skipping authorization list as already upgraded');
-    return undefined;
-  }
-
-  log('Including authorization as not upgraded');
 
   const atomicBatchResult = await TransactionController.isAtomicBatchSupported({
     address: from as Hex,
     chainIds: [chainId],
   });
 
-  const upgradeContractAddress = atomicBatchResult.find(
+  const chainResult = atomicBatchResult.find(
     (r) => r.chainId.toLowerCase() === chainId.toLowerCase(),
-  )?.upgradeContractAddress;
+  );
+
+  if (!chainResult) {
+    throw new Error('Chain does not support EIP-7702');
+  }
+
+  const { delegationAddress, isSupported, upgradeContractAddress } =
+    chainResult;
+
+  if (isSupported) {
+    log('Skipping authorization as already upgraded');
+    return undefined;
+  }
+
+  if (!delegationAddress) {
+    log('Upgrading account to EIP-7702', { from, upgradeContractAddress });
+  } else {
+    log('Overwriting authorization as already upgraded', {
+      from,
+      current: delegationAddress,
+      new: upgradeContractAddress,
+    });
+  }
 
   if (!upgradeContractAddress) {
     throw new Error('Upgrade contract address not found');

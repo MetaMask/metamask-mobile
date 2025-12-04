@@ -34,6 +34,7 @@ import { ThemeColors } from '@metamask/design-tokens';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { getChecksumAddress } from '@metamask/utils';
+import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -112,7 +113,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onConnectHardware = async () => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET)
+      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_CONTINUE_CONNECTION)
         .addProperties({
           device_type: HardwareDeviceTypes.QR,
         })
@@ -128,6 +129,19 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         // TODO: Add `balance` to the QR Keyring accounts or remove it from the expected type
         firstAccountsPage.map((account) => ({ ...account, balance: '0x0' })),
       );
+      const deviceName = await withQrKeyring(
+        async ({ keyring }) => await keyring.getName(),
+      );
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
+        )
+          .addProperties({
+            device_type: HardwareDeviceTypes.QR,
+            device_model: deviceName,
+          })
+          .build(),
+      );
     } finally {
       setIsScanning(false);
     }
@@ -136,20 +150,13 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const onScanSuccess = useCallback(
     async (ur: UR) => {
       setIsScanning(false);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS)
-          .addProperties({
-            device_type: HardwareDeviceTypes.QR,
-          })
-          .build(),
-      );
       Engine.getQrKeyringScanner().resolvePendingScan({
         type: ur.type,
         cbor: ur.cbor.toString('hex'),
       });
       resetError();
     },
-    [resetError, trackEvent, createEventBuilder],
+    [resetError],
   );
 
   const onScanError = useCallback(async (error: string) => {
@@ -204,6 +211,21 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
           }
           return lastAccount;
         });
+        const deviceName = await withQrKeyring(
+          async ({ keyring }) => await keyring.getName(),
+        );
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ADD_ACCOUNT)
+            .addProperties({
+              device_type: HardwareDeviceTypes.QR,
+              device_model: deviceName,
+              hd_path: null,
+              connected_device_count: (
+                await getConnectedDevicesCount()
+              ).toString(),
+            })
+            .build(),
+        );
 
         if (accountToSelect) {
           Engine.setSelectedAddress(accountToSelect);
@@ -214,10 +236,21 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       setBlockingModalVisible(false);
       navigation.pop(2);
     },
-    [navigation, resetError],
+    [createEventBuilder, navigation, resetError, trackEvent],
   );
 
   const onForget = useCallback(async () => {
+    const deviceName = await withQrKeyring(
+      async ({ keyring }) => await keyring.getName(),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
+        .addProperties({
+          device_type: HardwareDeviceTypes.QR,
+          device_model: deviceName,
+        })
+        .build(),
+    );
     resetError();
     const remainingAccounts = KeyringController.state.keyrings
       .filter((keyring) => keyring.type !== ExtendedKeyringTypes.qr)
@@ -236,7 +269,13 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       return existingQrAccounts;
     });
     navigation.pop(2);
-  }, [KeyringController, navigation, resetError]);
+  }, [
+    KeyringController.state.keyrings,
+    createEventBuilder,
+    navigation,
+    resetError,
+    trackEvent,
+  ]);
 
   const renderAlert = () =>
     errorMsg !== '' ? (
