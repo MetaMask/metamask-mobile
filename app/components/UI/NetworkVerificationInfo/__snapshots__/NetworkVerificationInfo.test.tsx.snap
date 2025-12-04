@@ -8,7 +8,6 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "gap": 16,
           "padding": 16,
@@ -439,7 +438,6 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "paddingHorizontal": 8,
         "paddingVertical": 4,
@@ -539,7 +537,6 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
     style={
       [
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "gap": 16,
           "padding": 16,
@@ -934,7 +931,6 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "paddingHorizontal": 8,
         "paddingVertical": 4,
