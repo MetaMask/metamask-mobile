@@ -122,6 +122,7 @@ jobs:
 
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -134,6 +135,7 @@ jobs:
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
