@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
+exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when ledger error exists 1`] = `
 <RCTSafeAreaView
   style={
     {
@@ -40,6 +40,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         }
       />
       <TouchableOpacity
+        onPress={[MockFunction]}
         style={
           {
             "flex": 1,
@@ -472,7 +473,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
 </RCTSafeAreaView>
 `;
 
-exports[`LedgerSelectAccount renders correctly to match snapshot when getAccounts return valid accounts 1`] = `
+exports[`LedgerSelectAccount Initial Rendering renders LedgerConnect when no accounts are loaded 1`] = `
 <RCTSafeAreaView
   style={
     {
@@ -512,6 +513,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         }
       />
       <TouchableOpacity
+        onPress={[MockFunction]}
         style={
           {
             "flex": 1,

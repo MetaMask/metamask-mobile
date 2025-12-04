@@ -41,9 +41,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anthropic-ai/sdk@npm:^0.63.1":
-  version: 0.63.1
-  resolution: "@anthropic-ai/sdk@npm:0.63.1"
+"@anthropic-ai/sdk@npm:^0.71.0":
+  version: 0.71.0
+  resolution: "@anthropic-ai/sdk@npm:0.71.0"
   dependencies:
     json-schema-to-ts: "npm:^3.1.1"
   peerDependencies:
@@ -53,7 +53,7 @@ __metadata:
       optional: true
   bin:
     anthropic-ai-sdk: bin/cli
-  checksum: 10/9ce43fd06a7d3fb62e5f51b78cbf74681ed9c5a5770127b2be62a3b392f2e6fa4c9a8fe38e6f43d33198f79ba37a6ab62568bb77fd11bf9842f5a4b0cb4f02db
+  checksum: 10/2c4da293d11e0284fe16f909fb59cbaaabe62014cf5f058e225697e4c0bdc029c05171a7a9d9449cb5535abb4d31d653ab96e0edd2443172fa1b272cfd8afa04
   languageName: node
   linkType: hard
 
@@ -7587,9 +7587,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/auto-changelog@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "@metamask/auto-changelog@npm:5.1.0"
+"@metamask/auto-changelog@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@metamask/auto-changelog@npm:5.3.0"
   dependencies:
     "@octokit/rest": "npm:^20.0.0"
     diff: "npm:^5.0.0"
@@ -7600,7 +7600,7 @@ __metadata:
     prettier: ">=3.0.0"
   bin:
     auto-changelog: dist/cli.mjs
-  checksum: 10/ee9f651c313a2377a21a304383f56f1872b4ce6411a0b61cf0b70b23bff9d3204332cd5a052cdfcaf363ce15424a7a1fdbde99a6b4352f2472fbe6b6d27c5791
+  checksum: 10/5381c2b1efbade000bafbbee7b1becbee1787b9f24849352d16ddd3b14f511f865b3478250301f3d22f98fe0208690f62f166a476e64d38ed58361d816a673b6
   languageName: node
   linkType: hard
 
@@ -9762,10 +9762,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.5.0":
-  version: 2.5.0
-  resolution: "@metamask/solana-wallet-snap@npm:2.5.0"
-  checksum: 10/cee4cbece192269fb02a59a90cbb8369dd6af3dab33eaecbb40fdb9723568c2da1dcd98b214063f34268696074a438a895cff40a421231e05cfab0afb1c71ea6
+"@metamask/solana-wallet-snap@npm:^2.5.1":
+  version: 2.5.1
+  resolution: "@metamask/solana-wallet-snap@npm:2.5.1"
+  checksum: 10/822365b69be8e9e1d5a9569b2eedd1b0226e7da971e54ab4607cd16745c51861d7083bb3a90c0195ed665de9264d22cc2741b1934f86285fabc506688f784637
   languageName: node
   linkType: hard
 
@@ -22041,9 +22041,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appwright@patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::locator=metamask%40workspace%3A.":
+"appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=7499a8&locator=metamask%40workspace%3A."
+  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=988851"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -22059,7 +22059,7 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/e2567f4e57df88b1a3de695ff0132d9fdffed057e50aacf53356374917c0d5d1de48f4c936d7d1bbf38f2ad406432055d09f1fa518892acb066792d812462682
+  checksum: 10/498cb6f4f3422b605c67adf24717910839b5be7e831b0a23ced3b357a9d183d0726d09b9ab7869fdf99d798dacb7b8aff0c3bed0a4527787384d59166f22b1f6
   languageName: node
   linkType: hard
 
@@ -35927,7 +35927,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "metamask@workspace:."
   dependencies:
-    "@anthropic-ai/sdk": "npm:^0.63.1"
+    "@anthropic-ai/sdk": "npm:^0.71.0"
     "@babel/core": "npm:^7.25.2"
     "@babel/eslint-parser": "npm:^7.25.1"
     "@babel/preset-env": "npm:^7.25.3"
@@ -35962,7 +35962,7 @@ __metadata:
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A92.0.0#~/.yarn/patches/@metamask-assets-controllers-npm-92.0.0-ea998cb0bd.patch"
-    "@metamask/auto-changelog": "npm:^5.1.0"
+    "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.8.0"
     "@metamask/bridge-controller": "npm:^61.0.0"
@@ -36054,7 +36054,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^14.1.1"
     "@metamask/snaps-sdk": "npm:^10.1.0"
     "@metamask/snaps-utils": "npm:^11.6.1"
-    "@metamask/solana-wallet-snap": "npm:^2.5.0"
+    "@metamask/solana-wallet-snap": "npm:^2.5.1"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.2.0"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
@@ -36164,7 +36164,7 @@ __metadata:
     appium-adb: "npm:^9.11.4"
     appium-uiautomator2-driver: "npm:4.2.7"
     appium-xcuitest-driver: "npm:5.16.1"
-    appwright: "npm:^0.1.45"
+    appwright: "patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch"
     assert: "npm:^1.5.0"
     asyncstorage-down: "npm:4.2.0"
     axios: "npm:^1.8.2"
