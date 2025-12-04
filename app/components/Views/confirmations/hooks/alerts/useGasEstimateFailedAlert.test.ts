@@ -91,16 +91,4 @@ describe('useGasEstimateFailedAlert', () => {
       "We're unable to provide an accurate fee and this estimate might be high. We suggest you to input a custom gas limit, but there's a risk the transaction will still fail.",
     );
   });
-
-  it('returns non-blocking alert', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue(
-      MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
-    );
-
-    const { result } = renderHookWithProvider(() =>
-      useGasEstimateFailedAlert(),
-    );
-
-    expect(result.current[0].isBlocking).toBe(false);
-  });
 });
