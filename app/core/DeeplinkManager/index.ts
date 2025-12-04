@@ -28,14 +28,6 @@ export { CoreLinkNormalizer } from './normalization/CoreLinkNormalizer';
 export { HandlerRegistry } from './registry/HandlerRegistry';
 export { UniversalRouterIntegration } from './router/UniversalRouterIntegration';
 
-// Core handlers
-export {
-  BaseHandler,
-  NavigationHandler,
-  SwapHandler,
-  SendHandler,
-} from './handlers/v2';
-
 // Core interfaces
 export type {
   UniversalLinkHandler,

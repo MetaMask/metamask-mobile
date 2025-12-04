@@ -6,7 +6,6 @@ import { HandlerContext, HandlerResult } from '../types/UniversalLinkHandler';
 import Logger from '../../../util/Logger';
 import { MetaMetrics } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
-import { NavigationHandler, SwapHandler, SendHandler } from '../handlers/v2';
 
 /**
  * Universal Router for handling deep links
@@ -43,11 +42,6 @@ export class UniversalRouter {
     // Register built-in handlers
     try {
       // Core functionality handlers (priority 50)
-      this.registry.register(new SwapHandler());
-      this.registry.register(new SendHandler());
-
-      // Navigation handlers (priority 10)
-      this.registry.register(new NavigationHandler());
 
       Logger.log('✅ Universal Router initialized with handlers');
 
