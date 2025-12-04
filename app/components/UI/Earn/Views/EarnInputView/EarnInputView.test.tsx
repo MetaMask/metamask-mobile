@@ -163,6 +163,7 @@ jest.mock('../../../../../selectors/multichain', () => ({
       },
     ],
   })),
+  selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
