@@ -11,6 +11,8 @@ import handleUniversalLink from './handleUniversalLink';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
+// eslint-disable-next-line import/no-namespace
+import * as signatureUtils from './utils/verifySignature';
 
 jest.mock('./handleMetaMaskDeeplink');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
@@ -38,7 +40,7 @@ const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
   verify: jest.Mock<Promise<boolean>>;
 };
 
-describe('handleUniversalLinks', () => {
+describe('handleUniversalLink', () => {
   const mockParse = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
   const mockHandleSellCrypto = jest.fn();
@@ -58,7 +60,6 @@ describe('handleUniversalLinks', () => {
   const mockReconnect = jest.fn();
   const mockWC2ManagerConnect = jest.fn();
   const mockBindAndroidSDK = jest.fn();
-
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockHandleMetaMaskDeeplink =
     handleMetaMaskDeeplink as jest.MockedFunction<
@@ -1264,6 +1265,66 @@ describe('handleUniversalLinks', () => {
         onBack: expect.any(Function),
       });
       expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('should skip handling deeplinks without pathname and query params', () => {
+    // Link cases to test for skipping handling
+    const testLinkCases = [
+      {
+        link: 'metamask://',
+        shouldSkip: true,
+      },
+      {
+        link: 'https://link.metamask.io/',
+        shouldSkip: true,
+      },
+      {
+        link: 'https://link.metamask.io',
+        shouldSkip: true,
+      },
+      {
+        link: 'https://link.metamask.io/action',
+        shouldSkip: false,
+      },
+      {
+        link: 'https://link.metamask.io/action?query=value',
+        shouldSkip: false,
+      },
+      {
+        link: 'metamask://action',
+        shouldSkip: false,
+      },
+      {
+        link: 'metamask://action?query=value',
+        shouldSkip: false,
+      },
+    ];
+
+    testLinkCases.forEach((testCase) => {
+      it(`should ${testCase.shouldSkip ? 'skip' : 'NOT skip'} handling ${testCase.link}`, async () => {
+        const hasSignatureSpy = jest.spyOn(signatureUtils, 'hasSignature');
+
+        const mappedUrl = testCase.link.replace(
+          `${PROTOCOLS.METAMASK}://`,
+          `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
+        );
+        const { urlObj } = extractURLParams(mappedUrl);
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: mappedUrl,
+          source: 'origin',
+        });
+
+        if (testCase.shouldSkip) {
+          expect(hasSignatureSpy).not.toHaveBeenCalled();
+        } else {
+          expect(hasSignatureSpy).toHaveBeenCalled();
+        }
+      });
     });
   });
 });
