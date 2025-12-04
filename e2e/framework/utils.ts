@@ -18,13 +18,18 @@ export function boxedStep<This, Args extends unknown[], Return>(
 ): (this: This, ...args: Args) => Return {
   const replacementMethod = function (this: This, ...args: Args): Return {
     const self = this as This & {
+      name?: string; // For static methods, `this` is the class constructor which has a `name` property
       constructor: {
         name: string;
       };
       elem?: WebdriverIO.Element | { selector: string }; // WebdriverIO element with selector
     };
     const methodName = context.name as string;
-    let stepName = self.constructor.name + '.' + methodName;
+
+    // For static methods, `this` is the class constructor itself, so use `this.name`
+    // For instance methods, `this` is the instance, so use `this.constructor.name`
+    const className = context.static ? self.name : self.constructor.name;
+    let stepName = className + '.' + methodName;
 
     if (self.elem?.selector) {
       stepName += ` [${self.elem.selector}]`;
