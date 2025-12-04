@@ -9,6 +9,7 @@ export const QuoteViewSelectorText = {
   SELECT_ALL: enContent.bridge.see_all,
   CANCEL: 'Cancel',
   FEE_DISCLAIMER: enContent.bridge.fee_disclaimer,
+  MAX: enContent.bridge.max,
 };
 
 export const QuoteViewSelectorIDs = {
