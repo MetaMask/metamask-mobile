@@ -1,4 +1,5 @@
 # List things here that *are - 'used, that depcheck is wrong about'
+
 ignores:
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'

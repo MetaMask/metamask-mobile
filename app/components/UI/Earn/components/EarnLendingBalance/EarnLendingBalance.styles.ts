@@ -1,13 +1,18 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = () =>
+const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-
-      paddingTop: 14,
       gap: 16,
+    },
+    buttonsContainer: {
+      marginTop: 16,
+      padding: 16,
+      borderRadius: 12,
+      backgroundColor: params.theme.colors.background.section,
     },
     button: {
       flex: 1,
@@ -29,7 +34,6 @@ const styleSheet = () =>
     },
     EarnEmptyStateCta: {
       paddingTop: 8,
-      paddingHorizontal: 16,
     },
     earnings: {
       paddingHorizontal: 16,
