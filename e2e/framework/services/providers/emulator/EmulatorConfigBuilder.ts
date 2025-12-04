@@ -36,6 +36,8 @@ export class EmulatorConfigBuilder {
         'appium:deviceOrientation': device.orientation,
         'appium:settings[snapshotMaxDepth]': 62,
         'appium:wdaLaunchTimeout': 300_000,
+        'appium:includeSafariInWebviews': true,
+        'appium:chromedriverAutodownload': true,
       },
     };
   }

@@ -67,6 +67,8 @@ export class BrowserStackConfigBuilder {
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
         'appium:settings[snapshotMaxDepth]': 62,
+        'appium:includeSafariInWebviews': true,
+        'appium:chromedriverAutodownload': true,
         'appium:bstackPageSource': {
           enable: true,
           samplesX: 15,

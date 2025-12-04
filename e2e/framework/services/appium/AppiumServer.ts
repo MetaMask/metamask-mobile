@@ -9,9 +9,13 @@ const logger = createLogger({ name: 'AppiumServer' });
  */
 export async function startAppiumServer(): Promise<ChildProcess> {
   return new Promise((resolve, reject) => {
-    const appiumProcess = spawn('yarn', ['appium'], {
-      stdio: 'pipe',
-    });
+    const appiumProcess = spawn(
+      'yarn',
+      ['appium', '--allow-insecure=chromedriver_autodownload'],
+      {
+        stdio: 'pipe',
+      },
+    );
 
     appiumProcess.stderr.on('data', async (data: Buffer) => {
       logger.debug(data.toString());

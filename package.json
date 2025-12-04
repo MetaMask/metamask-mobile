@@ -734,7 +734,9 @@
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/darwin-arm64": false,
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false,
       "react-native-nitro-modules": false,
-      "esbuild": false
+      "esbuild": false,
+      "webdriverio>@wdio/utils>edgedriver": false,
+      "webdriverio>@wdio/utils>geckodriver": false
     }
   },
   "packageManager": "yarn@4.10.3",
