@@ -589,6 +589,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -828,6 +829,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -945,6 +947,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -1110,6 +1113,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -1393,6 +1397,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -1418,6 +1423,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -2171,6 +2177,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -2410,6 +2417,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -2527,6 +2535,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -2692,6 +2701,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -2975,6 +2985,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -3000,6 +3011,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -3753,6 +3765,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -3992,6 +4005,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -4109,6 +4123,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -4274,6 +4289,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -4557,6 +4573,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -4582,6 +4599,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -5335,6 +5353,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -5574,6 +5593,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -5691,6 +5711,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -5856,6 +5877,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -6139,6 +6161,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -6164,6 +6187,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -6917,6 +6941,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -7156,6 +7181,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -7288,6 +7314,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -7468,6 +7495,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -7766,6 +7794,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -7806,6 +7835,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -8559,6 +8589,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -8798,6 +8829,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -8930,6 +8962,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -9110,6 +9143,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -9393,6 +9427,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -9433,6 +9468,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -10186,6 +10222,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     undefined,
@@ -10425,6 +10462,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -10557,6 +10595,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -10737,6 +10776,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -10894,6 +10934,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {

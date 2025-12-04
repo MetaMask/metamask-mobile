@@ -81,7 +81,11 @@ class SendScreen {
   }
 
   get searchTokenField() {
-    return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');
+    if (AppwrightSelectors.isIOS(this._device)) {
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'textfieldsearch');
+    }
   }
   
 
@@ -203,7 +207,7 @@ class SendScreen {
   }
 
   async clickOnFirstTokenBadge() {
-    const firstTokenBadge = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`);
+    const firstTokenBadge = AppwrightSelectors.isIOS(this._device) ? await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`) : await AppwrightSelectors.getElementByID(this._device, 'badge-wrapper-badge');
     appwrightExpect(firstTokenBadge).toBeVisible();
     await AppwrightGestures.tap(firstTokenBadge);
   }
@@ -228,7 +232,8 @@ class SendScreen {
       await Gestures.tapTextByXpath(tokenName);
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        const networkButton = await AppwrightSelectors.getEl(this._device, `asset-${networkName}`);
+        const networkButton = await AppwrightSelectors.getElementByID(this._device, `asset-${networkName}`);
+        await AppwrightGestures.tap(networkButton);
         const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenSymbol}`);
         await AppwrightGestures.tap(tokenButton);
       } else {

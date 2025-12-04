@@ -922,7 +922,7 @@ If set, actions on HIP-3 perps will automatically transfer collateral from valid
 
 #### Request Body
 
-<table><thead><tr><th width="106.30859375">Name</th><th width="159.5078125">Type</th><th>Description</th></tr></thead><tbody><tr><td>action<mark style="color:red;">*</mark></td><td>Object</td><td><p>{</p><p>  "type": "userEnableDexAbstraction",</p><p>  "hyperliquidChain": "Mainnet" (on testnet use "Testnet" instead),</p><p>  "signatureChainId": the id of the chain used when signing in hexadecimal format; e.g. "0xa4b1" for Arbitrum,</p><p>  "user": address in 42-character hexadecimal format. Can be a sub-account of the user,</p><p>  "enabled": boolean,</p><p>  "nonce": current timestamp in milliseconds as a Number, should match nonce</p><p>}</p></td></tr><tr><td>nonce<mark style="color:red;">*</mark></td><td>Number</td><td>Recommended to use the current timestamp in milliseconds</td></tr><tr><td>signature<mark style="color:red;">*</mark></td><td>Object</td><td></td></tr></tbody></table>
+<table><thead><tr><th width="106.30859375">Name</th><th width="159.5078125">Type</th><th>Description</th></tr></thead><tbody><tr><td>action<mark style="color:red;">*</mark></td><td>Object</td><td><p>{</p><p>  "type": "userDexAbstraction",</p><p>  "hyperliquidChain": "Mainnet" (on testnet use "Testnet" instead),</p><p>  "signatureChainId": the id of the chain used when signing in hexadecimal format; e.g. "0xa4b1" for Arbitrum,</p><p>  "user": address in 42-character hexadecimal format. Can be a sub-account of the user,</p><p>  "enabled": boolean,</p><p>  "nonce": current timestamp in milliseconds as a Number, should match nonce</p><p>}</p></td></tr><tr><td>nonce<mark style="color:red;">*</mark></td><td>Number</td><td>Recommended to use the current timestamp in milliseconds</td></tr><tr><td>signature<mark style="color:red;">*</mark></td><td>Object</td><td></td></tr></tbody></table>
 
 {% tabs %}
 {% tab title="200: OK Successful Response" %}
@@ -951,6 +951,32 @@ Same effect as UserDexAbstraction above, but only works if setting the value fro
 | action<mark style="color:red;">\*</mark>    | Object | <p>{</p><p> "type": "agentEnableDexAbstraction"</p><p>}</p> |
 | nonce<mark style="color:red;">\*</mark>     | Number | Recommended to use the current timestamp in milliseconds    |
 | signature<mark style="color:red;">\*</mark> | Object |                                                             |
+
+{% tabs %}
+{% tab title="200: OK Successful Response" %}
+
+```
+{'status': 'ok', 'response': {'type': 'default'}}
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Validator vote on risk-free rate for aligned quote asset
+
+#### Headers
+
+| Name                                           | Type   | Description        |
+| ---------------------------------------------- | ------ | ------------------ |
+| Content-Type<mark style="color:red;">\*</mark> | String | "application/json" |
+
+#### Request Body
+
+| Name                                        | Type   | Description                                                                                               |
+| ------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| action<mark style="color:red;">\*</mark>    | Object | <p>{</p><p> "type": "validatorL1Stream",</p><p> "riskFreeRate": String // e.g. "0.04" for 4% </p><p>}</p> |
+| nonce<mark style="color:red;">\*</mark>     | Number | Recommended to use the current timestamp in milliseconds                                                  |
+| signature<mark style="color:red;">\*</mark> | Object |                                                                                                           |
 
 {% tabs %}
 {% tab title="200: OK Successful Response" %}

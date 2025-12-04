@@ -1,10 +1,12 @@
 import {
   selectIsFirstTimeUser,
   selectTradeConfiguration,
+  selectPendingTradeConfiguration,
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
   selectHasPlacedFirstOrder,
   selectMarketFilterPreferences,
+  selectOrderBookGrouping,
 } from './selectors';
 import type { PerpsControllerState } from './PerpsController';
 import { MARKET_SORTING_CONFIG } from '../constants/perpsConfig';
@@ -246,6 +248,231 @@ describe('PerpsController selectors', () => {
       const result = selectMarketFilterPreferences(state);
 
       expect(result).toBe(MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID);
+    });
+  });
+
+  describe('selectPendingTradeConfiguration', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('returns pending config for mainnet when not testnet and not expired', () => {
+      const now = Date.now();
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: {
+              leverage: 10,
+              pendingConfig: {
+                amount: '100',
+                leverage: 5,
+                takeProfitPrice: '50000',
+                stopLossPrice: '40000',
+                limitPrice: '45000',
+                orderType: 'limit',
+                timestamp: now,
+              },
+            },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectPendingTradeConfiguration(state, 'BTC');
+
+      expect(result).toEqual({
+        amount: '100',
+        leverage: 5,
+        takeProfitPrice: '50000',
+        stopLossPrice: '40000',
+        limitPrice: '45000',
+        orderType: 'limit',
+      });
+    });
+
+    it('returns undefined for expired pending config (more than 5 minutes)', () => {
+      const fiveMinutesAgo = Date.now() - 6 * 60 * 1000; // 6 minutes ago
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: {
+              leverage: 10,
+              pendingConfig: {
+                amount: '100',
+                leverage: 5,
+                timestamp: fiveMinutesAgo,
+              },
+            },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectPendingTradeConfiguration(state, 'BTC');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns pending config for valid config (less than 5 minutes)', () => {
+      const twoMinutesAgo = Date.now() - 2 * 60 * 1000; // 2 minutes ago
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: {
+              leverage: 10,
+              pendingConfig: {
+                amount: '100',
+                leverage: 5,
+                orderType: 'market',
+                timestamp: twoMinutesAgo,
+              },
+            },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectPendingTradeConfiguration(state, 'BTC');
+
+      expect(result).toEqual({
+        amount: '100',
+        leverage: 5,
+        orderType: 'market',
+      });
+    });
+
+    it('returns undefined when no pending config exists', () => {
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: {
+              leverage: 10,
+            },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectPendingTradeConfiguration(state, 'BTC');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns pending config for testnet when on testnet', () => {
+      const now = Date.now();
+      const state = {
+        isTestnet: true,
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {
+            ETH: {
+              leverage: 5,
+              pendingConfig: {
+                amount: '200',
+                leverage: 10,
+                timestamp: now,
+              },
+            },
+          },
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectPendingTradeConfiguration(state, 'ETH');
+
+      expect(result).toEqual({
+        amount: '200',
+        leverage: 10,
+      });
+    });
+
+    it('returns undefined when config exists but has no pendingConfig', () => {
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: {
+              leverage: 10,
+            },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectPendingTradeConfiguration(state, 'BTC');
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectOrderBookGrouping', () => {
+    it('returns mainnet order book grouping when not on testnet', () => {
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: { orderBookGrouping: 10 },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectOrderBookGrouping(state, 'BTC');
+
+      expect(result).toBe(10);
+    });
+
+    it('returns testnet order book grouping when on testnet', () => {
+      const state = {
+        isTestnet: true,
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {
+            ETH: { orderBookGrouping: 0.01 },
+          },
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectOrderBookGrouping(state, 'ETH');
+
+      expect(result).toBe(0.01);
+    });
+
+    it('returns undefined when no config exists for asset', () => {
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+      } as PerpsControllerState;
+
+      const result = selectOrderBookGrouping(state, 'SOL');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when orderBookGrouping is not set', () => {
+      const state = {
+        isTestnet: false,
+        tradeConfigurations: {
+          mainnet: {
+            BTC: { leverage: 10 },
+          },
+          testnet: {},
+        },
+      } as unknown as PerpsControllerState;
+
+      const result = selectOrderBookGrouping(state, 'BTC');
+
+      expect(result).toBeUndefined();
     });
   });
 });

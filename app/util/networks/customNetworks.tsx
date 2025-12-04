@@ -25,6 +25,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
   'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
   'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
+  'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -89,6 +90,19 @@ export const PopularList = [
     },
   },
   {
+    chainId: toHex('999'),
+    nickname: 'HyperEVM',
+    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
+    failoverRpcUrls: [],
+    ticker: 'HYPE',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://hyperevmscan.io/',
+      imageUrl: 'HYPE',
+      imageSource: require('../../images/hyperevm.png'),
+    },
+  },
+  {
     chainId: toHex('10'),
     nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -139,7 +153,7 @@ export const PopularList = [
     chainId: toHex('1329'),
     nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
@@ -159,6 +173,19 @@ export const PopularList = [
       blockExplorerUrl: 'https://monadscan.com/',
       imageUrl: 'MON',
       imageSource: require('../../images/monad-mainnet-logo.png'),
+    },
+  },
+  {
+    chainId: toHex('4326'),
+    nickname: 'MegaEth',
+    rpcUrl: `https://mainnet.megaeth.com/rpc`,
+    failoverRpcUrls: [],
+    ticker: 'ETH',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.megaeth.com',
+      imageUrl: 'MEGAETH',
+      imageSource: require('../../images/megaeth-mainnet-logo.png'),
     },
   },
 ];
@@ -340,7 +367,7 @@ export const NETWORK_CHAIN_ID: {
   readonly BERACHAIN: '0x138de';
   readonly EDU: '0xa3c3';
   readonly ABSTRACT: '0xab5';
-  readonly OMNI: '0xa6';
+  readonly NOMINA: '0xa6';
   readonly XRPLEVM: '0x15f900';
   readonly FRAXTAL: '0xfc';
   readonly XDC: '0x32';
@@ -350,6 +377,8 @@ export const NETWORK_CHAIN_ID: {
   readonly INJECTIVE: '0x6f0';
   readonly PLASMA: '0x2611';
   readonly CRONOS: '0x19';
+  readonly HYPE: '0x3e7';
+  readonly X_LAYER: '0xc4';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -374,7 +403,7 @@ export const NETWORK_CHAIN_ID: {
   BERACHAIN: '0x138de',
   EDU: '0xa3c3',
   ABSTRACT: '0xab5',
-  OMNI: '0xa6',
+  NOMINA: '0xa6',
   XRPLEVM: '0x15f900',
   FRAXTAL: '0xfc',
   XDC: '0x32',
@@ -384,6 +413,8 @@ export const NETWORK_CHAIN_ID: {
   INJECTIVE: '0x6f0',
   PLASMA: '0x2611',
   CRONOS: '0x19',
+  HYPE: '0x3e7',
+  X_LAYER: '0xc4',
   ...CHAIN_IDS,
 };
 
@@ -413,7 +444,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
   [NETWORK_CHAIN_ID.EDU]: require('../../images/edu.png'),
   [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
-  [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
+  [NETWORK_CHAIN_ID.NOMINA]: require('../../images/nomina.png'),
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
@@ -424,4 +455,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.INJECTIVE]: require('../../images/injective.png'),
   [NETWORK_CHAIN_ID.PLASMA]: require('../../images/plasma.png'),
   [NETWORK_CHAIN_ID.CRONOS]: require('../../images/cronos.png'),
+  [NETWORK_CHAIN_ID.HYPE]: require('../../images/hyperevm.png'),
+  [NETWORK_CHAIN_ID.X_LAYER]: require('../../images/x-layer.png'),
 };

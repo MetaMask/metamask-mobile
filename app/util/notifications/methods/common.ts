@@ -1,7 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
-import notifee from '@notifee/react-native';
 import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
@@ -181,7 +180,7 @@ export const formatAmount = (numericAmount: number, opts?: FormatOptions) => {
 function hasNetworkFeeFields(
   notification: OnChainRawNotification,
 ): notification is OnChainRawNotificationsWithNetworkFields {
-  return 'network_fee' in notification.data;
+  return 'network_fee' in notification.payload.data;
 }
 
 type HexChainId = `0x${string}`;
@@ -202,7 +201,7 @@ export const getNetworkFees = async (notification: OnChainRawNotification) => {
     throw new Error('Invalid notification type');
   }
 
-  const chainId = toHex(notification.chain_id);
+  const chainId = toHex(notification.payload.chain_id);
   const provider = getProviderByChainId(chainId);
 
   if (!provider) {
@@ -211,15 +210,17 @@ export const getNetworkFees = async (notification: OnChainRawNotification) => {
 
   try {
     const [receipt, transaction, block] = await Promise.all([
-      provider.getTransactionReceipt(notification.tx_hash),
-      provider.getTransaction(notification.tx_hash),
-      provider.getBlock(notification.block_number),
+      provider.getTransactionReceipt(notification.payload.tx_hash),
+      provider.getTransaction(notification.payload.tx_hash),
+      provider.getBlock(notification.payload.block_number),
     ]);
 
     const calculateUsdAmount = (value: string, decimalPlaces?: number) =>
       formatAmount(
         parseFloat(value) *
-          parseFloat(notification.data.network_fee.native_token_price_in_usd),
+          parseFloat(
+            notification.payload.data.network_fee.native_token_price_in_usd,
+          ),
         {
           decimalPlaces: decimalPlaces || 4,
         },
@@ -388,7 +389,7 @@ export function getNativeTokenDetailsByChainId(chainId: number) {
 }
 
 const isSupportedBlockExplorer = (
-  chainId: number,
+  chainId: string,
 ): chainId is keyof typeof SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS =>
   chainId in SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS;
 
@@ -398,8 +399,9 @@ const isSupportedBlockExplorer = (
  * @returns some default block explorers for the chains we support.
  */
 export function getBlockExplorerByChainId(chainId: number) {
-  if (isSupportedBlockExplorer(chainId)) {
-    return SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS[chainId].url;
+  const chainIdKey = String(chainId);
+  if (isSupportedBlockExplorer(chainIdKey)) {
+    return SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS[chainIdKey].url;
   }
 
   return undefined;
@@ -456,9 +458,6 @@ export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
 
   return formatAmount(numericAmount);
 };
-
-export const hasInitialNotification = async () =>
-  Boolean(await notifee.getInitialNotification());
 
 export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   const timeout = new Promise<never>((_, reject) =>

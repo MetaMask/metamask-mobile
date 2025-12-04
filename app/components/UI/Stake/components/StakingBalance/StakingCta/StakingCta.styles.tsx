@@ -2,16 +2,15 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    title: {
-      paddingBottom: 16,
-      paddingTop: 14,
-    },
     contentMain: {
       flexDirection: 'row',
       flexWrap: 'wrap',
+      borderRadius: 12,
+      marginBottom: 8,
+      alignSelf: 'center',
     },
-    rightPad: {
-      paddingRight: 3,
+    text: {
+      textAlign: 'center',
     },
   });
 

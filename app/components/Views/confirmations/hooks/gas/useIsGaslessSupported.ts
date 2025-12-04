@@ -1,12 +1,8 @@
-import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { RootState } from '../../../../../reducers';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
 import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
-import { isAtomicBatchSupported } from '../../../../../util/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 
 /**
  * Hook to determine if gasless transactions are supported for the current confirmation context.
@@ -18,53 +14,33 @@ import { Hex } from '@metamask/utils';
  * @returns An object containing:
  * - `isSupported`: `true` if gasless transactions are supported via either 7702 or smart transactions with sendBundle.
  * - `isSmartTransaction`: `true` if smart transactions are enabled for the current chain.
+ * - `pending`: `true` if the support check is still in progress.
  */
 export function useIsGaslessSupported() {
   const transactionMeta = useTransactionMetadataRequest();
 
   const { chainId, txParams } = transactionMeta ?? {};
-  const { from } = txParams ?? {};
 
-  const isSmartTransaction = useSelector((state: RootState) =>
-    selectShouldUseSmartTransaction(state, chainId),
-  );
+  const {
+    isSmartTransaction,
+    isSupported: isSmartTransactionAndBundleSupported,
+    pending: smartTransactionPending,
+  } = useGaslessSupportedSmartTransactions();
 
-  const { value: sendBundleSupportsChain } = useAsyncResult(
-    async () => (chainId ? isSendBundleSupported(chainId) : false),
-    [chainId],
-  );
+  const shouldCheck7702Eligibility =
+    !smartTransactionPending && !isSmartTransactionAndBundleSupported;
 
-  const isSmartTransactionAndBundleSupported = Boolean(
-    isSmartTransaction && sendBundleSupportsChain,
-  );
+  const { value: relaySupportsChain, pending: relayPending } =
+    useAsyncResult(async () => {
+      if (!shouldCheck7702Eligibility) {
+        return undefined;
+      }
 
-  const { value: atomicBatchSupportResult } = useAsyncResult(async () => {
-    if (isSmartTransactionAndBundleSupported) {
-      return undefined;
-    }
+      return isRelaySupported(chainId as Hex);
+    }, [chainId, shouldCheck7702Eligibility]);
 
-    return isAtomicBatchSupported({
-      address: from as Hex,
-      chainIds: [chainId as Hex],
-    });
-  }, [chainId, from, isSmartTransactionAndBundleSupported]);
-
-  const { value: relaySupportsChain } = useAsyncResult(async () => {
-    if (isSmartTransactionAndBundleSupported) {
-      return undefined;
-    }
-
-    return isRelaySupported(chainId as Hex);
-  }, [chainId, isSmartTransactionAndBundleSupported]);
-
-  const atomicBatchChainSupport = atomicBatchSupportResult?.find(
-    (result) => result.chainId.toLowerCase() === chainId?.toLowerCase(),
-  );
-
-  // Currently requires upgraded account, can also support no `delegationAddress` in future.
   const is7702Supported = Boolean(
-    atomicBatchChainSupport?.isSupported &&
-      relaySupportsChain &&
+    relaySupportsChain &&
       // contract deployments can't be delegated
       txParams?.to !== undefined,
   );
@@ -73,8 +49,12 @@ export function useIsGaslessSupported() {
     isSmartTransactionAndBundleSupported || is7702Supported,
   );
 
+  const isPending =
+    smartTransactionPending || (shouldCheck7702Eligibility && relayPending);
+
   return {
     isSupported,
     isSmartTransaction,
+    pending: isPending,
   };
 }

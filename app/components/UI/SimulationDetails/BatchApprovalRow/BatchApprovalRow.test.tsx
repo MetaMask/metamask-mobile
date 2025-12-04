@@ -17,6 +17,17 @@ import { Severity } from '../../../Views/confirmations/types/alerts';
 import { AssetType } from '../types';
 import BatchApprovalRow from './BatchApprovalRow';
 
+jest.mock(
+  '../../../Views/confirmations/hooks/metrics/useConfirmationAlertMetrics',
+  () => ({
+    useConfirmationAlertMetrics: () => ({
+      trackInlineAlertClicked: jest.fn(),
+      trackAlertActionClicked: jest.fn(),
+      trackAlertRendered: jest.fn(),
+    }),
+  }),
+);
+
 const approvalData = [
   {
     asset: {
@@ -68,7 +79,7 @@ describe('BatchApprovalRow', () => {
     expect(getByTestId('edit-spending-cap-button')).toBeTruthy();
   });
 
-  it('displays alert if BatchedApprovals alert is present', () => {
+  it('displays alert icon if BatchedApprovals alert is present', () => {
     jest
       .spyOn(BatchApprovalUtils, 'useBatchApproveBalanceChanges')
       .mockReturnValue({ value: approvalData, pending: false });
@@ -77,10 +88,10 @@ describe('BatchApprovalRow', () => {
       fieldAlerts: [mockBatchedUnusedApprovalAlert],
       isAlertConfirmed: () => false,
     } as unknown as AlertContextFunctions.AlertsContextParams);
-    const { getByText } = renderWithProvider(<BatchApprovalRow />, {
+    const { getByTestId } = renderWithProvider(<BatchApprovalRow />, {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
 
-    expect(getByText('Alert')).toBeTruthy();
+    expect(getByTestId('inline-alert-icon')).toBeTruthy();
   });
 });

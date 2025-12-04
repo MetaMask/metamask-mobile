@@ -149,6 +149,7 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
+import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
@@ -172,6 +173,8 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
+import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
+import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
@@ -187,6 +190,10 @@ export class Engine {
    * The global Engine singleton
    */
   static instance: Engine | null;
+  /**
+   * Flag to disable automatic vault backups (used during wallet reset)
+   */
+  static disableAutomaticVaultBackup = false;
   /**
    * A collection of all controller instances
    */
@@ -302,6 +309,7 @@ export class Engine {
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionController: TransactionControllerInit,
+        TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
@@ -355,6 +363,8 @@ export class Engine {
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
+        ProfileMetricsController: profileMetricsControllerInit,
+        ProfileMetricsService: profileMetricsServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -387,6 +397,8 @@ export class Engine {
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
     const addressBookController = controllersByName.AddressBookController;
+    const profileMetricsController = controllersByName.ProfileMetricsController;
+    const profileMetricsService = controllersByName.ProfileMetricsService;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -483,6 +495,7 @@ export class Engine {
       TokenBalancesController: tokenBalancesController,
       TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
+      TransactionPayController: controllersByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SwapsController: swapsController,
       GasFeeController: this.gasFeeController,
@@ -532,6 +545,8 @@ export class Engine {
       PredictController: predictController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
+      ProfileMetricsController: profileMetricsController,
+      ProfileMetricsService: profileMetricsService,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -693,6 +708,11 @@ export class Engine {
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
+        // Check if automatic backups are disabled (during wallet reset)
+        if (Engine.disableAutomaticVaultBackup) {
+          return;
+        }
+
         if (!state.vault) {
           return;
         }
@@ -1301,6 +1321,7 @@ export default {
       TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
+      TransactionPayController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1316,6 +1337,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileMetricsController,
     } = instance.datamodel.state;
 
     return {
@@ -1361,6 +1383,7 @@ export default {
       TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
+      TransactionPayController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1376,6 +1399,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileMetricsController,
     };
   },
 

@@ -68,18 +68,19 @@ describe('useUserHistory', () => {
       const { result } = renderHook(() => useUserHistory());
 
       expect(result.current.userHistory).toEqual([]);
-      expect(result.current.isLoading).toBe(true); // Hook starts loading immediately
+      // Hook does not auto-fetch - parent controls fetch flow
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.refetch).toBe('function');
     });
   });
 
   describe('fetchUserHistory', () => {
-    it('fetches user history successfully', async () => {
+    it('fetches user history successfully when refetch is called', async () => {
       const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
@@ -100,10 +101,10 @@ describe('useUserHistory', () => {
           'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
 
-      renderHook(() => useUserHistory(params));
+      const { result } = renderHook(() => useUserHistory(params));
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledWith(params);
@@ -117,7 +118,7 @@ describe('useUserHistory', () => {
       const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(result.current.error).toBe('PerpsController not available');
@@ -136,7 +137,7 @@ describe('useUserHistory', () => {
       const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(result.current.error).toBe('Provider error');
@@ -153,7 +154,7 @@ describe('useUserHistory', () => {
       const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(result.current.error).toBe('Failed to fetch user history');
@@ -163,7 +164,7 @@ describe('useUserHistory', () => {
 
   describe('loading states', () => {
     it('sets loading to true during fetch', async () => {
-      let resolvePromise: (value: unknown) => void;
+      let resolvePromise: (value: unknown) => void = () => undefined;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
@@ -171,12 +172,21 @@ describe('useUserHistory', () => {
 
       const { result } = renderHook(() => useUserHistory());
 
-      // Check loading state before resolution
+      // Initially not loading (no auto-fetch)
+      expect(result.current.isLoading).toBe(false);
+
+      // Start fetch
+      let refetchPromise: Promise<unknown>;
+      act(() => {
+        refetchPromise = result.current.refetch();
+      });
+
+      // Now loading
       expect(result.current.isLoading).toBe(true);
 
       await act(async () => {
         resolvePromise(mockUserHistory);
-        await promise;
+        await refetchPromise;
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -188,7 +198,7 @@ describe('useUserHistory', () => {
       const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -196,18 +206,11 @@ describe('useUserHistory', () => {
   });
 
   describe('refetch functionality', () => {
-    it('refetches user history when refetch is called', async () => {
+    it('fetches user history when refetch is called', async () => {
       const { result } = renderHook(() => useUserHistory());
 
-      // Initial fetch
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(1);
-
-      // Clear previous calls
-      mockProvider.getUserHistory.mockClear();
+      // No auto-fetch, so initially no calls
+      expect(mockProvider.getUserHistory).not.toHaveBeenCalled();
 
       // Call refetch
       await act(async () => {
@@ -215,6 +218,13 @@ describe('useUserHistory', () => {
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(1);
+
+      // Call refetch again
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(2);
     });
 
     it('refetch handles errors gracefully', async () => {
@@ -232,14 +242,15 @@ describe('useUserHistory', () => {
   });
 
   describe('parameter changes', () => {
-    it('refetches when startTime changes', async () => {
-      const { rerender } = renderHook(
+    it('uses updated startTime when refetch is called after param change', async () => {
+      const { result, rerender } = renderHook(
         ({ startTime }) => useUserHistory({ startTime }),
         { initialProps: { startTime: 1000 } },
       );
 
+      // Call refetch with initial params
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
@@ -253,8 +264,9 @@ describe('useUserHistory', () => {
 
       rerender({ startTime: 2000 });
 
+      // Call refetch with new params
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
@@ -264,14 +276,15 @@ describe('useUserHistory', () => {
       });
     });
 
-    it('refetches when endTime changes', async () => {
-      const { rerender } = renderHook(
+    it('uses updated endTime when refetch is called after param change', async () => {
+      const { result, rerender } = renderHook(
         ({ endTime }) => useUserHistory({ endTime }),
         { initialProps: { endTime: 1000 } },
       );
 
+      // Call refetch with initial params
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
@@ -285,8 +298,9 @@ describe('useUserHistory', () => {
 
       rerender({ endTime: 2000 });
 
+      // Call refetch with new params
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
@@ -296,8 +310,8 @@ describe('useUserHistory', () => {
       });
     });
 
-    it('refetches when accountId changes', async () => {
-      const { rerender } = renderHook(
+    it('uses updated accountId when refetch is called after param change', async () => {
+      const { result, rerender } = renderHook(
         ({ accountId }) => useUserHistory({ accountId }),
         {
           initialProps: {
@@ -307,8 +321,9 @@ describe('useUserHistory', () => {
         },
       );
 
+      // Call refetch with initial params
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
@@ -325,8 +340,9 @@ describe('useUserHistory', () => {
           'eip155:1:0x9876543210987654321098765432109876543210' as CaipAccountId,
       });
 
+      // Call refetch with new params
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
@@ -346,10 +362,10 @@ describe('useUserHistory', () => {
           'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
 
-      renderHook(() => useUserHistory(params));
+      const { result } = renderHook(() => useUserHistory(params));
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -359,10 +375,10 @@ describe('useUserHistory', () => {
     });
 
     it('logs successful fetch', async () => {
-      renderHook(() => useUserHistory());
+      const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -374,10 +390,10 @@ describe('useUserHistory', () => {
     it('logs errors', async () => {
       mockProvider.getUserHistory.mockRejectedValue(new Error('Test error'));
 
-      renderHook(() => useUserHistory());
+      const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -394,7 +410,7 @@ describe('useUserHistory', () => {
       const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(result.current.userHistory).toEqual([]);
@@ -407,7 +423,7 @@ describe('useUserHistory', () => {
       const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(result.current.userHistory).toBeUndefined();
@@ -420,7 +436,7 @@ describe('useUserHistory', () => {
       const { result } = renderHook(() => useUserHistory());
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await result.current.refetch();
       });
 
       expect(result.current.userHistory).toBeNull();

@@ -194,10 +194,6 @@ class TransactionReviewInformation extends PureComponent {
      */
     networkClientId: PropTypes.string,
     /**
-     * Indicates whether custom nonce should be shown in transaction editor
-     */
-    showCustomNonce: PropTypes.bool,
-    /**
      * Set transaction nonce
      */
     setNonce: PropTypes.func,
@@ -252,8 +248,7 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   componentDidMount = async () => {
-    const { showCustomNonce } = this.props;
-    showCustomNonce && (await this.setNetworkNonce());
+    await this.setNetworkNonce();
   };
 
   setNetworkNonce = async () => {
@@ -661,7 +656,6 @@ class TransactionReviewInformation extends PureComponent {
       transaction: { warningGasPriceHigh, type },
       error,
       over,
-      showCustomNonce,
       gasEstimateType,
       gasSelected,
       isNativeTokenBuySupported,
@@ -694,7 +688,7 @@ class TransactionReviewInformation extends PureComponent {
             warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
           />
         )}
-        {showCustomNonce && !shouldUseSmartTransaction && (
+        {!shouldUseSmartTransaction && (
           <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />
         )}
         {!!amountError && (
@@ -730,7 +724,7 @@ class TransactionReviewInformation extends PureComponent {
             <Text style={styles.error}>{warningGasPriceHigh}</Text>
           </View>
         )}
-        {!over && !showCustomNonce && (
+        {!over && (
           <View style={styles.viewDataWrapper}>
             <TouchableOpacity
               style={styles.viewDataButton}
@@ -761,7 +755,6 @@ const mapStateToProps = (state) => {
     transaction,
     ticker: selectNativeCurrencyByChainId(state, chainId),
     primaryCurrency: state.settings.primaryCurrency,
-    showCustomNonce: state.settings.showCustomNonce,
     isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
       chainId,
       getRampNetworks(state),

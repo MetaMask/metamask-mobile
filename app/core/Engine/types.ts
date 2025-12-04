@@ -352,6 +352,15 @@ import {
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
 import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
+import {
+  ProfileMetricsController,
+  ProfileMetricsControllerActions,
+  ProfileMetricsControllerEvents,
+  ProfileMetricsControllerState,
+  ProfileMetricsService,
+  ProfileMetricsServiceActions,
+  ProfileMetricsServiceEvents,
+} from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
@@ -362,6 +371,14 @@ type NftDetectionControllerEvents = ControllerStateChangeEvent<
   'NftDetectionController',
   NFTDetectionControllerState
 >;
+import {
+  TransactionPayController,
+  TransactionPayControllerState,
+} from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayControllerActions,
+  TransactionPayControllerEvents,
+} from '@metamask/transaction-pay-controller/dist/types.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -457,6 +474,7 @@ type GlobalActions =
   | TokenRatesControllerActions
   | TokenListControllerActions
   | TransactionControllerActions
+  | TransactionPayControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
@@ -477,7 +495,9 @@ type GlobalActions =
   | ErrorReportingServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
-  | NftDetectionControllerActions;
+  | NftDetectionControllerActions
+  | ProfileMetricsControllerActions
+  | ProfileMetricsServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -526,6 +546,7 @@ type GlobalEvents =
   | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
+  | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
@@ -545,7 +566,9 @@ type GlobalEvents =
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   | DelegationControllerEvents
-  | NftDetectionControllerEvents;
+  | NftDetectionControllerEvents
+  | ProfileMetricsControllerEvents
+  | ProfileMetricsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -615,6 +638,7 @@ export type Controllers = {
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
+  TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -654,6 +678,8 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  ProfileMetricsController: ProfileMetricsController;
+  ProfileMetricsService: ProfileMetricsService;
 };
 
 /**
@@ -684,6 +710,7 @@ export type EngineState = {
   TokenRatesController: TokenRatesControllerState;
   TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
+  TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
@@ -727,6 +754,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  ProfileMetricsController: ProfileMetricsControllerState;
 };
 
 /** Controller names */
@@ -814,6 +842,7 @@ export type ControllersToInitialize =
   | 'TokenSearchDiscoveryController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
+  | 'TransactionPayController'
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
@@ -825,7 +854,9 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController';
+  | 'SelectedNetworkController'
+  | 'ProfileMetricsController'
+  | 'ProfileMetricsService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

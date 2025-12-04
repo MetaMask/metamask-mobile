@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   RefreshControl,
   ScrollView,
@@ -22,7 +23,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -38,7 +39,13 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { AllowanceState, CardStatus, CardType, CardWarning } from '../../types';
+import {
+  AllowanceState,
+  CardStatus,
+  CardType,
+  CardVerificationState,
+  CardWarning,
+} from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
@@ -48,20 +55,19 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
+import {
+  CARD_SUPPORT_EMAIL,
+  DEPOSIT_SUPPORTED_TOKENS,
+  SPENDING_LIMIT_UNSUPPORTED_TOKENS,
+} from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  setIsAuthenticatedCard,
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  setUserCardLocation,
   clearAllCache,
+  resetAuthenticatedData,
 } from '../../../../../core/redux/slices/card';
 import { useCardProvision } from '../../hooks/useCardProvision';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
@@ -70,7 +76,6 @@ import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import useLoadCardData from '../../hooks/useLoadCardData';
-import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
@@ -79,6 +84,8 @@ import {
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
+import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
+import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 
 /**
  * CardHome Component
@@ -93,15 +100,17 @@ import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/
  */
 const CardHome = () => {
   const { PreferencesController } = Engine.context;
-  const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
-  const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
-    useState(false);
   const [retries, setRetries] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const addFundsSheetRef = useRef<BottomSheetRef>(null);
-  const assetSelectionSheetRef = useRef<BottomSheetRef>(null);
+  const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
+  const hasTrackedCardHomeView = useRef(false);
+  const hasLoadedCardHomeView = useRef(false);
+  const hasHandledAuthErrorRef = useRef(false);
+  const isComponentUnmountedRef = useRef(false);
+  const hasShownKYCAlertRef = useRef(false);
+  const hasShownKYCErrorAlertRef = useRef(false);
   const [
     isCloseSpendingLimitWarningShown,
     setIsCloseSpendingLimitWarningShown,
@@ -132,6 +141,7 @@ const CardHome = () => {
     allTokens,
     delegationSettings,
     externalWalletDetailsData,
+    kycStatus,
   } = useLoadCardData();
 
   const assetBalancesMap = useAssetBalances(
@@ -184,31 +194,6 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, balanceFormatted]);
 
-  const renderAddFundsBottomSheet = useCallback(
-    () => (
-      <AddFundsBottomSheet
-        sheetRef={addFundsSheetRef}
-        setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
-        priorityToken={priorityToken ?? undefined}
-        navigate={navigation.navigate}
-      />
-    ),
-    [priorityToken, navigation],
-  );
-
-  const renderAssetSelectionBottomSheet = useCallback(
-    () => (
-      <AssetSelectionBottomSheet
-        sheetRef={assetSelectionSheetRef}
-        setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
-        tokensWithAllowances={allTokens}
-        delegationSettings={delegationSettings}
-        cardExternalWalletDetails={externalWalletDetailsData}
-      />
-    ),
-    [allTokens, delegationSettings, externalWalletDetailsData],
-  );
-
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -217,9 +202,6 @@ const CardHome = () => {
       setIsRefreshing(false);
     }
   }, [fetchAllData]);
-
-  // Track event only once after priorityToken and balances are loaded
-  const hasTrackedCardHomeView = useRef(false);
 
   useEffect(() => {
     // Early return if already tracked to prevent any possibility of duplicate tracking
@@ -286,11 +268,15 @@ const CardHome = () => {
     );
 
     if (isPriorityTokenSupportedDeposit) {
-      setOpenAddFundsBottomSheet(true);
+      navigation.navigate(
+        ...createAddFundsModalNavigationDetails({
+          priorityToken: priorityToken ?? undefined,
+        }),
+      );
     } else if (priorityToken) {
       openSwaps({});
     }
-  }, [trackEvent, createEventBuilder, priorityToken, openSwaps]);
+  }, [trackEvent, createEventBuilder, priorityToken, openSwaps, navigation]);
 
   const changeAssetAction = useCallback(() => {
     trackEvent(
@@ -302,11 +288,25 @@ const CardHome = () => {
     );
 
     if (isAuthenticated) {
-      setOpenAssetSelectionBottomSheet(true);
+      navigation.navigate(
+        ...createAssetSelectionModalNavigationDetails({
+          tokensWithAllowances: allTokens,
+          delegationSettings,
+          cardExternalWalletDetails: externalWalletDetailsData,
+        }),
+      );
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+  ]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
@@ -369,6 +369,45 @@ const CardHome = () => {
     [priorityTokenWarning],
   );
 
+  // Determine if card can be enabled based on KYC status
+  const canEnableCard = useMemo(() => {
+    if (!isAuthenticated || !isBaanxLoginEnabled) {
+      return true; // No KYC check for unauthenticated users
+    }
+
+    if (!kycStatus || isLoading) {
+      return false; // Wait for KYC status to load
+    }
+
+    return kycStatus.verificationState === 'VERIFIED';
+  }, [isAuthenticated, isBaanxLoginEnabled, kycStatus, isLoading]);
+
+  const getKYCStatusMessage = useCallback(
+    (verificationState: CardVerificationState | null | undefined) => {
+      switch (verificationState) {
+        case 'PENDING':
+          return {
+            title: strings('card.card_home.kyc_status.pending.title'),
+            description: strings(
+              'card.card_home.kyc_status.pending.description',
+              { email: CARD_SUPPORT_EMAIL },
+            ),
+          };
+        case 'UNVERIFIED':
+          return {
+            title: strings('card.card_home.kyc_status.unverified.title'),
+            description: strings(
+              'card.card_home.kyc_status.unverified.description',
+              { email: CARD_SUPPORT_EMAIL },
+            ),
+          };
+        default:
+          return null;
+      }
+    },
+    [],
+  );
+
   const enableCardAction = useCallback(async () => {
     try {
       await provisionCard();
@@ -423,7 +462,8 @@ const CardHome = () => {
             disabled={
               isLoading ||
               isLoadingPollCardStatusUntilProvisioned ||
-              isLoadingProvisionCard
+              isLoadingProvisionCard ||
+              !canEnableCard
             }
             loading={
               isLoading ||
@@ -493,45 +533,205 @@ const CardHome = () => {
         testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
       />
     );
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addFundsAction,
-    priorityTokenWarning,
+    changeAssetAction,
+    enableCardAction,
+    isBaanxLoginEnabled,
     isLoading,
+    isLoadingPollCardStatusUntilProvisioned,
+    isLoadingProvisionCard,
     isSwapEnabledForPriorityToken,
+    needToEnableAssets,
+    needToEnableCard,
+    styles,
+    canEnableCard,
   ]);
+
+  useEffect(
+    () => () => {
+      isComponentUnmountedRef.current = true;
+    },
+    [],
+  );
 
   // Handle authentication errors (expired token, invalid credentials, etc.)
   useEffect(() => {
     const handleAuthenticationError = async () => {
-      if (!cardError) {
+      const isAuthError =
+        Boolean(cardError) &&
+        isAuthenticated &&
+        isAuthenticationError(cardError);
+
+      if (!isAuthError) {
+        hasHandledAuthErrorRef.current = false;
         return;
       }
 
-      // Check if the error is authentication-related
-      if (isAuthenticated && isAuthenticationError(cardError)) {
-        Logger.log(
-          'CardHome: Authentication error detected, clearing auth state and redirecting',
-        );
+      if (hasHandledAuthErrorRef.current) {
+        return;
+      }
 
-        // Clear authentication state
+      hasHandledAuthErrorRef.current = true;
+      setIsHandlingAuthError(true);
+
+      Logger.log(
+        'CardHome: Authentication error detected, clearing auth state and redirecting',
+      );
+
+      try {
         await removeCardBaanxToken();
-        dispatch(setIsAuthenticatedCard(false));
-        dispatch(setAuthenticatedPriorityToken(null));
-        dispatch(setAuthenticatedPriorityTokenLastFetched(null));
-        dispatch(setUserCardLocation(null));
 
-        // Clear all cached data
+        if (isComponentUnmountedRef.current) {
+          return;
+        }
+
+        dispatch(resetAuthenticatedData());
         dispatch(clearAllCache());
 
-        // Redirect to welcome screen for re-authentication
-        navigation.navigate(Routes.CARD.WELCOME);
+        navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+      } catch (error) {
+        Logger.log('CardHome: Failed to handle authentication error', error);
+
+        if (!isComponentUnmountedRef.current) {
+          navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+        }
+      } finally {
+        if (!isComponentUnmountedRef.current) {
+          setIsHandlingAuthError(false);
+        }
       }
     };
 
     handleAuthenticationError();
-  }, [cardError, isAuthenticated, dispatch, navigation]);
+  }, [cardError, dispatch, isAuthenticated, navigation]);
+
+  // Load Card Data once CardHome opens
+  useEffect(() => {
+    const loadCardData = async () => {
+      await fetchAllData();
+      hasLoadedCardHomeView.current = true;
+    };
+
+    if (!hasLoadedCardHomeView.current && isAuthenticated) {
+      loadCardData();
+    }
+  }, [fetchAllData, isAuthenticated]);
+
+  // Show KYC status alert if needed
+  useEffect(() => {
+    if (
+      !isAuthenticated ||
+      !isBaanxLoginEnabled ||
+      !needToEnableCard ||
+      !kycStatus ||
+      isLoading
+    ) {
+      return;
+    }
+
+    // Prevent showing the alert multiple times
+    if (hasShownKYCAlertRef.current) {
+      return;
+    }
+
+    const verificationState = kycStatus.verificationState;
+
+    // Handle REJECTED separately with support message
+    if (verificationState === 'REJECTED') {
+      hasShownKYCAlertRef.current = true;
+      Alert.alert(
+        strings('card.card_home.kyc_status.rejected.title'),
+        strings('card.card_home.kyc_status.rejected.support_description', {
+          email: CARD_SUPPORT_EMAIL,
+        }),
+        [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ],
+      );
+      return;
+    }
+
+    // Handle PENDING and UNVERIFIED
+    if (
+      verificationState &&
+      ['PENDING', 'UNVERIFIED'].includes(verificationState)
+    ) {
+      const message = getKYCStatusMessage(verificationState);
+      if (message) {
+        hasShownKYCAlertRef.current = true;
+        Alert.alert(message.title, message.description, [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ]);
+      }
+    }
+  }, [
+    kycStatus,
+    isAuthenticated,
+    isBaanxLoginEnabled,
+    needToEnableCard,
+    getKYCStatusMessage,
+    isLoading,
+  ]);
+
+  // Handle KYC error separately
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      isBaanxLoginEnabled &&
+      needToEnableCard &&
+      cardError &&
+      kycStatus === null &&
+      !isLoading
+    ) {
+      // Prevent showing the error alert multiple times
+      if (hasShownKYCErrorAlertRef.current) {
+        return;
+      }
+
+      // KYC status fetch failed
+      hasShownKYCErrorAlertRef.current = true;
+      Alert.alert(
+        strings('card.card_home.kyc_status.error.title'),
+        strings('card.card_home.kyc_status.error.description'),
+        [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ],
+      );
+    }
+  }, [
+    isAuthenticated,
+    isBaanxLoginEnabled,
+    needToEnableCard,
+    cardError,
+    kycStatus,
+    isLoading,
+  ]);
+
+  /**
+   * Check if the current token supports the spending limit progress bar feature.
+   * Some tokens (e.g., aUSDC) have different allowance behavior and are unsupported.
+   */
+  const isSpendingLimitSupported = useMemo(() => {
+    if (
+      !priorityToken?.symbol ||
+      isSolanaChainId(priorityToken.caipChainId ?? '')
+    ) {
+      return false;
+    }
+    return !SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(
+      priorityToken.symbol.toUpperCase(),
+    );
+  }, [priorityToken?.symbol, priorityToken?.caipChainId]);
 
   /**
    * This warning is shown when the user is close to their spending limit.
@@ -539,7 +739,7 @@ const CardHome = () => {
    * This matches the progress bar color change threshold.
    */
   const isCloseSpendingLimitWarning = useMemo(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !isSpendingLimitSupported) {
       return false;
     }
 
@@ -551,9 +751,19 @@ const CardHome = () => {
       priorityToken?.allowanceState === AllowanceState.Limited &&
       remainingAllowance <= totalAllowance * 0.2
     );
-  }, [isAuthenticated, priorityToken]);
+  }, [isAuthenticated, isSpendingLimitSupported, priorityToken]);
 
   if (cardError) {
+    const isAuthError = isAuthenticated && isAuthenticationError(cardError);
+
+    if (isHandlingAuthError || isAuthError) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -724,13 +934,19 @@ const CardHome = () => {
               testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
-            <CardAssetItem asset={asset} privacyMode={privacyMode} />
+            <CardAssetItem
+              asset={asset}
+              privacyMode={privacyMode}
+              balanceFormatted={balanceFormatted}
+            />
           )}
         </View>
 
         {isAuthenticated &&
+          isSpendingLimitSupported &&
           priorityToken?.allowanceState === AllowanceState.Limited && (
             <SpendingLimitProgressBar
+              isLoading={isLoading}
               decimals={priorityToken?.decimals ?? 6}
               totalAllowance={priorityToken?.totalAllowance ?? '0'}
               remainingAllowance={priorityToken?.allowance ?? '0'}
@@ -786,9 +1002,6 @@ const CardHome = () => {
           onPress={logoutAction}
         />
       )}
-
-      {openAddFundsBottomSheet && renderAddFundsBottomSheet()}
-      {openAssetSelectionBottomSheet && renderAssetSelectionBottomSheet()}
     </ScrollView>
   );
 };

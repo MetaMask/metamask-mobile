@@ -105,7 +105,7 @@ describe('PredictMarketMultiple', () => {
     ).toBeOnTheScreen();
 
     expect(getByText('Bitcoin Price Prediction')).toBeOnTheScreen();
-    expect(getByText('65.00%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -119,7 +119,7 @@ describe('PredictMarketMultiple', () => {
 
     // Press the "Yes" button
     fireEvent.press(buttons[0]);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
@@ -131,7 +131,7 @@ describe('PredictMarketMultiple', () => {
 
     // Press the "No" button
     fireEvent.press(buttons[1]);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
@@ -197,7 +197,7 @@ describe('PredictMarketMultiple', () => {
 
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
-    expect(getByText('75.00%')).toBeOnTheScreen();
+    expect(getByText('75%')).toBeOnTheScreen();
   });
 
   it('handle market with recurrence', () => {
@@ -296,7 +296,7 @@ describe('PredictMarketMultiple', () => {
     );
     fireEvent.press(marketTitle);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,

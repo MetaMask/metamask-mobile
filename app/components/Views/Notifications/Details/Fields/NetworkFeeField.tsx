@@ -23,6 +23,7 @@ import Icon, {
 import { NotificationDetailStyles } from '../styles';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
 import { type INotification } from '../../../../../util/notifications';
+import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
@@ -142,9 +143,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
           .addProperties({
             notification_id: notification.id,
             notification_type: notification.type,
-            ...('chain_id' in notification && {
-              chain_id: notification.chain_id,
-            }),
+            ...onChainAnalyticProperties(notification),
             clicked_item: 'fee_details',
           })
           .build(),

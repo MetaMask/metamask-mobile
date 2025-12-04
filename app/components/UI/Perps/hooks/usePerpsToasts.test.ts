@@ -311,6 +311,51 @@ describe('usePerpsToasts', () => {
           isBold: false,
         });
       });
+
+      it('strips hip3 prefix from asset symbol in market order submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.market.submitted(
+            'long',
+            '0.5',
+            'hip3:BTC',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Long 0.5 BTC',
+          isBold: false,
+        });
+      });
+
+      it('strips DEX prefix from asset symbol in market order confirmed', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.market.confirmed(
+            'short',
+            '10',
+            'xyz:TSLA',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Short 10 TSLA',
+          isBold: false,
+        });
+      });
+
+      it('keeps regular asset symbols unchanged in market orders', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.market.submitted(
+            'long',
+            '2',
+            'SOL',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Long 2 SOL',
+          isBold: false,
+        });
+      });
     });
 
     describe('orderManagement.limit', () => {
@@ -363,6 +408,51 @@ describe('usePerpsToasts', () => {
 
         expect(config.labelOptions).toContainEqual({
           label: 'Network error',
+          isBold: false,
+        });
+      });
+
+      it('strips hip3 prefix from asset symbol in limit order submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.submitted(
+            'short',
+            '1.5',
+            'hip3:ETH',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Short 1.5 ETH',
+          isBold: false,
+        });
+      });
+
+      it('strips DEX prefix from asset symbol in limit order confirmed', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.confirmed(
+            'long',
+            '100',
+            'abc:AAPL',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Long 100 AAPL',
+          isBold: false,
+        });
+      });
+
+      it('keeps regular asset symbols unchanged in limit orders', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.submitted(
+            'long',
+            '5',
+            'BTC',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Long 5 BTC',
           isBold: false,
         });
       });
@@ -498,6 +588,54 @@ describe('usePerpsToasts', () => {
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
           hapticsType: NotificationFeedbackType.Error,
+        });
+      });
+
+      it('strips hip3 prefix from asset symbol in cancellation in progress', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationInProgress(
+            'long',
+            '3',
+            'hip3:SOL',
+            'Stop Loss',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'long 3 SOL',
+          isBold: false,
+        });
+      });
+
+      it('strips DEX prefix from asset symbol in cancellation success', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+            false,
+            'Take Profit',
+            'short',
+            '50',
+            'xyz:TSLA',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'short 50 TSLA',
+          isBold: false,
+        });
+      });
+
+      it('keeps regular asset symbols unchanged in cancellation', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationInProgress(
+            'long',
+            '1.5',
+            'ETH',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'long 1.5 ETH',
+          isBold: false,
         });
       });
     });
@@ -676,6 +814,93 @@ describe('usePerpsToasts', () => {
       });
     });
 
+    describe('positionManagement.margin', () => {
+      it('returns add margin success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.addSuccess(
+            'ETH',
+            '100',
+          );
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toHaveLength(1);
+        expect(config.labelOptions?.[0]).toMatchObject({
+          isBold: true,
+        });
+      });
+
+      it('returns remove margin success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeSuccess(
+            'BTC',
+            '50',
+          );
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toHaveLength(1);
+        expect(config.labelOptions?.[0]).toMatchObject({
+          isBold: true,
+        });
+      });
+
+      it('returns adjustment failed configuration with custom error', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const customError = 'Insufficient funds';
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.adjustmentFailed(
+            customError,
+          );
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toHaveLength(3);
+        expect(config.labelOptions?.[0]).toMatchObject({
+          isBold: true,
+        });
+        expect(config.labelOptions?.[2]).toMatchObject({
+          label: customError,
+          isBold: false,
+        });
+      });
+
+      it('returns adjustment failed configuration with default error', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.adjustmentFailed();
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toHaveLength(3);
+        expect(config.labelOptions?.[0]).toMatchObject({
+          isBold: true,
+        });
+        // Default error uses perps.errors.unknown key
+        expect(config.labelOptions?.[2]).toMatchObject({
+          isBold: false,
+        });
+      });
+    });
+
     describe('positionManagement.tpsl', () => {
       it('returns update TPSL success configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
@@ -734,7 +959,7 @@ describe('usePerpsToasts', () => {
               description:
                 'An unexpected error occurred. Please try again later.',
               retry: 'Retry',
-              title: 'Something Went Wrong',
+              title: 'Something went wrong',
             },
             isBold: false,
           },
@@ -762,7 +987,7 @@ describe('usePerpsToasts', () => {
               description:
                 'An unexpected error occurred. Please try again later.',
               retry: 'Retry',
-              title: 'Something Went Wrong',
+              title: 'Something went wrong',
             },
             isBold: false,
           },
@@ -800,7 +1025,7 @@ describe('usePerpsToasts', () => {
           isBold: false,
         });
         expect(config.closeButtonOptions).toMatchObject({
-          label: 'Go Back',
+          label: 'Go back',
           variant: ButtonVariants.Secondary,
         });
 

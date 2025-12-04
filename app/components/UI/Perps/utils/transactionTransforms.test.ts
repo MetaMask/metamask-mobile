@@ -323,7 +323,125 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([noOrderIdFill]);
 
-      expect(result[0].id).toBe(`fill-${mockFill.timestamp}`);
+      // ID format: fill-{timestamp}-{index}
+      expect(result[0].id).toBe(`fill-${mockFill.timestamp}-0`);
+    });
+
+    it('strips hip3 prefix from symbol in subtitle', () => {
+      const hip3Fill = {
+        ...mockFill,
+        symbol: 'hip3:BTC',
+      };
+
+      const result = transformFillsToTransactions([hip3Fill]);
+
+      expect(result[0].subtitle).toBe('1 BTC');
+    });
+
+    it('strips DEX prefix from symbol in subtitle', () => {
+      const dexFill = {
+        ...mockFill,
+        symbol: 'xyz:TSLA',
+      };
+
+      const result = transformFillsToTransactions([dexFill]);
+
+      expect(result[0].subtitle).toBe('1 TSLA');
+    });
+
+    it('keeps regular symbols unchanged in subtitle', () => {
+      const regularFill = {
+        ...mockFill,
+        symbol: 'SOL',
+      };
+
+      const result = transformFillsToTransactions([regularFill]);
+
+      expect(result[0].subtitle).toBe('1 SOL');
+    });
+
+    // Tests for spot-perps and prelaunch markets that use "Buy"/"Sell" directions
+    it('transforms Buy direction fill correctly', () => {
+      const buyFill: OrderFill = {
+        orderId: 'order-buy-1',
+        symbol: '@215',
+        side: 'buy',
+        size: '5191.5',
+        price: '0.005581',
+        fee: '3.488686',
+        feeToken: 'SLAY',
+        timestamp: 1763979989653,
+        pnl: '0.0',
+        direction: 'Buy',
+      };
+
+      const result = transformFillsToTransactions([buyFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        type: 'trade',
+        category: 'position_open',
+        title: 'Bought',
+        asset: '@215',
+        fill: {
+          shortTitle: 'Bought',
+          action: 'Bought',
+          isPositive: false, // Fee is always a cost
+          fillType: FillType.Standard,
+        },
+      });
+    });
+
+    it('transforms Sell direction fill correctly', () => {
+      const sellFill: OrderFill = {
+        orderId: 'order-sell-1',
+        symbol: '@230',
+        side: 'sell',
+        size: '20.0',
+        price: '0.99998',
+        fee: '0.00268799',
+        feeToken: 'USDH',
+        timestamp: 1763984501474,
+        pnl: '50.0',
+        direction: 'Sell',
+      };
+
+      const result = transformFillsToTransactions([sellFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        type: 'trade',
+        category: 'position_close',
+        title: 'Sold',
+        asset: '@230',
+        fill: {
+          shortTitle: 'Sold',
+          action: 'Sold',
+          isPositive: true, // PnL - fee is positive
+          fillType: FillType.Standard,
+        },
+      });
+    });
+
+    it('handles Sell direction with negative PnL correctly', () => {
+      const sellFillNegative: OrderFill = {
+        orderId: 'order-sell-2',
+        symbol: '@215',
+        side: 'sell',
+        size: '100',
+        price: '0.005',
+        fee: '0.5',
+        feeToken: 'SLAY',
+        timestamp: Date.now(),
+        pnl: '-10.0',
+        direction: 'Sell',
+      };
+
+      const result = transformFillsToTransactions([sellFillNegative]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].fill?.isPositive).toBe(false);
+      expect(result[0].fill?.amount).toBe('-$10.50'); // PnL (-10) minus fee (0.5) = -10.5
     });
   });
 
@@ -546,6 +664,42 @@ describe('transactionTransforms', () => {
 
       expect(result[0].order.filled).toBe('100%');
     });
+
+    it('strips hip3 prefix from symbol in subtitle', () => {
+      const hip3Order = {
+        ...mockOrder,
+        symbol: 'hip3:ETH',
+        originalSize: '2.5',
+      };
+
+      const result = transformOrdersToTransactions([hip3Order]);
+
+      expect(result[0].subtitle).toBe('2.5 ETH');
+    });
+
+    it('strips DEX prefix from symbol in subtitle', () => {
+      const dexOrder = {
+        ...mockOrder,
+        symbol: 'abc:AAPL',
+        originalSize: '10',
+      };
+
+      const result = transformOrdersToTransactions([dexOrder]);
+
+      expect(result[0].subtitle).toBe('10 AAPL');
+    });
+
+    it('keeps regular symbols unchanged in subtitle', () => {
+      const regularOrder = {
+        ...mockOrder,
+        symbol: 'BTC',
+        originalSize: '0.5',
+      };
+
+      const result = transformOrdersToTransactions([regularOrder]);
+
+      expect(result[0].subtitle).toBe('0.5 BTC');
+    });
   });
 
   describe('transformFundingToTransactions', () => {
@@ -609,6 +763,39 @@ describe('transactionTransforms', () => {
       expect(result[0].timestamp).toBe(2000);
       expect(result[1].timestamp).toBe(1500);
       expect(result[2].timestamp).toBe(1000);
+    });
+
+    it('strips hip3 prefix from symbol in subtitle', () => {
+      const hip3Funding = {
+        ...mockFunding,
+        symbol: 'hip3:BTC',
+      };
+
+      const result = transformFundingToTransactions([hip3Funding]);
+
+      expect(result[0].subtitle).toBe('BTC');
+    });
+
+    it('strips DEX prefix from symbol in subtitle', () => {
+      const dexFunding = {
+        ...mockFunding,
+        symbol: 'xyz:TSLA',
+      };
+
+      const result = transformFundingToTransactions([dexFunding]);
+
+      expect(result[0].subtitle).toBe('TSLA');
+    });
+
+    it('keeps regular symbols unchanged in subtitle', () => {
+      const regularFunding = {
+        ...mockFunding,
+        symbol: 'SOL',
+      };
+
+      const result = transformFundingToTransactions([regularFunding]);
+
+      expect(result[0].subtitle).toBe('SOL');
     });
   });
 

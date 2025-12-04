@@ -21,9 +21,11 @@ export const tooltipContentRegistry: ContentRegistry = {
   receive: undefined,
   leverage: undefined,
   liquidation_price: undefined,
+  liquidation_distance: undefined,
   margin: undefined,
   open_interest: undefined,
   funding_rate: undefined,
+  funding_payments: undefined,
   geo_block: undefined,
   estimated_pnl: undefined,
   limit_price: undefined,
@@ -33,4 +35,6 @@ export const tooltipContentRegistry: ContentRegistry = {
   points: undefined,
   market_hours: MarketHoursContent,
   after_hours_trading: MarketHoursContent,
+  oracle_price: undefined,
+  spread: undefined,
 };

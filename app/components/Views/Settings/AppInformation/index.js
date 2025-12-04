@@ -20,7 +20,12 @@ import {
   runtimeVersion,
   isEmbeddedLaunch,
   isEnabled as isOTAUpdatesEnabled,
+  url as otaUpdateUrl,
+  updateId,
+  checkAutomatically,
 } from 'expo-updates';
+import { connect } from 'react-redux';
+import { PROJECT_ID, getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -33,7 +38,7 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
-import { getFullVersion } from '../../../../constants/ota';
+import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -99,12 +104,13 @@ const foxImage = require('../../../../images/branding/fox.png'); // eslint-disab
 /**
  * View that contains app information
  */
-export default class AppInformation extends PureComponent {
+class AppInformation extends PureComponent {
   static propTypes = {
     /**
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
+    preinstalledSnaps: PropTypes.array,
   };
 
   state = {
@@ -240,16 +246,34 @@ export default class AppInformation extends PureComponent {
                 {isOTAUpdatesEnabled && (
                   <>
                     <Text style={styles.branchInfo}>
+                      {`Expo Project ID: ${PROJECT_ID}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`Update ID: ${updateId || 'N/A'}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
                       {`OTA Update Channel: ${channel}`}
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update runtime version: ${runtimeVersion}`}
                     </Text>
                     <Text style={styles.branchInfo}>
+                      {`OTA Update URL: ${otaUpdateUrl}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`Check Automatically: ${checkAutomatically}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
                       {`OTA Update status: ${otaUpdateMessage}`}
                     </Text>
                   </>
                 )}
+
+                {this.props.preinstalledSnaps.map((snap) => (
+                  <Text key={snap.name} style={styles.branchInfo}>
+                    {snap.name}: {snap.version} ({snap.status})
+                  </Text>
+                ))}
               </>
             )}
           </View>
@@ -296,3 +320,9 @@ export default class AppInformation extends PureComponent {
 }
 
 AppInformation.contextType = ThemeContext;
+
+const mapStateToProps = (state) => ({
+  preinstalledSnaps: getPreinstalledSnapsMetadata(state),
+});
+
+export default connect(mapStateToProps)(AppInformation);

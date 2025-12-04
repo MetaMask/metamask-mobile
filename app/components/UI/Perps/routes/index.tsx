@@ -19,10 +19,17 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
+import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
+import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
+import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
+import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
+import PerpsOrderDetailsView from '../Views/PerpsOrderDetailsView';
+import PerpsOrderBookView from '../Views/PerpsOrderBookView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
+import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -64,6 +71,35 @@ const PerpsModalStack = () => (
           component={PerpsCancelAllOrdersView}
           options={{
             title: strings('perps.cancel_all_modal.title'),
+          }}
+        />
+        <ModalStack.Screen
+          name={Routes.PERPS.MODALS.CROSS_MARGIN_WARNING}
+          component={PerpsCrossMarginWarningBottomSheet}
+          options={{
+            title: strings('perps.crossMargin.title'),
+          }}
+        />
+        {/* Action Selection Modals */}
+        <ModalStack.Screen
+          name={Routes.PERPS.SELECT_MODIFY_ACTION}
+          component={PerpsSelectModifyActionView}
+          options={{
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
+        />
+        <ModalStack.Screen
+          name={Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION}
+          component={PerpsSelectAdjustMarginActionView}
+          options={{
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
+        />
+        <ModalStack.Screen
+          name={Routes.PERPS.SELECT_ORDER_TYPE}
+          component={PerpsSelectOrderTypeView}
+          options={{
+            cardStyle: { backgroundColor: 'transparent' },
           }}
         />
       </ModalStack.Navigator>
@@ -118,7 +154,6 @@ const PerpsScreenStack = () => (
           options={{
             title: strings('perps.markets.title'),
             headerShown: false,
-            animationEnabled: false,
           }}
         />
 
@@ -205,6 +240,36 @@ const PerpsScreenStack = () => (
           }}
         />
 
+        {/* Adjust Margin View */}
+        <Stack.Screen
+          name={Routes.PERPS.ADJUST_MARGIN}
+          component={PerpsAdjustMarginView}
+          options={{
+            title: strings('perps.adjust_margin.title'),
+            headerShown: false,
+          }}
+        />
+
+        {/* Order Details View */}
+        <Stack.Screen
+          name={Routes.PERPS.ORDER_DETAILS}
+          component={PerpsOrderDetailsView}
+          options={{
+            title: strings('perps.order_details.title'),
+            headerShown: false,
+          }}
+        />
+
+        {/* Order Book View */}
+        <Stack.Screen
+          name={Routes.PERPS.ORDER_BOOK}
+          component={PerpsOrderBookView}
+          options={{
+            title: strings('perps.order_book.title'),
+            headerShown: false,
+          }}
+        />
+
         <Stack.Screen
           name={Routes.PERPS.PNL_HERO_CARD}
           component={PerpsHeroCardView}
@@ -254,6 +319,8 @@ const PerpsScreenStack = () => (
           name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
           component={Confirm}
           options={{
+            headerLeft: () => null,
+            headerShown: true,
             title: '',
           }}
         />

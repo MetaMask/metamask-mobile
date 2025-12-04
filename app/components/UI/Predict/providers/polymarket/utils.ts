@@ -26,7 +26,6 @@ import type {
 } from '../types';
 import {
   ClobAuthDomain,
-  SLIPPAGE,
   EIP712Domain,
   FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
@@ -34,6 +33,8 @@ import {
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
   ROUNDING_CONFIG,
+  SLIPPAGE_BUY,
+  SLIPPAGE_SELL,
 } from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
@@ -52,7 +53,6 @@ import {
   PolymarketPosition,
   TickSize,
   OrderBook,
-  RoundConfig,
 } from './types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 
@@ -344,29 +344,43 @@ export const submitClobOrder = async ({
       .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
     if (response.status === 403) {
       return {
         success: false,
         error: 'You are unable to access this provider.',
       };
     }
-    const responseData = await response.json();
-    const error = responseData.error ?? response.statusText;
+
+    let responseData;
+    try {
+      responseData = (await response.json()) as OrderResponse;
+    } catch (error) {
+      responseData = undefined;
+    }
+
+    if (!response.ok || !responseData || responseData?.success === false) {
+      const error = responseData?.errorMsg ?? response.statusText;
+      return {
+        success: false,
+        error,
+      };
+    }
+
+    return { success: true, response: responseData };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
-      error,
+      error: `Failed to submit CLOB order: ${msg}`,
     };
   }
-
-  const responseData = (await response.json()) as OrderResponse;
-  return { success: true, response: responseData };
 };
 
 export const parsePolymarketEvents = (
@@ -436,6 +450,7 @@ export const parsePolymarketEvents = (
 /**
  * Normalizes Polymarket /activity entries to PredictActivity[]
  * Keeps essential metadata used by UI (title/outcome/icon)
+ * Note: Lost redeems (activities with no payout) are excluded by the API via excludeLostRedeems parameter
  */
 export const parsePolymarketActivity = (
   activities: PolymarketApiActivity[],
@@ -487,10 +502,15 @@ export const parsePolymarketActivity = (
       title,
       outcome,
       icon,
-    } as PredictActivity & { title?: string; outcome?: string; icon?: string };
+    } as PredictActivity & {
+      title?: string;
+      outcome?: string;
+      icon?: string;
+    };
 
     return parsedActivity;
   });
+
   return parsedActivities;
 };
 
@@ -735,12 +755,16 @@ export async function calculateFees({
       metamaskFee: 0,
       providerFee: 0,
       totalFee: 0,
+      totalFeePercentage: 0,
     };
   }
 
   let totalFee = 0;
 
   totalFee = (userBetAmount * FEE_PERCENTAGE) / 100;
+
+  // Round to 4 decimals
+  totalFee = Math.round(totalFee * 10000) / 10000;
 
   // split total 50/50 between metamask and provider
   const metamaskFee = totalFee / 2;
@@ -750,6 +774,7 @@ export async function calculateFees({
     metamaskFee,
     providerFee,
     totalFee,
+    totalFeePercentage: FEE_PERCENTAGE,
   };
 }
 
@@ -1096,35 +1121,6 @@ export const roundOrderAmount = ({
   return amount;
 };
 
-export const roundOrderAmounts = ({
-  roundConfig,
-  side,
-  size,
-  price,
-}: {
-  roundConfig: RoundConfig;
-  side: Side;
-  size: number;
-  price: number;
-}): { makerAmount: number; takerAmount: number } => {
-  const rawPrice = roundDown(price, roundConfig.price);
-  const rawMakerAmt = roundDown(size, roundConfig.size);
-  let rawTakerAmt;
-  if (side === Side.BUY) {
-    rawTakerAmt = rawMakerAmt / rawPrice;
-  } else {
-    rawTakerAmt = rawMakerAmt * rawPrice;
-  }
-  rawTakerAmt = roundOrderAmount({
-    amount: rawTakerAmt,
-    decimals: roundConfig.amount,
-  });
-  return {
-    makerAmount: rawMakerAmt,
-    takerAmount: rawTakerAmt,
-  };
-};
-
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'>,
 ): Promise<OrderPreview> => {
@@ -1144,12 +1140,10 @@ export const previewOrder = async (
       asks,
       dollarAmount: size,
     });
-    const avgPrice = size / shareAmount;
-    const { makerAmount, takerAmount } = roundOrderAmounts({
-      roundConfig,
-      side,
-      size,
-      price: avgPrice,
+    const makerAmount = roundDown(size, roundConfig.size);
+    const takerAmount = roundOrderAmount({
+      amount: shareAmount,
+      decimals: roundConfig.amount,
     });
     return {
       marketId,
@@ -1160,7 +1154,7 @@ export const previewOrder = async (
       sharePrice: bestPrice,
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
-      slippage: SLIPPAGE,
+      slippage: SLIPPAGE_BUY,
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
@@ -1178,12 +1172,10 @@ export const previewOrder = async (
     bids,
     shareAmount: size,
   });
-  const avgPrice = dollarAmount / size;
-  const { makerAmount, takerAmount } = roundOrderAmounts({
-    roundConfig,
-    side,
-    size,
-    price: avgPrice,
+  const makerAmount = roundDown(size, roundConfig.size);
+  const takerAmount = roundOrderAmount({
+    amount: dollarAmount,
+    decimals: roundConfig.amount,
   });
   return {
     marketId,
@@ -1195,7 +1187,7 @@ export const previewOrder = async (
     sharePrice: bestPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
-    slippage: SLIPPAGE,
+    slippage: SLIPPAGE_SELL,
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,

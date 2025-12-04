@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -21,11 +21,15 @@ import { TokenList } from './TokenList';
 import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
+import {
+  refreshTokens,
+  removeEvmToken,
+  removeNonEvmToken,
+  goToAddEvmToken,
+} from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
@@ -36,8 +40,11 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
+import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
+import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -65,12 +72,15 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   );
   const currentChainId = useSelector(selectChainId);
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const actionSheet = useRef<typeof ActionSheet>();
-  const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
+  const tokenToRemoveRef = useRef<TokenI | undefined>();
   const [refreshing, setRefreshing] = useState(false);
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
+
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
 
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
@@ -78,6 +88,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
+  );
+
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
   );
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
@@ -108,16 +122,12 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     }
   }, [sortedTokenKeys, hasInitialLoad]);
 
-  const showRemoveMenu = useCallback(
-    (token: TokenI) => {
-      // remove token currently only supported on evm
-      if (isEvmSelected && actionSheet.current) {
-        setTokenToRemove(token);
-        actionSheet.current.show();
-      }
-    },
-    [isEvmSelected],
-  );
+  const showRemoveMenu = useCallback((token: TokenI) => {
+    if (actionSheet.current) {
+      tokenToRemoveRef.current = token;
+      actionSheet.current.show();
+    }
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -140,43 +150,41 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   ]);
 
   const removeToken = useCallback(async () => {
-    // remove token currently only supported on evm
-    if (isEvmSelected && tokenToRemove) {
-      await removeEvmToken({
-        tokenToRemove,
-        currentChainId,
-        trackEvent,
-        strings,
-        getDecimalChainId,
-        createEventBuilder, // Now passed as a prop
-      });
+    const tokenToRemove = tokenToRemoveRef.current;
+    if (tokenToRemove?.chainId !== undefined) {
+      if (isNonEvmChainId(tokenToRemove.chainId)) {
+        await removeNonEvmToken({
+          tokenAddress: tokenToRemove.address,
+          tokenChainId: tokenToRemove.chainId,
+          selectInternalAccountByScope,
+        });
+      } else {
+        await removeEvmToken({
+          tokenToRemove,
+          currentChainId,
+          trackEvent,
+          strings,
+          getDecimalChainId,
+          createEventBuilder,
+        });
+      }
     }
   }, [
-    isEvmSelected,
-    tokenToRemove,
     currentChainId,
     trackEvent,
     createEventBuilder,
+    selectInternalAccountByScope,
   ]);
 
   const goToAddToken = useCallback(() => {
-    // add token currently only support on evm
-    if (isEvmSelected) {
-      goToAddEvmToken({
-        navigation,
-        trackEvent,
-        createEventBuilder,
-        getDecimalChainId,
-        currentChainId,
-      });
-    }
-  }, [
-    isEvmSelected,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    currentChainId,
-  ]);
+    goToAddEvmToken({
+      navigation,
+      trackEvent,
+      createEventBuilder,
+      getDecimalChainId,
+      currentChainId,
+    });
+  }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
   const onActionSheetPress = useCallback(
     (index: number) => {
@@ -216,15 +224,22 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           <TokenListSkeleton />
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
-        <TokenList
-          tokenKeys={sortedTokenKeys}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          showRemoveMenu={showRemoveMenu}
-          setShowScamWarningModal={handleScamWarningModal}
-          maxItems={maxItems}
-          isFullView={isFullView}
-        />
+        <>
+          {isMusdConversionFlowEnabled && (
+            <View style={isFullView ? tw`px-4` : undefined}>
+              <MusdConversionAssetListCta />
+            </View>
+          )}
+          <TokenList
+            tokenKeys={sortedTokenKeys}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            setShowScamWarningModal={handleScamWarningModal}
+            maxItems={maxItems}
+            isFullView={isFullView}
+          />
+        </>
       ) : (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
           <TokensEmptyState />

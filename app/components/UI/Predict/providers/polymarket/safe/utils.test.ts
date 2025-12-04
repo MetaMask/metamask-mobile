@@ -79,6 +79,7 @@ jest.mock('../../../../../../util/transactions', () => ({
 jest.mock('../utils', () => ({
   encodeApprove: jest.fn(() => '0x095ea7b3000000000000000000000000'),
   encodeErc1155Approve: jest.fn(() => '0xa22cb465000000000000000000000000'),
+  encodeErc20Transfer: jest.fn(() => '0xa9059cbb000000000000000000000000'),
   encodeClaim: jest.fn(() => '0x4e71d92d000000000000000000000000'),
   getAllowance: jest.fn(),
   getIsApprovedForAll: jest.fn(),
@@ -727,6 +728,51 @@ describe('safe utils', () => {
       expect(safeTxn.to).toBeDefined();
       expect(safeTxn.data).toBeDefined();
     });
+
+    it('creates claim transaction without transfer when includeTransfer is not provided', () => {
+      const safeTxn = createClaimSafeTransaction([mockPosition]);
+
+      expect(safeTxn).toHaveProperty('to');
+      expect(safeTxn).toHaveProperty('data');
+    });
+
+    it('includes transfer transaction when includeTransfer address is provided', () => {
+      const includeTransfer = { address: TEST_ADDRESS };
+
+      const safeTxn = createClaimSafeTransaction(
+        [mockPosition],
+        includeTransfer,
+      );
+
+      expect(safeTxn.to).toBe(SAFE_MULTISEND_ADDRESS);
+      expect(safeTxn.operation).toBe(OperationType.DelegateCall);
+      expect(safeTxn.data).toBeDefined();
+    });
+
+    it('creates multisend transaction with transfer for single position when includeTransfer is provided', () => {
+      const includeTransfer = { address: TEST_ADDRESS };
+
+      const safeTxn = createClaimSafeTransaction(
+        [mockPosition],
+        includeTransfer,
+      );
+
+      expect(safeTxn.to).toBe(SAFE_MULTISEND_ADDRESS);
+      expect(safeTxn.operation).toBe(OperationType.DelegateCall);
+    });
+
+    it('includes transfer with correct recipient address', () => {
+      const recipientAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      const includeTransfer = { address: recipientAddress };
+
+      const safeTxn = createClaimSafeTransaction(
+        [mockPosition],
+        includeTransfer,
+      );
+
+      expect(safeTxn).toBeDefined();
+      expect(safeTxn.data).toBeDefined();
+    });
   });
 
   describe('getSafeTransactionCallData', () => {
@@ -1070,6 +1116,94 @@ describe('safe utils', () => {
       expect(Array.isArray(txs)).toBe(true);
       expect(txs).toHaveLength(1);
       expect(txs[0].params.data).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('generates claim transaction without transfer when includeTransferTransaction is false', async () => {
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      const txs = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+        includeTransferTransaction: false,
+      });
+
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0]).toHaveProperty('params');
+    });
+
+    it('generates claim transaction without transfer when includeTransferTransaction is undefined', async () => {
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      const txs = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+      });
+
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+    });
+
+    it('includes transfer transaction when includeTransferTransaction is true', async () => {
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      const txs = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+        includeTransferTransaction: true,
+      });
+
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0]).toHaveProperty('params');
+      expect(txs[0].params).toHaveProperty('data');
+    });
+
+    it('uses signer address for transfer when includeTransferTransaction is true', async () => {
+      const signerAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      const signer = buildSigner({ address: signerAddress });
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      const txs = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+        includeTransferTransaction: true,
+      });
+
+      expect(txs).toBeDefined();
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs[0].params.data).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('signs claim transaction with transfer when includeTransferTransaction is true', async () => {
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+        includeTransferTransaction: true,
+      });
+
+      expect(mockSignPersonalMessage).toHaveBeenCalled();
     });
   });
 

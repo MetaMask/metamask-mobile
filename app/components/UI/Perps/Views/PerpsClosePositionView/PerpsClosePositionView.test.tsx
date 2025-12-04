@@ -2072,12 +2072,12 @@ describe('PerpsClosePositionView', () => {
       // HyperLiquid's marginUsed already includes PnL
       // receivedAmount = marginUsed - fees = 1450 - 45 = 1405
       // realizedPnl = unrealizedPnl = 150 (from defaultPerpsPositionMock)
-      expect(handleClosePosition).toHaveBeenCalledWith(
-        defaultPerpsPositionMock,
-        '',
-        'market',
-        undefined,
-        {
+      expect(handleClosePosition).toHaveBeenCalledWith({
+        position: defaultPerpsPositionMock,
+        size: '',
+        orderType: 'market',
+        limitPrice: undefined,
+        trackingData: {
           totalFee: 45,
           marketPrice: 3000,
           receivedAmount: 1405,
@@ -2088,8 +2088,15 @@ describe('PerpsClosePositionView', () => {
           estimatedPoints: undefined,
           inputMethod: 'default',
         },
-        '3000.00',
-      );
+        marketPrice: '3000.00',
+        // Slippage parameters added in USD-as-source-of-truth refactor
+        // For full closes (100%), usdAmount is undefined to bypass $10 minimum validation
+        slippage: {
+          usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
+          priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
+          maxSlippageBps: 300, // maxSlippageBps: 3% slippage tolerance (300 basis points) - conservative default
+        },
+      });
     });
 
     it('validates limit order requires price before confirmation', async () => {
@@ -2154,12 +2161,12 @@ describe('PerpsClosePositionView', () => {
                 if (orderType === 'limit' && !limitPrice) {
                   return; // Should not proceed without price
                 }
-                await handleClosePosition(
-                  defaultPerpsPositionMock,
-                  '',
+                await handleClosePosition({
+                  position: defaultPerpsPositionMock,
+                  size: '',
                   orderType,
-                  orderType === 'limit' ? limitPrice : undefined,
-                  {
+                  limitPrice: orderType === 'limit' ? limitPrice : undefined,
+                  trackingData: {
                     totalFee: 45,
                     marketPrice: 3000,
                     receivedAmount: 1405,
@@ -2170,7 +2177,13 @@ describe('PerpsClosePositionView', () => {
                     estimatedPoints: undefined,
                     inputMethod: 'default',
                   },
-                );
+                  marketPrice: '3000.00',
+                  slippage: {
+                    usdAmount: '4500',
+                    priceAtCalculation: 3000,
+                    maxSlippageBps: 100,
+                  },
+                });
               }}
             >
               <Text>Confirm</Text>
@@ -2186,12 +2199,12 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - Should call with limit price and specific calculated values
       await waitFor(() => {
-        expect(handleClosePosition).toHaveBeenCalledWith(
-          defaultPerpsPositionMock,
-          '',
-          'limit',
-          '50000',
-          {
+        expect(handleClosePosition).toHaveBeenCalledWith({
+          position: defaultPerpsPositionMock,
+          size: '',
+          orderType: 'limit',
+          limitPrice: '50000',
+          trackingData: {
             totalFee: 45,
             marketPrice: 3000,
             receivedAmount: 1405,
@@ -2202,7 +2215,13 @@ describe('PerpsClosePositionView', () => {
             estimatedPoints: undefined,
             inputMethod: 'default',
           },
-        );
+          marketPrice: '3000.00',
+          slippage: {
+            usdAmount: '4500',
+            priceAtCalculation: 3000,
+            maxSlippageBps: 100,
+          },
+        });
       });
     });
   });
@@ -2742,7 +2761,10 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Component renders without error and uses market data
-      expect(usePerpsMarketDataMock).toHaveBeenCalledWith('BTC');
+      expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
+        asset: 'BTC',
+        showErrorToast: true,
+      });
     });
 
     it('formats position size with different szDecimals values', () => {
@@ -2784,14 +2806,17 @@ describe('PerpsClosePositionView', () => {
             PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
           ),
         ).toBeDefined();
-        expect(usePerpsMarketDataMock).toHaveBeenCalledWith(coin);
+        expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
+          asset: coin,
+          showErrorToast: true,
+        });
       });
     });
 
     it('handles missing market data with undefined szDecimals', () => {
-      // Arrange - Market data is null
+      // Arrange - Market data with minimal required fields (szDecimals is now required)
       usePerpsMarketDataMock.mockReturnValue({
-        marketData: null,
+        marketData: { szDecimals: 4 }, // Provide required szDecimals
         isLoading: false,
         error: null,
       });
@@ -2812,7 +2837,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component renders and falls back to default formatting
+      // Assert - Component renders with minimal market data
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
@@ -2844,9 +2869,9 @@ describe('PerpsClosePositionView', () => {
     });
 
     it('handles market data fetch error gracefully', () => {
-      // Arrange - Market data fetch failed
+      // Arrange - Market data fetch failed but provides minimal required data
       usePerpsMarketDataMock.mockReturnValue({
-        marketData: null,
+        marketData: { szDecimals: 4 }, // Provide required szDecimals even in error case
         isLoading: false,
         error: 'Failed to fetch market data',
       });
@@ -2858,7 +2883,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component still renders with error state
+      // Assert - Component still renders with minimal data despite error
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
@@ -2900,7 +2925,10 @@ describe('PerpsClosePositionView', () => {
         );
 
         // Assert - Fetches market data for specific asset
-        expect(usePerpsMarketDataMock).toHaveBeenCalledWith(coin);
+        expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
+          asset: coin,
+          showErrorToast: true,
+        });
       });
     });
 
@@ -2986,7 +3014,10 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Hook called with correct asset symbol
-      expect(usePerpsMarketDataMock).toHaveBeenCalledWith('ETH');
+      expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
+        asset: 'ETH',
+        showErrorToast: true,
+      });
     });
   });
 
@@ -3001,6 +3032,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: 250,
         feeDiscountPercentage: 15,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3027,6 +3060,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: null,
+        account: null,
       });
 
       // Act
@@ -3052,6 +3087,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3077,6 +3114,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3102,6 +3141,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: 500,
         feeDiscountPercentage: 25,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act

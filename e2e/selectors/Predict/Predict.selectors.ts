@@ -30,7 +30,7 @@ export const PredictMarketListSelectorsIDs = {
   SPORTS_TAB: 'predict-market-list-sports-tab',
   CRYPTO_TAB: 'predict-market-list-crypto-tab',
   POLITICS_TAB: 'predict-market-list-politics-tab',
-
+  BACK_BUTTON: 'back-button',
   // Empty state
   EMPTY_STATE: 'predict-market-list-empty-state',
 } as const;
@@ -53,6 +53,7 @@ export const PredictMarketDetailsSelectorsIDs = {
 
   // Header
   BACK_BUTTON: 'predict-market-details-back-button',
+  SHARE_BUTTON: 'predict-market-details-share-button',
 
   // Tabs
   TAB_BAR: 'predict-market-details-tab-bar',
@@ -108,6 +109,15 @@ export const PredictPositionSelectorsIDs = {
 } as const;
 
 // ========================================
+// PREDICT BUY PREVIEW SELECTORS
+// ========================================
+
+export const PredictBuyPreviewSelectorsIDs = {
+  // Buy/Place bet button
+  PLACE_BET_BUTTON: 'predict-buy-preview-place-bet-button',
+} as const;
+
+// ========================================
 // PREDICT CASH OUT SELECTORS
 // ========================================
 
@@ -159,4 +169,11 @@ export const PredictActivityDetailsSelectorsIDs = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+} as const;
+
+// ========================================
+// PREDICT ADD FUNDS SELECTORS
+// ========================================
+export const PredictAddFundsSelectorText = {
+  ADD_FUNDS: enContent.predict.deposit.add_funds,
 } as const;

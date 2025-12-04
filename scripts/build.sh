@@ -530,9 +530,23 @@ generateIosBinary() {
 # Generates the Android binary for the given scheme and configuration
 generateAndroidBinary() {
 	# Prod, Flask, or QA (Deprecated - Do not use)
-	flavor="$1"
-	# Debug or Release
-	configuration="${CONFIGURATION:-"Release"}"
+	local flavor="$1"
+	# Lowercase flavor string
+	local lowercaseFlavor=$(echo "$flavor" | tr '[:upper:]' '[:lower:]')
+	# Debug or Release configuration
+	local configuration="${CONFIGURATION:-"Release"}"
+	# Lowercase configuration string
+	local lowercaseConfiguration=$(echo "$configuration" | tr '[:upper:]' '[:lower:]')
+	# Construct assemble task
+	local assembleApkTask="app:assemble${flavor}${configuration}"
+	# Construct checksum command
+	local checkSumCommand="build:android:checksum:${lowercaseFlavor}"
+	# Create assemble test APK task
+	local assembleTestApkTask=""
+	# Define React Native Architecture arg
+	local reactNativeArchitecturesArg=""
+	# Define Test build type arg
+	local testBuildTypeArg=""
 
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
@@ -548,62 +562,118 @@ generateAndroidBinary() {
 		exit 1
 	fi
 
-	# Create flavor configuration
-	flavorConfiguration="app:assemble${flavor}${configuration}"
+	if [ "$configuration" = "Debug" ] || [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
+		# Define assemble test APK task
+		assembleTestApkTask="app:assemble${flavor}${configuration}AndroidTest"
+		# Define test build type arg
+		testBuildTypeArg="-DtestBuildType=${lowercaseConfiguration}"
 
+		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
+		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
+			# Only build for x86_64 for E2E builds
+			reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
+		fi
+	fi
+
+	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	if [ "$configuration" = "Release" ] ; then
-		# Generate Android binary
-		./gradlew $flavorConfiguration --build-cache --parallel
-		# Generate AAB bundle
+	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg
+
+	if [ "$configuration" = "Release" ] ; then		
+		# Generate AAB bundle (not needed for E2E)
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
 		./gradlew $bundleConfiguration
 
 		# Generate checksum
-		lowerCaseFlavor=$(echo "$flavor" | tr '[:upper:]' '[:lower:]')
-		checkSumCommand="build:android:checksum:${lowerCaseFlavor}"
 		echo "Generating checksum for ($flavor) flavor with ($configuration) configuration"
 		yarn $checkSumCommand
-	elif [ "$configuration" = "Debug" ] ; then
-		# Create test configuration
-		testConfiguration="app:assemble${flavor}DebugAndroidTest"
-		# Generate Android binary
-		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
 	fi
+
+	# Verify APK files were created
+	echo ""
+	echo "📦 Verifying APK outputs..."
+	local appApkPath="app/build/outputs/apk/${lowercaseFlavor}/${lowercaseConfiguration}/app-${lowercaseFlavor}-${lowercaseConfiguration}.apk"
+	local testApkPath="app/build/outputs/apk/androidTest/${lowercaseFlavor}/${lowercaseConfiguration}/app-${lowercaseFlavor}-${lowercaseConfiguration}-androidTest.apk"
+	
+	# Verify APK exists
+	if [ -f "$appApkPath" ]; then
+		echo "✅ App APK found: $appApkPath ($(du -h "$appApkPath" | cut -f1))"
+	else
+		echo "❌ App APK NOT found at: $appApkPath"
+		cd ..
+		return 1
+	fi
+	
+	# Only verify test APK if it was supposed to be built
+	if [ -n "$assembleTestApkTask" ]; then
+		# Verify test APK exists
+		if [ -f "$testApkPath" ]; then
+			echo "✅ Test APK found: $testApkPath ($(du -h "$testApkPath" | cut -f1))"
+		else
+			echo "❌ Test APK NOT found at: $testApkPath"
+			cd ..
+			return 1
+		fi
+	fi
+	echo ""
 
 	# Change directory back out
 	cd ..
 }
 
-buildIosReleaseE2E(){
-	prebuild_ios
+buildExpoUpdate() {
+		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Pre-release E2E Build started..."
-		brew install watchman
-		cd ios
-		generateIosBinary "MetaMask"
-	else
-		echo "Release E2E Build started..."
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		if [ -z "${EXPO_TOKEN}" ]; then
+			echo "EXPO_TOKEN is NOT set in build.sh env"
+		else
+			echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
 		fi
-		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath build
-	fi
-}
 
-buildAndroidReleaseE2E(){
-	prebuild_android
-	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+		# Validate required Expo Update environment variables
+		if [ -z "${EXPO_CHANNEL}" ]; then
+			echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
+			exit 1
+		fi
+
+		if [ -z "${EXPO_KEY_PRIV}" ]; then
+			echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
+			exit 1
+		fi
+
+		# Prepare Expo update signing key
+		mkdir -p keys
+		echo "Writing Expo private key to ./keys/private-key.pem"
+		printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
+
+		if [ ! -f keys/private-key.pem ]; then
+			echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
+			exit 1
+		fi
+
+		echo "🚀 Publishing EAS update..."
+
+		echo "ℹ️ Git head: $(git rev-parse HEAD)"
+		echo "ℹ️ Checking for eas script in package.json..."
+		if ! grep -q '"eas": "eas"' package.json; then
+			echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
+			exit 1
+		fi
+
+		echo "ℹ️ Available yarn scripts containing eas:"
+		yarn run --json | grep '"name":"eas"' || true
+
+		yarn run eas update \
+			--channel "${EXPO_CHANNEL}" \
+			--private-key-path "./keys/private-key.pem" \
+			--message "${UPDATE_MESSAGE}" \
+			--non-interactive
 }
 
 buildAndroid() {
 	echo "Build Android $METAMASK_BUILD_TYPE started..."
-	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
+	if [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidMainLocal
 		else
@@ -636,8 +706,6 @@ buildAndroid() {
 			# Generate Android binary
 			generateAndroidBinary "Qa"
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] ; then
-		buildAndroidReleaseE2E
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized."
 		exit 1
@@ -646,7 +714,7 @@ buildAndroid() {
 
 buildIos() {
 	echo "Build iOS $METAMASK_BUILD_TYPE started..."
-	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
+	if [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildIosMainLocal
 		else
@@ -679,8 +747,6 @@ buildIos() {
 			# Generate iOS binary
 			generateIosBinary "MetaMask-QA"
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] ; then
-			buildIosReleaseE2E
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized"
 		exit 1
@@ -777,33 +843,22 @@ if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 
-if [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
+if [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+elif [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 fi
 
-if [ -z "$METAMASK_BUILD_TYPE" ]; then
-	printError "Missing METAMASK_BUILD_TYPE; set to 'main' for a standard release, or 'flask' for a canary flask release. The default value is 'main'."
-	exit 1
-else
-    echo "METAMASK_BUILD_TYPE is set to: $METAMASK_BUILD_TYPE"
-fi
-
-if [ -z "$METAMASK_ENVIRONMENT" ]; then
-	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'dev' otherwise"
-	exit 1
-else
-    echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
-	
-fi
-	# Update Expo channel configuration based on environment
+# Update Expo channel configuration based on environment
+# Skip when running Expo updates, as channel is managed externally in that flow
+if [ "$PLATFORM" != "expo-update" ]; then
 	echo "Updating Expo channel configuration..."
 	node "${__DIRNAME__}/update-expo-channel.js"
+fi
 
 if [ "$PLATFORM" == "ios" ]; then
 	# we don't care about env file in CI
@@ -819,6 +874,9 @@ elif [ "$PLATFORM" == "android" ]; then
 	else
 		envFileMissing $ANDROID_ENV_FILE
 	fi
+elif [ "$PLATFORM" == "expo-update" ]; then
+	# we don't care about env file in CI
+	buildExpoUpdate
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
 fi

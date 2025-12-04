@@ -1,47 +1,41 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
-import {
-  simpleSendTransactionControllerMock,
-  transactionIdMock,
-} from '../../../__mocks__/controllers/transaction-controller-mock';
+import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
-import { TransactionBridgeQuote } from '../../../utils/bridge';
-import { ConfirmationMetricsState } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { BridgeFeeRow } from './bridge-fee-row';
-import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { act, fireEvent } from '@testing-library/react-native';
 import {
   TransactionControllerState,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
+import {
+  TransactionPayQuote,
+  TransactionPayTotals,
+} from '@metamask/transaction-pay-controller';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import { Json } from '@metamask/utils';
 
-jest.mock('../../../hooks/pay/useTransactionTotalFiat');
-jest.mock('../../../hooks/pay/useIsTransactionPayLoading');
+jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: () => ({
+    trackInlineAlertClicked: jest.fn(),
+    trackAlertActionClicked: jest.fn(),
+    trackAlertRendered: jest.fn(),
+  }),
+}));
 
-const TRANSACTION_FEE_MOCK = '$1.23';
-const NETWORK_FEE_MOCK = '$0.45';
-const BRIDGE_FEE_MOCK = '$0.78';
-
-function render({
-  quotes = [],
-}: {
-  quotes?: Partial<TransactionBridgeQuote>[];
-} = {}) {
+function render() {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
     transactionApprovalControllerMock,
     otherControllersMock,
-    {
-      confirmationMetrics: {
-        transactionBridgeQuotesById: {
-          [transactionIdMock]: quotes,
-        },
-      } as unknown as ConfirmationMetricsState,
-    },
   );
 
   (
@@ -53,7 +47,8 @@ function render({
 }
 
 describe('BridgeFeeRow', () => {
-  const useTransactionTotalFiatMock = jest.mocked(useTransactionTotalFiat);
+  const useTransactionTotalsMock = jest.mocked(useTransactionPayTotals);
+  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
@@ -61,57 +56,48 @@ describe('BridgeFeeRow', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useTransactionTotalFiatMock.mockReturnValue({
-      totalTransactionFeeFormatted: TRANSACTION_FEE_MOCK,
-      totalNativeEstimatedFormatted: NETWORK_FEE_MOCK,
-      totalBridgeFeeFormatted: BRIDGE_FEE_MOCK,
-    } as ReturnType<typeof useTransactionTotalFiat>);
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '1.00' },
+        sourceNetwork: { estimate: { usd: '0.20' } },
+        targetNetwork: { usd: '0.03' },
+      },
+    } as TransactionPayTotals);
 
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: false });
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
+
+    useTransactionPayQuotesMock.mockReturnValue([
+      {} as TransactionPayQuote<Json>,
+    ]);
   });
 
   it('renders transaction fee', async () => {
-    const { getByText } = render({
-      quotes: [{}],
-    });
-
-    expect(getByText(TRANSACTION_FEE_MOCK)).toBeDefined();
-  });
-
-  it('renders metamask fee', async () => {
-    const { getByText } = render({
-      quotes: [{}],
-    });
-
-    expect(getByText('$0')).toBeDefined();
+    const { getByText } = render();
+    expect(getByText('$1.23')).toBeDefined();
   });
 
   it('renders network fee in tooltip', async () => {
-    const { getByTestId, getByText } = render({
-      quotes: [{}],
-    });
+    const { getByTestId, getByText } = render();
 
     await act(async () => {
       fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
     });
 
-    expect(getByText(NETWORK_FEE_MOCK)).toBeDefined();
+    expect(getByText('$0.23')).toBeDefined();
   });
 
   it('renders bridge fee in tooltip', async () => {
-    const { getByTestId, getByText } = render({
-      quotes: [{}],
-    });
+    const { getByTestId, getByText } = render();
 
     await act(async () => {
       fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
     });
 
-    expect(getByText(BRIDGE_FEE_MOCK)).toBeDefined();
+    expect(getByText('$1')).toBeDefined();
   });
 
   it('renders skeletons if quotes loading', async () => {
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
 
     const { getByTestId } = render();
 
@@ -120,12 +106,15 @@ describe('BridgeFeeRow', () => {
   });
 
   it('does not render tooltip if no quotes', async () => {
-    const { queryByTestId } = render({ quotes: [] });
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    const { queryByTestId } = render();
     expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
   });
 
   it('does not render metamask fee if no quotes', async () => {
-    const { getByTestId, queryByTestId } = render({ quotes: [] });
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    const { getByTestId, queryByTestId } = render();
 
     expect(getByTestId('bridge-fee-row')).toBeDefined();
     expect(queryByTestId('metamask-fee-row')).toBeNull();

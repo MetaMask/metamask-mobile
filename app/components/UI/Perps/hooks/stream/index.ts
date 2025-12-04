@@ -8,6 +8,8 @@ export {
 export { usePerpsLiveFills } from './usePerpsLiveFills';
 export { usePerpsLiveAccount } from './usePerpsLiveAccount';
 export { usePerpsTopOfBook } from './usePerpsTopOfBook';
+export { usePerpsLiveCandles } from './usePerpsLiveCandles';
+export { usePerpsLiveOrderBook } from './usePerpsLiveOrderBook';
 
 // Export types for convenience
 export type { UsePerpsLivePricesOptions } from './usePerpsLivePrices';
@@ -22,6 +24,16 @@ export type {
   UsePerpsTopOfBookOptions,
   TopOfBookData,
 } from './usePerpsTopOfBook';
+export type {
+  UsePerpsLiveCandlesOptions,
+  UsePerpsLiveCandlesReturn,
+} from './usePerpsLiveCandles';
+export type {
+  UsePerpsLiveOrderBookOptions,
+  UsePerpsLiveOrderBookReturn,
+  OrderBookData,
+  OrderBookLevel,
+} from './usePerpsLiveOrderBook';
 
 // Re-export types from controllers
 export type {

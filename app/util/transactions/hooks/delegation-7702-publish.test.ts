@@ -13,8 +13,11 @@ import {
 import {
   GasFeeToken,
   TransactionController,
+  TransactionControllerState,
   TransactionMeta,
   TransactionType,
+  TransactionControllerGetStateAction,
+  TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import { getDeleGatorEnvironment } from '../../../core/Delegation';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
@@ -24,6 +27,8 @@ import {
   waitForRelayResult,
 } from '../transaction-relay';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
+import { NetworkClientId } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../transaction-relay');
 jest.mock('../../../core/Delegation/delegation', () => ({
@@ -71,7 +76,9 @@ type RootMessenger = Messenger<
   | BridgeStatusControllerGetStateAction
   | DelegationControllerSignDelegationAction
   | KeyringControllerSignEip7702AuthorizationAction
-  | KeyringControllerSignTypedMessageAction,
+  | KeyringControllerSignTypedMessageAction
+  | TransactionControllerGetStateAction
+  | TransactionControllerUpdateTransactionAction,
   never
 >;
 
@@ -98,6 +105,15 @@ describe('Delegation 7702 Publish Hook', () => {
   const signDelegationControllerMock: jest.MockedFn<
     DelegationControllerSignDelegationAction['handler']
   > = jest.fn();
+  const getNextNonceMock: jest.MockedFn<
+    (address: string, networkClientId: NetworkClientId) => Promise<Hex>
+  > = jest.fn();
+  const getStateMock: jest.MockedFn<
+    TransactionControllerGetStateAction['handler']
+  > = jest.fn();
+  const updateTransactionMock: jest.MockedFn<
+    TransactionControllerUpdateTransactionAction['handler']
+  > = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -109,7 +125,9 @@ describe('Delegation 7702 Publish Hook', () => {
       | BridgeStatusControllerGetStateAction
       | DelegationControllerSignDelegationAction
       | KeyringControllerSignEip7702AuthorizationAction
-      | KeyringControllerSignTypedMessageAction,
+      | KeyringControllerSignTypedMessageAction
+      | TransactionControllerGetStateAction
+      | TransactionControllerUpdateTransactionAction,
       never,
       RootMessenger
     >({
@@ -123,6 +141,8 @@ describe('Delegation 7702 Publish Hook', () => {
         'KeyringController:signTypedMessage',
         'BridgeStatusController:getState',
         'DelegationController:signDelegation',
+        'TransactionController:getState',
+        'TransactionController:updateTransaction',
       ],
       events: [],
       messenger,
@@ -140,10 +160,19 @@ describe('Delegation 7702 Publish Hook', () => {
       'DelegationController:signDelegation',
       signDelegationControllerMock,
     );
+    rootMessenger.registerActionHandler(
+      'TransactionController:getState',
+      getStateMock,
+    );
+    rootMessenger.registerActionHandler(
+      'TransactionController:updateTransaction',
+      updateTransactionMock,
+    );
 
     hookClass = new Delegation7702PublishHook({
       isAtomicBatchSupported: isAtomicBatchSupportedMock,
       messenger,
+      getNextNonce: getNextNonceMock,
     });
 
     isAtomicBatchSupportedMock.mockResolvedValue([]);
@@ -159,6 +188,9 @@ describe('Delegation 7702 Publish Hook', () => {
       status: RelayStatus.Success,
       transactionHash: TRANSACTION_HASH_MOCK,
     });
+    getStateMock.mockReturnValue({
+      transactions: [],
+    } as unknown as TransactionControllerState);
   });
 
   describe('returns empty result if', () => {
@@ -527,18 +559,45 @@ describe('Delegation 7702 Publish Hook', () => {
       },
     ]);
 
-    const result = await hookClass.getHook()(
-      {
-        ...TRANSACTION_META_MOCK,
-        gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-        selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-      },
-      SIGNED_TX_MOCK,
-    );
+    const txMeta = {
+      ...TRANSACTION_META_MOCK,
+      id: 'test-tx-id',
+      gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+      selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+    };
+
+    getStateMock.mockReturnValue({
+      transactions: [txMeta],
+    } as unknown as TransactionControllerState);
+
+    const result = await hookClass.getHook()(txMeta, SIGNED_TX_MOCK);
 
     expect(result).toStrictEqual({
       transactionHash: TRANSACTION_HASH_MOCK,
     });
+
+    expect(updateTransactionMock).toHaveBeenCalledTimes(2);
+
+    expect(updateTransactionMock).toHaveBeenNthCalledWith(
+      1,
+      {
+        ...txMeta,
+        txParams: {
+          ...txMeta.txParams,
+          nonce: undefined,
+        },
+      },
+      'Delegation7702PublishHook - Remove nonce from transaction before relay',
+    );
+
+    expect(updateTransactionMock).toHaveBeenNthCalledWith(
+      2,
+      {
+        ...txMeta,
+        isIntentComplete: true,
+      },
+      'Delegation7702PublishHook - Set isIntentComplete after relay confirmed',
+    );
   });
 
   it('includes authorization list if not upgraded', async () => {
