@@ -365,34 +365,28 @@ const QRScanner = ({
           mountedRef.current = false;
           return;
         }
-        // Extract plain address from content (handle ethereum: URLs)
+
         let addressToValidate = content;
         const hasEthereumProtocol =
           content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1;
 
-        // Check if it's an Ethereum URL format before parsing
         let isEthereumUrl = false;
         if (hasEthereumProtocol) {
           try {
             const parsed = parse(content);
-            // Only treat as address URL if it doesn't have a function call
             if (!parsed.function_name) {
               isEthereumUrl = true;
               addressToValidate = parsed.target_address;
             }
           } catch {
-            // Invalid ethereum URL format, ignore
             isEthereumUrl = false;
           }
         }
 
-        // Use centralized utility to determine if this is a valid address and its chain type
         const predefinedRecipient =
           derivePredefinedRecipientParams(addressToValidate);
 
-        // If it's a valid address for send flow, handle it
         if (predefinedRecipient || isEthereumUrl) {
-          // Immediately stop barcode scanning to prevent multiple triggers
           shouldReadBarCodeRef.current = false;
           setIsCameraActive(false);
 
