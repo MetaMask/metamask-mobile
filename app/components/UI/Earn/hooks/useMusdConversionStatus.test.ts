@@ -14,9 +14,18 @@ import { NotificationFeedbackType } from 'expo-haptics';
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('./useEarnToasts');
+jest.mock('../../Bridge/hooks/useAssetMetadata/utils', () => ({
+  getAssetImageUrl: jest.fn(),
+}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({})),
 }));
+
+import { useSelector } from 'react-redux';
+import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
+
+const mockUseSelector = jest.mocked(useSelector);
+const mockGetAssetImageUrl = jest.mocked(getAssetImageUrl);
 
 type TransactionStatusUpdatedHandler = (event: {
   transactionMeta: TransactionMeta;
@@ -86,6 +95,8 @@ describe('useMusdConversionStatus', () => {
       showToast: mockShowToast,
       EarnToastOptions: mockEarnToastOptions,
     });
+    mockUseSelector.mockReturnValue({});
+    mockGetAssetImageUrl.mockReturnValue('https://example.com/token-icon.png');
   });
 
   afterEach(() => {
@@ -97,18 +108,21 @@ describe('useMusdConversionStatus', () => {
     status: TransactionStatus,
     transactionId = 'test-transaction-1',
     type = TransactionType.musdConversion,
-  ): TransactionMeta => ({
-    id: transactionId,
-    status,
-    type,
-    chainId: '0x1',
-    networkClientId: 'mainnet',
-    time: Date.now(),
-    txParams: {
-      from: '0x123',
-      to: '0x456',
-    },
-  });
+    metamaskPay?: { chainId?: string; tokenAddress?: string },
+  ): TransactionMeta =>
+    ({
+      id: transactionId,
+      status,
+      type,
+      chainId: '0x1',
+      networkClientId: 'mainnet',
+      time: Date.now(),
+      txParams: {
+        from: '0x123',
+        to: '0x456',
+      },
+      ...(metamaskPay && { metamaskPay }),
+    }) as TransactionMeta;
 
   const getSubscribedHandler = (): TransactionStatusUpdatedHandler => {
     const subscribeCalls = mockSubscribe.mock.calls;
@@ -169,6 +183,128 @@ describe('useMusdConversionStatus', () => {
       handler({ transactionMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes token symbol and icon from metamaskPay data to in-progress toast', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x89';
+      const mockTokenData = {
+        [chainId]: {
+          data: {
+            [tokenAddress]: { symbol: 'USDC' },
+          },
+        },
+      };
+      mockUseSelector.mockReturnValue(mockTokenData);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-with-token',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).toHaveBeenCalledWith(tokenAddress, chainId);
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'USDC',
+        tokenIcon: 'https://example.com/token-icon.png',
+        estimatedTimeSeconds: 15,
+      });
+    });
+
+    it('uses lowercase token address as fallback for symbol lookup', () => {
+      const tokenAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+      const chainId = '0x1';
+      const mockTokenData = {
+        [chainId]: {
+          data: {
+            [tokenAddress.toLowerCase()]: { symbol: 'DAI' },
+          },
+        },
+      };
+      mockUseSelector.mockReturnValue(mockTokenData);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-lowercase',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenSymbol: 'DAI' }),
+      );
+    });
+
+    it('uses "Token" as fallback when token symbol is not found', () => {
+      const tokenAddress = '0x1111111111111111111111111111111111111111';
+      const chainId = '0x1';
+      mockUseSelector.mockReturnValue({
+        [chainId]: { data: {} },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-unknown',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenSymbol: 'Token' }),
+      );
+    });
+
+    it('passes empty tokenSymbol and undefined tokenIcon when payTokenAddress is missing', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-no-token',
+        TransactionType.musdConversion,
+        { chainId: '0x1' },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'Token',
+        tokenIcon: undefined,
+        estimatedTimeSeconds: 15,
+      });
+    });
+
+    it('passes empty tokenSymbol and undefined tokenIcon when metamaskPay is missing', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'Token',
+        tokenIcon: undefined,
+        estimatedTimeSeconds: 15,
+      });
     });
   });
 
