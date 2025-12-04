@@ -55,9 +55,9 @@ exports[`useSortedSourceNetworks should sort networks by total fiat value in des
     "isEvm": false,
     "isTestnet": false,
     "name": "Tron",
-    "nativeCurrency": "tron:0x2b6653dc/slip44:195",
+    "nativeCurrency": "tron:728126428/slip44:195",
     "ticker": "TRX",
-    "totalFiatValue": 0,
+    "totalFiatValue": 50,
   },
 ]
 `;

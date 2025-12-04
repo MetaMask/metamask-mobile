@@ -58,8 +58,7 @@ export const btcNativeTokenAddress =
 // Tron account and tokens
 export const trxAccountId = 'trxAccountId';
 export const trxAccountAddress = 'TN3W4Bb1JVHPiWJVm7d9q9qHGXSdoMrMrE';
-export const trxNativeTokenAddress =
-  'tron:0x2b6653dc/slip44:195' as CaipAssetId;
+export const trxNativeTokenAddress = 'tron:728126428/slip44:195' as CaipAssetId;
 
 export const initialState = {
   engine: {
@@ -275,7 +274,7 @@ export const initialState = {
           [TrxScope.Mainnet]: {
             chainId: TrxScope.Mainnet,
             name: 'Tron',
-            nativeCurrency: 'tron:0x2b6653dc/slip44:195' as const,
+            nativeCurrency: 'tron:728126428/slip44:195' as const,
             isEvm: false as const,
           },
         },
