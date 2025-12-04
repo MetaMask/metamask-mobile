@@ -113,7 +113,20 @@ export default class SelectComponent extends PureComponent {
      * Callback for value change
      */
     onValueChange: PropTypes.func,
+    /**
+     * Whether to show the dropdown icon
+     */
+    showDropDown: PropTypes.bool,
+    /**
+     * Whether the select component is disabled
+     */
+    disabled: PropTypes.bool,
     testID: PropTypes.string,
+  };
+
+  static defaultProps = {
+    showDropDown: true,
+    disabled: false,
   };
 
   state = {
@@ -134,6 +147,9 @@ export default class SelectComponent extends PureComponent {
   };
 
   showPicker = () => {
+    if (this.props.disabled) {
+      return;
+    }
     dismissKeyboard();
     this.setState({ pickerVisible: true });
     // If there are more options than 13 (number of items
@@ -173,17 +189,25 @@ export default class SelectComponent extends PureComponent {
 
     return (
       <View style={baseStyles.flexGrow}>
-        <TouchableOpacity onPress={this.showPicker} testID={this.props.testID}>
+        <TouchableOpacity
+          onPress={this.showPicker}
+          testID={this.props.testID}
+          disabled={this.props.disabled}
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={this.props.disabled ? { opacity: 0.5 } : undefined}
+        >
           <View style={styles.dropdown}>
             <Text style={styles.selectedOption} numberOfLines={1}>
               {this.getSelectedValue()}
             </Text>
-            <Icon
-              name={'arrow-drop-down'}
-              size={24}
-              color={colors.icon.default}
-              style={styles.iconDropdown}
-            />
+            {this.props.showDropDown && (
+              <Icon
+                name={'arrow-drop-down'}
+                size={24}
+                color={colors.icon.default}
+                style={styles.iconDropdown}
+              />
+            )}
           </View>
         </TouchableOpacity>
         <Modal
