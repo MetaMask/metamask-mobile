@@ -19,7 +19,7 @@ import { NetworkConfiguration } from '@metamask/network-controller';
  */
 export function useLegacySwapsBlockExplorer(
   networkConfigurations: Record<`0x${string}`, NetworkConfiguration>,
-  providerConfigTokenExplorer?: ProviderConfig,
+  providerConfigTokenExplorer?: ProviderConfig | null,
 ) {
   const [explorer, setExplorer] = useState({
     name: '',
@@ -77,8 +77,8 @@ export function useLegacySwapsBlockExplorer(
   }, [networkConfigurations, providerConfig, providerConfigTokenExplorer]);
 
   const tx = useCallback(
-    (hash: string) => {
-      if (!explorer.isValid) {
+    (hash: string | undefined) => {
+      if (!explorer.isValid || !hash) {
         return '';
       }
       // Regardless of whether the chain uses Etherscan,
