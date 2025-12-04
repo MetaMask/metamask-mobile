@@ -14,6 +14,9 @@ import { NotificationFeedbackType } from 'expo-haptics';
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('./useEarnToasts');
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => ({})),
+}));
 
 type TransactionStatusUpdatedHandler = (event: {
   transactionMeta: TransactionMeta;
@@ -40,19 +43,21 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 
 describe('useMusdConversionStatus', () => {
   const mockShowToast = jest.fn();
+  const mockInProgressToast = {
+    variant: ToastVariants.Icon as const,
+    iconName: IconName.Loading,
+    hasNoTimeout: true,
+    iconColor: '#000000',
+    backgroundColor: '#FFFFFF',
+    hapticsType: NotificationFeedbackType.Warning,
+    labelOptions: [{ label: 'In Progress', isBold: true }],
+  };
+  const mockInProgressFn = jest.fn(() => mockInProgressToast);
   const mockEarnToastOptions: EarnToastOptionsConfig = {
     mUsdConversion: {
-      inProgress: {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
-        hasNoTimeout: false,
-        iconColor: '#000000',
-        backgroundColor: '#FFFFFF',
-        hapticsType: NotificationFeedbackType.Success,
-        labelOptions: [{ label: 'In Progress', isBold: true }],
-      },
+      inProgress: mockInProgressFn,
       success: {
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Icon as const,
         iconName: IconName.CheckBold,
         hasNoTimeout: false,
         iconColor: '#000000',
@@ -61,7 +66,7 @@ describe('useMusdConversionStatus', () => {
         labelOptions: [{ label: 'Success', isBold: true }],
       },
       failed: {
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Icon as const,
         iconName: IconName.Danger,
         hasNoTimeout: false,
         iconColor: '#000000',
@@ -75,6 +80,7 @@ describe('useMusdConversionStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockInProgressFn.mockClear();
 
     mockUseEarnToasts.mockReturnValue({
       showToast: mockShowToast,
@@ -139,30 +145,24 @@ describe('useMusdConversionStatus', () => {
     });
   });
 
-  describe('submitted transaction status', () => {
-    it('shows in-progress toast when transaction status is submitted', () => {
+  describe('approved transaction status', () => {
+    it('shows in-progress toast when transaction status is approved', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.submitted,
-      );
+      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
 
       handler({ transactionMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
+      expect(mockShowToast).toHaveBeenCalledWith(mockInProgressToast);
     });
 
     it('prevents duplicate in-progress toast for same transaction', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.submitted,
-      );
+      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
 
       handler({ transactionMeta });
       handler({ transactionMeta });
@@ -208,8 +208,8 @@ describe('useMusdConversionStatus', () => {
 
       const handler = getSubscribedHandler();
       const transactionId = 'test-transaction-1';
-      const submittedMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+      const approvedMeta = createTransactionMeta(
+        TransactionStatus.approved,
         transactionId,
       );
       const confirmedMeta = createTransactionMeta(
@@ -217,7 +217,7 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
       handler({ transactionMeta: confirmedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
@@ -225,7 +225,7 @@ describe('useMusdConversionStatus', () => {
       jest.advanceTimersByTime(5000);
 
       // After cleanup, should be able to show toasts again for same transaction
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
       handler({ transactionMeta: confirmedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
@@ -264,8 +264,8 @@ describe('useMusdConversionStatus', () => {
 
       const handler = getSubscribedHandler();
       const transactionId = 'test-transaction-2';
-      const submittedMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+      const approvedMeta = createTransactionMeta(
+        TransactionStatus.approved,
         transactionId,
       );
       const failedMeta = createTransactionMeta(
@@ -273,7 +273,7 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
       handler({ transactionMeta: failedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
@@ -281,21 +281,21 @@ describe('useMusdConversionStatus', () => {
       jest.advanceTimersByTime(5000);
 
       // After cleanup, should be able to show toasts again for same transaction
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
       handler({ transactionMeta: failedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
     });
   });
 
-  describe('transaction flow from submitted to final status', () => {
+  describe('transaction flow from approved to final status', () => {
     it('shows both in-progress and success toasts for transaction flow', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
       const transactionId = 'test-transaction-3';
-      const submittedMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+      const approvedMeta = createTransactionMeta(
+        TransactionStatus.approved,
         transactionId,
       );
       const confirmedMeta = createTransactionMeta(
@@ -303,12 +303,10 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
+      expect(mockShowToast).toHaveBeenCalledWith(mockInProgressToast);
 
       handler({ transactionMeta: confirmedMeta });
 
@@ -323,8 +321,8 @@ describe('useMusdConversionStatus', () => {
 
       const handler = getSubscribedHandler();
       const transactionId = 'test-transaction-4';
-      const submittedMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+      const approvedMeta = createTransactionMeta(
+        TransactionStatus.approved,
         transactionId,
       );
       const failedMeta = createTransactionMeta(
@@ -332,12 +330,10 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
+      expect(mockShowToast).toHaveBeenCalledWith(mockInProgressToast);
 
       handler({ transactionMeta: failedMeta });
 
@@ -354,7 +350,7 @@ describe('useMusdConversionStatus', () => {
 
       const handler = getSubscribedHandler();
       const transactionMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+        TransactionStatus.approved,
         'test-transaction-5',
         'contractInteraction' as typeof TransactionType.musdConversion,
       );
@@ -409,11 +405,13 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('ignores transaction when status is approved', () => {
+    it('ignores transaction when status is submitted', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.submitted,
+      );
 
       handler({ transactionMeta });
 
@@ -431,7 +429,7 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('ignores transaction when status is rejected', () => {
+    it('shows failed toast when status is rejected', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
@@ -439,7 +437,24 @@ describe('useMusdConversionStatus', () => {
 
       handler({ transactionMeta });
 
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(
+        mockEarnToastOptions.mUsdConversion.failed,
+      );
+    });
+
+    it('shows failed toast when status is dropped', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(TransactionStatus.dropped);
+
+      handler({ transactionMeta });
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(
+        mockEarnToastOptions.mUsdConversion.failed,
+      );
     });
   });
 
@@ -448,12 +463,12 @@ describe('useMusdConversionStatus', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
-      const transaction1Submitted = createTransactionMeta(
-        TransactionStatus.submitted,
+      const transaction1Approved = createTransactionMeta(
+        TransactionStatus.approved,
         'transaction-1',
       );
-      const transaction2Submitted = createTransactionMeta(
-        TransactionStatus.submitted,
+      const transaction2Approved = createTransactionMeta(
+        TransactionStatus.approved,
         'transaction-2',
       );
       const transaction1Confirmed = createTransactionMeta(
@@ -465,20 +480,14 @@ describe('useMusdConversionStatus', () => {
         'transaction-2',
       );
 
-      handler({ transactionMeta: transaction1Submitted });
-      handler({ transactionMeta: transaction2Submitted });
+      handler({ transactionMeta: transaction1Approved });
+      handler({ transactionMeta: transaction2Approved });
       handler({ transactionMeta: transaction1Confirmed });
       handler({ transactionMeta: transaction2Failed });
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
-      expect(mockShowToast).toHaveBeenNthCalledWith(
-        1,
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
-      expect(mockShowToast).toHaveBeenNthCalledWith(
-        2,
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
+      expect(mockShowToast).toHaveBeenNthCalledWith(1, mockInProgressToast);
+      expect(mockShowToast).toHaveBeenNthCalledWith(2, mockInProgressToast);
       expect(mockShowToast).toHaveBeenNthCalledWith(
         3,
         mockEarnToastOptions.mUsdConversion.success,
@@ -524,9 +533,7 @@ describe('useMusdConversionStatus', () => {
       expect(mockUseEarnToasts).toHaveBeenCalledTimes(1);
 
       const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.submitted,
-      );
+      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
 
       handler({ transactionMeta });
 

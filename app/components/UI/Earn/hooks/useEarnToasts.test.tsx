@@ -24,17 +24,20 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 const mockTheme = {
   colors: {
-    accent01: {
-      dark: '#accent01-dark',
-      light: '#accent01-light',
+    success: {
+      default: '#success-default',
     },
-    accent03: {
-      dark: '#accent03-dark',
-      normal: '#accent03-normal',
+    error: {
+      default: '#error-default',
     },
-    accent04: {
-      dark: '#accent04-dark',
-      normal: '#accent04-normal',
+    icon: {
+      default: '#icon-default',
+    },
+    background: {
+      default: '#background-default',
+    },
+    primary: {
+      default: '#primary-default',
     },
   },
 };
@@ -83,7 +86,7 @@ describe('useEarnToasts', () => {
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
+          iconName: IconName.Confirmation,
         }),
       );
     });
@@ -106,9 +109,12 @@ describe('useEarnToasts', () => {
     it('excludes hapticsType from toast options passed to toastRef', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
-      const testConfig = {
-        ...result.current.EarnToastOptions.mUsdConversion.inProgress,
-      };
+      const testConfig =
+        result.current.EarnToastOptions.mUsdConversion.inProgress({
+          tokenSymbol: 'ETH',
+          tokenIcon: 'https://example.com/eth.png',
+          estimatedTimeSeconds: 15,
+        });
 
       result.current.showToast(testConfig);
 
@@ -141,17 +147,20 @@ describe('useEarnToasts', () => {
         result.current.EarnToastOptions.mUsdConversion.success;
 
       expect(successToast.variant).toBe(ToastVariants.Icon);
-      expect(successToast.iconName).toBe(IconName.CheckBold);
+      expect(successToast.iconName).toBe(IconName.Confirmation);
       expect(successToast.iconColor).toBeDefined();
-      expect(successToast.backgroundColor).toBeDefined();
       expect(successToast.hapticsType).toBe(NotificationFeedbackType.Success);
     });
 
-    it('configures inProgress toast with correct properties', () => {
+    it('configures inProgress toast with correct properties when called with params', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
       const inProgressToast =
-        result.current.EarnToastOptions.mUsdConversion.inProgress;
+        result.current.EarnToastOptions.mUsdConversion.inProgress({
+          tokenSymbol: 'ETH',
+          tokenIcon: 'https://example.com/eth.png',
+          estimatedTimeSeconds: 15,
+        });
 
       expect(inProgressToast.variant).toBe(ToastVariants.Icon);
       expect(inProgressToast.iconName).toBe(IconName.Loading);
@@ -160,6 +169,7 @@ describe('useEarnToasts', () => {
       expect(inProgressToast.hapticsType).toBe(
         NotificationFeedbackType.Warning,
       );
+      expect(inProgressToast.hasNoTimeout).toBe(true);
     });
 
     it('configures failed toast with correct properties', () => {
@@ -168,37 +178,44 @@ describe('useEarnToasts', () => {
       const failedToast = result.current.EarnToastOptions.mUsdConversion.failed;
 
       expect(failedToast.variant).toBe(ToastVariants.Icon);
-      expect(failedToast.iconName).toBe(IconName.Warning);
+      expect(failedToast.iconName).toBe(IconName.CircleX);
       expect(failedToast.iconColor).toBeDefined();
-      expect(failedToast.backgroundColor).toBeDefined();
       expect(failedToast.hapticsType).toBe(NotificationFeedbackType.Error);
     });
   });
 
   describe('spinner for inProgress toast', () => {
-    it('includes startAccessory with Spinner for inProgress toast', () => {
+    it('includes startAccessory with TokenIconWithSpinner for inProgress toast', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
       const inProgressToast =
-        result.current.EarnToastOptions.mUsdConversion.inProgress;
+        result.current.EarnToastOptions.mUsdConversion.inProgress({
+          tokenSymbol: 'ETH',
+          tokenIcon: 'https://example.com/eth.png',
+          estimatedTimeSeconds: 15,
+        });
 
       expect(inProgressToast.startAccessory).toBeDefined();
     });
   });
 
   describe('toast labels', () => {
-    it('includes tokenSymbol in inProgress label', () => {
+    it('includes labelOptions in inProgress toast', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
       const inProgressToast =
-        result.current.EarnToastOptions.mUsdConversion.inProgress;
+        result.current.EarnToastOptions.mUsdConversion.inProgress({
+          tokenSymbol: 'ETH',
+          tokenIcon: 'https://example.com/eth.png',
+          estimatedTimeSeconds: 15,
+        });
 
       expect(inProgressToast.labelOptions).toBeDefined();
       expect(Array.isArray(inProgressToast.labelOptions)).toBe(true);
       expect(inProgressToast.labelOptions).toHaveLength(1);
     });
 
-    it('includes tokenSymbol in success label', () => {
+    it('includes labelOptions in success toast', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
       const successToast =
@@ -209,7 +226,7 @@ describe('useEarnToasts', () => {
       expect(successToast.labelOptions).toHaveLength(1);
     });
 
-    it('includes tokenSymbol in failed label', () => {
+    it('includes labelOptions in failed toast', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
       const failedToast = result.current.EarnToastOptions.mUsdConversion.failed;
