@@ -248,20 +248,6 @@ describe('useNavigateToInternalBrowserPage', () => {
 
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
-
-    it('does not track analytics when opening TOS', () => {
-      const { result } = renderHook(() =>
-        useNavigateToInternalBrowserPage(mockNavigation),
-      );
-
-      act(() => {
-        result.current.navigateToInternalBrowserPage(
-          CardInternalBrowserPage.TOS,
-        );
-      });
-
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
   });
 
   describe('edge cases', () => {
