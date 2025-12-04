@@ -714,12 +714,10 @@ const HomeTabs = () => {
             name={Routes.TRENDING_VIEW}
             options={{
               ...options.trending,
-              overrides: {
-                isSelected: (rootScreenName) =>
-                  [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                    rootScreenName,
-                  ),
-              },
+              isSelected: (rootScreenName) =>
+                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                  rootScreenName,
+                ),
             }}
             component={ExploreHome}
             layout={({ children }) => UnmountOnBlurComponent(children)}
@@ -728,7 +726,7 @@ const HomeTabs = () => {
             name={Routes.BROWSER.HOME}
             options={{
               ...options.browser,
-              overrides: { hide: true },
+              isHidden: true,
             }}
             component={BrowserFlow}
             layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
