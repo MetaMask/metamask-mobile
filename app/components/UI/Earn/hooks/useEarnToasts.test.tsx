@@ -5,30 +5,9 @@ import useEarnToasts from './useEarnToasts';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { ButtonIconProps } from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 
 jest.mock('expo-haptics');
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn(
-    (key: string, params?: { time?: string; token?: string }) => {
-      if (key === 'earn.musd_conversion.toasts.in_progress') {
-        return `Converting to mUSD`;
-      }
-      if (key === 'earn.musd_conversion.toasts.converting') {
-        return `Converting ${params?.token ?? ''} → mUSD`;
-      }
-      if (key === 'earn.musd_conversion.toasts.eta') {
-        return `~${params?.time ?? ''}`;
-      }
-      if (key === 'earn.musd_conversion.toasts.success') {
-        return `Converted to mUSD`;
-      }
-      if (key === 'earn.musd_conversion.toasts.failed') {
-        return `Failed to convert to mUSD`;
-      }
-      return key;
-    },
-  ),
-}));
 
 const mockTheme = {
   colors: {
@@ -257,7 +236,9 @@ describe('useEarnToasts', () => {
         });
 
       expect(inProgressToast.closeButtonOptions).toBeDefined();
-      expect(inProgressToast.closeButtonOptions?.iconName).toBe(IconName.Close);
+      expect(
+        (inProgressToast.closeButtonOptions as ButtonIconProps)?.iconName,
+      ).toBe(IconName.Close);
       expect(inProgressToast.closeButtonOptions?.onPress).toBeDefined();
     });
 
@@ -268,7 +249,9 @@ describe('useEarnToasts', () => {
         result.current.EarnToastOptions.mUsdConversion.success;
 
       expect(successToast.closeButtonOptions).toBeDefined();
-      expect(successToast.closeButtonOptions?.iconName).toBe(IconName.Close);
+      expect(
+        (successToast.closeButtonOptions as ButtonIconProps)?.iconName,
+      ).toBe(IconName.Close);
     });
 
     it('includes closeButtonOptions on failed toast', () => {
@@ -277,7 +260,9 @@ describe('useEarnToasts', () => {
       const failedToast = result.current.EarnToastOptions.mUsdConversion.failed;
 
       expect(failedToast.closeButtonOptions).toBeDefined();
-      expect(failedToast.closeButtonOptions?.iconName).toBe(IconName.Close);
+      expect(
+        (failedToast.closeButtonOptions as ButtonIconProps)?.iconName,
+      ).toBe(IconName.Close);
     });
 
     it('calls closeToast when closeButtonOptions.onPress is invoked', () => {
@@ -286,7 +271,7 @@ describe('useEarnToasts', () => {
       const successToast =
         result.current.EarnToastOptions.mUsdConversion.success;
 
-      successToast.closeButtonOptions?.onPress?.({} as never);
+      successToast.closeButtonOptions?.onPress?.();
 
       expect(mockCloseToast).toHaveBeenCalledTimes(1);
     });
@@ -460,9 +445,7 @@ describe('useEarnToasts', () => {
       const successToast =
         result.current.EarnToastOptions.mUsdConversion.success;
 
-      expect(() =>
-        successToast.closeButtonOptions?.onPress?.({} as never),
-      ).not.toThrow();
+      expect(() => successToast.closeButtonOptions?.onPress?.()).not.toThrow();
     });
   });
 });
