@@ -1,15 +1,19 @@
 import React from 'react';
 import { toHex } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
 import { Theme } from '../../../../util/theme/models';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import {
-  TokenIcon,
-  TokenIconVariant,
-} from '../../../Views/confirmations/components/token-icon';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { MUSD_TOKEN } from '../constants/musd';
 import { strings } from '../../../../../locales/i18n';
 import {
   ButtonIcon,
@@ -23,11 +27,10 @@ import {
  *
  * @param {Object} navigation - Navigation object required to push new views
  * @param {Theme} theme - Theme object required to style the navbar
- * @param {string} chainId - Chain ID of the mUSD token to convert to
+ * @param {string} chainId - Chain ID for the network badge
  * @returns {Object} - Corresponding navbar options
  */
 
-// TODO: Add tests.
 export const getMusdConversionNavbarOptions = (
   navigation: { goBack: () => void; canGoBack: () => boolean },
   theme: Theme,
@@ -37,14 +40,15 @@ export const getMusdConversionNavbarOptions = (
     tokenIcon: {
       width: 16,
       height: 16,
-      borderRadius: 99,
+    },
+    badgeWrapper: {
+      alignSelf: 'center',
     },
     headerLeft: {
       marginHorizontal: 8,
     },
     headerTitle: {
       flexDirection: 'row',
-      alignItems: 'center',
       gap: 8,
     },
     headerStyle: {
@@ -52,7 +56,11 @@ export const getMusdConversionNavbarOptions = (
     },
   });
 
-  const chainIdHex = toHex(chainId);
+  const chainIdHex = toHex(chainId) as Hex;
+
+  const networkImageSource = getNetworkImageSource({
+    chainId: chainIdHex,
+  });
 
   const handleBackPress = () => {
     if (navigation.canGoBack()) {
@@ -64,11 +72,22 @@ export const getMusdConversionNavbarOptions = (
     headerTitleAlign: 'center',
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
-        <TokenIcon
-          address={MUSD_TOKEN_ADDRESS_BY_CHAIN[chainIdHex]}
-          chainId={chainIdHex}
-          variant={TokenIconVariant.Row}
-        />
+        <BadgeWrapper
+          style={innerStyles.badgeWrapper}
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkImageSource}
+            />
+          }
+        >
+          <Image
+            source={MUSD_TOKEN.imageSource}
+            style={innerStyles.tokenIcon}
+            testID="musd-token-icon"
+          />
+        </BadgeWrapper>
         <Text variant={TextVariant.BodyMDBold}>
           {strings('earn.musd_conversion.convert_to_musd')}
         </Text>

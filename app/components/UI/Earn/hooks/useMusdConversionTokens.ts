@@ -41,7 +41,6 @@ export const useMusdConversionTokens = () => {
     );
   };
 
-  // TODO: Add tests
   const isMusdSupportedOnChain = (chainId: string) =>
     Object.keys(MUSD_TOKEN_ADDRESS_BY_CHAIN).includes(chainId);
 
