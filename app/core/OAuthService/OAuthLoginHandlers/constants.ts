@@ -56,7 +56,6 @@ export const AUTH_SERVER_MARKETING_OPT_IN_PATH =
 export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
 export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
 export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
-export const AndroidGoogleClientId = process.env.ANDROID_GOOGLE_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
 // Use universal link for OAuth redirect

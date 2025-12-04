@@ -541,6 +541,16 @@ const Onboarding = () => {
               return;
             } catch (fallbackError) {
               unsetLoading();
+              if (
+                fallbackError instanceof OAuthError &&
+                (fallbackError.code === OAuthErrorType.UserCancelled ||
+                  fallbackError.code === OAuthErrorType.UserDismissed)
+              ) {
+                return;
+              }
+              if (fallbackError instanceof OAuthError) {
+                handleOAuthLoginError(fallbackError);
+              }
             }
           }
           return;
