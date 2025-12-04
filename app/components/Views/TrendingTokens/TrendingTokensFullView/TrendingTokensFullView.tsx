@@ -41,6 +41,7 @@ import {
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -112,6 +113,9 @@ const createStyles = (theme: Theme) =>
       fontWeight: '600',
       lineHeight: 19.6, // 140% of 14px
       fontStyle: 'normal',
+    },
+    controlButtonDisabled: {
+      opacity: 0.5,
     },
   });
 
@@ -312,8 +316,12 @@ const TrendingTokensFullView = () => {
             <TouchableOpacity
               testID="price-change-button"
               onPress={handlePriceChangePress}
-              style={styles.controlButton}
+              style={[
+                styles.controlButton,
+                searchResults.length === 0 && styles.controlButtonDisabled,
+              ]}
               activeOpacity={0.2}
+              disabled={searchResults.length === 0}
             >
               <View style={styles.controlButtonContent}>
                 <Text style={styles.controlButtonText}>
@@ -366,12 +374,14 @@ const TrendingTokensFullView = () => {
         </View>
       ) : null}
 
-      {isLoading || (searchResults as TrendingAsset[]).length === 0 ? (
+      {isLoading ? (
         <View style={styles.listContainer}>
           {Array.from({ length: 12 }).map((_, index) => (
             <TrendingTokensSkeleton key={index} />
           ))}
         </View>
+      ) : (searchResults as TrendingAsset[]).length === 0 ? (
+        <EmptyErrorTrendingState onRetry={handleRefresh} />
       ) : (
         <View style={styles.listContainer}>
           <TrendingTokensList
