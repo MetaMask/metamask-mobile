@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
+import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
 import useEarnToasts from './useEarnToasts';
@@ -32,22 +33,31 @@ const DEFAULT_ESTIMATED_TIME_SECONDS = 15;
 export const useMusdConversionStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
+  const transactionPayData = useSelector(selectTransactionPayTransactionData);
 
   const shownToastsRef = useRef<Set<string>>(new Set());
   const tokensCacheRef = useRef(tokensChainsCache);
+  const transactionPayDataRef = useRef(transactionPayData);
   tokensCacheRef.current = tokensChainsCache;
+  transactionPayDataRef.current = transactionPayData;
 
   useEffect(() => {
-    const getTokenSymbol = (chainId: Hex, tokenAddress: string): string => {
+    const getTokenData = (
+      chainId: Hex,
+      tokenAddress: string,
+    ): { symbol: string; iconUrl?: string } => {
       const chainTokens = tokensCacheRef.current?.[chainId]?.data;
-      if (!chainTokens) return '';
+      if (!chainTokens) return { symbol: '' };
 
       const checksumAddress = safeToChecksumAddress(tokenAddress);
-      return (
-        chainTokens[checksumAddress as string]?.symbol ||
-        chainTokens[tokenAddress.toLowerCase()]?.symbol ||
-        ''
-      );
+      const tokenData =
+        chainTokens[checksumAddress as string] ||
+        chainTokens[tokenAddress.toLowerCase()];
+
+      return {
+        symbol: tokenData?.symbol || '',
+        iconUrl: tokenData?.iconUrl,
+      };
     };
 
     const handleTransactionStatusUpdated = ({
@@ -73,18 +83,26 @@ export const useMusdConversionStatus = () => {
         case TransactionStatus.approved: {
           // Get token info for the in-progress toast
           // Using 'approved' status to show toast immediately after user confirms
-          const tokenSymbol = payTokenAddress
-            ? getTokenSymbol(payChainId as Hex, payTokenAddress)
-            : '';
+          const tokenData = payTokenAddress
+            ? getTokenData(payChainId as Hex, payTokenAddress)
+            : { symbol: '' };
+          const tokenSymbol = tokenData.symbol;
+          // Use cached icon if available, fallback to static URL
           const tokenIcon = payTokenAddress
-            ? getAssetImageUrl(payTokenAddress, payChainId as Hex)
+            ? tokenData.iconUrl ||
+              getAssetImageUrl(payTokenAddress.toLowerCase(), payChainId as Hex)
             : undefined;
+
+          // Get estimated duration from transaction pay data
+          const estimatedTimeSeconds =
+            transactionPayDataRef.current?.[transactionId]?.totals
+              ?.estimatedDuration ?? DEFAULT_ESTIMATED_TIME_SECONDS;
 
           showToast(
             EarnToastOptions.mUsdConversion.inProgress({
               tokenSymbol: tokenSymbol || 'Token',
               tokenIcon,
-              estimatedTimeSeconds: DEFAULT_ESTIMATED_TIME_SECONDS,
+              estimatedTimeSeconds,
             }),
           );
           shownToastsRef.current.add(toastKey);
