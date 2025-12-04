@@ -1,4 +1,5 @@
-import React, { View, Image } from 'react-native';
+import React from 'react';
+import { View, Image } from 'react-native';
 import stylesheet from './MusdConversionAssetOverviewCta.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Text from '../../../../../../component-library/components/Texts/Text';
