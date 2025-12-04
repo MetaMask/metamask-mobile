@@ -9,3 +9,7 @@ export * from './types';
 
 // Example usage:
 // import { Assertions, Gestures, Matchers, sleep, PortManager, ResourceType } from '../framework';
+
+export { PlaywrightElement, wrapElement, $, $$ } from './PlaywrightAdapter';
+export { default as PlaywrightMatchers } from './PlaywrightMatchers';
+export { default as PlaywrightGestures } from './PlaywrightGestures';
