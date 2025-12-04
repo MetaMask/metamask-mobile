@@ -101,7 +101,7 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
         const feeResult = await computeStakeFee(selectedTronAccount, {
           fromAccountId: selectedTronAccount.id,
           value: amount,
-          options: { purpose: resourceType.toUpperCase() as 'ENERGY' | 'BANDWIDTH' },
+          options: { purpose: resourceType.toUpperCase() as TronResourceType },
         });
         const fee = feeResult[0];
         nextPreview = { ...(nextPreview ?? {}), fee };
@@ -115,7 +115,7 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
 
       return validation;
     },
-    [selectedTronAccount, chainId],
+    [selectedTronAccount, chainId, resourceType],
   );
 
   const confirmStake = useCallback<UseTronStakeReturn['confirmStake']>(
