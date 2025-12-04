@@ -26,6 +26,11 @@ export interface IHostApplicationAdapter {
   showConnectionError(conninfo?: ConnectionInfo): void;
 
   /**
+   * Displays a global, non-interactive not found modal.
+   */
+  showNotFoundError(): void;
+
+  /**
    * Displays a "Return to App" toast notification for successful requests.
    */
   showReturnToApp(conninfo: ConnectionInfo): void;
