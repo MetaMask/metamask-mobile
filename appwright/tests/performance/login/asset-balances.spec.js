@@ -17,25 +17,16 @@ test('Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3', async ({
 
   await login(device);
 
-  const balanceVisibleTimer = new TimerHelper(
-    'Time since the user navigates to wallet tab until the balance text is visible',
-  );
-  const balancesLoadedTimer = new TimerHelper(
-    'Time since the user navigates to wallet tab until all token balances are loaded',
+  const balanceStableTimer = new TimerHelper(
+    'Time since the user navigates to wallet tab until the balance stabilizes',
   );
 
-  balanceVisibleTimer.start();
-  balancesLoadedTimer.start();
-  await TabBarModal.tapWalletButton();
+  balanceStableTimer.start();
 
-  await WalletMainScreen.isTotalBalanceVisible();
-  balanceVisibleTimer.stop();
+  await WalletMainScreen.waitForBalanceToStabilize();
+  balanceStableTimer.stop();
 
-  await WalletMainScreen.isTokenBalancesLoaded();
-  balancesLoadedTimer.stop();
-
-  performanceTracker.addTimer(balanceVisibleTimer);
-  performanceTracker.addTimer(balancesLoadedTimer);
+  performanceTracker.addTimer(balanceStableTimer);
 
   await performanceTracker.attachToTest(testInfo);
 });

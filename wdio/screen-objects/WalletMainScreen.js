@@ -284,24 +284,48 @@ class WalletMainScreen {
     }
   }
 
-  async isTotalBalanceVisible() {
+  async getTotalBalanceText() {
     if (!this._device) {
-      const element = await this.totalBalanceText;
-      await element.waitForDisplayed();
+      return await this.totalBalanceText;
     } else {
-      const element = await this.totalBalanceText;
-      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+      const balanceContainer = await AppwrightSelectors.getElementByNameiOS(this._device, 'total-balance-text');
+      console.log('balanceContainer', balanceContainer);
+      const balanceContainerText = await balanceContainer.getText();
+      console.log('balanceContainer text', balanceContainerText);
+
+      return balanceContainerText;
     }
   }
 
-  async isTokenBalancesLoaded() {
-    if (!this._device) {
-      const element = await this.tokenBalancesLoadedMarker;
-      await element.waitForDisplayed();
-    } else {
-      const element = await this.tokenBalancesLoadedMarker;
-      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+  async waitForBalanceToStabilize(options = {}) {
+    const { 
+      maxWaitTime = 30000, 
+      pollInterval = 100, 
+      requiredStableChecks = 10 
+    } = options;
+
+    const startTime = Date.now();
+    let previousBalance = '';
+    let stableCount = 0;
+
+    while (stableCount < requiredStableChecks) {
+      if (Date.now() - startTime > maxWaitTime) {
+        throw new Error(`Timeout waiting for balance to stabilize after ${maxWaitTime}ms`);
+      }
+
+      const currentBalance = await this.getTotalBalanceText();
+
+      if (currentBalance === previousBalance) {
+        stableCount++;
+      } else {
+        stableCount = 0;
+      }
+
+      previousBalance = currentBalance;
+      await AppwrightGestures.wait(pollInterval);
     }
+
+    return previousBalance;
   }
 
   async isSubmittedNotificationDisplayed() {
