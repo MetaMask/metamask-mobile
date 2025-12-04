@@ -103,8 +103,6 @@ export const useMusdConversionStatus = () => {
             );
           }, 5000);
           break;
-        case TransactionStatus.dropped:
-        case TransactionStatus.rejected:
         case TransactionStatus.failed:
           showToast(EarnToastOptions.mUsdConversion.failed);
           shownToastsRef.current.add(toastKey);

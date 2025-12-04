@@ -428,34 +428,6 @@ describe('useMusdConversionStatus', () => {
 
       expect(mockShowToast).not.toHaveBeenCalled();
     });
-
-    it('shows failed toast when status is rejected', () => {
-      renderHook(() => useMusdConversionStatus());
-
-      const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(TransactionStatus.rejected);
-
-      handler({ transactionMeta });
-
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.failed,
-      );
-    });
-
-    it('shows failed toast when status is dropped', () => {
-      renderHook(() => useMusdConversionStatus());
-
-      const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(TransactionStatus.dropped);
-
-      handler({ transactionMeta });
-
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.failed,
-      );
-    });
   });
 
   describe('multiple concurrent transactions', () => {
