@@ -79,7 +79,7 @@ const LedgerConfirmationModal = ({
       // Handle a super edge case of the user starting a transaction with the device connected
       // After arriving to confirmation the ETH app is not installed anymore this causes a crash.
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR)
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
           .addProperties({
             device_type: HardwareDeviceTypes.LEDGER,
             error: 'LEDGER_ETH_APP_NOT_INSTALLED',
@@ -95,9 +95,7 @@ const LedgerConfirmationModal = ({
       onRejection();
     } finally {
       trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
-        )
+        createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED)
           .addProperties({
             device_type: HardwareDeviceTypes.LEDGER,
           })
@@ -209,7 +207,7 @@ const LedgerConfirmationModal = ({
       }
       if (ledgerError !== LedgerCommunicationErrors.UserRefusedConfirmation) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR)
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({
               device_type: HardwareDeviceTypes.LEDGER,
               error: `${ledgerError}`,
@@ -242,7 +240,7 @@ const LedgerConfirmationModal = ({
       }
       setPermissionErrorShown(true);
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR)
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
           .addProperties({
             device_type: HardwareDeviceTypes.LEDGER,
             error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
@@ -258,7 +256,7 @@ const LedgerConfirmationModal = ({
       });
 
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR)
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
           .addProperties({
             device_type: HardwareDeviceTypes.LEDGER,
             error: 'LEDGER_BLUETOOTH_CONNECTION_ERR',
