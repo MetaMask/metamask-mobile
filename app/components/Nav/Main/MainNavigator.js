@@ -315,7 +315,22 @@ const ExploreHome = () => (
     <Stack.Screen
       name={Routes.EXPLORE_SEARCH}
       component={ExploreSearchScreen}
-      options={{ headerShown: false }}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
     />
     <Stack.Screen
       name={Routes.SITES_FULL_VIEW}
