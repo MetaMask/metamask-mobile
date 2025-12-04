@@ -19,6 +19,8 @@ import {
   FALLBACK_DAPP_SERVER_PORT,
 } from '../Constants';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+import { PlatformDetector } from '../PlatformLocator';
+import { FrameworkDetector } from '../FrameworkDetector';
 
 const execAsync = promisify(exec);
 
@@ -62,7 +64,7 @@ function getFallbackPort(resourceType: ResourceType): number {
  */
 export async function cleanupAllAndroidPortForwarding(): Promise<void> {
   // Only remove port forwarding on Android
-  if (device.getPlatform() !== 'android') {
+  if (!(await PlatformDetector.isAndroid())) {
     return;
   }
 
@@ -134,7 +136,7 @@ async function setupAndroidPortForwarding(
 ): Promise<void> {
   try {
     // Only set up port forwarding on Android
-    if (device.getPlatform() !== 'android') {
+    if (!(await PlatformDetector.isAndroid())) {
       return;
     }
 
@@ -461,10 +463,12 @@ function getServerPort(resourceType: ResourceType): number {
  * const url2 = getDappUrl(1);
  */
 export function getDappUrl(index: number): string {
-  const port =
-    device.getPlatform() === 'android'
-      ? FALLBACK_DAPP_SERVER_PORT + index
-      : getDappPort(index);
+  const isAndroid = FrameworkDetector.isDetox()
+    ? device.getPlatform() === 'android'
+    : true; // Appium single emulator assumption
+  const port = isAndroid
+    ? FALLBACK_DAPP_SERVER_PORT + index
+    : getDappPort(index);
   return `http://localhost:${port}`;
 }
 
@@ -542,9 +546,10 @@ export function getTestDappLocalUrl() {
  * const wsUrl = `ws://localhost:${getAnvilPortForTest()}`;
  */
 export function getAnvilPortForTest(): number {
-  return device.getPlatform() === 'android'
-    ? DEFAULT_ANVIL_PORT
-    : getServerPort(ResourceType.ANVIL);
+  const isAndroid = FrameworkDetector.isDetox()
+    ? device.getPlatform() === 'android'
+    : true;
+  return isAndroid ? DEFAULT_ANVIL_PORT : getServerPort(ResourceType.ANVIL);
 }
 
 export function getGanachePort(): number {

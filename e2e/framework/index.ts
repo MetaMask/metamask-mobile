@@ -13,3 +13,18 @@ export * from './types';
 export { PlaywrightElement, wrapElement, $, $$ } from './PlaywrightAdapter';
 export { default as PlaywrightMatchers } from './PlaywrightMatchers';
 export { default as PlaywrightGestures } from './PlaywrightGestures';
+
+// Export unified framework (Detox + WebdriverIO compatibility)
+export {
+  encapsulated,
+  EncapsulatedElement,
+  type EncapsulatedElementType,
+  LocatorStrategy,
+  type LocatorConfig,
+  type PlatformLocator,
+  asPlaywrightElement,
+  asDetoxElement,
+} from './EncapsulatedElement';
+
+export { FrameworkDetector, TestFramework } from './FrameworkDetector';
+export { PlatformDetector } from './PlatformLocator';
