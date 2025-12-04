@@ -118,7 +118,9 @@ class ActivitiesView {
     await Gestures.waitAndTap(this.transactionItem(row));
   }
   async tapOnPredictionsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.predictionsTab);
+    await Gestures.waitAndTap(this.predictionsTab, {
+      elemDescription: 'Predictions Tab in Activity View',
+    });
   }
   async tapPredictPosition(positionName: string): Promise<void> {
     const el = Matchers.getElementByText(positionName);
