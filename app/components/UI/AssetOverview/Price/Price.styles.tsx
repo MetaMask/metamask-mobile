@@ -24,9 +24,6 @@ const styleSheet = (params: {
             ? colors.error.default
             : colors.text.alternative,
     } as TextStyle,
-    priceDiffIcon: {
-      marginTop: 10,
-    },
     loadingPrice: {
       paddingTop: 8,
     },
