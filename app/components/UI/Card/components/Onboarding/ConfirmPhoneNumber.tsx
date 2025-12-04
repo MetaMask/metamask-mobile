@@ -13,7 +13,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -138,7 +137,7 @@ const ConfirmPhoneNumber = () => {
         setUser(user);
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
+          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
         });
       }
     } catch (error) {
@@ -286,12 +285,7 @@ const ConfirmPhoneNumber = () => {
 
   const renderFormFields = () => (
     <>
-      <Box>
-        <Label>
-          {strings(
-            'card.card_onboarding.confirm_phone_number.confirm_code_label',
-          )}
-        </Label>
+      <Box twClassName="-mt-2">
         <CodeField
           ref={inputRef as React.RefObject<TextInput>}
           {...props}
@@ -330,34 +324,39 @@ const ConfirmPhoneNumber = () => {
       </Box>
 
       {/* Resend verification */}
-      <Box twClassName="mt-4 items-center">
+      <Box twClassName="mt-2">
         <Text
-          variant={TextVariant.BodyMd}
-          twClassName={`${
-            resendCooldown > 0
-              ? 'text-text-alternative'
-              : 'text-primary-default cursor-pointer'
-          }`}
-          onPress={resendCooldown > 0 ? undefined : handleResendVerification}
-          disabled={
-            resendCooldown > 0 ||
-            !phoneNumber ||
-            !phoneCountryCode ||
-            !contactVerificationId ||
-            phoneVerificationIsLoading
-          }
+          variant={TextVariant.BodySm}
+          twClassName="text-text-alternative"
           testID="confirm-phone-number-resend-verification"
         >
-          {resendCooldown > 0
-            ? strings(
-                'card.card_onboarding.confirm_phone_number.resend_cooldown',
-                {
-                  seconds: resendCooldown,
-                },
-              )
-            : strings(
-                'card.card_onboarding.confirm_phone_number.resend_verification',
-              )}
+          {resendCooldown > 0 ? (
+            strings('card.card_onboarding.confirm_email.resend_cooldown', {
+              seconds: resendCooldown,
+            })
+          ) : (
+            <>
+              {strings('card.card_onboarding.confirm_email.didnt_receive_code')}
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative underline"
+                onPress={
+                  resendCooldown > 0 ? undefined : handleResendVerification
+                }
+                disabled={
+                  resendCooldown > 0 ||
+                  !phoneNumber ||
+                  !phoneCountryCode ||
+                  !contactVerificationId ||
+                  phoneVerificationIsLoading
+                }
+              >
+                {strings(
+                  'card.card_onboarding.confirm_email.resend_verification',
+                )}
+              </Text>
+            </>
+          )}
         </Text>
         {phoneVerificationIsError && (
           <Text
