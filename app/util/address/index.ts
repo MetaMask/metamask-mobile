@@ -475,6 +475,31 @@ export function getAddressAccountType(address: string) {
 }
 
 /**
+ * Normalizes a hardware account type to a human-readable display string.
+ *
+ * This function takes a hardware account type (either as a string literal or
+ * an ExtendedKeyringTypes enum value) and returns a standardized, user-friendly
+ * display name for the hardware wallet type.
+ *
+ * @param type - The hardware account type to normalize.
+ * @returns A normalized, human-readable string representing the hardware wallet type.
+ */
+export function normalizeHardwareAccountType(
+  type: string | ExtendedKeyringTypes,
+) {
+  switch (type) {
+    case 'QR':
+    case ExtendedKeyringTypes.qr:
+      return 'QR Hardware';
+    case 'Ledger':
+    case ExtendedKeyringTypes.ledger:
+      return 'Ledger';
+    default:
+      return type;
+  }
+}
+
+/**
  * Validates an ENS name
  *
  * @param {String} name - String corresponding to an ENS name
