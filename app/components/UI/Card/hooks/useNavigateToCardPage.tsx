@@ -53,6 +53,13 @@ export const useNavigateToInternalBrowserPage = (
 
       if (page === CardInternalBrowserPage.TOS) {
         Linking.openURL(getUrl());
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action,
+            })
+            .build(),
+        );
         return;
       }
 
