@@ -33,6 +33,8 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -164,21 +166,41 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onError = useCallback(
-    (error: Error) => {
+    async (error: Error) => {
       if (onScanError && error) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-            .addProperties({ purpose, error: error.message })
-            .build(),
-        );
+        // Get device name asynchronously without blocking error handling
+        withQrKeyring(({ keyring }) => Promise.resolve(keyring.getName()))
+          .then((deviceName) => {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+                .addProperties({
+                  error: error.message,
+                  device_model: deviceName,
+                  device_type: HardwareDeviceTypes.QR,
+                })
+                .build(),
+            );
+          })
+          .catch(() => {
+            // If getName fails, send analytics with 'Unknown'
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+                .addProperties({
+                  error: error.message,
+                  device_model: 'Unknown',
+                  device_type: HardwareDeviceTypes.QR,
+                })
+                .build(),
+            );
+          });
         onScanError(error.message);
       }
     },
-    [purpose, onScanError, trackEvent, createEventBuilder],
+    [onScanError, trackEvent, createEventBuilder],
   );
 
   const onBarCodeRead = useCallback(
-    (codes: Code[]) => {
+    async (codes: Code[]) => {
       if (!visible || !codes.length) {
         return;
       }
@@ -186,16 +208,41 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       if (!response.data) {
         return;
       }
+
       try {
         const content = response.data;
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
+
+        // Helper to send analytics with device name
+        const sendAnalytics = (properties: Record<string, unknown>) => {
+          withQrKeyring(({ keyring }) => Promise.resolve(keyring.getName()))
+            .then((deviceName) => {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+                  .addProperties({
+                    ...properties,
+                    device_model: deviceName,
+                    device_type: HardwareDeviceTypes.QR,
+                  })
+                  .build(),
+              );
+            })
+            .catch(() => {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+                  .addProperties({
+                    ...properties,
+                    device_model: 'Unknown',
+                    device_type: HardwareDeviceTypes.QR,
+                  })
+                  .build(),
+              );
+            });
+        };
+
         if (urDecoder.isError()) {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-              .addProperties({ purpose, error: urDecoder.resultError() })
-              .build(),
-          );
+          sendAnalytics({ error: urDecoder.resultError() });
           onScanError(strings('transaction.unknown_qr_code'));
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
@@ -204,30 +251,40 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             setProgress(0);
             setURDecoder(new URRegistryDecoder());
           } else if (purpose === QrScanRequestType.PAIR) {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-                .addProperties({
-                  purpose,
-                  received_ur_type: ur.type,
-                  error: 'invalid `sync` qr code',
-                })
-                .build(),
-            );
+            sendAnalytics({
+              received_ur_type: ur.type,
+              error: 'invalid `sync` qr code',
+            });
             onScanError(strings('transaction.invalid_qr_code_sync'));
           } else {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-                .addProperties({
-                  purpose,
-                  received_ur_type: ur.type,
-                  error: 'invalid `sign` qr code',
-                })
-                .build(),
-            );
+            sendAnalytics({ error: 'invalid `sign` qr code' });
             onScanError(strings('transaction.invalid_qr_code_sign'));
           }
         }
       } catch (e) {
+        withQrKeyring(({ keyring }) => Promise.resolve(keyring.getName()))
+          .then((deviceName) => {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+                .addProperties({
+                  error: strings('transaction.unknown_qr_code'),
+                  device_model: deviceName,
+                  device_type: HardwareDeviceTypes.QR,
+                })
+                .build(),
+            );
+          })
+          .catch(() => {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+                .addProperties({
+                  error: strings('transaction.unknown_qr_code'),
+                  device_model: 'Unknown',
+                  device_type: HardwareDeviceTypes.QR,
+                })
+                .build(),
+            );
+          });
         onScanError(strings('transaction.unknown_qr_code'));
       }
     },
