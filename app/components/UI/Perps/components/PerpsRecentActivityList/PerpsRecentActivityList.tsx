@@ -5,6 +5,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
@@ -155,16 +160,18 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('perps.home.recent_activity')}
-        </Text>
-        <TouchableOpacity onPress={handleSeeAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.home.see_all')}
+      <TouchableOpacity style={styles.header} onPress={handleSeeAll}>
+        <View style={styles.titleRow}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {strings('perps.home.recent_activity')}
           </Text>
-        </TouchableOpacity>
-      </View>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.listContainer}>
         <FlatList

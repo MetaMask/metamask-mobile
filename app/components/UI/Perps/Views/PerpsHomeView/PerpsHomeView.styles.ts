@@ -126,6 +126,13 @@ const styleSheet = (params: { theme: Theme }) => {
     sectionContent: {
       paddingHorizontal: 16,
     },
+    positionsOrdersContainer: {
+      marginHorizontal: 16,
+      borderRadius: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: colors.background.section,
+    },
   });
 };
 

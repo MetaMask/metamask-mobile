@@ -12,10 +12,14 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 16,
+      marginBottom: 8,
       paddingHorizontal: 16,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
     listContainer: {
       gap: 1,

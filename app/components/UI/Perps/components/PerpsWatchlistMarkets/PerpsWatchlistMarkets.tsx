@@ -1,10 +1,15 @@
 import React, { useCallback } from 'react';
-import { FlatList, View } from 'react-native';
+import { FlatList, View, TouchableOpacity } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type {
@@ -73,16 +78,30 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     [handleMarketPress],
   );
 
-  // Header component
+  const handleViewAll = useCallback(() => {
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {},
+    });
+  }, [navigation]);
+
+  // Header component - full row is pressable with chevron icon next to title
   const SectionHeader = useCallback(
     () => (
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-          {strings('perps.home.watchlist')}
-        </Text>
-      </View>
+      <TouchableOpacity style={styles.header} onPress={handleViewAll}>
+        <View style={styles.titleRow}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {strings('perps.home.watchlist')}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        </View>
+      </TouchableOpacity>
     ),
-    [styles.header],
+    [styles.header, styles.titleRow, handleViewAll],
   );
 
   // Show skeleton during initial load

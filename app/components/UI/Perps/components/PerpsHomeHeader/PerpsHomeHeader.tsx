@@ -8,9 +8,6 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconName,
   IconSize,
@@ -132,35 +129,35 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
       ) : (
         <View style={styles.headerContainerWrapper}>
           {/* Back Button */}
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
+          <TouchableOpacity
+            style={styles.backButton}
             onPress={handleBack}
-            size={ButtonIconSizes.Md}
-            iconColor={IconColor.Default}
             testID={testID ? `${testID}-back-button` : undefined}
-          />
+          >
+            <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
+          </TouchableOpacity>
 
           {/* Title */}
-          <Text
-            variant={TextVariant.HeadingLG}
-            color={TextColor.Default}
-            style={styles.headerTitle}
-          >
-            {title || strings('perps.title')}
-          </Text>
+          <View style={styles.headerTitleContainer}>
+            <Text
+              variant={TextVariant.HeadingLG}
+              color={TextColor.Default}
+              style={styles.headerTitle}
+            >
+              {title || strings('perps.title')}
+            </Text>
+          </View>
 
           {/* Search Toggle Button */}
-          <TouchableOpacity
-            style={styles.searchButton}
-            onPress={onSearchToggle}
-            testID={testID ? `${testID}-search-toggle` : undefined}
-          >
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Lg}
-              color={IconColor.Default}
-            />
-          </TouchableOpacity>
+          <View style={styles.titleButtonsRightContainer}>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={onSearchToggle}
+              testID={testID ? `${testID}-search-toggle` : undefined}
+            >
+              <Icon name={IconName.Search} size={IconSize.Lg} />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>

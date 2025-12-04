@@ -152,25 +152,8 @@ describe('PerpsHomeSection', () => {
     });
   });
 
-  describe('action button', () => {
-    it('renders action button when actionLabel and onActionPress provided', () => {
-      const { getByText } = render(
-        <PerpsHomeSection
-          title="Test Section"
-          isLoading={false}
-          isEmpty={false}
-          actionLabel="Close All"
-          onActionPress={jest.fn()}
-          renderSkeleton={mockSkeleton}
-        >
-          {mockChildren}
-        </PerpsHomeSection>,
-      );
-
-      expect(getByText('Close All')).toBeTruthy();
-    });
-
-    it('calls onActionPress when action button is pressed', () => {
+  describe('pressable header with action icon', () => {
+    it('makes header row pressable when onActionPress provided', () => {
       const mockOnActionPress = jest.fn();
 
       const { getByText } = render(
@@ -178,7 +161,6 @@ describe('PerpsHomeSection', () => {
           title="Test Section"
           isLoading={false}
           isEmpty={false}
-          actionLabel="Close All"
           onActionPress={mockOnActionPress}
           renderSkeleton={mockSkeleton}
         >
@@ -186,76 +168,66 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      fireEvent.press(getByText('Close All'));
+      fireEvent.press(getByText('Test Section'));
 
       expect(mockOnActionPress).toHaveBeenCalledTimes(1);
     });
 
-    it('omits action button when actionLabel not provided', () => {
-      const { queryByText } = render(
+    it('header is not pressable when onActionPress not provided', () => {
+      const { getByText } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading={false}
           isEmpty={false}
-          onActionPress={jest.fn()}
           renderSkeleton={mockSkeleton}
         >
           {mockChildren}
         </PerpsHomeSection>,
       );
 
-      expect(queryByText('Close All')).toBeNull();
+      // Header should render but not be pressable
+      expect(getByText('Test Section')).toBeTruthy();
     });
 
-    it('omits action button when onActionPress not provided', () => {
-      const { queryByText } = render(
-        <PerpsHomeSection
-          title="Test Section"
-          isLoading={false}
-          isEmpty={false}
-          actionLabel="Close All"
-          renderSkeleton={mockSkeleton}
-        >
-          {mockChildren}
-        </PerpsHomeSection>,
-      );
+    it('hides action icon when loading', () => {
+      const mockOnActionPress = jest.fn();
 
-      expect(queryByText('Close All')).toBeNull();
-    });
-
-    it('hides action button when loading', () => {
-      const { queryByText } = render(
+      const { getByText } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading
           isEmpty={false}
-          actionLabel="Close All"
-          onActionPress={jest.fn()}
+          onActionPress={mockOnActionPress}
           renderSkeleton={mockSkeleton}
         >
           {mockChildren}
         </PerpsHomeSection>,
       );
 
-      expect(queryByText('Close All')).toBeNull();
+      // Header should not be pressable when loading
+      fireEvent.press(getByText('Test Section'));
+      expect(mockOnActionPress).not.toHaveBeenCalled();
     });
 
-    it('hides action button when empty', () => {
-      const { queryByText } = render(
+    it('hides action icon when empty', () => {
+      const mockOnActionPress = jest.fn();
+
+      const { getByText } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading={false}
           isEmpty
           showWhenEmpty
-          actionLabel="Close All"
-          onActionPress={jest.fn()}
+          onActionPress={mockOnActionPress}
           renderSkeleton={mockSkeleton}
         >
           {mockChildren}
         </PerpsHomeSection>,
       );
 
-      expect(queryByText('Close All')).toBeNull();
+      // Header should not be pressable when empty
+      fireEvent.press(getByText('Test Section'));
+      expect(mockOnActionPress).not.toHaveBeenCalled();
     });
   });
 
@@ -367,7 +339,7 @@ describe('PerpsHomeSection', () => {
       expect(getByTestId('child-3')).toBeTruthy();
     });
 
-    it('handles multiple action button presses', () => {
+    it('handles multiple header presses', () => {
       const mockOnActionPress = jest.fn();
 
       const { getByText } = render(
@@ -375,7 +347,6 @@ describe('PerpsHomeSection', () => {
           title="Test Section"
           isLoading={false}
           isEmpty={false}
-          actionLabel="Close All"
           onActionPress={mockOnActionPress}
           renderSkeleton={mockSkeleton}
         >
@@ -383,11 +354,11 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      const actionButton = getByText('Close All');
+      const headerRow = getByText('Test Section');
 
-      fireEvent.press(actionButton);
-      fireEvent.press(actionButton);
-      fireEvent.press(actionButton);
+      fireEvent.press(headerRow);
+      fireEvent.press(headerRow);
+      fireEvent.press(headerRow);
 
       expect(mockOnActionPress).toHaveBeenCalledTimes(3);
     });
@@ -411,14 +382,15 @@ describe('PerpsHomeSection', () => {
       expect(getByTestId('skeleton-loader')).toBeTruthy();
     });
 
-    it('handles loading with action props', () => {
-      const { getByText, queryByText } = render(
+    it('handles loading with action props - header not pressable', () => {
+      const mockOnActionPress = jest.fn();
+
+      const { getByText } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading
           isEmpty={false}
-          actionLabel="Close All"
-          onActionPress={jest.fn()}
+          onActionPress={mockOnActionPress}
           renderSkeleton={mockSkeleton}
         >
           {mockChildren}
@@ -426,7 +398,9 @@ describe('PerpsHomeSection', () => {
       );
 
       expect(getByText('Test Section')).toBeTruthy();
-      expect(queryByText('Close All')).toBeNull();
+      // Header should not be pressable when loading
+      fireEvent.press(getByText('Test Section'));
+      expect(mockOnActionPress).not.toHaveBeenCalled();
     });
   });
 });
