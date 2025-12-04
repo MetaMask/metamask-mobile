@@ -67,6 +67,7 @@ export const PREFIXES = {
   [ACTIONS.REWARDS]: '',
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
+  [ACTIONS.SHIELD]: '',
   [ACTIONS.ENABLE_CARD_BUTTON]: '',
   METAMASK: 'metamask://',
 };
