@@ -23,11 +23,13 @@ import { BaseLoginHandler } from './baseHandler';
  *
  * @param platformOS - The platform of the device (ios, android)
  * @param provider - The provider of the login (Google, Apple)
+ * @param fallback - Whether to use browser fallback for Google login on Android (default: false)
  * @returns The login handler
  */
 export function createLoginHandler(
   platformOS: Platform['OS'],
   provider: AuthConnection,
+  fallback = false,
 ): BaseLoginHandler {
   if (
     !AuthServerUrl ||
@@ -64,18 +66,18 @@ export function createLoginHandler(
     case 'android':
       switch (provider) {
         case AuthConnection.Google:
-          return new AndroidGoogleLoginHandler({
-            clientId: AndroidGoogleWebGID,
-            authServerUrl: AuthServerUrl,
-            web3AuthNetwork,
-          });
-        case AuthConnection.GoogleFallback:
-          return new AndroidGoogleFallbackLoginHandler({
-            clientId: AndroidGoogleWebGID,
-            redirectUri: AndroidGoogleRedirectUri,
-            authServerUrl: AuthServerUrl,
-            web3AuthNetwork,
-          });
+          return fallback
+            ? new AndroidGoogleFallbackLoginHandler({
+                clientId: AndroidGoogleWebGID,
+                redirectUri: AndroidGoogleRedirectUri,
+                authServerUrl: AuthServerUrl,
+                web3AuthNetwork,
+              })
+            : new AndroidGoogleLoginHandler({
+                clientId: AndroidGoogleWebGID,
+                authServerUrl: AuthServerUrl,
+                web3AuthNetwork,
+              });
         case AuthConnection.Apple:
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,

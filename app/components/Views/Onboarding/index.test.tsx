@@ -1158,7 +1158,8 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
-        'google-fallback',
+        'google',
+        true,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -1221,7 +1222,8 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
-        'google-fallback',
+        'google',
+        true,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -1286,7 +1288,8 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
-        'google-fallback',
+        'google',
+        true,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 

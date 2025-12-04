@@ -85,11 +85,6 @@ export const AuthConnectionConfig: Record<
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
     },
-    [AuthConnection.GoogleFallback]: {
-      authConnectionId: CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_AUTH_CONNECTION_ID,
-      groupedAuthConnectionId:
-        CURRENT_OAUTH_CONFIG.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
-    },
     [AuthConnection.Apple]: {
       authConnectionId: CURRENT_OAUTH_CONFIG.ANDROID_APPLE_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
@@ -98,11 +93,6 @@ export const AuthConnectionConfig: Record<
   },
   [SupportedPlatforms.IOS]: {
     [AuthConnection.Google]: {
-      authConnectionId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_AUTH_CONNECTION_ID,
-      groupedAuthConnectionId:
-        CURRENT_OAUTH_CONFIG.GOOGLE_GROUPED_AUTH_CONNECTION_ID,
-    },
-    [AuthConnection.GoogleFallback]: {
       authConnectionId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.GOOGLE_GROUPED_AUTH_CONNECTION_ID,

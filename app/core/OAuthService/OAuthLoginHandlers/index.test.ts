@@ -69,21 +69,11 @@ describe('OAuth login handlers', () => {
 
   for (const os of ['ios', 'android']) {
     for (const provider of Object.values(AuthConnection)) {
-      // Skip GoogleFallback for iOS
-      if (os === 'ios' && provider === AuthConnection.GoogleFallback) {
-        continue;
-      }
-
-      it(`should create the correct login handler for ${os} and ${provider}`, async () => {
+      it(`creates the correct login handler for ${os} and ${provider}`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
         const result = await handler.login();
 
-        // GoogleFallback handler returns AuthConnection.Google
-        const expectedAuthConnection =
-          provider === AuthConnection.GoogleFallback
-            ? AuthConnection.Google
-            : provider;
-        expect(result?.authConnection).toBe(expectedAuthConnection);
+        expect(result?.authConnection).toBe(provider);
 
         switch (os) {
           case 'ios': {
@@ -113,23 +103,13 @@ describe('OAuth login handlers', () => {
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
-              case AuthConnection.GoogleFallback:
-                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
-                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
-                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
-                break;
             }
             break;
           }
         }
       });
 
-      // Skip GoogleFallback for iOS
-      if (os === 'ios' && provider === AuthConnection.GoogleFallback) {
-        continue;
-      }
-
-      it(`should have correct scope and authServerPath for ${os} ${provider} handler`, async () => {
+      it(`has correct scope and authServerPath for ${os} ${provider} handler`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
 
         switch (os) {
@@ -158,10 +138,6 @@ describe('OAuth login handlers', () => {
               case AuthConnection.Google:
                 expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
-                break;
-              case AuthConnection.GoogleFallback:
-                expect(handler.scope).toEqual(['email', 'profile', 'openid']);
-                expect(handler.authServerPath).toBe('api/v1/oauth/token');
                 break;
             }
             break;
@@ -204,6 +180,50 @@ describe('OAuth login handlers', () => {
       });
     }
   }
+
+  describe('Android Google with fallback', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('creates browser-based fallback handler when fallback is true', async () => {
+      const handler = createLoginHandler(
+        'android',
+        AuthConnection.Google,
+        true,
+      );
+      const result = await handler.login();
+
+      expect(result?.authConnection).toBe(AuthConnection.Google);
+      expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+    });
+
+    it('uses ACM handler when fallback is false (default)', async () => {
+      const handler = createLoginHandler(
+        'android',
+        AuthConnection.Google,
+        false,
+      );
+      const result = await handler.login();
+
+      expect(result?.authConnection).toBe(AuthConnection.Google);
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+      expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
+    });
+
+    it('has correct scope and authServerPath for fallback handler', async () => {
+      const handler = createLoginHandler(
+        'android',
+        AuthConnection.Google,
+        true,
+      );
+
+      expect(handler.scope).toEqual(['email', 'profile', 'openid']);
+      // Fallback uses token endpoint (code flow)
+      expect(handler.authServerPath).toBe('api/v1/oauth/token');
+    });
+  });
 
   describe('Error handling', () => {
     describe('iOS Apple handler', () => {
