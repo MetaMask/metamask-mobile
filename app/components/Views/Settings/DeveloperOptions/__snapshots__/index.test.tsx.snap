@@ -516,7 +516,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             }
                           }
                         >
-                          Sample Feature
+                          Sample feature
                         </Text>
                         <Text
                           accessibilityRole="text"
