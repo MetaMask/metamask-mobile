@@ -49,12 +49,17 @@ jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
 const mockGetAddressAccountType = jest.fn().mockReturnValue('MetaMask');
 const mockIsValidHexAddress = jest.fn().mockReturnValue(true);
 const mockIsHardwareAccount = jest.fn().mockReturnValue(false);
+const mockNormalizeHardwareAccountType = jest
+  .fn()
+  .mockImplementation((type: string) => type);
 
 jest.mock('../../../../util/address', () => ({
   getAddressAccountType: (...args: unknown[]) =>
     mockGetAddressAccountType(...args),
   isValidHexAddress: (...args: unknown[]) => mockIsValidHexAddress(...args),
   isHardwareAccount: (...args: unknown[]) => mockIsHardwareAccount(...args),
+  normalizeHardwareAccountType: (...args: unknown[]) =>
+    mockNormalizeHardwareAccountType(...args),
 }));
 
 jest.mock('../../../../util/rpc-domain-utils', () => ({
@@ -304,6 +309,7 @@ describe('generateDefaultTransactionMetrics', () => {
     mockGetAddressAccountType.mockReturnValue('MetaMask');
     mockIsValidHexAddress.mockReturnValue(true);
     mockIsHardwareAccount.mockReturnValue(false);
+    mockNormalizeHardwareAccountType.mockImplementation((type: string) => type);
 
     mockNativeBalance('0x1', FROM_ADDRESS_MOCK, '0x0000000000000000000');
   });
@@ -951,7 +957,7 @@ describe('generateDefaultTransactionMetrics', () => {
       );
 
       expect(result.properties.account_type).toBe('QR');
-      expect(result.properties.account_hardware_type).toBe('QR');
+      expect(result.properties.account_hardware_type).toBe('QR Hardware');
     });
 
     it('sets account_hardware_type to null for non-hardware wallet', async () => {
