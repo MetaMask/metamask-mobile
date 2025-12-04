@@ -3147,6 +3147,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('11806489');
@@ -3183,6 +3184,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('15000000');
@@ -3236,6 +3238,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('11806489');
@@ -3277,6 +3280,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('5000000'); // Returns latest log
@@ -3289,6 +3293,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBeNull();
@@ -3352,6 +3357,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       // Most recent should be block 100, logIndex 2
@@ -3395,6 +3401,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('0'); // Returns most recent, even if zero
@@ -3408,6 +3415,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBeNull();
@@ -3427,6 +3435,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(mockProvider.getLogs).toHaveBeenCalledWith({
@@ -3467,6 +3476,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe(largeValue);
