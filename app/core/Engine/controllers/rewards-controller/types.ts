@@ -443,6 +443,7 @@ export interface SeasonRewardDto {
   isEndOfSeasonReward?: boolean;
   endOfSeasonName?: string;
   endOfSeasonShortDescription?: string;
+  claimEndDate?: string;
 }
 
 export enum SeasonRewardType {
@@ -564,6 +565,7 @@ export type SeasonRewardDtoState = {
   isEndOfSeasonReward?: boolean;
   endOfSeasonName?: string;
   endOfSeasonShortDescription?: string;
+  claimEndDate?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
