@@ -30,7 +30,7 @@ import {
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
 import {
-  selectAbTestRawFlags,
+  selectRawProcessedRemoteFeatureFlags,
   selectLocalOverrides,
 } from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
@@ -45,7 +45,9 @@ export interface MinimumVersionFlagValue {
   minimumVersion: string;
 }
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
-  const abTestRawFlags = useSelector(selectAbTestRawFlags);
+  const rawProcessedRemoteFeatureFlags = useSelector(
+    selectRawProcessedRemoteFeatureFlags,
+  );
   const override = useSelector(selectLocalOverrides);
   const tw = useTailwind();
   const theme = useTheme();
@@ -130,8 +132,15 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           />
         );
       case 'abTest': {
-        interface AbTestType { name: string; value: unknown }
-        const abTestOptions: AbTestType[] = abTestRawFlags[flag.key] || [];
+        interface AbTestType {
+          name: string;
+          value: unknown;
+        }
+        const abTestOptions: AbTestType[] = Array.isArray(
+          rawProcessedRemoteFeatureFlags[flag.key],
+        )
+          ? (rawProcessedRemoteFeatureFlags[flag.key] as AbTestType[])
+          : [];
         const flagValue = flag.value as AbTestType;
 
         const handleSelectOption = (name: string) => {
