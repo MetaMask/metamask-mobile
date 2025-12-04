@@ -230,6 +230,9 @@ class AppInformation extends PureComponent {
             ) : null}
             <Text
               style={styles.versionInfo}
+            >{`this is OTA update v1 text`}</Text>
+            <Text
+              style={styles.versionInfo}
             >{`this is OTA update v2 text`}</Text>
 
             {this.state.showEnvironmentInfo && (
