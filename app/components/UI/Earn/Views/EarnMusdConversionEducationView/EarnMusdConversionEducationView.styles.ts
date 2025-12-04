@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
 export const styleSheet = (params: { theme: Theme }) => {
@@ -24,8 +24,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     heading: {
       marginBottom: 8,
-      fontFamily:
-        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
+      fontFamily: 'MMSans-Regular',
     },
     bodyText: {
       marginBottom: 32,
