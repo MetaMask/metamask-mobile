@@ -284,6 +284,26 @@ class WalletMainScreen {
     }
   }
 
+  async isTotalBalanceVisible() {
+    if (!this._device) {
+      const element = await this.totalBalanceText;
+      await element.waitForDisplayed();
+    } else {
+      const element = await this.totalBalanceText;
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+    }
+  }
+
+  async isTokenBalancesLoaded() {
+    if (!this._device) {
+      const element = await this.tokenBalancesLoadedMarker;
+      await element.waitForDisplayed();
+    } else {
+      const element = await this.tokenBalancesLoadedMarker;
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+    }
+  }
+
   async isSubmittedNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
