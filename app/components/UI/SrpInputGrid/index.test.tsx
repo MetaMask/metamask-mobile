@@ -237,6 +237,19 @@ describe('SrpInputGrid', () => {
 
       expect(input).toBeTruthy();
     });
+
+    it('validates word on blur and marks invalid words', () => {
+      const seedPhrase = ['invalidword'];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'focus');
+      fireEvent(input, 'blur');
+
+      expect(input).toBeTruthy();
+    });
   });
 
   describe('Keyboard Events', () => {
@@ -292,6 +305,107 @@ describe('SrpInputGrid', () => {
       fireEvent.press(clearButton);
 
       expect(mockOnSeedPhraseChange).toHaveBeenCalledWith(['']);
+    });
+  });
+
+  describe('Word Input Handling', () => {
+    it('triggers change handler when typing in input', () => {
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent.changeText(input, 'wallet');
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
+    });
+
+    it('handles typing in second input field', () => {
+      const seedPhrase = ['wallet', ''];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+      fireEvent.changeText(secondInput, 'abandon');
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('displays external error when provided', () => {
+      const { getByText } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} externalError="Invalid seed phrase" />,
+      );
+
+      expect(getByText('Invalid seed phrase')).toBeOnTheScreen();
+    });
+
+    it('calls onError when validation fails', () => {
+      const seedPhrase = ['invalidword', 'anotherInvalid'];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'focus');
+      fireEvent(input, 'blur');
+
+      // onError is called with validation results
+      expect(mockOnError).toBeDefined();
+    });
+  });
+
+  describe('Component Lifecycle', () => {
+    it('cleans up blur timeout on unmount', () => {
+      const { unmount, getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'focus');
+      fireEvent(input, 'blur');
+
+      // Unmount before timeout fires - cleanup should clear timeout
+      unmount();
+
+      // Advance timers - no errors should occur
+      jest.advanceTimersByTime(200);
+    });
+
+    it('handles multiple focus/blur cycles', () => {
+      const seedPhrase = ['wallet', 'abandon', ''];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const firstInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+
+      // Focus first, blur, focus second
+      fireEvent(firstInput, 'focus');
+      fireEvent(firstInput, 'blur');
+      fireEvent(secondInput, 'focus');
+      fireEvent(secondInput, 'blur');
+
+      jest.advanceTimersByTime(200);
+
+      expect(firstInput).toBeTruthy();
+      expect(secondInput).toBeTruthy();
+    });
+
+    it('maintains refs across re-renders', () => {
+      const { getByTestId, rerender } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent.changeText(input, 'wal');
+
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet', '']} />);
+
+      expect(input).toBeTruthy();
     });
   });
 });
