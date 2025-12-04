@@ -56,15 +56,18 @@ const createStyles = ({ colors }) =>
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
       paddingTop:
-        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
-      paddingBottom: 16,
+        Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: colors.background.default,
     },
     checkbox: {
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'flex-start',
+      justifyContent: 'space-between',
       gap: 16,
-      marginRight: 25,
     },
     action: {
       flex: 0,
@@ -76,11 +79,11 @@ const createStyles = ({ colors }) =>
       flex: 1,
     },
     wrapper: {
-      marginHorizontal: 20,
+      marginHorizontal: 16,
       flex: 1,
       flexDirection: 'column',
       rowGap: 16,
-      paddingBottom: 80, // Space for fixed action buttons at bottom
+      paddingBottom: 16,
     },
     privacyPolicy: {
       ...fontStyles.normal,
@@ -89,7 +92,10 @@ const createStyles = ({ colors }) =>
     },
     actionContainer: {
       flexDirection: 'row',
-      padding: 16,
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 0,
+      backgroundColor: colors.background.default,
     },
     disabledActionContainer: {
       opacity: 0.3,
@@ -112,21 +118,27 @@ const createStyles = ({ colors }) =>
     },
     title: {
       fontWeight: '700',
-      marginTop: 8,
+    },
+    titleContainer: {
+      gap: 8,
+      marginBottom: 12,
     },
     sectionContainer: {
       backgroundColor: colors.background.section,
       borderRadius: 12,
-      padding: 16,
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 16,
       marginBottom: 16,
     },
     imageContainer: {
       alignItems: 'center',
-      marginVertical: Device.isMediumDevice() ? 8 : 12,
+      marginTop: 40,
+      marginBottom: 8,
     },
     illustration: {
-      width: Device.isMediumDevice() ? 160 : 200,
-      height: Device.isMediumDevice() ? 120 : 150,
+      width: Device.isMediumDevice() ? 160 : 220,
+      height: Device.isMediumDevice() ? 120 : 180,
       alignSelf: 'center',
     },
     flexContainer: {
@@ -432,7 +444,7 @@ class OptinMetrics extends PureComponent {
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
         <ScrollView
-          style={styles.root}
+          style={styles.scrollView}
           scrollEventThrottle={150}
           onContentSizeChange={this.onContentSizeChange}
           onLayout={this.onLayout}
@@ -440,14 +452,6 @@ class OptinMetrics extends PureComponent {
           testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
         >
           <View style={styles.wrapper}>
-            <Text
-              variant={TextVariant.DisplayMD}
-              color={TextColor.Default}
-              style={styles.title}
-              testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
-            >
-              {strings('privacy_policy.description_title')}
-            </Text>
             <View style={styles.imageContainer}>
               <Image
                 source={PrivacyIllustration}
@@ -455,15 +459,25 @@ class OptinMetrics extends PureComponent {
                 resizeMode="contain"
               />
             </View>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
-              }
-            >
-              {strings('privacy_policy.description_content_1')}
-            </Text>
+            <View style={styles.titleContainer}>
+              <Text
+                variant={TextVariant.DisplayMD}
+                color={TextColor.Default}
+                style={styles.title}
+                testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
+              >
+                {strings('privacy_policy.description_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                testID={
+                  MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
+                }
+              >
+                {strings('privacy_policy.description_content_1')}
+              </Text>
+            </View>
             <View>
               <TouchableOpacity
                 style={styles.sectionContainer}
@@ -474,20 +488,20 @@ class OptinMetrics extends PureComponent {
                 activeOpacity={0.7}
               >
                 <View style={styles.checkbox}>
+                  <View style={styles.flexContainer}>
+                    <Text
+                      variant={TextVariant.BodyMDMedium}
+                      color={TextColor.Default}
+                    >
+                      {strings('privacy_policy.gather_basic_usage_title')}
+                    </Text>
+                  </View>
                   <Checkbox
                     onPress={this.handleBasicUsageToggle}
                     isChecked={this.state.isBasicUsageChecked}
                     accessibilityRole={'checkbox'}
                     accessible
                   />
-                  <View style={styles.flexContainer}>
-                    <Text
-                      variant={TextVariant.BodySMMedium}
-                      color={TextColor.Default}
-                    >
-                      {strings('privacy_policy.gather_basic_usage_title')}
-                    </Text>
-                  </View>
                 </View>
                 <Text
                   variant={TextVariant.BodySM}
@@ -522,16 +536,9 @@ class OptinMetrics extends PureComponent {
                 disabled={this.isMarketingDisabled}
               >
                 <View style={styles.checkbox}>
-                  <Checkbox
-                    onPress={this.handleMarketingToggle}
-                    isChecked={this.state.isMarketingChecked}
-                    accessibilityRole={'checkbox'}
-                    accessible
-                    disabled={this.isMarketingDisabled}
-                  />
                   <View style={styles.flexContainer}>
                     <Text
-                      variant={TextVariant.BodySMMedium}
+                      variant={TextVariant.BodyMDMedium}
                       color={
                         this.isMarketingDisabled
                           ? TextColor.Muted
@@ -541,6 +548,13 @@ class OptinMetrics extends PureComponent {
                       {strings('privacy_policy.checkbox_marketing')}
                     </Text>
                   </View>
+                  <Checkbox
+                    onPress={this.handleMarketingToggle}
+                    isChecked={this.state.isMarketingChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
+                    disabled={this.isMarketingDisabled}
+                  />
                 </View>
                 <Text
                   variant={TextVariant.BodySM}
