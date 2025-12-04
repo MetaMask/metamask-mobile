@@ -29,7 +29,6 @@ import {
   getAddressAccountType,
   isHardwareAccount,
   isValidHexAddress,
-  normalizeHardwareAccountType,
 } from '../../../../util/address';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
@@ -205,7 +204,7 @@ export async function generateDefaultTransactionMetrics(
 
       // Also populate this one for HW accounts.
       if (isHardwareAccount(from)) {
-        accountHardwareType = normalizeHardwareAccountType(accountType);
+        accountHardwareType = accountType;
       }
     }
   } catch {

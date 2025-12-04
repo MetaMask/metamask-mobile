@@ -25,9 +25,7 @@ import {
   toChecksumAddress,
   renderShortAccountName,
   validateAddressOrENS,
-  normalizeHardwareAccountType,
 } from '.';
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   mockHDKeyringAddress,
@@ -519,8 +517,8 @@ describe('getAddressAccountType', () => {
       'Invalid address: undefined',
     );
   });
-  it('should return QR if address is from a keyring type qr', () => {
-    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR');
+  it('should return QR Hardware if address is from a keyring type qr', () => {
+    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR Hardware');
   });
   it('should return imported if address is from a keyring type simple', () => {
     expect(getAddressAccountType(mockSimpleKeyringAddress)).toBe('Imported');
@@ -825,85 +823,5 @@ describe('validateAddressOrENS', () => {
 
     expect(result.addressError).toBeFalsy();
     expect(result.addressReady).toBe(true);
-  });
-});
-
-describe('normalizeHardwareAccountType', () => {
-  describe('QR hardware accounts', () => {
-    it('returns "QR Hardware" for string literal "QR"', () => {
-      const type = 'QR';
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe('QR Hardware');
-    });
-
-    it('returns "QR Hardware" for ExtendedKeyringTypes.qr enum value', () => {
-      const type = ExtendedKeyringTypes.qr;
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe('QR Hardware');
-    });
-  });
-
-  describe('Ledger hardware accounts', () => {
-    it('returns "Ledger" for string literal "Ledger"', () => {
-      const type = 'Ledger';
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe('Ledger');
-    });
-
-    it('returns "Ledger" for ExtendedKeyringTypes.ledger enum value', () => {
-      const type = ExtendedKeyringTypes.ledger;
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe('Ledger');
-    });
-  });
-
-  describe('non-hardware account types', () => {
-    it('returns original value for "MetaMask" type', () => {
-      const type = 'MetaMask';
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe('MetaMask');
-    });
-
-    it('returns original value for "Imported" type', () => {
-      const type = 'Imported';
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe('Imported');
-    });
-
-    it('returns original value for ExtendedKeyringTypes.simple enum value', () => {
-      const type = ExtendedKeyringTypes.simple;
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe(ExtendedKeyringTypes.simple);
-    });
-
-    it('returns original value for ExtendedKeyringTypes.hd enum value', () => {
-      const type = ExtendedKeyringTypes.hd;
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe(ExtendedKeyringTypes.hd);
-    });
-
-    it('returns original value for empty string', () => {
-      const type = '';
-
-      const result = normalizeHardwareAccountType(type);
-
-      expect(result).toBe('');
-    });
   });
 });

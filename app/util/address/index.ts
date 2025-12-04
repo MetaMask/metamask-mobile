@@ -462,7 +462,7 @@ export function getAddressAccountType(address: string) {
   if (targetKeyring) {
     switch (targetKeyring.type) {
       case ExtendedKeyringTypes.qr:
-        return 'QR';
+        return 'QR Hardware';
       case ExtendedKeyringTypes.simple:
         return 'Imported';
       case ExtendedKeyringTypes.ledger:
@@ -472,31 +472,6 @@ export function getAddressAccountType(address: string) {
     }
   }
   throw new Error(`The address: ${address} is not imported`);
-}
-
-/**
- * Normalizes a hardware account type to a human-readable display string.
- *
- * This function takes a hardware account type (either as a string literal or
- * an ExtendedKeyringTypes enum value) and returns a standardized, user-friendly
- * display name for the hardware wallet type.
- *
- * @param type - The hardware account type to normalize.
- * @returns A normalized, human-readable string representing the hardware wallet type.
- */
-export function normalizeHardwareAccountType(
-  type: string | ExtendedKeyringTypes,
-) {
-  switch (type) {
-    case 'QR':
-    case ExtendedKeyringTypes.qr:
-      return 'QR Hardware';
-    case 'Ledger':
-    case ExtendedKeyringTypes.ledger:
-      return 'Ledger';
-    default:
-      return type;
-  }
 }
 
 /**

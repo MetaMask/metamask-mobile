@@ -943,7 +943,7 @@ describe('generateDefaultTransactionMetrics', () => {
 
     it('sets account_hardware_type to QR Hardware for QR hardware wallet', async () => {
       mockIsHardwareAccount.mockReturnValue(true);
-      mockGetAddressAccountType.mockReturnValue('QR');
+      mockGetAddressAccountType.mockReturnValue('QR Hardware');
 
       const result = await generateDefaultTransactionMetrics(
         mockMetametricsEvent,
@@ -951,7 +951,7 @@ describe('generateDefaultTransactionMetrics', () => {
         mockEventHandlerRequest as TransactionEventHandlerRequest,
       );
 
-      expect(result.properties.account_type).toBe('QR');
+      expect(result.properties.account_type).toBe('QR Hardware');
       expect(result.properties.account_hardware_type).toBe('QR Hardware');
     });
 
