@@ -11,7 +11,6 @@ import { logger } from '../../framework/logger';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import QuoteView from '../../pages/swaps/QuoteView';
-import Matchers from '../../framework/Matchers';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { GASLESS_SWAP_QUOTES_ETH_MUSD } from './helpers/constants';
 
@@ -88,8 +87,7 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
           description: 'Network fee label should be visible',
         });
 
-        const includedLabel = Matchers.getElementByText('Included');
-        await Assertions.expectElementToBeVisible(includedLabel, {
+        await Assertions.expectElementToBeVisible(QuoteView.includedLabel, {
           timeout: 10000,
           description: 'Gas should be included in quote',
         });

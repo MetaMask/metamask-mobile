@@ -48,6 +48,10 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.MAX);
   }
 
+  get includedLabel(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
+  }
+
   token(chainId: string, symbol: string): Detox.NativeElement {
     const elementId = `asset-${chainId}-${symbol}`;
     return element(by.id(elementId)).atIndex(0);
