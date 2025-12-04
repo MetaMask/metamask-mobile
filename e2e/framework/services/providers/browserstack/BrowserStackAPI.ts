@@ -71,20 +71,19 @@ export class BrowserStackAPI {
   ): Promise<unknown> {
     logger.debug(`Updating BrowserStack session: ${sessionId}`);
 
+    // Build request body with all provided fields
+    const body: Record<string, string> = {};
+    if (details.name) body.name = details.name;
+    if (details.status) body.status = details.status;
+    if (details.reason) body.reason = details.reason;
+
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}.json`, {
       method: 'PUT',
       headers: {
         Authorization: this.getAuthHeader(),
         'Content-Type': 'application/json',
       },
-      body: details.status
-        ? JSON.stringify({
-            status: details.status,
-            reason: details.reason,
-          })
-        : JSON.stringify({
-            name: details.name,
-          }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {

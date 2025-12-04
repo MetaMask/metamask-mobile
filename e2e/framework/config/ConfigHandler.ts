@@ -19,7 +19,7 @@ const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   retries: 1, // Locking this to 1 worker only before moving to CI
   workers: 2,
   reporter: [['list'], ['html', { open: 'always' }]],
-  timeout: 0,
+  timeout: 300_000,
 };
 
 export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {

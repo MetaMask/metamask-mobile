@@ -26,7 +26,7 @@ export class EmulatorConfigBuilder {
         'appium:automationName':
           platformName === Platform.ANDROID ? 'UIAutomator2' : 'XCUITest',
         'appium:platformVersion': device.osVersion,
-        'appium:appActivity': device.launchableActivity,
+        'appium:appActivity': this.project.use.launchableActivity,
         'appium:appPackage': device.packageName,
         platformName,
         'appium:autoGrantPermissions': true,
