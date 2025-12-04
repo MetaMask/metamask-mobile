@@ -121,13 +121,15 @@ const createStyles = ({ colors }) =>
       marginBottom: 16,
     },
     imageContainer: {
+      flexDirection: 'column',
       alignItems: 'center',
+      justifyContent: 'center',
       marginVertical: Device.isMediumDevice() ? 8 : 12,
+      height: Device.isMediumDevice() ? 120 : 150,
     },
     illustration: {
       width: Device.isMediumDevice() ? 160 : 200,
       height: Device.isMediumDevice() ? 120 : 150,
-      alignSelf: 'center',
     },
     flexContainer: {
       flex: 1,
