@@ -13,6 +13,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
+import { useBuildPortfolioUrl } from '../../../../hooks/useBuildPortfolioUrl';
 import {
   selectEvmChainId,
   selectNetworkConfigurationByChainId,
@@ -41,6 +42,7 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
@@ -57,6 +59,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
@@ -75,8 +78,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const isTronNative =
-    asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
+  const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -149,7 +151,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+        const stakeUrl = buildPortfolioUrlWithMetrics(AppConstants.STAKE.URL);
+        newTabUrl = stakeUrl.href;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),

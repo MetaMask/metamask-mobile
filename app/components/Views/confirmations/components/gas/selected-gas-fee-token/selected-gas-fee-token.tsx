@@ -11,6 +11,7 @@ import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsInsufficientBalance } from '../../../hooks/useIsInsufficientBalance';
+import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { GasFeeTokenIcon, GasFeeTokenIconSize } from '../gas-fee-token-icon';
 import { GasFeeTokenModal } from '../gas-fee-token-modal';
@@ -19,7 +20,10 @@ import styleSheet from './selected-gas-fee-token.styles';
 export function SelectedGasFeeToken() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
-  const { chainId, gasFeeTokens } = transactionMetadata || {};
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
+  const { chainId: chainIdSingle, gasFeeTokens } = transactionMetadata || {};
+  const { chainId: chainIdBatch } = transactionBatchesMetadata || {};
+  const chainId = chainIdSingle ?? chainIdBatch;
   const hasGasFeeTokens = Boolean(gasFeeTokens?.length);
 
   const { styles } = useStyles(styleSheet, {

@@ -1832,6 +1832,7 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(expectedTotal);
       expect(fees.providerFee).toBe(expectedEach);
       expect(fees.metamaskFee).toBe(expectedEach);
+      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
     });
 
     it('calculates fees correctly for various amounts', async () => {
@@ -1845,6 +1846,7 @@ describe('polymarket utils', () => {
       expect(fees.providerFee).toBeGreaterThanOrEqual(0);
       expect(fees.metamaskFee).toBeGreaterThanOrEqual(0);
       expect(fees.totalFee).toBeGreaterThanOrEqual(0);
+      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
     });
 
     it('handles large amounts correctly', async () => {
@@ -1860,6 +1862,7 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(expectedTotal);
       expect(fees.providerFee).toBe(expectedEach);
       expect(fees.metamaskFee).toBe(expectedEach);
+      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
     });
 
     it('handles small amounts correctly', async () => {
@@ -1878,6 +1881,7 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(expectedTotal);
       expect(fees.providerFee).toBe(expectedEach);
       expect(fees.metamaskFee).toBe(expectedEach);
+      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
     });
 
     it('waives fees for markets with middle-east tag', async () => {
@@ -1899,6 +1903,7 @@ describe('polymarket utils', () => {
       expect(fees.providerFee).toBe(0);
       expect(fees.metamaskFee).toBe(0);
       expect(fees.totalFee).toBe(0);
+      expect(fees.totalFeePercentage).toBe(0);
     });
   });
 
