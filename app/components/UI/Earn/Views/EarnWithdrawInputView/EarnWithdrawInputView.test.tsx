@@ -782,7 +782,7 @@ describe('EarnWithdrawInputView', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Unstake')).toBeTruthy();
+        expect(screen.getAllByText('Unstake')[0]).toBeTruthy();
       });
     });
   });

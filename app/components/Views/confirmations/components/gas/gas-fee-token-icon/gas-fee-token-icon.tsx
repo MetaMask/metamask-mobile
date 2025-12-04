@@ -16,6 +16,7 @@ import Badge, {
 } from '../../../../../../component-library/components/Badges/Badge';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
 
 export enum GasFeeTokenIconSize {
   Sm = 'sm',
@@ -30,7 +31,10 @@ export function GasFeeTokenIcon({
   tokenAddress: Hex;
 }) {
   const transactionMeta = useTransactionMetadataRequest();
-  const { chainId } = transactionMeta || {};
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
+  const { chainId: chainIdSingle } = transactionMeta || {};
+  const { chainId: chainIdBatch } = transactionBatchesMetadata || {};
+  const chainId = chainIdSingle ?? chainIdBatch;
   const token = useTokenWithBalance(tokenAddress, chainId as Hex);
   const {
     networkImage,

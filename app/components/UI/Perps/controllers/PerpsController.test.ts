@@ -95,9 +95,19 @@ jest.mock('../../../../core/Engine', () => {
     }),
   };
 
+  const mockAccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        type: 'eip155:eoa',
+      },
+    ]),
+  };
+
   const mockEngineContext = {
     RewardsController: mockRewardsController,
     NetworkController: mockNetworkController,
+    AccountTreeController: mockAccountTreeController,
     TransactionController: {},
   };
 
@@ -2513,6 +2523,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
             amount: '50',
             asset: 'USDC',
+            accountAddress: '0x1234567890123456789012345678901234567890',
             success: false,
             status: 'pending',
             source: 'hyperliquid',
@@ -2583,6 +2594,7 @@ describe('PerpsController', () => {
           timestamp: Date.now(),
           amount: '75',
           asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890',
           success: false,
           status: 'pending',
           source: 'hyperliquid',
@@ -2618,6 +2630,7 @@ describe('PerpsController', () => {
           timestamp: Date.now(),
           amount: '100',
           asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890',
           success: false,
           status: 'pending',
           source: 'hyperliquid',

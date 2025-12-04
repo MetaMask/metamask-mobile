@@ -32,7 +32,7 @@ export function GasFeeTokenToast() {
     chainId as Hex,
   );
   const networkImageSource = getNetworkImageSource({
-    chainId: chainId as Hex,
+    chainId: chainId ?? '0x1',
   });
 
   useEffect(() => {

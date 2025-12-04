@@ -1,6 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /* eslint-disable arrow-body-style */
-import { MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET } from '../../core/Multichain/constants';
 import { RootState } from '../../reducers';
 import {
   selectChainId,
@@ -16,6 +15,7 @@ import {
   Balance,
   SolScope,
   Transaction as NonEvmTransaction,
+  TrxScope,
 } from '@metamask/keyring-api';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -45,6 +45,12 @@ import {
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
 import { selectSelectedAccountGroupInternalAccounts } from '../multichainAccounts/accountTreeController';
+import { selectAccountTokensAcrossChains } from '../multichain';
+import {
+  MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET,
+  TRON_RESOURCE_SYMBOLS_SET,
+  TronResourceSymbol,
+} from '../../core/Multichain/constants';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -336,6 +342,82 @@ export const selectMultichainTokenListForAccountsAnyChain =
       return tokens;
     },
   );
+
+/**
+ * Unified selector: EVM tokens (native + ERC20) for the selected EVM address
+ * plus non-EVM tokens (e.g., TRX) across all accounts in the selected account group.
+ * Returns a map keyed by chainId (hex for EVM, CAIP-2 for non-EVM) to TokenI[].
+ */
+export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
+  selectAccountTokensAcrossChains,
+  selectSelectedAccountGroupInternalAccounts,
+  (state: RootState) => state,
+  (evmTokensByChain, selectedGroupAccounts, state) => {
+    const merged: Record<string, TokenI[]> = {
+      ...((evmTokensByChain as unknown as Record<string, TokenI[]>) || {}),
+    };
+    if (!selectedGroupAccounts || selectedGroupAccounts.length === 0) {
+      return merged;
+    }
+
+    const seenNonEvm = new Set<string>();
+    for (const account of selectedGroupAccounts) {
+      const nonEvmTokensForAccount =
+        selectMultichainTokenListForAccountsAnyChain(state, [account]) || [];
+
+      for (const token of nonEvmTokensForAccount) {
+        if (
+          String(token.chainId).includes('tron:') &&
+          TRON_RESOURCE_SYMBOLS_SET.has(
+            (token.symbol || '').toLowerCase() as TronResourceSymbol,
+          )
+        ) {
+          continue;
+        }
+        // We just need tron mainnet, at least for now
+        if (
+          String(token.chainId).startsWith('tron:') &&
+          token.chainId !== TrxScope.Mainnet
+        ) {
+          continue;
+        }
+
+        const uniqueKey = `${token.chainId}:${token.address}`.toLowerCase();
+        if (seenNonEvm.has(uniqueKey)) {
+          continue;
+        }
+        seenNonEvm.add(uniqueKey);
+
+        const key = token.chainId as string;
+        if (!merged[key]) {
+          merged[key] = [];
+        }
+
+        // This is the shape we want to return for the Earn list
+        merged[key].push({
+          address: token.address,
+          aggregators: token.aggregators || [],
+          decimals: token.decimals,
+          image: token.image as string,
+          name: token.name,
+          symbol: token.symbol,
+          balance: token.balance ?? '0',
+          balanceFiat: token.balanceFiat,
+          logo: token.logo as string | undefined,
+          isETH: false,
+          isStaked: false,
+          nativeAsset: undefined,
+          chainId: token.chainId as string,
+          isNative: Boolean(token.isNative),
+          ticker: token.ticker || token.symbol,
+          accountType: account.type,
+        });
+      }
+    }
+
+    return merged;
+  },
+);
 export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance | undefined;
   totalBalanceFiat: number | undefined;

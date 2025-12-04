@@ -1215,5 +1215,93 @@ describe('handleUniversalLinks', () => {
       });
       expect(handled).toHaveBeenCalled();
     });
+
+    describe('whitelisted sources', () => {
+      const whitelistedSources = [
+        AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+        AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+        AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+        AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+      ];
+
+      it.each(whitelistedSources)(
+        'skips interstitial modal when source is "%s" with non-whitelisted URL',
+        async (testSource) => {
+          const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: nonWhitelistedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: nonWhitelistedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+
+      it('displays interstitial modal when source is not whitelisted and URL is not whitelisted', async () => {
+        const nonWhitelistedSource = 'external-browser';
+        const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+        const testUrlObj = {
+          ...urlObj,
+          hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+          href: nonWhitelistedUrl,
+          pathname: `/${ACTIONS.DAPP}/example.com`,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: nonWhitelistedUrl,
+          source: nonWhitelistedSource,
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
+        expect(handled).toHaveBeenCalled();
+      });
+
+      it('skips interstitial modal when URL is whitelisted even with non-whitelisted source', async () => {
+        const nonWhitelistedSource = 'external-browser';
+        const whitelistedUrl =
+          'https://link.metamask.io/perps-asset?symbol=ETH';
+        const parsedUrl = new URL(whitelistedUrl);
+        const testUrlObj = {
+          ...urlObj,
+          hostname: parsedUrl.hostname,
+          href: whitelistedUrl,
+          pathname: parsedUrl.pathname,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: whitelistedUrl,
+          source: nonWhitelistedSource,
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handled).toHaveBeenCalled();
+      });
+    });
   });
 });

@@ -8,6 +8,13 @@ import { MMM_ORIGIN } from '../../../../constants/confirmations';
 import { NetworkAndOriginRow } from './network-and-origin-row';
 
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents');
+jest.mock('../../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: () => ({
+    trackInlineAlertClicked: jest.fn(),
+    trackAlertActionClicked: jest.fn(),
+    trackAlertRendered: jest.fn(),
+  }),
+}));
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     GasFeeController: {

@@ -35,6 +35,7 @@ export function getProfileMetricsControllerMessenger(messenger: RootMessenger) {
     ],
     events: [
       'AccountsController:accountAdded',
+      'AccountsController:accountRemoved',
       'KeyringController:lock',
       'KeyringController:unlock',
     ],

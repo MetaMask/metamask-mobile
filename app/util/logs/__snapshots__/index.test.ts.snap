@@ -465,7 +465,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
         "depositInProgress": false,
-        "depositRequests": {},
+        "depositRequests": [],
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
@@ -491,8 +491,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "tradeConfigurations": {},
         "watchlistMarkets": [],
         "withdrawInProgress": false,
-        "withdrawalProgress": {},
-        "withdrawalRequests": {},
+        "withdrawalProgress": {
+          "activeWithdrawalId": null,
+          "lastUpdated": 0,
+          "progress": 0,
+        },
+        "withdrawalRequests": [],
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -1212,7 +1216,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
         "depositInProgress": false,
-        "depositRequests": {},
+        "depositRequests": [],
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
@@ -1238,8 +1242,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "tradeConfigurations": {},
         "watchlistMarkets": [],
         "withdrawInProgress": false,
-        "withdrawalProgress": {},
-        "withdrawalRequests": {},
+        "withdrawalProgress": {
+          "activeWithdrawalId": null,
+          "lastUpdated": 0,
+          "progress": 0,
+        },
+        "withdrawalRequests": [],
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,

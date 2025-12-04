@@ -41,9 +41,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anthropic-ai/sdk@npm:^0.63.1":
-  version: 0.63.1
-  resolution: "@anthropic-ai/sdk@npm:0.63.1"
+"@anthropic-ai/sdk@npm:^0.71.0":
+  version: 0.71.0
+  resolution: "@anthropic-ai/sdk@npm:0.71.0"
   dependencies:
     json-schema-to-ts: "npm:^3.1.1"
   peerDependencies:
@@ -53,7 +53,7 @@ __metadata:
       optional: true
   bin:
     anthropic-ai-sdk: bin/cli
-  checksum: 10/9ce43fd06a7d3fb62e5f51b78cbf74681ed9c5a5770127b2be62a3b392f2e6fa4c9a8fe38e6f43d33198f79ba37a6ab62568bb77fd11bf9842f5a4b0cb4f02db
+  checksum: 10/2c4da293d11e0284fe16f909fb59cbaaabe62014cf5f058e225697e4c0bdc029c05171a7a9d9449cb5535abb4d31d653ab96e0edd2443172fa1b272cfd8afa04
   languageName: node
   linkType: hard
 
@@ -8954,7 +8954,7 @@ __metadata:
 
 "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch":
   version: 3.1.0
-  resolution: "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch::version=3.1.0&hash=0805d0"
+  resolution: "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch::version=3.1.0&hash=e5166e"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.14.1"
@@ -8966,7 +8966,7 @@ __metadata:
     "@metamask/multichain-network-controller": ^2.0.0
     "@metamask/network-controller": ^25.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/97b00477ec1550b19c7863991cd377ae73936ac466faf149cd2903325a28462f50647cdce9cd9c7aee4395e6cbf0aec8d5417012942c595d8aa3bb69682e8dc9
+  checksum: 10/15d3c51ee3ec9bd2c914862915ff444a21626aaa4df15a8df3dc22df1204245e2789786af713f467fdd1b2dfded255ece55973f436c8910ad8c6bfa4439f6e95
   languageName: node
   linkType: hard
 
@@ -35927,7 +35927,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "metamask@workspace:."
   dependencies:
-    "@anthropic-ai/sdk": "npm:^0.63.1"
+    "@anthropic-ai/sdk": "npm:^0.71.0"
     "@babel/core": "npm:^7.25.2"
     "@babel/eslint-parser": "npm:^7.25.1"
     "@babel/preset-env": "npm:^7.25.3"
