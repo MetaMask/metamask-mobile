@@ -55,11 +55,11 @@ describe('TokenBalancesControllerInit', () => {
       tokenBalances: {
         '0x123': {
           '0x1': {
-            '0xtoken': '0x100',
+            '0xtoken': '0x100' as const,
           },
         },
       },
-    };
+    } as const;
     const requestMock = getInitRequestMock();
     requestMock.persistedState.TokenBalancesController = mockPersistedState;
 
