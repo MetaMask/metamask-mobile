@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import useBalance from '../../Stake/hooks/useBalance';
 import useInputHandler from './useInput';
 import { EarnTokenDetails } from '../types/lending.types';
-import useNonEvmInputEnhancer from './useNonEvmInputEnhancer';
+import useMultichainInputHandlers from './useMultichainInputHandlers';
 
 const useEarnWithdrawInputHandlers = ({
   earnToken,
@@ -46,7 +46,6 @@ const useEarnWithdrawInputHandlers = ({
     exchangeRate,
   });
 
-  // Use the shared non-EVM input enhancer hook
   const {
     isNonEvm,
     nonEvmFiatRate,
@@ -55,7 +54,7 @@ const useEarnWithdrawInputHandlers = ({
     handleCurrencySwitch,
     handleQuickAmountPress,
     amountFiatNumber,
-  } = useNonEvmInputEnhancer({
+  } = useMultichainInputHandlers({
     earnToken,
     evmHandlers: {
       isFiat,

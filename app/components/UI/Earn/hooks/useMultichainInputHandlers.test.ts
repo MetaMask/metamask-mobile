@@ -7,7 +7,7 @@ import {
   DeepPartial,
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
-import useNonEvmInputEnhancer from './useNonEvmInputEnhancer';
+import useMultichainInputHandlers from './useMultichainInputHandlers';
 import { EarnTokenDetails } from '../types/lending.types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { Keys } from '../../../Base/Keypad/constants';
@@ -22,7 +22,7 @@ jest.mock('../../../../core/Multichain/utils', () => ({
   isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
 }));
 
-describe('useNonEvmInputEnhancer', () => {
+describe('useMultichainInputHandlers', () => {
   const TRON_CHAIN_ID = 'tron:0x2b6653dc';
   const TRON_ADDRESS = 'tron:0x2b6653dc/slip44:195';
   const TRX_USD_RATE = 0.28;
@@ -118,7 +118,7 @@ describe('useNonEvmInputEnhancer', () => {
   ) =>
     renderHookWithProvider(
       () =>
-        useNonEvmInputEnhancer({
+        useMultichainInputHandlers({
           earnToken,
           evmHandlers,
         }),
@@ -567,7 +567,7 @@ describe('useNonEvmInputEnhancer', () => {
 
       const { result, rerender } = renderHookWithProvider(
         () =>
-          useNonEvmInputEnhancer({
+          useMultichainInputHandlers({
             earnToken: currentToken,
             evmHandlers,
           }),
@@ -586,7 +586,7 @@ describe('useNonEvmInputEnhancer', () => {
       };
 
       rerender(() =>
-        useNonEvmInputEnhancer({
+        useMultichainInputHandlers({
           earnToken: currentToken,
           evmHandlers,
         }),
@@ -605,7 +605,7 @@ describe('useNonEvmInputEnhancer', () => {
 
       const { result, rerender } = renderHookWithProvider(
         () =>
-          useNonEvmInputEnhancer({
+          useMultichainInputHandlers({
             earnToken: currentToken,
             evmHandlers,
           }),
@@ -624,7 +624,7 @@ describe('useNonEvmInputEnhancer', () => {
       };
 
       rerender(() =>
-        useNonEvmInputEnhancer({
+        useMultichainInputHandlers({
           earnToken: currentToken,
           evmHandlers,
         }),

@@ -12,7 +12,7 @@ import { EarnTokenDetails } from '../types/lending.types';
 import useEarnDepositGasFee from './useEarnGasFee';
 import { useEarnMetadata } from './useEarnMetadata';
 import useInputHandler from './useInput';
-import useNonEvmInputEnhancer from './useNonEvmInputEnhancer';
+import useMultichainInputHandlers from './useMultichainInputHandlers';
 
 export interface EarnInputProps {
   earnToken: EarnTokenDetails;
@@ -56,7 +56,6 @@ const useEarnInputHandlers = ({
     exchangeRate,
   });
 
-  // Use the shared non-EVM input enhancer hook
   const {
     isNonEvm,
     nonEvmFiatRate,
@@ -68,7 +67,7 @@ const useEarnInputHandlers = ({
     handleFiatInput,
     amountFiatNumber,
     clearNonEvmTypedFiatValue,
-  } = useNonEvmInputEnhancer({
+  } = useMultichainInputHandlers({
     earnToken,
     evmHandlers: {
       isFiat,

@@ -26,10 +26,11 @@ interface UseNonEvmInputEnhancerProps {
 }
 
 /**
- * Hook that enhances EVM input handlers with non-EVM chain support.
- * Handles fiat conversion using multichain asset rates for non-EVM chains.
+ * Hook that provides multichain-aware input handlers.
+ * Enhances EVM input handlers with non-EVM chain support,
+ * handling fiat conversion using multichain asset rates.
  */
-const useNonEvmInputEnhancer = ({
+const useMultichainInputHandlers = ({
   earnToken,
   evmHandlers,
 }: UseNonEvmInputEnhancerProps) => {
@@ -222,4 +223,4 @@ const useNonEvmInputEnhancer = ({
   };
 };
 
-export default useNonEvmInputEnhancer;
+export default useMultichainInputHandlers;
