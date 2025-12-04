@@ -5,7 +5,7 @@
 # has the 'auto-rc-builds' label.
 #
 ##############################################################################################
-name: Create RC builds
+name: Auto RC builds
 
 on:
   push:
