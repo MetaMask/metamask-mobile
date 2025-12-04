@@ -116,6 +116,19 @@ export const getDeviceId = async (): Promise<string> =>
   await withLedgerKeyring(async ({ keyring }) => keyring.getDeviceId());
 
 /**
+ * Get the name of the currently open app on the Ledger device
+ *
+ * @returns The app name (e.g., "Ethereum", "BOLOS" for main menu)
+ */
+export const getCurrentAppName = async (): Promise<string> => {
+  const appAndVersion = await withLedgerKeyring(async ({ keyring }) => {
+    const bridge = keyring.bridge as LedgerMobileBridge;
+    return await bridge.getAppNameAndVersion();
+  });
+  return appAndVersion.appName;
+};
+
+/**
  * Check if the path is valid
  * @param path - The HD Path to check
  * @returns Whether the path is valid

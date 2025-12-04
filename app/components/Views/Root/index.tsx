@@ -20,6 +20,7 @@ import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverri
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { HardwareWalletProvider } from '../../../core/HardwareWallets';
 
 /**
  * Top level of the component hierarchy
@@ -80,10 +81,12 @@ const Root = ({ foxCode }: RootProps) => {
                 <ControllersGate>
                   <ToastContextWrapper>
                     <ErrorBoundary view="Root">
-                      <FontLoadingGate>
-                        <ReducedMotionConfig mode={ReduceMotion.Never} />
-                        <App />
-                      </FontLoadingGate>
+                      <HardwareWalletProvider>
+                        <FontLoadingGate>
+                          <ReducedMotionConfig mode={ReduceMotion.Never} />
+                          <App />
+                        </FontLoadingGate>
+                      </HardwareWalletProvider>
                     </ErrorBoundary>
                   </ToastContextWrapper>
                 </ControllersGate>
