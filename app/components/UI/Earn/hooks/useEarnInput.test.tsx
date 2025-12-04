@@ -40,6 +40,7 @@ jest.mock('../../../../selectors/multichain', () => ({
       address: '0x0',
     },
   ]),
+  selectAccountTokensAcrossChainsUnified: jest.fn(() => ({})),
 }));
 
 describe('useEarnInputHandlers', () => {
