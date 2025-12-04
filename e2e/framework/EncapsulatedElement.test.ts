@@ -1,5 +1,5 @@
 // Mock the logger module BEFORE importing EncapsulatedElement
-jest.mock('../../e2e/framework/logger', () => ({
+jest.mock('./logger', () => ({
   createLogger: jest.fn(() => ({
     debug: jest.fn(),
     info: jest.fn(),

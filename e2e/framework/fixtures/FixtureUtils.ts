@@ -74,8 +74,13 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
   }
 
   // Get device ID to target specific device (important for CI with multiple devices)
-  const deviceId = device.id || '';
-  const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+  // In Detox: use device.id for multi-device support
+  // In Appium/Playwright: skip device flag (single emulator assumption)
+  let deviceFlag = '';
+  if (FrameworkDetector.isDetox()) {
+    const deviceId = device.id || '';
+    deviceFlag = deviceId ? `-s ${deviceId}` : '';
+  }
 
   // Clean up only the specific fallback ports we use
   // This prevents conflicts with Detox's own port management
@@ -175,8 +180,13 @@ async function setupAndroidPortForwarding(
     }
 
     // Get device ID to target specific device (important for CI with multiple devices)
-    const deviceId = device.id || '';
-    const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+    // In Detox: use device.id for multi-device support
+    // In Appium/Playwright: skip device flag (single emulator assumption)
+    let deviceFlag = '';
+    if (FrameworkDetector.isDetox()) {
+      const deviceId = device.id || '';
+      deviceFlag = deviceId ? `-s ${deviceId}` : '';
+    }
 
     const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
 
