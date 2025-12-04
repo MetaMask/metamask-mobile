@@ -90,8 +90,9 @@ const formatEstimatedTime = (seconds?: number): string => {
   }
 
   if (seconds < 60) {
+    const secondText = seconds === 1 ? 'second' : 'seconds';
     return strings('earn.musd_conversion.toasts.eta', {
-      time: `${seconds} seconds`,
+      time: `${seconds} ${secondText}`,
     });
   }
 

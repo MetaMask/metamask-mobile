@@ -8,18 +8,26 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 jest.mock('expo-haptics');
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    if (key === 'earn.musd_conversion.toasts.in_progress') {
-      return `Converting to mUSD`;
-    }
-    if (key === 'earn.musd_conversion.toasts.success') {
-      return `Converted to mUSD`;
-    }
-    if (key === 'earn.musd_conversion.toasts.failed') {
-      return `Failed to convert to mUSD`;
-    }
-    return key;
-  }),
+  strings: jest.fn(
+    (key: string, params?: { time?: string; token?: string }) => {
+      if (key === 'earn.musd_conversion.toasts.in_progress') {
+        return `Converting to mUSD`;
+      }
+      if (key === 'earn.musd_conversion.toasts.converting') {
+        return `Converting ${params?.token ?? ''} → mUSD`;
+      }
+      if (key === 'earn.musd_conversion.toasts.eta') {
+        return `~${params?.time ?? ''}`;
+      }
+      if (key === 'earn.musd_conversion.toasts.success') {
+        return `Converted to mUSD`;
+      }
+      if (key === 'earn.musd_conversion.toasts.failed') {
+        return `Failed to convert to mUSD`;
+      }
+      return key;
+    },
+  ),
 }));
 
 const mockTheme = {
