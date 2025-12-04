@@ -34,7 +34,7 @@ jest.mock('../../../../core/Multichain/utils', () => ({
 
 describe('useEarnWithdrawInputHandlers', () => {
   const mockEarnToken: EarnTokenDetails = {
-    balanceMinimalUnit: '1000000000000000000', // 1 ETH
+    balanceMinimalUnit: '1000000000000000000',
     decimals: 18,
     ticker: 'ETH',
     symbol: 'ETH',
@@ -71,7 +71,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     },
   };
 
-  const mockConversionRate = 2000; // 1 ETH = $2000
+  const mockConversionRate = 2000;
   const mockExchangeRate = 1;
 
   const mockInitialState = {
@@ -118,7 +118,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     jest.clearAllMocks();
 
     (useBalance as jest.Mock).mockReturnValue({
-      stakedBalanceWei: '1000000000000000000', // 1 ETH
+      stakedBalanceWei: '1000000000000000000',
       formattedStakedBalanceETH: '1 ETH',
       stakedBalanceFiatNumber: 2000,
     });
@@ -144,7 +144,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     });
 
     (useEarnDepositGasFee as jest.Mock).mockReturnValue({
-      estimatedEarnGasFeeWei: new BN4('100000000000000000'), // 0.1 ETH
+      estimatedEarnGasFeeWei: new BN4('100000000000000000'),
       isLoadingEarnGasFee: false,
       isEarnGasFeeError: false,
       getEstimatedEarnGasFee: jest
@@ -197,7 +197,6 @@ describe('useEarnWithdrawInputHandlers', () => {
   it('should use stakedBalanceWei when token is ETH', () => {
     renderHook();
 
-    // Verify useInputHandler was called with the correct balance
     expect(useInputHandler).toHaveBeenCalledWith(
       expect.objectContaining({
         balance: '1000000000000000000',
@@ -238,7 +237,6 @@ describe('useEarnWithdrawInputHandlers', () => {
 
     renderHook(mockInitialState, props);
 
-    // Verify useInputHandler was called with "0" balance
     expect(useInputHandler).toHaveBeenCalledWith(
       expect.objectContaining({
         balance: '0',
@@ -284,7 +282,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     const TRX_USD_RATE = 0.28;
 
     const mockTronToken: EarnTokenDetails = {
-      balanceMinimalUnit: '56000000', // 56 TRX (6 decimals)
+      balanceMinimalUnit: '56000000',
       decimals: 6,
       ticker: 'sTRX',
       symbol: 'sTRX',
@@ -328,7 +326,6 @@ describe('useEarnWithdrawInputHandlers', () => {
     };
 
     beforeEach(() => {
-      // Enable non-EVM chain detection for Tron
       mockIsNonEvmChainId.mockImplementation(
         (chainId: string) => chainId === TRON_CHAIN_ID,
       );
@@ -342,7 +339,7 @@ describe('useEarnWithdrawInputHandlers', () => {
       (useInputHandler as jest.Mock).mockReturnValue({
         amountToken: '10',
         amountTokenMinimalUnit: new BN4('10000000'),
-        amountFiatNumber: '0', // EVM calculation returns 0 due to 0 rates
+        amountFiatNumber: '0',
         isFiat: false,
         currencyToggleValue: '0 USD',
         isNonZeroAmount: true,
@@ -365,14 +362,12 @@ describe('useEarnWithdrawInputHandlers', () => {
     it('calculates fiat amount using multichain rate for non-EVM token', () => {
       const { result } = renderHook(mockInitialState, tronProps);
 
-      // 10 TRX * 0.28 = $2.80 (overrides the EVM '0' value)
       expect(result.current.amountFiatNumber).toBe('2.80');
     });
 
     it('displays correct currency toggle value for non-EVM token', () => {
       const { result } = renderHook(mockInitialState, tronProps);
 
-      // In token mode, toggle shows fiat
       expect(result.current.currencyToggleValue).toBe('$2.80');
     });
 
@@ -396,7 +391,6 @@ describe('useEarnWithdrawInputHandlers', () => {
 
       const { result } = renderHook(mockInitialState, tronProps);
 
-      // In fiat mode, toggle shows token
       expect(result.current.currencyToggleValue).toBe('10 sTRX');
     });
 
@@ -420,25 +414,22 @@ describe('useEarnWithdrawInputHandlers', () => {
 
       const { result } = renderHook(mockInitialState, tronProps);
 
-      // In fiat mode: 56 TRX * 0.28 = $15.68
       expect(result.current.earnBalanceValue).toBe('15.68 USD');
     });
 
     it('displays token balance when not in fiat mode', () => {
       const { result } = renderHook(mockInitialState, tronProps);
 
-      // In token mode, shows token balance
       expect(result.current.earnBalanceValue).toBe('56 sTRX');
     });
 
     it('falls back to EVM calculation when multichain rate is unavailable', () => {
       mockSelectMultichainAssetsRates.mockReturnValue({});
-      // Even with non-EVM chain, if rate is unavailable, falls back
+
       mockIsNonEvmChainId.mockReturnValue(true);
 
       const { result } = renderHook(mockInitialState, tronProps);
 
-      // Falls back to EVM calculation (which returns '0')
       expect(result.current.amountFiatNumber).toBe('0');
     });
 

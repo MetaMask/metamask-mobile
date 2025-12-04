@@ -60,7 +60,7 @@ describe('useEarnInputHandlers', () => {
     estimatedAnnualRewardsTokenFormatted: '0.05 ETH',
   };
   const mockEarnToken: EarnTokenDetails = {
-    balanceMinimalUnit: '1000000000000000000', // 1 ETH
+    balanceMinimalUnit: '1000000000000000000',
     decimals: 18,
     ticker: 'ETH',
     isStaked: false,
@@ -80,7 +80,7 @@ describe('useEarnInputHandlers', () => {
     tokenUsdExchangeRate: 1,
   };
 
-  const mockConversionRate = 2000; // 1 ETH = $2000
+  const mockConversionRate = 2000;
   const mockExchangeRate = 1;
   const mockAddress = '0x00000';
   const mockUsdcAddress = '0x00001';
@@ -131,18 +131,16 @@ describe('useEarnInputHandlers', () => {
   ) => renderHookWithProvider(() => useEarnInputHandlers(props), { state });
 
   beforeEach(() => {
-    // Reset all mocks before each test
     jest.clearAllMocks();
 
-    // Setup default mock implementations
     (useBalance as jest.Mock).mockReturnValue({
-      balanceWei: new BN4('1000000000000000000'), // 1 ETH
+      balanceWei: new BN4('1000000000000000000'),
       balanceETH: '1',
       balanceFiatNumber: '2000',
     });
 
     (useEarnGasFee as jest.Mock).mockReturnValue({
-      estimatedEarnGasFeeWei: new BN4('100000000000000000'), // 0.1 ETH
+      estimatedEarnGasFeeWei: new BN4('100000000000000000'),
       isLoadingEarnGasFee: false,
       isEarnGasFeeError: false,
     });
@@ -197,7 +195,7 @@ describe('useEarnInputHandlers', () => {
     });
 
     expect(result.current.amountToken).toBe('0.5');
-    expect(result.current.amountFiatNumber).toBe('1000'); // 0.5 ETH = $1000
+    expect(result.current.amountFiatNumber).toBe('1000');
     expect(result.current.amountTokenMinimalUnit).toEqual(
       new BN4('500000000000000000'),
     );
@@ -211,7 +209,7 @@ describe('useEarnInputHandlers', () => {
     });
 
     expect(result.current.amountFiatNumber).toBe('1000');
-    expect(result.current.amountToken).toBe('0.5'); // $1000 = 0.5 ETH
+    expect(result.current.amountToken).toBe('0.5');
     expect(result.current.amountTokenMinimalUnit).toEqual(
       new BN4('500000000000000000'),
     );
@@ -242,14 +240,14 @@ describe('useEarnInputHandlers', () => {
     (useEarnGasFee as jest.Mock).mockReturnValue({
       getEstimatedEarnGasFee: jest
         .fn()
-        .mockResolvedValue(new BN4('100000000000000000')), // 0.1 ETH
+        .mockResolvedValue(new BN4('100000000000000000')),
       estimatedEarnGasFeeWei: new BN4('100000000000000000'),
       isLoadingEarnGasFee: false,
       isEarnGasFeeError: false,
     });
 
     (useBalance as jest.Mock).mockReturnValue({
-      balanceWei: new BN4('1000000000000000000'), // 1 ETH
+      balanceWei: new BN4('1000000000000000000'),
       balanceETH: '1',
       balanceFiatNumber: '2000',
     });
@@ -260,7 +258,6 @@ describe('useEarnInputHandlers', () => {
       await result.current.handleMax();
     });
 
-    // Max amount should be balance minus gas fee (1 ETH - 0.1 ETH = 0.9 ETH)
     expect(result.current.amountToken).toBe('0.9');
   });
 
@@ -268,7 +265,7 @@ describe('useEarnInputHandlers', () => {
     const { result } = renderHook();
 
     act(() => {
-      result.current.handleTokenInput('0.00001'); // Small amount, gas fee will be high percentage
+      result.current.handleTokenInput('0.00001');
     });
 
     expect(result.current.isHighGasCostImpact()).toBe(true);
@@ -300,7 +297,7 @@ describe('useEarnInputHandlers', () => {
               tokenBalances: {
                 [mockAddress]: {
                   [CHAIN_IDS.MAINNET]: {
-                    [mockUsdcAddress]: '0x5f5e100' as Hex, // 100 USDC
+                    [mockUsdcAddress]: '0x5f5e100' as Hex,
                   },
                 },
               },
@@ -312,7 +309,7 @@ describe('useEarnInputHandlers', () => {
         earnToken: {
           ...mockEarnToken,
           isETH: false,
-          balanceMinimalUnit: '1000000000', // 1000 USDC
+          balanceMinimalUnit: '1000000000',
           decimals: 6,
           ticker: 'USDC',
           experience: {
@@ -411,7 +408,7 @@ describe('useEarnInputHandlers', () => {
         ...mockEarnToken,
         isETH: false,
         ticker: 'USDC',
-        balanceMinimalUnit: '1000000000', // 1000 USDC
+        balanceMinimalUnit: '1000000000',
         balance: '1000',
         balanceFiat: '1000',
         balanceFormatted: '1000 USDC',
@@ -442,7 +439,7 @@ describe('useEarnInputHandlers', () => {
     const TRX_USD_RATE = 0.28;
 
     const mockTronToken: EarnTokenDetails = {
-      balanceMinimalUnit: '56000000', // 56 TRX (6 decimals)
+      balanceMinimalUnit: '56000000',
       decimals: 6,
       ticker: 'TRX',
       isStaked: false,
@@ -480,7 +477,6 @@ describe('useEarnInputHandlers', () => {
     };
 
     beforeEach(() => {
-      // Enable non-EVM chain detection for Tron
       mockIsNonEvmChainId.mockImplementation(
         (chainId: string) => chainId === TRON_CHAIN_ID,
       );
@@ -503,7 +499,6 @@ describe('useEarnInputHandlers', () => {
         result.current.handleTokenInput('10');
       });
 
-      // 10 TRX * 0.28 = $2.80
       expect(result.current.amountToken).toBe('10');
       expect(result.current.amountFiatNumber).toBe('2.80');
     });
@@ -519,7 +514,6 @@ describe('useEarnInputHandlers', () => {
         result.current.handleTokenInput('10');
       });
 
-      // In token mode, toggle shows fiat
       expect(result.current.currencyToggleValue).toBe('$2.80');
     });
 
@@ -535,7 +529,6 @@ describe('useEarnInputHandlers', () => {
         result.current.handleCurrencySwitch();
       });
 
-      // In fiat mode, toggle shows token
       expect(result.current.currencyToggleValue).toBe('10 TRX');
     });
 
@@ -550,7 +543,6 @@ describe('useEarnInputHandlers', () => {
         result.current.handleFiatInput('2.80');
       });
 
-      // $2.80 / 0.28 = 10 TRX
       expect(result.current.amountFiatNumber).toBe('2.80');
       expect(result.current.amountToken).toBe('10.00000');
     });
@@ -566,7 +558,6 @@ describe('useEarnInputHandlers', () => {
         result.current.handleFiatInput('5.55');
       });
 
-      // Exact typed value is preserved
       expect(result.current.amountFiatNumber).toBe('5.55');
     });
 
@@ -587,9 +578,6 @@ describe('useEarnInputHandlers', () => {
         result.current.handleCurrencySwitch();
       });
 
-      // After switch, fiat is recalculated from token (not preserved)
-      // Token was: 5.55 / 0.28 = 19.82142... → "19.82143"
-      // Fiat recalc: 19.82143 * 0.28 = 5.55
       const expectedFiat = (
         (parseFloat('5.55') / TRX_USD_RATE) *
         TRX_USD_RATE
@@ -614,8 +602,6 @@ describe('useEarnInputHandlers', () => {
         result.current.handleQuickAmountPress({ value: 0.5 });
       });
 
-      // After quick amount, fiat is recalculated from token
-      // 50% of 56 TRX = 28 TRX, 28 * 0.28 = $7.84
       expect(result.current.amountFiatNumber).toBe('7.84');
     });
 
@@ -626,20 +612,18 @@ describe('useEarnInputHandlers', () => {
         exchangeRate: 0,
       });
 
-      // In token mode, shows token balance
       expect(result.current.balanceValue).toBe('56 TRX');
 
       act(() => {
         result.current.handleCurrencySwitch();
       });
 
-      // In fiat mode, shows fiat balance: 56 * 0.28 = $15.68
       expect(result.current.balanceValue).toBe('15.68 USD');
     });
 
     it('falls back to EVM calculation when multichain rate is unavailable', () => {
       mockSelectMultichainAssetsRates.mockReturnValue({});
-      // Even with non-EVM chain, if rate is unavailable, falls back
+
       mockIsNonEvmChainId.mockReturnValue(true);
 
       const { result } = renderHook(mockInitialState, {
@@ -652,7 +636,6 @@ describe('useEarnInputHandlers', () => {
         result.current.handleTokenInput('10');
       });
 
-      // Falls back to EVM calculation (which returns '0' due to 0 rates)
       expect(result.current.amountFiatNumber).toBe('0');
     });
   });
