@@ -38,6 +38,7 @@ import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
 import { trace, TraceName } from '../../../../../util/trace';
+import { useTheme } from '../../../../../util/theme';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -53,8 +54,8 @@ export interface EarnLendingBalanceProps {
 const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
 const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  const { styles } = useStyles(styleSheet, {});
+  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme });
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -217,7 +218,12 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         </View>
       )}
       {/* Buttons */}
-      <View style={styles.container}>
+      <View
+        style={[
+          styles.container,
+          userHasLendingPositions && styles.buttonsContainer,
+        ]}
+      >
         {userHasLendingPositions && receiptToken && (
           <Button
             variant={ButtonVariants.Secondary}

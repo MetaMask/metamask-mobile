@@ -13,17 +13,27 @@ import {
   TransactionPayQuote,
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex, Json } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 
-function render() {
+function render(options: { type?: TransactionType } = {}) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
     transactionApprovalControllerMock,
+    options.type && {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [{ type: options.type }],
+          },
+        },
+      },
+    },
   );
 
   return renderWithProvider(<BridgeTimeRow />, { state });
@@ -76,7 +86,6 @@ describe('BridgeTimeRow', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       estimatedDuration: 120,
     } as TransactionPayTotals);
-
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { chainId: '0x1' as Hex },
     } as ReturnType<typeof useTransactionPayToken>);
@@ -92,5 +101,23 @@ describe('BridgeTimeRow', () => {
     const { getByTestId } = render();
 
     expect(getByTestId(`bridge-time-row-skeleton`)).toBeDefined();
+  });
+
+  it('does not render skeleton when transaction type is in HIDE_TYPES', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { queryByTestId } = render({ type: TransactionType.musdConversion });
+
+    expect(queryByTestId('bridge-time-row-skeleton')).toBeNull();
+  });
+
+  it('does not render when transaction type is in HIDE_TYPES', () => {
+    useTransactionPayTotalsMock.mockReturnValue({
+      estimatedDuration: 60,
+    } as TransactionPayTotals);
+
+    const { queryByText } = render({ type: TransactionType.musdConversion });
+
+    expect(queryByText('1 min')).toBeNull();
   });
 });

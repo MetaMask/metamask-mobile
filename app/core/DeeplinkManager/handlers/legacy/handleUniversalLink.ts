@@ -115,6 +115,13 @@ async function handleUniversalLink({
     throw new Error('Invalid hostname');
   }
 
+  // Skip handling deeplinks that do not have a pathname or query
+  // Ex. It's common for third party apps to open MetaMask using only the scheme (metamask://)
+  if (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) {
+    handled();
+    return;
+  }
+
   let isPrivateLink = false;
   let isInvalidLink = false;
 
