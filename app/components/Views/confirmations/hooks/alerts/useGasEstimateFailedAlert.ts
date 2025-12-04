@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { SimulationErrorCode } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
@@ -10,12 +9,10 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 export const useGasEstimateFailedAlert = (): Alert[] => {
   const transactionMeta = useTransactionMetadataRequest();
 
-  const simulationError = transactionMeta?.simulationData?.error;
-  const isSimulationReverted =
-    simulationError?.code === SimulationErrorCode.Reverted;
+  const estimationFailed = Boolean(transactionMeta?.simulationFails);
 
   return useMemo(() => {
-    if (!isSimulationReverted) {
+    if (!estimationFailed) {
       return [];
     }
 
@@ -29,5 +26,5 @@ export const useGasEstimateFailedAlert = (): Alert[] => {
         severity: Severity.Warning,
       },
     ];
-  }, [isSimulationReverted]);
+  }, [estimationFailed]);
 };
