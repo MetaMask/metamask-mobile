@@ -193,7 +193,7 @@ const AssetOptions = (props: Props) => {
           `${solanaExplorer}/token/${tokenAddress}`,
         account: (accountAddress: string) =>
           `${solanaExplorer}/account/${accountAddress}`,
-        tx: (hash: string) => `${solanaExplorer}/tx/${hash}`,
+        tx: (hash: string | undefined) => `${solanaExplorer}/tx/${hash}`,
         name: 'Block Explorer',
         value: null,
         isValid: true,
