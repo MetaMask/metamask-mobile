@@ -38,7 +38,6 @@ export function getTokenBalancesControllerMessenger(
       'AccountTrackerController:updateNativeBalances',
       'AccountTrackerController:updateStakedBalances',
       'TokenDetectionController:addDetectedTokensViaWs',
-      'AuthenticationController:getBearerToken',
     ],
     events: [
       'TokensController:stateChange',

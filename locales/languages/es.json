@@ -3728,7 +3728,7 @@
     "show_test_networks": "Mostrar redes de prueba",
     "deprecated_goerli": "Debido a los cambios de protocolo de Ethereum: es posible que la red de prueba de Goerli no funcione de manera tan confiable y pronto quedará obsoleta.",
     "network_deprecated_title": "Esta red está en desuso",
-    "network_deprecated_description": "La red a la que está intentando conectarse ya no es compatible con MetaMask.",
+    "network_deprecated_description": "La red a la que está intentando conectarse ya no es compatible con Metamask.",
     "edit_networks_title": "Editar redes"
   },
   "permissions": {
@@ -5692,7 +5692,7 @@
     },
     "estimated_gas_fee": {
       "title": "Tarifa estimada de gas",
-      "gas_recipient": "Las tarifas de gas se pagan a los mineros de criptomonedas que procesan transacciones en la red Ethereum. MetaMask no obtiene ganancias de las tarifas de gas.",
+      "gas_recipient": "Las tarifas de gas se pagan a los mineros de criptomonedas que procesan transacciones en la red Ethereum. Metamask no obtiene ganancias de las tarifas de gas.",
       "gas_fluctuation": "Las tarifas de gas se estiman y fluctuarán según el tráfico de la red y la complejidad de las transacciones.",
       "gas_learn_more": "Más información acerca de las tarifas de gas"
     },

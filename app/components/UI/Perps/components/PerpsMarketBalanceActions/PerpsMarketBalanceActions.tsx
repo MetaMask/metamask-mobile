@@ -303,7 +303,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             </Button>
           </Box>
         ) : (
-          <Box twClassName="px-4 pt-4 pb-4">
+          <Box twClassName="px-4 pt-4 pb-2">
             <Animated.View style={[getBalanceAnimatedStyle]}>
               <Text
                 variant={TextVariant.DisplayMD}

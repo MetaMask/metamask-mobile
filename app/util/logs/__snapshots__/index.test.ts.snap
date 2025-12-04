@@ -546,6 +546,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "useTokenDetection": true,
         "useTransactionSimulations": true,
       },
+      "ProfileMetricsController": {
+        "initialEnqueueCompleted": false,
+        "syncQueue": {},
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
@@ -1288,6 +1292,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useSafeChainsListValidation": true,
         "useTokenDetection": true,
         "useTransactionSimulations": true,
+      },
+      "ProfileMetricsController": {
+        "initialEnqueueCompleted": false,
+        "syncQueue": {},
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,

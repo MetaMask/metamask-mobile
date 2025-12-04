@@ -63,7 +63,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
         keyExtractor={
           isLoading
             ? (_, index) => `skeleton-${index}`
-            : (_, index) => `${section.id}-${index}`
+            : (item) => section.keyExtractor(item)
         }
         horizontal
         pagingEnabled={false}

@@ -46,8 +46,14 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-  const { trackEvent, enable, addTraitsToUser, isEnabled, createEventBuilder } =
-    useMetrics();
+  const {
+    trackEvent,
+    enable,
+    addTraitsToUser,
+    isEnabled,
+    createEventBuilder,
+    enableSocialLogin,
+  } = useMetrics();
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -71,7 +77,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
-      enable(false);
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        enableSocialLogin(false);
+      } else {
+        enable(false);
+      }
       setAnalyticsEnabled(false);
       dispatch(setDataCollectionForMarketing(false));
       return;
@@ -95,6 +105,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     setAnalyticsEnabled,
     isEnabled,
     enable,
+    enableSocialLogin,
     autoSignIn,
     isBasicFunctionalityEnabled,
     dispatch,
@@ -107,7 +118,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      await enable();
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        await enableSocialLogin(true);
+      } else {
+        await enable();
+      }
 
       setAnalyticsEnabled(true);
 
@@ -131,7 +146,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         dispatch(storePna25Acknowledged());
       }
     } else {
-      await enable(false);
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        await enableSocialLogin(false);
+      } else {
+        await enable(false);
+      }
       setAnalyticsEnabled(false);
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
