@@ -122,9 +122,6 @@ export const handleSendPageNavigation = (
       } else {
         screen = Routes.SEND.AMOUNT;
       }
-    } else if (predefinedRecipient?.address) {
-      // QR scan with recipient address → start at asset selection
-      screen = Routes.SEND.ASSET;
     }
 
     navigate(Routes.SEND.DEFAULT, {

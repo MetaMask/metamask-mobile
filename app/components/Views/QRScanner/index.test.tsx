@@ -145,12 +145,6 @@ jest.mock('../../../util/transactions', () => ({
   })),
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
-  ...jest.requireActual('../../../selectors/networkController'),
-  selectChainId: jest.fn(() => '0x1'),
-  selectNativeCurrencyByChainId: jest.fn(() => 'ETH'),
-}));
-
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -905,9 +899,7 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: ethereumAddress }]);
         });
 
-        // Wait for goBack and dispatch (synchronous after scan)
         expect(mockGoBack).toHaveBeenCalled();
-        expect(mockDispatch).toHaveBeenCalled();
 
         // Wait for navigateToSendPage (happens in InteractionManager callback)
         await waitFor(() => {
@@ -944,7 +936,6 @@ describe('QrScanner', () => {
         });
 
         expect(mockGoBack).toHaveBeenCalled();
-        expect(mockDispatch).toHaveBeenCalled();
 
         await waitFor(() => {
           expect(mockNavigateToSendPage).toHaveBeenCalledWith({
@@ -957,12 +948,7 @@ describe('QrScanner', () => {
         });
       });
 
-      it('should use native currency when available', async () => {
-        const { getEther } = jest.requireMock('../../../util/transactions');
-        const { newAssetTransaction } = jest.requireMock(
-          '../../../actions/transaction',
-        );
-
+      it('should navigate to send flow without initializing transaction', async () => {
         const ethereumAddress = '0x1234567890123456789012345678901234567890';
 
         renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
@@ -977,10 +963,16 @@ describe('QrScanner', () => {
           onCodeScannedCallback?.([{ value: ethereumAddress }]);
         });
 
+        // Verify navigation happens but NO transaction initialization
+        // Transaction will be initialized after user selects asset in send flow
         await waitFor(() => {
-          expect(getEther).toHaveBeenCalled();
-          expect(newAssetTransaction).toHaveBeenCalled();
-          expect(mockDispatch).toHaveBeenCalled();
+          expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+            location: 'qr_scanner',
+            predefinedRecipient: {
+              address: ethereumAddress,
+              chainType: 'evm',
+            },
+          });
         });
       });
     });
@@ -1020,12 +1012,7 @@ describe('QrScanner', () => {
         });
       });
 
-      it('should not call EVM transaction methods for Solana address', async () => {
-        const { getEther } = jest.requireMock('../../../util/transactions');
-        const { newAssetTransaction } = jest.requireMock(
-          '../../../actions/transaction',
-        );
-
+      it('should navigate to send flow for Solana without initializing EVM transaction', async () => {
         const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
 
         renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
@@ -1042,12 +1029,17 @@ describe('QrScanner', () => {
 
         expect(mockGoBack).toHaveBeenCalled();
 
+        // Verify navigation happens but NO EVM transaction initialization
+        // Solana transactions are handled by the send flow, not here
         await waitFor(() => {
-          expect(mockNavigateToSendPage).toHaveBeenCalled();
+          expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+            location: 'qr_scanner',
+            predefinedRecipient: {
+              address: solanaAddress,
+              chainType: 'solana',
+            },
+          });
         });
-
-        expect(getEther).not.toHaveBeenCalled();
-        expect(newAssetTransaction).not.toHaveBeenCalled();
       });
 
       it('should track QR_SCANNED metrics for Solana address', async () => {

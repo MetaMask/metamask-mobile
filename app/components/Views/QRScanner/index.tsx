@@ -4,12 +4,6 @@
 'use strict';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
-import { isValidAddress } from 'ethereumjs-util';
-import { isAddress as isSolanaAddress } from '@solana/addresses';
-import {
-  isTronAddress,
-  isBtcMainnetAddress,
-} from '../../../core/Multichain/utils';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
@@ -22,7 +16,6 @@ import {
   useCodeScanner,
   Code,
 } from 'react-native-vision-camera';
-import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Routes from '../../../constants/navigation/Routes';
@@ -34,16 +27,10 @@ import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
-import {
-  selectChainId,
-  selectNativeCurrencyByChainId,
-} from '../../../selectors/networkController';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { InitSendLocation } from '../confirmations/constants/send';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { getEther } from '../../../util/transactions';
-import { RootState } from '../../../reducers';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
+import { derivePredefinedRecipientParams } from '../confirmations/utils/address';
 import { getURLProtocol } from '../../../util/general';
 import {
   failedSeedPhraseRequirements,
@@ -86,11 +73,6 @@ const QRScanner = ({
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
 
-  const currentChainId = useSelector(selectChainId);
-  const nativeCurrency = useSelector((state: RootState) =>
-    selectNativeCurrencyByChainId(state, currentChainId),
-  );
-  const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
 
   const theme = useTheme();
@@ -383,70 +365,39 @@ const QRScanner = ({
           mountedRef.current = false;
           return;
         }
-        // Check address types once to avoid repeated calls
-        const isSolana = isSolanaAddress(content);
-        const isTron = isTronAddress(content);
-        const isBitcoin = isBtcMainnetAddress(content);
+        // Extract plain address from content (handle ethereum: URLs)
+        let addressToValidate = content;
+        const hasEthereumProtocol =
+          content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1;
 
         // Check if it's an Ethereum URL format before parsing
         let isEthereumUrl = false;
-        const hasEthereumProtocol =
-          content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1;
         if (hasEthereumProtocol) {
           try {
-            isEthereumUrl = !parse(content).function_name;
+            const parsed = parse(content);
+            // Only treat as address URL if it doesn't have a function call
+            if (!parsed.function_name) {
+              isEthereumUrl = true;
+              addressToValidate = parsed.target_address;
+            }
           } catch {
             // Invalid ethereum URL format, ignore
             isEthereumUrl = false;
           }
         }
-        const isEthHexAddress =
-          content.startsWith('0x') && isValidAddress(content);
 
-        // Handle plain addresses and ethereum: URLs by using home screen send flow
-        // Also handle non-EVM addresses like Solana, Tron, and Bitcoin
-        if (
-          isEthereumUrl ||
-          isEthHexAddress ||
-          isSolana ||
-          isTron ||
-          isBitcoin
-        ) {
+        // Use centralized utility to determine if this is a valid address and its chain type
+        const predefinedRecipient =
+          derivePredefinedRecipientParams(addressToValidate);
+
+        // If it's a valid address for send flow, handle it
+        if (predefinedRecipient || isEthereumUrl) {
           // Immediately stop barcode scanning to prevent multiple triggers
           shouldReadBarCodeRef.current = false;
           setIsCameraActive(false);
 
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          // Handle non-EVM addresses (Solana, Bitcoin, Tron)
-          // Directly navigate with predefinedRecipient instead of using sendNonEvmAsset
-          // to avoid double navigation (sendNonEvmAsset navigates without recipient,
-          // then we navigate again with recipient, causing flickering)
-          if (isSolana) {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
-                .addProperties({
-                  [QRScannerEventProperties.SCAN_SUCCESS]: true,
-                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
-                  [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
-                })
-                .build(),
-            );
-            end();
-            InteractionManager.runAfterInteractions(() => {
-              navigateToSendPage({
-                location: InitSendLocation.QRScanner,
-                predefinedRecipient: {
-                  address: content,
-                  chainType: ChainType.SOLANA,
-                },
-              });
-            });
-
-            return;
-          }
-
-          if (isTron) {
-            // Track as failure since Tron is temporarily disabled
+          // Handle Tron special case - temporarily disabled
+          if (predefinedRecipient?.chainType === ChainType.TRON) {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.QR_SCANNED)
                 .addProperties({
@@ -458,25 +409,19 @@ const QRScanner = ({
                 .build(),
             );
             end();
-            // TODO: Commented out for now because Tron has been temporarily disabled
-            // InteractionManager.runAfterInteractions(() => {
-            //   navigateToSendPage({
-            //     location: InitSendLocation.QRScanner,
-            //     predefinedRecipient: {
-            //       address: content,
-            //       chainType: ChainType.TRON,
-            //     },
-            //   });
-            // });
             Alert.alert(
               strings('qr_scanner.error'),
               strings('qr_scanner.tron_address_not_supported'),
             );
-
             return;
           }
 
-          if (isBitcoin) {
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          // Handle non-EVM addresses when keyring-snaps is enabled (Solana, Bitcoin)
+          if (
+            predefinedRecipient &&
+            predefinedRecipient.chainType !== ChainType.EVM
+          ) {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.QR_SCANNED)
                 .addProperties({
@@ -490,20 +435,18 @@ const QRScanner = ({
             InteractionManager.runAfterInteractions(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
-                predefinedRecipient: {
-                  address: content,
-                  chainType: ChainType.BITCOIN,
-                },
+                predefinedRecipient,
               });
             });
-
             return;
           }
           ///: END:ONLY_INCLUDE_IF
 
-          // Skip Ethereum processing for non-EVM addresses when keyring-snaps is disabled
-          if (isSolana || isTron || isBitcoin) {
-            // Track as failure for unsupported non-EVM addresses when keyring-snaps is disabled
+          // If non-EVM and keyring-snaps is disabled, show error
+          if (
+            predefinedRecipient &&
+            predefinedRecipient.chainType !== ChainType.EVM
+          ) {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.QR_SCANNED)
                 .addProperties({
@@ -514,48 +457,51 @@ const QRScanner = ({
                 })
                 .build(),
             );
-            // Show error for unsupported non-EVM addresses when keyring-snaps is disabled
             showAlertForInvalidAddress();
             end();
             return;
           }
 
-          // Track successful EVM address scan
+          // Handle EVM addresses
+          if (
+            predefinedRecipient &&
+            predefinedRecipient.chainType === ChainType.EVM
+          ) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                })
+                .build(),
+            );
+
+            end();
+
+            InteractionManager.runAfterInteractions(() => {
+              navigateToSendPage({
+                location: InitSendLocation.QRScanner,
+                predefinedRecipient,
+              });
+            });
+
+            return;
+          }
+
+          // Fallback for unknown chain types
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
               .addProperties({
-                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
                 [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
-                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.ADDRESS_TYPE_NOT_SUPPORTED,
               })
               .build(),
           );
-
-          // Extract recipient address from QR code
-          const recipientAddress = content.startsWith('0x')
-            ? content
-            : parse(content).target_address;
-
-          // Initialize transaction with native currency (same as home screen send button)
-          if (nativeCurrency) {
-            dispatch(newAssetTransaction(getEther(nativeCurrency)));
-          } else {
-            // Fallback to ETH if native currency not available
-            dispatch(newAssetTransaction(getEther('ETH')));
-          }
+          showAlertForInvalidAddress();
           end();
-
-          // Navigate to send flow after modal closes
-          InteractionManager.runAfterInteractions(() => {
-            navigateToSendPage({
-              location: InitSendLocation.QRScanner,
-              predefinedRecipient: {
-                address: recipientAddress,
-                chainType: ChainType.EVM,
-              },
-            });
-          });
-
           return;
         }
 
@@ -655,9 +601,7 @@ const QRScanner = ({
       navigation,
       onStartScan,
       onScanSuccess,
-      dispatch,
       navigateToSendPage,
-      nativeCurrency,
       trackEvent,
       createEventBuilder,
     ],
