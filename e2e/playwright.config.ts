@@ -1,5 +1,5 @@
-import { Platform } from '../e2e/framework/types';
-import { defineConfig } from '../e2e/framework/config';
+import { Platform } from './framework/types';
+import { defineConfig } from './framework/config';
 
 export default defineConfig({
   testDir: './tests',
