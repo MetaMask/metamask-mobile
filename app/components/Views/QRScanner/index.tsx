@@ -410,6 +410,26 @@ const QRScanner = ({
             return;
           }
 
+          // Handle callback-based origins (ContactForm, SendTo)
+          // These origins expect onScanSuccess() with target_address instead of navigation
+          if (
+            origin === Routes.SEND_FLOW.SEND_TO ||
+            origin === Routes.SETTINGS.CONTACT_FORM
+          ) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+                .addProperties({
+                  [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                  [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+                })
+                .build(),
+            );
+            end();
+            onScanSuccess({ target_address: addressToValidate }, content);
+            return;
+          }
+
           ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           // Handle non-EVM addresses when keyring-snaps is enabled (Solana, Bitcoin)
           if (
