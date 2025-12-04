@@ -565,7 +565,7 @@ describe('EarnLendingBalance', () => {
 
     expect(
       getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(queryByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeNull();
   });
 });
