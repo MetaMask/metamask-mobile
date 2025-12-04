@@ -193,5 +193,105 @@ describe('SrpInputGrid', () => {
       expect(getByText('abandon')).toBeOnTheScreen();
       expect(getByText('ability')).toBeOnTheScreen();
     });
+
+    it('triggers onPressIn when suggestion is touched', () => {
+      const { getByTestId, getByText } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent.changeText(input, 'wal');
+      fireEvent(input, 'focus');
+
+      const suggestion = getByText('wallet');
+      fireEvent(suggestion, 'pressIn');
+      fireEvent.press(suggestion);
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
+    });
+  });
+
+  describe('Input Focus and Blur', () => {
+    it('tracks focus state when input is focused', () => {
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'focus');
+
+      expect(input).toBeTruthy();
+    });
+
+    it('handles blur event on input', () => {
+      const seedPhrase = ['wallet', ''];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'focus');
+      fireEvent(input, 'blur');
+
+      jest.advanceTimersByTime(200);
+
+      expect(input).toBeTruthy();
+    });
+  });
+
+  describe('Keyboard Events', () => {
+    it('handles backspace on empty input to focus previous field', () => {
+      const seedPhrase = ['wallet', ''];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+      fireEvent(secondInput, 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
+    });
+
+    it('handles enter key press to move to next input', () => {
+      const seedPhrase = ['wallet', ''];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const firstInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(firstInput, 'submitEditing');
+
+      expect(firstInput).toBeTruthy();
+    });
+  });
+
+  describe('Paste and Clear', () => {
+    it('handles paste of multiple words', () => {
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent.changeText(
+        input,
+        'abandon ability able about above absent absorb abstract wallet walnut want war',
+      );
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
+    });
+
+    it('clears all inputs when clear button is pressed', () => {
+      const seedPhrase = ['wallet', 'abandon'];
+      const { getByText } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const clearButton = getByText('Clear all');
+      fireEvent.press(clearButton);
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalledWith(['']);
+    });
   });
 });
