@@ -78,9 +78,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       Record<number, boolean>
     >({});
     const [currentInputWord, setCurrentInputWord] = useState<string>('');
-    const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(
-      null,
-    );
+    const [, setFocusedInputIndex] = useState<number | null>(null);
+
+    const focusedInputIndexRef = useRef<number | null>(null);
+    const isSuggestionSelectingRef = useRef<boolean>(false);
+    const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const seedPhraseInputRefs = useRef<Map<
       number,
@@ -214,6 +216,15 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       handleSeedPhraseChangeAtIndexRef.current = handleSeedPhraseChangeAtIndex;
     }, [handleSeedPhraseChangeAtIndex]);
 
+    useEffect(
+      () => () => {
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+        }
+      },
+      [],
+    );
+
     // Helper to validate words
     const validateWords = useCallback((words: string[]) => {
       const errorsMap: Record<number, boolean> = {};
@@ -255,6 +266,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       (index: number) => {
         setNextSeedPhraseInputFocusedIndex(index);
         setFocusedInputIndex(index);
+        focusedInputIndexRef.current = index;
 
         const currentWord = seedPhrase[index] || '';
         if (!currentWord.includes(' ')) {
@@ -277,7 +289,15 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         }
 
         setFocusedInputIndex(null);
-        setCurrentInputWord('');
+
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+        }
+        blurTimeoutRef.current = setTimeout(() => {
+          if (!isSuggestionSelectingRef.current) {
+            setCurrentInputWord('');
+          }
+        }, 150);
       },
       [seedPhrase],
     );
@@ -339,21 +359,33 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       setFocusedInputIndex(null);
     }, [onSeedPhraseChange]);
 
-    const handleSuggestionSelect = useCallback(
-      (word: string) => {
-        if (focusedInputIndex === null) return;
+    const handleSuggestionSelect = useCallback((word: string) => {
+      isSuggestionSelectingRef.current = true;
 
-        // Update seed phrase with selected word
-        const updatedText = `${word}${SPACE_CHAR}`;
-        handleSeedPhraseChangeAtIndexRef.current(
-          updatedText,
-          focusedInputIndex,
-        );
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = null;
+      }
 
-        setCurrentInputWord('');
-      },
-      [focusedInputIndex],
-    );
+      const targetIndex = focusedInputIndexRef.current;
+      if (targetIndex === null) {
+        isSuggestionSelectingRef.current = false;
+        return;
+      }
+
+      // Update seed phrase with selected word
+      const updatedText = `${word}${SPACE_CHAR}`;
+      handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
+
+      setCurrentInputWord('');
+
+      const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
+      if (inputRef) {
+        inputRef.focus();
+      }
+
+      isSuggestionSelectingRef.current = false;
+    }, []);
 
     useEffect(() => {
       if (nextSeedPhraseInputFocusedIndex === null) return;
@@ -529,6 +561,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                     },
                     pressed && styles.suggestionPressed,
                   ]}
+                  onPressIn={() => {
+                    isSuggestionSelectingRef.current = true;
+                  }}
                   onPress={() => handleSuggestionSelect(item)}
                 >
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
