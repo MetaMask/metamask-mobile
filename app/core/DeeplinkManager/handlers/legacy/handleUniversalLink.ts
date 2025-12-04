@@ -26,6 +26,7 @@ import { handlePredictUrl } from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
 import { handleEnableCardButton } from './handleEnableCardButton';
 import { RampType } from '../../../../reducers/fiatOrders/types';
+import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -52,6 +53,7 @@ enum SUPPORTED_ACTIONS {
   WC = ACTIONS.WC,
   ONBOARDING = ACTIONS.ONBOARDING,
   ENABLE_CARD_BUTTON = ACTIONS.ENABLE_CARD_BUTTON,
+  SHIELD = ACTIONS.SHIELD,
   // MetaMask SDK specific actions
   ANDROID_SDK = ACTIONS.ANDROID_SDK,
   CONNECT = ACTIONS.CONNECT,
@@ -326,6 +328,13 @@ async function handleUniversalLink({
     handlePredictUrl({
       predictPath,
       origin: source,
+    });
+  } else if (action === SUPPORTED_ACTIONS.SHIELD) {
+    // shield is only avaialble on extension atm, open shield website from in app browser
+    handleBrowserUrl({
+      deeplinkManager: instance,
+      url: SHIELD_WEBSITE_URL,
+      callback: browserCallBack,
     });
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);

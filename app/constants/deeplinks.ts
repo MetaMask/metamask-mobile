@@ -38,6 +38,7 @@ export enum ACTIONS {
   PERPS_MARKETS = 'perps-markets',
   PERPS_ASSET = 'perps-asset',
   REWARDS = 'rewards',
+  SHIELD = 'shield',
   PREDICT = 'predict',
   ONBOARDING = 'onboarding',
 }

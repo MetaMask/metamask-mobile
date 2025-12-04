@@ -7,6 +7,8 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { ACTIONS } from '../../../../constants/deeplinks';
 import Logger from '../../../../util/Logger';
+import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
+import { EXTERNAL_LINK_TYPE } from '../../../../constants/browser';
 
 /**
  * Handles simple navigation deep links (home, settings, activity, etc.)
@@ -20,6 +22,7 @@ export class NavigationHandler extends BaseHandler {
     ACTIONS.PERPS,
     ACTIONS.PERPS_MARKETS,
     ACTIONS.PERPS_ASSET,
+    ACTIONS.SHIELD,
   ];
 
   readonly priority = 10; // Standard priority
@@ -62,6 +65,18 @@ export class NavigationHandler extends BaseHandler {
           this.navigate(context, Routes.PERPS.ROOT, { path: perpsPath });
           break;
         }
+
+        case ACTIONS.SHIELD:
+          // shield is only avaialble on extension atm, open shield website from in app browser
+          this.navigate(context, Routes.BROWSER.HOME, {
+            screen: Routes.BROWSER.VIEW,
+            params: {
+              newTabUrl: SHIELD_WEBSITE_URL,
+              linkType: EXTERNAL_LINK_TYPE,
+              timestamp: Date.now(),
+            },
+          });
+          break;
 
         default:
           // Should not happen as canHandle filters these
