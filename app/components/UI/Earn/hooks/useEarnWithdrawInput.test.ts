@@ -141,6 +141,8 @@ describe('useEarnWithdrawInputHandlers', () => {
       ],
       handleQuickAmountPress: jest.fn(),
       currentCurrency: 'USD',
+      handleTokenInput: jest.fn(),
+      handleFiatInput: jest.fn(),
     });
 
     (useEarnDepositGasFee as jest.Mock).mockReturnValue({
@@ -153,7 +155,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     });
   });
 
-  it('should initialize with default values', () => {
+  it('initializes with default values', () => {
     const { result } = renderHook();
 
     expect(result.current.isFiat).toBe(false);
@@ -172,7 +174,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     expect(result.current.earnBalanceValue).toBe('1 ETH');
   });
 
-  it('should set earn balance value in fiat when isFiat is true', () => {
+  it('displays earn balance value in fiat when isFiat is true', () => {
     (useInputHandler as jest.Mock).mockReturnValue({
       amountToken: '0',
       amountTokenMinimalUnit: new BN4(0),
@@ -186,6 +188,8 @@ describe('useEarnWithdrawInputHandlers', () => {
       percentageOptions: [],
       handleQuickAmountPress: jest.fn(),
       currentCurrency: 'USD',
+      handleTokenInput: jest.fn(),
+      handleFiatInput: jest.fn(),
     });
 
     const { result } = renderHook();
@@ -194,7 +198,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     expect(result.current.earnBalanceValue).toBe('2000 USD');
   });
 
-  it('should use stakedBalanceWei when token is ETH', () => {
+  it('uses stakedBalanceWei for balance when token is ETH', () => {
     renderHook();
 
     expect(useInputHandler).toHaveBeenCalledWith(
@@ -206,7 +210,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     );
   });
 
-  it('should use "0" balance when token is not ETH', () => {
+  it('uses token balanceMinimalUnit when token is not ETH', () => {
     const props = {
       earnToken: {
         ...mockEarnToken,
@@ -244,7 +248,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     );
   });
 
-  it('should handle loading gas fee state', () => {
+  it('sets isOverMaximum to false during gas fee loading', () => {
     (useEarnDepositGasFee as jest.Mock).mockReturnValue({
       estimatedEarnGasFeeWei: new BN4('100000000000000000'),
       isLoadingEarnGasFee: true,
@@ -260,7 +264,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     expect(result.current.isOverMaximum.isOverMaximumToken).toBe(false);
   });
 
-  it('should handle gas fee error state', () => {
+  it('sets isOverMaximum to false when gas fee has error', () => {
     (useEarnDepositGasFee as jest.Mock).mockReturnValue({
       estimatedEarnGasFeeWei: new BN4('100000000000000000'),
       isLoadingEarnGasFee: false,

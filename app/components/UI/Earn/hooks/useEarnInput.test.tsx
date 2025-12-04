@@ -152,7 +152,7 @@ describe('useEarnInputHandlers', () => {
     });
   });
 
-  it('should initialize with default values', () => {
+  it('initializes with default values', () => {
     const { result } = renderHook();
 
     expect(result.current.amountTokenMinimalUnit).toEqual(new BN4(0));
@@ -187,7 +187,7 @@ describe('useEarnInputHandlers', () => {
     );
   });
 
-  it('should handle token input correctly', () => {
+  it('handles token input and converts to fiat', () => {
     const { result } = renderHook();
 
     act(() => {
@@ -201,7 +201,7 @@ describe('useEarnInputHandlers', () => {
     );
   });
 
-  it('should handle fiat input correctly', () => {
+  it('handles fiat input and converts to token amount', () => {
     const { result } = renderHook();
 
     act(() => {
@@ -215,7 +215,7 @@ describe('useEarnInputHandlers', () => {
     );
   });
 
-  it('should switch between fiat and token display', () => {
+  it('switches between fiat and token display mode', () => {
     const { result } = renderHook();
     act(() => {
       result.current.handleCurrencySwitch();
@@ -225,7 +225,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.currencyToggleValue).toBe('0 ETH');
   });
 
-  it('should calculate annual rewards correctly', () => {
+  it('calculates annual rewards based on input amount', () => {
     const { result } = renderHook();
 
     act(() => {
@@ -236,7 +236,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.annualRewardsToken).toBe('0.05 ETH');
   });
 
-  it('should handle max input correctly', async () => {
+  it('sets max input accounting for gas fee', async () => {
     (useEarnGasFee as jest.Mock).mockReturnValue({
       getEstimatedEarnGasFee: jest
         .fn()
@@ -261,7 +261,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.amountToken).toBe('0.9');
   });
 
-  it('should detect high gas cost impact', () => {
+  it('detects high gas cost impact for small amounts', () => {
     const { result } = renderHook();
 
     act(() => {
@@ -271,7 +271,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.isHighGasCostImpact()).toBe(true);
   });
 
-  it('should handle loading states correctly', () => {
+  it('reflects loading state from gas fee hook', () => {
     (useEarnGasFee as jest.Mock).mockReturnValue({
       estimatedEarnGasFeeWei: new BN4('100000000000000000'),
       isLoadingEarnGasFee: true,
@@ -283,7 +283,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.isLoadingEarnGasFee).toBe(true);
   });
 
-  it('should handle erc20 token correctly', () => {
+  it('handles ERC20 token with correct decimals conversion', () => {
     const { result } = renderHook(
       {
         ...mockInitialState,
@@ -335,7 +335,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.amountTokenMinimalUnit).toEqual(new BN4('1000000'));
   });
 
-  it('should handle quick amount press below .00001 ETH correctly', () => {
+  it('handles quick amount press for dust balance below .00001 ETH', () => {
     const { result } = renderHook(undefined, {
       earnToken: {
         ...mockEarnToken,
@@ -357,7 +357,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.amountTokenMinimalUnit).toEqual(new BN4('2'));
   });
 
-  it('should handle max amount press below .00001 ETH correctly', async () => {
+  it('handles max amount press for dust balance below .00001 ETH', async () => {
     (useBalance as jest.Mock).mockReturnValue({
       balanceWei: new BN4('10'),
       balanceETH: '< .00001',
@@ -391,7 +391,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.amountTokenMinimalUnit).toEqual(new BN4('10'));
   });
 
-  it('should flag isOverMaximum when amount is greater than balance - gas fee', () => {
+  it('flags isOverMaximumEth when ETH amount exceeds balance minus gas fee', () => {
     const { result } = renderHook();
 
     act(() => {
@@ -402,7 +402,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.isOverMaximum.isOverMaximumToken).toBe(false);
   });
 
-  it('should flag isOverMaximum when token amount is greater than balance', () => {
+  it('flags isOverMaximumToken when token amount exceeds balance', () => {
     const { result } = renderHook(undefined, {
       earnToken: {
         ...mockEarnToken,
@@ -703,6 +703,26 @@ describe('useEarnInputHandlers', () => {
       rerender(() => useEarnInputHandlers(currentProps));
 
       expect(result.current.amountFiatNumber).not.toBe('5.55');
+    });
+
+    it('clears typed fiat value when handleMax is pressed', async () => {
+      const { result } = renderHook(mockInitialState, {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      });
+
+      act(() => {
+        result.current.handleFiatInput('5.55');
+      });
+
+      expect(result.current.amountFiatNumber).toBe('5.55');
+
+      await act(async () => {
+        await result.current.handleMax();
+      });
+
+      expect(result.current.amountFiatNumber).toBe('15.68');
     });
   });
 });
