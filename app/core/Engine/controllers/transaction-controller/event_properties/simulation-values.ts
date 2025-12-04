@@ -19,12 +19,15 @@ export const getSimulationValuesProperties: TransactionMetricsBuilder = ({
   }
 
   if (assetsFiatValues.sending !== undefined) {
-    properties.simulation_sending_assets_total_value = assetsFiatValues.sending;
+    properties.simulation_sending_assets_total_value = Number(
+      assetsFiatValues.sending,
+    );
   }
 
   if (assetsFiatValues.receiving !== undefined) {
-    properties.simulation_receiving_assets_total_value =
-      assetsFiatValues.receiving;
+    properties.simulation_receiving_assets_total_value = Number(
+      assetsFiatValues.receiving,
+    );
   }
 
   return { properties, sensitiveProperties };

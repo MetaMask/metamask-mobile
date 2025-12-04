@@ -54,8 +54,8 @@ describe('getSimulationValuesProperties', () => {
 
     expect(result).toStrictEqual({
       properties: {
-        simulation_sending_assets_total_value: '100.50',
-        simulation_receiving_assets_total_value: '99.75',
+        simulation_sending_assets_total_value: 100.5,
+        simulation_receiving_assets_total_value: 99.75,
       },
       sensitiveProperties: {},
     });
@@ -73,7 +73,7 @@ describe('getSimulationValuesProperties', () => {
 
     expect(result).toStrictEqual({
       properties: {
-        simulation_sending_assets_total_value: '50',
+        simulation_sending_assets_total_value: 50,
       },
       sensitiveProperties: {},
     });
@@ -91,7 +91,7 @@ describe('getSimulationValuesProperties', () => {
 
     expect(result).toStrictEqual({
       properties: {
-        simulation_receiving_assets_total_value: '75.25',
+        simulation_receiving_assets_total_value: 75.25,
       },
       sensitiveProperties: {},
     });
@@ -111,8 +111,8 @@ describe('getSimulationValuesProperties', () => {
 
     expect(result).toStrictEqual({
       properties: {
-        simulation_sending_assets_total_value: '100',
-        simulation_receiving_assets_total_value: '100',
+        simulation_sending_assets_total_value: 100,
+        simulation_receiving_assets_total_value: 100,
       },
       sensitiveProperties: {},
     });
