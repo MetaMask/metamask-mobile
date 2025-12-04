@@ -337,6 +337,13 @@ const ExploreHome = () => (
         }),
       }}
     />
+
+    {/* Trending Browser Stack (uses existing browser flow) */}
+    <Stack.Screen
+      name={Routes.BROWSER.HOME}
+      component={BrowserFlow}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -658,10 +665,12 @@ const HomeTabs = () => {
     }
 
     // Hide tab bar when browser is in fullscreen mode
-    if (
-      isBrowserFullscreen &&
-      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
-    ) {
+    const currentStackRouteName =
+      currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
+    const isInBrowser =
+      currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
+      currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
+    if (isBrowserFullscreen && isInBrowser) {
       return null;
     }
 
