@@ -33,7 +33,11 @@ import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { BigNumber } from 'bignumber.js';
-import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
+import {
+  HOME_SCREEN_CONFIG,
+  LEARN_MORE_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -58,8 +62,6 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
-
-const HEADER_ACTION_BUTTONS = true;
 
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -247,7 +249,7 @@ const PerpsHomeView = () => {
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
           positions={positions}
-          showActionButtons={HEADER_ACTION_BUTTONS}
+          showActionButtons={HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS}
         />
 
         {/* Positions Section */}
@@ -358,7 +360,7 @@ const PerpsHomeView = () => {
       {!isBalanceEmpty &&
         !showCloseAllSheet &&
         !showCancelAllSheet &&
-        !HEADER_ACTION_BUTTONS && (
+        !HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS && (
           <View style={fixedFooterStyle}>
             <View style={styles.footerButtonsContainer}>
               <View style={styles.footerButton}>
