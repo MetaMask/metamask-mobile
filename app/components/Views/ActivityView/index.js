@@ -10,6 +10,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 import { strings } from '../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
@@ -287,6 +288,7 @@ const ActivityView = () => {
           ref={tabViewRef}
           onChangeTab={({ i }) => setActiveTabIndex(i)}
           tabsListContentTwClassName="px-0 pb-3"
+          testID={ActivitiesViewSelectorsIDs.TABS_CONTAINER}
         >
           <View
             key="transactions"
