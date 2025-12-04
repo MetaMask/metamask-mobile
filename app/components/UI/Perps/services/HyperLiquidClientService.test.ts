@@ -1111,6 +1111,24 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
+    it('removes old terminate listener before adding new one on re-initialize', () => {
+      service.initialize(mockWallet);
+
+      // Get the first handler that was registered
+      const firstHandler = (
+        mockWsTransport.socket.addEventListener as jest.Mock
+      ).mock.calls.find((call) => call[0] === 'terminate')?.[1];
+
+      // Re-initialize (simulates toggleTestnet or ensureSubscriptionClient scenarios)
+      service.initialize(mockWallet);
+
+      // Should have removed the old listener before adding new one
+      expect(mockWsTransport.socket.removeEventListener).toHaveBeenCalledWith(
+        'terminate',
+        firstHandler,
+      );
+    });
+
     it('calls onTerminateCallback when terminate event fires with Error detail', () => {
       const terminateCallback = jest.fn();
       service.initialize(mockWallet);

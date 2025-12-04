@@ -49,6 +49,7 @@ export class HyperLiquidClientService {
     WebSocketConnectionState.DISCONNECTED;
   private disconnectionPromise: Promise<void> | null = null;
   private onTerminateCallback: ((error: Error) => void) | null = null;
+  private terminateHandler: ((event: Event) => void) | null = null;
 
   constructor(options: { isTestnet?: boolean } = {}) {
     this.isTestnet = options.isTestnet || false;
@@ -143,6 +144,15 @@ export class HyperLiquidClientService {
       note: 'SDK will auto-select endpoints based on isTestnet flag',
     });
 
+    // Clean up old terminate listener before creating new transport
+    if (this.terminateHandler && this.wsTransport?.socket) {
+      this.wsTransport.socket.removeEventListener(
+        'terminate',
+        this.terminateHandler,
+      );
+      this.terminateHandler = null;
+    }
+
     // HTTP transport for request/response operations (InfoClient, ExchangeClient)
     // SDK automatically selects: mainnet (https://api.hyperliquid.xyz) or testnet (https://api.hyperliquid-testnet.xyz)
     this.httpTransport = new HttpTransport({
@@ -162,7 +172,8 @@ export class HyperLiquidClientService {
     });
 
     // Listen for WebSocket termination (fired when SDK exhausts all reconnection attempts)
-    this.wsTransport.socket.addEventListener('terminate', (event: Event) => {
+    // Store handler reference for cleanup on re-initialization
+    this.terminateHandler = (event: Event) => {
       const customEvent = event as CustomEvent;
       DevLogger.log('HyperLiquid: WebSocket terminated', {
         reason: customEvent.detail?.code,
@@ -180,7 +191,11 @@ export class HyperLiquidClientService {
               );
         this.onTerminateCallback(error);
       }
-    });
+    };
+    this.wsTransport.socket.addEventListener(
+      'terminate',
+      this.terminateHandler,
+    );
   }
 
   /**
@@ -615,6 +630,15 @@ export class HyperLiquidClientService {
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
       });
+
+      // Clean up terminate listener before closing transport
+      if (this.terminateHandler && this.wsTransport?.socket) {
+        this.wsTransport.socket.removeEventListener(
+          'terminate',
+          this.terminateHandler,
+        );
+        this.terminateHandler = null;
+      }
 
       // Close WebSocket transport only (HTTP is stateless)
       if (this.wsTransport) {
