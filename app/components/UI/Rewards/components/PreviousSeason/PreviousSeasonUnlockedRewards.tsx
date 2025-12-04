@@ -158,10 +158,10 @@ const PreviousSeasonUnlockedRewards = () => {
                           ) as SeasonRewardDto
                       }
                       canPressToNavigateToInfo={false}
-                      isLocked
                       isLast={unlockedReward === endOfSeasonRewards.at(-1)}
                       isEndOfSeasonReward
                       compact
+                      isLocked={false}
                     />
                   ))}
                 </Box>
