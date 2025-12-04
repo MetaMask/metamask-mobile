@@ -1346,6 +1346,82 @@ export class CardSDK {
   };
 
   /**
+   * Complete Solana wallet delegation for spending limit increase
+   * This is Step 3 of the delegation process (after user completes SPL Token approve transaction)
+   * Uses the Solana-specific endpoint: /v1/delegation/solana/post-approval
+   */
+  completeSolanaDelegation = async (params: {
+    address: string;
+    network: CardNetwork;
+    currency: string;
+    amount: string;
+    txHash: string;
+    sigHash: string;
+    sigMessage: string;
+    token: string;
+  }): Promise<{ success: boolean }> => {
+    // Validate address format (must be valid Solana address - Base58, 32-44 characters)
+    const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    if (!solanaAddressRegex.test(params.address)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid Solana address format',
+      );
+    }
+
+    // Validate transaction signature format (Base58, 87-88 characters)
+    const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+    if (!solanaTxHashRegex.test(params.txHash)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid Solana transaction signature format',
+      );
+    }
+
+    // Validate network is solana
+    if (params.network !== 'solana') {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid network for Solana delegation',
+      );
+    }
+
+    const response = await this.makeRequest(
+      '/v1/delegation/solana/post-approval',
+      {
+        method: 'POST',
+        body: JSON.stringify(params),
+      },
+      true, // authenticated
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to complete Solana delegation. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to complete Solana delegation. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const result = await response.json();
+    this.logDebugInfo('completeSolanaDelegation', result);
+
+    return result;
+  };
+
+  /**
    * Get delegation settings for a specific network (optional)
    * This fetches chain IDs, token contract addresses, and delegation contract addresses.
    * This needs to be cached at hook level to avoid unnecessary API calls.
@@ -1439,6 +1515,140 @@ export class CardSDK {
       'function approve(address spender, uint256 value)',
     ]);
     return approvalInterface.encodeFunctionData('approve', [spender, value]);
+  };
+
+  /**
+   * Build a Solana SPL Token Approve transaction
+   * Constructs a properly serialized Solana transaction using @solana/web3.js and @solana/spl-token
+   *
+   * The SPL Token Approve instruction allows a delegate to spend tokens
+   * from the owner's token account up to the specified amount.
+   *
+   * @param params - Parameters for the approve transaction
+   * @param params.tokenMintAddress - The SPL Token mint address (e.g., USDC mint)
+   * @param params.delegateAddress - The delegate public key that will be authorized to spend
+   * @param params.ownerAddress - The token account owner's public key
+   * @param params.amount - The amount to approve in minimal units (lamports for the token)
+   * @returns Base64-encoded serialized Solana transaction for the Snap
+   */
+  buildSolanaApproveTransaction = async (params: {
+    tokenMintAddress: string;
+    delegateAddress: string;
+    ownerAddress: string;
+    amount: string;
+  }): Promise<string> => {
+    // Validate Solana address format (Base58, 32-44 characters)
+    const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+    if (!solanaAddressRegex.test(params.ownerAddress)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid owner address format',
+      );
+    }
+
+    if (!solanaAddressRegex.test(params.delegateAddress)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid delegate address format',
+      );
+    }
+
+    if (!solanaAddressRegex.test(params.tokenMintAddress)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid token mint address format',
+      );
+    }
+
+    try {
+      // Import Solana libraries dynamically to avoid issues with bundling
+      // These packages are available as transitive dependencies from @metamask/test-dapp-solana
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-extraneous-dependencies, @typescript-eslint/no-var-requires
+      const solanaWeb3 = require('@solana/web3.js');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-extraneous-dependencies, @typescript-eslint/no-var-requires
+      const splToken = require('@solana/spl-token');
+
+      const { PublicKey, Transaction, Connection } = solanaWeb3;
+      const {
+        createApproveInstruction,
+        getAssociatedTokenAddressSync,
+        TOKEN_PROGRAM_ID,
+      } = splToken;
+
+      // Create public keys from addresses
+      const ownerPublicKey = new PublicKey(params.ownerAddress);
+      const delegatePublicKey = new PublicKey(params.delegateAddress);
+      const mintPublicKey = new PublicKey(params.tokenMintAddress);
+
+      // Get the Associated Token Account (ATA) for the owner
+      // This is the account that holds the tokens for the owner
+      const tokenAccountAddress = getAssociatedTokenAddressSync(
+        mintPublicKey,
+        ownerPublicKey,
+      );
+
+      // Create the approve instruction
+      // This authorizes the delegate to spend up to `amount` tokens from the owner's ATA
+      const approveInstruction = createApproveInstruction(
+        tokenAccountAddress, // The token account to approve spending from
+        delegatePublicKey, // The delegate authorized to spend
+        ownerPublicKey, // The owner of the token account (signer)
+        BigInt(params.amount), // Amount to approve
+        [], // No multisig signers
+        TOKEN_PROGRAM_ID, // SPL Token program
+      );
+
+      // Create a connection to Solana mainnet to get a recent blockhash
+      // Using the public RPC endpoint - in production, consider using a dedicated RPC
+      const connection = new Connection(
+        'https://api.mainnet-beta.solana.com',
+        'confirmed',
+      );
+
+      // Get the latest blockhash for the transaction
+      const { blockhash, lastValidBlockHeight } =
+        await connection.getLatestBlockhash('confirmed');
+
+      // Create the transaction with the blockhash
+      const transaction = new Transaction();
+      transaction.recentBlockhash = blockhash;
+      transaction.lastValidBlockHeight = lastValidBlockHeight;
+      transaction.feePayer = ownerPublicKey;
+
+      // Add the approve instruction to the transaction
+      transaction.add(approveInstruction);
+
+      // Serialize the transaction (without signatures - the Snap will sign it)
+      // Use serializeMessage() to get the message that needs to be signed
+      const serializedMessage = transaction.serializeMessage();
+
+      // Encode as base64 for transmission to the Snap
+      const base64Transaction = serializedMessage.toString('base64');
+
+      this.logDebugInfo('buildSolanaApproveTransaction', {
+        ownerAddress: params.ownerAddress,
+        delegateAddress: params.delegateAddress,
+        tokenMintAddress: params.tokenMintAddress,
+        tokenAccountAddress: tokenAccountAddress.toBase58(),
+        amount: params.amount,
+        blockhash,
+        transactionLength: serializedMessage.length,
+      });
+
+      return base64Transaction;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      Logger.error(
+        error as Error,
+        'CardSDK: Failed to build Solana approve transaction',
+      );
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        `Failed to build Solana approve transaction: ${errorMessage}`,
+      );
+    }
   };
 
   /**
