@@ -284,14 +284,8 @@ describe('CustomAmountInfo', () => {
     ).toBeDefined();
   });
 
-  it('does not render PayTokenAmount when showPayTokenAmount is false', () => {
-    const { queryByText } = render({ showPayTokenAmount: false });
-
-    expect(queryByText('0 TST')).toBeNull();
-  });
-
-  it('calls renderExtras with amountHuman', () => {
-    const mockRenderExtras = jest.fn().mockReturnValue(null);
+  it('calls overrideContent with amountHuman and hides default content', () => {
+    const mockOverrideContent = jest.fn().mockReturnValue(null);
 
     useTransactionCustomAmountMock.mockReturnValue({
       amountFiat: '123.45',
@@ -304,14 +298,10 @@ describe('CustomAmountInfo', () => {
       updateTokenAmount: noop,
     });
 
-    render({ renderExtras: mockRenderExtras });
+    const { queryByText } = render({ overrideContent: mockOverrideContent });
 
-    expect(mockRenderExtras).toHaveBeenCalledWith('0.5');
-  });
-
-  it('does not render PayWithRow when showPayWithRow is false', () => {
-    const { queryByText } = render({ showPayWithRow: false });
-
+    expect(mockOverrideContent).toHaveBeenCalledWith('0.5');
+    expect(queryByText('0 TST')).toBeNull();
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeNull();

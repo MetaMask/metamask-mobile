@@ -60,22 +60,10 @@ export interface CustomAmountInfoProps {
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
   /**
-   * Optional render function for extra content that needs access to amountHuman.
-   * Used for feature-specific UI like rewards tags or output amount displays.
+   * Optional render function that overrides the default content.
+   * When set, automatically hides PayTokenAmount, PayWithRow, and children.
    */
-  renderExtras?: (amountHuman: string) => ReactNode;
-  /**
-   * Whether to show the PayTokenAmount component.
-   * Set to false when providing custom output display via renderExtras.
-   * @default true
-   */
-  showPayTokenAmount?: boolean;
-  /**
-   * Whether to show the PayWithRow component.
-   * Set to false when providing custom PayWithRow positioning via renderExtras.
-   * @default true
-   */
-  showPayWithRow?: boolean;
+  overrideContent?: (amountHuman: string) => ReactNode;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -85,9 +73,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disablePay,
     hasMax,
     preferredToken,
-    renderExtras,
-    showPayTokenAmount = true,
-    showPayWithRow = true,
+    overrideContent,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -142,12 +128,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {disablePay !== true && showPayTokenAmount && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+          {overrideContent ? (
+            overrideContent(amountHuman)
+          ) : (
+            <>
+              {disablePay !== true && (
+                <PayTokenAmount
+                  amountHuman={amountHuman}
+                  disabled={!hasTokens}
+                />
+              )}
+              {children}
+              {disablePay !== true && hasTokens && <PayWithRow />}
+            </>
           )}
-          {children}
-          {renderExtras?.(amountHuman)}
-          {disablePay !== true && hasTokens && showPayWithRow && <PayWithRow />}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />

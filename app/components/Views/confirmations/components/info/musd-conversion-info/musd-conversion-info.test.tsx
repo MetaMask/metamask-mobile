@@ -153,7 +153,7 @@ describe('MusdConversionInfo', () => {
   });
 
   describe('rewards rendering', () => {
-    it('passes showPayTokenAmount false to CustomAmountInfo', () => {
+    it('passes overrideContent function to CustomAmountInfo', () => {
       mockRoute.params = {
         outputChainId: '0x1' as Hex,
       };
@@ -166,45 +166,7 @@ describe('MusdConversionInfo', () => {
 
       expect(CustomAmountInfo).toHaveBeenCalledWith(
         expect.objectContaining({
-          showPayTokenAmount: false,
-        }),
-        expect.anything(),
-      );
-    });
-
-    it('passes showPayWithRow false to CustomAmountInfo', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          showPayWithRow: false,
-        }),
-        expect.anything(),
-      );
-    });
-
-    it('passes renderExtras function to CustomAmountInfo', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          renderExtras: expect.any(Function),
+          overrideContent: expect.any(Function),
         }),
         expect.anything(),
       );

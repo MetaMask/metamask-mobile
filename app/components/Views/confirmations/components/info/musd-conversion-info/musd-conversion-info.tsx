@@ -15,11 +15,11 @@ import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
 import RewardsTag from '../../../../../UI/Rewards/components/RewardsTag';
 import { PayWithRow } from '../../rows/pay-with-row';
 
-interface MusdRewardsExtrasProps {
+interface MusdOverrideContentProps {
   amountHuman: string;
 }
 
-const MusdRewardsExtras: React.FC<MusdRewardsExtrasProps> = ({
+const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
   amountHuman,
 }) => {
   const {
@@ -80,17 +80,15 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  const renderExtras = useCallback(
-    (amountHuman: string) => <MusdRewardsExtras amountHuman={amountHuman} />,
+  const renderOverrideContent = useCallback(
+    (amountHuman: string) => <MusdOverrideContent amountHuman={amountHuman} />,
     [],
   );
 
   return (
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
-      showPayTokenAmount={false}
-      showPayWithRow={false}
-      renderExtras={renderExtras}
+      overrideContent={renderOverrideContent}
     />
   );
 };
