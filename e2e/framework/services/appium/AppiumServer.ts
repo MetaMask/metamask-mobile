@@ -9,6 +9,8 @@ const logger = createLogger({ name: 'AppiumServer' });
  */
 export async function startAppiumServer(): Promise<ChildProcess> {
   return new Promise((resolve, reject) => {
+    let isSettled = false;
+
     const appiumProcess = spawn(
       'yarn',
       ['appium', '--allow-insecure=chromedriver_autodownload'],
@@ -27,6 +29,7 @@ export async function startAppiumServer(): Promise<ChildProcess> {
 
       if (output.includes('Error: listen EADDRINUSE')) {
         logger.error(`Appium: ${data}`);
+        isSettled = true;
         reject(
           new Error(
             'Appium server is already running. Please stop the server before running tests.',
@@ -36,12 +39,14 @@ export async function startAppiumServer(): Promise<ChildProcess> {
 
       if (output.includes('Appium REST http interface listener started')) {
         logger.debug('Appium server is up and running.');
+        isSettled = true;
         resolve(appiumProcess);
       }
     });
 
     appiumProcess.on('error', (error) => {
       logger.error(`Appium: ${error}`);
+      isSettled = true;
       reject(error);
     });
 
@@ -52,6 +57,13 @@ export async function startAppiumServer(): Promise<ChildProcess> {
 
     appiumProcess.on('close', (code: number) => {
       logger.debug(`Appium server exited with code ${code}`);
+      if (!isSettled) {
+        reject(
+          new Error(
+            `Appium server exited unexpectedly with code ${code} before starting. Check logs for details.`,
+          ),
+        );
+      }
     });
   });
 }
