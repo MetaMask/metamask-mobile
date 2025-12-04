@@ -45,7 +45,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../utils/formatUtils', () => ({
   formatNumber: jest.fn((value: number) => value.toString()),
   getIconName: jest.fn(() => 'Star'),
+  formatTimeRemaining: jest.fn(() => null),
 }));
+
+import { formatTimeRemaining } from '../../utils/formatUtils';
+
+const mockFormatTimeRemaining = formatTimeRemaining as jest.MockedFunction<
+  typeof formatTimeRemaining
+>;
 
 // Test data
 const mockSeasonReward: SeasonRewardDto = {
@@ -181,5 +188,154 @@ describe('RewardItem', () => {
     );
 
     expect(getByText('End of season description')).toBeDefined();
+  });
+
+  describe('end of season reward expiration', () => {
+    const fixedNow = new Date('2025-01-15T12:00:00.000Z');
+    const futureDate = '2025-01-16T12:00:00.000Z'; // 1 day after fixedNow
+    const pastDate = '2025-01-14T12:00:00.000Z'; // 1 day before fixedNow
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(fixedNow);
+      mockFormatTimeRemaining.mockReturnValue(null);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('displays expired indicator when end of season reward claim has expired', () => {
+      const seasonRewardWithExpiredClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: pastDate,
+      };
+
+      const { getByText } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithExpiredClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      expect(getByText('rewards.unlocked_rewards.expired')).toBeDefined();
+    });
+
+    it('displays time remaining for end of season reward when claimEndDate is in future', () => {
+      mockFormatTimeRemaining.mockReturnValue('2d 5h');
+      const seasonRewardWithFutureClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: futureDate,
+      };
+
+      const { getByText } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithFutureClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      expect(getByText(/2d 5h/)).toBeDefined();
+      expect(getByText(/rewards.unlocked_rewards.time_left/)).toBeDefined();
+    });
+
+    it('hides claim button when end of season reward claim has expired', () => {
+      const seasonRewardWithExpiredClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: pastDate,
+      };
+
+      const { queryByTestId } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithExpiredClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows claim button for end of season reward even when already claimed', () => {
+      const claimedReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+      const seasonRewardWithFutureClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: futureDate,
+      };
+
+      const { getByText } = render(
+        <RewardItem
+          reward={claimedReward}
+          seasonReward={seasonRewardWithFutureClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      expect(getByText('rewards.unlocked_rewards.claim_label')).toBeDefined();
+    });
+
+    it('hides claim button for non-end-of-season reward when already claimed', () => {
+      const claimedReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+
+      const { queryByText } = render(
+        <RewardItem
+          reward={claimedReward}
+          seasonReward={mockSeasonReward}
+          isLocked={false}
+          isEndOfSeasonReward={false}
+        />,
+      );
+
+      expect(queryByText('rewards.unlocked_rewards.claim_label')).toBeNull();
+    });
+
+    it('displays fallback shortDescription when isEndOfSeasonReward and no endOfSeasonShortDescription exists', () => {
+      const seasonRewardWithoutEndOfSeasonDesc: SeasonRewardDto = {
+        ...mockSeasonReward,
+        endOfSeasonShortDescription: undefined,
+      };
+
+      const { getByText } = render(
+        <RewardItem
+          seasonReward={seasonRewardWithoutEndOfSeasonDesc}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      expect(getByText(mockSeasonReward.shortDescription)).toBeDefined();
+    });
+
+    it('shows claim button for end of season reward when claimEndDate not set', () => {
+      const seasonRewardWithoutClaimEndDate: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: undefined,
+      };
+
+      const { getByText } = render(
+        <RewardItem
+          reward={mockReward}
+          seasonReward={seasonRewardWithoutClaimEndDate}
+          isLocked={false}
+          isEndOfSeasonReward
+        />,
+      );
+
+      expect(getByText('rewards.unlocked_rewards.claim_label')).toBeDefined();
+    });
   });
 });
