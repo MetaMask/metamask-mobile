@@ -12,10 +12,7 @@ import {
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
-import {
-  KeyboardAwareScrollView,
-  KeyboardProvider,
-} from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -510,107 +507,102 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   return (
-    <KeyboardProvider>
-      <ErrorBoundary navigation={navigation} view="Login">
-        <SafeAreaView style={styles.mainWrapper}>
-          <KeyboardAwareScrollView
-            keyboardShouldPersistTaps="handled"
-            style={styles.wrapper}
-            contentContainerStyle={styles.scrollContentContainer}
-            bottomOffset={Platform.OS === 'android' ? 50 : 0}
-            enabled={false}
-          >
-            <View
-              testID={LoginViewSelectors.CONTAINER}
-              style={styles.container}
-            >
-              <Image
-                source={METAMASK_NAME}
-                style={styles.metamaskName}
-                resizeMode="contain"
-                resizeMethod={'auto'}
+    <ErrorBoundary navigation={navigation} view="Login">
+      <SafeAreaView style={styles.mainWrapper}>
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          style={styles.wrapper}
+          contentContainerStyle={styles.scrollContentContainer}
+          bottomOffset={Platform.OS === 'android' ? 50 : 0}
+          enabled={false}
+        >
+          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
+            <Image
+              source={METAMASK_NAME}
+              style={styles.metamaskName}
+              resizeMode="contain"
+              resizeMethod={'auto'}
+            />
+
+            <View style={styles.field}>
+              <TextField
+                size={TextFieldSize.Lg}
+                placeholder={strings('login.password_placeholder')}
+                placeholderTextColor={colors.text.alternative}
+                testID={LoginViewSelectors.PASSWORD_INPUT}
+                returnKeyType={'done'}
+                autoCapitalize="none"
+                secureTextEntry
+                ref={fieldRef}
+                onChangeText={handlePasswordChange}
+                value={password}
+                onSubmitEditing={handleLogin}
+                endAccessory={
+                  <BiometryButton
+                    onPress={handleTryBiometric}
+                    hidden={shouldHideBiometricAccessoryButton}
+                    biometryType={biometryType as BIOMETRY_TYPE}
+                  />
+                }
+                keyboardAppearance={themeAppearance}
+                isError={!!error}
+              />
+            </View>
+
+            <View style={styles.helperTextContainer}>
+              {!!error && (
+                <HelpText
+                  severity={HelpTextSeverity.Error}
+                  variant={TextVariant.BodyMD}
+                  testID={LoginViewSelectors.PASSWORD_ERROR}
+                >
+                  {error}
+                </HelpText>
+              )}
+            </View>
+
+            <View style={styles.ctaWrapper} pointerEvents="box-none">
+              <LoginOptionsSwitch
+                shouldRenderBiometricOption={shouldRenderBiometricLogin}
+                biometryChoiceState={biometryChoice}
+                onUpdateBiometryChoice={updateBiometryChoice}
+                onUpdateRememberMe={setRememberMe}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                onPress={handleLogin}
+                label={strings('login.unlock_button')}
+                isDisabled={password.length === 0 || loading}
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                loading={loading}
+                style={styles.unlockButton}
               />
 
-              <View style={styles.field}>
-                <TextField
-                  size={TextFieldSize.Lg}
-                  placeholder={strings('login.password_placeholder')}
-                  placeholderTextColor={colors.text.alternative}
-                  testID={LoginViewSelectors.PASSWORD_INPUT}
-                  returnKeyType={'done'}
-                  autoCapitalize="none"
-                  secureTextEntry
-                  ref={fieldRef}
-                  onChangeText={handlePasswordChange}
-                  value={password}
-                  onSubmitEditing={handleLogin}
-                  endAccessory={
-                    <BiometryButton
-                      onPress={handleTryBiometric}
-                      hidden={shouldHideBiometricAccessoryButton}
-                      biometryType={biometryType as BIOMETRY_TYPE}
-                    />
-                  }
-                  keyboardAppearance={themeAppearance}
-                  isError={!!error}
-                />
-              </View>
-
-              <View style={styles.helperTextContainer}>
-                {!!error && (
-                  <HelpText
-                    severity={HelpTextSeverity.Error}
-                    variant={TextVariant.BodyMD}
-                    testID={LoginViewSelectors.PASSWORD_ERROR}
-                  >
-                    {error}
-                  </HelpText>
-                )}
-              </View>
-
-              <View style={styles.ctaWrapper} pointerEvents="box-none">
-                <LoginOptionsSwitch
-                  shouldRenderBiometricOption={shouldRenderBiometricLogin}
-                  biometryChoiceState={biometryChoice}
-                  onUpdateBiometryChoice={updateBiometryChoice}
-                  onUpdateRememberMe={setRememberMe}
-                />
-                <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  onPress={handleLogin}
-                  label={strings('login.unlock_button')}
-                  isDisabled={password.length === 0 || loading}
-                  testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  loading={loading}
-                  style={styles.unlockButton}
-                />
-
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={toggleWarningModal}
-                  testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.forgot_password')}
-                  isDisabled={loading}
-                  size={ButtonSize.Lg}
-                />
-              </View>
+              <Button
+                style={styles.goBack}
+                variant={ButtonVariants.Link}
+                onPress={toggleWarningModal}
+                testID={LoginViewSelectors.RESET_WALLET}
+                label={strings('login.forgot_password')}
+                isDisabled={loading}
+                size={ButtonSize.Lg}
+              />
             </View>
-          </KeyboardAwareScrollView>
-          <FadeOutOverlay />
-          <TouchableOpacity
-            style={styles.foxAnimationWrapper}
-            delayLongPress={10 * 1000} // 10 seconds
-            onLongPress={handleDownloadStateLogs}
-            activeOpacity={1}
-          >
-            <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
-          </TouchableOpacity>
-        </SafeAreaView>
-      </ErrorBoundary>
-    </KeyboardProvider>
+          </View>
+        </KeyboardAwareScrollView>
+        <FadeOutOverlay />
+        <TouchableOpacity
+          style={styles.foxAnimationWrapper}
+          delayLongPress={10 * 1000} // 10 seconds
+          onLongPress={handleDownloadStateLogs}
+          activeOpacity={1}
+        >
+          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
+        </TouchableOpacity>
+      </SafeAreaView>
+    </ErrorBoundary>
   );
 };
 
