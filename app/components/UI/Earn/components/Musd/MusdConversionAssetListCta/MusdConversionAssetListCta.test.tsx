@@ -1,22 +1,24 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 
-jest.mock('../../hooks/useMusdConversionTokens');
-jest.mock('../../hooks/useMusdConversion');
-jest.mock('../../../Ramp/hooks/useRampNavigation');
-jest.mock('../../../../../util/Logger');
+jest.mock('../../../hooks/useMusdConversionTokens');
+jest.mock('../../../hooks/useMusdConversion');
+jest.mock('../../../../Ramp/hooks/useRampNavigation');
+jest.mock('../../../../../../util/Logger');
+
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'earn.musd_conversion.buy_musd': 'Buy mUSD',
@@ -27,18 +29,19 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import MusdConversionCta from './MusdConversionCta';
-import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
-import { useMusdConversion } from '../../hooks/useMusdConversion';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import MusdConversionAssetListCta from '.';
+import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
+import { useMusdConversion } from '../../../hooks/useMusdConversion';
+import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../../constants/musd';
-import { EARN_TEST_IDS } from '../../constants/testIds';
-import initialRootState from '../../../../../util/test/initial-root-state';
-import Logger from '../../../../../util/Logger';
+} from '../../../constants/musd';
+import { EARN_TEST_IDS } from '../../../constants/testIds';
+import initialRootState from '../../../../../../util/test/initial-root-state';
+import Logger from '../../../../../../util/Logger';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const mockToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -53,7 +56,7 @@ const mockToken = {
   isETH: false,
 };
 
-describe('MusdConversionCta', () => {
+describe('MusdConversionAssetListCta', () => {
   const mockGoToBuy = jest.fn();
   const mockInitiateConversion = jest.fn();
   const mockLoggerError = jest.spyOn(Logger, 'error');
@@ -95,11 +98,16 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByTestId } = renderWithProvider(<MusdConversionCta />, {
-        state: initialRootState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        {
+          state: initialRootState,
+        },
+      );
 
-      expect(getByTestId(EARN_TEST_IDS.MUSD.CONVERSION_CTA)).toBeOnTheScreen();
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
     });
 
     it('displays MetaMask USD text', () => {
@@ -113,7 +121,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -131,7 +139,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -139,8 +147,8 @@ describe('MusdConversionCta', () => {
     });
   });
 
-  describe('CTA text', () => {
-    it('displays buy_musd when no tokens available', () => {
+  describe('CTA button text', () => {
+    it('displays "Buy mUSD" when no tokens available', () => {
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -151,14 +159,14 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
       expect(getByText('Buy mUSD')).toBeOnTheScreen();
     });
 
-    it('displays get_musd when tokens available', () => {
+    it('displays "Get mUSD" when tokens available', () => {
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -169,7 +177,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -191,7 +199,7 @@ describe('MusdConversionCta', () => {
     });
 
     it('calls goToBuy with correct ramp intent', () => {
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -203,7 +211,7 @@ describe('MusdConversionCta', () => {
     });
 
     it('does not call initiateConversion when no tokens', () => {
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -225,7 +233,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -260,7 +268,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -290,7 +298,7 @@ describe('MusdConversionCta', () => {
         isConversionToken: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -300,6 +308,63 @@ describe('MusdConversionCta', () => {
 
       await waitFor(() => {
         expect(mockGoToBuy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('education screen redirect', () => {
+      beforeEach(() => {
+        (
+          useMusdConversionTokens as jest.MockedFunction<
+            typeof useMusdConversionTokens
+          >
+        ).mockReturnValue({
+          tokens: [mockToken],
+          tokenFilter: jest.fn(),
+          isConversionToken: jest.fn(),
+        });
+
+        (
+          useMusdConversion as jest.MockedFunction<typeof useMusdConversion>
+        ).mockReturnValue({
+          initiateConversion: mockInitiateConversion,
+          error: null,
+          hasSeenConversionEducationScreen: false,
+        });
+      });
+
+      it('navigates to education screen when user has not seen it', async () => {
+        const { getByText } = renderWithProvider(
+          <MusdConversionAssetListCta />,
+          { state: initialRootState },
+        );
+
+        await act(async () => {
+          fireEvent.press(getByText('Get mUSD'));
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken: {
+              address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              chainId: '0x1',
+            },
+            outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+          },
+        });
+      });
+
+      it('does not call initiateConversion when navigating to education screen', async () => {
+        const { getByText } = renderWithProvider(
+          <MusdConversionAssetListCta />,
+          { state: initialRootState },
+        );
+
+        await act(async () => {
+          fireEvent.press(getByText('Get mUSD'));
+        });
+
+        expect(mockInitiateConversion).not.toHaveBeenCalled();
       });
     });
   });
@@ -321,7 +386,7 @@ describe('MusdConversionCta', () => {
       const testError = new Error('Network error');
       mockInitiateConversion.mockRejectedValue(testError);
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
@@ -341,7 +406,7 @@ describe('MusdConversionCta', () => {
       const nonErrorValue = 'string error';
       mockInitiateConversion.mockRejectedValue(nonErrorValue);
 
-      const { getByText } = renderWithProvider(<MusdConversionCta />, {
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
 
