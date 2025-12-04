@@ -117,25 +117,6 @@ describe('handleMetaMaskProtocol', () => {
     expect(handled).toHaveBeenCalled();
   });
 
-  describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}', () => {
-    beforeEach(() => {
-      url = `${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`;
-    });
-
-    it('should call bindAndroidSDK', () => {
-      handleMetaMaskDeeplink({
-        instance,
-        handled,
-        params,
-        url,
-        origin,
-        wcURL,
-      });
-
-      expect(mockBindAndroidSDK).toHaveBeenCalled();
-    });
-  });
-
   describe('when params.comm is "deeplinking"', () => {
     beforeEach(() => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;

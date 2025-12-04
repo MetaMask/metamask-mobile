@@ -1,5 +1,5 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import { DappClient } from '../AndroidSDK/dapp-sdk-types';
+import { DappClient } from '../dapp-sdk-types';
 import { Connection } from '../Connection';
 import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';

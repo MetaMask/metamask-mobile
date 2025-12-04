@@ -30,7 +30,7 @@ async function removeChannel({
   );
 
   if (isDappConnection) {
-    instance.state.androidService?.removeConnection(channelId);
+    // Android SDK disabled for security reasons (pm-security #532, #534)
     instance.state.deeplinkingService?.removeConnection(channelId);
   }
 
