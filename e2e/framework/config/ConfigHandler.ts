@@ -9,6 +9,8 @@ import { WebDriverConfig } from '../types';
 
 const resolveGlobalSetup = () => path.join(__dirname, 'global.setup.ts');
 
+const isCI = process.env.CI === 'true';
+
 const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   globalSetup: resolveGlobalSetup(),
   testDir: './tests',
@@ -16,8 +18,8 @@ const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   // used across tests in a file where they run sequentially
   fullyParallel: false,
   forbidOnly: false,
-  retries: 1, // Locking this to 1 worker only before moving to CI
-  workers: 2,
+  retries: 1,
+  workers: isCI ? 2 : 1,
   reporter: [['list'], ['html', { open: 'always' }]],
   timeout: 300_000,
 };
