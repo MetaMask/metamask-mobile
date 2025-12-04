@@ -84,6 +84,7 @@ export function useLegacySwapsBlockExplorer(
       // Regardless of whether the chain uses Etherscan,
       // we should always use the RPC explorer URL that we retrieved,
       // as the built-in URL mapping from `etherscanLink` may be outdated.
+      // istanbul ignore next: explorer.value is always set when isValid is true
       return etherscanLink.createCustomExplorerLink(hash, explorer.value ?? '');
     },
     [explorer],
@@ -96,6 +97,7 @@ export function useLegacySwapsBlockExplorer(
       // Regardless of whether the chain uses Etherscan,
       // we should always use the RPC explorer URL that we retrieved,
       // as the built-in URL mapping from `etherscanLink` may be outdated.
+      // istanbul ignore next: explorer.value is always set when isValid is true
       return etherscanLink.createCustomAccountLink(
         address,
         explorer.value ?? '',
@@ -111,6 +113,7 @@ export function useLegacySwapsBlockExplorer(
       // Regardless of whether the chain uses Etherscan,
       // we should always use the RPC explorer URL that we retrieved,
       // as the built-in URL mapping from `etherscanLink` may be outdated.
+      // istanbul ignore next: explorer.value is always set when isValid is true
       return etherscanLink.createCustomTokenTrackerLink(
         address,
         explorer.value ?? '',

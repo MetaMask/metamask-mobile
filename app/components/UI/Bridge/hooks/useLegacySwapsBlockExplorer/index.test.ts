@@ -79,7 +79,7 @@ describe('useLegacySwapsBlockExplorer', () => {
   });
 
   describe('explorer resolution', () => {
-    it('returns correct explorer object for a custom RPC network', () => {
+    it('returns correct explorer object for a custom RPC network with https protocol', () => {
       const explorer = renderUseBlockExplorerHook({
         chainId: '0xa4b1',
         id: 'arbitrum',
@@ -94,6 +94,27 @@ describe('useLegacySwapsBlockExplorer', () => {
         isValid: true,
         isRPC: true,
         baseUrl: 'https://arbitrumscan.io/',
+        token: expect.any(Function),
+        tx: expect.any(Function),
+        account: expect.any(Function),
+      });
+    });
+
+    it('returns correct explorer object for a custom RPC network with http protocol', () => {
+      const explorer = renderUseBlockExplorerHook({
+        chainId: '0xa4b1',
+        id: 'arbitrum',
+        nickname: 'Arbitrum Mainnet',
+        ticker: 'ETH',
+        blockExplorerUrl: 'http://arbitrumscan.io',
+      });
+
+      expect(explorer).toStrictEqual({
+        name: 'Arbitrumscan',
+        value: 'http://arbitrumscan.io',
+        isValid: true,
+        isRPC: true,
+        baseUrl: 'http://arbitrumscan.io/',
         token: expect.any(Function),
         tx: expect.any(Function),
         account: expect.any(Function),
@@ -139,6 +160,37 @@ describe('useLegacySwapsBlockExplorer', () => {
 
       expect(explorer.isValid).toBe(true);
       expect(explorer.name).toBe('Etherscan');
+    });
+
+    it('falls back to selector providerConfig when providerConfigTokenExplorer is undefined', () => {
+      const networkConfigurations = mockNetworkState({
+        chainId: '0x1',
+        id: 'mainnet',
+        nickname: 'Ethereum Mainnet',
+        ticker: 'ETH',
+        blockExplorerUrl: 'https://etherscan.io',
+        rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID',
+        type: RpcEndpointType.Infura,
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useLegacySwapsBlockExplorer(
+            networkConfigurations.networkConfigurationsByChainId,
+          ),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                NetworkController: networkConfigurations,
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current.isValid).toBe(true);
+      expect(result.current.name).toBe('Etherscan');
     });
 
     it('uses fallback name when getBlockExplorerName returns undefined', () => {
@@ -228,6 +280,18 @@ describe('useLegacySwapsBlockExplorer', () => {
       });
 
       expect(explorer.tx(undefined)).toBe('');
+    });
+
+    it('returns empty string when hash is empty string', () => {
+      const explorer = renderUseBlockExplorerHook({
+        chainId: '0xa4b1',
+        id: 'arbitrum',
+        nickname: 'Arbitrum Mainnet',
+        ticker: 'ETH',
+        blockExplorerUrl: 'https://arbitrumscan.io',
+      });
+
+      expect(explorer.tx('')).toBe('');
     });
 
     it('returns empty string when explorer is invalid', () => {
