@@ -62,7 +62,8 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   isVisible,
 }) => {
   const tw = useTailwind();
-  const { activity, isLoading } = usePredictActivity({});
+  const { activity, isLoading, isRefreshing, loadActivity } =
+    usePredictActivity({});
 
   // Track screen load performance (activity data loaded)
   usePredictMeasurement({
@@ -247,9 +248,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const keyExtractor = useCallback((item: PredictActivityItem) => item.id, []);
 
+  const shouldShowLoadingState = isLoading && sections.length === 0;
+
   return (
     <Box twClassName="flex-1">
-      {isLoading ? (
+      {shouldShowLoadingState ? (
         <Box twClassName="items-center justify-center h-full">
           <ActivityIndicator size="small" testID="activity-indicator" />
         </Box>
@@ -270,11 +273,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
           stickySectionHeadersEnabled
-          removeClippedSubviews
-          maxToRenderPerBatch={10}
-          updateCellsBatchingPeriod={50}
-          initialNumToRender={10}
-          windowSize={5}
+          refreshing={isRefreshing}
+          onRefresh={() => loadActivity({ isRefresh: true })}
+          maxToRenderPerBatch={20}
+          initialNumToRender={20}
+          windowSize={12}
         />
       )}
     </Box>
