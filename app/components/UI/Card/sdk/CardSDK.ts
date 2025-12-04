@@ -1387,34 +1387,6 @@ export class CardSDK {
       // Validate the response data
       this.validateDelegationSettings(responseData);
 
-      // TODO: Remove this -- testing purposes
-      responseData.networks = [
-        ...responseData.networks,
-        {
-          network: 'base',
-          environment: 'production',
-          chainId: '8453',
-          delegationContract: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
-          tokens: {
-            ausdc: {
-              symbol: 'ausdc',
-              decimals: 6,
-              address: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
-            },
-            usdc: {
-              symbol: 'usdc',
-              decimals: 6,
-              address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-            },
-            usdt: {
-              symbol: 'usdt',
-              decimals: 6,
-              address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
-            },
-          },
-        },
-      ];
-
       return responseData;
     } catch (error) {
       Logger.log(error, 'CardSDK: Failed to get delegation settings from API');
