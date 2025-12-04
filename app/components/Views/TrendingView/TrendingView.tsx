@@ -29,6 +29,7 @@ import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 
 const Stack = createStackNavigator();
 
@@ -43,6 +44,22 @@ const TrendingFeed: React.FC = () => {
 
   // Track which sections have empty data
   const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
+  const sessionManager = TrendingFeedSessionManager.getInstance();
+
+  // Initialize session and enable AppState listener on mount
+  useEffect(() => {
+    // Enable AppState listener to detect app backgrounding
+    sessionManager.enableAppStateListener();
+
+    // Start session
+    sessionManager.startSession();
+
+    return () => {
+      // End session and disable listener on unmount
+      sessionManager.endSession();
+      sessionManager.disableAppStateListener();
+    };
+  }, [sessionManager]);
 
   // Update state when returning to TrendingFeed
   useEffect(() => {

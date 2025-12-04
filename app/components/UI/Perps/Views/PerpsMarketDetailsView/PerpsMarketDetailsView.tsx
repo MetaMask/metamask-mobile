@@ -568,6 +568,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigateToOrder({
         direction,
         asset: market.symbol,
+        source,
       });
     },
     [
@@ -579,6 +580,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       market?.symbol,
       isButtonColorTestEnabled,
       buttonColorVariant,
+      source,
     ],
   );
 
