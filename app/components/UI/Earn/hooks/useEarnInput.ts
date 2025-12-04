@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipAssetType } from '@metamask/utils';
 import {
@@ -78,6 +78,11 @@ const useEarnInputHandlers = ({
   const [nonEvmTypedFiatValue, setNonEvmTypedFiatValue] = useState<
     string | null
   >(null);
+
+  // Reset typed fiat value when earnToken changes (mirrors useInput.ts reset behavior)
+  useEffect(() => {
+    setNonEvmTypedFiatValue(null);
+  }, [earnToken?.chainId, earnToken?.ticker]);
 
   // Reset typed fiat value when switching currency modes
   const handleCurrencySwitch = useCallback(() => {

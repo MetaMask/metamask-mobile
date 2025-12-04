@@ -638,5 +638,71 @@ describe('useEarnInputHandlers', () => {
 
       expect(result.current.amountFiatNumber).toBe('0');
     });
+
+    it('resets typed fiat value when earnToken chainId changes', () => {
+      let currentProps: EarnInputProps = {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      };
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useEarnInputHandlers(currentProps),
+        { state: mockInitialState },
+      );
+
+      act(() => {
+        result.current.handleFiatInput('5.55');
+      });
+
+      expect(result.current.amountFiatNumber).toBe('5.55');
+
+      currentProps = {
+        earnToken: {
+          ...mockTronToken,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          ticker: 'SOL',
+          symbol: 'SOL',
+        },
+        conversionRate: 0,
+        exchangeRate: 0,
+      };
+
+      rerender(() => useEarnInputHandlers(currentProps));
+
+      expect(result.current.amountFiatNumber).not.toBe('5.55');
+    });
+
+    it('resets typed fiat value when earnToken ticker changes', () => {
+      let currentProps: EarnInputProps = {
+        earnToken: mockTronToken,
+        conversionRate: 0,
+        exchangeRate: 0,
+      };
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useEarnInputHandlers(currentProps),
+        { state: mockInitialState },
+      );
+
+      act(() => {
+        result.current.handleFiatInput('5.55');
+      });
+
+      expect(result.current.amountFiatNumber).toBe('5.55');
+
+      currentProps = {
+        earnToken: {
+          ...mockTronToken,
+          ticker: 'sTRX',
+        },
+        conversionRate: 0,
+        exchangeRate: 0,
+      };
+
+      rerender(() => useEarnInputHandlers(currentProps));
+
+      expect(result.current.amountFiatNumber).not.toBe('5.55');
+    });
   });
 });

@@ -490,5 +490,89 @@ describe('useEarnWithdrawInputHandlers', () => {
 
       expect(result.current.handleKeypadChange).toBeDefined();
     });
+
+    it('recalculates fiat amount when earnToken chainId changes', () => {
+      (useInputHandler as jest.Mock).mockReturnValue({
+        amountToken: '10',
+        amountTokenMinimalUnit: new BN4('10000000'),
+        amountFiatNumber: '0',
+        isFiat: false,
+        currencyToggleValue: '0 USD',
+        isNonZeroAmount: true,
+        isOverMaximum: false,
+        handleKeypadChange: jest.fn(),
+        handleCurrencySwitch: jest.fn(),
+        percentageOptions: [],
+        handleQuickAmountPress: jest.fn(),
+        currentCurrency: 'USD',
+        handleTokenInput: jest.fn(),
+        handleFiatInput: jest.fn(),
+      });
+
+      let currentProps = tronProps;
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useEarnWithdrawInputHandlers(currentProps),
+        { state: mockInitialState },
+      );
+
+      expect(result.current.amountFiatNumber).toBe('2.80');
+
+      currentProps = {
+        earnToken: {
+          ...mockTronToken,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          ticker: 'SOL',
+          symbol: 'SOL',
+        },
+        conversionRate: 0,
+        exchangeRate: 0,
+      };
+
+      rerender(() => useEarnWithdrawInputHandlers(currentProps));
+
+      expect(result.current.amountFiatNumber).toBe('0');
+    });
+
+    it('maintains fiat calculation when only earnToken ticker changes', () => {
+      (useInputHandler as jest.Mock).mockReturnValue({
+        amountToken: '10',
+        amountTokenMinimalUnit: new BN4('10000000'),
+        amountFiatNumber: '0',
+        isFiat: false,
+        currencyToggleValue: '0 USD',
+        isNonZeroAmount: true,
+        isOverMaximum: false,
+        handleKeypadChange: jest.fn(),
+        handleCurrencySwitch: jest.fn(),
+        percentageOptions: [],
+        handleQuickAmountPress: jest.fn(),
+        currentCurrency: 'USD',
+        handleTokenInput: jest.fn(),
+        handleFiatInput: jest.fn(),
+      });
+
+      let currentProps = tronProps;
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useEarnWithdrawInputHandlers(currentProps),
+        { state: mockInitialState },
+      );
+
+      expect(result.current.amountFiatNumber).toBe('2.80');
+
+      currentProps = {
+        earnToken: {
+          ...mockTronToken,
+          ticker: 'newTRX',
+        },
+        conversionRate: 0,
+        exchangeRate: 0,
+      };
+
+      rerender(() => useEarnWithdrawInputHandlers(currentProps));
+
+      expect(result.current.amountFiatNumber).toBe('2.80');
+    });
   });
 });
