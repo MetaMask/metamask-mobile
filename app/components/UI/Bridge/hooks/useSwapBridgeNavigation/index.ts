@@ -129,20 +129,42 @@ export const useSwapBridgeNavigation = ({
       // Pre-populate Redux state before navigation to prevent empty button flash
       dispatch(setSourceToken(sourceToken));
 
+      // Helper to compare addresses with proper case sensitivity
+      // Solana addresses are case-sensitive, EVM addresses are not
+      const areAddressesEqual = (
+        addr1: string | undefined,
+        addr2: string | undefined,
+        chainId: Hex | CaipChainId,
+      ): boolean => {
+        if (!addr1 || !addr2) return false;
+        if (isNonEvmChainId(chainId)) {
+          // Solana addresses are case-sensitive
+          return addr1 === addr2;
+        }
+        // EVM addresses are case-insensitive
+        return addr1.toLowerCase() === addr2.toLowerCase();
+      };
+
       const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
       // Make sure source and dest tokens are different
       if (
         defaultDestToken &&
-        sourceToken.address?.toLowerCase() !==
-          defaultDestToken.address?.toLowerCase()
+        !areAddressesEqual(
+          sourceToken.address,
+          defaultDestToken.address,
+          sourceToken.chainId,
+        )
       ) {
         dispatch(setDestToken(defaultDestToken));
       } else {
         // Fall back to native token if default dest is same as source
         const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
         if (
-          sourceToken.address?.toLowerCase() !==
-          nativeDestToken.address?.toLowerCase()
+          !areAddressesEqual(
+            sourceToken.address,
+            nativeDestToken.address,
+            sourceToken.chainId,
+          )
         ) {
           dispatch(setDestToken(nativeDestToken));
         }
