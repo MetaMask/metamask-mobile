@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
+import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 
 interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
@@ -30,18 +31,24 @@ const MusdConversionAssetOverviewCta = ({
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
 
+  const { isMusdSupportedOnChain } = useMusdConversionTokens();
+
   const handlePress = async () => {
     try {
       if (!asset?.address || !asset?.chainId) {
         throw new Error('Asset address or chain ID is not set');
       }
 
+      const outputChainId = isMusdSupportedOnChain(asset.chainId)
+        ? toHex(asset.chainId)
+        : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
+
       const config = {
-        outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
+        outputChainId,
         navigationStack: Routes.EARN.ROOT,
       };
 

@@ -28,13 +28,14 @@ import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens'
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import { toChecksumAddress } from '../../../../../../util/address';
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { goToBuy } = useRampNavigation();
 
-  const { tokens } = useMusdConversionTokens();
+  const { tokens, isMusdSupportedOnChain } = useMusdConversionTokens();
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
@@ -64,31 +65,40 @@ const MusdConversionAssetListCta = () => {
       return;
     }
 
-    const { address, chainId } = tokens[0];
+    const { address, chainId: paymentTokenChainId } = tokens[0];
+
+    if (!paymentTokenChainId) {
+      throw new Error('[mUSD Conversion] payment token chainID missing');
+    }
+
+    const paymentTokenAddress = toChecksumAddress(address);
+
+    // Transfer to mUSD on same chain as payment token. If not supported, default to mainnet.
+    const outputChainId = isMusdSupportedOnChain(paymentTokenChainId)
+      ? toHex(paymentTokenChainId)
+      : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
 
     if (!hasSeenConversionEducationScreen) {
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken: {
-            address: toHex(address),
-            chainId: toHex(chainId as string),
+            address: paymentTokenAddress,
+            chainId: toHex(paymentTokenChainId),
           },
-          outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+          outputChainId,
         },
       });
       return;
     }
 
-    // TODO: Reminder to circle back to this when enforcing same-chain conversions.
-    // If token[0].chainId isn't guaranteed to match MUSD_CONVERSION_DEFAULT_CHAIN_ID,
     try {
       await initiateConversion({
-        outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
         preferredPaymentToken: {
-          address: toHex(address),
-          chainId: toHex(chainId as string),
+          address: paymentTokenAddress,
+          chainId: toHex(paymentTokenChainId),
         },
+        outputChainId,
       });
     } catch (error) {
       Logger.error(

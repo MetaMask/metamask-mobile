@@ -44,7 +44,10 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import {
+  MusdConversionConfig,
+  useMusdConversion,
+} from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
@@ -233,7 +236,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Chain is not supported for mUSD conversion');
       }
 
-      const config = {
+      const config: MusdConversionConfig = {
         outputChainId: assetChainId,
         preferredPaymentToken: {
           address: toHex(asset.address),
@@ -243,7 +246,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       };
 
       if (!hasSeenConversionEducationScreen) {
-        navigation.navigate(config.navigationStack, {
+        navigation.navigate(Routes.EARN.ROOT, {
           screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
           params: {
             preferredPaymentToken: config.preferredPaymentToken,

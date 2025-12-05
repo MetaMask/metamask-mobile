@@ -6,6 +6,7 @@ import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAcc
 import { useCallback, useMemo } from 'react';
 import { TokenI } from '../../Tokens/types';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { toHex } from '@metamask/controller-utils';
 
 export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensAllowlist = useSelector(
@@ -41,8 +42,10 @@ export const useMusdConversionTokens = () => {
     );
   };
 
-  const isMusdSupportedOnChain = (chainId: string) =>
-    Object.keys(MUSD_TOKEN_ADDRESS_BY_CHAIN).includes(chainId);
+  const isMusdSupportedOnChain = (chainId?: string) =>
+    chainId
+      ? Object.keys(MUSD_TOKEN_ADDRESS_BY_CHAIN).includes(toHex(chainId))
+      : false;
 
   return {
     tokenFilter,
