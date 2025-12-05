@@ -12,6 +12,8 @@ import type {
   TronUnstakeResult,
   ComputeFeeParams,
   ComputeFeeResult,
+  ComputeStakeFeeParams,
+  ComputeStakeFeeResult,
 } from '../types/tron-staking.types';
 
 // Exporting here just for convenience
@@ -62,6 +64,21 @@ export async function computeTronFee(
       params,
     },
   })) as ComputeFeeResult;
+}
+
+export async function computeStakeFee(
+  fromAccount: InternalAccount,
+  params: ComputeStakeFeeParams,
+): Promise<ComputeStakeFeeResult> {
+  return (await handleSnapRequest(controllerMessenger, {
+    snapId: fromAccount.metadata?.snap?.id as SnapId,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      method: 'computeStakeFee',
+      params,
+    },
+  })) as ComputeStakeFeeResult;
 }
 
 export async function validateTronUnstakeAmount(
