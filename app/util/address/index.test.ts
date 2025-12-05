@@ -513,8 +513,8 @@ describe('getAddressAccountType', () => {
       'Invalid address: undefined',
     );
   });
-  it('should return QR if address is from a keyring type qr', () => {
-    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR');
+  it('should return QR Hardware if address is from a keyring type qr', () => {
+    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR Hardware');
   });
   it('should return imported if address is from a keyring type simple', () => {
     expect(getAddressAccountType(mockSimpleKeyringAddress)).toBe('Imported');
