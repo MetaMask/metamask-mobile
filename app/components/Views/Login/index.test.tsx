@@ -168,10 +168,22 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock('react-native-keyboard-controller', () => ({
-  KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
+jest.mock('react-native-keyboard-aware-scroll-view', () => ({
   KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) =>
     children,
+}));
+
+jest.mock('react-native-keyboard-controller', () => ({
+  KeyboardController: {
+    setInputMode: jest.fn(),
+    setDefaultMode: jest.fn(),
+  },
+  AndroidSoftInputModes: {
+    SOFT_INPUT_ADJUST_NOTHING: 0,
+    SOFT_INPUT_ADJUST_PAN: 1,
+    SOFT_INPUT_ADJUST_RESIZE: 2,
+    SOFT_INPUT_ADJUST_UNSPECIFIED: 3,
+  },
 }));
 
 jest.mock('../../../util/validators', () => ({
@@ -1406,7 +1418,7 @@ describe('Login', () => {
       });
     });
 
-    it('sets bottomOffset to 50 on Android', () => {
+    it('sets extraScrollHeight to 50 on Android', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'android',
         writable: true,
@@ -1420,12 +1432,12 @@ describe('Login', () => {
 
       const { UNSAFE_root } = renderWithProvider(<Login />);
 
-      const scrollView = UNSAFE_root.findByProps({ bottomOffset: 50 });
+      const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 50 });
       expect(scrollView).toBeDefined();
-      expect(scrollView.props.bottomOffset).toBe(50);
+      expect(scrollView.props.extraScrollHeight).toBe(50);
     });
 
-    it('sets bottomOffset to 0 on iOS', () => {
+    it('sets extraScrollHeight to 0 on iOS', () => {
       Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
       mockRoute.mockReturnValue({
         params: {
@@ -1436,9 +1448,9 @@ describe('Login', () => {
 
       const { UNSAFE_root } = renderWithProvider(<Login />);
 
-      const scrollView = UNSAFE_root.findByProps({ bottomOffset: 0 });
+      const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 0 });
       expect(scrollView).toBeDefined();
-      expect(scrollView.props.bottomOffset).toBe(0);
+      expect(scrollView.props.extraScrollHeight).toBe(0);
     });
   });
 });
