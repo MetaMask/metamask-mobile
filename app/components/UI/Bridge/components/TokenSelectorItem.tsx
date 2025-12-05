@@ -60,18 +60,22 @@ const createStyles = ({
       backgroundColor: vars.isSelected
         ? theme.colors.primary.muted
         : theme.colors.background.default,
-      padding: 4,
+      paddingVertical: 4,
+      paddingLeft: 16,
+      paddingRight: 10,
     },
     selectedIndicator: {
+      position: 'absolute',
+      left: 4,
+      top: 4,
+      bottom: 4,
       width: 4,
-      height: '100%',
       borderRadius: 8,
       backgroundColor: theme.colors.primary.default,
     },
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingHorizontal: 15,
       paddingVertical: 10,
       alignItems: 'flex-start',
     },
@@ -99,12 +103,12 @@ const createStyles = ({
       marginLeft: 8,
       paddingHorizontal: 6,
     },
-    selectedItemWrapperReset: {
-      marginLeft: -4,
-    },
     nativeTokenIcon: {
       width: 32,
       height: 32,
+    },
+    childrenWrapper: {
+      marginLeft: 12,
     },
   });
 
@@ -183,7 +187,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
-          style={isSelected ? styles.selectedItemWrapperReset : {}}
         >
           {/* Token Icon */}
           <BadgeWrapper
@@ -269,7 +272,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         </Box>
       </TouchableOpacity>
 
-      {children}
+      <View style={styles.childrenWrapper}>{children}</View>
     </Box>
   );
 };
