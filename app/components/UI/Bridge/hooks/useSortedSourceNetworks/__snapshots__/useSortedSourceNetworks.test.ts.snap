@@ -48,5 +48,16 @@ exports[`useSortedSourceNetworks should sort networks by total fiat value in des
     "ticker": "BTC",
     "totalFiatValue": 1500,
   },
+  {
+    "chainId": "tron:728126428",
+    "decimals": 6,
+    "imageSource": 1,
+    "isEvm": false,
+    "isTestnet": false,
+    "name": "Tron",
+    "nativeCurrency": "tron:728126428/slip44:195",
+    "ticker": "TRX",
+    "totalFiatValue": 50,
+  },
 ]
 `;
