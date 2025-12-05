@@ -583,7 +583,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -2459,7 +2459,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -4335,7 +4335,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -6211,7 +6211,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -8026,7 +8026,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -9840,7 +9840,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -11655,7 +11655,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -12053,7 +12053,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         }
                                       }
                                     >
-                                      Try Again
+                                      Try again
                                     </Text>
                                   </Text>
                                 </View>
@@ -13563,7 +13563,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -15333,7 +15333,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -17148,7 +17148,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -18963,7 +18963,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -20778,7 +20778,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -22593,7 +22593,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -22991,7 +22991,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         }
                                       }
                                     >
-                                      Try Again
+                                      Try again
                                     </Text>
                                   </Text>
                                 </View>
@@ -24501,7 +24501,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -26314,7 +26314,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -26710,7 +26710,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         }
                                       }
                                     >
-                                      Try Again
+                                      Try again
                                     </Text>
                                   </Text>
                                 </View>
@@ -28220,7 +28220,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -28618,7 +28618,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         }
                                       }
                                     >
-                                      Try Again
+                                      Try again
                                     </Text>
                                   </Text>
                                 </View>
@@ -30128,7 +30128,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
