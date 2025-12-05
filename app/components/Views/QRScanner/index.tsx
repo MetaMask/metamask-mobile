@@ -192,7 +192,7 @@ const QRScanner = ({
           return;
         }
       }
-      if (SDKConnectV2.isConnectDeeplink(response.data)) {
+      if (SDKConnectV2.isMwpDeeplink(response.data)) {
         // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
         // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
         // parent components don't need to be notified.
@@ -208,7 +208,7 @@ const QRScanner = ({
             })
             .build(),
         );
-        SDKConnectV2.handleConnectDeeplink(response.data);
+        SDKConnectV2.handleMwpDeeplink(response.data);
         end();
         return;
       }
