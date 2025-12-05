@@ -83,6 +83,13 @@ const useTronUnstake = ({
     [isTronEnabled, tronResources],
   );
 
+  // Determine the staked balance to use for withdrawal
+  const stakedBalanceOverride = useMemo(() => {
+    if (stakedTrxTotal > 0) return stakedTrxTotal;
+    if (token.isStaked) return token.balance;
+    return undefined;
+  }, [stakedTrxTotal, token.isStaked, token.balance]);
+
   // Build enriched Tron token with staked balance for withdrawal flow (acts as receipt token)
   const tronWithdrawalToken = useMemo(() => {
     if (!isTronEnabled) return undefined;
@@ -90,14 +97,11 @@ const useTronUnstake = ({
     return buildTronEarnTokenIfEligible(token, {
       isTrxStakingEnabled: true,
       isTronEligible: true,
-      stakedBalanceOverride:
-        stakedTrxTotal > 0
-          ? stakedTrxTotal
-          : token.isStaked
-            ? token.balance
-            : undefined,
+      stakedBalanceOverride,
     });
-  }, [isTronEnabled, token, stakedTrxTotal]) as EarnTokenDetails | undefined;
+  }, [isTronEnabled, token, stakedBalanceOverride]) as
+    | EarnTokenDetails
+    | undefined;
 
   // Resource type state (energy or bandwidth)
   const [resourceType, setResourceType] = useState<ResourceType>('energy');

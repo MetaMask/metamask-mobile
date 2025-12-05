@@ -39,8 +39,6 @@ export interface TronUnstakeResult {
   errors?: string[];
 }
 
-export type FeeType = string;
-
 export interface ComputeFeeParams {
   transaction: string;
   accountId: string;
@@ -48,7 +46,7 @@ export interface ComputeFeeParams {
 }
 
 export type ComputeFeeResult = {
-  type: FeeType;
+  type: string;
   asset: {
     unit: string;
     type: string;

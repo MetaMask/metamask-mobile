@@ -823,6 +823,24 @@ const EarnWithdrawInputView = () => {
     ],
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const shouldShowTronWithdrawButton =
+    isTronEnabled && isPreviewVisible && isNonZeroAmount;
+
+  const isTronWithdrawButtonDisabled =
+    !isNonZeroAmount ||
+    isSubmittingStakeWithdrawalTransaction ||
+    isTronUnstakeValidating;
+  ///: END:ONLY_INCLUDE_IF
+
+  const isWithdrawButtonDisabled =
+    (showTronUnstakingUI
+      ? !isNonZeroAmount || isTronValidating
+      : isWithdrawingMoreThanAvailableForLendingToken ||
+        isOverMaximum.isOverMaximumToken ||
+        isOverMaximum.isOverMaximumEth ||
+        !isNonZeroAmount) || isSubmittingStakeWithdrawalTransaction;
+
   return (
     <ScreenLayout style={styles.container}>
       {
@@ -896,7 +914,7 @@ const EarnWithdrawInputView = () => {
       )}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronEnabled && isPreviewVisible && isNonZeroAmount && (
+        shouldShowTronWithdrawButton && (
           <View style={styles.reviewButtonContainer}>
             <Button
               testID="review-button"
@@ -905,11 +923,7 @@ const EarnWithdrawInputView = () => {
               labelTextVariant={TextVariant.BodyMDMedium}
               variant={ButtonVariants.Primary}
               loading={isSubmittingStakeWithdrawalTransaction}
-              isDisabled={
-                !isNonZeroAmount ||
-                isSubmittingStakeWithdrawalTransaction ||
-                isTronUnstakeValidating
-              }
+              isDisabled={isTronWithdrawButtonDisabled}
               width={ButtonWidthTypes.Full}
               onPress={handleWithdrawPress}
             />
@@ -926,14 +940,7 @@ const EarnWithdrawInputView = () => {
             labelTextVariant={TextVariant.BodyMDMedium}
             variant={ButtonVariants.Primary}
             loading={isSubmittingStakeWithdrawalTransaction}
-            isDisabled={
-              (showTronUnstakingUI
-                ? !isNonZeroAmount || isTronValidating
-                : isWithdrawingMoreThanAvailableForLendingToken ||
-                  isOverMaximum.isOverMaximumToken ||
-                  isOverMaximum.isOverMaximumEth ||
-                  !isNonZeroAmount) || isSubmittingStakeWithdrawalTransaction
-            }
+            isDisabled={isWithdrawButtonDisabled}
             width={ButtonWidthTypes.Full}
             onPress={handleWithdrawPress}
           />
