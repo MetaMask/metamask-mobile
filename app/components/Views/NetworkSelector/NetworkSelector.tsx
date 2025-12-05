@@ -60,7 +60,7 @@ import {
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import { InfuraNetworkType } from '@metamask/controller-utils';
-import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
@@ -106,6 +106,7 @@ import {
   NETWORK_SELECTOR_SOURCES,
   NetworkSelectorSource,
 } from '../../../constants/networkSelector';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
 
 interface infuraNetwork {
   name: string;
@@ -148,6 +149,9 @@ const NetworkSelector = () => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -554,7 +558,28 @@ const NetworkSelector = () => {
             variant={
               isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu
             }
-            title={name}
+            title={
+              isSendFlow ? (
+                name
+              ) : (
+                <View>
+                  <Text variant={TextVariant.BodyMD}>{name}</Text>
+                  {isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </Text>
+                  ) : undefined}
+                </View>
+              )
+            }
+            tertiaryText={
+              isSendFlow && isGasFeesSponsoredNetworkEnabled(chainId)
+                ? strings('networks.no_network_fee')
+                : undefined
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,

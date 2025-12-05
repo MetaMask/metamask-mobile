@@ -15,6 +15,9 @@ import { MetricsEventBuilder } from '../../../../../../core/Analytics/MetricsEve
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
+import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
+import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
+import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 
 const { InteractionManager, Alert, Linking } =
   jest.requireActual('react-native');
@@ -62,7 +65,6 @@ jest.mock('../../../../../../util/identity/hooks/useAuthentication', () => ({
 const mockMetrics = {
   trackEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
-  enableSocialLogin: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   isEnabled: jest.fn(() => false),
 };
@@ -87,6 +89,34 @@ const mockSelectSeedlessOnboardingLoginFlow =
   selectSeedlessOnboardingLoginFlow as jest.MockedFunction<
     typeof selectSeedlessOnboardingLoginFlow
   >;
+
+jest.mock('../../../../../../selectors/legalNotices', () => ({
+  selectIsPna25Acknowledged: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../../../selectors/featureFlagController/legalNotices',
+  () => ({
+    selectIsPna25FlagEnabled: jest.fn(),
+  }),
+);
+
+jest.mock('../../../../../../actions/legalNotices', () => ({
+  storePna25Acknowledged: jest.fn(() => ({ type: 'STORE_PNA25_ACKNOWLEDGED' })),
+}));
+
+const mockSelectIsPna25Acknowledged =
+  selectIsPna25Acknowledged as jest.MockedFunction<
+    typeof selectIsPna25Acknowledged
+  >;
+
+const mockSelectIsPna25FlagEnabled =
+  selectIsPna25FlagEnabled as jest.MockedFunction<
+    typeof selectIsPna25FlagEnabled
+  >;
+
+const mockStorePna25Acknowledged =
+  storePna25Acknowledged as jest.MockedFunction<typeof storePna25Acknowledged>;
 
 jest.mock(
   '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
@@ -259,7 +289,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(metaMetricsSwitch.props.value).toBe(false);
           expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith(false);
-          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalled();
           expect(mockAlert).toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
           expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
@@ -295,7 +324,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(metaMetricsSwitch.props.value).toBe(true);
           expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith();
-          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalled();
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
             deviceProp: 'Device value',
@@ -312,6 +340,94 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               })
               .build(),
           );
+        });
+      });
+
+      it('dispatches storePna25Acknowledged when flag is enabled and user enables metrics', async () => {
+        mockMetrics.isEnabled.mockReturnValue(false);
+        mockSelectIsPna25FlagEnabled.mockReturnValue(true);
+        mockSelectIsPna25Acknowledged.mockReturnValue(false);
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingFalse },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockStorePna25Acknowledged).toHaveBeenCalled();
+        });
+      });
+
+      it('does not dispatch storePna25Acknowledged when flag is disabled', async () => {
+        mockMetrics.isEnabled.mockReturnValue(false);
+        mockSelectIsPna25FlagEnabled.mockReturnValue(false);
+        mockSelectIsPna25Acknowledged.mockReturnValue(false);
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingFalse },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockStorePna25Acknowledged).not.toHaveBeenCalled();
+        });
+      });
+
+      it('does not dispatch storePna25Acknowledged when already acknowledged', async () => {
+        mockMetrics.isEnabled.mockReturnValue(false);
+        mockSelectIsPna25FlagEnabled.mockReturnValue(true);
+        mockSelectIsPna25Acknowledged.mockReturnValue(true);
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingFalse },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockStorePna25Acknowledged).not.toHaveBeenCalled();
+        });
+      });
+
+      it('does not dispatch storePna25Acknowledged when user disables metrics', async () => {
+        mockMetrics.isEnabled.mockReturnValue(true);
+        mockSelectIsPna25FlagEnabled.mockReturnValue(true);
+        mockSelectIsPna25Acknowledged.mockReturnValue(false);
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingTrue },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockStorePna25Acknowledged).not.toHaveBeenCalled();
         });
       });
 
@@ -338,8 +454,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           fireEvent(metaMetricsSwitch, 'valueChange', true);
 
           await waitFor(() => {
-            expect(mockMetrics.enable).not.toHaveBeenCalledWith();
-            expect(mockMetrics.enableSocialLogin).toHaveBeenCalledWith(true);
+            expect(mockMetrics.enable).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
             expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
             expect(mockMetrics.trackEvent).toHaveBeenCalled();
@@ -374,8 +489,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           await waitFor(() => {
             expect(metaMetricsSwitch.props.value).toBe(false);
             expect(marketingSwitch.props.value).toBe(false);
-            expect(mockMetrics.enable).not.toHaveBeenCalledWith(false);
-            expect(mockMetrics.enableSocialLogin).toHaveBeenCalledWith(false);
+            expect(mockMetrics.enable).toHaveBeenCalledWith(false);
             expect(mockAlert).toHaveBeenCalled();
             expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
             expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
@@ -410,8 +524,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           await waitFor(() => {
             expect(metaMetricsSwitch.props.value).toBe(true);
             expect(marketingSwitch.props.value).toBe(false);
-            expect(mockMetrics.enable).not.toHaveBeenCalledWith();
-            expect(mockMetrics.enableSocialLogin).toHaveBeenCalledWith(true);
+            expect(mockMetrics.enable).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
             expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
             expect(mockMetrics.trackEvent).toHaveBeenCalled();
@@ -591,7 +704,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(marketingSwitch.props.value).toBe(false);
           expect(metaMetricsSwitch.props.value).toBe(true);
           expect(mockMetrics.enable).not.toHaveBeenCalled();
-          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalled();
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({

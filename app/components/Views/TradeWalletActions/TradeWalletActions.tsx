@@ -42,12 +42,8 @@ import {
   useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../UI/Earn/selectors/featureFlags';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
+import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
@@ -86,14 +82,20 @@ function TradeWalletActions() {
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingEnabled = useFeatureFlag(
+    FeatureFlagNames.earnPooledStakingEnabled,
+  );
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPerpsEnabled = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  ) as boolean;
+  const isPredictEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  ) as boolean;
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const isStablecoinLendingEnabled = useSelector(

@@ -10,6 +10,7 @@ import reducer, {
   selectBridgeViewMode,
   setDestToken,
   selectBip44DefaultPair,
+  selectGasIncludedQuoteParams,
 } from '.';
 import {
   BridgeToken,
@@ -50,7 +51,8 @@ describe('bridge slice', () => {
         destAmount: undefined,
         sourceToken: undefined,
         destToken: undefined,
-        gasIncluded: false,
+        isGasIncludedSTXSendBundleSupported: false,
+        isGasIncluded7702Supported: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
@@ -383,6 +385,70 @@ describe('bridge slice', () => {
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectGasIncludedQuoteParams', () => {
+    it('returns gasIncluded true with 7702 false when STX send bundle is supported', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded true with 7702 true for swap when 7702 is supported', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: true });
+    });
+
+    it('returns gasIncluded false with 7702 false for swap without 7702 support', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: false,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded false with 7702 false for bridge mode', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: mockDestToken,
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
     });
   });
 });

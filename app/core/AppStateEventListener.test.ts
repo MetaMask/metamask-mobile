@@ -6,7 +6,7 @@ import { processAttribution } from './processAttribution';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import ReduxService, { ReduxStore } from './redux';
 
-jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => jest.fn());
+jest.mock('./DeeplinkManager/utils/extractURLParams', () => jest.fn());
 
 jest.mock('../util/Logger', () => ({
   error: jest.fn(),

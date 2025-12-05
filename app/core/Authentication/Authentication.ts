@@ -176,7 +176,7 @@ class AuthenticationService {
     );
 
     if (!isMultichainAccountsState2Enabled()) {
-      await Promise.all(
+      Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
@@ -192,7 +192,7 @@ class AuthenticationService {
             await StorageWrapper.setItem(discoveryStorageId, TRUE);
           }
         }),
-      );
+      ).catch(console.error);
     }
 
     password = this.wipeSensitiveData();
@@ -296,7 +296,7 @@ class AuthenticationService {
     await KeyringController.createNewVaultAndKeychain(password);
 
     if (!isMultichainAccountsState2Enabled()) {
-      await Promise.all(
+      Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
@@ -311,7 +311,7 @@ class AuthenticationService {
             await StorageWrapper.setItem(discoveryStorageId, TRUE);
           }
         }),
-      );
+      ).catch(console.error);
     }
 
     password = this.wipeSensitiveData();

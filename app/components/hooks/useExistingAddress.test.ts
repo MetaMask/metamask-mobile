@@ -15,17 +15,6 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-// Mock isRemoveGlobalNetworkSelectorEnabled utility
-const mockIsRemoveGlobalNetworkSelectorEnabled = jest
-  .fn()
-  .mockReturnValue(false);
-
-jest.mock('../../util/networks', () => ({
-  ...jest.requireActual('../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: () =>
-    mockIsRemoveGlobalNetworkSelectorEnabled(),
-}));
-
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
@@ -73,14 +62,6 @@ describe('useExistingAddress', () => {
     expect(result?.current?.name).toEqual('Account 2');
   });
   it('returns undefined address not in identities or address book', async () => {
-    const { result } = renderHookWithProvider(() => useExistingAddress('0x2'), {
-      state: mockInitialState,
-    });
-    expect(result?.current).toBeUndefined();
-  });
-
-  it('returns existing address from all chain IDs when isRemoveGlobalNetworkSelectorEnabled is true', () => {
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
     const { result } = renderHookWithProvider(() => useExistingAddress('0x2'), {
       state: mockInitialState,
     });

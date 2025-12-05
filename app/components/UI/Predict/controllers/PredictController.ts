@@ -1660,6 +1660,10 @@ export class PredictController extends BaseController<
           });
           geoBlockResponse.isEligible = !isLocallyGeoblocked;
         }
+        if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
+          geoBlockResponse.isEligible = true;
+          geoBlockResponse.country = 'N/A';
+        }
         this.update((state) => {
           state.eligibility[providerId] = {
             eligible: geoBlockResponse.isEligible,

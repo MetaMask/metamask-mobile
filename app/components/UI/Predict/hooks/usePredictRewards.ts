@@ -1,23 +1,37 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import {
   toCaipAccountId,
   parseCaipChainId,
   type CaipAccountId,
 } from '@metamask/utils';
+import {
+  EstimatePointsDto,
+  EstimatedPointsDto,
+  EstimateAssetDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
+import {
+  POLYGON_MAINNET_CAIP_CHAIN_ID,
+  POLYGON_USDC_CAIP_ASSET_ID,
+  COLLATERAL_TOKEN_DECIMALS,
+} from '../providers/polymarket/constants';
+import { parseUnits } from 'ethers/lib/utils';
 import Logger from '../../../../util/Logger';
-
-// Polygon mainnet chain ID
-const POLYGON_CHAIN_ID = '0x89';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface UsePredictRewardsResult {
   enabled: boolean;
   isLoading: boolean;
+  accountOptedIn: boolean | null;
+  rewardsAccountScope: InternalAccount | null;
+  shouldShowRewardsRow: boolean;
+  estimatedPoints: number | null;
+  hasError: boolean;
 }
 
 /**
@@ -27,8 +41,9 @@ const formatAccountToCaipAccountId = (
   address: string,
 ): CaipAccountId | null => {
   try {
-    const caipChainId = formatChainIdToCaip(POLYGON_CHAIN_ID);
-    const { namespace, reference } = parseCaipChainId(caipChainId);
+    const { namespace, reference } = parseCaipChainId(
+      POLYGON_MAINNET_CAIP_CHAIN_ID,
+    );
     return toCaipAccountId(namespace, reference, address);
   } catch (error) {
     Logger.error(ensureError(error), {
@@ -50,45 +65,83 @@ const formatAccountToCaipAccountId = (
 };
 
 /**
- * Hook to check if rewards are enabled for the current account in Predict
- * @returns {UsePredictRewardsResult} Object containing enabled status and loading state
+ * Hook to check if rewards are enabled for the current account in Predict and estimate points
+ * @param totalFeeAmountUsd - Total fee amount in USD
+ * @returns {UsePredictRewardsResult} Object containing enabled status, loading state, and estimated points
  */
-export const usePredictRewards = (): UsePredictRewardsResult => {
+export const usePredictRewards = (
+  totalFeeAmountUsd?: number,
+): UsePredictRewardsResult => {
   const [isLoading, setIsLoading] = useState(true);
   const [enabled, setEnabled] = useState(false);
+  const [accountOptedIn, setAccountOptedIn] = useState<boolean | null>(null);
+  const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
+  const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   // Selectors
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
 
-  const checkRewardsEnabled = useCallback(async () => {
+  const selectedAccount = getSelectedAccountByScope(
+    POLYGON_MAINNET_CAIP_CHAIN_ID,
+  );
+  const selectedAddress = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : undefined;
+
+  const estimatePoints = useCallback(async () => {
     // Skip if missing required data
-    if (!selectedAddress) {
+    if (!selectedAddress || !selectedAccount || !totalFeeAmountUsd) {
+      setEstimatedPoints(null);
       setEnabled(false);
+      setAccountOptedIn(null);
+      setShouldShowRewardsRow(false);
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
+    setHasError(false);
 
     try {
-      // Check if rewards feature is enabled globally
-      const isRewardsEnabled = Engine.controllerMessenger.call(
-        'RewardsController:isRewardsFeatureEnabled',
+      // Check if there is an active season
+      const hasActiveSeason = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
       );
 
-      if (!isRewardsEnabled) {
+      if (!hasActiveSeason) {
+        setEstimatedPoints(null);
         setEnabled(false);
+        setShouldShowRewardsRow(false);
+        setAccountOptedIn(null);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if there's a subscription first
+      const candidateSubscriptionId = await Engine.controllerMessenger.call(
+        'RewardsController:getCandidateSubscriptionId',
+      );
+
+      if (!candidateSubscriptionId) {
+        setEstimatedPoints(null);
+        setEnabled(false);
+        setShouldShowRewardsRow(false);
+        setAccountOptedIn(null);
+        setHasError(false);
         setIsLoading(false);
         return;
       }
 
       // Format account to CAIP-10 for Polygon
       const caipAccount = formatAccountToCaipAccountId(selectedAddress);
-
       if (!caipAccount) {
+        setEstimatedPoints(null);
         setEnabled(false);
+        setShouldShowRewardsRow(false);
+        setAccountOptedIn(null);
         setIsLoading(false);
         return;
       }
@@ -99,7 +152,67 @@ export const usePredictRewards = (): UsePredictRewardsResult => {
         caipAccount,
       );
 
-      setEnabled(hasOptedIn);
+      setAccountOptedIn(hasOptedIn);
+
+      // Determine if we should show the rewards row
+      // Show row if: opted in OR (not opted in AND opt-in is supported)
+      let shouldShow = hasOptedIn;
+
+      if (!hasOptedIn && selectedAccount) {
+        const isOptInSupported = await Engine.controllerMessenger.call(
+          'RewardsController:isOptInSupported',
+          selectedAccount,
+        );
+        shouldShow = isOptInSupported;
+      }
+
+      setShouldShowRewardsRow(shouldShow);
+      setEnabled(shouldShow);
+
+      // Only estimate points if account is opted in and fee asset info is provided
+      if (!hasOptedIn) {
+        setEstimatedPoints(null);
+        setHasError(false);
+        setIsLoading(false);
+        return;
+      }
+
+      // If fee asset information is not provided, skip estimation
+      if (!totalFeeAmountUsd) {
+        setEstimatedPoints(null);
+        setHasError(false);
+        setIsLoading(false);
+        return;
+      }
+
+      // Prepare fee asset
+      // Convert USD amount to atomic units (6 decimals for USDC)
+      const feeAsset: EstimateAssetDto = {
+        id: POLYGON_USDC_CAIP_ASSET_ID,
+        amount: parseUnits(
+          totalFeeAmountUsd.toString(),
+          COLLATERAL_TOKEN_DECIMALS,
+        ).toString(),
+      };
+
+      // Create estimate request
+      const estimateRequest: EstimatePointsDto = {
+        activityType: 'PREDICT',
+        account: caipAccount,
+        activityContext: {
+          predictContext: {
+            feeAsset,
+          },
+        },
+      };
+
+      // Call rewards controller to estimate points
+      const result: EstimatedPointsDto = await Engine.controllerMessenger.call(
+        'RewardsController:estimatePoints',
+        estimateRequest,
+      );
+
+      setEstimatedPoints(result.pointsEstimate);
     } catch (error) {
       Logger.error(ensureError(error), {
         tags: {
@@ -109,25 +222,50 @@ export const usePredictRewards = (): UsePredictRewardsResult => {
         context: {
           name: 'usePredictRewards',
           data: {
-            method: 'checkRewardsEnabled',
-            action: 'rewards_check',
-            operation: 'rewards_status',
+            method: 'estimatePoints',
+            action: 'rewards_estimation',
+            operation: 'points_estimation',
           },
         },
       });
-      setEnabled(false);
+      setEstimatedPoints(null);
+      setHasError(true);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedAddress]);
+  }, [totalFeeAmountUsd, selectedAddress, selectedAccount]);
 
-  // Check rewards status when dependencies change
+  // Estimate points when dependencies change
   useEffect(() => {
-    checkRewardsEnabled();
-  }, [checkRewardsEnabled]);
+    estimatePoints();
+  }, [estimatePoints]);
+
+  // Subscribe to account linked event to retrigger estimate
+  useEffect(() => {
+    const handleAccountLinked = () => {
+      estimatePoints();
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'RewardsController:accountLinked',
+      handleAccountLinked,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'RewardsController:accountLinked',
+        handleAccountLinked,
+      );
+    };
+  }, [estimatePoints]);
 
   return {
     enabled,
     isLoading,
+    accountOptedIn,
+    rewardsAccountScope: selectedAccount ?? null,
+    shouldShowRewardsRow,
+    estimatedPoints,
+    hasError,
   };
 };

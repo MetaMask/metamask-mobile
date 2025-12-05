@@ -10,28 +10,31 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
+  Position,
+  Order,
 } from '../../controllers/types';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
-import { usePerpsLivePositions, usePerpsLiveOrders } from '../../hooks/stream';
 
 interface PerpsWatchlistMarketsProps {
   markets: PerpsMarketData[];
   isLoading?: boolean;
+  /** Positions from parent - avoids duplicate WebSocket subscriptions */
+  positions?: Position[];
+  /** Orders from parent - avoids duplicate WebSocket subscriptions */
+  orders?: Order[];
 }
 
 const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   markets,
   isLoading,
+  positions = [],
+  orders = [],
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-
-  // Subscribe to positions and orders to determine initialTab
-  const { positions } = usePerpsLivePositions({ throttleMs: 1000 });
-  const { orders } = usePerpsLiveOrders({ throttleMs: 1000 });
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {

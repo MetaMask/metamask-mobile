@@ -3,9 +3,11 @@ import {
   usePerpsOrderForm,
   UsePerpsOrderFormReturn,
 } from '../hooks/usePerpsOrderForm';
-import { OrderType } from '../controllers/types';
+import { OrderType, Position } from '../controllers/types';
 
-interface PerpsOrderContextType extends UsePerpsOrderFormReturn {}
+interface PerpsOrderContextType extends UsePerpsOrderFormReturn {
+  existingPosition?: Position;
+}
 
 const PerpsOrderContext = createContext<PerpsOrderContextType | null>(null);
 
@@ -16,6 +18,7 @@ interface PerpsOrderProviderProps {
   initialAmount?: string;
   initialLeverage?: number;
   initialType?: OrderType;
+  existingPosition?: Position;
 }
 
 export const PerpsOrderProvider = ({
@@ -25,6 +28,7 @@ export const PerpsOrderProvider = ({
   initialAmount,
   initialLeverage,
   initialType,
+  existingPosition,
 }: PerpsOrderProviderProps) => {
   const orderFormState = usePerpsOrderForm({
     initialAsset,
@@ -35,7 +39,12 @@ export const PerpsOrderProvider = ({
   });
 
   return (
-    <PerpsOrderContext.Provider value={orderFormState}>
+    <PerpsOrderContext.Provider
+      value={{
+        ...orderFormState,
+        existingPosition,
+      }}
+    >
       {children}
     </PerpsOrderContext.Provider>
   );

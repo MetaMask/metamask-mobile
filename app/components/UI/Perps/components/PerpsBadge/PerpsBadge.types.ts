@@ -1,6 +1,6 @@
 import type { MarketType } from '../../controllers/types';
 
-export type BadgeType = MarketType | 'experimental';
+export type BadgeType = MarketType | 'experimental' | 'dex';
 
 export interface PerpsBadgeProps {
   /**

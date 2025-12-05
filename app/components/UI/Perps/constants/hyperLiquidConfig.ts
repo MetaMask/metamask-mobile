@@ -114,33 +114,47 @@ export const FEE_RATES: FeeRatesConfig = {
 };
 
 /**
- * HIP-3 fee multiplier configuration
+ * HIP-3 dynamic fee calculation configuration
  *
- * HIP-3 (builder-deployed) perpetual markets charge 2x base fees compared to
- * validator-operated markets. This covers a 50/50 split between the protocol
- * and the builder/deployer.
+ * HIP-3 (builder-deployed) perpetual markets have variable fees based on:
+ * 1. deployerFeeScale - Per-DEX fee multiplier (fetched from perpDexs API)
+ * 2. growthMode - Per-asset 90% fee reduction (fetched from meta API)
  *
- * Reference: HIP-3.md line 45 - "From the user perspective, fees are 2x the
- * usual fees on validator-operated perp markets."
+ * Fee Formula (from HyperLiquid docs):
+ * - scaleIfHip3 = deployerFeeScale < 1 ? deployerFeeScale + 1 : deployerFeeScale * 2
+ * - growthModeScale = growthMode ? 0.1 : 1
+ * - finalRate = baseRate * scaleIfHip3 * growthModeScale
  *
- * Applied to:
- * - Base fee rates (taker/maker)
- * - User-specific discounted rates
- * - All fee calculations for HIP-3 assets (identified by dex:SYMBOL format)
+ * Example: For xyz:TSLA with deployerFeeScale=1.0 and growthMode="enabled":
+ * - scaleIfHip3 = 1.0 * 2 = 2.0
+ * - growthModeScale = 0.1 (90% reduction)
+ * - Final multiplier = 2.0 * 0.1 = 0.2 (effectively 80% off standard 2x HIP-3 fees)
  *
- * Example: For xyz:TSLA (HIP-3 asset):
- * - Base taker rate: 0.045%
- * - After HIP-3 multiplier: 0.045% × 2 = 0.090%
- * - Protocol receives: 0.045% (same as regular markets)
- * - Builder receives: 0.045% (deployed market incentive)
- *
- * @see HIP-3.md for detailed protocol specification
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
  * @see parseAssetName() in HyperLiquidProvider for HIP-3 asset detection
  */
 export const HIP3_FEE_CONFIG = {
   /**
-   * Fee multiplier for HIP-3 assets (2x base rate)
-   * Covers 50% deployer share + 50% protocol share
+   * Growth Mode multiplier - 90% fee reduction for assets in growth phase
+   * This is a protocol constant from HyperLiquid's fee formula
+   */
+  GROWTH_MODE_SCALE: 0.1,
+
+  /**
+   * Default deployerFeeScale when API is unavailable
+   * Most HIP-3 DEXs use 1.0, which results in 2x base fees
+   */
+  DEFAULT_DEPLOYER_FEE_SCALE: 1.0,
+
+  /**
+   * Cache TTL for perpDexs data (5 minutes)
+   * Fee scales rarely change, so longer cache is acceptable
+   */
+  PERP_DEXS_CACHE_TTL_MS: 5 * 60 * 1000,
+
+  /**
+   * @deprecated Use dynamic calculation via calculateHip3FeeMultiplier()
+   * Kept for backwards compatibility during migration
    */
   FEE_MULTIPLIER: 2,
 } as const;
@@ -339,6 +353,24 @@ export const HIP3_MARGIN_CONFIG = {
    * Prevents unnecessary transfers for tiny amounts
    */
   REBALANCE_MIN_THRESHOLD: 0.1,
+} as const;
+
+/**
+ * Configuration for USDH collateral handling on HIP-3 DEXs
+ * Per HyperLiquid docs: USDH DEXs pull collateral from spot balance automatically
+ *
+ * USDH is HyperLiquid's native stablecoin pegged 1:1 to USDC
+ */
+export const USDH_CONFIG = {
+  /** Token name for USDH collateral */
+  TOKEN_NAME: 'USDH',
+
+  /**
+   * Maximum slippage for USDC→USDH spot swap in basis points
+   * USDH is pegged 1:1 to USDC so slippage should be minimal
+   * 10 bps (0.1%) provides small buffer for spread
+   */
+  SWAP_SLIPPAGE_BPS: 10,
 } as const;
 
 // Progress bar constants

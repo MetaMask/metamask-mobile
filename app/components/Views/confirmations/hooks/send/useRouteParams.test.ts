@@ -16,6 +16,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn(),
 }));
 

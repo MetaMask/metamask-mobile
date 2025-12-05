@@ -10,6 +10,7 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selecto
 import { isCaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
+import { toLowerCaseEquals } from '../../../../../util/general';
 
 export interface UseCryptoCurrenciesResult {
   cryptoCurrencies: DepositCryptoCurrency[] | null;
@@ -19,8 +20,13 @@ export interface UseCryptoCurrenciesResult {
 }
 
 export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
-  const { selectedRegion, selectedCryptoCurrency, setSelectedCryptoCurrency } =
-    useDepositSDK();
+  const {
+    selectedRegion,
+    selectedCryptoCurrency,
+    setSelectedCryptoCurrency,
+    intent,
+    setIntent,
+  } = useDepositSDK();
 
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -49,12 +55,27 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
 
   useEffect(() => {
     if (cryptoCurrencies && cryptoCurrencies.length > 0) {
+      if (intent?.assetId) {
+        const intentCrypto = cryptoCurrencies.find((token) =>
+          toLowerCaseEquals(token.assetId, intent.assetId),
+        );
+
+        setIntent((prevIntent) =>
+          prevIntent ? { ...prevIntent, assetId: undefined } : undefined,
+        );
+
+        if (intentCrypto) {
+          setSelectedCryptoCurrency(intentCrypto);
+          return;
+        }
+      }
+
       let newSelectedCrypto: DepositCryptoCurrency | null = null;
 
       if (selectedCryptoCurrency) {
         newSelectedCrypto =
-          cryptoCurrencies.find(
-            (crypto) => crypto.assetId === selectedCryptoCurrency.assetId,
+          cryptoCurrencies.find((crypto) =>
+            toLowerCaseEquals(crypto.assetId, selectedCryptoCurrency.assetId),
           ) || null;
       }
 
@@ -66,7 +87,13 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
         setSelectedCryptoCurrency(newSelectedCrypto);
       }
     }
-  }, [cryptoCurrencies, selectedCryptoCurrency, setSelectedCryptoCurrency]);
+  }, [
+    cryptoCurrencies,
+    selectedCryptoCurrency,
+    setSelectedCryptoCurrency,
+    intent,
+    setIntent,
+  ]);
 
   return {
     cryptoCurrencies,

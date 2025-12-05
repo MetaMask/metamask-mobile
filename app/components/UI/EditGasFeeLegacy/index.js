@@ -14,7 +14,7 @@ import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '../Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';

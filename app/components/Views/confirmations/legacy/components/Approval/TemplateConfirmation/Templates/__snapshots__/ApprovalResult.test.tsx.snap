@@ -155,7 +155,6 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,
@@ -361,7 +360,6 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,

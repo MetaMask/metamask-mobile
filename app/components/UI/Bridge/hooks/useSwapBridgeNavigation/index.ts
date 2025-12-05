@@ -57,12 +57,15 @@ export const useSwapBridgeNavigation = ({
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
-    (bridgeViewMode: BridgeViewMode) => {
+    (bridgeViewMode: BridgeViewMode, tokenOverride?: BridgeToken) => {
+      // Use tokenOverride if provided, otherwise fall back to tokenBase
+      const effectiveTokenBase = tokenOverride ?? tokenBase;
+
       // Determine effective chain ID - use home page filter network when no sourceToken provided
       const getEffectiveChainId = (): CaipChainId | Hex => {
-        if (tokenBase) {
+        if (effectiveTokenBase) {
           // If specific token provided, use its chainId
-          return tokenBase.chainId;
+          return effectiveTokenBase.chainId;
         }
 
         // No token provided - check home page filter network
@@ -82,7 +85,7 @@ export const useSwapBridgeNavigation = ({
 
       let bridgeSourceNativeAsset;
       try {
-        if (!tokenBase) {
+        if (!effectiveTokenBase) {
           bridgeSourceNativeAsset = getNativeAssetForChainId(effectiveChainId);
         }
       } catch (error) {
@@ -104,7 +107,7 @@ export const useSwapBridgeNavigation = ({
           : undefined;
 
       const candidateSourceToken =
-        tokenBase ?? bridgeNativeSourceTokenFormatted;
+        effectiveTokenBase ?? bridgeNativeSourceTokenFormatted;
       const isBridgeEnabledSource = getIsBridgeEnabledSource(effectiveChainId);
       let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
@@ -127,14 +130,17 @@ export const useSwapBridgeNavigation = ({
       });
 
       // Track Swap button click with new consolidated event
+      const isFromNavbar = location === SwapBridgeNavigationLocation.TabBar;
       trackActionButtonClick(trackEvent, createEventBuilder, {
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SECOND_POSITION,
+        // Omit action_position for navbar to avoid confusion with main action buttons
+        ...(isFromNavbar
+          ? {}
+          : { action_position: ActionPosition.SECOND_POSITION }),
         button_label: strings('asset_overview.swap'),
-        location:
-          location === 'TabBar'
-            ? ActionLocation.HOME
-            : ActionLocation.ASSET_DETAILS,
+        location: isFromNavbar
+          ? ActionLocation.NAVBAR
+          : ActionLocation.ASSET_DETAILS,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
@@ -164,9 +170,12 @@ export const useSwapBridgeNavigation = ({
   );
   const { networkModal } = useAddNetwork();
 
-  const goToSwaps = useCallback(() => {
-    goToNativeBridge(BridgeViewMode.Unified);
-  }, [goToNativeBridge]);
+  const goToSwaps = useCallback(
+    (tokenOverride?: BridgeToken) => {
+      goToNativeBridge(BridgeViewMode.Unified, tokenOverride);
+    },
+    [goToNativeBridge],
+  );
 
   return {
     goToSwaps,

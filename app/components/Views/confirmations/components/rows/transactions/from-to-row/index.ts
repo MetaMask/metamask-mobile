@@ -1,1 +1,1 @@
-export { default } from './from-to-row';
+export { default, FromToRowSkeleton } from './from-to-row';

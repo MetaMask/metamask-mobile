@@ -78,6 +78,7 @@ export enum RewardsMetricsButtons {
   SHARE_REFERRAL_LINK = 'share_referral_link',
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
+  VISIT_APP_STORE = 'visit_app_store',
 }
 
 export const deriveAccountMetricProps = (account?: InternalAccount) => {

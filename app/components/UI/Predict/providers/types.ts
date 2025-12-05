@@ -72,6 +72,7 @@ export interface PredictFees {
   metamaskFee: number;
   providerFee: number;
   totalFee: number;
+  totalFeePercentage: number;
 }
 
 export interface GeoBlockResponse {

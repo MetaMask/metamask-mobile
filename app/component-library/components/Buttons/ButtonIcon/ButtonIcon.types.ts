@@ -40,6 +40,10 @@ export interface ButtonIconProps extends TouchableOpacityProps {
    * Optional param to disable the button.
    */
   isDisabled?: boolean;
+  /**
+   * Function to trigger when pressing the button.
+   */
+  onPress?: () => void;
 }
 
 /**

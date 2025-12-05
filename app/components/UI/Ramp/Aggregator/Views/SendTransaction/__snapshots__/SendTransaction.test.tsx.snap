@@ -461,6 +461,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -715,6 +716,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -1278,6 +1280,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -1450,6 +1453,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -2013,6 +2017,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -2271,6 +2276,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,

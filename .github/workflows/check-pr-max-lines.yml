@@ -1,4 +1,4 @@
-name: "Check PR Max Lines"
+name: 'Check PR Max Lines'
 
 on:
   pull_request:
@@ -6,11 +6,14 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write  # Required for the called workflow to manage labels
+  pull-requests: write # Required for the called workflow to manage labels
 
 jobs:
   check-pr-max-lines:
-    uses: metamask/github-tools/.github/workflows/pr-line-check.yml@main
-    with:
-      max_lines: 1000
-      ignore_patterns: '(\.lock|\.snap)$'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR lines changed
+        uses: MetaMask/github-tools/.github/actions/pr-line-check@v1
+        with:
+          max-lines: '1000'
+          ignore-patterns: '(\.lock|\.snap)$'

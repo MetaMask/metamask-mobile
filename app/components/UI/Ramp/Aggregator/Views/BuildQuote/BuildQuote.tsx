@@ -31,7 +31,6 @@ import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddress
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
-import StyledButton from '../../../../StyledButton';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -70,7 +69,7 @@ import { createFiatSelectorModalNavigationDetails } from '../../components/FiatS
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
 import { createRegionSelectorModalNavigationDetails } from '../../components/RegionSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../../components/PaymentMethodSelectorModal';
-import { QuickAmount, ScreenLocation } from '../../types';
+import { QuickAmount, RampIntent, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import {
@@ -92,6 +91,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
@@ -106,7 +110,7 @@ import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/Sett
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-interface BuildQuoteParams {
+interface BuildQuoteParams extends RampIntent {
   showBack?: boolean;
 }
 
@@ -116,6 +120,14 @@ export const createBuildQuoteNavDetails =
 const BuildQuote = () => {
   const navigation = useNavigation();
   const params = useParams<BuildQuoteParams>();
+  const { showBack } = params;
+
+  // Memoize the intent object to prevent unnecessary re-renders
+  const intent = useMemo(() => {
+    const { showBack: _, ...intentParams } = params;
+    return intentParams;
+  }, [params]);
+
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = theme;
   const trackEvent = useAnalytics();
@@ -125,6 +137,7 @@ const BuildQuote = () => {
   const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
+  const [intentHandled, setIntentHandled] = useState(false);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const nativeSymbol = useSelector(selectTicker);
@@ -146,7 +159,15 @@ const BuildQuote = () => {
     rampType,
     isBuy,
     isSell,
+    setIntent,
   } = useRampSDK();
+
+  useEffect(() => {
+    if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
+      setIntent(intent);
+      setIntentHandled(true);
+    }
+  }, [intent, setIntent, intentHandled]);
 
   const screenLocation: ScreenLocation = isBuy
     ? 'Amount to Buy Screen'
@@ -430,7 +451,7 @@ const BuildQuote = () => {
           title: isBuy
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
-          showBack: params.showBack,
+          showBack: showBack ?? false,
           showConfiguration: isBuy,
           onConfigurationPress: handleConfigurationPress,
         },
@@ -442,7 +463,7 @@ const BuildQuote = () => {
     navigation,
     theme,
     handleCancelPress,
-    params.showBack,
+    showBack,
     isBuy,
     handleConfigurationPress,
   ]);
@@ -1084,15 +1105,15 @@ const BuildQuote = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <Row style={styles.cta}>
-            <StyledButton
-              type="confirm"
+            <Button
+              size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
+              label={strings('fiat_on_ramp_aggregator.get_quotes')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+              isDisabled={amountNumber <= 0 || isFetching}
               accessibilityRole="button"
-              accessible
-              disabled={amountNumber <= 0 || isFetching}
-            >
-              {strings('fiat_on_ramp_aggregator.get_quotes')}
-            </StyledButton>
+            />
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
@@ -1120,14 +1141,14 @@ const BuildQuote = () => {
           }
         />
         <ScreenLayout.Content>
-          <StyledButton
-            type="confirm"
+          <Button
+            size={ButtonSize.Lg}
             onPress={handleKeypadDone}
+            label={strings('fiat_on_ramp_aggregator.done')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
             accessibilityRole="button"
-            accessible
-          >
-            {strings('fiat_on_ramp_aggregator.done')}
-          </StyledButton>
+          />
         </ScreenLayout.Content>
       </Animated.View>
     </ScreenLayout>

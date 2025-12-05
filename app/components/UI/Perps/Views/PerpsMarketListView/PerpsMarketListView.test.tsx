@@ -53,10 +53,6 @@ jest.mock('../../hooks/usePerpsOrderFees', () => ({
   formatFeeRate: jest.fn((rate) => `${((rate || 0) * 100).toFixed(3)}%`),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: jest.fn(() => true),
-}));
-
 // Mock PerpsMarketBalanceActions dependencies
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
@@ -122,7 +118,7 @@ jest.mock('../../hooks', () => ({
     navigateToBrowser: jest.fn(),
     navigateToActions: jest.fn(),
     navigateToActivity: jest.fn(),
-    navigateToRewardsOrSettings: jest.fn(),
+    navigateToRewards: jest.fn(),
     navigateToMarketDetails: jest.fn(),
     navigateToHome: jest.fn(),
     navigateToMarketList: jest.fn(),

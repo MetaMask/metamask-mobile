@@ -1,4 +1,7 @@
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import {
+  TRIGGER_TYPES,
+  type INotification,
+} from '@metamask/notification-services-controller/notification-services';
 
 import ERC20SentReceivedState from './erc20-sent-received/erc20-sent-received';
 import ERC721SentReceivedState from './erc721-sent-received/erc721-sent-received';
@@ -11,9 +14,6 @@ import LidoWithdrawalRequestedState from './lido-withdrawal-requested/lido-withd
 import LidoStakeReadyToBeWithdrawnState from './lido-stake-ready-to-be-withdrawn/lido-stake-ready-to-be-withdrawn';
 import PlatformNotificationState from './platform-notifications/platform-notifications';
 import { NotificationState } from './types/NotificationState';
-
-const { TRIGGER_TYPES } = NotificationServicesController.Constants;
-type TRIGGER_TYPES = NotificationServicesController.Constants.TRIGGER_TYPES;
 
 /**
  * Each notification component has a specific shape it follows.
@@ -65,6 +65,31 @@ export const hasNotificationComponents = (
   t: TRIGGER_TYPES,
 ): t is keyof typeof NotificationComponentState =>
   t in NotificationComponentState;
+
+export const isValidNotificationComponent = (n: unknown) => {
+  try {
+    const assumedNotification = n as INotification;
+    const type = assumedNotification?.type;
+
+    const componentState =
+      hasNotificationComponents(type) && NotificationComponentState[type];
+
+    if (!componentState) {
+      return false;
+    }
+
+    const isValid =
+      typeof componentState.guardFn === 'function'
+        ? componentState.guardFn(assumedNotification)
+        : componentState.guardFn.every(
+            (fn) => fn?.(assumedNotification) ?? true,
+          );
+
+    return isValid;
+  } catch {
+    return false;
+  }
+};
 
 export const hasNotificationModal = (t: TRIGGER_TYPES) => {
   if (!hasNotificationComponents(t)) {

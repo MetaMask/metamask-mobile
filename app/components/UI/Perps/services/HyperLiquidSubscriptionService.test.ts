@@ -529,17 +529,20 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockCallback).toHaveBeenCalledWith([
-        expect.objectContaining({
-          orderId: '12345',
-          symbol: 'BTC',
-          side: 'B',
-          size: '0.1',
-          price: '50000',
-          fee: '5',
-          timestamp: expect.any(Number),
-        }),
-      ]);
+      expect(mockCallback).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            side: 'B',
+            size: '0.1',
+            price: '50000',
+            fee: '5',
+            timestamp: expect.any(Number),
+          }),
+        ],
+        undefined, // isSnapshot is undefined for mock data without it
+      );
 
       unsubscribe();
     });
@@ -602,17 +605,62 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockCallback).toHaveBeenCalledWith([
-        expect.objectContaining({
-          orderId: '12345',
-          symbol: 'BTC',
-          liquidation: {
-            liquidatedUser: '0x123',
-            markPx: '44900',
-            method: 'market',
-          },
-        }),
-      ]);
+      expect(mockCallback).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            liquidation: {
+              liquidatedUser: '0x123',
+              markPx: '44900',
+              method: 'market',
+            },
+          }),
+        ],
+        undefined, // isSnapshot is undefined for mock data without it
+      );
+
+      unsubscribe();
+    });
+
+    it('should pass isSnapshot flag to callback', async () => {
+      const mockCallback = jest.fn();
+
+      // Update mock data to include isSnapshot: true (snapshot message)
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              fills: [
+                {
+                  oid: BigInt(12345),
+                  coin: 'BTC',
+                  side: 'B',
+                  sz: '0.1',
+                  px: '50000',
+                  fee: '5',
+                  time: Date.now(),
+                },
+              ],
+              isSnapshot: true, // This is a snapshot message
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToOrderFills({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.any(Array),
+        true, // isSnapshot should be passed through
+      );
 
       unsubscribe();
     });

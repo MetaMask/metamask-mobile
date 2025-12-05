@@ -216,6 +216,9 @@ jest.mock('../../store', () => ({
     getState: jest.fn().mockImplementation(() => mockState),
     dispatch: jest.fn(),
   },
+  runSaga: jest
+    .fn()
+    .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
   _updateMockState: (state) => {
     mockState = state;
   },
@@ -609,6 +612,11 @@ jest.mock('@sentry/react-native', () => ({
 
   // User feedback
   lastEventId: jest.fn(),
+
+  // Global scope
+  getGlobalScope: jest.fn(() => ({
+    setTag: jest.fn(),
+  })),
 }));
 
 jest.mock('@react-native-firebase/messaging', () => {

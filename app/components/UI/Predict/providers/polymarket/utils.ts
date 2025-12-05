@@ -755,6 +755,7 @@ export async function calculateFees({
       metamaskFee: 0,
       providerFee: 0,
       totalFee: 0,
+      totalFeePercentage: 0,
     };
   }
 
@@ -773,6 +774,7 @@ export async function calculateFees({
     metamaskFee,
     providerFee,
     totalFee,
+    totalFeePercentage: FEE_PERCENTAGE,
   };
 }
 

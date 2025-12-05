@@ -6,7 +6,7 @@
 >
 > E2E tests are significantly slower, more brittle, and resource-intensive than unit and integration tests. Always prioritize unit and integration tests over E2E ones.
 
-Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest and cucumber as test runners.
+Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest test runners.
 
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
@@ -102,7 +102,7 @@ yarn test:e2e:android:debug:build
 # These commands are hardcoded to build for `main` build type and `e2e` environment based on the .detoxrc.js file
 ```
 
-### Use Expo prebuilds (recommended)
+### Use Expo prebuilds (iOS Only)
 
 You can use prebuilt app files instead of building the app locally.
 
@@ -129,33 +129,6 @@ You can use prebuilt app files instead of building the app locally.
    xcrun simctl boot "iPhone 15 Pro"
    open -a Simulator # to open the simulator app GUI
    ```
-
-#### Android builds
-
-1. **Download Android builds** from Runway/Bitrise/GitHub workflows (build jobs)
-
-   > ⚠️ **Important**: You need **both APK files** from the downloaded zip:
-   >
-   > - Main APK from `/prod/debug/` folder
-   > - Test APK from `/androidTest/` folder
-
-2. **Install the builds**:
-
-   ```bash
-   # Copy the main APK (from /prod/debug/ folder)
-   cp /path/to/downloaded/prod/debug/AAA.apk build/MetaMask.apk
-
-   # Copy the test APK (from /androidTest/ folder)
-   cp /path/to/downloaded/androidTest/prod/debug/BBB.apk build/MetaMask-Test.apk
-   ```
-
-3. **Start the build watcher**:
-
-   ```bash
-   source .e2e.env && yarn watch:clean
-   ```
-
-4. **Launch the Android emulator**: through Android Studio
 
 ### Run the E2E Tests
 
@@ -362,9 +335,20 @@ yarn test:e2e:android:flask:run
     - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
   - you don't need to repeat these steps unless emulator or metro server is restarted
 
-## Appium
+## ~~Appium~~ (Deprecated)
 
-We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.
+> **⚠️ DEPRECATED**: The Appium/WebDriver.io/Cucumber test infrastructure has been removed. This section is kept for historical reference only.
+
+~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
+
+**Current approach**: Performance testing is now handled by [Appwright](https://github.com/nickmaxwell10/appwright), a Playwright-based mobile testing framework. See the `appwright/` directory for performance tests including app launch times and feature-specific performance measurements.
+
+**Test Location**: `appwright/tests/performance/`
+
+---
+
+<details>
+<summary>Legacy Appium Documentation (for reference only)</summary>
 
 **Supported Platform**: Android  
 **Test Location**: `wdio`
@@ -528,6 +512,8 @@ You can also run Appium tests on CI using Bitrise pipelines:
 - `app_upgrade_pipeline`
 
 For more details on our CI pipelines, see the [Bitrise Pipelines Overview](#bitrise-pipelines-overview).
+
+</details>
 
 ### API Spec Tests
 

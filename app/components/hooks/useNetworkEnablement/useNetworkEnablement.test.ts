@@ -460,6 +460,12 @@ describe('useNetworkEnablement', () => {
           '0x1': true,
           '0x89': false,
         },
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+          'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ': false,
+        },
         networkEnablementController: mockNetworkEnablementController,
         enableNetwork: expect.any(Function),
         disableNetwork: expect.any(Function),

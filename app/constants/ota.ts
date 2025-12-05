@@ -1,13 +1,12 @@
-/**
- * OTA (Over-The-Air) Update Version Tracking
- *
- * Re-exports from the root ota.config.js file (single source of truth).
- * To update versions, edit ota.config.js at the project root.
- */
-
 import otaConfig from '../../ota.config.js';
 
-export const OTA_VERSION = otaConfig.OTA_VERSION;
+/**
+ * Current OTA update version
+ * Increment with each OTA update: v0 -> v1 -> v2 -> v3 etc.
+ * Reset to v0 when releasing a new native build
+ * We keep this OTA_VERSION here to because changes in ota.config.js will affect the fingerprint and break the workflow in Github Actions
+ */
+export const OTA_VERSION: string = 'v0';
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
 export const UPDATE_URL = otaConfig.UPDATE_URL;

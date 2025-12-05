@@ -230,6 +230,7 @@ export const PerpsEventValues = {
     DEPOSIT_REVIEW: 'deposit_review',
     CLOSE_ALL_POSITIONS: 'close_all_positions',
     CANCEL_ALL_ORDERS: 'cancel_all_orders',
+    ORDER_BOOK: 'order_book',
     ERROR: 'error',
   },
   SETTING_TYPE: {
@@ -249,5 +250,13 @@ export const PerpsEventValues = {
     ORDERS: 'orders',
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
+  },
+  // A/B testing values
+  AB_TEST: {
+    // Test IDs
+    BUTTON_COLOR_TEST: 'button_color_test',
+    // Button color test variants
+    CONTROL: 'control',
+    MONOCHROME: 'monochrome',
   },
 } as const;

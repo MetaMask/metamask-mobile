@@ -6,12 +6,17 @@ import {
   PerpsEventPayload,
   CardEventPayload,
   EventAssetDto,
+  SeasonActivityTypeDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
 import { formatWithThreshold } from '../../../../util/assets';
 import { PerpsEventType } from './eventConstants';
-import { formatRewardsMusdDepositPayloadDate } from './formatUtils';
+import {
+  formatRewardsMusdDepositPayloadDate,
+  getIconName,
+  resolveTemplate,
+} from './formatUtils';
 
 /**
  * Formats an asset amount with proper decimals
@@ -159,17 +164,23 @@ export const getCardEventDetails = (
 /**
  * Formats an event details
  * @param event - The event
+ * @param activityTypes - The activity types
  * @param accountName - Optional account name to display for bonus events
  * @returns The event details
  */
 export const getEventDetails = (
   event: PointsEventDto,
+  activityTypes: SeasonActivityTypeDto[],
   accountName: string | undefined,
 ): {
   title: string;
   details: string | undefined;
   icon: IconName;
 } => {
+  const matchingActivityType = activityTypes.find(
+    (activity) => activity.type === event.type,
+  );
+
   switch (event.type) {
     case 'SWAP':
       return {
@@ -233,11 +244,23 @@ export const getEventDetails = (
         icon: IconName.Coin,
       };
     }
-    default:
+    default: {
+      if (matchingActivityType) {
+        return {
+          title: matchingActivityType.title,
+          details: resolveTemplate(
+            matchingActivityType.description,
+            (event.payload ?? {}) as Record<string, string>,
+          ),
+          icon: getIconName(matchingActivityType.icon),
+        };
+      }
+
       return {
         title: strings('rewards.events.type.uncategorized_event'),
         details: undefined,
         icon: IconName.Star,
       };
+    }
   }
 };

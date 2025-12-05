@@ -44,6 +44,8 @@ jest.mock('../../../../core/Engine', () => ({
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
       validateWithdrawal: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
     },
   },
 }));
@@ -767,6 +769,121 @@ describe('usePerpsTrading', () => {
     });
   });
 
+  describe('updateMargin', () => {
+    it('should call PerpsController.updateMargin with correct parameters', async () => {
+      const mockResult = { success: true };
+      (
+        Engine.context.PerpsController.updateMargin as jest.Mock
+      ).mockResolvedValue(mockResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const updateMarginParams = {
+        coin: 'BTC',
+        amount: '100',
+      };
+
+      const response = await result.current.updateMargin(updateMarginParams);
+
+      expect(Engine.context.PerpsController.updateMargin).toHaveBeenCalledWith(
+        updateMarginParams,
+      );
+      expect(response).toEqual(mockResult);
+    });
+
+    it('should handle updateMargin errors', async () => {
+      const mockError = new Error('Insufficient balance');
+      (
+        Engine.context.PerpsController.updateMargin as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const updateMarginParams = {
+        coin: 'BTC',
+        amount: '100',
+      };
+
+      await expect(
+        result.current.updateMargin(updateMarginParams),
+      ).rejects.toThrow('Insufficient balance');
+    });
+  });
+
+  describe('flipPosition', () => {
+    it('should call PerpsController.flipPosition with correct parameters', async () => {
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'flip-123',
+        filledSize: '1.0',
+        averagePrice: '50000',
+      };
+      (
+        Engine.context.PerpsController.flipPosition as jest.Mock
+      ).mockResolvedValue(mockResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const flipParams = {
+        coin: 'BTC',
+        position: {
+          coin: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          positionValue: '25000',
+          unrealizedPnl: '1000',
+          returnOnEquity: '0.04',
+          leverage: { type: 'cross' as const, value: 10 },
+          liquidationPrice: '45000',
+          marginUsed: '2500',
+          maxLeverage: 100,
+          cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+      };
+
+      const response = await result.current.flipPosition(flipParams);
+
+      expect(Engine.context.PerpsController.flipPosition).toHaveBeenCalledWith(
+        flipParams,
+      );
+      expect(response).toEqual(mockResult);
+    });
+
+    it('should handle flipPosition errors', async () => {
+      const mockError = new Error('Insufficient balance for flip fees');
+      (
+        Engine.context.PerpsController.flipPosition as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const flipParams = {
+        coin: 'BTC',
+        position: {
+          coin: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          positionValue: '25000',
+          unrealizedPnl: '1000',
+          returnOnEquity: '0.04',
+          leverage: { type: 'cross' as const, value: 10 },
+          liquidationPrice: '45000',
+          marginUsed: '2500',
+          maxLeverage: 100,
+          cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+      };
+
+      await expect(result.current.flipPosition(flipParams)).rejects.toThrow(
+        'Insufficient balance for flip fees',
+      );
+    });
+  });
+
   describe('hook stability', () => {
     it('should return stable function references', () => {
       const { result, rerender } = renderHook(() => usePerpsTrading());
@@ -828,6 +945,8 @@ describe('usePerpsTrading', () => {
       expect(initialFunctions.validateWithdrawal).toBe(
         updatedFunctions.validateWithdrawal,
       );
+      expect(initialFunctions.updateMargin).toBe(updatedFunctions.updateMargin);
+      expect(initialFunctions.flipPosition).toBe(updatedFunctions.flipPosition);
     });
   });
 });

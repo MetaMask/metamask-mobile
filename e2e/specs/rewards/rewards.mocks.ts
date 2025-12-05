@@ -191,7 +191,7 @@ const SEASON_STATUS_RESPONSE_ONBOARDING = {
   current: {
     id: 'f3f0ccae-33e9-4256-b5d9-c42105570fa5',
     startDate: '2025-09-01T00:00:00.000Z',
-    endDate: '2025-11-30T00:00:00.000Z',
+    endDate: '2026-03-31T00:00:00.000Z',
   },
   next: null,
 };
@@ -201,7 +201,7 @@ const SEASON_STATUS_RESPONSE = {
     id: 'f3f0ccae-33e9-4256-b5d9-c42105570fa5',
     name: 'Season 1',
     startDate: '2025-09-01T04:00:00.000Z',
-    endDate: '2025-11-30T04:00:00.000Z',
+    endDate: '2026-03-31T04:00:00.000Z',
     tiers: [
       {
         id: 'deb27e87-ed2c-4602-a4ba-3ed3de7fbe2b',
@@ -599,7 +599,7 @@ const setupSeasonMetadataMock = async (mockServer: Mockttp) => {
       id: 'f3f0ccae-33e9-4256-b5d9-c42105570fa5',
       name: 'Season 1',
       startDate: '2025-09-01T00:00:00.000Z',
-      endDate: '2025-11-30T00:00:00.000Z',
+      endDate: '2026-03-31T00:00:00.000Z',
       tiers: [
         {
           id: '92d8b6a6-747c-45bf-8a91-6cdd5ac9f3bf',

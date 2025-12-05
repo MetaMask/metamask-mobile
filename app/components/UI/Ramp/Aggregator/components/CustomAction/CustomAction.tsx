@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  TouchableOpacity,
-  LayoutChangeEvent,
-  ActivityIndicator,
-} from 'react-native';
+import { View, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Animated, {
   Easing,
@@ -17,7 +12,11 @@ import Animated, {
 import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 import Box from '../Box';
 import Title from '../../../../../Base/Title';
-import StyledButton from '../../../../StyledButton';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
 import RemoteImage from '../../../../../Base/RemoteImage';
 import TagColored from '../../../../../../component-library/components-temp/TagColored';
@@ -51,7 +50,7 @@ const CustomAction: React.FC<Props> = ({
 }: Props) => {
   const {
     styles,
-    theme: { colors, themeAppearance },
+    theme: { themeAppearance },
   } = useStyles(styleSheet, {});
   const {
     buy: { provider },
@@ -140,23 +139,17 @@ const CustomAction: React.FC<Props> = ({
               testID="animated-view-height"
             >
               <View style={styles.buyButton}>
-                <StyledButton
-                  type={'blue'}
-                  onPress={onPressCTA}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator
-                      testID="buy-button-loading"
-                      size={'small'}
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('fiat_on_ramp_aggregator.continue_with', {
-                      provider: provider.name,
-                    })
-                  )}
-                </StyledButton>
+                <Button
+                  size={ButtonSize.Lg}
+                  onPress={() => onPressCTA?.()}
+                  label={strings('fiat_on_ramp_aggregator.continue_with', {
+                    provider: provider.name,
+                  })}
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                  isDisabled={isLoading}
+                  loading={isLoading}
+                />
               </View>
             </Animated.View>
           }

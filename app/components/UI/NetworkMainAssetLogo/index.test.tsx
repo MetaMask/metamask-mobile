@@ -7,8 +7,8 @@ import { render } from '@testing-library/react-native';
 import NetworkMainAssetLogo from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
-jest.mock('../Swaps/components/TokenIcon', () => {
-  const originalModule = jest.requireActual('../Swaps/components/TokenIcon');
+jest.mock('../../Base/TokenIcon', () => {
+  const originalModule = jest.requireActual('../../Base/TokenIcon');
   return {
     ...originalModule,
     __esModule: true,

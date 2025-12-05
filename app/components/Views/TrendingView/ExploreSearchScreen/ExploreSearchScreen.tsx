@@ -21,13 +21,14 @@ const ExploreSearchScreen: React.FC = () => {
 
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <ExploreSearchBar
-        type="interactive"
-        isSearchFocused
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onCancel={handleSearchCancel}
-      />
+      <Box twClassName="px-4 pb-3">
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onCancel={handleSearchCancel}
+        />
+      </Box>
 
       <PerpsConnectionProvider>
         <PerpsStreamProvider>

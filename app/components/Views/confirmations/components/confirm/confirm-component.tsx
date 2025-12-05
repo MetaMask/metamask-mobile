@@ -19,7 +19,7 @@ import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-
 import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
-import { Footer } from '../footer';
+import { Footer, FooterSkeleton } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -30,6 +30,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
+import { TransferInfoSkeleton } from '../info/transfer/transfer';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -43,6 +44,7 @@ export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
   PredictClaim = 'predictClaim',
+  Transfer = 'transfer',
 }
 
 export interface ConfirmationParams {
@@ -179,7 +181,7 @@ function Loader() {
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
-      <InfoLoader testId="confirm-loader-custom-amount">
+      <InfoLoader testId="confirm-loader-custom-amount" loader={loader}>
         <CustomAmountInfoSkeleton />
       </InfoLoader>
     );
@@ -187,8 +189,16 @@ function Loader() {
 
   if (loader === ConfirmationLoader.PredictClaim) {
     return (
-      <InfoLoader testId="confirm-loader-predict-claim">
+      <InfoLoader testId="confirm-loader-predict-claim" loader={loader}>
         <PredictClaimInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.Transfer) {
+    return (
+      <InfoLoader testId="confirm-loader-transfer" loader={loader}>
+        <TransferInfoSkeleton />
       </InfoLoader>
     );
   }
@@ -203,9 +213,11 @@ function Loader() {
 function InfoLoader({
   children,
   testId,
+  loader,
 }: {
   children: ReactNode;
   testId?: string;
+  loader: ConfirmationLoader;
 }) {
   const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
 
@@ -221,6 +233,7 @@ function InfoLoader({
       >
         {children}
       </ScrollView>
+      {loader === ConfirmationLoader.Transfer && <FooterSkeleton />}
     </SafeAreaView>
   );
 }

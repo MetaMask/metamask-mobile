@@ -24,9 +24,8 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#b7bbc8",
+              "backgroundColor": "#3c4d9d0f",
               "borderRadius": 8,
-              "borderWidth": 1.5,
               "padding": 16,
             },
             undefined,
@@ -67,7 +66,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#858b9a14",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -113,7 +112,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#858b9a14",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -168,7 +167,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#858b9a14",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -214,7 +213,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#858b9a14",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -265,9 +264,8 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#b7bbc8",
+              "backgroundColor": "#3c4d9d0f",
               "borderRadius": 8,
-              "borderWidth": 1.5,
               "padding": 16,
             },
             undefined,
@@ -308,7 +306,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#858b9a14",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -354,7 +352,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#858b9a14",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -403,9 +401,8 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#b7bbc8",
+              "backgroundColor": "#3c4d9d0f",
               "borderRadius": 8,
-              "borderWidth": 1.5,
               "padding": 16,
             },
             undefined,
@@ -446,7 +443,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#858b9a14",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -492,7 +489,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#858b9a14",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -1162,7 +1159,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1258,7 +1254,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               {
                                 "alignItems": "center",
                                 "alignSelf": "center",
-                                "backgroundColor": "#f3f5f9",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flexDirection": "row",
                                 "marginBottom": 8,
@@ -1365,6 +1361,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -1402,9 +1399,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -1523,49 +1519,36 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 accessible={true}
-                                                activeOpacity={0.2}
+                                                activeOpacity={1}
                                                 disabled={false}
+                                                loading={false}
                                                 onPress={[Function]}
+                                                onPressIn={[Function]}
+                                                onPressOut={[Function]}
                                                 style={
-                                                  [
-                                                    [
-                                                      {
-                                                        "borderRadius": 12,
-                                                        "justifyContent": "center",
-                                                        "padding": 15,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#4459ff",
-                                                      },
-                                                      undefined,
-                                                    ],
-                                                    null,
-                                                  ]
+                                                  {
+                                                    "alignItems": "center",
+                                                    "alignSelf": "stretch",
+                                                    "backgroundColor": "#121314",
+                                                    "borderRadius": 12,
+                                                    "flexDirection": "row",
+                                                    "height": 48,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "paddingHorizontal": 16,
+                                                  }
                                                 }
                                               >
                                                 <Text
+                                                  accessibilityRole="text"
                                                   style={
-                                                    [
-                                                      {
-                                                        "color": "#007aff",
-                                                        "fontSize": 17,
-                                                        "fontWeight": "500",
-                                                        "textAlign": "center",
-                                                      },
-                                                      null,
-                                                      [
-                                                        {
-                                                          "fontFamily": "Geist Bold",
-                                                          "fontSize": 14,
-                                                          "textAlign": "center",
-                                                        },
-                                                        {
-                                                          "color": "#ffffff",
-                                                        },
-                                                        undefined,
-                                                      ],
-                                                      null,
-                                                    ]
+                                                    {
+                                                      "color": "#ffffff",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 16,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
                                                   }
                                                 >
                                                   Continue with Paypal (Staging)
@@ -1584,7 +1567,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                           <View
                             style={
                               {
-                                "backgroundColor": "#ffffff",
                                 "flexDirection": "column",
                                 "paddingHorizontal": 8,
                                 "paddingVertical": 4,
@@ -3457,7 +3439,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -3590,7 +3571,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 20,
                                       "flexDirection": "row",
                                       "marginBottom": 8,
@@ -3697,6 +3678,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     [
                                       {
                                         "padding": 15,
+                                        "paddingHorizontal": 16,
                                       },
                                       undefined,
                                       {
@@ -3785,6 +3767,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                         [
                                           {
                                             "padding": 15,
+                                            "paddingHorizontal": 16,
                                           },
                                           undefined,
                                           {
@@ -3824,9 +3807,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#b7bbc8",
+                                                    "backgroundColor": "#3c4d9d0f",
                                                     "borderRadius": 8,
-                                                    "borderWidth": 1.5,
                                                     "padding": 16,
                                                   },
                                                   undefined,
@@ -4052,49 +4034,36 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       <TouchableOpacity
                                                         accessibilityRole="button"
                                                         accessible={true}
-                                                        activeOpacity={0.2}
+                                                        activeOpacity={1}
                                                         disabled={false}
+                                                        loading={false}
                                                         onPress={[Function]}
+                                                        onPressIn={[Function]}
+                                                        onPressOut={[Function]}
                                                         style={
-                                                          [
-                                                            [
-                                                              {
-                                                                "borderRadius": 12,
-                                                                "justifyContent": "center",
-                                                                "padding": 15,
-                                                              },
-                                                              {
-                                                                "backgroundColor": "#4459ff",
-                                                              },
-                                                              undefined,
-                                                            ],
-                                                            null,
-                                                          ]
+                                                          {
+                                                            "alignItems": "center",
+                                                            "alignSelf": "stretch",
+                                                            "backgroundColor": "#121314",
+                                                            "borderRadius": 12,
+                                                            "flexDirection": "row",
+                                                            "height": 48,
+                                                            "justifyContent": "center",
+                                                            "overflow": "hidden",
+                                                            "paddingHorizontal": 16,
+                                                          }
                                                         }
                                                       >
                                                         <Text
+                                                          accessibilityRole="text"
                                                           style={
-                                                            [
-                                                              {
-                                                                "color": "#007aff",
-                                                                "fontSize": 17,
-                                                                "fontWeight": "500",
-                                                                "textAlign": "center",
-                                                              },
-                                                              null,
-                                                              [
-                                                                {
-                                                                  "fontFamily": "Geist Bold",
-                                                                  "fontSize": 14,
-                                                                  "textAlign": "center",
-                                                                },
-                                                                {
-                                                                  "color": "#ffffff",
-                                                                },
-                                                                undefined,
-                                                              ],
-                                                              null,
-                                                            ]
+                                                            {
+                                                              "color": "#ffffff",
+                                                              "fontFamily": "Geist Medium",
+                                                              "fontSize": 16,
+                                                              "letterSpacing": 0,
+                                                              "lineHeight": 24,
+                                                            }
                                                           }
                                                         >
                                                           Continue with Banxa (Staging)
@@ -4140,9 +4109,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#b7bbc8",
+                                                    "backgroundColor": "#3c4d9d0f",
                                                     "borderRadius": 8,
-                                                    "borderWidth": 1.5,
                                                     "padding": 16,
                                                   },
                                                   undefined,
@@ -4397,49 +4365,36 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       <TouchableOpacity
                                                         accessibilityRole="button"
                                                         accessible={true}
-                                                        activeOpacity={0.2}
+                                                        activeOpacity={1}
                                                         disabled={false}
+                                                        loading={false}
                                                         onPress={[Function]}
+                                                        onPressIn={[Function]}
+                                                        onPressOut={[Function]}
                                                         style={
-                                                          [
-                                                            [
-                                                              {
-                                                                "borderRadius": 12,
-                                                                "justifyContent": "center",
-                                                                "padding": 15,
-                                                              },
-                                                              {
-                                                                "backgroundColor": "#4459ff",
-                                                              },
-                                                              undefined,
-                                                            ],
-                                                            null,
-                                                          ]
+                                                          {
+                                                            "alignItems": "center",
+                                                            "alignSelf": "stretch",
+                                                            "backgroundColor": "#121314",
+                                                            "borderRadius": 12,
+                                                            "flexDirection": "row",
+                                                            "height": 48,
+                                                            "justifyContent": "center",
+                                                            "overflow": "hidden",
+                                                            "paddingHorizontal": 16,
+                                                          }
                                                         }
                                                       >
                                                         <Text
+                                                          accessibilityRole="text"
                                                           style={
-                                                            [
-                                                              {
-                                                                "color": "#007aff",
-                                                                "fontSize": 17,
-                                                                "fontWeight": "500",
-                                                                "textAlign": "center",
-                                                              },
-                                                              null,
-                                                              [
-                                                                {
-                                                                  "fontFamily": "Geist Bold",
-                                                                  "fontSize": 14,
-                                                                  "textAlign": "center",
-                                                                },
-                                                                {
-                                                                  "color": "#ffffff",
-                                                                },
-                                                                undefined,
-                                                              ],
-                                                              null,
-                                                            ]
+                                                            {
+                                                              "color": "#ffffff",
+                                                              "fontFamily": "Geist Medium",
+                                                              "fontSize": 16,
+                                                              "letterSpacing": 0,
+                                                              "lineHeight": 24,
+                                                            }
                                                           }
                                                         >
                                                           Continue with MoonPay (Staging)
@@ -4485,9 +4440,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#b7bbc8",
+                                                    "backgroundColor": "#3c4d9d0f",
                                                     "borderRadius": 8,
-                                                    "borderWidth": 1.5,
                                                     "padding": 16,
                                                   },
                                                   undefined,
@@ -4667,49 +4621,36 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       <TouchableOpacity
                                                         accessibilityRole="button"
                                                         accessible={true}
-                                                        activeOpacity={0.2}
+                                                        activeOpacity={1}
                                                         disabled={false}
+                                                        loading={false}
                                                         onPress={[Function]}
+                                                        onPressIn={[Function]}
+                                                        onPressOut={[Function]}
                                                         style={
-                                                          [
-                                                            [
-                                                              {
-                                                                "borderRadius": 12,
-                                                                "justifyContent": "center",
-                                                                "padding": 15,
-                                                              },
-                                                              {
-                                                                "backgroundColor": "#4459ff",
-                                                              },
-                                                              undefined,
-                                                            ],
-                                                            null,
-                                                          ]
+                                                          {
+                                                            "alignItems": "center",
+                                                            "alignSelf": "stretch",
+                                                            "backgroundColor": "#121314",
+                                                            "borderRadius": 12,
+                                                            "flexDirection": "row",
+                                                            "height": 48,
+                                                            "justifyContent": "center",
+                                                            "overflow": "hidden",
+                                                            "paddingHorizontal": 16,
+                                                          }
                                                         }
                                                       >
                                                         <Text
+                                                          accessibilityRole="text"
                                                           style={
-                                                            [
-                                                              {
-                                                                "color": "#007aff",
-                                                                "fontSize": 17,
-                                                                "fontWeight": "500",
-                                                                "textAlign": "center",
-                                                              },
-                                                              null,
-                                                              [
-                                                                {
-                                                                  "fontFamily": "Geist Bold",
-                                                                  "fontSize": 14,
-                                                                  "textAlign": "center",
-                                                                },
-                                                                {
-                                                                  "color": "#ffffff",
-                                                                },
-                                                                undefined,
-                                                              ],
-                                                              null,
-                                                            ]
+                                                            {
+                                                              "color": "#ffffff",
+                                                              "fontFamily": "Geist Medium",
+                                                              "fontSize": 16,
+                                                              "letterSpacing": 0,
+                                                              "lineHeight": 24,
+                                                            }
                                                           }
                                                         >
                                                           Continue with Transak (Staging)
@@ -5382,7 +5323,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -5478,7 +5418,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               {
                                 "alignItems": "center",
                                 "alignSelf": "center",
-                                "backgroundColor": "#f3f5f9",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flexDirection": "row",
                                 "marginBottom": 8,
@@ -5585,6 +5525,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -5632,9 +5573,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             undefined,
@@ -5892,49 +5832,36 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 <TouchableOpacity
                                                   accessibilityRole="button"
                                                   accessible={true}
-                                                  activeOpacity={0.2}
+                                                  activeOpacity={1}
                                                   disabled={false}
+                                                  loading={false}
                                                   onPress={[Function]}
+                                                  onPressIn={[Function]}
+                                                  onPressOut={[Function]}
                                                   style={
-                                                    [
-                                                      [
-                                                        {
-                                                          "borderRadius": 12,
-                                                          "justifyContent": "center",
-                                                          "padding": 15,
-                                                        },
-                                                        {
-                                                          "backgroundColor": "#4459ff",
-                                                        },
-                                                        undefined,
-                                                      ],
-                                                      null,
-                                                    ]
+                                                    {
+                                                      "alignItems": "center",
+                                                      "alignSelf": "stretch",
+                                                      "backgroundColor": "#121314",
+                                                      "borderRadius": 12,
+                                                      "flexDirection": "row",
+                                                      "height": 48,
+                                                      "justifyContent": "center",
+                                                      "overflow": "hidden",
+                                                      "paddingHorizontal": 16,
+                                                    }
                                                   }
                                                 >
                                                   <Text
+                                                    accessibilityRole="text"
                                                     style={
-                                                      [
-                                                        {
-                                                          "color": "#007aff",
-                                                          "fontSize": 17,
-                                                          "fontWeight": "500",
-                                                          "textAlign": "center",
-                                                        },
-                                                        null,
-                                                        [
-                                                          {
-                                                            "fontFamily": "Geist Bold",
-                                                            "fontSize": 14,
-                                                            "textAlign": "center",
-                                                          },
-                                                          {
-                                                            "color": "#ffffff",
-                                                          },
-                                                          undefined,
-                                                        ],
-                                                        null,
-                                                      ]
+                                                      {
+                                                        "color": "#ffffff",
+                                                        "fontFamily": "Geist Medium",
+                                                        "fontSize": 16,
+                                                        "letterSpacing": 0,
+                                                        "lineHeight": 24,
+                                                      }
                                                     }
                                                   >
                                                     Continue with MoonPay (Staging)
@@ -5954,7 +5881,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                           <View
                             style={
                               {
-                                "backgroundColor": "#ffffff",
                                 "flexDirection": "column",
                                 "paddingHorizontal": 8,
                                 "paddingVertical": 4,
@@ -6791,49 +6717,34 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Try again
@@ -7632,49 +7543,34 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Try again
@@ -8473,49 +8369,34 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Return to Home Screen
@@ -9314,49 +9195,34 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Get new quotes
@@ -9386,7 +9252,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -9496,7 +9362,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -9606,7 +9472,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -9716,7 +9582,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -9826,7 +9692,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -9936,7 +9802,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -9996,7 +9862,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -10056,7 +9922,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,
@@ -10116,7 +9982,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 20,
       "flexDirection": "row",
       "marginBottom": 8,

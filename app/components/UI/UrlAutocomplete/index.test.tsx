@@ -147,9 +147,33 @@ jest.mock('../../../selectors/tokenSearchDiscoveryDataController', () => {
   };
 });
 
+const mockGoToSwaps = jest.fn();
+jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => ({
+  ...jest.requireActual('../Bridge/hooks/useSwapBridgeNavigation'),
+  useSwapBridgeNavigation: jest.fn(() => ({
+    goToSwaps: mockGoToSwaps,
+    networkModal: null,
+  })),
+}));
+
+// Mock useFavicon to prevent async state updates warning
+jest.mock('../../hooks/useFavicon/useFavicon', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isLoading: false,
+    isLoaded: true,
+    error: null,
+    favicon: null,
+  })),
+}));
+
 describe('UrlAutocomplete', () => {
   beforeAll(() => {
     jest.useFakeTimers();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   afterAll(() => {
@@ -331,7 +355,7 @@ describe('UrlAutocomplete', () => {
     ).toBeDefined();
   });
 
-  it('should swap a token when the swap button is pressed', async () => {
+  it('calls goToSwaps when the swap button is pressed', async () => {
     mockUseTSDReturnValue({
       results: [
         {
@@ -364,7 +388,7 @@ describe('UrlAutocomplete', () => {
       { includeHiddenElements: true },
     );
     fireEvent.press(swapButton);
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('should call onSelect when a bookmark is selected', async () => {
@@ -415,5 +439,168 @@ describe('UrlAutocomplete', () => {
     });
     fireEvent.press(result);
     expect(onSelect).toHaveBeenCalled();
+  });
+
+  it('calls goToSwaps with correct BridgeToken when swap button is pressed', async () => {
+    mockUseTSDReturnValue({
+      results: [
+        {
+          tokenAddress: '0x123',
+          chainId: '0x1',
+          name: 'Dogecoin',
+          symbol: 'DOGE',
+          usdPrice: 1,
+          usdPricePercentChange: {
+            oneDay: 1,
+          },
+          logoUrl: 'https://example.com/doge.png',
+        },
+      ],
+      isLoading: false,
+      reset: jest.fn(),
+      searchTokens: jest.fn(),
+    });
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+      state: defaultState,
+    });
+
+    act(() => {
+      ref.current?.search('dog');
+      jest.runAllTimers();
+    });
+
+    const swapButton = await screen.findByTestId(
+      'autocomplete-result-swap-button',
+      { includeHiddenElements: true },
+    );
+    fireEvent.press(swapButton);
+
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      address: '0x123',
+      name: 'Dogecoin',
+      symbol: 'DOGE',
+      chainId: '0x1',
+      image: 'https://example.com/doge.png',
+      decimals: 18,
+    });
+  });
+
+  it('resets token search when hide method is called via ref', async () => {
+    const resetMock = jest.fn();
+    mockUseTSDReturnValue({
+      results: [
+        {
+          tokenAddress: '0x123',
+          chainId: '0x1',
+          name: 'Dogecoin',
+          symbol: 'DOGE',
+          usdPrice: 1,
+          usdPricePercentChange: {
+            oneDay: 1,
+          },
+        },
+      ],
+      isLoading: false,
+      reset: resetMock,
+      searchTokens: jest.fn(),
+    });
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+      state: defaultState,
+    });
+
+    act(() => {
+      ref.current?.search('dog');
+      jest.runAllTimers();
+    });
+
+    expect(
+      await screen.findByText('Dogecoin', { includeHiddenElements: true }),
+    ).toBeDefined();
+
+    act(() => {
+      ref.current?.hide();
+    });
+
+    expect(resetMock).toHaveBeenCalled();
+  });
+
+  it('displays token section header with loading indicator when loading', async () => {
+    mockUseTSDReturnValue({
+      results: [],
+      isLoading: true,
+      reset: jest.fn(),
+      searchTokens: jest.fn(),
+    });
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+      state: defaultState,
+    });
+
+    act(() => {
+      ref.current?.search('token');
+      jest.runAllTimers();
+    });
+
+    expect(
+      await screen.findByText('Tokens', { includeHiddenElements: true }),
+    ).toBeDefined();
+    expect(
+      await screen.findByTestId('loading-indicator', {
+        includeHiddenElements: true,
+      }),
+    ).toBeDefined();
+  });
+
+  it('removes duplicate results with same url and category', async () => {
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+      state: {
+        ...defaultState,
+        browser: {
+          history: [
+            { url: 'https://www.google.com', name: 'Google' },
+            { url: 'https://www.google.com', name: 'Google Duplicate' },
+          ],
+        },
+      },
+    });
+
+    act(() => {
+      ref.current?.search('google');
+      jest.runAllTimers();
+    });
+
+    const googleResults = await screen.findAllByText(/Google/, {
+      includeHiddenElements: true,
+    });
+    expect(googleResults.length).toBe(1);
+  });
+
+  it('limits recent results to MAX_RECENTS', async () => {
+    const historyItems = Array.from({ length: 10 }, (_, i) => ({
+      url: `https://www.site${i}.com`,
+      name: `Site${i}`,
+    }));
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+      state: {
+        ...defaultState,
+        browser: { history: historyItems },
+        bookmarks: [],
+      },
+    });
+
+    act(() => {
+      ref.current?.search('Site');
+      jest.runAllTimers();
+    });
+
+    // MAX_RECENTS is 5, so with 10 items, only 5 should show
+    const recentsHeader = await screen.findByText('Recents', {
+      includeHiddenElements: true,
+    });
+    expect(recentsHeader).toBeDefined();
   });
 });

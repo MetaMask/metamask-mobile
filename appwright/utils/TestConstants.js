@@ -40,6 +40,7 @@ export function getPasswordForScenario(scenarioType) {
     case 'login':
       return TEST_PASSWORDS.LOGIN;
     case 'onboarding':
+      return TEST_PASSWORDS.ONBOARDING;
     case 'import':
       return TEST_PASSWORDS.ONBOARDING;
     default:

@@ -1,5 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class SnapSettingsView {
   get enabledToggle(): DetoxElement {
@@ -12,6 +13,10 @@ class SnapSettingsView {
 
   get snapDetailsScrollViewMatcher(): Promise<DetoxMatcher> {
     return Matchers.getIdentifier('snap-settings-scrollview');
+  }
+
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
   async toggleEnable(): Promise<void> {
@@ -34,6 +39,12 @@ class SnapSettingsView {
     );
     await Gestures.tap(this.removeButton, {
       elemDescription: `Snap Settings - Remove Snap`,
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.tapAtIndex(this.backButton, 0, {
+      elemDescription: 'Snap Settings - Back Button',
     });
   }
 }

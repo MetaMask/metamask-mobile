@@ -589,6 +589,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -1262,7 +1263,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       }
                                       testID="label"
                                     >
-                                      Postal/Zip Code
+                                      Postal/zip code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -1326,7 +1327,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/Zip Code"
+                                          placeholder="Postal/zip code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -1365,7 +1366,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         }
                                       }
                                     >
-                                      Postal/Zip Code is required
+                                      Postal/zip code is required
                                     </Text>
                                   </View>
                                   <View
@@ -1514,6 +1515,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -2268,6 +2270,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -2888,7 +2891,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       }
                                       testID="label"
                                     >
-                                      Postal/Zip Code
+                                      Postal/zip code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -2952,7 +2955,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/Zip Code"
+                                          placeholder="Postal/zip code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -3125,6 +3128,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -3879,6 +3883,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -4507,7 +4512,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       }
                                       testID="label"
                                     >
-                                      Postal/Zip Code
+                                      Postal/zip code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -4571,7 +4576,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/Zip Code"
+                                          placeholder="Postal/zip code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -4744,6 +4749,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -5498,6 +5504,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -6147,7 +6154,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       }
                                       testID="label"
                                     >
-                                      Postal/Zip Code
+                                      Postal/zip code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -6211,7 +6218,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/Zip Code"
+                                          placeholder="Postal/zip code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -6384,6 +6391,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {

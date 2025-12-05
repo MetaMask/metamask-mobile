@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-commonjs
+/* eslint-disable import/no-commonjs */
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -145,6 +145,20 @@ module.exports = {
           config: './tailwind.config.js',
           tags: ['tw'], // Enable template literal support for tw`classnames`
         },
+      },
+    },
+    {
+      files: ['**/*.view.test.{js,ts,tsx,jsx}'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector:
+              "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
+            message:
+              'Only Engine and react-native-device-info can be mocked in component-view tests.',
+          },
+        ],
       },
     },
   ],

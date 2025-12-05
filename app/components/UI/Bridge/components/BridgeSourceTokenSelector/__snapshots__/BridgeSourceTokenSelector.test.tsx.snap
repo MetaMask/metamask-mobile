@@ -434,7 +434,6 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -889,11 +888,28 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               </View>
                             </View>
                           </View>
-                          <View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
                             <RCTScrollView
-                              ListEmptyComponent={[Function]}
+                              ListEmptyComponent={
+                                {
+                                  "$$typeof": Symbol(react.memo),
+                                  "compare": null,
+                                  "type": [Function],
+                                }
+                              }
                               bounces={true}
                               collapsable={false}
+                              contentContainerStyle={
+                                {
+                                  "paddingBottom": 0,
+                                }
+                              }
                               data={
                                 [
                                   {
@@ -1021,6 +1037,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               stickyHeaderIndices={[]}
                               style={
                                 {
+                                  "flex": 1,
                                   "marginTop": 10,
                                 }
                               }

@@ -15,6 +15,6 @@ export const getDefaultRewardsApiBaseUrlForMetaMaskEnv = (
     case 'dev':
     case 'local':
     default:
-      return AppConstants.REWARDS_API_URL.DEV;
+      return AppConstants.REWARDS_API_URL.UAT;
   }
 };

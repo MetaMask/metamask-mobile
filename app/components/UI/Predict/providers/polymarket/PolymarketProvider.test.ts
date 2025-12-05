@@ -740,6 +740,7 @@ describe('PolymarketProvider', () => {
         metamaskFee: 0.02,
         providerFee: 0.02,
         totalFee: 0.04,
+        totalFeePercentage: 0.04,
       },
       ...overrides,
     };
@@ -1358,7 +1359,12 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1374,7 +1380,12 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1395,7 +1406,12 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1416,7 +1432,12 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1447,7 +1468,12 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+        },
       });
       const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
@@ -1472,7 +1498,12 @@ describe('PolymarketProvider', () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
-        fees: { metamaskFee: 0, providerFee: 0, totalFee: 0 },
+        fees: {
+          metamaskFee: 0,
+          providerFee: 0,
+          totalFee: 0,
+          totalFeePercentage: 0,
+        },
       });
 
       await provider.placeOrder({

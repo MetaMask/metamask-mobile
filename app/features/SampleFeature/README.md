@@ -44,7 +44,7 @@ This feature demonstrates:
 - MetaMetrics tracking implementation
 - Performance tracing patterns and monitoring
 - Comprehensive unit testing
-- End-to-end testing with Cucumber/Gherkin
+- End-to-end testing
 
 ## Architecture
 

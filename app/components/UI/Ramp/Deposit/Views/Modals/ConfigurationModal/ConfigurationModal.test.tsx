@@ -7,7 +7,18 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
+import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
+}));
 
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -46,6 +57,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockClearAuthToken = jest.fn();
+const mockGoToAggregator = jest.fn();
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -78,6 +90,10 @@ jest.mock('react-native', () => {
 const mockUseDepositSDK = jest.fn();
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
+}));
+
+jest.mock('../../../../hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToAggregator: mockGoToAggregator })),
 }));
 
 jest.mock('../../../../../../../component-library/components/Toast', () => {
@@ -121,8 +137,10 @@ describe('ConfigurationModal', () => {
   it('navigates to aggregator when more ways to buy is pressed', () => {
     const { getByText } = renderWithProvider(ConfigurationModal);
     const moreWaysToBuyButton = getByText('More ways to buy');
+
     fireEvent.press(moreWaysToBuyButton);
-    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
+
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
   it('should open support URL when contact support is pressed', () => {
@@ -135,11 +153,17 @@ describe('ConfigurationModal', () => {
   it('tracks event when more ways to buy is pressed', () => {
     const { getByText } = renderWithProvider(ConfigurationModal);
     const moreWaysToBuyButton = getByText('More ways to buy');
+
     fireEvent.press(moreWaysToBuyButton);
+
     expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
       location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: 'us',
+      ramp_routing: undefined,
+      is_authenticated: false,
+      preferred_provider: undefined,
+      order_count: 0,
     });
   });
 

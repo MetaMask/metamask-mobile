@@ -184,6 +184,7 @@ class FixtureBuilder {
     this.fixture = {
       state: {
         legalNotices: {
+          isPna25Acknowledged: true,
           newPrivacyPolicyToastClickedOrClosed: true,
           newPrivacyPolicyToastShownDate: Date.now(),
         },
@@ -1355,6 +1356,7 @@ class FixtureBuilder {
   /**
    * Configure Polygon network to route through mock server proxy
    * This allows RPC calls to be intercepted by the mock server
+   * Uses Infura URL format to match app code expectations
    */
   withPolygon(chainId = CHAIN_IDS.POLYGON) {
     const fixtures = this.fixture.state.engine.backgroundState;
@@ -1364,12 +1366,14 @@ class FixtureBuilder {
         .length + 1
     }`;
 
+    const infuraProjectId =
+      process.env.MM_INFURA_PROJECT_ID || 'test-project-id';
     const polygonNetworkConfig = {
       chainId,
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
-          url: `http://localhost:${getMockServerPortForFixture()}/proxy?url=https://polygon-rpc.com`,
+          url: `http://localhost:${getMockServerPortForFixture()}/proxy?url=https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
           type: 'custom',
           name: 'Polygon Localhost',
         },

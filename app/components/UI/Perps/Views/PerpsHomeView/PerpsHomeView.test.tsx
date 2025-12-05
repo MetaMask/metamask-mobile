@@ -43,6 +43,9 @@ jest.mock(
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockHandleAddFunds = jest.fn();
+const mockHandleWithdraw = jest.fn();
+const mockCloseEligibilityModal = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -54,11 +57,47 @@ jest.mock('../../hooks', () => ({
     navigateBack: mockNavigateBack,
     goBack: jest.fn(),
   })),
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: mockHandleAddFunds,
+    handleWithdraw: mockHandleWithdraw,
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: mockCloseEligibilityModal,
+    isEligible: true,
+    isProcessing: false,
+    error: null,
+  })),
+}));
+
+// Mock direct import of usePerpsHomeActions (component imports it directly now)
+jest.mock('../../hooks/usePerpsHomeActions', () => ({
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: mockHandleAddFunds,
+    handleWithdraw: mockHandleWithdraw,
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: mockCloseEligibilityModal,
+    isEligible: true,
+    isProcessing: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
+
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      totalBalance: '0',
+      availableBalance: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    },
+    isInitialLoading: false,
+  })),
+}));
+
+// Use real BigNumber library - mocking it causes issues with module initialization
 
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
