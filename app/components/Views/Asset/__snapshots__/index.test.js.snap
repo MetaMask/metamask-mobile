@@ -21,8 +21,10 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -61,8 +63,10 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -101,8 +105,10 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -141,8 +147,10 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -181,8 +189,10 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -221,8 +231,10 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -1941,9 +1953,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -3728,9 +3740,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -5556,9 +5568,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -7343,9 +7355,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -9130,9 +9142,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -10958,9 +10970,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -11544,8 +11556,10 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                           style={
                             {
                               "alignItems": "center",
+                              "backgroundColor": "#ffffff",
                               "justifyContent": "center",
-                              "paddingBottom": 24,
+                              "paddingVertical": 40,
+                              "width": "100%",
                             }
                           }
                         >
@@ -13274,9 +13288,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -15061,9 +15075,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -15647,8 +15661,10 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                           style={
                             {
                               "alignItems": "center",
+                              "backgroundColor": "#ffffff",
                               "justifyContent": "center",
-                              "paddingBottom": 24,
+                              "paddingVertical": 40,
+                              "width": "100%",
                             }
                           }
                         >
@@ -15697,8 +15713,10 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -15737,8 +15755,10 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -15777,8 +15797,10 @@ exports[`Asset should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
