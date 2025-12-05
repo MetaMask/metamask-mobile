@@ -288,20 +288,54 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showNotFoundError).not.toHaveBeenCalled();
     });
 
-    it('should show error if connection is not found in the store', async () => {
-      registry = new ConnectionRegistry(
-        RELAY_URL,
-        mockKeyManager,
-        mockHostApp,
-        mockStore,
-      );
+    describe('when the connection is not found in the store', () => {
+      it('should show error if connection when the keyring is unlocked', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
 
-      await registry.handleSimpleDeeplink('mock-conn-id');
-      await jest.advanceTimersByTimeAsync(1000);
+        await registry.handleSimpleDeeplink('mock-conn-id');
+        await jest.advanceTimersByTimeAsync(1000);
 
-      expect(mockStore.get).toHaveBeenCalledWith('mock-conn-id');
+        expect(mockStore.get).toHaveBeenCalledWith('mock-conn-id');
+        expect(mockHostApp.showNotFoundError).toHaveBeenCalled();
+      });
 
-      expect(mockHostApp.showNotFoundError).toHaveBeenCalled();
+      it('should show error if the connection is keyring is not unlocked but becomes unlocked later', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        (
+          Engine.context.KeyringController.isUnlocked as jest.Mock
+        ).mockReturnValueOnce(false);
+
+        Engine.controllerMessenger.unsubscribe = jest.fn();
+
+        const promise = registry.handleSimpleDeeplink('mock-conn-id');
+
+        expect(mockHostApp.showNotFoundError).not.toHaveBeenCalled();
+
+        await jest.advanceTimersByTimeAsync(1000);
+        expect(mockHostApp.showNotFoundError).not.toHaveBeenCalled();
+
+        // Trigger the subscription handler
+        (Engine.controllerMessenger.subscribe as jest.Mock).mock.calls[0][1]();
+
+        await jest.advanceTimersByTimeAsync(1000);
+        expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalled();
+
+        await promise;
+
+        expect(mockStore.get).toHaveBeenCalledWith('mock-conn-id');
+        expect(mockHostApp.showNotFoundError).toHaveBeenCalled();
+      });
     });
   });
 
