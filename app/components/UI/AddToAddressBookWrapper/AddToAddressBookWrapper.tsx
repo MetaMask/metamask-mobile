@@ -12,7 +12,6 @@ import { useTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
 import useExistingAddress from '../../hooks/useExistingAddress';
 import ActionModal from '../ActionModal';
-import { LOWER_CASED_BURN_ADDRESSES } from '../../../constants/address';
 
 import createStyles from './styles';
 
@@ -36,11 +35,7 @@ export const AddToAddressBookWrapper = ({
   const [showAddToAddressBook, setShowAddToAddressBook] = useState(false);
   const [alias, setAlias] = useState<string>();
 
-  if (
-    !address ||
-    existingContact ||
-    LOWER_CASED_BURN_ADDRESSES.includes(address?.toLowerCase())
-  ) {
+  if (!address || existingContact) {
     if (defaultNull) {
       return null;
     }
@@ -50,10 +45,6 @@ export const AddToAddressBookWrapper = ({
 
   const onSaveToAddressBook = () => {
     if (!alias) return;
-    // Prevent saving burn addresses to address book
-    if (LOWER_CASED_BURN_ADDRESSES.includes(address?.toLowerCase())) {
-      return;
-    }
     const { AddressBookController } = Engine.context;
     AddressBookController.set(address, alias, chainId);
     setToAddressName?.(alias);

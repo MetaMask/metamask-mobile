@@ -433,6 +433,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -554,9 +555,8 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -838,9 +838,8 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -1578,6 +1577,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1699,9 +1699,8 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -1983,9 +1982,8 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -2723,6 +2721,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -2844,9 +2843,8 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -3126,9 +3124,8 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,

@@ -5,8 +5,12 @@ import {
   SortTrendingBy,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { usePopularNetworks } from '../usePopularNetworks/usePopularNetworks';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+  ProcessedNetwork,
+} from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworksToUse } from '../../../../hooks/useNetworksToUse/useNetworksToUse';
 
 /**
  * Hook for handling trending tokens request
@@ -31,18 +35,25 @@ export const useTrendingRequest = (options: {
     maxMarketCap,
   } = options;
 
-  // Get popular networks for filtering
-  const popularNetworks = usePopularNetworks();
+  // Get default networks when chainIds is empty
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+
+  const { networksToUse } = useNetworksToUse({
+    networks,
+    networkType: NetworkType.Popular,
+  });
 
   // Use provided chainIds or default to popular networks
   const chainIds = useMemo((): CaipChainId[] => {
     if (providedChainIds.length > 0) {
       return providedChainIds;
     }
-    return popularNetworks.map(
+    return networksToUse.map(
       (network: ProcessedNetwork) => network.caipChainId,
     );
-  }, [providedChainIds, popularNetworks]);
+  }, [providedChainIds, networksToUse]);
 
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);

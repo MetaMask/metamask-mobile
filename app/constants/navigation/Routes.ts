@@ -330,9 +330,6 @@ const Routes = {
     ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
-    MUSD: {
-      CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
-    },
     MODALS: {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',

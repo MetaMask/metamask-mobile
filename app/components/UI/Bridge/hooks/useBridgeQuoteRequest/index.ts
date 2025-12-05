@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
 import { type GenericQuoteRequest } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
@@ -9,7 +9,7 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
-  selectGasIncludedQuoteParams,
+  selectGasIncluded,
 } from '../../../../../core/redux/slices/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
@@ -46,9 +46,14 @@ export const useBridgeQuoteRequest = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const { gasIncluded, gasIncluded7702 } = useSelector(
-    selectGasIncludedQuoteParams,
-  );
+  const gasIncluded = useSelector(selectGasIncluded);
+
+  // Prevents infinite requests when user select max balance on
+  // source token input.
+  const insufficientBalRef = useRef(insufficientBal);
+  useEffect(() => {
+    insufficientBalRef.current = insufficientBal;
+  }, [insufficientBal]);
 
   /**
    * Updates quote parameters in the bridge controller
@@ -82,8 +87,8 @@ export const useBridgeQuoteRequest = () => {
       walletAddress,
       destWalletAddress: destAddress ?? walletAddress,
       gasIncluded,
-      gasIncluded7702,
-      insufficientBal,
+      gasIncluded7702: false, // TODO: https://consensyssoftware.atlassian.net/browse/STX-263
+      insufficientBal: insufficientBalRef.current,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
@@ -100,8 +105,6 @@ export const useBridgeQuoteRequest = () => {
     destAddress,
     context,
     gasIncluded,
-    gasIncluded7702,
-    insufficientBal,
   ]);
 
   // Create a stable debounced function that persists across renders

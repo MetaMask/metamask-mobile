@@ -202,24 +202,6 @@ export class Delegation7702PublishHook {
 
     log('Relay request', relayRequest);
 
-    const initialTxMeta = this.#messenger
-      .call('TransactionController:getState')
-      .transactions.find((tx) => tx.id === transactionMeta.id);
-
-    if (initialTxMeta) {
-      this.#messenger.call(
-        'TransactionController:updateTransaction',
-        {
-          ...initialTxMeta,
-          txParams: {
-            ...initialTxMeta.txParams,
-            nonce: undefined,
-          },
-        },
-        'Delegation7702PublishHook - Remove nonce from transaction before relay',
-      );
-    }
-
     const { uuid } = await submitRelayTransaction(relayRequest);
 
     const { transactionHash, status } = await waitForRelayResult({
@@ -233,22 +215,16 @@ export class Delegation7702PublishHook {
     }
 
     // Mark 7702 relay transaction as intent complete so PendingTransactionTracker
-    // skips dropped checks
-    log('Setting isIntentComplete after relay success', transactionMeta.id);
-    const finalTxMeta = this.#messenger
-      .call('TransactionController:getState')
-      .transactions.find((tx) => tx.id === transactionMeta.id);
-
-    if (finalTxMeta) {
-      this.#messenger.call(
-        'TransactionController:updateTransaction',
-        {
-          ...finalTxMeta,
-          isIntentComplete: true,
-        },
-        'Delegation7702PublishHook - Set isIntentComplete after relay confirmed',
-      );
-    }
+    // skips dropped checks, matching transaction-pay-controller
+    const updatedTransactionMeta = {
+      ...transactionMeta,
+      isIntentComplete: true,
+    };
+    await this.#messenger.call(
+      'TransactionController:updateTransaction',
+      updatedTransactionMeta,
+      'Intent complete after 7702 relay transaction success',
+    );
 
     return {
       transactionHash,

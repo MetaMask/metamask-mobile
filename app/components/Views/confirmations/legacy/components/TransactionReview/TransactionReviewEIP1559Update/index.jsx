@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -16,7 +15,7 @@ import useModalHandler from '../../../../../../Base/hooks/useModalHandler';
 import Summary from '../../../../../../Base/Summary';
 import Text from '../../../../../../Base/Text';
 import FadeAnimationView from '../../../../../../UI/FadeAnimationView';
-import InfoModal from '../../../../../../Base/InfoModal';
+import InfoModal from '../../../../../../UI/Swaps/components/InfoModal';
 import TimeEstimateInfoModal from '../../../../../../UI/TimeEstimateInfoModal';
 import SkeletonComponent from './skeletonComponent';
 import createStyles from './styles';

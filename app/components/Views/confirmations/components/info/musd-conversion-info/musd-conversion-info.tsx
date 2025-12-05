@@ -3,18 +3,18 @@ import { strings } from '../../../../../../../locales/i18n';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
 import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../../../UI/Earn/constants/musd';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
 import { useParams } from '../../../../../../util/navigation/navUtils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const MusdConversionInfo = () => {
   const { outputChainId, preferredPaymentToken } =
     useParams<MusdConversionConfig>({
-      outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+      outputChainId: CHAIN_IDS.MAINNET,
     });
 
   useNavbar(strings('earn.musd_conversion.earn_rewards_with'));
