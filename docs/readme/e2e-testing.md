@@ -6,7 +6,7 @@
 >
 > E2E tests are significantly slower, more brittle, and resource-intensive than unit and integration tests. Always prioritize unit and integration tests over E2E ones.
 
-Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest and cucumber as test runners.
+Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest test runners.
 
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
@@ -335,9 +335,20 @@ yarn test:e2e:android:flask:run
     - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
   - you don't need to repeat these steps unless emulator or metro server is restarted
 
-## Appium
+## ~~Appium~~ (Deprecated)
 
-We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.
+> **⚠️ DEPRECATED**: The Appium/WebDriver.io/Cucumber test infrastructure has been removed. This section is kept for historical reference only.
+
+~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
+
+**Current approach**: Performance testing is now handled by [Appwright](https://github.com/nickmaxwell10/appwright), a Playwright-based mobile testing framework. See the `appwright/` directory for performance tests including app launch times and feature-specific performance measurements.
+
+**Test Location**: `appwright/tests/performance/`
+
+---
+
+<details>
+<summary>Legacy Appium Documentation (for reference only)</summary>
 
 **Supported Platform**: Android  
 **Test Location**: `wdio`
@@ -501,6 +512,8 @@ You can also run Appium tests on CI using Bitrise pipelines:
 - `app_upgrade_pipeline`
 
 For more details on our CI pipelines, see the [Bitrise Pipelines Overview](#bitrise-pipelines-overview).
+
+</details>
 
 ### API Spec Tests
 
