@@ -1,5 +1,5 @@
 import { PlaywrightElement, wrapElement } from './PlaywrightAdapter';
-import { getDriver } from './utils';
+import { getDriver } from './Utilities';
 import { ChainablePromiseElement } from 'webdriverio';
 
 /**
@@ -92,11 +92,27 @@ export default class PlaywrightMatchers {
    * @param className - The class name to search for
    * @returns The wrapped element
    */
-  static async getByClass(className: string): Promise<PlaywrightElement> {
+  static async getByClassName(className: string): Promise<PlaywrightElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const element = await drv.$(`.${className}`);
     return wrapElement(element);
+  }
+
+  /**
+   * Get multiple elements by class name
+   * @param className - The class name to search for
+   * @returns The wrapped elements
+   */
+  static async getAllByClassName(
+    className: string,
+  ): Promise<PlaywrightElement[]> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const elements = await drv.$$(`.${className}`);
+    return elements.map((el) =>
+      wrapElement(el as unknown as ChainablePromiseElement),
+    );
   }
 
   /**

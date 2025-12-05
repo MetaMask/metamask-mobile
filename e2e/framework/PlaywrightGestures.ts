@@ -1,5 +1,5 @@
 import { PlaywrightElement } from './PlaywrightAdapter';
-import { boxedStep } from './utils';
+import { boxedStep } from './Utilities';
 
 /**
  * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright
