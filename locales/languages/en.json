@@ -6705,7 +6705,11 @@
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See card details, transactions and more"
+        "advanced_card_management_description": "See card details, transactions and more",
+        "travel_title": "MetaMask Travel",
+        "travel_description": "Book hotels with up to 60% discounts vs. Expedia",
+        "card_tos_title": "Card Terms and Conditions",
+        "card_tos_description": "Read the card provider's terms"
       }
     },
     "card_spending_limit": {
