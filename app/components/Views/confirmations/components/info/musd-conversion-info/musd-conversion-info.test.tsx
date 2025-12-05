@@ -146,8 +146,8 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe('useTransactionPayAvailableTokens', () => {
-    it('calls useTransactionPayAvailableTokens in override content', () => {
+  describe('MusdOverrideContent', () => {
+    it('calls useTransactionPayAvailableTokens when rendered', () => {
       mockRoute.params = {
         outputChainId: '0x1' as Hex,
       };
@@ -161,9 +161,15 @@ describe('MusdConversionInfo', () => {
         state: {},
       });
 
-      // The hook is called when MusdOverrideContent renders
-      // We verify the mock was set up correctly
-      expect(mockUseTransactionPayAvailableTokens).toBeDefined();
+      const mockCustomAmountInfo = jest.mocked(CustomAmountInfo);
+      const overrideContent = mockCustomAmountInfo.mock.calls[0][0]
+        .overrideContent as (amountHuman: string) => React.ReactNode;
+
+      renderWithProvider(<>{overrideContent('100')}</>, {
+        state: {},
+      });
+
+      expect(mockUseTransactionPayAvailableTokens).toHaveBeenCalled();
     });
   });
 });

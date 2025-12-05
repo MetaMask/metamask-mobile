@@ -26,12 +26,16 @@ describe('OutputAmountTag', () => {
     expect(getByText('100')).toBeOnTheScreen();
   });
 
-  it('renders without background when showBackground is false', () => {
-    const { getByText } = renderWithProvider(
+  it('sets backgroundColor to transparent when showBackground is false', () => {
+    const { getByTestId } = renderWithProvider(
       <OutputAmountTag amount="10" symbol="mUSD" showBackground={false} />,
     );
 
-    expect(getByText('10 mUSD')).toBeOnTheScreen();
+    const tagElement = getByTestId(OUTPUT_AMOUNT_TAG_SELECTOR);
+
+    expect(tagElement.props.style).toEqual(
+      expect.objectContaining({ backgroundColor: 'transparent' }),
+    );
   });
 
   it('uses custom testID when provided', () => {
