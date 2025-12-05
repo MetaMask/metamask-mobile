@@ -5,9 +5,9 @@ import {
   CHART_HEIGHT,
   CHART_CONTENT_INSET,
   MAX_SERIES,
-  getTimeframeDurationMs,
   formatPriceHistoryLabel,
   formatTickValue,
+  DAY_IN_MS,
 } from './utils';
 
 describe('PredictDetailsChart utils', () => {
@@ -36,35 +36,6 @@ describe('PredictDetailsChart utils', () => {
     it('exports line curve as a function', () => {
       expect(typeof LINE_CURVE).toBe('function');
       expect(LINE_CURVE.alpha).toBeDefined();
-    });
-  });
-
-  describe('getTimeframeDurationMs', () => {
-    it.each([
-      [PredictPriceHistoryInterval.ONE_HOUR, 60 * 60 * 1000],
-      [PredictPriceHistoryInterval.SIX_HOUR, 6 * 60 * 60 * 1000],
-      [PredictPriceHistoryInterval.ONE_DAY, 24 * 60 * 60 * 1000],
-      [PredictPriceHistoryInterval.ONE_WEEK, 7 * 24 * 60 * 60 * 1000],
-      [PredictPriceHistoryInterval.ONE_MONTH, 30 * 24 * 60 * 60 * 1000],
-    ])(
-      'returns expected duration for %s interval',
-      (interval: PredictPriceHistoryInterval, expectedDuration: number) => {
-        const result = getTimeframeDurationMs(interval);
-
-        expect(result).toBe(expectedDuration);
-      },
-    );
-
-    it('returns null for MAX interval', () => {
-      const result = getTimeframeDurationMs(PredictPriceHistoryInterval.MAX);
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null for unknown interval', () => {
-      const result = getTimeframeDurationMs('unknown-interval');
-
-      expect(result).toBeNull();
     });
   });
 
@@ -171,6 +142,30 @@ describe('PredictDetailsChart utils', () => {
         );
 
         expect(result).toMatch(/^[A-Z][a-z]{2}\s\d{2}$/);
+      });
+
+      it('formats MAX interval with month and day when time range is under 30 days', () => {
+        const timestamp = createSecondsTimestamp('2024-01-15T12:00:00.000Z');
+
+        const result = formatPriceHistoryLabel(
+          timestamp,
+          PredictPriceHistoryInterval.MAX,
+          { timeRangeMs: 15 * DAY_IN_MS },
+        );
+
+        expect(result).toMatch(/^[A-Z][a-z]{2}\s\d{1,2}$/);
+      });
+
+      it('formats MAX interval with time when time range is under 1 day', () => {
+        const timestamp = createSecondsTimestamp('2024-01-15T12:00:00.000Z');
+
+        const result = formatPriceHistoryLabel(
+          timestamp,
+          PredictPriceHistoryInterval.MAX,
+          { timeRangeMs: 0.5 * DAY_IN_MS },
+        );
+
+        expect(result).toMatch(/^\d{1,2}:\d{2}\s?(AM|PM)?$/);
       });
 
       it('formats unknown interval as month and 2-digit year', () => {

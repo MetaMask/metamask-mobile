@@ -140,6 +140,27 @@ export async function analyzeWithAgent<M extends ModeKey>(
             },
           );
 
+          // Log tool result with status indicator
+          const errorPattern =
+            /^(Error:|Invalid|Tool error:|Unknown tool:|File not found:|Directory not found:)|Error (searching|finding|reading)|Could not get|Cannot extract/;
+          const emptyPattern = /No (matches found|git diff|related|importers)/;
+
+          const isError = errorPattern.test(toolResult);
+          const isEmpty = emptyPattern.test(toolResult);
+
+          let status = '✅';
+          if (isError) status = '❌';
+          else if (isEmpty) status = '📭';
+
+          const resultPreview = toolResult
+            .substring(0, 120)
+            .replace(/\n/g, ' ');
+          console.log(
+            `   ${status} ${resultPreview}${
+              toolResult.length > 120 ? '...' : ''
+            }`,
+          );
+
           // Handle finalize tool (mode-specific)
           if (toolUse.name === modeConfig.finalizeToolName) {
             const analysis = await modeConfig.processAnalysis(

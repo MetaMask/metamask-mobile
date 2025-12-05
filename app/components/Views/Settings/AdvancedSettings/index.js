@@ -13,7 +13,6 @@ import Engine from '../../../../core/Engine';
 import { baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
-  setShowCustomNonce,
   setShowFiatOnTestnets,
   setShowHexData,
 } from '../../../../actions/settings';
@@ -206,14 +205,6 @@ class AdvancedSettings extends PureComponent {
      */
     setShowHexData: PropTypes.func,
     /**
-     * Called to toggle show custom nonce
-     */
-    setShowCustomNonce: PropTypes.func,
-    /**
-     * Indicates whether custom nonce should be shown in transaction editor
-     */
-    showCustomNonce: PropTypes.bool,
-    /**
      * Indicates whether fiat conversions should be shown on testnets
      */
     showFiatOnTestnets: PropTypes.bool,
@@ -373,10 +364,8 @@ class AdvancedSettings extends PureComponent {
   render = () => {
     const {
       showHexData,
-      showCustomNonce,
       showFiatOnTestnets,
       setShowHexData,
-      setShowCustomNonce,
       setShowFiatOnTestnets,
       smartAccountOptIn,
       smartTransactionsOptInStatus,
@@ -488,14 +477,6 @@ class AdvancedSettings extends PureComponent {
               styles={styles}
             />
 
-            <SettingsRow
-              heading={strings('app_settings.show_custom_nonce')}
-              description={strings('app_settings.custom_nonce_desc')}
-              value={showCustomNonce}
-              onValueChange={setShowCustomNonce}
-              styles={styles}
-            />
-
             <AutoDetectTokensSettings />
 
             <SettingsRow
@@ -546,7 +527,6 @@ AdvancedSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   showHexData: state.settings.showHexData,
-  showCustomNonce: state.settings.showCustomNonce,
   showFiatOnTestnets: state.settings.showFiatOnTestnets,
   fullState: state,
   isTokenDetectionEnabled: selectUseTokenDetection(state),
@@ -563,8 +543,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   setShowHexData: (showHexData) => dispatch(setShowHexData(showHexData)),
-  setShowCustomNonce: (showCustomNonce) =>
-    dispatch(setShowCustomNonce(showCustomNonce)),
   setShowFiatOnTestnets: (showFiatOnTestnets) =>
     dispatch(setShowFiatOnTestnets(showFiatOnTestnets)),
 });

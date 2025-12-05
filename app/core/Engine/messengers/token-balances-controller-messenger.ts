@@ -38,6 +38,7 @@ export function getTokenBalancesControllerMessenger(
       'AccountTrackerController:updateNativeBalances',
       'AccountTrackerController:updateStakedBalances',
       'TokenDetectionController:addDetectedTokensViaWs',
+      'AuthenticationController:getBearerToken',
     ],
     events: [
       'TokensController:stateChange',
@@ -46,6 +47,7 @@ export function getTokenBalancesControllerMessenger(
       'KeyringController:accountRemoved',
       'AccountActivityService:balanceUpdated',
       'AccountActivityService:statusChanged',
+      'AccountsController:selectedEvmAccountChange',
     ],
     messenger,
   });

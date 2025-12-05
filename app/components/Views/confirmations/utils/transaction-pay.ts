@@ -11,10 +11,12 @@ import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
-import { getNativeTokenAddress } from './asset';
-import { strings } from '../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
+import { store } from '../../../../store';
+import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
+import { getNativeTokenAddress } from './asset';
+import { strings } from '../../../../../locales/i18n';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
@@ -90,6 +92,8 @@ export function getAvailableTokens({
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
 }): AssetType[] {
+  const supportedGasFeeTokens = getSupportedGasFeeTokens();
+
   return tokens
     .filter((token) => {
       if (
@@ -122,21 +126,29 @@ export function getAvailableTokens({
       return new BigNumber(token.balance).gt(0);
     })
     .map((token) => {
-      const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
-
-      const nativeTokenAddress = getNativeTokenAddress(token.chainId as Hex);
+      const chainId = (token.chainId as Hex) ?? '0x0';
 
       const nativeToken = tokens.find(
-        (t) => t.address === nativeTokenAddress && t.chainId === token.chainId,
+        (t) =>
+          t.chainId === chainId && t.address === getNativeTokenAddress(chainId),
       );
 
-      const disabled = new BigNumber(nativeToken?.balance ?? 0).isZero();
+      const noNativeBalance =
+        !nativeToken || new BigNumber(nativeToken.balance).isZero();
+
+      const isGasStationSupported = supportedGasFeeTokens[chainId]?.includes(
+        token.address?.toLowerCase() as Hex,
+      );
+
+      const disabled = noNativeBalance && !isGasStationSupported;
 
       const disabledMessage = disabled
         ? strings('pay_with_modal.no_gas')
         : undefined;
+
+      const isSelected =
+        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+        payToken?.chainId === token.chainId;
 
       return {
         ...token,
@@ -145,4 +157,19 @@ export function getAvailableTokens({
         isSelected,
       };
     });
+}
+
+function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
+  const state = store.getState();
+  const { gasFeeTokens } = selectGasFeeTokenFlags(state);
+
+  return Object.keys(gasFeeTokens).reduce(
+    (acc, chainId) => ({
+      ...acc,
+      [chainId]: gasFeeTokens[chainId as Hex].tokens.map(
+        (token) => token.address.toLowerCase() as Hex,
+      ),
+    }),
+    {},
+  );
 }

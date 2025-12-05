@@ -10,6 +10,8 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selecto
 import { isCaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
+import { toLowerCaseEquals } from '../../../../../util/general';
+import { parseCAIP19AssetId } from '../../Aggregator/utils/parseCaip19AssetId';
 
 export interface UseCryptoCurrenciesResult {
   cryptoCurrencies: DepositCryptoCurrency[] | null;
@@ -19,8 +21,13 @@ export interface UseCryptoCurrenciesResult {
 }
 
 export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
-  const { selectedRegion, selectedCryptoCurrency, setSelectedCryptoCurrency } =
-    useDepositSDK();
+  const {
+    selectedRegion,
+    selectedCryptoCurrency,
+    setSelectedCryptoCurrency,
+    intent,
+    setIntent,
+  } = useDepositSDK();
 
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -49,12 +56,43 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
 
   useEffect(() => {
     if (cryptoCurrencies && cryptoCurrencies.length > 0) {
+      if (intent?.assetId) {
+        let intentCrypto = cryptoCurrencies.find((token) =>
+          toLowerCaseEquals(token.assetId, intent.assetId),
+        );
+
+        // Handle slip44 wildcard matching any native asset
+        if (!intentCrypto) {
+          const intentParsedCaip19 = parseCAIP19AssetId(intent.assetId);
+          if (intentParsedCaip19?.assetNamespace === 'slip44') {
+            intentCrypto = cryptoCurrencies.find((token) => {
+              const tokenParsed = parseCAIP19AssetId(token.assetId);
+              return (
+                tokenParsed &&
+                tokenParsed.namespace === intentParsedCaip19.namespace &&
+                tokenParsed.chainId === intentParsedCaip19.chainId &&
+                tokenParsed.assetNamespace === 'slip44'
+              );
+            });
+          }
+        }
+
+        setIntent((prevIntent) =>
+          prevIntent ? { ...prevIntent, assetId: undefined } : undefined,
+        );
+
+        if (intentCrypto) {
+          setSelectedCryptoCurrency(intentCrypto);
+          return;
+        }
+      }
+
       let newSelectedCrypto: DepositCryptoCurrency | null = null;
 
       if (selectedCryptoCurrency) {
         newSelectedCrypto =
-          cryptoCurrencies.find(
-            (crypto) => crypto.assetId === selectedCryptoCurrency.assetId,
+          cryptoCurrencies.find((crypto) =>
+            toLowerCaseEquals(crypto.assetId, selectedCryptoCurrency.assetId),
           ) || null;
       }
 
@@ -66,7 +104,13 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
         setSelectedCryptoCurrency(newSelectedCrypto);
       }
     }
-  }, [cryptoCurrencies, selectedCryptoCurrency, setSelectedCryptoCurrency]);
+  }, [
+    cryptoCurrencies,
+    selectedCryptoCurrency,
+    setSelectedCryptoCurrency,
+    intent,
+    setIntent,
+  ]);
 
   return {
     cryptoCurrencies,

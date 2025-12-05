@@ -22,6 +22,13 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 import { Json } from '@metamask/utils';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: () => ({
+    trackInlineAlertClicked: jest.fn(),
+    trackAlertActionClicked: jest.fn(),
+    trackAlertRendered: jest.fn(),
+  }),
+}));
 
 function render() {
   const state = merge(
@@ -52,7 +59,7 @@ describe('BridgeFeeRow', () => {
     useTransactionTotalsMock.mockReturnValue({
       fees: {
         provider: { usd: '1.00' },
-        sourceNetwork: { usd: '0.20' },
+        sourceNetwork: { estimate: { usd: '0.20' } },
         targetNetwork: { usd: '0.03' },
       },
     } as TransactionPayTotals);

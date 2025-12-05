@@ -10,7 +10,6 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
@@ -34,7 +33,8 @@ export function useTransactionConfirm() {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
-  const { chainId, type } = transactionMetadata ?? {};
+  const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
+    transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
 
@@ -50,7 +50,7 @@ export function useTransactionConfirm() {
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken) {
+      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
         return;
       }
 
@@ -77,6 +77,7 @@ export function useTransactionConfirm() {
     },
     [
       selectedGasFeeToken,
+      isGasFeeTokenIgnoredIfBalance,
       isGaslessSupported,
       transactionMetadata?.isGasFeeSponsored,
     ],
@@ -84,7 +85,7 @@ export function useTransactionConfirm() {
 
   const handleGasless7702 = useCallback(
     (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken) {
+      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
         return;
       }
 
@@ -93,6 +94,7 @@ export function useTransactionConfirm() {
         isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
     [
+      isGasFeeTokenIgnoredIfBalance,
       isGaslessSupported,
       selectedGasFeeToken,
       transactionMetadata?.isGasFeeSponsored,
@@ -130,6 +132,13 @@ export function useTransactionConfirm() {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
       });
+    } else if (type === TransactionType.musdConversion) {
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     } else if (
       isFullScreenConfirmation &&
       !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
@@ -141,11 +150,7 @@ export function useTransactionConfirm() {
 
     // Replace/remove this once we have redesigned send flow
     dispatch(resetTransaction());
-
-    // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
-    }
+    tryEnableEvmNetwork(chainId);
   }, [
     chainId,
     dispatch,

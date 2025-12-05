@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -43,6 +43,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
+import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
+import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -86,6 +88,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
+  );
+
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
   );
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
@@ -218,15 +224,22 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           <TokenListSkeleton />
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
-        <TokenList
-          tokenKeys={sortedTokenKeys}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          showRemoveMenu={showRemoveMenu}
-          setShowScamWarningModal={handleScamWarningModal}
-          maxItems={maxItems}
-          isFullView={isFullView}
-        />
+        <>
+          {isMusdConversionFlowEnabled && (
+            <View style={isFullView ? tw`px-4` : undefined}>
+              <MusdConversionAssetListCta />
+            </View>
+          )}
+          <TokenList
+            tokenKeys={sortedTokenKeys}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            setShowScamWarningModal={handleScamWarningModal}
+            maxItems={maxItems}
+            isFullView={isFullView}
+          />
+        </>
       ) : (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
           <TokensEmptyState />
