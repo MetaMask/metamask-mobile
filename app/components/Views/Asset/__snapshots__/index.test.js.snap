@@ -14809,8 +14809,10 @@ exports[`Asset selectedAddressForAsset falls back to standard address when accou
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -14849,8 +14851,10 @@ exports[`Asset selectedAddressForAsset falls back to standard address when selec
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -16384,7 +16388,7 @@ exports[`Asset selectedAddressForAsset preserves Solana address format without c
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -16456,9 +16460,9 @@ exports[`Asset selectedAddressForAsset preserves Solana address format without c
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -18058,7 +18062,7 @@ exports[`Asset selectedAddressForAsset uses Solana address for Solana asset 1`] 
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -18130,9 +18134,9 @@ exports[`Asset selectedAddressForAsset uses Solana address for Solana asset 1`] 
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
@@ -18237,8 +18241,10 @@ exports[`Asset selectedAddressForAsset uses account from selectSelectedInternalA
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
