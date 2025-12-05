@@ -25,7 +25,7 @@ export function TransactionDetailsAccountRow() {
 
   const accountName = useAccountNames([
     {
-      value: from,
+      value: from ?? '',
       variation: chainId,
       type: NameType.EthereumAddress,
     },
