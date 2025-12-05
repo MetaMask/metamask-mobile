@@ -86,14 +86,18 @@ export class ConnectionRegistry {
   }
 
   public async handleMwpDeeplink(url: string): Promise<void> {
-    const parsed = new URL(url);
+    try {
+      const parsed = new URL(url);
 
-    const id = parsed.searchParams.get('id');
+      const id = parsed.searchParams.get('id');
 
-    if (id) {
-      await this.handleSimpleDeeplink(id);
-    } else {
-      await this.handleConnectDeeplink(url);
+      if (id) {
+        await this.handleSimpleDeeplink(id);
+      } else {
+        await this.handleConnectDeeplink(url);
+      }
+    } catch (error) {
+      logger.error('Failed to handle MWP deeplink:', error);
     }
   }
 
