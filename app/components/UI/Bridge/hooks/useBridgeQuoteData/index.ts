@@ -11,7 +11,8 @@ import {
   selectIsSolanaSwap,
   selectIsSolanaToNonSolana,
 } from '../../../../../core/redux/slices/bridge';
-import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
+import { RequestStatus } from '@metamask/bridge-controller';
+import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import {
   fromTokenMinimalUnit,
@@ -93,11 +94,7 @@ export const useBridgeQuoteData = ({
     if (!activeQuote || !destToken) return false;
     const quoteDestAddress = activeQuote.quote.destAsset.address;
     const selectedDestAddress = destToken.address;
-    // Solana addresses are case-sensitive, EVM addresses are not
-    if (isNonEvmChainId(destToken.chainId)) {
-      return quoteDestAddress === selectedDestAddress;
-    }
-    return quoteDestAddress.toLowerCase() === selectedDestAddress.toLowerCase();
+    return areAddressesEqual(quoteDestAddress, selectedDestAddress);
   })();
 
   const destTokenAmount =
