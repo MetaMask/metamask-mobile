@@ -20,6 +20,7 @@ import {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge';
 import { Box } from '../../Box/Box';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
@@ -29,7 +30,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 // Using ScrollView from react-native-gesture-handler to fix scroll issues with the bottom sheet
 import { ScrollView } from 'react-native-gesture-handler';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { BridgeViewMode } from '../types';
 ///: END:ONLY_INCLUDE_IF
 const createStyles = (params: { theme: Theme }) => {
@@ -68,20 +69,17 @@ export const ChainPopularity: Record<Hex | CaipChainId, number> = {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   [BtcScope.Mainnet]: 3,
   [SolScope.Mainnet]: 4,
+  [TrxScope.Mainnet]: 5,
   ///: END:ONLY_INCLUDE_IF
-  [CHAIN_IDS.BASE]: 5,
-  [CHAIN_IDS.ARBITRUM]: 6,
-  [CHAIN_IDS.LINEA_MAINNET]: 7,
-  [CHAIN_IDS.POLYGON]: 8,
-  [CHAIN_IDS.AVALANCHE]: 9,
-  [CHAIN_IDS.OPTIMISM]: 10,
-  [CHAIN_IDS.ZKSYNC_ERA]: 11,
-  [NETWORKS_CHAIN_ID.SEI]: 12,
-  [NETWORKS_CHAIN_ID.MONAD]: 13,
-};
-
-const ShortChainNames: Record<Hex | CaipChainId, string> = {
-  [CHAIN_IDS.MAINNET]: 'Ethereum',
+  [CHAIN_IDS.BASE]: 6,
+  [CHAIN_IDS.ARBITRUM]: 7,
+  [CHAIN_IDS.LINEA_MAINNET]: 8,
+  [CHAIN_IDS.POLYGON]: 9,
+  [CHAIN_IDS.AVALANCHE]: 10,
+  [CHAIN_IDS.OPTIMISM]: 11,
+  [CHAIN_IDS.ZKSYNC_ERA]: 12,
+  [NETWORKS_CHAIN_ID.SEI]: 13,
+  [NETWORKS_CHAIN_ID.MONAD]: 14,
 };
 
 export const BridgeDestNetworksBar = () => {
@@ -140,7 +138,10 @@ export const BridgeDestNetworksBar = () => {
                     size={AvatarSize.Xs}
                   />
                 ) : null}
-                <Text>{ShortChainNames[chain.chainId] ?? chain.name}</Text>
+                <Text>
+                  {NETWORK_TO_SHORT_NETWORK_NAME_MAP[chain.chainId] ??
+                    chain.name}
+                </Text>
               </Box>
             }
             style={

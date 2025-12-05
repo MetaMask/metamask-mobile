@@ -98,16 +98,20 @@ jobs:
               - 'app/**'                           # Shared app files
               - 'e2e/**'                           # E2E test files (separate from mobile builds)
               - 'sentry*.properties*'              # Sentry configs
-              - 'wdio/**'                          # WebDriver test files
-              - 'wdio.conf.js'                     # WebDriver config
               - 'appwright/**'                     # Appwright test files
-              - 'scripts/build.sh'                 # Build script triggers rebuilds
+              - 'scripts/build.sh'                 # Build script changes
+              - 'scripts/setup.mjs'                # Setup script changes
+              - 'patches/**'                       # Legacy patch changes
+              - '.yarn/patches/**'                 # Yarn patch changes
+              - '.github/workflows/**'             # GitHub workflow changes
+              - '.github/scripts/**'               # GitHub workflow script changes
+              - 'react-native.config.js'           # React Native config changes
 
             ignore:
               - '**/*.md'                          # Documentation files
               - 'docs/**'                          # Documentation directory
               - '**/*.yml'                         # Workflow files
-              - '.github/**'                       # GitHub workflow changes
+              - '.github/**'                       # GitHub rest of .github directory changes
               - 'LICENSE'                          # License file
               - 'README.md'                        # Main README
               - 'RELEASE.MD'                       # Release notes
@@ -121,7 +125,6 @@ jobs:
               - 'sonar-project.properties'         # SonarQube config
               - 'scripts/*'                        # Build/utility scripts (except build.sh which is in shared)
               - 'scripts/*/**'                     # Subdirectories in scripts/
-              - 'patches/**'                       # Dependency patches
 
             catch_all:
               - '**/*'                             # Matches everything for conservative fallback
