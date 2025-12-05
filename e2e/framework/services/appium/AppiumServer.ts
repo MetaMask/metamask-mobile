@@ -7,12 +7,32 @@ const logger = createLogger({ name: 'AppiumServer' });
 // Track the current exit handler to prevent listener accumulation
 let currentExitHandler: (() => void) | null = null;
 
+// Default timeout for Appium server startup (in milliseconds)
+const APPIUM_STARTUP_TIMEOUT_MS = 60_000;
+
 /**
  * Start the Appium server
+ * @param timeoutMs - Maximum time to wait for Appium to start (default: 60 seconds)
  */
-export async function startAppiumServer(): Promise<ChildProcess> {
+export async function startAppiumServer(
+  timeoutMs: number = APPIUM_STARTUP_TIMEOUT_MS,
+): Promise<ChildProcess> {
   return new Promise((resolve, reject) => {
     let isSettled = false;
+    let startupTimeout: NodeJS.Timeout | null = null;
+
+    const settlePromise = (
+      settler: typeof resolve | typeof reject,
+      value: ChildProcess | Error,
+    ) => {
+      if (isSettled) return;
+      isSettled = true;
+      if (startupTimeout) {
+        clearTimeout(startupTimeout);
+        startupTimeout = null;
+      }
+      settler(value as ChildProcess & Error);
+    };
 
     const appiumProcess = spawn(
       'yarn',
@@ -21,6 +41,24 @@ export async function startAppiumServer(): Promise<ChildProcess> {
         stdio: 'pipe',
       },
     );
+
+    // Set up startup timeout to prevent indefinite hangs
+    startupTimeout = setTimeout(() => {
+      if (!isSettled) {
+        logger.error(
+          `Appium server failed to start within ${timeoutMs}ms. Killing process...`,
+        );
+        appiumProcess.kill();
+        settlePromise(
+          reject,
+          new Error(
+            `Appium server startup timed out after ${timeoutMs}ms. ` +
+              'The server may be hanging or the expected startup message has changed. ' +
+              'Check Appium logs for details.',
+          ),
+        );
+      }
+    }, timeoutMs);
 
     appiumProcess.stderr.on('data', async (data: Buffer) => {
       logger.debug(data.toString());
@@ -32,8 +70,8 @@ export async function startAppiumServer(): Promise<ChildProcess> {
 
       if (output.includes('Error: listen EADDRINUSE')) {
         logger.error(`Appium: ${data}`);
-        isSettled = true;
-        reject(
+        settlePromise(
+          reject,
           new Error(
             'Appium server is already running. Please stop the server before running tests.',
           ),
@@ -42,15 +80,13 @@ export async function startAppiumServer(): Promise<ChildProcess> {
 
       if (output.includes('Appium REST http interface listener started')) {
         logger.debug('Appium server is up and running.');
-        isSettled = true;
-        resolve(appiumProcess);
+        settlePromise(resolve, appiumProcess);
       }
     });
 
     appiumProcess.on('error', (error) => {
       logger.error(`Appium: ${error}`);
-      isSettled = true;
-      reject(error);
+      settlePromise(reject, error);
     });
 
     // Remove any existing exit handler before adding a new one
@@ -68,7 +104,8 @@ export async function startAppiumServer(): Promise<ChildProcess> {
     appiumProcess.on('close', (code: number) => {
       logger.debug(`Appium server exited with code ${code}`);
       if (!isSettled) {
-        reject(
+        settlePromise(
+          reject,
           new Error(
             `Appium server exited unexpectedly with code ${code} before starting. Check logs for details.`,
           ),
