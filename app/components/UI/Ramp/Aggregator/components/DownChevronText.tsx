@@ -1,15 +1,26 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import Entypo from 'react-native-vector-icons/Entypo';
-import Text from '../../../../Base/Text';
+import { StyleSheet } from 'react-native';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+} from '@metamask/design-system-react-native';
+
+const createStyles = (_colors: Colors) =>
   StyleSheet.create({
     chevron: {
-      marginLeft: 10,
-      color: colors.icon.default,
+      marginLeft: 8,
     },
   });
 
@@ -21,15 +32,19 @@ const DownChevronText = ({ text, ...props }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View {...props}>
-      <Text black>
-        <Text black bold>
-          {text}
-        </Text>
-        {'  '}
-        <Entypo name="chevron-down" size={16} style={styles.chevron} />
-      </Text>
-    </View>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      {...props}
+    >
+      <Text variant={TextVariant.BodyMDBold}>{text}</Text>
+      <Icon
+        name={IconName.ArrowDown}
+        size={IconSize.Sm}
+        color={IconColor.Alternative}
+        style={styles.chevron}
+      />
+    </Box>
   );
 };
 
