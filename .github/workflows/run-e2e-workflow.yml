@@ -233,3 +233,52 @@ jobs:
           name: test-e2e-${{ inputs.test-suite-name }}-screenshots
           path: e2e/artifacts/
           retention-days: 7
+
+      - name: Capture Device Logs (Android)
+        if: failure() && inputs.platform == 'android'
+        continue-on-error: true
+        run: |
+          echo "📱 Capturing Android device logs..."
+          DEVICE_ID=$(adb devices | grep -v "List" | grep "device" | head -1 | cut -f1)
+          if [ -n "$DEVICE_ID" ]; then
+            adb -s "$DEVICE_ID" logcat -d -t 2000 | grep -iE "(reactnativejs|metamask|snap|error|exception|crash|SnapsExecutionWebView|\[Engine\]|\[SNAP BRIDGE\])" > android-device-logs.txt || true
+            if [ -s android-device-logs.txt ]; then
+              echo "✅ Captured $(wc -l < android-device-logs.txt) log lines"
+            else
+              echo "⚠️ No matching logs found"
+            fi
+          else
+            echo "⚠️ No Android device found"
+          fi
+
+      - name: Upload Device Logs (Android)
+        if: failure() && inputs.platform == 'android'
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: test-e2e-${{ inputs.test-suite-name }}-android-logs
+          path: android-device-logs.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Capture Device Logs (iOS)
+        if: failure() && inputs.platform == 'ios'
+        continue-on-error: true
+        run: |
+          echo "📱 Capturing iOS simulator logs..."
+          xcrun simctl spawn booted log show --predicate 'processImagePath contains "MetaMask" OR eventMessage contains "snap" OR eventMessage contains "error" OR eventMessage contains "crash" OR eventMessage contains "SnapsExecutionWebView" OR eventMessage contains "[Engine]" OR eventMessage contains "[SNAP BRIDGE]"' --last 5m > ios-device-logs.txt 2>/dev/null || true
+          if [ -s ios-device-logs.txt ]; then
+            echo "✅ Captured $(wc -l < ios-device-logs.txt) log lines"
+          else
+            echo "⚠️ No matching logs found"
+          fi
+
+      - name: Upload Device Logs (iOS)
+        if: failure() && inputs.platform == 'ios'
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: test-e2e-${{ inputs.test-suite-name }}-ios-logs
+          path: ios-device-logs.txt
+          retention-days: 7
+          if-no-files-found: ignore

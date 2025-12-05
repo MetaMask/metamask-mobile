@@ -630,6 +630,30 @@ export class Engine {
     this.controllerMessenger.subscribe(
       `${snapController.name}:snapTerminated`,
       (truncatedSnap) => {
+        const snapId = truncatedSnap.id || 'unknown';
+        const errorMessage = `[Engine] Snap terminated: ${snapId}`;
+        const error = new Error(errorMessage);
+        Logger.error(error, {
+          tags: {
+            component: 'Engine',
+            event: 'snapTerminated',
+            snapId,
+          },
+          context: {
+            name: 'snap_terminated',
+            data: {
+              snapId: truncatedSnap.id,
+              truncatedSnap: JSON.stringify(truncatedSnap),
+            },
+          },
+        });
+        // Also log to console for CI visibility
+        // eslint-disable-next-line no-console
+        console.error(errorMessage, {
+          snapId: truncatedSnap.id,
+          truncatedSnap: JSON.stringify(truncatedSnap),
+        });
+
         const pendingApprovals = this.controllerMessenger.call(
           'ApprovalController:getState',
         ).pendingApprovals;
@@ -638,6 +662,15 @@ export class Engine {
             approval.origin === truncatedSnap.id &&
             approval.type.startsWith(RestrictedMethods.snap_dialog),
         );
+
+        if (approvals.length > 0) {
+          const logMessage = `[Engine] Rejecting ${approvals.length} pending dialog approval(s) for terminated Snap: ${snapId}`;
+          Logger.log(logMessage);
+          // Also log to console for CI visibility
+          // eslint-disable-next-line no-console
+          console.log(logMessage);
+        }
+
         for (const approval of approvals) {
           this.controllerMessenger.call<'ApprovalController:rejectRequest'>(
             'ApprovalController:rejectRequest',

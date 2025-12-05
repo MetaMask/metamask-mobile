@@ -183,7 +183,36 @@ export default class SnapBridge {
       engine.destroy();
 
       if (error) {
-        Logger.log('[SNAP BRIDGE] Error with provider stream:', error);
+        const errorObj =
+          error instanceof Error ? error : new Error(String(error));
+        Logger.error(errorObj, {
+          tags: {
+            component: 'SnapBridge',
+            errorType: 'provider_stream_error',
+            snapId: this.#snapId,
+          },
+          context: {
+            name: 'snap_bridge_stream_error',
+            data: {
+              snapId: this.#snapId,
+              errorMessage:
+                error instanceof Error ? error.message : String(error),
+              errorStack: error instanceof Error ? error.stack : undefined,
+            },
+          },
+        });
+        // Also log to console for CI visibility
+        // eslint-disable-next-line no-console
+        console.error(
+          `[SNAP BRIDGE] Provider stream error for snapId: ${this.#snapId}`,
+          errorObj,
+        );
+      } else {
+        const logMessage = `[SNAP BRIDGE] Provider stream closed normally snapId: ${this.#snapId}`;
+        Logger.log(logMessage);
+        // Also log to console for CI visibility
+        // eslint-disable-next-line no-console
+        console.log(logMessage);
       }
     });
   }

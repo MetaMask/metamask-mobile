@@ -22,12 +22,17 @@ import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/Conf
 import { waitForTestSnapsToLoad } from '../../viewHelper';
 import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
+import { createLogger } from '../../framework/logger';
 /* eslint-disable import/no-nodejs-modules */
 import { exec } from 'child_process';
 import { promisify } from 'util';
 /* eslint-enable import/no-nodejs-modules */
 
 const execAsync = promisify(exec);
+
+const logger = createLogger({
+  name: 'TestSnaps',
+});
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.28.1/';
@@ -212,44 +217,133 @@ class TestSnaps {
   }
 
   /**
-   * Checks device logs for Snap crash messages
+   * Captures diagnostic information about a Snap crash
    * @param snapId - The Snap ID to check for (e.g., "npm:@metamask/ethereum-provider-example-snap")
-   * @returns true if a crash was detected, false otherwise
+   * @returns Object containing crash detection status and diagnostic information
    */
-  async checkSnapCrashInLogs(snapId?: string): Promise<boolean> {
+  async getSnapCrashDiagnostics(snapId?: string): Promise<{
+    hasCrash: boolean;
+    dialogMessage?: string;
+    deviceLogs?: string;
+    errorDetails?: string;
+  }> {
+    const diagnostics: {
+      hasCrash: boolean;
+      dialogMessage?: string;
+      deviceLogs?: string;
+      errorDetails?: string;
+    } = {
+      hasCrash: false,
+    };
+
     try {
-      let logText = '';
-      const platform = device.getPlatform();
+      logger.debug(
+        `Gathering Snap crash diagnostics${snapId ? ` (${snapId})` : ''}`,
+      );
 
-      if (platform === 'android') {
-        // Get device ID to target specific device
-        const deviceId = device.id || '';
-        const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+      // 1. Check for crash dialog in UI
+      try {
+        const crashMessage = snapId
+          ? `The snap "${snapId}" has been terminated during execution.`
+          : 'has been terminated during execution';
 
-        // Get recent logs (last 100 lines) and filter for React Native logs
-        const command = `adb ${deviceFlag} logcat -d -t 100 | grep -i "reactnativejs|metamask|snap" || true`;
-        const { stdout } = await execAsync(command);
-        logText = stdout || '';
-      } else if (platform === 'ios') {
-        // For iOS, we can check simulator logs
-        // Note: This is a simplified approach - iOS log access is more complex
-        const command = `xcrun simctl spawn booted log show --predicate 'processImagePath contains "MetaMask"' --last 1m 2>/dev/null || true`;
-        const { stdout } = await execAsync(command);
-        logText = stdout || '';
+        await Assertions.expectTextDisplayed(crashMessage, {
+          timeout: 2000,
+          description: 'check for Snap crash dialog',
+        });
+
+        diagnostics.hasCrash = true;
+        diagnostics.dialogMessage = crashMessage;
+
+        // Try to capture the full dialog text if possible
+        try {
+          // The dialog might have more text, try to get it
+          const fullMessage = snapId
+            ? `The snap "${snapId}" has been terminated during execution.`
+            : 'has been terminated during execution';
+          diagnostics.dialogMessage = fullMessage;
+        } catch (error) {
+          logger.debug('Could not capture full dialog message');
+        }
+
+        logger.error(
+          `Snap crash dialog detected${snapId ? ` for ${snapId}` : ''}`,
+        );
+      } catch (error) {
+        logger.debug('No Snap crash dialog detected');
       }
 
-      // Check for Snap crash pattern: "npm:@metamask/ethereum-provider-example-snap" crashed due to an unhandled error
-      const crashPattern = snapId
-        ? new RegExp(
-            `"${snapId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}" crashed due to an unhandled error`,
-            'i',
-          )
-        : /"npm:@metamask\/[^"]+" crashed due to an unhandled error/i;
+      // 2. Check device logs for detailed error information
+      if (diagnostics.hasCrash) {
+        try {
+          const platform = device.getPlatform();
+          let logText = '';
 
-      return crashPattern.test(logText);
+          if (platform === 'android') {
+            const deviceId = device.id || '';
+            const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+            // Get more recent logs (last 1000 lines) to capture stack traces and our custom logs
+            // Include our log prefixes: SnapsExecutionWebView, Engine, SNAP BRIDGE
+            const command = `adb ${deviceFlag} logcat -d -t 1000 | grep -iE "(reactnativejs|metamask|snap|error|exception|crash|SnapsExecutionWebView|\\[Engine\\]|\\[SNAP BRIDGE\\])" || true`;
+            logger.debug(`Fetching device logs: ${command}`);
+            const { stdout } = await execAsync(command);
+            logText = stdout || '';
+          } else if (platform === 'ios') {
+            // Include our log prefixes in the predicate
+            const command = `xcrun simctl spawn booted log show --predicate 'processImagePath contains "MetaMask" OR eventMessage contains "snap" OR eventMessage contains "error" OR eventMessage contains "crash" OR eventMessage contains "SnapsExecutionWebView" OR eventMessage contains "[Engine]" OR eventMessage contains "[SNAP BRIDGE]"' --last 2m 2>/dev/null || true`;
+            logger.debug(`Fetching device logs: ${command}`);
+            const { stdout } = await execAsync(command);
+            logText = stdout || '';
+          }
+
+          if (logText) {
+            diagnostics.deviceLogs = logText;
+            logger.debug(
+              `Captured ${logText.length} characters of device logs`,
+            );
+
+            // Try to extract error details from logs
+            const errorPattern =
+              /(?:error|exception|crash|failed|terminated)[\s\S]{0,500}/gi;
+            const errorMatches = logText.match(errorPattern);
+            if (errorMatches && errorMatches.length > 0) {
+              diagnostics.errorDetails = errorMatches
+                .slice(0, 5)
+                .join('\n---\n');
+              logger.debug('Extracted error details from device logs');
+            }
+          }
+        } catch (error) {
+          logger.warn(
+            `Failed to capture device logs: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+
+        // 3. Check for error messages in result spans
+        try {
+          const resultSpan = (await Matchers.getElementByWebID(
+            BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+            TestSnapResultSelectorWebIDS.ethereumProviderResultSpan,
+          )) as IndexableWebElement;
+          const resultText = await resultSpan.runScript(
+            (el) => el.textContent || '',
+          );
+          if (resultText?.includes('error')) {
+            diagnostics.errorDetails = `Result span error: ${resultText}`;
+            logger.debug('Found error in result span');
+          }
+        } catch (error) {
+          // Result span might not exist or be visible, that's okay
+          logger.debug('Could not check result span for errors');
+        }
+      }
+
+      return diagnostics;
     } catch (error) {
-      // If we can't get logs, assume no crash detected
-      return false;
+      logger.warn(
+        `Failed to gather Snap crash diagnostics: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return diagnostics;
     }
   }
 
@@ -265,13 +359,46 @@ class TestSnaps {
       await Gestures.scrollToWebViewPort(webElement);
       await Gestures.tapWebElement(webElement);
     } catch (error) {
-      // Check if the error is due to a Snap crash
-      const hasSnapCrash = await this.checkSnapCrashInLogs();
-      if (hasSnapCrash) {
-        throw new Error(
-          `Snap crashed while tapping button "${buttonLocator}". Check device logs for details.`,
-        );
+      const originalError =
+        error instanceof Error ? error.message : String(error);
+      logger.warn(
+        `Error while tapping button "${buttonLocator}": ${originalError}`,
+      );
+      // Check if the error is due to a Snap crash (appears as a dialog box)
+      logger.debug('Gathering Snap crash diagnostics...');
+      const diagnostics = await this.getSnapCrashDiagnostics();
+      if (diagnostics.hasCrash) {
+        // Build comprehensive error message with all diagnostic information
+        let errorMessage = `Snap crashed while tapping button "${buttonLocator}".\n`;
+        errorMessage += `Dialog Message: ${diagnostics.dialogMessage || 'Unknown'}\n`;
+
+        if (diagnostics.errorDetails) {
+          errorMessage += `\nError Details:\n${diagnostics.errorDetails}\n`;
+        }
+
+        if (diagnostics.deviceLogs) {
+          // Include a snippet of relevant logs (last 1000 chars to avoid huge messages)
+          const logSnippet = diagnostics.deviceLogs.slice(-1000);
+          errorMessage += `\nDevice Logs (snippet):\n${logSnippet}\n`;
+          logger.debug(
+            `Full device logs available (${diagnostics.deviceLogs.length} characters)`,
+          );
+        }
+
+        logger.error(`Snap Crash Diagnostics:\n${errorMessage}`);
+
+        // Dismiss the alert dialog if present
+        try {
+          await this.dismissAlert();
+        } catch (dismissError) {
+          logger.debug(
+            `Could not dismiss alert: ${dismissError instanceof Error ? dismissError.message : String(dismissError)}`,
+          );
+        }
+
+        throw new Error(errorMessage);
       }
+      logger.debug('No Snap crash detected, re-throwing original error');
       // Re-throw the original error if it's not a Snap crash
       throw error;
     }
