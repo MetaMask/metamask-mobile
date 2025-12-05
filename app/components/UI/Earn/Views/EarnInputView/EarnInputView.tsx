@@ -65,12 +65,11 @@ import {
 } from './EarnInputView.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
-import { doesTokenRequireAllowanceReset } from '../../utils';
+import { doesTokenRequireAllowanceReset , formatChainIdForAnalytics } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronStake from '../../hooks/useTronStake';
@@ -694,11 +693,7 @@ const EarnInputView = () => {
           currency_type: !isFiat ? 'fiat' : 'native',
           experience: earnToken?.experience?.type,
           token_symbol: earnToken?.symbol,
-          chain_id: earnToken?.chainId
-            ? isNonEvmChainId(earnToken.chainId)
-              ? earnToken.chainId
-              : toHex(earnToken.chainId)
-            : undefined,
+          chain_id: formatChainIdForAnalytics(earnToken?.chainId),
         })
         .build(),
     );

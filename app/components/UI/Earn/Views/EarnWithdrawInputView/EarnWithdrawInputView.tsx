@@ -1,4 +1,3 @@
-import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import {
   useFocusEffect,
@@ -61,7 +60,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
+import { formatChainIdForAnalytics } from '../../utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronUnstake from '../../hooks/useTronUnstake';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
@@ -675,11 +674,7 @@ const EarnWithdrawInputView = () => {
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
             token_symbol: receiptToken?.symbol,
-            chain_id: receiptToken?.chainId
-              ? isNonEvmChainId(receiptToken.chainId)
-                ? receiptToken.chainId
-                : toHex(receiptToken.chainId)
-              : undefined,
+            chain_id: formatChainIdForAnalytics(receiptToken?.chainId),
           })
           .build(),
       );
@@ -696,11 +691,7 @@ const EarnWithdrawInputView = () => {
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
             token_symbol: receiptToken?.symbol,
-            chain_id: receiptToken?.chainId
-              ? isNonEvmChainId(receiptToken.chainId)
-                ? receiptToken.chainId
-                : toHex(receiptToken.chainId)
-              : undefined,
+            chain_id: formatChainIdForAnalytics(receiptToken?.chainId),
           })
           .build(),
       );

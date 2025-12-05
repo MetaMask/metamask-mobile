@@ -455,7 +455,7 @@ describe('useMultichainInputHandlers', () => {
           result.current.handleKeypadChange({ value: 'NaN', pressedKey: '5' });
         });
 
-        expect(mockTokenInput).toHaveBeenCalledWith('0');
+        expect(mockTokenInput).toHaveBeenCalledWith('5');
       });
 
       it('rejects input exceeding max digits', () => {

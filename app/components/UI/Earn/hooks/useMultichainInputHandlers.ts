@@ -140,11 +140,10 @@ const useMultichainInputHandlers = ({
           value !== amountToken)
       ) {
         if (isValueNaN) {
-          if (
-            pressedKey === digitsOnly[digitsOnly.length - 1] ||
-            pressedKey === Keys.Period
-          ) {
-            value = pressedKey === Keys.Period ? '0.' : pressedKey;
+          if (pressedKey === Keys.Period) {
+            value = '0.';
+          } else if (/^[0-9]$/.test(pressedKey)) {
+            value = pressedKey;
           } else {
             value = '0';
           }
