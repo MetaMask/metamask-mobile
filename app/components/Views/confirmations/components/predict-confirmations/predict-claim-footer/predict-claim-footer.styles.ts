@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
-import { lightTheme } from '@metamask/design-tokens';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -24,10 +23,8 @@ const styleSheet = (params: { theme: Theme }) =>
       textAlign: 'center',
     },
 
-    button: {
-      width: '100%',
-      height: 48,
-      backgroundColor: lightTheme.colors.primary.default,
+    textContainer: {
+      flex: 1,
     },
   });
 

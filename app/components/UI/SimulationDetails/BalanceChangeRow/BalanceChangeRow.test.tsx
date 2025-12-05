@@ -10,6 +10,16 @@ jest.mock('../AssetPill/AssetPill', () => 'AssetPill');
 jest.mock('../FiatDisplay/FiatDisplay', () => ({
   IndividualFiatDisplay: 'IndividualFiatDisplay',
 }));
+jest.mock(
+  '../../../Views/confirmations/hooks/metrics/useConfirmationAlertMetrics',
+  () => ({
+    useConfirmationAlertMetrics: () => ({
+      trackInlineAlertClicked: jest.fn(),
+      trackAlertActionClicked: jest.fn(),
+      trackAlertRendered: jest.fn(),
+    }),
+  }),
+);
 
 const CHAIN_ID_MOCK = '0x123';
 
@@ -79,5 +89,42 @@ describe('BalanceChangeList', () => {
     );
 
     expect(getByTestId('edit-spending-cap-button')).toBeTruthy();
+  });
+
+  it('renders an alert row if there are incoming tokens and a label is provided', () => {
+    const { getByTestId, queryByTestId } = render(
+      <BalanceChangeRow
+        showFiat={false}
+        balanceChange={balanceChangeMock}
+        label="You received"
+        hasIncomingTokens
+      />,
+    );
+    expect(getByTestId('info-row')).toBeTruthy();
+    expect(queryByTestId('balance-change-row-label')).toBeNull();
+  });
+
+  it('does not render an alert row if there are no incoming tokens', () => {
+    const { getByTestId, queryByTestId } = render(
+      <BalanceChangeRow
+        showFiat={false}
+        balanceChange={balanceChangeMock}
+        label="You received"
+        hasIncomingTokens={false}
+      />,
+    );
+    expect(getByTestId('balance-change-row-label')).toBeTruthy();
+    expect(queryByTestId('info-row')).toBeNull();
+  });
+
+  it('does not render an alert row if no label is provided', () => {
+    const { queryByTestId } = render(
+      <BalanceChangeRow
+        showFiat={false}
+        balanceChange={balanceChangeMock}
+        hasIncomingTokens
+      />,
+    );
+    expect(queryByTestId('info-row')).toBeNull();
   });
 });

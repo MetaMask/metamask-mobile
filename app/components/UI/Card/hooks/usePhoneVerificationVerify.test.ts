@@ -35,7 +35,6 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
 
 describe('usePhoneVerificationVerify', () => {
   const mockPhoneVerificationVerify = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
 
   const mockSDK = {
     phoneVerificationVerify: mockPhoneVerificationVerify,
@@ -64,11 +63,8 @@ describe('usePhoneVerificationVerify', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
@@ -140,11 +136,8 @@ describe('usePhoneVerificationVerify', () => {
 
     it('throws error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
@@ -370,11 +363,8 @@ describe('usePhoneVerificationVerify', () => {
 
     it('handles undefined SDK gracefully', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => usePhoneVerificationVerify());

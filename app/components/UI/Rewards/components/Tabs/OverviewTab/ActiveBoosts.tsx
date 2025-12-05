@@ -38,7 +38,7 @@ import { Skeleton } from '../../../../../../component-library/components/Skeleto
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
-import { handleDeeplink } from '../../../../../../core/DeeplinkManager/Handlers/handleDeeplink';
+import { handleDeeplink } from '../../../../../../core/DeeplinkManager/handleDeeplink';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width

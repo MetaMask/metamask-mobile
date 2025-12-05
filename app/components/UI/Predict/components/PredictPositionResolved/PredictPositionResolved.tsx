@@ -11,17 +11,24 @@ import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice } from '../../utils/format';
 import styleSheet from './PredictPositionResolved.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
 
 dayjs.extend(relativeTime);
 
 /**
- * Formats a date string as relative time (e.g., "1 minute ago", "2 hours ago")
+ * Formats a market end date, showing relative time or "Resolved early" if the date is in the future
  * @param dateString - The date string to format
- * @returns Formatted relative time string
+ * @returns Formatted relative time string or "Resolved" if date is in the future
  */
-const formatRelativeTime = (dateString: string): string => {
+const formatMarketEndDate = (dateString: string): string => {
   const date = dayjs(dateString);
-  return date.fromNow();
+  const now = dayjs();
+
+  if (date.isAfter(now)) {
+    return strings('predict.market_details.resolved_early');
+  }
+
+  return strings('predict.market_details.ended') + ' ' + date.fromNow();
 };
 
 interface PredictPositionResolvedProps {
@@ -68,8 +75,11 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          ${initialValue.toFixed(2)} on {outcome} • Ended{' '}
-          {formatRelativeTime(endDate)}
+          {strings('predict.market_details.amount_on_outcome', {
+            amount: formatPrice(initialValue, { maximumDecimals: 2 }),
+            outcome,
+          })}{' '}
+          • {formatMarketEndDate(endDate)}
         </Text>
       </View>
       <View>
@@ -80,7 +90,8 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            Won {formatPrice(currentValue, { maximumDecimals: 2 })}
+            {strings('predict.market_details.won')}{' '}
+            {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
         ) : (
           <Text
@@ -89,7 +100,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            Lost{' '}
+            {strings('predict.market_details.lost')}{' '}
             {formatPrice(initialValue - currentValue, { maximumDecimals: 2 })}
           </Text>
         )}

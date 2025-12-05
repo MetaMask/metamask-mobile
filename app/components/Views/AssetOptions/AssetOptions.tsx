@@ -30,13 +30,14 @@ import {
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
-import { RootState } from '../../../reducers';
 import { CaipAssetType, Hex } from '@metamask/utils';
-import { appendURLParams } from '../../../util/browser';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
+import { toChecksumAddress, areAddressesEqual } from '../../../util/address';
+import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -107,13 +108,32 @@ const AssetOptions = (props: Props) => {
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
-  );
   // Get the selected account for the current network (works for all non-EVM chains)
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
+  const assets = useSelector(selectAssetsBySelectedAccountGroup);
+
+  // Check if token exists in state
+  const tokenExistsInState = useMemo(() => {
+    // selectAssetsBySelectedAccountGroup returns { [chainId: string]: Asset[] }
+    const chainAssets = assets[networkId] || [];
+    if (!chainAssets.length) {
+      return false;
+    }
+
+    if (isNonEvmChainId(networkId)) {
+      // For non-EVM chains, the address is already in CAIP asset format (e.g., "solana:mainnet/token:...")
+      // Check if any asset has a matching assetId
+      return chainAssets.some((assetItem) => assetItem.assetId === address);
+    }
+
+    // For EVM tokens, asset.assetId equals the address (already in hex)
+    return chainAssets.some((assetItem) =>
+      assetItem.assetId ? areAddressesEqual(assetItem.assetId, address) : false,
+    );
+  }, [assets, networkId, address]);
 
   // Memoize the provider config for the token explorer
   const { providerConfigTokenExplorer } = useMemo(() => {
@@ -143,7 +163,7 @@ const AssetOptions = (props: Props) => {
     networkConfigurations,
     providerConfigTokenExplorer,
   );
-  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
@@ -208,7 +228,7 @@ const AssetOptions = (props: Props) => {
         ? extractTokenAddressFromCaip(address)
         : address;
       navigation.navigate('AssetDetails', {
-        address: tokenAddress,
+        address: toChecksumAddress(tokenAddress),
         chainId: networkId,
         asset,
       });
@@ -225,13 +245,9 @@ const AssetOptions = (props: Props) => {
     if (existingPortfolioTab) {
       existingTabId = existingPortfolioTab.id;
     } else {
-      const analyticsEnabled = isEnabled();
-
-      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-        metamaskEntry: 'mobile',
-        metricsEnabled: analyticsEnabled,
-        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-      });
+      const portfolioUrl = buildPortfolioUrlWithMetrics(
+        AppConstants.PORTFOLIO.URL,
+      );
 
       newTabUrl = portfolioUrl.href;
     }
@@ -342,6 +358,7 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
+      tokenExistsInState &&
       options.push({
         label: strings('asset_details.options.remove_token'),
         onPress: removeToken,

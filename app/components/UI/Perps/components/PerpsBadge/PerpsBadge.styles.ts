@@ -15,10 +15,18 @@ export const styleSheet = (params: {
   // Background uses .muted variant, text uses .default variant from same color family
   // This ensures proper contrast while maintaining semantic color consistency
   // Pattern inspired by AvatarIcon component (primary.muted background + primary.default icon)
-  const badgeStyles: Record<BadgeType, { background: string; text: string }> = {
+  const badgeStyles: Record<
+    BadgeType,
+    { background: string; text: string; border?: string }
+  > = {
     experimental: {
       background: theme.colors.primary.muted,
       text: theme.colors.primary.default,
+    },
+    dex: {
+      background: theme.colors.background.default,
+      text: theme.colors.text.alternative,
+      border: theme.colors.border.default,
     },
     equity: {
       background: theme.colors.info.muted,
@@ -51,6 +59,10 @@ export const styleSheet = (params: {
       borderRadius: 4,
       backgroundColor: style.background,
       alignSelf: 'flex-start',
+      ...(style.border && {
+        borderWidth: 1,
+        borderColor: style.border,
+      }),
     },
     badgeText: {
       fontSize: 10,

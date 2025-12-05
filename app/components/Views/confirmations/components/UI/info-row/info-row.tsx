@@ -24,6 +24,7 @@ export interface InfoRowProps {
   label?: string;
   children?: ReactNode | string;
   onTooltipPress?: () => void;
+  onLabelClick?: () => void;
   tooltip?: ReactNode;
   tooltipTitle?: string;
   tooltipColor?: IconColor;
@@ -45,6 +46,7 @@ const InfoRow = ({
   label,
   children,
   onTooltipPress,
+  onLabelClick,
   style = {},
   labelChildren = null,
   tooltip,
@@ -69,7 +71,7 @@ const InfoRow = ({
 
   const labelVariant =
     rowVariant === InfoRowVariant.Small
-      ? TextVariant.BodySM
+      ? TextVariant.BodyMD
       : TextVariant.BodyMDMedium;
 
   return (
@@ -80,7 +82,7 @@ const InfoRow = ({
       >
         {Boolean(label) && (
           <View style={styles.labelContainer}>
-            <Text variant={labelVariant} color={variant}>
+            <Text variant={labelVariant} color={variant} onPress={onLabelClick}>
               {label}
             </Text>
             {labelChildren}
@@ -124,8 +126,12 @@ const InfoRow = ({
 };
 
 export const InfoRowSkeleton: React.FC<{ testId?: string }> = ({ testId }) => (
-  <InfoRow testID={testId} labelChildren={<Skeleton width={100} height={14} />}>
-    <Skeleton width={80} height={14} />
+  <InfoRow
+    testID={testId}
+    rowVariant={InfoRowVariant.Small}
+    labelChildren={<Skeleton width={100} height={20} />}
+  >
+    <Skeleton width={80} height={20} />
   </InfoRow>
 );
 
