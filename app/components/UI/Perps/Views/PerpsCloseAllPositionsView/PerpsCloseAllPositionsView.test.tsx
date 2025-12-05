@@ -6,7 +6,7 @@ import {
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
 } from '../../hooks';
-import { useRewardsAccountOptedIn } from '../../../Rewards/hooks/useRewardsAccountOptedIn';
+import { useRewardsAccountOptedIn } from '../../hooks/useRewardsAccountOptedIn';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock all dependencies
@@ -24,7 +24,7 @@ jest.mock('../../hooks', () => ({
   usePerpsCloseAllPositions: jest.fn(),
 }));
 
-jest.mock('../../../Rewards/hooks/useRewardsAccountOptedIn', () => ({
+jest.mock('../../hooks/useRewardsAccountOptedIn', () => ({
   useRewardsAccountOptedIn: jest.fn(),
 }));
 

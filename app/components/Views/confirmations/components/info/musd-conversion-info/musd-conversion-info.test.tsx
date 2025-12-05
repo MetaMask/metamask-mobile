@@ -7,11 +7,11 @@ import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CustomAmountInfo } from '../custom-amount-info';
-import { useCustomAmountRewards } from '../../../hooks/rewards/useCustomAmountRewards';
+import { useCustomAmountRewards } from '../../../hooks/earn/useCustomAmountRewards';
 
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
-jest.mock('../../../hooks/rewards/useCustomAmountRewards');
+jest.mock('../../../hooks/earn/useCustomAmountRewards');
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),

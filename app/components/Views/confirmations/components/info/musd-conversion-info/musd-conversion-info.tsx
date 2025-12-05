@@ -10,9 +10,9 @@ import {
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { useCustomAmountRewards } from '../../../hooks/rewards/useCustomAmountRewards';
+import { useCustomAmountRewards } from '../../../hooks/earn/useCustomAmountRewards';
 import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
-import RewardsTag from '../../../../../UI/Rewards/components/RewardsTag';
+import RewardsTag from '../../../../../UI/Earn/components/RewardsTag';
 import { PayWithRow } from '../../rows/pay-with-row';
 
 interface MusdOverrideContentProps {

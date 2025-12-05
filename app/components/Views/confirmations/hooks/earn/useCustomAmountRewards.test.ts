@@ -3,7 +3,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 import { useCustomAmountRewards } from './useCustomAmountRewards';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useRewardsAccountOptedIn } from '../../../../UI/Rewards/hooks/useRewardsAccountOptedIn';
+import { useRewardsAccountOptedIn } from '../../../../UI/Perps/hooks/useRewardsAccountOptedIn';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 
 jest.mock('react-redux', () => ({
@@ -11,10 +11,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('../../../../UI/Rewards/hooks/useRewardsAccountOptedIn');
+jest.mock('../../../../UI/Perps/hooks/useRewardsAccountOptedIn');
 jest.mock('../../../../UI/Earn/selectors/featureFlags');
 jest.mock(
-  '../../../../UI/Rewards/components/RewardsTooltipBottomSheet',
+  '../../../../UI/Earn/components/RewardsTooltipBottomSheet',
   () => 'RewardsTooltipBottomSheet',
 );
 

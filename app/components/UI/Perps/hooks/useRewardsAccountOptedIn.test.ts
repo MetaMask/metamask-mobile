@@ -3,7 +3,7 @@ import { useRewardsAccountOptedIn } from './useRewardsAccountOptedIn';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
-import { formatAccountToCaipAccountId } from '../../Perps/utils/rewardsUtils';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
@@ -19,7 +19,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../selectors/multichainAccounts/accounts');
 jest.mock('../../../../core/Multichain/utils');
-jest.mock('../../Perps/utils/rewardsUtils');
+jest.mock('../utils/rewardsUtils');
 
 describe('useRewardsAccountOptedIn', () => {
   const mockAccount = {
@@ -235,7 +235,7 @@ describe('useRewardsAccountOptedIn', () => {
         expect(result.current.accountOptedIn).toBeNull();
       });
 
-      // Should not call hasActiveSeason if rewards not enabled
+      // Does not call hasActiveSeason if rewards not enabled
       expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
         'RewardsController:hasActiveSeason',
       );

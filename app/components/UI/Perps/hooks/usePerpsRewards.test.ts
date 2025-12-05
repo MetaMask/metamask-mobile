@@ -12,11 +12,11 @@ jest.mock('../constants/perpsConfig', () => ({
 }));
 
 // Mock the useRewardsAccountOptedIn hook
-jest.mock('../../Rewards/hooks/useRewardsAccountOptedIn', () => ({
+jest.mock('./useRewardsAccountOptedIn', () => ({
   useRewardsAccountOptedIn: jest.fn(),
 }));
 
-import { useRewardsAccountOptedIn } from '../../Rewards/hooks/useRewardsAccountOptedIn';
+import { useRewardsAccountOptedIn } from './useRewardsAccountOptedIn';
 
 const mockUseRewardsAccountOptedIn = jest.mocked(useRewardsAccountOptedIn);
 

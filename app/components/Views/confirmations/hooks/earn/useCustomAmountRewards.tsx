@@ -4,10 +4,10 @@ import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
-import { useRewardsAccountOptedIn } from '../../../../UI/Rewards/hooks/useRewardsAccountOptedIn';
+import { useRewardsAccountOptedIn } from '../../../../UI/Perps/hooks/useRewardsAccountOptedIn';
 import { limitToMaximumDecimalPlaces } from '../../../../../util/number';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
-import RewardsTooltipBottomSheet from '../../../../UI/Rewards/components/RewardsTooltipBottomSheet';
+import RewardsTooltipBottomSheet from '../../../../UI/Earn/components/RewardsTooltipBottomSheet';
 
 export interface UseCustomAmountRewardsParams {
   /**

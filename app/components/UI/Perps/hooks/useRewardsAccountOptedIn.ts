@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
-import { formatAccountToCaipAccountId } from '../../Perps/utils/rewardsUtils';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface UseRewardsAccountOptedInParams {

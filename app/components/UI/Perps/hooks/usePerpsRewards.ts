@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { OrderFeesResult } from './usePerpsOrderFees';
-import { useRewardsAccountOptedIn } from '../../Rewards/hooks/useRewardsAccountOptedIn';
+import { useRewardsAccountOptedIn } from './useRewardsAccountOptedIn';
 
 interface UsePerpsRewardsParams {
   /** Result from usePerpsOrderFees hook containing rewards data */

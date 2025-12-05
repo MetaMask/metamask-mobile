@@ -25,7 +25,7 @@ import {
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
 } from '../../hooks';
-import { useRewardsAccountOptedIn } from '../../../Rewards/hooks/useRewardsAccountOptedIn';
+import { useRewardsAccountOptedIn } from '../../hooks/useRewardsAccountOptedIn';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import usePerpsToasts, {
   type PerpsToastOptions,
