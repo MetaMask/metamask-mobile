@@ -124,6 +124,7 @@ import {
 } from './transaction-pay-controller-messenger';
 import { getProfileMetricsControllerMessenger } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
+import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -405,6 +406,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   ProfileMetricsService: {
     getMessenger: getProfileMetricsServiceMessenger,
+    getInitMessenger: noop,
+  },
+  AnalyticsController: {
+    getMessenger: getAnalyticsControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

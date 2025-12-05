@@ -137,6 +137,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/analytics-controller": "file:../core/packages/analytics-controller",
     "json-schema": "^0.4.0",
     "node-fetch": "^2.6.7",
     "xml2js": ">=0.5.0",
@@ -195,6 +196,7 @@
     "@metamask/account-tree-controller": "^3.0.0",
     "@metamask/accounts-controller": "^34.0.0",
     "@metamask/address-book-controller": "^7.0.0",
+    "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^8.0.0",
     "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A92.0.0#~/.yarn/patches/@metamask-assets-controllers-npm-92.0.0-ea998cb0bd.patch",

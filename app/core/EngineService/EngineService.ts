@@ -29,6 +29,13 @@ import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracki
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
+import storageWrapper from '../../store/storage-wrapper';
+import {
+  ANALYTICS_ID,
+  MIXPANEL_METAMETRICS_ID,
+  METAMETRICS_ID,
+} from '../../constants/storage';
+import { v4 } from 'uuid';
 
 export class EngineService {
   private engineInitialized = false;
@@ -154,8 +161,27 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      Engine.init(state, null, metaMetricsId);
+
+      // get analytics id from storage
+      // if none, it means that we are on a new install, so we generate a new one
+      // otherwise we would have it migrated from the old METAMETRICS_ID key
+
+      let analyticsId = await storageWrapper.getItem(ANALYTICS_ID);
+      Logger.log('Analytics ID:', analyticsId);
+
+      const metametricsId = await storageWrapper.getItem(METAMETRICS_ID);
+      const legacyMetametricsId = await storageWrapper.getItem(
+        MIXPANEL_METAMETRICS_ID,
+      );
+      Logger.log('Metametrics ID:', metametricsId);
+      Logger.log('Legacy Metametrics ID:', legacyMetametricsId);
+
+      if (!analyticsId) {
+        analyticsId = v4();
+        await storageWrapper.setItem(ANALYTICS_ID, analyticsId);
+      }
+
+      Engine.init(state, null, analyticsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.initializeControllers(Engine as unknown as TypedEngine);
     } catch (error) {

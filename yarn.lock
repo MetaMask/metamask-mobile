@@ -7351,6 +7351,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/analytics-controller@file:../core/packages/analytics-controller::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/analytics-controller@file:../core/packages/analytics-controller#../core/packages/analytics-controller::hash=e88f03&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.8.1"
+  checksum: 10/c8d3e22831d74c5d418b1a03b059a1481c4a3c70dec26cfd823eb18cccb331db8f47996c9f28221124b4c95e30f8511ead9632ab38eb91b3132834b6d24dc161
+  languageName: node
+  linkType: hard
+
 "@metamask/api-specs@npm:^0.14.0":
   version: 0.14.0
   resolution: "@metamask/api-specs@npm:0.14.0"
@@ -35959,6 +35970,7 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^3.0.0"
     "@metamask/accounts-controller": "npm:^34.0.0"
     "@metamask/address-book-controller": "npm:^7.0.0"
+    "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A92.0.0#~/.yarn/patches/@metamask-assets-controllers-npm-92.0.0-ea998cb0bd.patch"

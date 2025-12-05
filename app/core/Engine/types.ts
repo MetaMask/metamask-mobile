@@ -189,6 +189,12 @@ import {
   LoggingControllerState,
 } from '@metamask/logging-controller';
 import {
+  AnalyticsController,
+  AnalyticsControllerActions,
+  AnalyticsControllerEvents,
+  AnalyticsControllerState,
+} from '@metamask/analytics-controller';
+import {
   SignatureController,
   SignatureControllerActions,
   SignatureControllerEvents,
@@ -445,6 +451,7 @@ type GlobalActions =
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
+  | AnalyticsControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
   | SnapInterfaceControllerActions
@@ -538,6 +545,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
+  | AnalyticsControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -618,6 +626,7 @@ export type Controllers = {
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
+  AnalyticsController: AnalyticsController;
   NetworkController: NetworkController;
   NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
@@ -730,6 +739,7 @@ export type EngineState = {
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
+  AnalyticsController: AnalyticsControllerState;
   AccountsController: AccountsControllerState;
   AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
@@ -856,7 +866,8 @@ export type ControllersToInitialize =
   | 'DelegationController'
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
-  | 'ProfileMetricsService';
+  | 'ProfileMetricsService'
+  | 'AnalyticsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
