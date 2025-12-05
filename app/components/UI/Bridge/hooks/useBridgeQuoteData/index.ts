@@ -11,7 +11,7 @@ import {
   selectIsSolanaSwap,
   selectIsSolanaToNonSolana,
 } from '../../../../../core/redux/slices/bridge';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import {
   fromTokenMinimalUnit,
@@ -87,8 +87,21 @@ export const useBridgeQuoteData = ({
 
   const activeQuote = isExpired && !willRefresh ? undefined : bestQuote;
 
+  // Validate that the quote's destination asset matches the selected destination token
+  // This prevents showing stale quote data (with wrong decimals) when user changes destination token
+  const isQuoteDestTokenMatch = (() => {
+    if (!activeQuote || !destToken) return false;
+    const quoteDestAddress = activeQuote.quote.destAsset.address;
+    const selectedDestAddress = destToken.address;
+    // Solana addresses are case-sensitive, EVM addresses are not
+    if (isNonEvmChainId(destToken.chainId)) {
+      return quoteDestAddress === selectedDestAddress;
+    }
+    return quoteDestAddress.toLowerCase() === selectedDestAddress.toLowerCase();
+  })();
+
   const destTokenAmount =
-    activeQuote && destToken
+    activeQuote && destToken && isQuoteDestTokenMatch
       ? fromTokenMinimalUnit(
           activeQuote.quote.destTokenAmount,
           destToken.decimals,
