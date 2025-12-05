@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, Keyboard, FlatList, Pressable } from 'react-native';
+import { View, Keyboard } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
@@ -29,8 +29,8 @@ import {
 import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import Logger from '../../../util/Logger';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import SrpWordSuggestions from '../SrpWordSuggestions';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
@@ -100,19 +100,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       () => isFirstInputUtil(seedPhrase),
       [seedPhrase],
     );
-
-    // Filter BIP39 wordlist based on current input
-    const suggestions = useMemo(() => {
-      const trimmedWord = currentInputWord.trim().toLowerCase();
-
-      if (!trimmedWord) {
-        return [];
-      }
-
-      return wordlist
-        .filter((word) => word.startsWith(trimmedWord))
-        .slice(0, 5);
-    }, [currentInputWord]);
 
     // Initialize seed phrase input refs
     const getSeedPhraseInputRef = useCallback(() => {
@@ -359,6 +346,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       setFocusedInputIndex(null);
     }, [onSeedPhraseChange]);
 
+    /* istanbul ignore next -- @preserve Focus events */
     const handleSuggestionSelect = useCallback((word: string) => {
       isSuggestionSelectingRef.current = true;
 
@@ -540,43 +528,14 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             : strings('import_from_seed.paste')}
         </Text>
 
-        {isSrpWordSuggestionsEnabled && suggestions.length > 0 && (
-          <View
-            style={[
-              styles.suggestionContainer,
-              {
-                backgroundColor: colors.background.default,
-              },
-            ]}
-          >
-            <FlatList
-              horizontal
-              data={suggestions}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.suggestionButton,
-                    {
-                      backgroundColor: colors.background.section,
-                    },
-                    pressed && styles.suggestionPressed,
-                  ]}
-                  onPressIn={() => {
-                    isSuggestionSelectingRef.current = true;
-                  }}
-                  onPress={() => handleSuggestionSelect(item)}
-                >
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {item}
-                  </Text>
-                </Pressable>
-              )}
-              keyExtractor={(item) => item}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.suggestionListContent}
-              keyboardShouldPersistTaps="always"
-            />
-          </View>
+        {isSrpWordSuggestionsEnabled && (
+          <SrpWordSuggestions
+            currentInputWord={currentInputWord}
+            onSuggestionSelect={handleSuggestionSelect}
+            onPressIn={() => {
+              isSuggestionSelectingRef.current = true;
+            }}
+          />
         )}
 
         {/* Error Text */}
