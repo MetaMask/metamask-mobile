@@ -90,10 +90,15 @@ export const useInitialSourceToken = (
 
   useEffect(() => {
     // If initial source token is already set in Redux (pre-populated before navigation),
-    // only handle network switching if needed
+    // only handle network switching if needed.
+    // Must compare both address AND chainId since native tokens on different chains
+    // share the same zero address (0x0000...0000)
     if (
       initialSourceToken &&
-      areAddressesEqual(sourceToken?.address ?? '', initialSourceToken.address)
+      sourceToken?.chainId &&
+      areAddressesEqual(sourceToken.address, initialSourceToken.address) &&
+      formatChainIdToCaip(sourceToken.chainId) ===
+        formatChainIdToCaip(initialSourceToken.chainId)
     ) {
       // Set source amount if provided
       if (initialSourceAmount) {
