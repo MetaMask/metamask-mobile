@@ -122,6 +122,7 @@ jobs:
 
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -134,6 +135,7 @@ jobs:
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -156,7 +158,6 @@ jobs:
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -182,6 +183,7 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}
@@ -205,7 +207,6 @@ jobs:
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}

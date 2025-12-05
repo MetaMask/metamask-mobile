@@ -462,7 +462,7 @@ export function getAddressAccountType(address: string) {
   if (targetKeyring) {
     switch (targetKeyring.type) {
       case ExtendedKeyringTypes.qr:
-        return 'QR';
+        return 'QR Hardware';
       case ExtendedKeyringTypes.simple:
         return 'Imported';
       case ExtendedKeyringTypes.ledger:
