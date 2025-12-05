@@ -79,13 +79,10 @@ const interstitialWhitelistUrls = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
 ] as const;
 
-// remember this is only for the INTERSTITIAL
-// "Redirecting you to MetaMask..." modal
-// NOT THE "proceed with caution" modal
-const interstitialWhitelistSources = [
+// This is used when links originate from within the app itself
+const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
-  AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
   AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
 ] as string[];
@@ -227,14 +224,18 @@ async function handleUniversalLink({
         return;
       }
 
-      // bypass if link originated from within this app
-      if (interstitialWhitelistSources.includes(source)) {
+      // bypass redirect modalif link originated from within this app AND is signed
+      const linkInstanceType = linkType();
+      if (
+        inAppLinkSources.includes(source) &&
+        linkInstanceType === DeepLinkModalLinkType.PRIVATE
+      ) {
         resolve(true);
         return;
       }
 
       handleDeepLinkModalDisplay({
-        linkType: linkType(),
+        linkType: linkInstanceType,
         pageTitle,
         onContinue: () => resolve(true),
         onBack: () => resolve(false),

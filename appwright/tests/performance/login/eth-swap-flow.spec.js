@@ -28,9 +28,7 @@ test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
   BridgeScreen.device = device;
-
   await login(device);
-  // await importSRPFlow(device, process.env.TEST_SRP_2);
 
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',

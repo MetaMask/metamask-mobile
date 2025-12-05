@@ -8,7 +8,7 @@ const createStyles = (colors: Colors) =>
     wrapper: {
       padding: 18,
       borderRadius: 6,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.hover,
     },
   });
 

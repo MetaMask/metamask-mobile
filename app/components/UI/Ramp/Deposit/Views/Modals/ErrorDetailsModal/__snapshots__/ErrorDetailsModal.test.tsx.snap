@@ -495,7 +495,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  Error Details
+                                  Error details
                                 </Text>
                               </View>
                             </View>

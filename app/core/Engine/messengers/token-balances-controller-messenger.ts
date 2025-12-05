@@ -47,6 +47,7 @@ export function getTokenBalancesControllerMessenger(
       'KeyringController:accountRemoved',
       'AccountActivityService:balanceUpdated',
       'AccountActivityService:statusChanged',
+      'AccountsController:selectedEvmAccountChange',
     ],
     messenger,
   });

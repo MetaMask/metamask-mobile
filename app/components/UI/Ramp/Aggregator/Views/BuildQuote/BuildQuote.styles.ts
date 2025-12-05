@@ -23,7 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
       left: 0,
       right: 0,
       paddingBottom: 50,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
     },
     keypad: {
       paddingHorizontal: 16,
