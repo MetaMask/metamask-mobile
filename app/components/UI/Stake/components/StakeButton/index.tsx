@@ -47,7 +47,6 @@ import { isTronChainId } from '../../../../../core/Multichain/utils';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
-import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../../../Earn/constants/musd';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -93,7 +92,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
-  const { isConversionToken } = useMusdConversionTokens();
+  const { isConversionToken, isMusdSupportedOnChain } =
+    useMusdConversionTokens();
 
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset);
@@ -225,11 +225,19 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Asset address or chain ID is not set');
       }
 
+      const assetChainId = toHex(asset.chainId);
+
+      const isSupportedChain = isMusdSupportedOnChain(assetChainId);
+
+      if (!isSupportedChain) {
+        throw new Error('Chain is not supported for mUSD conversion');
+      }
+
       const config = {
-        outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        outputChainId: assetChainId,
         preferredPaymentToken: {
           address: toHex(asset.address),
-          chainId: toHex(asset.chainId),
+          chainId: assetChainId,
         },
         navigationStack: Routes.EARN.ROOT,
       };
@@ -265,6 +273,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     asset.chainId,
     hasSeenConversionEducationScreen,
     initiateConversion,
+    isMusdSupportedOnChain,
     navigation,
   ]);
 
@@ -285,11 +294,25 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   if (
     areEarnExperiencesDisabled ||
     (!isConvertibleStablecoin && // Show for convertible stablecoins even with 0 balance
+      primaryExperienceType !== EARN_EXPERIENCES.STABLECOIN_LENDING &&
       !earnToken?.isETH &&
       earnToken?.balanceMinimalUnit === '0') ||
     (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
+
+  const renderEarnButtonText = () => {
+    if (isConvertibleStablecoin) {
+      return strings('asset_overview.convert_to_musd');
+    }
+
+    const aprNumber = Number(earnToken?.experience?.apr);
+    const aprText =
+      Number.isFinite(aprNumber) && aprNumber > 0
+        ? ` ${aprNumber.toFixed(1)}%`
+        : '';
+    return `${strings('stake.earn')}${aprText}`;
+  };
 
   return (
     <TouchableOpacity
@@ -301,18 +324,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         {' • '}
       </Text>
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
-        {(() => {
-          if (isConvertibleStablecoin) {
-            return strings('asset_overview.convert_to_musd');
-          }
-
-          const aprNumber = Number(earnToken?.experience?.apr);
-          const aprText =
-            Number.isFinite(aprNumber) && aprNumber > 0
-              ? ` ${aprNumber.toFixed(1)}%`
-              : '';
-          return `${strings('stake.earn')}${aprText}`;
-        })()}
+        {renderEarnButtonText()}
       </Text>
     </TouchableOpacity>
   );

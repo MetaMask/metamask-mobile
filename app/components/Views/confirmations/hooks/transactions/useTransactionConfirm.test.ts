@@ -282,6 +282,26 @@ describe('useTransactionConfirm', () => {
       });
     });
 
+    it('wallet home if musdConversion', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.musdConversion,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+    });
+
     it('transactions if full screen', async () => {
       const { result } = renderHook();
 

@@ -42,7 +42,7 @@ jest.mock('../../../../../../core/Engine', () => {
 });
 
 const textElements = {
-  yourAccounts: 'Your Accounts',
+  yourAccounts: 'Your accounts',
   contacts: 'Contacts',
   firstAccount: 'Account 1',
   firstContact: 'My first contact',
