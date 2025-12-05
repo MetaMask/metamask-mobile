@@ -22,7 +22,7 @@ export const useTrendingRequest = (options: {
 }) => {
   const {
     chainIds: providedChainIds = [],
-    sortBy,
+    sortBy = 'h24_trending',
     minLiquidity = 0,
     minVolume24hUsd = 0,
     maxVolume24hUsd,
@@ -48,7 +48,7 @@ export const useTrendingRequest = (options: {
     Awaited<ReturnType<typeof getTrendingTokens>>
   >([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [error, setError] = useState<Error | null>(null);
 
