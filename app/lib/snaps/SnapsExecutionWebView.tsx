@@ -71,49 +71,92 @@ export class SnapsExecutionWebView extends Component {
           console.log(loadMessage); // eslint-disable-line no-console
         }
 
-        // Inject JavaScript error handler to capture console errors
+        // Inject JavaScript error handler to capture errors
+        // Note: We cannot access console directly due to LavaMoat scuttling mode
+        // Instead, we only capture window errors and unhandled rejections
         const errorHandlerScript = `
           (function() {
-            const originalError = console.error;
-            const originalWarn = console.warn;
-            const originalLog = console.log;
+            // Check if console is accessible before trying to use it
+            let consoleAccessible = false;
+            try {
+              // Try to access console - this will throw in LavaMoat scuttling mode
+              if (typeof console !== 'undefined' && console.error) {
+                consoleAccessible = true;
+              }
+            } catch (e) {
+              // Console is not accessible (LavaMoat scuttling mode)
+              consoleAccessible = false;
+            }
             
-            console.error = function(...args) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'console-error',
-                message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' '),
-                timestamp: Date.now()
-              }));
-              originalError.apply(console, args);
-            };
+            // Only wrap console methods if accessible
+            if (consoleAccessible) {
+              try {
+                const originalError = console.error;
+                const originalWarn = console.warn;
+                const originalLog = console.log;
+                
+                console.error = function(...args) {
+                  try {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                      type: 'console-error',
+                      message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' '),
+                      timestamp: Date.now()
+                    }));
+                  } catch (e) {
+                    // Ignore postMessage errors
+                  }
+                  if (originalError) {
+                    originalError.apply(console, args);
+                  }
+                };
+                
+                console.warn = function(...args) {
+                  try {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                      type: 'console-warn',
+                      message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' '),
+                      timestamp: Date.now()
+                    }));
+                  } catch (e) {
+                    // Ignore postMessage errors
+                  }
+                  if (originalWarn) {
+                    originalWarn.apply(console, args);
+                  }
+                };
+              } catch (e) {
+                // Console wrapping failed, continue without it
+              }
+            }
             
-            console.warn = function(...args) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'console-warn',
-                message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' '),
-                timestamp: Date.now()
-              }));
-              originalWarn.apply(console, args);
-            };
-            
+            // Always capture window errors (these don't require console access)
             window.addEventListener('error', function(event) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'window-error',
-                message: event.message || 'Unknown error',
-                filename: event.filename || 'unknown',
-                lineno: event.lineno || 0,
-                colno: event.colno || 0,
-                error: event.error ? (event.error.stack || event.error.toString()) : 'No error object',
-                timestamp: Date.now()
-              }));
+              try {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'window-error',
+                  message: event.message || 'Unknown error',
+                  filename: event.filename || 'unknown',
+                  lineno: event.lineno || 0,
+                  colno: event.colno || 0,
+                  error: event.error ? (event.error.stack || event.error.toString()) : 'No error object',
+                  timestamp: Date.now()
+                }));
+              } catch (e) {
+                // Ignore postMessage errors
+              }
             });
             
+            // Always capture unhandled promise rejections
             window.addEventListener('unhandledrejection', function(event) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'unhandled-rejection',
-                reason: event.reason ? (event.reason.toString() || JSON.stringify(event.reason)) : 'Unknown rejection',
-                timestamp: Date.now()
-              }));
+              try {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'unhandled-rejection',
+                  reason: event.reason ? (event.reason.toString() || JSON.stringify(event.reason)) : 'Unknown rejection',
+                  timestamp: Date.now()
+                }));
+              } catch (e) {
+                // Ignore postMessage errors
+              }
             });
           })();
         `;
