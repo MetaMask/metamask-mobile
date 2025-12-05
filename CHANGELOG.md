@@ -9,18 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.60.2]
 
-### Uncategorized
+### Fixed
 
-- update changelog for 7.60.2 (hotfix - no test plan)
-- update changelog for 7.60.2 (hotfix - no test plan)
-- update changelog for 7.60.2 (hotfix - no test plan)
-- bump semvar version to 7.60.2 && build version to 3205
-- update changelog for 7.60.2 (hotfix - no test plan)
-- update changelog for 7.60.2 (hotfix - no test plan)
-- bump semvar version to 7.60.2 && build version to 3205
-- update changelog for 7.60.2 (hotfix - no test plan)
-- bump semvar version to 7.60.2 && build version to 3205
-- bump semvar version to 7.60.2 && build version to 3205
+- chore(runway): cherry-pick fix: cp-7.60.2 overwrite account upgrade in metamask pay ([#23542](https://github.com/MetaMask/metamask-mobile/pull/23542))
+- chore(runway): cherry-pick feat(predict): cp-7.60.2 add auto-refresh polling when country is missing ([#23518](https://github.com/MetaMask/metamask-mobile/pull/23518))
 
 ## [7.60.1]
 
