@@ -706,6 +706,10 @@ describe('ChoosePassword', () => {
     expect(confirmPasswordInput.props.value).toBe('StrongPassword123!@#');
 
     await act(async () => {
+      fireEvent.changeText(passwordInput, 'S');
+    });
+
+    await act(async () => {
       fireEvent.changeText(passwordInput, '');
     });
 

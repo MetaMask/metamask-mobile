@@ -245,7 +245,6 @@ class ChoosePassword extends PureComponent {
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
 
-  // Track to blocked a spurious empty value
   justBlockedSpuriousEmpty = false;
   justBlockedSpuriousEmptyConfirm = false;
 
@@ -675,11 +674,7 @@ class ChoosePassword extends PureComponent {
       return;
     }
 
-    if (
-      this.justBlockedSpuriousEmpty &&
-      val.length > 0 &&
-      val.length < this.state.password.length
-    ) {
+    if (this.justBlockedSpuriousEmpty && val.length === 1) {
       const correctedVal = this.state.password + val;
       this.justBlockedSpuriousEmpty = false;
       this.setState((prevState) => ({
@@ -735,11 +730,7 @@ class ChoosePassword extends PureComponent {
       return;
     }
 
-    if (
-      this.justBlockedSpuriousEmptyConfirm &&
-      val.length > 0 &&
-      val.length < this.state.confirmPassword.length
-    ) {
+    if (this.justBlockedSpuriousEmptyConfirm && val.length === 1) {
       const correctedVal = this.state.confirmPassword + val;
       this.justBlockedSpuriousEmptyConfirm = false;
       this.setState({ confirmPassword: correctedVal });
@@ -839,6 +830,7 @@ class ChoosePassword extends PureComponent {
                   </Label>
                   <TextField
                     autoFocus
+                    selectTextOnFocus={false}
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}
@@ -886,6 +878,7 @@ class ChoosePassword extends PureComponent {
                   </Label>
                   <TextField
                     ref={this.confirmPasswordInput}
+                    selectTextOnFocus={false}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
                     secureTextEntry={this.state.showPasswordIndex.includes(1)}
