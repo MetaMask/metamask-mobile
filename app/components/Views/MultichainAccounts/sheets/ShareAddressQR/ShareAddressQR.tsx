@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { AccountGroupId } from '@metamask/account-api';
 import BottomSheet, {
@@ -32,7 +32,6 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from '../../../../../../e2e/selectors/MultichainAccounts/ShareAddressQR.selectors';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RootState } from '../../../../../reducers';
-import { toFormattedAddress } from '../../../../../util/address';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddressQR: {
@@ -62,19 +61,13 @@ export const ShareAddressQR = () => {
   const { toBlockExplorer, getBlockExplorerName } = useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
 
-  // Format address: checksummed for EVM, raw for non-EVM
-  const formattedAddress = useMemo(
-    () => toFormattedAddress(address),
-    [address],
-  );
-
   const handleOnBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleViewOnBlockExplorer = useCallback(() => {
-    toBlockExplorer(formattedAddress);
-  }, [formattedAddress, toBlockExplorer]);
+    toBlockExplorer(address);
+  }, [address, toBlockExplorer]);
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -88,7 +81,7 @@ export const ShareAddressQR = () => {
       >
         <Box twClassName="p-6 border border-muted rounded-2xl">
           <QRCode
-            value={formattedAddress}
+            value={address}
             size={200}
             logo={networkImageSource}
             logoSize={32}
@@ -97,7 +90,7 @@ export const ShareAddressQR = () => {
         </Box>
         <Box twClassName="mt-6 mb-4">
           <QRAccountDisplay
-            accountAddress={formattedAddress}
+            accountAddress={address}
             label={strings('multichain_accounts.share_address_qr.title', {
               networkName,
             })}
