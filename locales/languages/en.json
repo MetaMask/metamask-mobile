@@ -5666,8 +5666,9 @@
       "confirmation_button": "Convert to mUSD",
       "earn_rewards_with": "Earn rewards with mUSD",
       "toasts": {
-        "in_progress": "mUSD conversion in progress",
-        "success": "mUSD conversion succeeded",
+        "converting": "Converting {{token}} → mUSD",
+        "eta": "~{{time}}",
+        "delivered": "Your mUSD has been delivered!",
         "failed": "mUSD conversion failed"
       },
       "education": {
