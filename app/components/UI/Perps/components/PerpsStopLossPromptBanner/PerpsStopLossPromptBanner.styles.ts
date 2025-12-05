@@ -36,6 +36,7 @@ const styleSheet = (params: { theme: Theme }) => {
     // Button styles
     button: {
       minWidth: 60,
+      alignSelf: 'center',
     },
     // Toggle wrapper
     toggleContainer: {
