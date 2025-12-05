@@ -10,6 +10,7 @@ import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { PayWithRow } from '../../rows/pay-with-row';
 import { CustomAmountInfo } from '../custom-amount-info';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 
 interface MusdOverrideContentProps {
   amountHuman: string;
@@ -21,6 +22,9 @@ const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
   const { shouldShowOutputAmountTag, outputAmount, outputSymbol } =
     useCustomAmount({ amountHuman });
 
+  const availableTokens = useTransactionPayAvailableTokens();
+  const hasTokens = availableTokens.length > 0;
+
   return (
     <>
       {shouldShowOutputAmountTag && outputAmount !== null && (
@@ -30,7 +34,7 @@ const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
           showBackground={false}
         />
       )}
-      <PayWithRow />
+      {hasTokens && <PayWithRow />}
     </>
   );
 };
