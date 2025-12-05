@@ -161,16 +161,6 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.featureFlags).toEqual({});
       expect(result.current.featureFlagsList).toEqual([]);
     });
-
-    it('throws error when Redux selector returns null due to implementation bug', () => {
-      mockUseSelector.mockReturnValue(null);
-
-      expect(() => {
-        renderHook(() => useFeatureFlagOverride(), {
-          wrapper: createWrapper,
-        });
-      }).toThrow('Cannot convert undefined or null to object');
-    });
   });
 
   describe('Override Management', () => {

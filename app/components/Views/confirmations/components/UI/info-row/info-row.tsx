@@ -13,13 +13,21 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip/Tooltip';
 import styleSheet from './info-row.styles';
 import CopyIcon from './copy-icon/copy-icon';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+
+export enum InfoRowVariant {
+  Default = 'default',
+  Small = 'small',
+}
 
 export interface InfoRowProps {
   label?: string;
   children?: ReactNode | string;
   onTooltipPress?: () => void;
+  onLabelClick?: () => void;
   tooltip?: ReactNode;
   tooltipTitle?: string;
+  tooltipColor?: IconColor;
   style?: Record<string, unknown>;
   labelChildren?: React.ReactNode;
   testID?: string;
@@ -31,23 +39,27 @@ export interface InfoRowProps {
     size: IconSize;
     name: IconName;
   };
+  rowVariant?: InfoRowVariant;
 }
 
 const InfoRow = ({
   label,
   children,
   onTooltipPress,
+  onLabelClick,
   style = {},
   labelChildren = null,
   tooltip,
   tooltipTitle,
+  tooltipColor,
   testID,
   variant = TextColor.Alternative,
   copyText,
   valueOnNewLine = false,
   withIcon,
+  rowVariant = InfoRowVariant.Default,
 }: InfoRowProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { variant: rowVariant });
   const hasLabel = Boolean(label);
 
   const ValueComponent =
@@ -57,15 +69,20 @@ const InfoRow = ({
       <>{children}</>
     );
 
+  const labelVariant =
+    rowVariant === InfoRowVariant.Small
+      ? TextVariant.BodyMD
+      : TextVariant.BodyMDMedium;
+
   return (
     <>
       <View
         style={{ ...styles.container, ...style }}
         testID={testID ?? 'info-row'}
       >
-        {hasLabel && (
+        {Boolean(label) && (
           <View style={styles.labelContainer}>
-            <Text variant={TextVariant.BodyMDMedium} color={variant}>
+            <Text variant={labelVariant} color={variant} onPress={onLabelClick}>
               {label}
             </Text>
             {labelChildren}
@@ -74,6 +91,7 @@ const InfoRow = ({
                 content={tooltip}
                 onPress={onTooltipPress}
                 title={tooltipTitle ?? label}
+                iconColor={tooltipColor}
               />
             )}
           </View>
@@ -106,5 +124,15 @@ const InfoRow = ({
     </>
   );
 };
+
+export const InfoRowSkeleton: React.FC<{ testId?: string }> = ({ testId }) => (
+  <InfoRow
+    testID={testId}
+    rowVariant={InfoRowVariant.Small}
+    labelChildren={<Skeleton width={100} height={20} />}
+  >
+    <Skeleton width={80} height={20} />
+  </InfoRow>
+);
 
 export default InfoRow;

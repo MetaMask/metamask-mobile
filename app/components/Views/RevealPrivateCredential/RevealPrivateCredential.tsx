@@ -29,7 +29,7 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import InfoModal from '../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
 import { recordSRPRevealTimestamp } from '../../../actions/privacy';

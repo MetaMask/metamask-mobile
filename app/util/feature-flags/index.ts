@@ -69,6 +69,7 @@ export const getFeatureFlagDescription = (key: string): string | undefined => {
     tokenSearchDiscoveryEnabled: 'Token search and discovery',
     productSafetyDappScanningEnabled: 'DApp security scanning',
     minimumAppVersion: 'Minimum app version requirements',
+    otaUpdatesEnabled: 'OTA updates functionality',
   };
   return descriptions[key];
 };

@@ -35,6 +35,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
+  locale: 'en-US',
   default: { locale: 'en-US' },
 }));
 jest.mock('../../../../core/Engine', () => ({
@@ -53,9 +54,6 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn((chainId: string) => chainId.startsWith('solana:')),
-}));
-jest.mock('@metamask/swaps-controller/dist/constants', () => ({
-  LINEA_CHAIN_ID: '0xe708',
 }));
 jest.mock('../../Ramp/Deposit/constants/networks', () => ({
   SOLANA_MAINNET: {
@@ -382,7 +380,7 @@ describe('useAssetBalances', () => {
       mockUseTokensWithBalance.mockReturnValue([
         {
           address: mockEvmToken.address?.toLowerCase() || '',
-          chainId: mockEvmToken.caipChainId,
+          chainId: '0xe708', // Use hex format, not CAIP format
           balance: '250.75',
           balanceFiat: '$250.75',
           symbol: 'USDC',
@@ -449,7 +447,7 @@ describe('useAssetBalances', () => {
       mockUseTokensWithBalance.mockReturnValue([
         {
           address: mockNotEnabledToken.address?.toLowerCase() || '',
-          chainId: mockNotEnabledToken.caipChainId,
+          chainId: '0xe708', // Use hex format, not CAIP format
           balance: '200.75',
           balanceFiat: '$200.75',
           symbol: 'DAI',
@@ -559,7 +557,7 @@ describe('useAssetBalances', () => {
       mockUseTokensWithBalance.mockReturnValue([
         {
           address: mockEvmToken.address?.toLowerCase() || '',
-          chainId: mockEvmToken.caipChainId,
+          chainId: '0xe708', // Use hex format, not CAIP format
           balance: '125.50',
           balanceFiat: '$125.50',
           symbol: 'USDC',
@@ -1433,6 +1431,385 @@ describe('useAssetBalances', () => {
       const balanceInfo = result.current.get(key);
 
       expect(balanceInfo?.rawTokenBalance).toBe(999999999.123456);
+    });
+  });
+
+  describe('pre-calculated fiat reformatting', () => {
+    describe('filteredToken with tokenRateUndefined', () => {
+      it('shows formatted zero when balance is zero', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([
+          {
+            address: notEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708',
+            balance: '0',
+            balanceFiat: 'tokenRateUndefined',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ]);
+
+        mockFormatWithThreshold.mockReturnValue('$0.00');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('$0.00');
+        expect(balanceInfo?.rawFiatNumber).toBe(0);
+      });
+
+      it('shows token balance when balance is non-zero', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([
+          {
+            address: notEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708',
+            balance: '100.5',
+            balanceFiat: 'tokenRateUndefined',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ]);
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('100.500000 USDC');
+        expect(balanceInfo?.rawFiatNumber).toBeUndefined();
+      });
+    });
+
+    describe('filteredToken with tokenBalanceLoading', () => {
+      it('shows formatted zero when balance is zero', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([
+          {
+            address: notEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708',
+            balance: '0',
+            balanceFiat: 'tokenBalanceLoading',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ]);
+
+        mockFormatWithThreshold.mockReturnValue('$0.00');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('$0.00');
+        expect(balanceInfo?.rawFiatNumber).toBe(0);
+      });
+
+      it('shows token balance when balance is non-zero', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([
+          {
+            address: notEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708',
+            balance: '250.75',
+            balanceFiat: 'tokenBalanceLoading',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ]);
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('250.750000 USDC');
+        expect(balanceInfo?.rawFiatNumber).toBeUndefined();
+      });
+    });
+
+    describe('filteredToken with raw fiat value', () => {
+      it('reformats raw fiat string to proper currency format', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([
+          {
+            address: notEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708',
+            balance: '100.5',
+            balanceFiat: '55.61632 usd',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ]);
+
+        mockFormatWithThreshold.mockReturnValue('$55.62');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('$55.62');
+        expect(balanceInfo?.rawFiatNumber).toBe(55.61632);
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          55.61632,
+          0.01,
+          'en-US',
+          expect.objectContaining({
+            style: 'currency',
+            currency: 'USD',
+          }),
+        );
+      });
+
+      it('reformats fiat with commas in numbers', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([
+          {
+            address: notEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708',
+            balance: '1000',
+            balanceFiat: '1,234.56 usd',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ]);
+
+        mockFormatWithThreshold.mockReturnValue('$1,234.56');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('$1,234.56');
+        expect(balanceInfo?.rawFiatNumber).toBe(1234.56);
+      });
+
+      it('formats currency mismatch values using detected currency', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([
+          {
+            address: notEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708',
+            balance: '100.5',
+            balanceFiat: '55.61632 brl',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ]);
+
+        mockFormatWithThreshold.mockReturnValue('R$ 55,62');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('R$ 55,62');
+        expect(balanceInfo?.rawFiatNumber).toBe(55.61632);
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          55.61632,
+          0.01,
+          'en-US',
+          expect.objectContaining({
+            style: 'currency',
+            currency: 'BRL',
+          }),
+        );
+      });
+    });
+
+    describe('walletAsset with tokenRateUndefined', () => {
+      it('shows formatted zero when balance is zero', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        const walletAsset = {
+          address: notEnabledToken.address,
+          chainId: '0xe708',
+          symbol: 'USDC',
+          balance: '0',
+          balanceFiat: 'tokenRateUndefined',
+          isETH: false,
+          aggregators: [],
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([]);
+        mockSelectAsset.mockReturnValue(walletAsset as any);
+        mockFormatWithThreshold.mockReturnValue('$0.00');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('$0.00');
+        expect(balanceInfo?.rawFiatNumber).toBe(0);
+      });
+
+      it('shows token balance when balance is non-zero', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        const walletAsset = {
+          address: notEnabledToken.address,
+          chainId: '0xe708',
+          symbol: 'USDC',
+          balance: '75.25',
+          balanceFiat: 'tokenRateUndefined',
+          isETH: false,
+          aggregators: [],
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([]);
+        mockSelectAsset.mockReturnValue(walletAsset as any);
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('75.250000 USDC');
+        expect(balanceInfo?.rawFiatNumber).toBeUndefined();
+      });
+    });
+
+    describe('walletAsset with raw fiat value', () => {
+      it('reformats raw fiat string to proper currency format', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        const walletAsset = {
+          address: notEnabledToken.address,
+          chainId: '0xe708',
+          symbol: 'USDC',
+          balance: '500.50',
+          balanceFiat: '15.62376 usd',
+          isETH: false,
+          aggregators: [],
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([]);
+        mockSelectAsset.mockReturnValue(walletAsset as any);
+        mockFormatWithThreshold.mockReturnValue('$15.62');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('$15.62');
+        expect(balanceInfo?.rawFiatNumber).toBe(15.62376);
+      });
+
+      it('formats currency mismatch values using detected currency', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        const walletAsset = {
+          address: notEnabledToken.address,
+          chainId: '0xe708',
+          symbol: 'USDC',
+          balance: '500.50',
+          balanceFiat: '15.62376 brl',
+          isETH: false,
+          aggregators: [],
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([]);
+        mockSelectAsset.mockReturnValue(walletAsset as any);
+        mockFormatWithThreshold.mockReturnValue('R$ 15,62');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('R$ 15,62');
+        expect(balanceInfo?.rawFiatNumber).toBe(15.62376);
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          15.62376,
+          0.01,
+          'en-US',
+          expect.objectContaining({
+            style: 'currency',
+            currency: 'BRL',
+          }),
+        );
+      });
     });
   });
 });

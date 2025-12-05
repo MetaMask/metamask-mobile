@@ -16,6 +16,7 @@ import Icon, {
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
 import {
   hasNotificationComponents,
+  isValidNotificationComponent,
   NotificationComponentState,
 } from '../../../../util/notifications/notification-states';
 import Header from './Title';
@@ -25,18 +26,28 @@ import ModalHeader from './Headers';
 import ModalFooter from './Footers';
 import { toLocaleDate } from '../../../../util/date';
 import { NotificationDetailsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationDetailsView.selectors';
+import { NotificationModalDetails } from '../../../../util/notifications/notification-states/types/NotificationModalDetails';
 
-interface Props {
+interface NotificationDetailsContainerProps {
   navigation: NavigationProp<ParamListBase>;
   route: {
     params: {
-      notification: INotification;
+      notification?: INotification;
     };
   };
 }
 
-const NotificationsDetails = ({ route, navigation }: Props) => {
-  const { notification } = route.params;
+interface NotificationDetailsProps {
+  navigation: NavigationProp<ParamListBase>;
+  notification: INotification;
+  state: NotificationModalDetails;
+}
+
+const NotificationsDetails = ({
+  navigation,
+  notification,
+  state,
+}: NotificationDetailsProps) => {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
   const theme = useTheme();
@@ -54,13 +65,6 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
       ]);
     }
   }, [notification, markNotificationAsRead]);
-
-  const state =
-    notification?.type && hasNotificationComponents(notification.type)
-      ? NotificationComponentState[notification.type]?.createModalDetails?.(
-          notification,
-        )
-      : undefined;
 
   const HeaderLeft = useCallback(
     () => (
@@ -81,11 +85,11 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   const HeaderTitle = useCallback(
     () => (
       <Header
-        title={state?.title ?? ''}
-        subtitle={toLocaleDate(state?.createdAt)}
+        title={state.title ?? ''}
+        subtitle={toLocaleDate(state.createdAt)}
       />
     ),
-    [state?.title, state?.createdAt],
+    [state.title, state.createdAt],
   );
 
   useEffect(() => {
@@ -96,12 +100,8 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
 
   const insets = useSafeAreaInsets();
 
-  if (!state) {
-    return null;
-  }
-
   return (
-    <View style={styles.modalContainer}>
+    <View style={styles.modalContainer} testID="notification-details">
       {/* Header */}
       <View
         style={[
@@ -150,12 +150,35 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   );
 };
 
-const NotificationDetailsContainer = (props: Props) => {
+const NotificationDetailsContainer = ({
+  navigation,
+  route,
+}: NotificationDetailsContainerProps) => {
   if (!isNotificationsFeatureEnabled()) {
     return null;
   }
 
-  return <NotificationsDetails {...props} />;
+  const { notification } = route.params;
+  const state =
+    notification &&
+    isValidNotificationComponent(notification) &&
+    hasNotificationComponents(notification.type)
+      ? NotificationComponentState[notification.type]?.createModalDetails?.(
+          notification,
+        )
+      : undefined;
+
+  if (!notification || !state) {
+    return null;
+  }
+
+  return (
+    <NotificationsDetails
+      navigation={navigation}
+      notification={notification}
+      state={state}
+    />
+  );
 };
 
 export default NotificationDetailsContainer;

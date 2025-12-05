@@ -4,13 +4,14 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeSourceNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/bridge';
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 import { cloneDeep } from 'lodash';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -63,7 +64,7 @@ describe('BridgeSourceNetworkSelector', () => {
 
     // Networks should be visible with fiat values
     await waitFor(() => {
-      expect(getByText('Ethereum Mainnet')).toBeTruthy();
+      expect(getByText('Ethereum')).toBeTruthy();
       expect(getByText('Optimism')).toBeTruthy();
 
       // Check for fiat values
@@ -179,6 +180,7 @@ describe('BridgeSourceNetworkSelector', () => {
         optimismChainId,
         SolScope.Mainnet,
         BtcScope.Mainnet,
+        TrxScope.Mainnet,
       ]);
 
       // Should navigate back
@@ -273,8 +275,69 @@ describe('BridgeSourceNetworkSelector', () => {
     );
 
     await waitFor(() => {
-      expect(queryByText('Ethereum Mainnet')).toBeNull();
+      expect(queryByText('Ethereum')).toBeNull();
       expect(getByText('Optimism')).toBeTruthy();
+    });
+  });
+
+  describe('gas fees sponsored label in source networks', () => {
+    it('shows label for sponsored networks only', async () => {
+      const state = cloneDeep(initialState);
+
+      type RemoteFlagsWithSponsored =
+        typeof state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags & {
+          gasFeesSponsoredNetwork: Record<string, boolean>;
+        };
+      const remoteFlags = state.engine.backgroundState
+        .RemoteFeatureFlagController
+        .remoteFeatureFlags as RemoteFlagsWithSponsored;
+      remoteFlags.gasFeesSponsoredNetwork = {
+        [CHAIN_IDS.OPTIMISM]: true,
+        [CHAIN_IDS.MAINNET]: false,
+      };
+
+      const { getByText, queryAllByText } = renderScreen(
+        BridgeSourceNetworkSelector,
+        {
+          name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+        },
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(getByText('Ethereum')).toBeTruthy();
+        expect(getByText('Optimism')).toBeTruthy();
+
+        const labels = queryAllByText(strings('networks.no_network_fee'));
+        expect(labels.length).toBe(1);
+      });
+    });
+
+    it('omits label when sponsorship map is empty', async () => {
+      const state = cloneDeep(initialState);
+
+      type RemoteFlagsWithSponsoredEmpty =
+        typeof state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags & {
+          gasFeesSponsoredNetwork: Record<string, boolean>;
+        };
+      const remoteFlagsEmpty = state.engine.backgroundState
+        .RemoteFeatureFlagController
+        .remoteFeatureFlags as RemoteFlagsWithSponsoredEmpty;
+      remoteFlagsEmpty.gasFeesSponsoredNetwork = {};
+
+      const { getByText, queryByText } = renderScreen(
+        BridgeSourceNetworkSelector,
+        {
+          name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+        },
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(getByText('Ethereum')).toBeTruthy();
+        expect(getByText('Optimism')).toBeTruthy();
+        expect(queryByText(strings('networks.no_network_fee'))).toBeNull();
+      });
     });
   });
 });

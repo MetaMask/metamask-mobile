@@ -128,21 +128,6 @@
           }
         ]
       },
-      "0x531": {
-        "blockExplorerUrls": [],
-        "chainId": "0x531",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Sei",
-        "nativeCurrency": "SEI",
-        "rpcEndpoints": [
-          {
-            "failoverUrls": [],
-            "networkClientId": "sei-mainnet",
-            "type": "infura",
-            "url": "https://sei-mainnet.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
       "0x89": {
         "blockExplorerUrls": [],
         "chainId": "0x89",
@@ -286,6 +271,7 @@
     }
   },
   "PhishingController": {
+    "addressScanCache": {},
     "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],
@@ -334,8 +320,7 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true,
-      "0x8f": true
+      "0x531": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -489,14 +474,17 @@
     "connectionStatus": "disconnected",
     "positions": [],
     "accountState": null,
-    "pendingOrders": [],
     "depositInProgress": false,
-    "depositRequests": {},
+    "depositRequests": [],
     "lastDepositTransactionId": null,
     "lastDepositResult": null,
     "withdrawInProgress": false,
-    "withdrawalRequests": {},
-    "withdrawalProgress": {},
+    "withdrawalRequests": [],
+    "withdrawalProgress": {
+      "progress": 0,
+      "lastUpdated": 0,
+      "activeWithdrawalId": null
+    },
     "lastWithdrawResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
@@ -556,6 +544,10 @@
   },
   "TransactionPayController": {
     "transactionData": {}
+  },
+  "ProfileMetricsController": {
+    "initialEnqueueCompleted": false,
+    "syncQueue": {}
   },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,

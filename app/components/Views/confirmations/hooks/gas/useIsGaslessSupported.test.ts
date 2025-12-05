@@ -89,6 +89,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: true,
           isSmartTransaction: true,
+          pending: false,
         }),
       );
     });
@@ -102,6 +103,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: false,
           isSmartTransaction: false,
+          pending: false,
         }),
       );
     });
@@ -127,6 +129,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: false,
           isSmartTransaction: true,
+          pending: false,
         }),
       );
     });
@@ -145,6 +148,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: true,
           isSmartTransaction: false,
+          pending: false,
         });
       });
     });
@@ -161,6 +165,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: false,
           isSmartTransaction: false,
+          pending: false,
         });
       });
     });
@@ -181,22 +186,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: false,
           isSmartTransaction: false,
-        });
-      });
-    });
-
-    it('returns isSupported false and isSmartTransaction: false when no matching chain support in atomicBatch', async () => {
-      isRelaySupportedMock.mockResolvedValue(true);
-
-      const state = merge({}, transferTransactionStateMock);
-      const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
-        state,
-      });
-
-      await waitFor(() => {
-        expect(result.current).toEqual({
-          isSupported: false,
-          isSmartTransaction: false,
+          pending: false,
         });
       });
     });
@@ -215,6 +205,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: false,
           isSmartTransaction: false,
+          pending: false,
         });
       });
     });
@@ -232,6 +223,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: false,
           isSmartTransaction: false,
+          pending: false,
         }),
       );
     });
@@ -247,6 +239,7 @@ describe('useIsGaslessSupported', () => {
         expect(result.current).toEqual({
           isSupported: false,
           isSmartTransaction: false,
+          pending: false,
         }),
       );
     });

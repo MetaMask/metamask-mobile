@@ -11,26 +11,28 @@ import {
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTokenAmount } from '../useTokenAmount';
 import { act } from '@testing-library/react-native';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
-import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import {
   TransactionPayQuote,
+  TransactionPayRequiredToken,
   TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import {
   useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from './useTransactionPayData';
+import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
+import { AssetType } from '../../types/token';
 
 jest.mock('./useTransactionPayToken');
-jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('../pay/useTransactionPayData');
+jest.mock('./useTransactionPayAvailableTokens');
 
 jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/confirmationMetrics'),
@@ -72,13 +74,16 @@ function runHook({ type }: { type?: TransactionType } = {}) {
 
 describe('useTransactionPayMetrics', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useTokenAmountMock = jest.mocked(useTokenAmount);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
-  const useAutomaticTransactionPayTokenMock = jest.mocked(
-    useAutomaticTransactionPayToken,
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
+  );
+
+  const useTransactionPayAvailableTokensMock = jest.mocked(
+    useTransactionPayAvailableTokens,
   );
 
   beforeEach(() => {
@@ -89,9 +94,11 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop as never,
     });
 
-    useTokenAmountMock.mockReturnValue({
-      amountPrecise: TOKEN_AMOUNT_MOCK,
-    } as ReturnType<typeof useTokenAmount>);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        amountHuman: TOKEN_AMOUNT_MOCK,
+      } as TransactionPayRequiredToken,
+    ]);
 
     updateConfirmationMetricMock.mockReturnValue({
       type: 'test',
@@ -99,9 +106,13 @@ describe('useTransactionPayMetrics', () => {
 
     useTransactionPayQuotesMock.mockReturnValue([]);
 
-    useAutomaticTransactionPayTokenMock.mockReturnValue({
-      count: 5,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {},
+      {},
+      {},
+      {},
+      {},
+    ] as AssetType[]);
   });
 
   it('does not update metrics if no pay token selected', async () => {
@@ -192,7 +203,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_use_case: 'perps_deposit',
-          simulation_sending_assets_total_value: TOKEN_AMOUNT_MOCK,
+          simulation_sending_assets_total_value: 1.23,
         }),
         sensitiveProperties: {},
       },
@@ -220,7 +231,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_use_case: 'predict_deposit',
-          simulation_sending_assets_total_value: TOKEN_AMOUNT_MOCK,
+          simulation_sending_assets_total_value: 1.23,
         }),
         sensitiveProperties: {},
       },
@@ -274,7 +285,7 @@ describe('useTransactionPayMetrics', () => {
   it('includes quote metrics', async () => {
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
-        sourceNetwork: { usd: '1.5', fiat: '1.6' },
+        sourceNetwork: { estimate: { usd: '1.5', fiat: '1.6' } },
         targetNetwork: { usd: '2.5', fiat: '2.6' },
         provider: { usd: '0.5', fiat: '0.6' },
       },

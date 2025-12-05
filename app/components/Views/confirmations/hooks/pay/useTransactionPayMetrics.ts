@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -7,32 +7,36 @@ import { Hex, Json } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { useTokenAmount } from '../useTokenAmount';
-import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from './useTransactionPayData';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
+import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
-  const { amountPrecise } = useTokenAmount();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const automaticPayToken = useRef<BridgeToken>();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const tokens = useTransactionPayAvailableTokens();
 
-  const { count: availableTokenCount } = useAutomaticTransactionPayToken({
-    countOnly: true,
-  });
+  const availableTokens = useMemo(
+    () => tokens.filter((t) => !t.disabled),
+    [tokens],
+  );
 
   const transactionId = transactionMeta?.id ?? '';
   const { chainId, type } = transactionMeta ?? {};
+  const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
+  const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
 
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
@@ -56,12 +60,12 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_chain_presented =
       automaticPayToken.current?.chainId ?? null;
 
-    properties.mm_pay_payment_token_list_size = availableTokenCount;
+    properties.mm_pay_payment_token_list_size = availableTokens.length;
   }
 
   if (payToken && type === TransactionType.perpsDeposit) {
     properties.mm_pay_use_case = 'perps_deposit';
-    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+    properties.simulation_sending_assets_total_value = sendingValue;
   }
 
   if (
@@ -69,7 +73,7 @@ export function useTransactionPayMetrics() {
     hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
   ) {
     properties.mm_pay_use_case = 'predict_deposit';
-    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+    properties.simulation_sending_assets_total_value = sendingValue;
   }
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
@@ -94,7 +98,7 @@ export function useTransactionPayMetrics() {
 
   if (totals) {
     properties.mm_pay_network_fee_usd = new BigNumber(
-      totals.fees.sourceNetwork.usd,
+      totals.fees.sourceNetwork.estimate.usd,
     )
       .plus(totals.fees.targetNetwork.usd)
       .toString(10);

@@ -62,6 +62,7 @@ export const PredictEventProperties = {
  */
 export const PredictEventValues = {
   ENTRY_POINT: {
+    CAROUSEL: 'carousel',
     PREDICT_FEED: 'predict_feed',
     PREDICT_MARKET_DETAILS: 'predict_market_details',
     SEARCH: 'search',
@@ -69,7 +70,10 @@ export const PredictEventValues = {
     HOMEPAGE_NEW_PREDICTION: 'homepage_new_prediction',
     HOMEPAGE_BALANCE: 'homepage_balance',
     MAIN_TRADE_BUTTON: 'main_trade_button',
+    REWARDS: 'rewards',
+    GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
+    TRENDING_SEARCH: 'trending_search',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',

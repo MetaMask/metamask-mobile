@@ -3,14 +3,12 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { TokenListControlBar } from './TokenListControlBar';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 // Mock the feature flag
 jest.mock('../../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
   getNetworkImageSource: jest.fn(),
 }));
 
@@ -66,12 +64,6 @@ const mockNavigation = {
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
   typeof useCurrentNetworkInfo
 >;
-
-// Mock the feature flag function
-const mockIsRemoveGlobalNetworkSelectorEnabled =
-  isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
-    typeof isRemoveGlobalNetworkSelectorEnabled
-  >;
 
 // Mock the useNavigation hook
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -248,7 +240,6 @@ describe('TokenListControlBar', () => {
       mockNavigation as unknown as ReturnType<typeof useNavigation>,
     );
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
 
     // Reset selector mocks
     mockSelectIsAllNetworks.mockReturnValue(false);
@@ -267,12 +258,8 @@ describe('TokenListControlBar', () => {
     );
   };
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-      });
-
+  describe('Network Manager Integration', () => {
+    describe('Core Functionality', () => {
       it('should navigate to NetworkManager when filter button is pressed', () => {
         // Ensure EVM is selected for the navigation to work
         mockSelectIsEvmNetworkSelected.mockReturnValue(true);
@@ -344,26 +331,6 @@ describe('TokenListControlBar', () => {
 
         expect(getByText('wallet.current_network')).toBeTruthy();
       });
-    });
-
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-      });
-
-      it('should navigate to TokenFilter when filter button is pressed and EVM is selected', () => {
-        // Ensure EVM is selected for the navigation to work
-        mockSelectIsEvmNetworkSelected.mockReturnValue(true);
-
-        const { getByTestId } = renderComponent();
-
-        const filterButton = getByTestId(
-          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
-        );
-        fireEvent.press(filterButton);
-
-        expect(mockNavigate).toHaveBeenCalledWith('TokenFilter', {});
-      });
 
       it('should show "Popular Networks" text when all conditions are met', () => {
         // Mock the selectors to return the expected values
@@ -375,30 +342,6 @@ describe('TokenListControlBar', () => {
         const { getByText } = renderComponent();
 
         expect(getByText('wallet.popular_networks')).toBeTruthy();
-      });
-
-      it('should show network name when not all conditions are met', () => {
-        // Ensure not all conditions are met
-        mockSelectIsAllNetworks.mockReturnValue(false);
-        mockSelectIsPopularNetwork.mockReturnValue(false);
-        mockSelectIsEvmNetworkSelected.mockReturnValue(true);
-        mockSelectNetworkName.mockReturnValue('Ethereum Mainnet');
-
-        const { getByText } = renderComponent();
-
-        expect(getByText('Ethereum Mainnet')).toBeTruthy();
-      });
-
-      it('should show fallback text when network name is not available', () => {
-        // Ensure not all conditions are met and network name is null
-        mockSelectIsAllNetworks.mockReturnValue(false);
-        mockSelectIsPopularNetwork.mockReturnValue(false);
-        mockSelectIsEvmNetworkSelected.mockReturnValue(true);
-        mockSelectNetworkName.mockReturnValue(null);
-
-        const { getByText } = renderComponent();
-
-        expect(getByText('wallet.current_network')).toBeTruthy();
       });
     });
   });
