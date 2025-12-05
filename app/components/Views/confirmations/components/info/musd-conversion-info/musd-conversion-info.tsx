@@ -1,9 +1,6 @@
 import React, { useCallback } from 'react';
-import { strings } from '../../../../../../../locales/i18n';
-import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
 import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../../../UI/Earn/constants/musd';
@@ -56,15 +53,11 @@ const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
 
 export const MusdConversionInfo = () => {
   const { outputChainId, preferredPaymentToken } =
-    useParams<MusdConversionConfig>({
-      outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-    });
-
-  useNavbar(strings('earn.musd_conversion.earn_rewards_with'));
+    useParams<MusdConversionConfig>();
 
   const { decimals, name, symbol } = MUSD_TOKEN;
 
-  const tokenToAddAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId];
+  const tokenToAddAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN?.[outputChainId];
 
   if (!tokenToAddAddress) {
     throw new Error(

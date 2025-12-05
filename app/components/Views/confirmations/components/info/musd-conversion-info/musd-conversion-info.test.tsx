@@ -2,14 +2,11 @@ import React from 'react';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MusdConversionInfo } from './musd-conversion-info';
-import useNavbar from '../../../hooks/ui/useNavbar';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { useRoute } from '@react-navigation/native';
-import { strings } from '../../../../../../../locales/i18n';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { useCustomAmountRewards } from '../../../hooks/earn/useCustomAmountRewards';
 
-jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmountRewards');
 
@@ -36,7 +33,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('MusdConversionInfo', () => {
-  const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseAddToken = jest.mocked(useAddToken);
   const mockUseRoute = jest.mocked(useRoute);
   const mockUseCustomAmountRewards = jest.mocked(useCustomAmountRewards);
@@ -74,26 +70,7 @@ describe('MusdConversionInfo', () => {
         state: {},
       });
 
-      expect(mockUseNavbar).toHaveBeenCalled();
       expect(mockUseAddToken).toHaveBeenCalled();
-    });
-  });
-
-  describe('navbar title', () => {
-    it('calls useNavbar with earn_rewards_with title for mUSD token', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(mockUseNavbar).toHaveBeenCalledWith(
-        strings('earn.musd_conversion.earn_rewards_with'),
-      );
     });
   });
 
@@ -128,13 +105,7 @@ describe('MusdConversionInfo', () => {
 
       mockRoute.params = {
         preferredPaymentToken,
-        outputToken: {
-          address: '0x123' as Hex,
-          chainId: '0x1' as Hex,
-          symbol: 'TEST',
-          name: 'Test Token',
-          decimals: 6,
-        },
+        outputChainId: '0x1' as Hex,
       };
 
       mockUseRoute.mockReturnValue(mockRoute);
