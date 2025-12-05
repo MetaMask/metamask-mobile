@@ -335,7 +335,7 @@ describe('BridgeView', () => {
     });
   });
 
-  it('should open BridgeDestNetworkSelector when clicking destination token area', async () => {
+  it('should open token selector when clicking destination token area', async () => {
     const { getByText } = renderScreen(
       BridgeView,
       {
