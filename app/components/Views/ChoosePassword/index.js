@@ -675,10 +675,9 @@ class ChoosePassword extends PureComponent {
     }
 
     if (this.justBlockedSpuriousEmpty && val.length === 1) {
-      const correctedVal = this.state.password + val;
       this.justBlockedSpuriousEmpty = false;
       this.setState((prevState) => ({
-        password: correctedVal,
+        password: prevState.password + val,
         confirmPassword: prevState.confirmPassword,
       }));
       return;
@@ -731,9 +730,10 @@ class ChoosePassword extends PureComponent {
     }
 
     if (this.justBlockedSpuriousEmptyConfirm && val.length === 1) {
-      const correctedVal = this.state.confirmPassword + val;
       this.justBlockedSpuriousEmptyConfirm = false;
-      this.setState({ confirmPassword: correctedVal });
+      this.setState((prevState) => ({
+        confirmPassword: prevState.confirmPassword + val,
+      }));
       return;
     }
 
