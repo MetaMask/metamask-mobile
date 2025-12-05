@@ -4,6 +4,19 @@ const logger = createLogger({ name: 'BrowserStackAPI' });
 const API_BASE_URL = 'https://api-cloud.browserstack.com/app-automate';
 
 /**
+ * BrowserStack only accepts 'passed' or 'failed' as valid status values.
+ * Playwright's testInfo.status can be: 'passed', 'failed', 'timedOut', 'skipped', 'interrupted'
+ * This map converts Playwright status values to BrowserStack-compatible values.
+ */
+const BROWSERSTACK_STATUS_MAP: Record<string, 'passed' | 'failed'> = {
+  passed: 'passed',
+  failed: 'failed',
+  timedOut: 'failed',
+  skipped: 'failed',
+  interrupted: 'failed',
+};
+
+/**
  * BrowserStack session details type
  */
 export interface BrowserStackSessionDetails {
@@ -74,7 +87,19 @@ export class BrowserStackAPI {
     // Build request body with all provided fields
     const body: Record<string, string> = {};
     if (details.name) body.name = details.name;
-    if (details.status) body.status = details.status;
+    if (details.status) {
+      // Map Playwright status to BrowserStack-compatible status
+      const mappedStatus = BROWSERSTACK_STATUS_MAP[details.status];
+      if (mappedStatus) {
+        body.status = mappedStatus;
+      } else {
+        // Log warning for unknown status values and default to 'failed'
+        logger.warn(
+          `Unknown test status "${details.status}", defaulting to "failed"`,
+        );
+        body.status = 'failed';
+      }
+    }
     if (details.reason) body.reason = details.reason;
 
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}.json`, {
