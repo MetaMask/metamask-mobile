@@ -552,6 +552,29 @@ describe('handleUniversalLink', () => {
     });
   });
 
+  describe('ACTIONS.SHIELD', () => {
+    it('calls _handleBrowserUrl when action is SHIELD', async () => {
+      const shieldUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SHIELD}`;
+      const shieldUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: shieldUrl,
+        pathname: `/${ACTIONS.SHIELD}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: shieldUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: shieldUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
   describe('ACTIONS.PREDICT', () => {
     it('calls _handlePredict when action is PREDICT without market parameter', async () => {
       const predictUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PREDICT}`;

@@ -2,6 +2,8 @@ import { NavigationHandler } from '../NavigationHandler';
 import { ACTIONS } from '../../../../../constants/deeplinks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createMockContext, createMockLink } from '../../../utils/testUtils';
+import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
+import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
 
 jest.mock('../../../../../util/Logger');
 
@@ -88,6 +90,25 @@ describe('NavigationHandler', () => {
     expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
       Routes.PERPS.ROOT,
       { path: '/assets/ETH-PERP' },
+    );
+  });
+
+  it('navigates to browser with shield website URL', async () => {
+    const link = createMockLink(ACTIONS.SHIELD);
+
+    const result = await handler.handle(link, mockContext);
+
+    expect(result.handled).toBe(true);
+    expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
+      Routes.BROWSER.HOME,
+      {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: SHIELD_WEBSITE_URL,
+          linkType: EXTERNAL_LINK_TYPE,
+          timestamp: expect.any(Number),
+        },
+      },
     );
   });
 
