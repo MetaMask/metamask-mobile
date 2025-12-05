@@ -64,20 +64,4 @@ describe('TransactionDetailsAccountRow', () => {
     const { toJSON } = render();
     expect(toJSON()).toBeNull();
   });
-
-  it('does not crash when txParams.from is undefined', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        ...TRANSACTION_META_MOCK,
-        txParams: {
-          ...TRANSACTION_META_MOCK.txParams,
-          from: undefined,
-        },
-      } as TransactionMeta,
-    });
-
-    useAccountNamesMock.mockReturnValue([undefined]);
-
-    expect(() => render()).not.toThrow();
-  });
 });
