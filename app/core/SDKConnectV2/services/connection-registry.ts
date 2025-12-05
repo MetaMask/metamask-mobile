@@ -86,6 +86,10 @@ export class ConnectionRegistry {
   }
 
   public async handleMwpDeeplink(url: string): Promise<void> {
+    if (!this.isMwpDeeplink(url)) {
+      throw new Error(`Invalid MWP deeplink: ${url}`);
+    }
+
     try {
       const parsed = new URL(url);
 
