@@ -22,6 +22,12 @@ import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/Conf
 import { waitForTestSnapsToLoad } from '../../viewHelper';
 import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
+/* eslint-disable import/no-nodejs-modules */
+import { exec } from 'child_process';
+import { promisify } from 'util';
+/* eslint-enable import/no-nodejs-modules */
+
+const execAsync = promisify(exec);
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.28.1/';
@@ -205,6 +211,48 @@ class TestSnaps {
     await waitForTestSnapsToLoad();
   }
 
+  /**
+   * Checks device logs for Snap crash messages
+   * @param snapId - The Snap ID to check for (e.g., "npm:@metamask/ethereum-provider-example-snap")
+   * @returns true if a crash was detected, false otherwise
+   */
+  async checkSnapCrashInLogs(snapId?: string): Promise<boolean> {
+    try {
+      let logText = '';
+      const platform = device.getPlatform();
+
+      if (platform === 'android') {
+        // Get device ID to target specific device
+        const deviceId = device.id || '';
+        const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+
+        // Get recent logs (last 100 lines) and filter for React Native logs
+        const command = `adb ${deviceFlag} logcat -d -t 100 | grep -i "reactnativejs|metamask|snap" || true`;
+        const { stdout } = await execAsync(command);
+        logText = stdout || '';
+      } else if (platform === 'ios') {
+        // For iOS, we can check simulator logs
+        // Note: This is a simplified approach - iOS log access is more complex
+        const command = `xcrun simctl spawn booted log show --predicate 'processImagePath contains "MetaMask"' --last 1m 2>/dev/null || true`;
+        const { stdout } = await execAsync(command);
+        logText = stdout || '';
+      }
+
+      // Check for Snap crash pattern: "npm:@metamask/ethereum-provider-example-snap" crashed due to an unhandled error
+      const crashPattern = snapId
+        ? new RegExp(
+            `"${snapId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}" crashed due to an unhandled error`,
+            'i',
+          )
+        : /"npm:@metamask\/[^"]+" crashed due to an unhandled error/i;
+
+      return crashPattern.test(logText);
+    } catch (error) {
+      // If we can't get logs, assume no crash detected
+      return false;
+    }
+  }
+
   async tapButton(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
@@ -212,8 +260,21 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapViewSelectorWebIDS[buttonLocator],
     );
-    await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tapWebElement(webElement);
+
+    try {
+      await Gestures.scrollToWebViewPort(webElement);
+      await Gestures.tapWebElement(webElement);
+    } catch (error) {
+      // Check if the error is due to a Snap crash
+      const hasSnapCrash = await this.checkSnapCrashInLogs();
+      if (hasSnapCrash) {
+        throw new Error(
+          `Snap crashed while tapping button "${buttonLocator}". Check device logs for details.`,
+        );
+      }
+      // Re-throw the original error if it's not a Snap crash
+      throw error;
+    }
   }
 
   async tapOkButton() {
