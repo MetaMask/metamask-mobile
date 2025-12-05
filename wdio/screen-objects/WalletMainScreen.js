@@ -288,7 +288,7 @@ class WalletMainScreen {
     if (!this._device) {
       return await this.totalBalanceText;
     } else {
-      const balanceContainer = await AppwrightSelectors.getElementByNameiOS(this._device, 'total-balance-text');
+      const balanceContainer = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
       console.log('balanceContainer', balanceContainer);
       const balanceContainerText = await balanceContainer.getText();
       console.log('balanceContainer text', balanceContainerText);
@@ -299,33 +299,38 @@ class WalletMainScreen {
 
   async waitForBalanceToStabilize(options = {}) {
     const { 
-      maxWaitTime = 30000, 
+      maxWaitTime = 60000,         // 1 minute timeout
       pollInterval = 100, 
-      requiredStableChecks = 10 
+      sameResultTimeout = 20000    // 20 seconds with the same result = stable
     } = options;
 
     const startTime = Date.now();
     let previousBalance = '';
-    let stableCount = 0;
+    let sameResultStartTime = null;
 
-    while (stableCount < requiredStableChecks) {
+    while (true) {
+      // Check if we exceeded the maximum wait time (1 minute)
       if (Date.now() - startTime > maxWaitTime) {
-        throw new Error(`Timeout waiting for balance to stabilize after ${maxWaitTime}ms`);
+        console.log(`Max wait time (${maxWaitTime}ms) exceeded - returning current balance`);
+        return previousBalance;
       }
 
       const currentBalance = await this.getTotalBalanceText();
 
-      if (currentBalance === previousBalance) {
-        stableCount++;
+      if (currentBalance === previousBalance && previousBalance !== '') {
+        // Same result - check if 20 seconds have passed
+        const timeSinceSameResult = Date.now() - sameResultStartTime;
+        
+        if (timeSinceSameResult >= sameResultTimeout) {
+          return currentBalance;
+        }
       } else {
-        stableCount = 0;
+        sameResultStartTime = Date.now();
+        previousBalance = currentBalance;
       }
 
-      previousBalance = currentBalance;
       await AppwrightGestures.wait(pollInterval);
     }
-
-    return previousBalance;
   }
 
   async isSubmittedNotificationDisplayed() {

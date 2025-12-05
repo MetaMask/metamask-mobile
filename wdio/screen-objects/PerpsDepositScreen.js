@@ -63,7 +63,7 @@ class PerpsDepositScreen {
 
   async checkTransactionFeeIsVisible() {
     const transactionFee = await AppwrightSelectors.getElementByID(this._device, 'bridge-fee-row');
-    expect(transactionFee).toBeVisible();
+    await expect(transactionFee).toBeVisible();
   }
 }
 
