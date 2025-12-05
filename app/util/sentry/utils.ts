@@ -632,14 +632,15 @@ export function setEASUpdateContext(): void {
 export async function setupSentry(
   forceEnabled: boolean = false,
 ): Promise<void> {
-  const dsn = process.env.MM_SENTRY_DSN;
+  const dsn =
+    'https://332890de43e44fe2bc070bb18d0934ea@o124216.ingest.us.sentry.io/2651591';
 
   // Disable Sentry for E2E tests or when DSN is not provided
   if (isE2E || !dsn) {
     return;
   }
 
-  const isDev = __DEV__;
+  const isDev = false;
 
   const init = async () => {
     // Ensure consent cache is populated early
