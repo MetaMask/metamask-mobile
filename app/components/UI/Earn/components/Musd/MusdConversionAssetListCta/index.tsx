@@ -33,7 +33,7 @@ const MusdConversionAssetListCta = () => {
 
   const { goToBuy } = useRampNavigation();
 
-  const { tokens, isMusdSupportedOnChain } = useMusdConversionTokens();
+  const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
 
   const { initiateConversion } = useMusdConversion();
 
@@ -68,18 +68,13 @@ const MusdConversionAssetListCta = () => {
 
     const paymentTokenAddress = toChecksumAddress(address);
 
-    // Transfer to mUSD on same chain as payment token. If not supported, default to mainnet.
-    const outputChainId = isMusdSupportedOnChain(paymentTokenChainId)
-      ? toHex(paymentTokenChainId)
-      : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
-
     try {
       await initiateConversion({
         preferredPaymentToken: {
           address: paymentTokenAddress,
           chainId: toHex(paymentTokenChainId),
         },
-        outputChainId,
+        outputChainId: getMusdOutputChainId(paymentTokenChainId),
       });
     } catch (error) {
       Logger.error(

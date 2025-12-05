@@ -91,8 +91,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   );
 
   const { initiateConversion } = useMusdConversion();
-  const { isConversionToken, isMusdSupportedOnChain } =
-    useMusdConversionTokens();
+  const { isConversionToken, getMusdOutputChainId } = useMusdConversionTokens();
 
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset);
@@ -226,14 +225,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
       const assetChainId = toHex(asset.chainId);
 
-      const isSupportedChain = isMusdSupportedOnChain(assetChainId);
-
-      if (!isSupportedChain) {
-        throw new Error('Chain is not supported for mUSD conversion');
-      }
-
       await initiateConversion({
-        outputChainId: assetChainId,
+        outputChainId: getMusdOutputChainId(assetChainId),
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: assetChainId,
@@ -254,12 +247,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [
-    asset.address,
-    asset.chainId,
-    initiateConversion,
-    isMusdSupportedOnChain,
-  ]);
+  }, [asset.address, asset.chainId, initiateConversion, getMusdOutputChainId]);
 
   const onEarnButtonPress = async () => {
     if (isConvertibleStablecoin) {

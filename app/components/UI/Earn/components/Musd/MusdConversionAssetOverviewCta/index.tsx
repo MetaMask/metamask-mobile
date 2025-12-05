@@ -5,7 +5,6 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import musdIcon from '../../../../../../images/musd-icon-no-background-2x.png';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
-import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../../../constants/musd';
 import { toHex } from '@metamask/controller-utils';
 import { TokenI } from '../../../../Tokens/types';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -27,7 +26,7 @@ const MusdConversionAssetOverviewCta = ({
 
   const { initiateConversion } = useMusdConversion();
 
-  const { isMusdSupportedOnChain } = useMusdConversionTokens();
+  const { getMusdOutputChainId } = useMusdConversionTokens();
 
   const handlePress = async () => {
     try {
@@ -35,16 +34,12 @@ const MusdConversionAssetOverviewCta = ({
         throw new Error('Asset address or chain ID is not set');
       }
 
-      const outputChainId = isMusdSupportedOnChain(asset.chainId)
-        ? toHex(asset.chainId)
-        : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
-
       await initiateConversion({
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
-        outputChainId,
+        outputChainId: getMusdOutputChainId(asset.chainId),
         navigationStack: Routes.EARN.ROOT,
       });
     } catch (error) {
