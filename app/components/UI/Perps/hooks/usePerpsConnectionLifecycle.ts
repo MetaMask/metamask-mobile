@@ -90,19 +90,17 @@ export function usePerpsConnectionLifecycle({
         lastAppState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        // App coming to foreground - reconnect if needed and visible
-        // Add a small delay to allow system to stabilize after background
-        if (
-          !hasConnected.current &&
-          (isVisible === true || isVisible === undefined)
-        ) {
+        // App coming to foreground - always attempt to reconnect if visible
+        // This ensures we reconnect even if connection appears "connected" but is actually stale
+        if (isVisible === true || isVisible === undefined) {
           // Delay reconnection slightly to avoid race conditions with system wake-up
           const timer = setTimeout(() => {
-            // Double-check we still need to connect
-            if (
-              !hasConnected.current &&
-              (isVisible === true || isVisible === undefined)
-            ) {
+            // Always attempt connection when app comes to foreground
+            // The connection manager will validate the actual WebSocket state
+            if (isVisible === true || isVisible === undefined) {
+              // Reset hasConnected flag to force reconnection attempt
+              // This ensures we validate the connection even if it appears connected
+              hasConnected.current = false;
               handleConnection();
             }
           }, PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS);
