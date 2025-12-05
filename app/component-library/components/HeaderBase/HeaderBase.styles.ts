@@ -22,7 +22,7 @@ const styleSheet = (params: {
   theme: Theme;
   vars: HeaderBaseStyleSheetVars;
 }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
   const { style, startAccessorySize, endAccessorySize, variant } = vars;
 
   const isLeftAligned = variant === HeaderBaseVariant.Display;
@@ -36,6 +36,7 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
+        backgroundColor: theme.colors.background.default,
         flexDirection: 'row',
         gap: 16,
       } as ViewStyle,

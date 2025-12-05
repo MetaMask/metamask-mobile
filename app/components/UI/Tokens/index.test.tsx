@@ -24,16 +24,6 @@ jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
 
-jest.mock('../Earn/components/Musd/MusdConversionCta', () => {
-  const { View } = jest.requireActual('react-native');
-  const MockMusdConversionCta = () => <View testID="musd-conversion-cta" />;
-
-  return {
-    __esModule: true,
-    default: MockMusdConversionCta,
-  };
-});
-
 // We don't need to mock TokenList - the actual implementation is fine for testing
 
 // Mock InteractionManager to execute callbacks immediately
@@ -131,7 +121,7 @@ jest.mock('../../../core/Engine', () => ({
       stopPollingByPollingToken: jest.fn(),
     },
     TokenRatesController: {
-      updateExchangeRates: jest.fn(() => Promise.resolve()),
+      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },
