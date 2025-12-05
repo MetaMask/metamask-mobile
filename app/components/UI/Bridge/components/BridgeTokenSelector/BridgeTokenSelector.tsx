@@ -264,6 +264,11 @@ export const BridgeTokenSelector: React.FC = () => {
   ]);
 
   const handleChainSelect = (chainId?: CaipChainId) => {
+    // Do nothing if selecting the same network that's already selected
+    if (chainId === selectedChainId) {
+      return;
+    }
+
     setSelectedChainId(chainId);
 
     // If there's an active search, prepare to re-trigger it on the new network
