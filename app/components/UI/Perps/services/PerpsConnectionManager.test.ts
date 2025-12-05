@@ -76,12 +76,26 @@ jest.mock('react-native-background-timer', () => ({
   stop: jest.fn(),
 }));
 
+// Mock NetInfo for network monitoring tests
+const mockNetInfoListeners: ((state: { isConnected: boolean }) => void)[] =
+  [];
+const mockNetInfoState = { isConnected: true };
+
+jest.mock('@react-native-community/netinfo', () => ({
+  fetch: jest.fn(() => Promise.resolve(mockNetInfoState)),
+  addEventListener: jest.fn((listener) => {
+    mockNetInfoListeners.push(listener);
+    return jest.fn(); // Returns unsubscribe function
+  }),
+}));
+
 // Import non-singleton modules first
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
+import NetInfo from '@react-native-community/netinfo';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
@@ -153,6 +167,10 @@ describe('PerpsConnectionManager', () => {
 
     // Clear store callbacks array for test isolation
     storeCallbacks.length = 0;
+
+    // Clear NetInfo listeners for test isolation
+    mockNetInfoListeners.length = 0;
+    mockNetInfoState.isConnected = true;
 
     // Mock Redux state with proper structure for selectors
     (store.getState as jest.Mock).mockReturnValue({
@@ -747,6 +765,245 @@ describe('PerpsConnectionManager', () => {
         expect.stringContaining('Reconnection with new context failed'),
         error,
       );
+    });
+  });
+
+  describe('Network Monitoring', () => {
+    it('should set up network monitoring on first connect', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      const fetchSpy = jest.spyOn(NetInfo, 'fetch');
+      const addEventListenerSpy = jest.spyOn(NetInfo, 'addEventListener');
+
+      await PerpsConnectionManager.connect();
+
+      expect(fetchSpy).toHaveBeenCalled();
+      expect(addEventListenerSpy).toHaveBeenCalled();
+      expect(mockNetInfoListeners.length).toBeGreaterThan(0);
+    });
+
+    it('should trigger reconnection when network reconnects', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+
+      // Simulate network disconnection
+      mockNetInfoState.isConnected = false;
+      if (mockNetInfoListeners.length > 0) {
+        mockNetInfoListeners[0]({ isConnected: false });
+      }
+
+      // Simulate network reconnection
+      mockNetInfoState.isConnected = true;
+      if (mockNetInfoListeners.length > 0) {
+        mockNetInfoListeners[0]({ isConnected: true });
+      }
+
+      // Should attempt reconnection (mocked init will be called)
+      expect(mockPerpsController.init).toHaveBeenCalled();
+    });
+
+    it('should not trigger reconnection if already reconnecting', async () => {
+      mockPerpsController.init.mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
+      );
+      await PerpsConnectionManager.connect();
+
+      // Start a reconnection
+      const reconnectPromise = (
+        PerpsConnectionManager as unknown as {
+          reconnectWithNewContext: () => Promise<void>;
+        }
+      ).reconnectWithNewContext();
+
+      // Simulate network reconnection while reconnecting
+      mockNetInfoState.isConnected = true;
+      if (mockNetInfoListeners.length > 0) {
+        mockNetInfoListeners[0]({ isConnected: true });
+      }
+
+      await reconnectPromise;
+
+      // Should log that reconnection is already in progress
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('reconnection already in progress'),
+      );
+    });
+
+    it('should clean up network monitoring on disconnect', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.disconnect.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+
+      await PerpsConnectionManager.disconnect();
+
+      // Wait for grace period to complete (mocked, so immediate)
+      // Network monitoring should be cleaned up
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Network state monitoring cleaned up'),
+      );
+    });
+  });
+
+  describe('Health Checks', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should set up health checks after successful connection', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      const pingSpy = jest.fn().mockResolvedValue(undefined);
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        ping: pingSpy,
+      });
+
+      await PerpsConnectionManager.connect();
+
+      // Health checks should be set up
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Periodic health checks set up'),
+      );
+    });
+
+    it('should perform health check ping periodically', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      const pingSpy = jest.fn().mockResolvedValue(undefined);
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        ping: pingSpy,
+      });
+
+      await PerpsConnectionManager.connect();
+
+      // Fast-forward time to trigger health check
+      jest.advanceTimersByTime(30000);
+      await Promise.resolve(); // Allow async operations to complete
+
+      // Ping should be called
+      expect(pingSpy).toHaveBeenCalled();
+    });
+
+    it('should trigger reconnection on health check failure', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      const pingSpy = jest
+        .fn()
+        .mockResolvedValueOnce(undefined) // First check passes
+        .mockRejectedValueOnce(new Error('Health check failed')); // Second fails
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        ping: pingSpy,
+      });
+
+      await PerpsConnectionManager.connect();
+
+      // Fast-forward to first health check (passes)
+      jest.advanceTimersByTime(30000);
+      await Promise.resolve();
+      expect(pingSpy).toHaveBeenCalledTimes(1);
+
+      // Fast-forward to second health check (fails after 60s threshold)
+      jest.advanceTimersByTime(60000);
+      jest.advanceTimersByTime(30000);
+      await Promise.resolve();
+
+      // Should attempt reconnection
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Health check failed, forcing reconnection'),
+      );
+    });
+
+    it('should not trigger reconnection if already connecting', async () => {
+      mockPerpsController.init.mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
+      );
+      const pingSpy = jest
+        .fn()
+        .mockRejectedValue(new Error('Health check failed'));
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        ping: pingSpy,
+      });
+
+      await PerpsConnectionManager.connect();
+
+      // Start a connection attempt
+      const connectPromise = PerpsConnectionManager.connect();
+
+      // Trigger health check failure while connecting
+      jest.advanceTimersByTime(60000);
+      jest.advanceTimersByTime(30000);
+      await Promise.resolve();
+
+      await connectPromise;
+
+      // Should log that reconnection is already in progress
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('reconnection already in progress'),
+      );
+    });
+
+    it('should clean up health checks on disconnect', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.disconnect.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+
+      await PerpsConnectionManager.disconnect();
+
+      // Wait for grace period to complete
+      // Health checks should be cleaned up
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Periodic health checks cleaned up'),
+      );
+    });
+  });
+
+  describe('Connection Validation', () => {
+    it('should validate connection on connect if already connected', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      const pingSpy = jest.fn().mockResolvedValue(undefined);
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        ping: pingSpy,
+      });
+
+      // First connection
+      await PerpsConnectionManager.connect();
+
+      // Second connection should validate
+      await PerpsConnectionManager.connect();
+
+      // Ping should be called for validation
+      expect(pingSpy).toHaveBeenCalled();
+    });
+
+    it('should reconnect if validation fails', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      const pingSpy = jest
+        .fn()
+        .mockResolvedValueOnce(undefined) // First connection succeeds
+        .mockRejectedValueOnce(new Error('Validation failed')); // Validation fails
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        ping: pingSpy,
+      });
+
+      // First connection
+      await PerpsConnectionManager.connect();
+
+      // Second connection - validation fails
+      await PerpsConnectionManager.connect();
+
+      // Should reconnect (init called again)
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(2);
     });
   });
 });

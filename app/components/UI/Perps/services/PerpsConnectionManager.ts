@@ -2,7 +2,10 @@ import { captureException, setMeasurement } from '@sentry/react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
-import NetInfo from '@react-native-community/netinfo';
+import {
+  fetch as fetchNetInfo,
+  addEventListener as addNetInfoListener,
+} from '@react-native-community/netinfo';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -64,9 +67,9 @@ class PerpsConnectionManagerClass {
    * Set up network state monitoring to detect network reconnection
    */
   private setupNetworkMonitoring(): void {
-    // Only set up if not already monitoring
+    // Clean up any existing monitoring before setting up new one (defensive)
     if (this.networkStateUnsubscribe) {
-      return;
+      this.cleanupNetworkMonitoring();
     }
 
     DevLogger.log(
@@ -74,12 +77,12 @@ class PerpsConnectionManagerClass {
     );
 
     // Get initial network state
-    NetInfo.fetch().then((state) => {
+    fetchNetInfo().then((state) => {
       this.wasNetworkDisconnected = !state.isConnected;
     });
 
     // Subscribe to network state changes
-    this.networkStateUnsubscribe = NetInfo.addEventListener((state) => {
+    this.networkStateUnsubscribe = addNetInfoListener((state) => {
       const isConnected = state.isConnected ?? false;
 
       // If network was disconnected and now reconnected, force reconnection
@@ -90,7 +93,12 @@ class PerpsConnectionManagerClass {
         this.wasNetworkDisconnected = false;
 
         // If we think we're connected but network was just restored, validate connection
-        if (this.isConnected) {
+        // Only reconnect if not already connecting/reconnecting to prevent race conditions
+        if (
+          this.isConnected &&
+          !this.isConnecting &&
+          !this.pendingReconnectPromise
+        ) {
           // Force reconnection to ensure WebSocket is actually working
           this.reconnectWithNewContext({ force: true }).catch((error) => {
             Logger.error(ensureError(error), {
@@ -98,6 +106,10 @@ class PerpsConnectionManagerClass {
               message: 'Error reconnecting after network restoration',
             });
           });
+        } else if (this.isConnected) {
+          DevLogger.log(
+            'PerpsConnectionManager: Network reconnected but reconnection already in progress, skipping',
+          );
         }
       } else if (!isConnected) {
         this.wasNetworkDisconnected = true;
@@ -128,9 +140,9 @@ class PerpsConnectionManagerClass {
    * Set up periodic health checks to detect stale connections
    */
   private setupHealthChecks(): void {
-    // Only set up if not already running
+    // Clean up any existing health checks before setting up new one (defensive)
     if (this.healthCheckInterval) {
-      return;
+      this.cleanupHealthChecks();
     }
 
     DevLogger.log('PerpsConnectionManager: Setting up periodic health checks');
@@ -161,11 +173,16 @@ class PerpsConnectionManagerClass {
 
         // If health check fails, force reconnection
         // Only reconnect if we haven't had a successful check in the last minute
+        // and we're not already connecting/reconnecting to prevent race conditions
         const timeSinceLastCheck = this.lastSuccessfulHealthCheck
           ? Date.now() - this.lastSuccessfulHealthCheck
           : Infinity;
 
-        if (timeSinceLastCheck > 60_000) {
+        if (
+          timeSinceLastCheck > 60_000 &&
+          !this.isConnecting &&
+          !this.pendingReconnectPromise
+        ) {
           DevLogger.log(
             'PerpsConnectionManager: Health check failed, forcing reconnection',
           );
@@ -175,6 +192,14 @@ class PerpsConnectionManagerClass {
               message: 'Error reconnecting after failed health check',
             });
           });
+        } else if (timeSinceLastCheck <= 60_000) {
+          DevLogger.log(
+            'PerpsConnectionManager: Health check failed but recent successful check exists, skipping reconnection',
+          );
+        } else {
+          DevLogger.log(
+            'PerpsConnectionManager: Health check failed but reconnection already in progress, skipping',
+          );
         }
       }
     }, HEALTH_CHECK_INTERVAL_MS);
