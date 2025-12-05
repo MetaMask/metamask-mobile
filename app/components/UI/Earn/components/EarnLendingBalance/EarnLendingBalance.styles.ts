@@ -1,18 +1,25 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) =>
-  StyleSheet.create({
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { userHasLendingPositions: boolean };
+}) => {
+  const { vars, theme } = params;
+  const { userHasLendingPositions } = vars;
+
+  return StyleSheet.create({
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      paddingTop: 14,
       gap: 16,
     },
     buttonsContainer: {
       marginTop: 16,
       padding: 16,
       borderRadius: 12,
-      backgroundColor: params.theme.colors.background.section,
+      backgroundColor: theme.colors.background.section,
     },
     button: {
       flex: 1,
@@ -26,19 +33,18 @@ const styleSheet = (params: { theme: Theme }) =>
       marginLeft: 16,
       alignSelf: 'center',
     },
-    ethLogo: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      overflow: 'hidden',
+    musdConversionCta: {
+      paddingTop: 16,
+      paddingBottom: userHasLendingPositions ? 8 : 0,
     },
     EarnEmptyStateCta: {
-      paddingTop: 8,
+      paddingTop: 16,
     },
     earnings: {
       paddingHorizontal: 16,
       paddingTop: 16,
     },
   });
+};
 
 export default styleSheet;
