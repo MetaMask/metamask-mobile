@@ -173,14 +173,6 @@ export const useMusdConversion = () => {
                 networkClientId,
                 origin: MMM_ORIGIN,
                 type: TransactionType.musdConversion,
-                // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
-                nestedTransactions: [
-                  {
-                    to: mUSDTokenAddress,
-                    data: transferData as Hex,
-                    value: ZERO_HEX_VALUE,
-                  },
-                ],
               },
             );
 
