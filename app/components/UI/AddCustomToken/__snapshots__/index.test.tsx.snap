@@ -6,6 +6,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
+      "paddingHorizontal": 16,
     }
   }
 >
