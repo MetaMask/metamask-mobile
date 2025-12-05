@@ -10,7 +10,17 @@ export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
+/**
+ * @deprecated, use {@link ANALYTICS_OPTED_IN} instead
+ * Keeping METRICS_OPT_IN for backward compatibility
+ * Migration done in {@link migration109}
+ */
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
+/**
+ * @deprecated, use {@link ANALYTICS_OPTED_IN} only
+ * Keeping METRICS_OPT_IN_SOCIAL_LOGIN for backward compatibility
+ * Migration done in {@link migration108}
+ */
 export const METRICS_OPT_IN_SOCIAL_LOGIN = `${prefix}metricsOptInSocialLogin`;
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;

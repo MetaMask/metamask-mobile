@@ -7082,12 +7082,12 @@ __metadata:
 
 "@metamask/analytics-controller@file:../core/packages/analytics-controller::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/analytics-controller@file:../core/packages/analytics-controller#../core/packages/analytics-controller::hash=e88f03&locator=metamask%40workspace%3A."
+  resolution: "@metamask/analytics-controller@file:../core/packages/analytics-controller#../core/packages/analytics-controller::hash=527ff7&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
-  checksum: 10/c8d3e22831d74c5d418b1a03b059a1481c4a3c70dec26cfd823eb18cccb331db8f47996c9f28221124b4c95e30f8511ead9632ab38eb91b3132834b6d24dc161
+  checksum: 10/9f8171a7f184479e39ad0adfd603de6025091b7f53dabaaa076d58bdc0996ecf67ce5d25caadeaed21eea28f012352db6616000d41fecf856e79bfcc826cb6ba
   languageName: node
   linkType: hard
 
