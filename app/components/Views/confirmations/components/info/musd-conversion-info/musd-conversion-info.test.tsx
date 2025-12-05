@@ -5,11 +5,17 @@ import { MusdConversionInfo } from './musd-conversion-info';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { useRoute } from '@react-navigation/native';
 import { CustomAmountInfo } from '../custom-amount-info';
+import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 
 jest.mock('../../../hooks/tokens/useAddToken');
+jest.mock('../../../hooks/earn/useCustomAmount');
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
+}));
+
+jest.mock('../../rows/pay-with-row', () => ({
+  PayWithRow: jest.fn(() => null),
 }));
 
 const mockRoute = {
@@ -29,9 +35,15 @@ jest.mock('@react-navigation/native', () => {
 describe('MusdConversionInfo', () => {
   const mockUseAddToken = jest.mocked(useAddToken);
   const mockUseRoute = jest.mocked(useRoute);
+  const mockUseCustomAmount = jest.mocked(useCustomAmount);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCustomAmount.mockReturnValue({
+      shouldShowOutputAmountTag: false,
+      outputAmount: null,
+      outputSymbol: null,
+    });
   });
 
   afterEach(() => {
@@ -101,6 +113,27 @@ describe('MusdConversionInfo', () => {
       expect(CustomAmountInfo).toHaveBeenCalledWith(
         expect.objectContaining({
           preferredToken: preferredPaymentToken,
+        }),
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('overrideContent', () => {
+    it('passes overrideContent function to CustomAmountInfo', () => {
+      mockRoute.params = {
+        outputChainId: '0x1' as Hex,
+      };
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(CustomAmountInfo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          overrideContent: expect.any(Function),
         }),
         expect.anything(),
       );
