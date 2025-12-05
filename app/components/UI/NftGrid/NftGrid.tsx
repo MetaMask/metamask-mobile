@@ -186,12 +186,12 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     );
 
   const renderNftContent = () => {
-    if (isNftFetchingProgress) {
-      return <NftGridSkeleton />;
-    }
-
     if (allFilteredCollectibles.length > 0) {
       return nftRowList;
+    }
+
+    if (isNftFetchingProgress) {
+      return <NftGridSkeleton />;
     }
 
     return (
