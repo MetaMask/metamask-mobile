@@ -19,7 +19,6 @@
  */
 
 // Main entry points
-export { default as SharedDeeplinkManager } from './SharedDeeplinkManager';
 export { handleDeeplink } from './handleDeeplink';
 
 // Core system (new handler-based routing)
@@ -42,7 +41,10 @@ export type {
 } from './types/CoreUniversalLink';
 
 // Legacy system (for backward compatibility - will be removed in future)
-export { default as DeeplinkManager } from './DeeplinkManager';
+export {
+  default as DeeplinkManager,
+  SharedDeeplinkManager,
+} from './DeeplinkManager';
 export { LegacyLinkAdapter } from './normalization/LegacyLinkAdapter';
 
 // Utilities
