@@ -829,6 +829,8 @@ const EarnWithdrawInputView = () => {
 
   const isTronWithdrawButtonDisabled =
     !isNonZeroAmount ||
+    isOverMaximum.isOverMaximumToken ||
+    isOverMaximum.isOverMaximumEth ||
     isSubmittingStakeWithdrawalTransaction ||
     isTronUnstakeValidating;
   ///: END:ONLY_INCLUDE_IF
