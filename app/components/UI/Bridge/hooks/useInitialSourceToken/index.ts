@@ -10,10 +10,11 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selector
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import {
-  isNonEvmChainId,
   formatChainIdToCaip,
   formatChainIdToHex,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { areAddressesEqual } from '../../../../../util/address';
 import { constants } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
 import {
@@ -92,7 +93,7 @@ export const useInitialSourceToken = (
     // only handle network switching if needed
     if (
       initialSourceToken &&
-      sourceToken?.address === initialSourceToken.address
+      areAddressesEqual(sourceToken?.address ?? '', initialSourceToken.address)
     ) {
       // Set source amount if provided
       if (initialSourceAmount) {
