@@ -110,22 +110,28 @@ export class ConnectionRegistry {
       return;
     }
 
-    logger.error('Failed to find connection in store for simple deeplink with id:', id);
+    logger.error(
+      'Failed to find connection in store for simple deeplink with id:',
+      id,
+    );
 
     if (!Engine.context.KeyringController.isUnlocked()) {
       await new Promise<void>((resolve) => {
         const handler = () => {
-          Engine.controllerMessenger.unsubscribe('KeyringController:unlock', handler);
+          Engine.controllerMessenger.unsubscribe(
+            'KeyringController:unlock',
+            handler,
+          );
           resolve();
-        }
+        };
         Engine.controllerMessenger.subscribe(
           'KeyringController:unlock',
           handler,
         );
-      })
+      });
     }
 
-    await whenStoreReady()
+    await whenStoreReady();
 
     // Not sure what else must be initialized before this toast will show correctly
     setTimeout(() => {
