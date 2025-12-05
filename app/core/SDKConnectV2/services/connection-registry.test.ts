@@ -110,7 +110,7 @@ describe('ConnectionRegistry', () => {
 
     Engine.context.KeyringController.isUnlocked = jest
       .fn()
-      .mockResolvedValue(true);
+      .mockReturnValue(true);
 
     mockHostApp =
       new HostApplicationAdapter() as jest.Mocked<HostApplicationAdapter>;
