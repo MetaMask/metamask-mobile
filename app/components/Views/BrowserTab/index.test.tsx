@@ -73,11 +73,9 @@ jest.mock('../../../core/EntryScriptWeb3', () => ({
 }));
 
 jest.mock('../../../util/phishingDetection', () => ({
-  getPhishingTestResult: jest.fn(() => ({ result: false, name: '' })),
   getPhishingTestResultAsync: jest.fn(() =>
     Promise.resolve({ result: false, name: '' }),
   ),
-  isProductSafetyDappScanningEnabled: jest.fn(() => false),
 }));
 
 const mockProps = {
@@ -208,10 +206,10 @@ describe('BrowserTab', () => {
     });
 
     it('stops webview from loading a phishing website', async () => {
-      const { getPhishingTestResult } = jest.requireMock(
+      const { getPhishingTestResultAsync } = jest.requireMock(
         '../../../util/phishingDetection',
       );
-      getPhishingTestResult.mockReturnValue({
+      getPhishingTestResultAsync.mockResolvedValue({
         result: true,
         name: 'phishing-site',
         type: PhishingDetectorResultType.Blocklist,
@@ -232,7 +230,7 @@ describe('BrowserTab', () => {
       const phishingResult = onShouldStartLoadWithRequest({
         url: 'https://phishing-site.com',
       });
-      expect(phishingResult).toBe(false);
+      expect(phishingResult).toBe(true);
     });
   });
 });

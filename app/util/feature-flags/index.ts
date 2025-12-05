@@ -67,7 +67,6 @@ export const getFeatureFlagDescription = (key: string): string | undefined => {
     walletFrameworkRpcFailoverEnabled: 'RPC failover functionality',
     trxStakingEnabled: 'TRON staking features',
     tokenSearchDiscoveryEnabled: 'Token search and discovery',
-    productSafetyDappScanningEnabled: 'DApp security scanning',
     minimumAppVersion: 'Minimum app version requirements',
     otaUpdatesEnabled: 'OTA updates functionality',
   };
