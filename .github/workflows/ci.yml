@@ -272,9 +272,10 @@ jobs:
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number}}
+          pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
           post-comment: 'true'
+          base-ref: ${{ github.event.pull_request.base.ref }}
 
   # Main E2E tests
 
@@ -352,8 +353,8 @@ jobs:
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -369,6 +370,8 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52

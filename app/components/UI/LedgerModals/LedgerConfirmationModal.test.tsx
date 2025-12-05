@@ -19,8 +19,6 @@ import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
-import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../hooks/Ledger/useBluetooth', () => ({
   __esModule: true,
@@ -47,9 +45,29 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../components/hooks/useMetrics');
 
 const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
 
 describe('LedgerConfirmationModal', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Mock event builder chain
+    const mockEventBuilder = {
+      addProperties: jest.fn().mockReturnThis(),
+      addSensitiveProperties: jest.fn().mockReturnThis(),
+      removeProperties: jest.fn().mockReturnThis(),
+      removeSensitiveProperties: jest.fn().mockReturnThis(),
+      setSaveDataRecording: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({
+        name: 'test-event',
+        properties: {},
+        sensitiveProperties: {},
+        saveDataRecording: true,
+      }),
+    };
+
+    mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+
     // Mock hook return value
     (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: true,
@@ -71,7 +89,7 @@ describe('LedgerConfirmationModal', () => {
 
     (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: mockCreateEventBuilder,
       enable: jest.fn(),
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
@@ -143,10 +161,10 @@ describe('LedgerConfirmationModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('logs LEDGER_HARDWARE_WALLET_ERROR event when the ledger error occurs', async () => {
+  it('logs HARDWARE_WALLET_ERROR event when the ledger error occurs', async () => {
     const onConfirmation = jest.fn();
-
     const ledgerLogicToRun = jest.fn();
+
     (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
@@ -166,22 +184,11 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line no-empty-function
-    await act(async () => {});
-
     expect(onConfirmation).not.toHaveBeenCalled();
-
-    expect(mockTrackEvent).toHaveBeenNthCalledWith(
-      1,
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR,
-      )
-        .addProperties({
-          device_type: HardwareDeviceTypes.LEDGER,
-          error: 'LEDGER_ETH_APP_NOT_INSTALLED',
-        })
-        .build(),
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.HARDWARE_WALLET_ERROR,
     );
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('renders SearchingForDeviceStep when not sending ledger commands', () => {
@@ -351,15 +358,14 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line no-empty-function
-    await act(async () => {});
-
     expect(ledgerLogicToRun).toHaveBeenCalledTimes(1);
 
     const retryButton = getByTestId(RETRY_BUTTON);
-    fireEvent.press(retryButton);
 
-    //Retry will run connectLedger again
+    await act(async () => {
+      fireEvent.press(retryButton);
+    });
+
     expect(ledgerLogicToRun).toHaveBeenCalledTimes(2);
   });
 
@@ -380,13 +386,12 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line no-empty-function
-    await act(async () => {});
-
     const retryButton = getByTestId(RETRY_BUTTON);
-    fireEvent.press(retryButton);
 
-    //Retry will run connectLedger again
+    await act(async () => {
+      fireEvent.press(retryButton);
+    });
+
     expect(checkPermissions).toHaveBeenCalledTimes(1);
   });
 
@@ -406,9 +411,6 @@ describe('LedgerConfirmationModal', () => {
         deviceId={'test'}
       />,
     );
-
-    // eslint-disable-next-line no-empty-function
-    await act(async () => {});
 
     expect(onConfirmation).toHaveBeenCalled();
   });

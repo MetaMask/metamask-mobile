@@ -63,6 +63,7 @@ import {
   usePerpsNavigation,
   usePositionManagement,
 } from '../../hooks';
+import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import {
   usePerpsDataMonitor,
@@ -366,19 +367,46 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
+  // Fetch order fills to get position opened timestamp
+  const { orderFills } = usePerpsOrderFills({
+    skipInitialFetch: false,
+  });
+
+  // Get position opened timestamp from fills data
+  const positionOpenedTimestamp = useMemo(() => {
+    if (!existingPosition || !orderFills) return undefined;
+
+    // Find the most recent "Open" fill for this asset
+    const openFill = orderFills
+      .filter((fill) => {
+        const isMatchingAsset = fill.symbol === existingPosition.coin;
+        const isOpenDirection = fill.direction?.startsWith('Open');
+        return isMatchingAsset && isOpenDirection;
+      })
+      .sort((a, b) => b.timestamp - a.timestamp)[0]; // Most recent first
+
+    return openFill?.timestamp;
+  }, [existingPosition, orderFills]);
+
   // Compute TP/SL lines for the chart based on existing position
+  // Always include currentPrice to ensure chart price line matches header (TAT-2112)
   const tpslLines = useMemo(() => {
+    const currentPriceStr =
+      currentPrice > 0 ? currentPrice.toString() : undefined;
+
     if (existingPosition) {
       return {
         entryPrice: existingPosition.entryPrice,
         takeProfitPrice: existingPosition.takeProfitPrice,
         stopLossPrice: existingPosition.stopLossPrice,
         liquidationPrice: existingPosition.liquidationPrice || undefined,
+        currentPrice: currentPriceStr,
       };
     }
 
-    return undefined;
-  }, [existingPosition]);
+    // Even without position, show current price line on chart
+    return currentPriceStr ? { currentPrice: currentPriceStr } : undefined;
+  }, [existingPosition, currentPrice]);
 
   // Stop loss prompt banner logic
   const {
@@ -390,6 +418,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   } = useStopLossPrompt({
     position: existingPosition,
     currentPrice,
+    positionOpenedTimestamp,
   });
 
   // Reset stop loss banner state when market or position changes
@@ -429,7 +458,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PerpsEventProperties.ASSET]: market?.symbol || '',
       [PerpsEventProperties.SOURCE]:
         source || PerpsEventValues.SOURCE.PERP_MARKETS,
-      [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
+      [PerpsEventProperties.OPEN_POSITION]: existingPosition ? 1 : 0,
       // A/B Test context (TAT-1937) - for baseline exposure tracking
       ...(isButtonColorTestEnabled && {
         [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
