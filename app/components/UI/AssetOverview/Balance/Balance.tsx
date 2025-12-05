@@ -50,6 +50,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -210,6 +211,8 @@ const Balance = ({
     ? ACCOUNT_TYPE_LABELS[asset.accountType]
     : undefined;
 
+  const { isAssetStockToken } = useRWAToken();
+
   return (
     <View style={styles.wrapper}>
       {!hideTitleHeading && (
@@ -260,14 +263,15 @@ const Balance = ({
               testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
             >
               {secondaryBalance}
+              {isAssetStockToken(asset) && (
+                <View style={styles.stockBadge}>
+                  <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+                    {strings('token.stock')}
+                  </Text>
+                </View>
+              )}
             </SensitiveText>
           )}
-
-          <View style={styles.stockBadge}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
-              {strings('token.stock')}
-            </Text>
-          </View>
         </View>
       </AssetElement>
       <EarnBalance asset={asset} />
