@@ -9,7 +9,6 @@ import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../../../constants/musd';
 import { toHex } from '@metamask/controller-utils';
 import { TokenI } from '../../../../Tokens/types';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
@@ -26,10 +25,7 @@ const MusdConversionAssetOverviewCta = ({
 }: MusdConversionAssetOverviewCtaProps) => {
   const { styles } = useStyles(stylesheet, {});
 
-  const navigation = useNavigation();
-
-  const { initiateConversion, hasSeenConversionEducationScreen } =
-    useMusdConversion();
+  const { initiateConversion } = useMusdConversion();
 
   const { isMusdSupportedOnChain } = useMusdConversionTokens();
 
@@ -43,27 +39,14 @@ const MusdConversionAssetOverviewCta = ({
         ? toHex(asset.chainId)
         : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
 
-      const config = {
+      await initiateConversion({
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
         outputChainId,
         navigationStack: Routes.EARN.ROOT,
-      };
-
-      if (!hasSeenConversionEducationScreen) {
-        navigation.navigate(config.navigationStack, {
-          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-          params: {
-            preferredPaymentToken: config.preferredPaymentToken,
-            outputChainId: config.outputChainId,
-          },
-        });
-        return;
-      }
-
-      await initiateConversion(config);
+      });
     } catch (error) {
       Logger.error(
         error as Error,

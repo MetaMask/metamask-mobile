@@ -44,10 +44,7 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
-import {
-  MusdConversionConfig,
-  useMusdConversion,
-} from '../../../Earn/hooks/useMusdConversion';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
@@ -93,8 +90,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
-    useMusdConversion();
+  const { initiateConversion } = useMusdConversion();
   const { isConversionToken, isMusdSupportedOnChain } =
     useMusdConversionTokens();
 
@@ -236,27 +232,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Chain is not supported for mUSD conversion');
       }
 
-      const config: MusdConversionConfig = {
+      await initiateConversion({
         outputChainId: assetChainId,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: assetChainId,
         },
         navigationStack: Routes.EARN.ROOT,
-      };
-
-      if (!hasSeenConversionEducationScreen) {
-        navigation.navigate(Routes.EARN.ROOT, {
-          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-          params: {
-            preferredPaymentToken: config.preferredPaymentToken,
-            outputChainId: config.outputChainId,
-          },
-        });
-        return;
-      }
-
-      await initiateConversion(config);
+      });
     } catch (error) {
       Logger.error(
         error as Error,
@@ -274,10 +257,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   }, [
     asset.address,
     asset.chainId,
-    hasSeenConversionEducationScreen,
     initiateConversion,
     isMusdSupportedOnChain,
-    navigation,
   ]);
 
   const onEarnButtonPress = async () => {

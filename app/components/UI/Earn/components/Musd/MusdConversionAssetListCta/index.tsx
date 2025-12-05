@@ -20,8 +20,6 @@ import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../../constants/navigation/Routes';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
@@ -37,10 +35,7 @@ const MusdConversionAssetListCta = () => {
 
   const { tokens, isMusdSupportedOnChain } = useMusdConversionTokens();
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
-    useMusdConversion();
-
-  const navigation = useNavigation();
+  const { initiateConversion } = useMusdConversion();
 
   const canConvert = useMemo(
     () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
@@ -77,20 +72,6 @@ const MusdConversionAssetListCta = () => {
     const outputChainId = isMusdSupportedOnChain(paymentTokenChainId)
       ? toHex(paymentTokenChainId)
       : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
-
-    if (!hasSeenConversionEducationScreen) {
-      navigation.navigate(Routes.EARN.ROOT, {
-        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          preferredPaymentToken: {
-            address: paymentTokenAddress,
-            chainId: toHex(paymentTokenChainId),
-          },
-          outputChainId,
-        },
-      });
-      return;
-    }
 
     try {
       await initiateConversion({
