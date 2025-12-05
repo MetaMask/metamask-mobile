@@ -1,6 +1,4 @@
 import React from 'react';
-import { toHex } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
 import { Theme } from '../../../../util/theme/models';
 import { View, StyleSheet, Image } from 'react-native';
 import Text, {
@@ -56,10 +54,8 @@ export const getMusdConversionNavbarOptions = (
     },
   });
 
-  const chainIdHex = toHex(chainId) as Hex;
-
   const networkImageSource = getNetworkImageSource({
-    chainId: chainIdHex,
+    chainId,
   });
 
   const handleBackPress = () => {
