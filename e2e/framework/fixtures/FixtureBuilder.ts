@@ -579,14 +579,6 @@ class FixtureBuilder {
                   featureVersion: null,
                   minimumVersion: null,
                 },
-                predictTradingEnabled: {
-                  enabled: false,
-                  minimumVersion: '7.60.0',
-                },
-                predictGtmOnboardingModalEnabled: {
-                  enabled: false,
-                  minimumVersion: '7.60.0',
-                },
               },
             },
           },
