@@ -61,6 +61,9 @@ export class BrowserStackConfigBuilder {
             process.env.GITHUB_ACTIONS === 'true'
               ? `CI ${process.env.GITHUB_RUN_ID}`
               : process.env.USER,
+          appProfiling: 'true',
+          selfHeal: 'true',
+          networkProfile: '4g-lte-advanced-good',
         },
         'appium:autoGrantPermissions': true,
         'appium:app': appBsUrl,
