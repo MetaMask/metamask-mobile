@@ -42,3 +42,8 @@ export const selectTransactionPaySourceAmountsByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.sourceAmounts,
 );
+
+export const selectTransactionPayTransactionData = createSelector(
+  selectTransactionPayControllerState,
+  (state) => state.transactionData,
+);
