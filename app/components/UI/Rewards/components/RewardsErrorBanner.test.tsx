@@ -201,7 +201,7 @@ describe('RewardsErrorBanner', () => {
     it('calls onConfirm when custom labeled button pressed', () => {
       // Arrange
       const onConfirm = jest.fn();
-      const customLabel = 'Try Again';
+      const customLabel = 'Try again';
       const { getByText } = render(
         <RewardsErrorBanner
           {...defaultProps}
@@ -211,7 +211,7 @@ describe('RewardsErrorBanner', () => {
       );
 
       // Act
-      fireEvent.press(getByText('Try Again'));
+      fireEvent.press(getByText('Try again'));
 
       // Assert
       expect(onConfirm).toHaveBeenCalledTimes(1);

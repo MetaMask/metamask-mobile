@@ -96,6 +96,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { getByTestId } = renderWithProvider(
@@ -119,6 +120,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -137,6 +139,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -157,6 +160,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -175,6 +179,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [mockToken],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -195,6 +200,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
     });
 
@@ -231,6 +237,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [mockToken],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -266,6 +273,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [firstToken, secondToken],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -296,6 +304,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [mockToken],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
@@ -321,6 +330,7 @@ describe('MusdConversionAssetListCta', () => {
           tokens: [mockToken],
           tokenFilter: jest.fn(),
           isConversionToken: jest.fn(),
+          isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         });
 
         (
@@ -379,6 +389,7 @@ describe('MusdConversionAssetListCta', () => {
         tokens: [mockToken],
         tokenFilter: jest.fn(),
         isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       });
     });
 

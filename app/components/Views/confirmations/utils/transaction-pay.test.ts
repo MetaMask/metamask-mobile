@@ -19,6 +19,19 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import { store } from '../../../../store';
+import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
+import { strings } from '../../../../../locales/i18n';
+
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
+  selectGasFeeTokenFlags: jest.fn(),
+}));
 
 const CHAIN_ID_MOCK = '0x1';
 const TO_MOCK = '0x0987654321098765432109876543210987654321';
@@ -38,7 +51,23 @@ const TOKEN_MOCK = {
   symbol: 'NTV1',
 } as AssetType;
 
+const ERC20_TOKEN_MOCK = {
+  ...TOKEN_MOCK,
+  address: '0x1234567890abcdef1234567890abcdef12345678',
+  name: 'Test Token',
+  symbol: 'TST',
+  balance: '2.34',
+} as AssetType;
+
 describe('Transaction Pay Utils', () => {
+  const selectGasFeeTokenFlagsMock = jest.mocked(selectGasFeeTokenFlags);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(store.getState).mockReturnValue({} as never);
+    selectGasFeeTokenFlagsMock.mockReturnValue({ gasFeeTokens: {} });
+  });
+
   describe('getRequiredBalance', () => {
     it('returns value if transaction type is perps deposit', () => {
       const transactionMeta = {
@@ -250,6 +279,72 @@ describe('Transaction Pay Utils', () => {
       });
 
       expect(result).toStrictEqual([]);
+    });
+
+    describe('disabled', () => {
+      it('marks token as disabled when no native balance and no gas station support', () => {
+        const result = getAvailableTokens({
+          tokens: [
+            ERC20_TOKEN_MOCK,
+            { ...TOKEN_MOCK, balance: '0' } as AssetType,
+          ],
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].disabled).toBe(true);
+        expect(result[0].disabledMessage).toBe(
+          strings('pay_with_modal.no_gas'),
+        );
+      });
+
+      it('marks token as enabled when native balance exists', () => {
+        const result = getAvailableTokens({
+          tokens: [ERC20_TOKEN_MOCK, TOKEN_MOCK],
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].disabled).toBe(false);
+        expect(result[0].disabledMessage).toBeUndefined();
+      });
+
+      it('marks token as enabled when no native balance but gas station supports token', () => {
+        selectGasFeeTokenFlagsMock.mockReturnValue({
+          gasFeeTokens: {
+            [CHAIN_ID_MOCK]: {
+              name: 'Ethereum',
+              tokens: [
+                {
+                  name: 'Test Token',
+                  address: ERC20_TOKEN_MOCK.address as Hex,
+                },
+              ],
+            },
+          },
+        });
+
+        const result = getAvailableTokens({
+          tokens: [
+            ERC20_TOKEN_MOCK,
+            { ...TOKEN_MOCK, balance: '0' } as AssetType,
+          ],
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].disabled).toBe(false);
+        expect(result[0].disabledMessage).toBeUndefined();
+      });
+
+      it('marks token as disabled when native token is not found in tokens list', () => {
+        const result = getAvailableTokens({
+          tokens: [ERC20_TOKEN_MOCK],
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].disabled).toBe(true);
+        expect(result[0].disabledMessage).toBe(
+          strings('pay_with_modal.no_gas'),
+        );
+      });
     });
   });
 });
