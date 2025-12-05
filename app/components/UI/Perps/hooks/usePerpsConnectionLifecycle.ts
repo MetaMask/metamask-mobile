@@ -98,24 +98,21 @@ export function usePerpsConnectionLifecycle({
           // Delay reconnection slightly to avoid race conditions with system wake-up
           const timer = setTimeout(async () => {
             if (isVisible === true || isVisible === undefined) {
-              // Always attempt connection to trigger validation
-              // The connection manager validates and only reconnects if needed
-              // If we're already connected, this will just validate
-              // If validation fails, the connection manager will reconnect
               try {
+                // Always attempt connection to trigger validation
+                // The connection manager validates and only reconnects if needed
                 await onConnect();
                 // Connection validated successfully, ensure flag is set
                 if (!hasConnected.current) {
                   hasConnected.current = true;
                 }
-              } catch (err) {
-                // Connection validation failed, reset flag so we can reconnect
+              } catch {
+                // Connection validation failed, reset flag and reconnect
                 hasConnected.current = false;
                 await handleConnection();
               }
             }
           }, PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS);
-          // Store timer to clean up if component unmounts
           return () => clearTimeout(timer);
         }
       }
