@@ -56,8 +56,11 @@ export const test = base.extend<TestLevelFixtures>({
         },
       );
 
-      // Notify provider that test is starting
-      await deviceProvider.syncTestDetails?.({ name: testInfo.title });
+      try {
+        await deviceProvider.syncTestDetails?.({ name: testInfo.title });
+      } catch (error) {
+        console.error('Failed to sync pre-test details:', error);
+      }
 
       // Run the test
       await use(driver);
