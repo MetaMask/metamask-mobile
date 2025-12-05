@@ -250,38 +250,35 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const shouldShowLoadingState = isLoading && sections.length === 0;
 
-  return (
-    <Box twClassName="flex-1">
-      {shouldShowLoadingState ? (
-        <Box twClassName="items-center justify-center h-full">
-          <ActivityIndicator size="small" testID="activity-indicator" />
-        </Box>
-      ) : sections.length === 0 ? (
-        <Box twClassName="items-center justify-center py-10">
-          <TabEmptyState
-            description={strings('predict.transactions.no_transactions')}
-          />
-        </Box>
-      ) : (
-        // TODO: Improve loading state, pagination, consider FlashList for better performance, pull down to refresh, etc.
-        <SectionList<PredictActivityItem, ActivitySection>
-          sections={sections}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          renderSectionHeader={renderSectionHeader}
-          contentContainerStyle={tw.style('p-2')}
-          showsVerticalScrollIndicator={false}
-          style={tw.style('flex-1')}
-          stickySectionHeadersEnabled
-          refreshing={isRefreshing}
-          onRefresh={() => loadActivity({ isRefresh: true })}
-          maxToRenderPerBatch={20}
-          initialNumToRender={20}
-          windowSize={12}
-        />
-      )}
+  const renderContent = shouldShowLoadingState ? (
+    <Box twClassName="items-center justify-center h-full">
+      <ActivityIndicator size="small" testID="activity-indicator" />
     </Box>
+  ) : sections.length === 0 ? (
+    <Box twClassName="items-center justify-center py-10">
+      <TabEmptyState
+        description={strings('predict.transactions.no_transactions')}
+      />
+    </Box>
+  ) : (
+    <SectionList<PredictActivityItem, ActivitySection>
+      sections={sections}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
+      contentContainerStyle={tw.style('p-2')}
+      showsVerticalScrollIndicator={false}
+      style={tw.style('flex-1')}
+      stickySectionHeadersEnabled
+      refreshing={isRefreshing}
+      onRefresh={() => loadActivity({ isRefresh: true })}
+      maxToRenderPerBatch={20}
+      initialNumToRender={20}
+      windowSize={12}
+    />
   );
+
+  return <Box twClassName="flex-1">{renderContent}</Box>;
 };
 
 export default PredictTransactionsView;
