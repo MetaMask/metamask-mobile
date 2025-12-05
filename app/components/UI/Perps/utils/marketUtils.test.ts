@@ -16,8 +16,6 @@ import { CandlePeriod } from '../constants/chartConfig';
 
 jest.mock('../constants/hyperLiquidConfig', () => ({
   HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
-  HIP3_ASSET_ICONS_BASE_URL:
-    'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
 }));
 
 describe('marketUtils', () => {
@@ -354,24 +352,20 @@ describe('marketUtils', () => {
       expect(result).toBe('https://app.hyperliquid.xyz/coins/BTC.svg');
     });
 
-    it('returns GitHub URL for HIP-3 asset with colon replaced by underscore', () => {
+    it('returns HyperLiquid URL for HIP-3 asset with market:symbol format', () => {
       const symbol = 'xyz:TSLA';
 
       const result = getAssetIconUrl(symbol);
 
-      expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
-      );
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/xyz:TSLA.svg');
     });
 
-    it('returns GitHub URL for HIP-3 asset with different DEX prefix', () => {
+    it('returns HyperLiquid URL for HIP-3 asset with different DEX prefix', () => {
       const symbol = 'abc:XYZ100';
 
       const result = getAssetIconUrl(symbol);
 
-      expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Aabc_XYZ100.svg',
-      );
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/abc:XYZ100.svg');
     });
 
     it('removes k prefix for specified assets', () => {
@@ -413,9 +407,7 @@ describe('marketUtils', () => {
 
       const result = getAssetIconUrl(symbol);
 
-      expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
-      );
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/xyz:TSLA.svg');
     });
   });
 
