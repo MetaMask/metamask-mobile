@@ -45,8 +45,8 @@ const SetPhoneNumber = () => {
       .filter((country) => country.canSignUp)
       .map((country) => ({
         key: country.iso3166alpha2,
-        value: country.iso3166alpha2,
-        label: `+${country.callingCode} ${country.name}`,
+        value: `${country.iso3166alpha2}-${country.callingCode}`,
+        label: `${countryCodeToFlag(country.iso3166alpha2)} +${country.callingCode}`,
       }));
   }, [registrationSettings]);
 
@@ -131,13 +131,11 @@ const SetPhoneNumber = () => {
     }
   };
 
-  const handleCountrySelect = (key: string) => {
+  const handleCountrySelect = (value: string) => {
     resetPhoneVerificationSend();
-    const areaCode = selectOptions.find((option) => option.key === key)?.value;
-    if (areaCode) {
-      setSelectedCountryAreaCode(areaCode);
-      setSelectedCountryIsoCode(key);
-    }
+    const [key, areaCode] = value.split('-');
+    setSelectedCountryAreaCode(areaCode);
+    setSelectedCountryIsoCode(key);
   };
 
   const handlePhoneNumberChange = (text: string) => {
@@ -182,18 +180,11 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg py-1">
-          <Text
-            variant={TextVariant.BodyLg}
-            twClassName="pl-3"
-            testID="set-phone-number-country-flag"
-          >
-            {countryCodeToFlag(selectedCountryIsoCode)}
-          </Text>
-          <Box twClassName="w-28 -ml-2">
+        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg">
+          <Box twClassName="w-22">
             <SelectComponent
               options={selectOptions}
-              selectedValue={selectedCountryAreaCode}
+              selectedValue={`${selectedCountryIsoCode}-${selectedCountryAreaCode}`}
               onValueChange={handleCountrySelect}
               label={strings(
                 'card.card_onboarding.set_phone_number.country_area_code_label',
