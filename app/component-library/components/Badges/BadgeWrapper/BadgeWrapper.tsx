@@ -40,7 +40,7 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   return (
     <View
       style={styles.base}
-      {...(containerSize == null && { onLayout: onLayoutContainerSize })}
+      onLayout={onLayoutContainerSize}
       testID={BADGE_WRAPPER_BADGE_TEST_ID}
     >
       <View>{children}</View>
