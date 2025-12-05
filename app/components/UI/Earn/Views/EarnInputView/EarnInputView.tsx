@@ -65,7 +65,10 @@ import {
 } from './EarnInputView.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
-import { doesTokenRequireAllowanceReset , formatChainIdForAnalytics } from '../../utils';
+import {
+  doesTokenRequireAllowanceReset,
+  formatChainIdForAnalytics,
+} from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
