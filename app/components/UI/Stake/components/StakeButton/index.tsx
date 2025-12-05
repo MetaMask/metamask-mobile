@@ -47,7 +47,6 @@ import { isTronChainId } from '../../../../../core/Multichain/utils';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
-import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../../../Earn/constants/musd';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -93,7 +92,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
-  const { isConversionToken } = useMusdConversionTokens();
+  const { isConversionToken, isMusdSupportedOnChain } =
+    useMusdConversionTokens();
 
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset);
@@ -225,11 +225,19 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Asset address or chain ID is not set');
       }
 
+      const assetChainId = toHex(asset.chainId);
+
+      const isSupportedChain = isMusdSupportedOnChain(assetChainId);
+
+      if (!isSupportedChain) {
+        throw new Error('Chain is not supported for mUSD conversion');
+      }
+
       const config = {
-        outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        outputChainId: assetChainId,
         preferredPaymentToken: {
           address: toHex(asset.address),
-          chainId: toHex(asset.chainId),
+          chainId: assetChainId,
         },
         navigationStack: Routes.EARN.ROOT,
       };
@@ -265,6 +273,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     asset.chainId,
     hasSeenConversionEducationScreen,
     initiateConversion,
+    isMusdSupportedOnChain,
     navigation,
   ]);
 
