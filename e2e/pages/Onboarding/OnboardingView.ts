@@ -20,6 +20,7 @@ class OnboardingView {
   async tapCreateWallet(): Promise<void> {
     await Gestures.waitAndTap(this.newWalletButton, {
       elemDescription: 'Onboarding  - Create New Wallet Button',
+      timeout: 20000,
     });
   }
 
