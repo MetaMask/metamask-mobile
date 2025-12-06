@@ -7,9 +7,17 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      marginBottom: 36,
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
+    keyboardAvoidingView: {
+      justifyContent: 'space-between',
+    },
+    contentContainer: {
+      marginTop: 16,
       paddingLeft: 24,
       paddingRight: 24,
+      gap: 16,
     },
     input: {
       borderRadius: 8,
@@ -20,14 +28,11 @@ const styleSheet = (params: { theme: Theme }) => {
       height: 40,
       color: colors.text.default,
     },
-    saveButton: {
-      flex: 1,
-      marginLeft: 8,
-      marginRight: 8,
-    },
-    footer: {
-      paddingLeft: 16,
-      paddingRight: 16,
+    saveButtonContainer: {
+      paddingHorizontal: 24,
+      marginTop: 16,
+      padding: 10,
+      width: '100%',
     },
   });
 };
