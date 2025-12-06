@@ -952,17 +952,10 @@ export class HyperLiquidSubscriptionService {
                     ),
                   );
                   // Ensure fallback subscription exists
-                  this.ensureFallbackClearinghouseStateSubscription(
+                  this.setupFallbackClearinghouseStateSubscription(
                     userAddress,
                     currentDexName,
-                  ).catch((error) => {
-                    Logger.error(
-                      ensureError(error),
-                      this.getErrorContext('ensureFallbackClearinghouseState', {
-                        dex: currentDexName,
-                      }),
-                    );
-                  });
+                  );
                   // Try to use cached fallback data
                   const fallbackState =
                     this.fallbackClearinghouseStateCache.get(currentDexName);
@@ -977,17 +970,10 @@ export class HyperLiquidSubscriptionService {
                 // Check if openOrders is missing and ensure fallback subscription
                 if (!('openOrders' in dexState) || !dexState.openOrders) {
                   // Ensure fallback subscription exists
-                  this.ensureFallbackOpenOrdersSubscription(
+                  this.setupFallbackOpenOrdersSubscription(
                     userAddress,
                     currentDexName,
-                  ).catch((error) => {
-                    Logger.error(
-                      ensureError(error),
-                      this.getErrorContext('ensureFallbackOpenOrders', {
-                        dex: currentDexName,
-                      }),
-                    );
-                  });
+                  );
                   // Use fallback data if available
                   const fallbackOrders =
                     this.fallbackOpenOrdersCache.get(currentDexName);
@@ -1114,6 +1100,58 @@ export class HyperLiquidSubscriptionService {
           });
       } // Close else block for webData3
     }); // Close Promise wrapper
+  }
+
+  /**
+   * Handle error from fallback subscription setup
+   */
+  private handleFallbackSubscriptionError(
+    error: unknown,
+    method: string,
+    dexName: string,
+  ): void {
+    Logger.error(
+      ensureError(error),
+      this.getErrorContext(method, {
+        dex: dexName,
+      }),
+    );
+  }
+
+  /**
+   * Setup fallback clearinghouseState subscription with error handling
+   */
+  private setupFallbackClearinghouseStateSubscription(
+    userAddress: string,
+    dexName: string,
+  ): void {
+    this.ensureFallbackClearinghouseStateSubscription(
+      userAddress,
+      dexName,
+    ).catch((error) =>
+      this.handleFallbackSubscriptionError(
+        error,
+        'ensureFallbackClearinghouseState',
+        dexName,
+      ),
+    );
+  }
+
+  /**
+   * Setup fallback openOrders subscription with error handling
+   */
+  private setupFallbackOpenOrdersSubscription(
+    userAddress: string,
+    dexName: string,
+  ): void {
+    this.ensureFallbackOpenOrdersSubscription(userAddress, dexName).catch(
+      (error) =>
+        this.handleFallbackSubscriptionError(
+          error,
+          'ensureFallbackOpenOrders',
+          dexName,
+        ),
+    );
   }
 
   /**
