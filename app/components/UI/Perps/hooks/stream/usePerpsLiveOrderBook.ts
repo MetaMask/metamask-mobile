@@ -11,10 +11,8 @@ export interface UsePerpsLiveOrderBookOptions {
   symbol: string;
   /** Number of levels to display (default: 10) */
   levels?: number;
-  /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
-  nSigFigs?: 2 | 3 | 4 | 5;
-  /** Mantissa for aggregation when nSigFigs is 5 (2 or 5). Controls finest price increments */
-  mantissa?: 2 | 5;
+  /** Price aggregation significant figures (default: 5). Higher = finer granularity */
+  nSigFigs?: number;
   /** Throttle updates in milliseconds (default: 100ms for real-time feel) */
   throttleMs?: number;
   /** Whether to enable the subscription (default: true) */
@@ -64,7 +62,6 @@ export function usePerpsLiveOrderBook(
     symbol,
     levels = 10,
     nSigFigs = 5,
-    mantissa,
     throttleMs = 100,
     enabled = true,
   } = options;
@@ -123,7 +120,6 @@ export function usePerpsLiveOrderBook(
     DevLogger.log(`usePerpsLiveOrderBook: Subscribing to ${symbol}`, {
       levels,
       nSigFigs,
-      mantissa,
       throttleMs,
     });
 
@@ -138,7 +134,6 @@ export function usePerpsLiveOrderBook(
         symbol,
         levels,
         nSigFigs,
-        mantissa,
         callback: (data: OrderBookData) => {
           applyUpdate(data);
         },
@@ -172,7 +167,7 @@ export function usePerpsLiveOrderBook(
         unsubscribe();
       }
     };
-  }, [symbol, levels, nSigFigs, mantissa, enabled, applyUpdate, throttleMs]);
+  }, [symbol, levels, nSigFigs, enabled, applyUpdate, throttleMs]);
 
   return useMemo(
     () => ({

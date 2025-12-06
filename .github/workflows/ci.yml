@@ -272,10 +272,9 @@ jobs:
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number }}
+          pr-number: ${{ github.event.pull_request.number}}
           repository: ${{ github.repository }}
           post-comment: 'true'
-          base-ref: ${{ github.event.pull_request.base.ref }}
 
   # Main E2E tests
 
@@ -338,13 +337,27 @@ jobs:
 
   # Flask E2E tests
 
+  build-android-flask-apks:
+    name: 'Build Android Flask APKs'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'flask'
+      metamask_environment: 'e2e'
+      keystore_target: 'flask'
+    secrets: inherit
+
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks]
+    needs: [needs_e2e_build, build-android-flask-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
@@ -353,8 +366,8 @@ jobs:
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -370,8 +383,6 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
-        env:
-          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
@@ -550,24 +561,16 @@ jobs:
 
           # Check E2E jobs only if they should have run
           if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
-            # Accept both 'success' and 'skipped' as valid results
-            # 'skipped' occurs during merge_group events or when jobs are intentionally skipped
-            # Only fail on 'failure' or 'cancelled'
-            ANDROID_RESULT="${{ needs.e2e-smoke-tests-android.result }}"
-            if [[ "$ANDROID_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
-              echo "Android E2E tests failed (result: $ANDROID_RESULT)"
+            if [[ "${{ needs.e2e-smoke-tests-android.result }}" == "failure" ]]; then
+              echo "Android E2E tests failed"
               exit 1
             fi
-
-            IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
-            if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
-              echo "iOS E2E tests failed (result: $IOS_RESULT)"
+            if [[ "${{ needs.e2e-smoke-tests-ios.result }}" == "failure" ]]; then
+              echo "iOS E2E tests failed"
               exit 1
             fi
-
-            FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
-            if [[ "$FLASK_RESULT" == "failure" ]] || [[ "$FLASK_RESULT" == "cancelled" ]]; then
-              echo "Android Flask E2E tests failed (result: $FLASK_RESULT)"
+            if [[ "${{ needs.e2e-smoke-tests-android-flask.result }}" == "failure" ]]; then
+              echo "Android Flask E2E tests failed"
               exit 1
             fi
           fi

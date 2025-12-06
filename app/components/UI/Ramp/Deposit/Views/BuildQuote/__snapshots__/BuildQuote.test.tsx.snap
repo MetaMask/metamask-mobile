@@ -12053,7 +12053,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         }
                                       }
                                     >
-                                      Try again
+                                      Try Again
                                     </Text>
                                   </Text>
                                 </View>
@@ -22991,7 +22991,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         }
                                       }
                                     >
-                                      Try again
+                                      Try Again
                                     </Text>
                                   </Text>
                                 </View>
@@ -26710,7 +26710,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         }
                                       }
                                     >
-                                      Try again
+                                      Try Again
                                     </Text>
                                   </Text>
                                 </View>
@@ -28618,7 +28618,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         }
                                       }
                                     >
-                                      Try again
+                                      Try Again
                                     </Text>
                                   </Text>
                                 </View>

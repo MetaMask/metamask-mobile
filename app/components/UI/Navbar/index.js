@@ -2181,7 +2181,7 @@ export function getStakingNavbar(
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >
-          <Icon name={IconName.Question} size={IconSize.Lg} />
+          <Icon name={IconName.Question} />
         </TouchableOpacity>
       ) : (
         <></>
@@ -2241,53 +2241,5 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
         />
       </View>
     ),
-  };
-}
-
-/**
- * Generic navbar with only a close button on the right
- * @param {Object} navigation - Navigation object
- * @param {Object} themeColors - Theme colors object
- * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
- * @returns {Object} - Navigation options
- */
-export function getCloseOnlyNavbar(
-  navigation,
-  themeColors,
-  onClose = undefined,
-) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerRight: {
-      marginHorizontal: 16,
-    },
-  });
-
-  const handleClosePress = () => {
-    if (onClose) {
-      onClose();
-      return;
-    }
-
-    navigation.goBack();
-  };
-
-  return {
-    headerShown: true,
-    headerTitle: () => null,
-    headerLeft: () => null,
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={handleClosePress}
-        style={innerStyles.headerRight}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
   };
 }

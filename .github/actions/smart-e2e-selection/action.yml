@@ -20,10 +20,6 @@ inputs:
     description: 'Whether to post a comment to the PR'
     required: false
     default: 'false'
-  base-ref:
-    description: 'Base branch ref (must be main for analysis to run)'
-    required: false
-    default: ''
 
 outputs:
   ai_e2e_test_tags:
@@ -47,12 +43,12 @@ runs:
         git sparse-checkout disable
         git checkout HEAD -- .
 
-    - name: Fetch main branch for comparison
+    - name: Fetch base branch for comparison
       shell: bash
       run: |
         # Unshallow the repository first (if it's shallow)
         git fetch --unshallow 2>/dev/null || true
-        # Fetch main branch for diff comparison
+        # Then fetch base branch to ensure merge-base exists
         git fetch origin main 2>/dev/null || true
 
     - name: Setup Node.js
@@ -104,7 +100,6 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
-        BASE_REF: ${{ inputs.base-ref }}
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
@@ -114,24 +109,17 @@ runs:
         if [[ "$EVENT_NAME" != "pull_request" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="only runs on PRs"
-        elif [[ "$BASE_REF" != "main" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="base branch is not main (base: $BASE_REF)"
         elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="skip-smart-e2e-selection label found"
         fi
-
-        # Export skip status and reason for the comment step
-        echo "SKIPPED=$SHOULD_SKIP" >> "$GITHUB_OUTPUT"
-        echo "SKIP_REASON=$SKIP_REASON" >> "$GITHUB_OUTPUT"
 
         if [[ "$SHOULD_SKIP" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
           # The script will generate the GH output variables
-          node .github/scripts/e2e-smart-selection.mjs
+          node .github/scripts/e2e-smart-selection.mjs 
         fi
 
     - name: Display AI Analysis Outputs
@@ -186,11 +174,10 @@ runs:
         MARKER="<!-- smart-e2e-selection -->"
         COMMENT_BODY=""
 
-        if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
-          SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
-          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
-
+        if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
+          COMMENT_BODY="⏭️ **Smart E2E selection disabled due to \`skip-smart-e2e-selection\` label**
           All E2E tests pre-selected."
+          
         else
           # Read analysis results from file
           if [ -f "$COMMENT_FILE" ]; then

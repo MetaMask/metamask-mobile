@@ -41,7 +41,7 @@ const useEarnTokens = () => {
     (underlyingToken: TokenI | EarnTokenDetails) => {
       const pairedEarnOutputToken =
         earnTokensData.earnTokenPairsByChainIdAndAddress?.[
-          getDecimalChainId(underlyingToken.chainId)
+          Number(underlyingToken.chainId)
         ]?.[underlyingToken.address.toLowerCase()]?.[0];
       if (
         underlyingToken.isETH &&
@@ -59,7 +59,7 @@ const useEarnTokens = () => {
     (outputToken: TokenI | EarnTokenDetails) => {
       const pairedEarnToken =
         earnTokensData.earnOutputTokenPairsByChainIdAndAddress?.[
-          getDecimalChainId(outputToken.chainId)
+          Number(outputToken.chainId)
         ]?.[outputToken.address.toLowerCase()]?.[0];
 
       if (

@@ -47,7 +47,22 @@ const SitesFullView: React.FC = () => {
     sites,
     isLoading,
     refetch: refetchSites,
-  } = useSitesData(searchQuery, 100);
+  } = useSitesData({ limit: 100 });
+
+  // Filter sites based on search query
+  const filteredSites = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return sites;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return sites.filter(
+      (site) =>
+        site.name.toLowerCase().includes(query) ||
+        site.displayUrl.toLowerCase().includes(query) ||
+        site.url.toLowerCase().includes(query),
+    );
+  }, [sites, searchQuery]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -77,7 +92,7 @@ const SitesFullView: React.FC = () => {
 
   const renderSkeleton = () => (
     <>
-      {[...Array(15)].map((_, index) => (
+      {[...Array(10)].map((_, index) => (
         <SiteSkeleton key={`skeleton-${index}`} />
       ))}
     </>
@@ -117,7 +132,7 @@ const SitesFullView: React.FC = () => {
       ) : (
         <View style={styles.listContainer}>
           <SitesList
-            sites={sites}
+            sites={filteredSites}
             refreshControl={
               <RefreshControl
                 colors={[theme.colors.primary.default]}

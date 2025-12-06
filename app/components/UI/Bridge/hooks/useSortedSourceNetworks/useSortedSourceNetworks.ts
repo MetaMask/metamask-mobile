@@ -7,7 +7,7 @@ import { selectLastSelectedEvmAccount } from '../../../../../selectors/accountsC
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { useTokensWithBalance } from '../useTokensWithBalance';
-import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 export const useSortedSourceNetworks = () => {
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
@@ -68,15 +68,6 @@ export const useSortedSourceNetworks = () => {
     0,
   );
 
-  // Calculate total fiat value for Tron (native + tokens)
-  const trxTokensWithBalance = useTokensWithBalance({
-    chainIds: [TrxScope.Mainnet],
-  });
-  const trxFiatTotal = trxTokensWithBalance.reduce(
-    (sum, token) => sum + (token.tokenFiatAmount ?? 0),
-    0,
-  );
-
   // Sort networks by total fiat value in descending order
   const sortedSourceNetworks = useMemo(
     () =>
@@ -88,8 +79,6 @@ export const useSortedSourceNetworks = () => {
             totalFiatValue = solFiatTotal;
           } else if (chain.chainId === BtcScope.Mainnet) {
             totalFiatValue = btcFiatTotal;
-          } else if (chain.chainId === TrxScope.Mainnet) {
-            totalFiatValue = trxFiatTotal;
           } else {
             totalFiatValue = getEvmChainTotalFiatValue(chain.chainId);
           }
@@ -105,7 +94,6 @@ export const useSortedSourceNetworks = () => {
       getEvmChainTotalFiatValue,
       solFiatTotal,
       btcFiatTotal,
-      trxFiatTotal,
     ],
   );
 

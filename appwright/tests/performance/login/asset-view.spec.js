@@ -54,7 +54,16 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   TokenOverviewScreen.device = device;
   CommonScreen.device = device;
   WalletActionModal.device = device;
+
   await login(device);
+
+  // await importSRPFlow(device, process.env.TEST_SRP_2);
+  // await importSRPFlow(device, process.env.TEST_SRP_3);
+
+  await WalletMainScreen.isMainWalletViewVisible();
+
+  //await WalletMainScreen.tapNetworkNavBar();
+  //await NetworksScreen.selectNetwork('Ethereum');
 
   const assetViewScreen = new TimerHelper(
     'Time since the user clicks on the asset view button until the user sees the token overview screen',
@@ -63,7 +72,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   await WalletMainScreen.tapNetworkNavBar();
   await NetworksScreen.selectNetwork('Ethereum');
 
-  await WalletMainScreen.tapOnToken('USDC');
+  await WalletMainScreen.tapOnToken('Link');
   assetViewScreen.start();
   await TokenOverviewScreen.isTokenOverviewVisible();
   await TokenOverviewScreen.isTodaysChangeVisible();

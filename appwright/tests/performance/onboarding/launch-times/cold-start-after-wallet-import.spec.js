@@ -47,27 +47,26 @@ test('Cold Start after importing a wallet', async ({
   AmountScreen.device = device;
   MultichainAccountEducationModal.device = device;
   LoginScreen.device = device;
-  WalletActionModal.device = device;
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
+
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
   await AppwrightGestures.terminateApp(device);
   await AppwrightGestures.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
-  await login(device, {
-    scenarioType: 'onboarding',
-    skipIntro: true,
-    dismissModals: false,
-  }); // Skip intro screens on second login
+  await login(device, { scenarioType: 'onboarding', skipIntro: true }); // Skip intro screens on second login
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on unlock button, until the app unlocks',
   );
+  const timer2 = new TimerHelper(
+    'Time since the user closes the multichain account education modal, until the wallet main screen appears',
+  );
 
-  timer1.start();
-  await WalletActionModal.isSendButtonVisible();
-  timer1.stop();
+  timer2.start();
+  await WalletMainScreen.isMainWalletViewVisible();
+  timer2.stop();
 
-  performanceTracker.addTimer(timer1);
+  performanceTracker.addTimer(timer2);
   await performanceTracker.attachToTest(testInfo);
 });

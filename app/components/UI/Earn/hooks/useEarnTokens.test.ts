@@ -218,10 +218,6 @@ const mockState = {
           },
         },
       },
-      KeyringController: {
-        isUnlocked: true,
-        keyrings: [],
-      },
     },
   },
 } as unknown as RootState;

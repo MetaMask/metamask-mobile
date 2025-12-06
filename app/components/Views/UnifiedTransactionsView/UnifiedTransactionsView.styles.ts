@@ -9,10 +9,12 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
     },
     emptyList: {
-      width: '100%',
       justifyContent: 'center',
       alignItems: 'center',
-      paddingVertical: 40,
+      paddingBottom: 24,
+    },
+    emptyListText: {
+      color: colors.text.muted,
     },
     modal: {
       justifyContent: 'flex-end',

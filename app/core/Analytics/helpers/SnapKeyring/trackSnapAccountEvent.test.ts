@@ -19,6 +19,7 @@ jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
   trackEvent: mockTrackEvent,
   isEnabled: jest.fn(),
   enable: jest.fn(),
+  enableSocialLogin: jest.fn(),
   addTraitsToUser: jest.fn(),
   group: jest.fn(),
   reset: jest.fn(),

@@ -1,56 +1,40 @@
 import React from 'react';
-import { View, StyleSheet, type ViewStyle } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 const styles = StyleSheet.create({
   container: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    alignSelf: 'stretch',
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  iconSkeleton: {
-    borderRadius: 100, // Fully circular
-  },
-  leftContainer: {
-    paddingLeft: 16,
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  tokenHeaderRow: {
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    paddingVertical: 16,
   },
-  tokenNameSkeleton: {
+  iconSkeleton: {
+    borderRadius: 20,
     marginBottom: 0,
   },
-  marketStatsSkeleton: {
-    marginTop: 2,
+  contentContainer: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  nameSkeleton: {
+    marginBottom: 8,
+  },
+  urlSkeleton: {
     marginBottom: 0,
   },
 });
 
-const iconSize = 40;
-const SitesSkeleton: React.FC<ViewStyle> = () => (
+const SiteSkeleton = () => (
   <View style={styles.container}>
-    <View>
-      <Skeleton
-        height={iconSize}
-        width={iconSize}
-        style={styles.iconSkeleton}
-      />
-    </View>
-    <View style={[styles.leftContainer, { minHeight: iconSize }]}>
-      <View style={styles.tokenHeaderRow}>
-        <Skeleton height={20} width="60%" style={styles.tokenNameSkeleton} />
-      </View>
-      <Skeleton height={18} width="80%" style={styles.marketStatsSkeleton} />
+    {/* Logo skeleton */}
+    <Skeleton height={40} width={40} style={styles.iconSkeleton} />
+
+    {/* Content skeleton */}
+    <View style={styles.contentContainer}>
+      <Skeleton height={20} width="60%" style={styles.nameSkeleton} />
+      <Skeleton height={16} width="40%" style={styles.urlSkeleton} />
     </View>
   </View>
 );
 
-export default SitesSkeleton;
+export default SiteSkeleton;

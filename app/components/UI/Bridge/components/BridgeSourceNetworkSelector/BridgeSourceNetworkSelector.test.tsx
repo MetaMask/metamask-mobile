@@ -11,7 +11,7 @@ import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/s
 import { cloneDeep } from 'lodash';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -64,7 +64,7 @@ describe('BridgeSourceNetworkSelector', () => {
 
     // Networks should be visible with fiat values
     await waitFor(() => {
-      expect(getByText('Ethereum')).toBeTruthy();
+      expect(getByText('Ethereum Mainnet')).toBeTruthy();
       expect(getByText('Optimism')).toBeTruthy();
 
       // Check for fiat values
@@ -180,7 +180,6 @@ describe('BridgeSourceNetworkSelector', () => {
         optimismChainId,
         SolScope.Mainnet,
         BtcScope.Mainnet,
-        TrxScope.Mainnet,
       ]);
 
       // Should navigate back
@@ -275,7 +274,7 @@ describe('BridgeSourceNetworkSelector', () => {
     );
 
     await waitFor(() => {
-      expect(queryByText('Ethereum')).toBeNull();
+      expect(queryByText('Ethereum Mainnet')).toBeNull();
       expect(getByText('Optimism')).toBeTruthy();
     });
   });
@@ -305,7 +304,7 @@ describe('BridgeSourceNetworkSelector', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Ethereum')).toBeTruthy();
+        expect(getByText('Ethereum Mainnet')).toBeTruthy();
         expect(getByText('Optimism')).toBeTruthy();
 
         const labels = queryAllByText(strings('networks.no_network_fee'));
@@ -334,7 +333,7 @@ describe('BridgeSourceNetworkSelector', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Ethereum')).toBeTruthy();
+        expect(getByText('Ethereum Mainnet')).toBeTruthy();
         expect(getByText('Optimism')).toBeTruthy();
         expect(queryByText(strings('networks.no_network_fee'))).toBeNull();
       });

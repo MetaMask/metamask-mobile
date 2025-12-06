@@ -1263,7 +1263,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       }
                                       testID="label"
                                     >
-                                      Postal/zip code
+                                      Postal/Zip Code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -1327,7 +1327,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/zip code"
+                                          placeholder="Postal/Zip Code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -1366,7 +1366,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         }
                                       }
                                     >
-                                      Postal/zip code is required
+                                      Postal/Zip Code is required
                                     </Text>
                                   </View>
                                   <View
@@ -2891,7 +2891,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       }
                                       testID="label"
                                     >
-                                      Postal/zip code
+                                      Postal/Zip Code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -2955,7 +2955,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/zip code"
+                                          placeholder="Postal/Zip Code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -4512,7 +4512,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       }
                                       testID="label"
                                     >
-                                      Postal/zip code
+                                      Postal/Zip Code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -4576,7 +4576,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/zip code"
+                                          placeholder="Postal/Zip Code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={
@@ -6154,7 +6154,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       }
                                       testID="label"
                                     >
-                                      Postal/zip code
+                                      Postal/Zip Code
                                     </Text>
                                     <View
                                       accessibilityState={
@@ -6218,7 +6218,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Postal/zip code"
+                                          placeholder="Postal/Zip Code"
                                           placeholderTextColor="#b7bbc8"
                                           returnKeyType="done"
                                           style={

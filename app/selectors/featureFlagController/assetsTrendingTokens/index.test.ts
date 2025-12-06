@@ -20,14 +20,10 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-// Type for progressive rollout format with value property
-type ProgressiveRolloutFlag =
-  | { value: AssetsTrendingTokensFeatureFlag | boolean }
-  | AssetsTrendingTokensFeatureFlag
-  | boolean;
-
 // Helper function to create mock state with assetsTrendingTokensEnabled flag
-function mockStateWith(trendingTokens: ProgressiveRolloutFlag) {
+function mockStateWith(
+  trendingTokens: AssetsTrendingTokensFeatureFlag | boolean,
+) {
   return {
     engine: {
       backgroundState: {
@@ -76,45 +72,6 @@ describe('Assets Trending Tokens Feature Flag Selector', () => {
 
     it('returns false when flag is simple boolean false', () => {
       const mockedState = mockStateWith(false);
-
-      const result = selectAssetsTrendingTokensEnabled(mockedState);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true when flag has value property with enabled flag', () => {
-      const mockedState = mockStateWith({
-        value: {
-          enabled: true,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      const result = selectAssetsTrendingTokensEnabled(mockedState);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when flag has value property with disabled flag', () => {
-      const mockedState = mockStateWith({
-        value: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      const result = selectAssetsTrendingTokensEnabled(mockedState);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when flag has value property but version is too low', () => {
-      const mockedState = mockStateWith({
-        value: {
-          enabled: true,
-          minimumVersion: '999.999.999',
-        },
-      });
 
       const result = selectAssetsTrendingTokensEnabled(mockedState);
 
@@ -200,26 +157,6 @@ describe('Assets Trending Tokens Feature Flag Selector', () => {
 
       expect(result).toBe(false);
     });
-
-    it('returns true when flag has value property with boolean true', () => {
-      const mockedState = mockStateWith({
-        value: true,
-      });
-
-      const result = selectAssetsTrendingTokensEnabled(mockedState);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when flag has value property with boolean false', () => {
-      const mockedState = mockStateWith({
-        value: false,
-      });
-
-      const result = selectAssetsTrendingTokensEnabled(mockedState);
-
-      expect(result).toBe(false);
-    });
   });
 
   describe('isAssetsTrendingTokensFeatureEnabled with override', () => {
@@ -265,20 +202,41 @@ describe('Assets Trending Tokens Feature Flag Selector', () => {
       expect(result).toBe(true);
     });
 
-    it.each(['', 'something-else', 'invalid'])(
-      'uses remote flag when envOverride is non-boolean string: "%s"',
-      (envOverride) => {
-        const result = isAssetsTrendingTokensFeatureEnabled(
-          {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-          envOverride,
-        );
+    it('uses remote flag when envOverride is empty string', () => {
+      const result = isAssetsTrendingTokensFeatureEnabled(
+        {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+        '',
+      );
 
-        expect(result).toBe(true);
-      },
-    );
+      expect(result).toBe(true);
+    });
+
+    it('uses remote flag when envOverride is other string value', () => {
+      const result = isAssetsTrendingTokensFeatureEnabled(
+        {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+        'something-else',
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when envOverride is "false" and remote flag would return true', () => {
+      const result = isAssetsTrendingTokensFeatureEnabled(
+        {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+        'false',
+      );
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('isAssetsTrendingTokensFeatureEnabled edge cases', () => {

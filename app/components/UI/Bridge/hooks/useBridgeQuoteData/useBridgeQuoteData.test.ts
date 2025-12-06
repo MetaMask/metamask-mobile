@@ -132,12 +132,11 @@ describe('useBridgeQuoteData', () => {
   });
 
   it.each([
-    [true, false, false],
-    [false, true, false],
-    [false, false, true],
+    [true, false],
+    [false, true],
   ])(
-    'returns shouldShowPriceImpactWarning based on priceImpact exceeding threshold when gasIncluded=%s and gasIncluded7702=%s',
-    (gasIncluded, gasIncluded7702, shouldShowPriceImpactWarning) => {
+    'returns shouldShowPriceImpactWarning=true when priceImpact exceeds threshold and gasIncluded=%s',
+    (gasIncluded, shouldShowPriceImpactWarning) => {
       // Set up mock for this specific test
       (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(
         () => ({
@@ -147,7 +146,6 @@ describe('useBridgeQuoteData', () => {
               ...mockQuoteWithMetadata.quote,
               priceData: { priceImpact: '0.20' },
               gasIncluded,
-              gasIncluded7702,
             },
           },
           alternativeQuotes: [],
