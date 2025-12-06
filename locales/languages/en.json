@@ -2398,8 +2398,8 @@
       "add_token": "IMPORT"
     },
     "collectibles": {
-      "cancel_add_collectible": "CANCEL",
-      "add_collectible": "IMPORT"
+      "cancel_add_collectible": "Cancel",
+      "add_collectible": "Import"
     },
     "banners": {
       "search_desc": "Improved token detection is currently available on {{network}} network. ",
