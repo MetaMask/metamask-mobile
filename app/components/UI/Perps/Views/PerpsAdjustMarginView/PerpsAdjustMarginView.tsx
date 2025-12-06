@@ -370,15 +370,13 @@ const PerpsAdjustMarginView: React.FC = () => {
 
         {/* Info Section - Always visible */}
         <View style={styles.infoSection}>
-          {/* First row: Perps balance or Margin in position */}
+          {/* First row: Current margin */}
           <View style={styles.infoRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {isAddMode
-                ? strings('perps.adjust_margin.perps_balance')
-                : strings('perps.adjust_margin.margin_in_position')}
+              {strings('perps.adjust_margin.margin_in_position')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {formatPerpsFiat(isAddMode ? availableBalance : currentMargin, {
+              {formatPerpsFiat(currentMargin, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
             </Text>
@@ -398,7 +396,7 @@ const PerpsAdjustMarginView: React.FC = () => {
             </Text>
           </View>
 
-          {/* Liquidation price with transition */}
+          {/* Third row: Liquidation price with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -445,7 +443,7 @@ const PerpsAdjustMarginView: React.FC = () => {
             )}
           </View>
 
-          {/* Liquidation distance with transition */}
+          {/* Fourth row: Liquidation distance with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
