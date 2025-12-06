@@ -2498,6 +2498,37 @@ export class HyperLiquidSubscriptionService {
     this.assetCtxsSubscriptions.clear();
     this.assetCtxsSubscriptionPromises.clear();
 
+    // Cleanup fallback subscriptions (HOTFIX for missing fields)
+    if (this.clearinghouseStateSubscriptions.size > 0) {
+      this.clearinghouseStateSubscriptions.forEach((subscription, dexName) => {
+        subscription.unsubscribe().catch((error: Error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('clearAll.clearinghouseState', {
+              dex: dexName,
+            }),
+          );
+        });
+      });
+      this.clearinghouseStateSubscriptions.clear();
+      this.fallbackClearinghouseStateCache.clear();
+    }
+
+    if (this.openOrdersSubscriptions.size > 0) {
+      this.openOrdersSubscriptions.forEach((subscription, dexName) => {
+        subscription.unsubscribe().catch((error: Error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('clearAll.openOrders', {
+              dex: dexName,
+            }),
+          );
+        });
+      });
+      this.openOrdersSubscriptions.clear();
+      this.fallbackOpenOrdersCache.clear();
+    }
+
     DevLogger.log(
       'HyperLiquid: Subscription service cleared (multi-DEX with webData3)',
       {
