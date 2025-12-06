@@ -228,8 +228,8 @@ jest.mock('../../store', () => ({
 jest.mock('../../core/SDKConnectV2', () => ({
   __esModule: true,
   default: {
-    isConnectDeeplink: jest.fn(() => false),
-    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
+    isMwpDeeplink: jest.fn(() => false),
+    handleMwpDeeplink: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
   },
 }));
