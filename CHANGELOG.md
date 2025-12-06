@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.60.4]
+
+### Uncategorized
+
+- bump semvar version to 7.60.4 && build version to 3254
+
 ## [7.59.0]
 
 ### Added
@@ -173,6 +179,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.58.3]
 
+### Changed
+
+- chore: Update Spanish strings for Card onboarding flow cp-7.58.3 (#22740)
+
 ### Fixed
 
 - fix(card): cp-7.58.3 physical address consent issue + undefined balances (#22737)
@@ -180,10 +190,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(card): cp-7.59.0 accept other chars on zip code input (#22635)
 - fix(bridge): cp-7.59.0 prevent crash when fetching icons for unsupported chains (#22631)
 - fix(card): cp-7.59.0 delegation refresh issue (#22549)
-
-### Changed
-
-- chore: Update Spanish strings for Card onboarding flow cp-7.58.3 (#22740)
 
 ## [7.58.2]
 
@@ -8993,7 +8999,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.59.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.4...HEAD
+[7.60.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.59.0...v7.60.4
 [7.59.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.3...v7.59.0
 [7.58.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.2...v7.58.3
 [7.58.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.1...v7.58.2
