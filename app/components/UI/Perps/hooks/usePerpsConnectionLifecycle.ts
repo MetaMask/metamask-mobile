@@ -90,23 +90,29 @@ export function usePerpsConnectionLifecycle({
         lastAppState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        // App coming to foreground - reconnect if needed and visible
-        // Add a small delay to allow system to stabilize after background
-        if (
-          !hasConnected.current &&
-          (isVisible === true || isVisible === undefined)
-        ) {
+        // App coming to foreground - validate/reconnect if visible
+        // The connection manager will validate the actual WebSocket state
+        // If connection is valid, it returns early without reconnecting
+        // If connection is stale, it will reconnect automatically
+        if (isVisible === true || isVisible === undefined) {
           // Delay reconnection slightly to avoid race conditions with system wake-up
-          const timer = setTimeout(() => {
-            // Double-check we still need to connect
-            if (
-              !hasConnected.current &&
-              (isVisible === true || isVisible === undefined)
-            ) {
-              handleConnection();
+          const timer = setTimeout(async () => {
+            if (isVisible === true || isVisible === undefined) {
+              try {
+                // Always attempt connection to trigger validation
+                // The connection manager validates and only reconnects if needed
+                await onConnect();
+                // Connection validated successfully, ensure flag is set
+                if (!hasConnected.current) {
+                  hasConnected.current = true;
+                }
+              } catch {
+                // Connection validation failed, reset flag and reconnect
+                hasConnected.current = false;
+                await handleConnection();
+              }
             }
           }, PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS);
-          // Store timer to clean up if component unmounts
           return () => clearTimeout(timer);
         }
       }
@@ -121,7 +127,8 @@ export function usePerpsConnectionLifecycle({
     return () => {
       subscription.remove();
     };
-  }, [isVisible, handleConnection, onDisconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, handleConnection, onDisconnect, onConnect]); // onConnect used directly for validation
 
   // Initial connection on mount (if visible)
   useEffect(() => {
@@ -137,7 +144,7 @@ export function usePerpsConnectionLifecycle({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Intentionally only run on mount/unmount
+  }, []); // Intentionally only run on mount/unmount - handleConnection and onDisconnect are stable
 
   return {
     hasConnected: hasConnected.current,

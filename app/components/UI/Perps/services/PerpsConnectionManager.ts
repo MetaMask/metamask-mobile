@@ -2,6 +2,10 @@ import { captureException, setMeasurement } from '@sentry/react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  fetch as fetchNetInfo,
+  addEventListener as addNetInfoListener,
+} from '@react-native-community/netinfo';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -49,10 +53,246 @@ class PerpsConnectionManagerClass {
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+  private networkStateUnsubscribe: (() => void) | null = null;
+  private healthCheckInterval: ReturnType<typeof setInterval> | null = null;
+  private lastSuccessfulHealthCheck: number | null = null;
+  private hasHadSuccessfulHealthCheck = false; // Track if we've had at least one successful health check ping
+  private wasNetworkDisconnected = false;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
     // Monitoring will be set up on first connect
+  }
+
+  /**
+   * Set up network state monitoring to detect network reconnection
+   */
+  private setupNetworkMonitoring(): void {
+    // Clean up any existing monitoring before setting up new one (defensive)
+    if (this.networkStateUnsubscribe) {
+      this.cleanupNetworkMonitoring();
+    }
+
+    DevLogger.log(
+      'PerpsConnectionManager: Setting up network state monitoring',
+    );
+
+    // Get initial network state with error handling
+    fetchNetInfo()
+      .then((state) => {
+        this.wasNetworkDisconnected = !state.isConnected;
+      })
+      .catch((error) => {
+        // Non-critical error - log but don't fail setup
+        DevLogger.log(
+          'PerpsConnectionManager: Error fetching initial network state',
+          error,
+        );
+        // Default to assuming network is connected if fetch fails
+        this.wasNetworkDisconnected = false;
+      });
+
+    // Subscribe to network state changes with error handling
+    this.networkStateUnsubscribe = addNetInfoListener((state) => {
+      try {
+        this.handleNetworkStateChange(state.isConnected ?? false);
+      } catch (error) {
+        // Catch any errors in the listener callback to prevent crashes
+        Logger.error(ensureError(error), {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          message: 'Error in network state listener',
+        });
+      }
+    });
+
+    DevLogger.log('PerpsConnectionManager: Network state monitoring set up');
+  }
+
+  /**
+   * Handle network state changes
+   */
+  private handleNetworkStateChange(isConnected: boolean): void {
+    if (this.wasNetworkDisconnected && isConnected) {
+      // Network reconnected - validate/reconnect if needed
+      this.wasNetworkDisconnected = false;
+      DevLogger.log(
+        'PerpsConnectionManager: Network reconnected, checking connection health',
+      );
+
+      if (
+        this.isConnected &&
+        !this.isConnecting &&
+        !this.pendingReconnectPromise
+      ) {
+        // Force reconnection to ensure WebSocket is actually working
+        this.reconnectWithNewContext({ force: true }).catch((error) => {
+          Logger.error(ensureError(error), {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            message: 'Error reconnecting after network restoration',
+          });
+        });
+      } else if (this.isConnected) {
+        DevLogger.log(
+          'PerpsConnectionManager: Network reconnected but reconnection already in progress, skipping',
+        );
+      }
+    } else if (!isConnected) {
+      // Network disconnected
+      this.wasNetworkDisconnected = true;
+      DevLogger.log(
+        'PerpsConnectionManager: Network disconnected, will reconnect when network is restored',
+      );
+    }
+  }
+
+  /**
+   * Clean up network state monitoring
+   */
+  private cleanupNetworkMonitoring(): void {
+    if (this.networkStateUnsubscribe) {
+      this.networkStateUnsubscribe();
+      this.networkStateUnsubscribe = null;
+      this.wasNetworkDisconnected = false;
+      DevLogger.log(
+        'PerpsConnectionManager: Network state monitoring cleaned up',
+      );
+    }
+  }
+
+  /**
+   * Set up periodic health checks to detect stale connections
+   */
+  private setupHealthChecks(): void {
+    // Clean up any existing health checks before setting up new one (defensive)
+    if (this.healthCheckInterval) {
+      this.cleanupHealthChecks();
+    }
+
+    DevLogger.log('PerpsConnectionManager: Setting up periodic health checks');
+
+    this.healthCheckInterval = setInterval(async () => {
+      await this.performHealthCheck();
+    }, PERPS_CONSTANTS.HEALTH_CHECK_INTERVAL_MS);
+
+    DevLogger.log('PerpsConnectionManager: Periodic health checks set up');
+  }
+
+  /**
+   * Perform a single health check ping
+   */
+  private async performHealthCheck(): Promise<void> {
+    // Only check if we think we're connected
+    if (!this.isConnected || this.isConnecting) {
+      return;
+    }
+
+    try {
+      const provider = Engine.context.PerpsController.getActiveProvider();
+      if (!provider) {
+        return;
+      }
+
+      await provider.ping();
+      this.lastSuccessfulHealthCheck = Date.now();
+      this.hasHadSuccessfulHealthCheck = true;
+      DevLogger.log('PerpsConnectionManager: Health check passed', {
+        lastCheck: new Date(this.lastSuccessfulHealthCheck).toISOString(),
+      });
+    } catch (error) {
+      this.handleHealthCheckFailure(error);
+    }
+  }
+
+  /**
+   * Handle health check failure with reconnection logic
+   */
+  private handleHealthCheckFailure(error: unknown): void {
+    DevLogger.log(
+      'PerpsConnectionManager: Health check failed, connection may be stale',
+      error,
+    );
+
+    // Skip reconnection if already connecting/reconnecting
+    if (this.isConnecting || this.pendingReconnectPromise) {
+      DevLogger.log(
+        'PerpsConnectionManager: Health check failed but reconnection already in progress, skipping',
+      );
+      return;
+    }
+
+    // Calculate time since last successful check
+    const timeSinceLastCheck = this.lastSuccessfulHealthCheck
+      ? Date.now() - this.lastSuccessfulHealthCheck
+      : null;
+
+    // Reconnect if we've had a successful check and exceeded threshold
+    const shouldReconnect =
+      this.hasHadSuccessfulHealthCheck &&
+      timeSinceLastCheck !== null &&
+      timeSinceLastCheck > PERPS_CONSTANTS.HEALTH_CHECK_FAILURE_THRESHOLD_MS;
+
+    if (shouldReconnect) {
+      DevLogger.log(
+        'PerpsConnectionManager: Health check failed, forcing reconnection',
+      );
+      this.reconnectWithNewContext({ force: true }).catch((err) => {
+        Logger.error(ensureError(err), {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          message: 'Error reconnecting after failed health check',
+        });
+      });
+    } else if (
+      this.hasHadSuccessfulHealthCheck &&
+      timeSinceLastCheck !== null
+    ) {
+      DevLogger.log(
+        'PerpsConnectionManager: Health check failed but recent successful check exists, skipping reconnection',
+      );
+    } else {
+      // First failure before any successful health check ping
+      DevLogger.log(
+        'PerpsConnectionManager: Health check failed (before first successful ping), will reconnect if failure persists after successful check',
+      );
+    }
+  }
+
+  /**
+   * Clean up periodic health checks
+   */
+  private cleanupHealthChecks(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+      this.lastSuccessfulHealthCheck = null;
+      this.hasHadSuccessfulHealthCheck = false; // Reset flag on cleanup
+      DevLogger.log(
+        'PerpsConnectionManager: Periodic health checks cleaned up',
+      );
+    }
+  }
+
+  /**
+   * Validate connection with health check ping
+   * @returns true if connection is valid, false otherwise
+   */
+  private async validateConnection(): Promise<boolean> {
+    try {
+      const provider = Engine.context.PerpsController.getActiveProvider();
+      if (!provider) {
+        return false;
+      }
+
+      await provider.ping();
+      this.lastSuccessfulHealthCheck = Date.now();
+      this.hasHadSuccessfulHealthCheck = true;
+      return true;
+    } catch (error) {
+      DevLogger.log(
+        'PerpsConnectionManager: Connection validation failed, reconnecting',
+        error,
+      );
+      return false;
+    }
   }
 
   /**
@@ -159,6 +399,8 @@ class PerpsConnectionManagerClass {
       this.previousHip3Version = 0;
       DevLogger.log('PerpsConnectionManager: State monitoring cleaned up');
     }
+    this.cleanupNetworkMonitoring();
+    this.cleanupHealthChecks();
   }
 
   /**
@@ -284,9 +526,17 @@ class PerpsConnectionManagerClass {
             this.isInitialized = false;
             this.isConnecting = false;
             this.hasPreloaded = false; // Reset pre-load flag on disconnect
+            this.lastSuccessfulHealthCheck = null;
+            this.hasHadSuccessfulHealthCheck = false; // Reset flag on disconnect
             this.clearError(); // Clear any errors on disconnect
 
+            // Stop health checks when disconnecting
+            this.cleanupHealthChecks();
+
             await Engine.context.PerpsController.disconnect();
+
+            // Clean up monitoring when fully disconnected
+            this.cleanupStateMonitoring();
 
             DevLogger.log(
               'PerpsConnectionManager: Actual disconnection complete',
@@ -374,6 +624,7 @@ class PerpsConnectionManagerClass {
     // Set up monitoring when first entering Perps (refCount 0 -> 1)
     if (this.connectionRefCount === 0) {
       this.setupStateMonitoring();
+      this.setupNetworkMonitoring();
     }
 
     // Increment refCount BEFORE any early returns to prevent reference count mismatch
@@ -403,12 +654,21 @@ class PerpsConnectionManagerClass {
       return this.initPromise;
     }
 
-    // If already connected, clear any stale errors and return early
-    // Note: We don't proactively check for stale connections here for performance reasons
-    // Any connection issues will surface when components attempt to use the connection
+    // If already connected, validate the connection is actually working
+    // This prevents stale connections from appearing as "connected"
     if (this.isConnected) {
-      this.clearError();
-      return Promise.resolve();
+      const isValid = await this.validateConnection();
+      if (isValid) {
+        this.clearError();
+        // Start health checks if not already running
+        if (!this.healthCheckInterval) {
+          this.setupHealthChecks();
+        }
+        return Promise.resolve();
+      }
+      // Connection is stale, fall through to reconnect
+      this.isConnected = false;
+      this.isInitialized = false;
     }
 
     this.isConnecting = true;
@@ -474,8 +734,13 @@ class PerpsConnectionManagerClass {
         // Mark as connected - WebSocket connection validated and ready
         this.isConnected = true;
         this.isConnecting = false;
+        this.lastSuccessfulHealthCheck = Date.now();
+        this.hasHadSuccessfulHealthCheck = false; // Reset - will be set to true on first successful health check ping
         // Clear errors on successful connection
         this.clearError();
+
+        // Start periodic health checks to detect stale connections
+        this.setupHealthChecks();
 
         // Track WebSocket connection establishment performance (pure connection)
         const connectionDuration = performance.now() - connectionStartTime;
@@ -539,6 +804,11 @@ class PerpsConnectionManagerClass {
 
         // Clear connection timeout on error
         this.clearConnectionTimeout();
+
+        // Clean up health checks if they were set up before the error
+        // (defensive cleanup - health checks should only be set up after successful connection,
+        // but this ensures no leaks if connection fails after setupHealthChecks is called)
+        this.cleanupHealthChecks();
 
         // Capture exception with connection context
         captureException(
@@ -688,8 +958,13 @@ class PerpsConnectionManagerClass {
       this.isConnected = false;
       this.isInitialized = false;
       this.hasPreloaded = false;
+      this.lastSuccessfulHealthCheck = null;
+      this.hasHadSuccessfulHealthCheck = false; // Reset flag on reconnection
       // Clear previous errors when starting reconnection attempt
       this.clearError();
+
+      // Stop health checks during reconnection
+      this.cleanupHealthChecks();
 
       // Stage 2: Force the controller to reinitialize with new context
       const reinitStart = performance.now();
@@ -739,8 +1014,13 @@ class PerpsConnectionManagerClass {
       // No need to explicitly call getAccountState() - preloadSubscriptions() handles account data
       this.isConnected = true;
       this.isInitialized = true;
+      this.lastSuccessfulHealthCheck = Date.now();
+      this.hasHadSuccessfulHealthCheck = false; // Reset - will be set to true on first successful health check ping
       // Clear errors on successful reconnection
       this.clearError();
+
+      // Start periodic health checks to detect stale connections
+      this.setupHealthChecks();
 
       DevLogger.log(
         'PerpsConnectionManager: Successfully reconnected with new context',
@@ -785,6 +1065,11 @@ class PerpsConnectionManagerClass {
 
       // Clear connection timeout on error
       this.clearConnectionTimeout();
+
+      // Clean up health checks if they were set up before the error
+      // (defensive cleanup - health checks should only be set up after successful reconnection,
+      // but this ensures no leaks if reconnection fails after setupHealthChecks is called)
+      this.cleanupHealthChecks();
 
       traceData = {
         success: false,
