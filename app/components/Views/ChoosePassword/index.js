@@ -245,6 +245,9 @@ class ChoosePassword extends PureComponent {
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
 
+  justBlockedSpuriousEmpty = false;
+  justBlockedSpuriousEmptyConfirm = false;
+
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
@@ -662,6 +665,26 @@ class ChoosePassword extends PureComponent {
   };
 
   onPasswordChange = (val) => {
+    if (
+      val === '' &&
+      this.state.password !== '' &&
+      this.state.password.length > 1
+    ) {
+      this.justBlockedSpuriousEmpty = true;
+      return;
+    }
+
+    if (this.justBlockedSpuriousEmpty && val.length === 1) {
+      this.justBlockedSpuriousEmpty = false;
+      this.setState((prevState) => ({
+        password: prevState.password + val,
+        confirmPassword: prevState.confirmPassword,
+      }));
+      return;
+    }
+
+    this.justBlockedSpuriousEmpty = false;
+
     this.setState((prevState) => ({
       password: val,
       confirmPassword: val === '' ? '' : prevState.confirmPassword,
@@ -696,7 +719,28 @@ class ChoosePassword extends PureComponent {
     });
   };
 
-  setConfirmPassword = (val) => this.setState({ confirmPassword: val });
+  setConfirmPassword = (val) => {
+    if (
+      val === '' &&
+      this.state.confirmPassword !== '' &&
+      this.state.confirmPassword.length > 1
+    ) {
+      this.justBlockedSpuriousEmptyConfirm = true;
+      return;
+    }
+
+    if (this.justBlockedSpuriousEmptyConfirm && val.length === 1) {
+      this.justBlockedSpuriousEmptyConfirm = false;
+      this.setState((prevState) => ({
+        confirmPassword: prevState.confirmPassword + val,
+      }));
+      return;
+    }
+
+    this.justBlockedSpuriousEmptyConfirm = false;
+
+    this.setState({ confirmPassword: val });
+  };
 
   checkError = () => {
     const { password, confirmPassword } = this.state;
@@ -786,6 +830,7 @@ class ChoosePassword extends PureComponent {
                   </Label>
                   <TextField
                     autoFocus
+                    selectTextOnFocus={false}
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}
@@ -833,6 +878,7 @@ class ChoosePassword extends PureComponent {
                   </Label>
                   <TextField
                     ref={this.confirmPasswordInput}
+                    selectTextOnFocus={false}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
                     secureTextEntry={this.state.showPasswordIndex.includes(1)}

@@ -204,6 +204,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   placeholderTextColor="#b7bbc8"
                   returnKeyType="next"
                   secureTextEntry={true}
+                  selectTextOnFocus={false}
                   style={
                     {
                       "backgroundColor": "inherit",
@@ -356,6 +357,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   placeholderTextColor="#b7bbc8"
                   returnKeyType="done"
                   secureTextEntry={true}
+                  selectTextOnFocus={false}
                   style={
                     {
                       "backgroundColor": "inherit",
