@@ -234,20 +234,23 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
                 testID="textfield-endacccessory"
               >
-                <SvgMock
-                  color="#686e7d"
-                  fill="currentColor"
-                  height={24}
-                  name="Eye"
+                <TouchableOpacity
                   onPress={[Function]}
-                  style={
-                    {
-                      "height": 24,
-                      "width": 24,
+                >
+                  <SvgMock
+                    color="#686e7d"
+                    fill="currentColor"
+                    height={24}
+                    name="Eye"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
-                  }
-                  width={24}
-                />
+                    width={24}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
             <Text
@@ -385,20 +388,23 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
                 testID="textfield-endacccessory"
               >
-                <SvgMock
-                  color="#686e7d"
-                  fill="currentColor"
-                  height={24}
-                  name="Eye"
+                <TouchableOpacity
                   onPress={[Function]}
-                  style={
-                    {
-                      "height": 24,
-                      "width": 24,
+                >
+                  <SvgMock
+                    color="#686e7d"
+                    fill="currentColor"
+                    height={24}
+                    name="Eye"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
-                  }
-                  width={24}
-                />
+                    width={24}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
