@@ -1,6 +1,6 @@
 import { equal } from 'uri-js';
 import { InteractionManager } from 'react-native';
-import { ChainId } from '@metamask/controller-utils';
+import { ChainId, toHex } from '@metamask/controller-utils';
 import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
@@ -194,6 +194,24 @@ export const wallet_addEthereumChain = async ({
             }
           : undefined,
       );
+
+      // Track RPC Added event if a new RPC endpoint was added (not just updated)
+      // rpcResult.index === original array length means a new RPC was added
+      const wasNewRpcAdded =
+        rpcResult.index === existingNetworkConfiguration.rpcEndpoints.length;
+      if (wasNewRpcAdded) {
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
+            .addProperties({
+              chain_id: toHex(chainId),
+              source: 'Custom Network API',
+              symbol: ticker,
+              rpc_url_index: rpcResult.index,
+              ...analytics,
+            })
+            .build(),
+        );
+      }
     } else {
       updatedNetworkConfiguration = NetworkController.addNetwork({
         chainId,
@@ -210,18 +228,20 @@ export const wallet_addEthereumChain = async ({
           },
         ],
       });
-    }
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-          source: 'Custom Network API',
-          symbol: ticker,
-          ...analytics,
-        })
-        .build(),
-    );
+      // Track RPC Added event for new networks - first RPC endpoint is at index 0
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
+          .addProperties({
+            chain_id: toHex(chainId),
+            source: 'Custom Network API',
+            symbol: ticker,
+            rpc_url_index: 0,
+            ...analytics,
+          })
+          .build(),
+      );
+    }
 
     MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
   }
