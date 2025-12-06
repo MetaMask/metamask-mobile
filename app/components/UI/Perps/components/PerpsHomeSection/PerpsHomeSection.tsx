@@ -30,15 +30,7 @@ export interface PerpsHomeSectionProps {
    */
   showWhenEmpty?: boolean;
   /**
-   * Optional action label (e.g., "Close All", "See All")
-   */
-  actionLabel?: string;
-  /**
-   * Whether to show an icon instead of action label text (shows more horizontal icon)
-   */
-  showActionIcon?: boolean;
-  /**
-   * Optional action handler
+   * Optional action handler - when provided, shows ">" chevron and makes header row pressable
    */
   onActionPress?: () => void;
   /**
@@ -64,7 +56,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    marginBottom: 4,
+    marginBottom: 8,
     marginTop: 12,
   },
   content: {
@@ -88,7 +80,6 @@ const styles = StyleSheet.create({
  *   isLoading={isLoading.positions}
  *   isEmpty={positions.length === 0}
  *   showWhenEmpty={false}
- *   actionLabel="Close All"
  *   onActionPress={handleCloseAll}
  *   renderSkeleton={() => <PerpsRowSkeleton count={2} />}
  * >
@@ -101,8 +92,6 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   isLoading,
   isEmpty,
   showWhenEmpty = false,
-  actionLabel,
-  showActionIcon = false,
   onActionPress,
   renderSkeleton,
   children,
@@ -113,35 +102,33 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
     return null;
   }
 
+  const showAction = onActionPress && !isLoading && !isEmpty;
+
+  const headerContent = (
+    <>
+      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+        {title}
+      </Text>
+      {showAction && (
+        <Icon
+          name={IconName.MoreHorizontal}
+          size={IconSize.Md}
+          color={IconColor.Alternative}
+        />
+      )}
+    </>
+  );
+
   return (
     <View style={styles.section} testID={testID}>
       {/* Section Header */}
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-          {title}
-        </Text>
-        {(actionLabel || showActionIcon) &&
-          onActionPress &&
-          !isLoading &&
-          !isEmpty && (
-            <TouchableOpacity onPress={onActionPress}>
-              {showActionIcon ? (
-                <Icon
-                  name={IconName.MoreHorizontal}
-                  size={IconSize.Md}
-                  color={IconColor.Alternative}
-                />
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {actionLabel}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-      </View>
+      {showAction ? (
+        <TouchableOpacity style={styles.header} onPress={onActionPress}>
+          {headerContent}
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.header}>{headerContent}</View>
+      )}
 
       {/* Section Content */}
       <View style={styles.content}>

@@ -980,7 +980,7 @@
     "add_funds": "Add funds",
     "trade_perps": "Trade perps",
     "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
-    "available": "available to trade",
+    "available": "available",
     "deposit_in_progress": "Deposit in progress",
     "withdraw_in_progress": "Withdraw in progress",
     "multiple_transactions_in_progress": "Transactions in progress",

@@ -364,6 +364,10 @@ export const DEVELOPMENT_CONFIG = {
  * Controls carousel limits and display settings for the main Perps home screen
  */
 export const HOME_SCREEN_CONFIG = {
+  // Show action buttons (Add Funds / Withdraw) in header instead of fixed footer
+  // Can be controlled via feature flag in the future
+  SHOW_HEADER_ACTION_BUTTONS: true,
+
   // Maximum number of items to show in each carousel
   POSITIONS_CAROUSEL_LIMIT: 10,
   ORDERS_CAROUSEL_LIMIT: 10,
