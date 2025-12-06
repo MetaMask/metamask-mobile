@@ -101,28 +101,8 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications
-      - name: Generate current fingerprint
-        id: generate-fingerprint
-        run: |
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: ${FINGERPRINT}"
-
-      - name: Check and restore cached iOS app if Fingerprint is found
-        id: cache-restore
-        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
-        with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          restore-keys: |
-            ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-            ios-app-
-
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
