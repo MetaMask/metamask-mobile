@@ -8,6 +8,7 @@ import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_DAI_RESPONSE,
   GET_TOKENS_MAINNET_RESPONSE,
+  GET_POPULAR_TOKENS_MAINNET_RESPONSE,
 } from './constants';
 
 export const testSpecificMock: TestSpecificMock = async (
@@ -46,6 +47,14 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     url: /getTokens.*chainId=1/i,
     response: GET_TOKENS_MAINNET_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock popular tokens (POST - for token selector)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'POST',
+    url: /getTokens\/popular/i,
+    response: GET_POPULAR_TOKENS_MAINNET_RESPONSE,
     responseCode: 200,
   });
 
