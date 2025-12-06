@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
 import AppConstants from '../../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { SharedDeeplinkManager } from '../../../../core/DeeplinkManager/DeeplinkManager';
 import { Linking } from 'react-native';
 
 type NotificationCtaProps = Pick<NotificationMenuItem, 'cta'> & {
@@ -25,7 +25,7 @@ function NotificationCta({ cta, onClick }: NotificationCtaProps) {
 
       // Handle deeplinks
       if (cta.link.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST)) {
-        SharedDeeplinkManager.parse(cta.link, {
+        SharedDeeplinkManager.getInstance().parse(cta.link, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
         return;

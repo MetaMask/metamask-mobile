@@ -2,11 +2,13 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
 import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
-import DeeplinkManager from './DeeplinkManager';
+import DeeplinkManager, { SharedDeeplinkManager } from './DeeplinkManager';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import switchNetwork from './handlers/legacy/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
 import approveTransaction from './utils/approveTransaction';
+import { store } from '../../store';
+import { RootState } from '../../reducers';
 
 jest.mock('./utils/approveTransaction');
 jest.mock('./handlers/legacy/handleEthereumUrl');
@@ -21,16 +23,24 @@ jest.mock('./handlers/legacy/handleRewardsUrl');
 jest.mock('./handlers/legacy/handleDeeplink');
 jest.mock('./handlers/legacy/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
 
 const mockNavigation = {
   navigate: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
+
+const mockStore = store as jest.Mocked<typeof store>;
 
 describe('DeeplinkManager', () => {
   let deeplinkManager: DeeplinkManager;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    DeeplinkManager.resetInstance();
     // Ensure navigation is available before DeeplinkManager is constructed
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     NavigationService.navigation = mockNavigation as any;
@@ -193,5 +203,69 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       ).toHaveBeenCalledWith(expect.any(Function));
       expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('SharedDeeplinkManager', () => {
+  beforeEach(() => {
+    const mockedState = {
+      settings: { deepLinkModalDisabled: false },
+    } as jest.Mocked<RootState>;
+
+    mockStore.getState.mockReturnValue(mockedState);
+    DeeplinkManager.resetInstance();
+    SharedDeeplinkManager.init();
+    jest.clearAllMocks();
+  });
+
+  it('returns DeeplinkManager instance from getInstance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+
+    expect(instance).toBeDefined();
+    expect(instance).toBeInstanceOf(DeeplinkManager);
+  });
+
+  it('calls parse method on the DeeplinkManager instance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+    const spyParse = jest.spyOn(instance, 'parse');
+
+    const url = 'http://example.com';
+    const args = {
+      browserCallBack: jest.fn(),
+      origin: 'test-origin',
+      onHandled: jest.fn(),
+    };
+
+    SharedDeeplinkManager.parse(url, args);
+
+    expect(spyParse).toHaveBeenCalledWith(url, args);
+  });
+
+  it('calls setDeeplink method on the DeeplinkManager instance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+    const spySetDeeplink = jest.spyOn(instance, 'setDeeplink');
+
+    const url = 'http://example.com';
+    SharedDeeplinkManager.setDeeplink(url);
+
+    expect(spySetDeeplink).toHaveBeenCalledWith(url);
+  });
+
+  it('calls getPendingDeeplink method on the DeeplinkManager instance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+    const spyGetPendingDeeplink = jest.spyOn(instance, 'getPendingDeeplink');
+
+    SharedDeeplinkManager.getPendingDeeplink();
+
+    expect(spyGetPendingDeeplink).toHaveBeenCalled();
+  });
+
+  it('calls expireDeeplink method on the DeeplinkManager instance', () => {
+    const instance = SharedDeeplinkManager.getInstance();
+    const spyExpireDeeplink = jest.spyOn(instance, 'expireDeeplink');
+
+    SharedDeeplinkManager.expireDeeplink();
+
+    expect(spyExpireDeeplink).toHaveBeenCalled();
   });
 });

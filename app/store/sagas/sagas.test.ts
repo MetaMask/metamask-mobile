@@ -22,9 +22,10 @@ import {
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../core/Engine';
-import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import DeeplinkManager, {
+  SharedDeeplinkManager,
+} from '../../core/DeeplinkManager/DeeplinkManager';
 import branch from 'react-native-branch';
 import { handleDeeplink } from '../../core/DeeplinkManager/handlers/legacy/handleDeeplink';
 import { setCompletedOnboarding } from '../../actions/onboarding';
@@ -93,12 +94,18 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => ({
   __esModule: true,
-  default: {
+  SharedDeeplinkManager: {
+    // ← Named export, not default
+    getInstance: jest.fn(),
     init: jest.fn(),
     parse: jest.fn(),
+    setDeeplink: jest.fn(),
+    getPendingDeeplink: jest.fn(),
+    expireDeeplink: jest.fn(),
   },
+  default: jest.fn(), // Mock the class if needed
 }));
 
 // Use real DeeplinkManager to verify Branch/linking behavior triggered by startAppServices
@@ -118,7 +125,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../core/DeeplinkManager/handleDeeplink', () => ({
+jest.mock('../../core/DeeplinkManager/handlers/legacy/handleDeeplink', () => ({
   handleDeeplink: jest.fn(),
 }));
 
