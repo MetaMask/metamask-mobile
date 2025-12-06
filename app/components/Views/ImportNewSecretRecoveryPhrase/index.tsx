@@ -61,6 +61,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
+  const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
 
   // State
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
@@ -264,13 +265,14 @@ const ImportNewSecretRecoveryPhrase = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <KeyboardAwareScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.wrapper}
         testID={ImportSRPIDs.CONTAINER}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={20}
+        extraScrollHeight={100}
         showsVerticalScrollIndicator={false}
       >
         <Text

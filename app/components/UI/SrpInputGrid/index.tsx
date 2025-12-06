@@ -29,10 +29,13 @@ import {
 import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import Logger from '../../../util/Logger';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import SrpWordSuggestions from '../SrpWordSuggestions';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
 }
+
 /**
  * SrpInputGrid Component
  *
@@ -61,6 +64,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const { colors } = useAppTheme();
     const styles = createStyles(colors);
 
+    //flag to enable/disable SRP word suggestions
+    const isSrpWordSuggestionsEnabled = useFeatureFlag(
+      FeatureFlagNames.importSrpWordSuggestion,
+    ) as boolean;
+
     // Internal state
     const [
       nextSeedPhraseInputFocusedIndex,
@@ -69,6 +77,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const [errorWordIndexes, setErrorWordIndexes] = useState<
       Record<number, boolean>
     >({});
+    const [currentInputWord, setCurrentInputWord] = useState<string>('');
+    const [, setFocusedInputIndex] = useState<number | null>(null);
+
+    const focusedInputIndexRef = useRef<number | null>(null);
+    const isSuggestionSelectingRef = useRef<boolean>(false);
+    const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const seedPhraseInputRefs = useRef<Map<
       number,
@@ -171,6 +185,8 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 [index]: false,
               }));
             }
+
+            setCurrentInputWord(!text.includes(' ') ? text : '');
           }
         } catch (err) {
           Logger.error(err as Error, 'Error handling seed phrase change');
@@ -186,6 +202,15 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     useEffect(() => {
       handleSeedPhraseChangeAtIndexRef.current = handleSeedPhraseChangeAtIndex;
     }, [handleSeedPhraseChangeAtIndex]);
+
+    useEffect(
+      () => () => {
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+        }
+      },
+      [],
+    );
 
     // Helper to validate words
     const validateWords = useCallback((words: string[]) => {
@@ -224,9 +249,19 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     );
 
     // Handle focus change with validation
-    const handleOnFocus = useCallback((index: number) => {
-      setNextSeedPhraseInputFocusedIndex(index);
-    }, []);
+    const handleOnFocus = useCallback(
+      (index: number) => {
+        setNextSeedPhraseInputFocusedIndex(index);
+        setFocusedInputIndex(index);
+        focusedInputIndexRef.current = index;
+
+        const currentWord = seedPhrase[index] || '';
+        if (!currentWord.includes(' ')) {
+          setCurrentInputWord(currentWord);
+        }
+      },
+      [seedPhrase],
+    );
 
     const handleOnBlur = useCallback(
       (index: number) => {
@@ -239,6 +274,17 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             [index]: !checkValid,
           }));
         }
+
+        setFocusedInputIndex(null);
+
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+        }
+        blurTimeoutRef.current = setTimeout(() => {
+          if (!isSuggestionSelectingRef.current) {
+            setCurrentInputWord('');
+          }
+        }, 150);
       },
       [seedPhrase],
     );
@@ -296,7 +342,38 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       onSeedPhraseChange(['']);
       setErrorWordIndexes({});
       setNextSeedPhraseInputFocusedIndex(null);
+      setCurrentInputWord('');
+      setFocusedInputIndex(null);
     }, [onSeedPhraseChange]);
+
+    /* istanbul ignore next -- @preserve Focus events */
+    const handleSuggestionSelect = useCallback((word: string) => {
+      isSuggestionSelectingRef.current = true;
+
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = null;
+      }
+
+      const targetIndex = focusedInputIndexRef.current;
+      if (targetIndex === null) {
+        isSuggestionSelectingRef.current = false;
+        return;
+      }
+
+      // Update seed phrase with selected word
+      const updatedText = `${word}${SPACE_CHAR}`;
+      handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
+
+      setCurrentInputWord('');
+
+      const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
+      if (inputRef) {
+        inputRef.focus();
+      }
+
+      isSuggestionSelectingRef.current = false;
+    }, []);
 
     useEffect(() => {
       if (nextSeedPhraseInputFocusedIndex === null) return;
@@ -380,10 +457,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   isError={errorWordIndexes[index]}
                   autoCapitalize="none"
                   testID={`${testIdPrefix}_${index}`}
-                  keyboardType="default"
+                  keyboardType="visible-password"
                   autoCorrect={false}
-                  textContentType="oneTimeCode"
+                  textContentType="none"
                   spellCheck={false}
+                  importantForAutofill="no"
                   autoFocus={index === nextSeedPhraseInputFocusedIndex}
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   isDisabled={disabled}
@@ -418,10 +496,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 showSoftInputOnFocus
                 autoCapitalize="none"
                 testID={testIdPrefix}
-                keyboardType="default"
+                keyboardType="visible-password"
                 autoCorrect={false}
-                textContentType="oneTimeCode"
+                textContentType="none"
                 spellCheck={false}
+                importantForAutofill="no"
                 autoFocus={isFirstInput}
                 multiline
                 onKeyPress={(e) => handleKeyPress(e, 0)}
@@ -448,6 +527,16 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             ? strings('import_from_seed.clear_all')
             : strings('import_from_seed.paste')}
         </Text>
+
+        {isSrpWordSuggestionsEnabled && (
+          <SrpWordSuggestions
+            currentInputWord={currentInputWord}
+            onSuggestionSelect={handleSuggestionSelect}
+            onPressIn={() => {
+              isSuggestionSelectingRef.current = true;
+            }}
+          />
+        )}
 
         {/* Error Text */}
         {Boolean(externalError || error) && (
