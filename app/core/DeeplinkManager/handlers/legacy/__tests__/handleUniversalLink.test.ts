@@ -131,17 +131,18 @@ describe('handleUniversalLink', () => {
     it.each(testCases)(
       'calls handleMetaMaskDeeplink when deeplink is $url',
       async ({ action }) => {
-        const url = `https://link.metamask.io/${action}`;
+        const testUrl = `https://link.metamask.io/${action}`;
         const expectedMappedUrl = `metamask://${action}`;
-        const { urlObj, params } = extractURLParams(expectedMappedUrl);
-        const wcURL = params?.uri || urlObj.href;
+        const { urlObj: mappedUrlObj, params } =
+          extractURLParams(expectedMappedUrl);
+        const wcURL = params?.uri || mappedUrlObj.href;
 
         await handleUniversalLink({
           instance,
           handled,
-          urlObj,
+          urlObj: mappedUrlObj,
           browserCallBack: mockBrowserCallBack,
-          url,
+          url: testUrl,
           source: 'origin',
         });
 

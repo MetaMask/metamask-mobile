@@ -9,6 +9,11 @@ jest.mock('../../redux');
 jest.mock('../../../selectors/featureFlagController');
 jest.mock('../../../util/Logger');
 
+const mockSelectRemoteFeatureFlags =
+  selectRemoteFeatureFlags as jest.MockedFunction<
+    typeof selectRemoteFeatureFlags
+  >;
+
 describe('UniversalRouterIntegration', () => {
   let mockRouter: jest.Mocked<UniversalRouter>;
   let mockDeeplinkManager: DeeplinkManager;
@@ -39,9 +44,9 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({
-        MM_UNIVERSAL_ROUTER: true,
-      });
+      mockSelectRemoteFeatureFlags.mockReturnValue({
+        platformNewLinkHandlerSystemEnabled: true,
+      } as ReturnType<typeof selectRemoteFeatureFlags>);
 
       expect(UniversalRouterIntegration.shouldUseNewRouter()).toBe(true);
     });
@@ -50,9 +55,9 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({
-        MM_UNIVERSAL_ROUTER: false,
-      });
+      mockSelectRemoteFeatureFlags.mockReturnValue({
+        platformNewLinkHandlerSystemEnabled: false,
+      } as ReturnType<typeof selectRemoteFeatureFlags>);
 
       expect(UniversalRouterIntegration.shouldUseNewRouter()).toBe(false);
     });
@@ -63,9 +68,10 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({
-        MM_UNIVERSAL_ROUTER: true,
-      });
+      mockSelectRemoteFeatureFlags.mockReturnValue({
+        platformNewLinkHandlerSystemEnabled: true,
+        platformNewLinkHandlerActions: { home: true },
+      } as ReturnType<typeof selectRemoteFeatureFlags>);
       mockRouter.route.mockResolvedValue({
         handled: true,
         metadata: { action: 'home' },
@@ -94,9 +100,9 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({
-        MM_UNIVERSAL_ROUTER: false,
-      });
+      mockSelectRemoteFeatureFlags.mockReturnValue({
+        platformNewLinkHandlerSystemEnabled: false,
+      } as ReturnType<typeof selectRemoteFeatureFlags>);
 
       const result = await UniversalRouterIntegration.processWithNewRouter(
         'metamask://home',
@@ -113,9 +119,10 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({
-        MM_UNIVERSAL_ROUTER: true,
-      });
+      mockSelectRemoteFeatureFlags.mockReturnValue({
+        platformNewLinkHandlerSystemEnabled: true,
+        platformNewLinkHandlerActions: { swap: true },
+      } as ReturnType<typeof selectRemoteFeatureFlags>);
       mockRouter.route.mockRejectedValue(routeError);
 
       const result = await UniversalRouterIntegration.processWithNewRouter(

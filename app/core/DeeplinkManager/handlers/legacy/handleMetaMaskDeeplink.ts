@@ -24,7 +24,7 @@ export function handleMetaMaskDeeplink({
 }: {
   instance: DeeplinkManager;
   handled: () => void;
-  wcURL: string;
+  wcURL: string | undefined;
   origin: string;
   params: ReturnType<typeof extractURLParams>['params'];
   url: string;
@@ -138,7 +138,7 @@ export function handleMetaMaskDeeplink({
     WC2Manager.getInstance()
       .then((WC2ManagerInstance) =>
         WC2ManagerInstance.connect({
-          wcUri: fixedUrl,
+          wcUri: fixedUrl ?? '',
           origin,
           redirectUrl: params?.redirect,
         }),

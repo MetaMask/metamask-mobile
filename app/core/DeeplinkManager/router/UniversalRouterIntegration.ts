@@ -4,6 +4,7 @@ import DeeplinkManager from '../DeeplinkManager';
 import Logger from '../../../util/Logger';
 import ReduxService from '../../redux';
 import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagController';
+import { CoreLinkNormalizer } from '../normalization/CoreLinkNormalizer';
 
 /**
  * Integration layer between UniversalRouter and existing deeplink system
@@ -16,14 +17,12 @@ export class UniversalRouterIntegration {
   static shouldUseNewRouter(): boolean {
     try {
       const state = ReduxService.store.getState();
-      if (state) {
-        const remoteFlags = selectRemoteFeatureFlags(state);
-        return remoteFlags?.MM_UNIVERSAL_ROUTER === true;
-      }
+      const remoteFeatureFlags = selectRemoteFeatureFlags(state);
+      return remoteFeatureFlags.platformNewLinkHandlerSystemEnabled === true;
     } catch (error) {
       Logger.error(error as Error, 'Failed to check feature flag');
+      return false;
     }
-    return false;
   }
 
   /**
@@ -37,15 +36,42 @@ export class UniversalRouterIntegration {
     browserCallBack?: (url: string) => void,
   ): Promise<boolean> {
     try {
-      if (!this.shouldUseNewRouter()) {
-        return false;
+      Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter url', url);
+
+      const state = ReduxService.store.getState();
+      const remoteFeatureFlags = selectRemoteFeatureFlags(state);
+      const isSystemEnabled =
+        remoteFeatureFlags.platformNewLinkHandlerSystemEnabled === true;
+      Logger.log(
+        '🔗 UniversalRouterIntegration:processWithNewRouter isSystemEnabled',
+        isSystemEnabled,
+      );
+      // Check system flag
+      if (!isSystemEnabled) {
+        Logger.log('System not enabled');
+        return false; // Legacy handles it
       }
 
-      // Initialize router if needed
+      // Parse URL to get action
+      const link = CoreLinkNormalizer.normalize(url, source);
+
+      // Check action-specific flag
+      const actions = remoteFeatureFlags.platformNewLinkHandlerActions ?? {};
+      const isActionEnabled =
+        actions[link.action as keyof typeof actions] === true;
+      Logger.log(
+        '🔗 UniversalRouterIntegration:processWithNewRouter isActionEnabled',
+        isActionEnabled,
+      );
+      if (!isActionEnabled) {
+        Logger.log(`Action '${link.action}' not enabled by feature flag`);
+        return false; // Legacy handles it
+      }
+
+      // Both flags enabled - proceed with new router
       const router = UniversalRouter.getInstance();
       router.initialize();
 
-      // Create handler context
       const context: HandlerContext = {
         navigation: {
           navigate: (routeName: string, params?: Record<string, unknown>) => {
@@ -56,8 +82,6 @@ export class UniversalRouterIntegration {
         instance,
         browserCallBack,
       };
-
-      // Route the deep link
       const result = await router.route(url, source, context);
 
       return result.handled;

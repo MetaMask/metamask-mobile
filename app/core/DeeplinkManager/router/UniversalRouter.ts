@@ -1,7 +1,6 @@
 import { HandlerRegistry } from '../registry/HandlerRegistry';
 import { CoreLinkNormalizer } from '../normalization/CoreLinkNormalizer';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
-import { LegacyLinkAdapter } from '../normalization/LegacyLinkAdapter';
 import { HandlerContext, HandlerResult } from '../types/UniversalLinkHandler';
 import Logger from '../../../util/Logger';
 import { MetaMetrics } from '../../Analytics';
@@ -73,6 +72,7 @@ export class UniversalRouter {
     context: HandlerContext,
   ): Promise<HandlerResult> {
     try {
+      Logger.log('🔗 UniversalRouter:route url', url);
       // Normalize the URL
       const link = CoreLinkNormalizer.normalize(url, source);
 
@@ -131,31 +131,14 @@ export class UniversalRouter {
     link: CoreUniversalLink,
     _context: HandlerContext,
   ): Promise<HandlerResult> {
-    try {
-      // Convert to legacy format
-      const legacyFormat = LegacyLinkAdapter.toLegacyFormat(link);
-      const { params } = legacyFormat;
-
-      // TODO: next PR Create legacy context when integration is implemented
-      // LegacyLinkAdapter.createHandlerContext(link, { ... });
-      // handleUniversalLink with legacy urlObject
-
-      // For now, we just return success with metadata
-      return {
-        handled: true,
-        metadata: {
-          usedLegacy: true,
-          action: link.action,
-          params,
-        },
-      };
-    } catch (error) {
-      Logger.error(error as Error, 'Failed to delegate to legacy');
-      return {
-        handled: false,
-        error: error as Error,
-      };
-    }
+    // Simply signal that the router couldn't handle it
+    return {
+      handled: false, // Let caller know we didn't handle it
+      metadata: {
+        reason: 'no_handler',
+        action: link.action,
+      },
+    };
   }
 
   /**
