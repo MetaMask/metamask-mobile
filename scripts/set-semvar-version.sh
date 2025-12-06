@@ -12,6 +12,9 @@ fi
 
 SEMVER_VERSION=$1
 
+# Extract base version (strip any suffix like -beta, -dev, etc.)
+BASE_VERSION=$(echo "$SEMVER_VERSION" | sed 's/-.*$//')
+
 NAT='0|[1-9][0-9]*'
 ALPHANUM='[0-9]*[A-Za-z-][0-9A-Za-z-]*'
 IDENT="$NAT|$ALPHANUM"
@@ -59,7 +62,10 @@ perform_updates () {
     echo "- $BITRISE_YML_FILE successfully updated"
 
     echo "Updating iOS project settings..."
-    sed -i '' 's/\(\s*MARKETING_VERSION = \).*/\1'"$SEMVER_VERSION;"'/' "$IOS_PROJECT_FILE"
+    # Set MARKETING_VERSION (CFBundleShortVersionString) to base version (Apple requirement)
+    sed -i '' 's/\(\s*MARKETING_VERSION = \).*/\1'"$BASE_VERSION;"'/' "$IOS_PROJECT_FILE"
+    # Set CURRENT_PROJECT_VERSION (CFBundleVersion) to full version (can include suffix)
+    sed -i '' 's/\(\s*CURRENT_PROJECT_VERSION = \).*/\1'"$SEMVER_VERSION;"'/' "$IOS_PROJECT_FILE"
     echo "- $IOS_PROJECT_FILE successfully updated"
 
   else
@@ -77,7 +83,10 @@ perform_updates () {
 
     # update ios/MetaMask.xcodeproj/project.pbxproj
     echo "Updating iOS project settings..."
-    sed -i 's/\(\s*MARKETING_VERSION = \).*/\1'"$SEMVER_VERSION;"'/' "$IOS_PROJECT_FILE"
+    # Set MARKETING_VERSION (CFBundleShortVersionString) to base version (Apple requirement)
+    sed -i 's/\(\s*MARKETING_VERSION = \).*/\1'"$BASE_VERSION;"'/' "$IOS_PROJECT_FILE"
+    # Set CURRENT_PROJECT_VERSION (CFBundleVersion) to full version (can include suffix)
+    sed -i 's/\(\s*CURRENT_PROJECT_VERSION = \).*/\1'"$SEMVER_VERSION;"'/' "$IOS_PROJECT_FILE"
     echo "- $IOS_PROJECT_FILE updated"
 
   fi
