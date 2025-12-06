@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
-- bump semvar version to 7.60.4 && build version to 3254
+- fix(perps): add fallback subscriptions for missing HyperLiquid API fields cp-7.60.4 (#23753)
 
 ## [7.59.0]
 
