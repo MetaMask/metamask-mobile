@@ -4,6 +4,40 @@
 
 This document describes the API calls made during Perps initialization and the optimization strategies applied to minimize redundant network requests.
 
+## Entry Points
+
+Users can enter the Perps environment through different entry points, each with different API call patterns:
+
+### 1. PerpsTabView (Wallet Homepage Tab)
+
+**File**: `app/components/UI/Perps/Views/PerpsTabView/PerpsTabView.tsx`
+
+- Lightweight view showing open positions and orders
+- Uses WebSocket streams only (after core init)
+- **Total API calls: 15** (core init only)
+
+**Hooks used:**
+
+- `usePerpsLiveAccount()` - Account balance via WebSocket
+- `usePerpsLivePositions()` - Positions via WebSocket
+- `usePerpsLiveOrders()` - Orders via WebSocket
+
+### 2. PerpsHomeView (Full Perps Screen)
+
+**File**: `app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView.tsx`
+
+- Rich UI with markets, watchlist, and recent activity
+- Adds REST API calls for historical activity data
+- **Total API calls: 17** (core init + 2 view-specific)
+
+**Hooks used:**
+
+- `usePerpsLiveAccount()` - Account balance via WebSocket
+- `usePerpsHomeData()` - Aggregator hook that includes:
+  - WebSocket streams for positions/orders
+  - REST API calls for historical activity (`userFills`, `userNonFundingLedgerUpdates`)
+  - Market data fetching
+
 ## Initialization Sequence Diagram
 
 ```mermaid
@@ -18,7 +52,7 @@ sequenceDiagram
     UI->>CM: connect()
     CM->>HLP: ensureReady()
 
-    Note over HLP: Asset Mapping Phase
+    Note over HLP: Phase 1: Asset Mapping
     HLP->>API: perpDexs()
     API-->>HLP: [null, {name: "hyna"}, ...]
 
@@ -29,13 +63,13 @@ sequenceDiagram
 
     Note over HLP: Build coinToAssetId mapping
 
-    Note over HLP: User Setup Phase
+    Note over HLP: Phase 2: User Setup
     HLP->>API: referral (user)
     HLP->>API: referral (builder)
     HLP->>API: maxBuilderFee
     HLP->>API: userDexAbstraction
 
-    Note over CM: Market Data Phase
+    Note over CM: Phase 3: Market Data
     CM->>HLP: getMarketDataWithPrices()
 
     par For each DEX
@@ -46,18 +80,32 @@ sequenceDiagram
     Note over CM: Subscription Setup
     CM->>SS: subscribeToPrices()
     SS->>WS: subscribe allMids, assetCtxs
+
+    rect rgb(255, 245, 238)
+        Note over UI,API: View-Specific (PerpsHomeView only)
+        UI->>HLP: getOrderFills()
+        HLP->>API: userFills
+        API-->>HLP: [fill1, fill2, ...]
+        UI->>HLP: getLedgerUpdates()
+        HLP->>API: userNonFundingLedgerUpdates
+        API-->>HLP: [update1, update2, ...]
+    end
 ```
 
 ## API Calls During Initialization
 
-### Phase 1: Provider Initialization (`ensureReady`)
+### Core Init (All Entry Points) - 15 Calls
+
+These calls are made regardless of which entry point is used.
+
+#### Phase 1: Provider Initialization (`ensureReady`)
 
 | Call | Endpoint           | Purpose                                   | Count              |
 | ---- | ------------------ | ----------------------------------------- | ------------------ |
 | 1    | `perpDexs`         | Discover available HIP-3 DEXes            | 1                  |
 | 2-6  | `metaAndAssetCtxs` | Get asset metadata + contexts for mapping | 5 (main + 4 HIP-3) |
 
-### Phase 2: User Setup (first connection only)
+#### Phase 2: User Setup (first connection only)
 
 | Call | Endpoint             | Purpose                         | Count |
 | ---- | -------------------- | ------------------------------- | ----- |
@@ -66,13 +114,13 @@ sequenceDiagram
 | 9    | `maxBuilderFee`      | Get max builder fee for user    | 1     |
 | 10   | `userDexAbstraction` | Check DEX abstraction status    | 1     |
 
-### Phase 3: Market Data (`getMarketDataWithPrices`)
+#### Phase 3: Market Data (`getMarketDataWithPrices`)
 
 | Call  | Endpoint  | Purpose                              | Count              |
 | ----- | --------- | ------------------------------------ | ------------------ |
 | 11-15 | `allMids` | Get current mid prices for all DEXes | 5 (main + 4 HIP-3) |
 
-### Total: 15 API Calls (Optimized)
+#### Core Init Summary
 
 | Category      | Calls  | Details                                               |
 | ------------- | ------ | ----------------------------------------------------- |
@@ -81,6 +129,24 @@ sequenceDiagram
 | User Setup    | 4      | `referral` × 2, `maxBuilderFee`, `userDexAbstraction` |
 | Prices        | 5      | `allMids` × 5 DEXes                                   |
 | **Total**     | **15** |                                                       |
+
+### View-Specific: PerpsHomeView Only - 2 Additional Calls
+
+These calls are only made when entering via PerpsHomeView (full Perps screen), not from PerpsTabView.
+
+Called via `usePerpsHomeData()` hook for the Recent Activity section:
+
+| Call | Endpoint                      | Purpose                                | Count |
+| ---- | ----------------------------- | -------------------------------------- | ----- |
+| 16   | `userFills`                   | Historical trade fills for activity    | 1     |
+| 17   | `userNonFundingLedgerUpdates` | Ledger history (deposits, withdrawals) | 1     |
+
+### Total API Calls by Entry Point
+
+| Entry Point   | Core Init | View-Specific | Total  |
+| ------------- | --------- | ------------- | ------ |
+| PerpsTabView  | 15        | 0             | **15** |
+| PerpsHomeView | 15        | 2             | **17** |
 
 ## Call Flow Detail
 
@@ -276,13 +342,28 @@ console.log(`API Call: ${type}`, { dex, timestamp: Date.now() });
 
 Check network logs for expected call counts:
 
+**Core Init (all entry points):**
+
 - `perpDexs`: 1×
 - `metaAndAssetCtxs`: 5× (one per DEX)
-- `allMids`: 5× (one per DEX)
 - `referral`: 2× (user + builder)
 - `maxBuilderFee`: 1×
 - `userDexAbstraction`: 1×
-- **Total**: 15×
+- `allMids`: 5× (one per DEX)
+- **Subtotal**: 15×
+
+**View-Specific (PerpsHomeView only):**
+
+- `userFills`: 1×
+- `userNonFundingLedgerUpdates`: 1×
+- **Subtotal**: 2×
+
+**Expected Totals:**
+
+| Entry Point   | Expected Calls |
+| ------------- | -------------- |
+| PerpsTabView  | 15             |
+| PerpsHomeView | 17             |
 
 ## Related Documentation
 
