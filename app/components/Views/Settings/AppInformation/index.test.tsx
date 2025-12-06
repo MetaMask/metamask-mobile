@@ -36,6 +36,16 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../constants/ota', () => {
+  const actual = jest.requireActual('../../../../constants/ota');
+
+  return {
+    ...actual,
+    // Make getFullVersion a pass-through so tests don't depend on OTA_VERSION
+    getFullVersion: (appVersion: string) => appVersion,
+  };
+});
+
 const MOCK_STATE = {
   engine: {
     backgroundState: {
