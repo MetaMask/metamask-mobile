@@ -99,6 +99,20 @@ export function useTokens({
           return false;
         }
 
+        //TODO hack the metadata for ondo tokens only
+        if (token.aggregators.includes('Ondo')) {
+          token.metadata = {
+            assetType: 'stock',
+            containsProfanity: false,
+            market: {
+              openingHour: new Date(),
+              closingHour: new Date(),
+            },
+            isPaused: false,
+            restrictedCountries: [],
+          } as BridgeToken['metadata'];
+        }
+
         const tokenKey = getTokenKey(token);
         return !excludedTokensSet.has(tokenKey);
       }),

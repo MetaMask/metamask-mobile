@@ -14,6 +14,7 @@ import { selectTickerByChainId } from '../../../../../selectors/networkControlle
 import { getNativeTokenAddress } from '../../utils/asset';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { BridgeToken } from '../../../../UI/Bridge/types';
 
 export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -102,6 +103,10 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
       decimals,
       symbol,
       tokenFiatAmount,
+      aggregators: token?.aggregators ?? [],
+      metadata: ('metadata' in (token || {})
+        ? (token as Record<string, unknown>).metadata
+        : undefined) as BridgeToken['metadata'],
     };
   }, [
     chainId,

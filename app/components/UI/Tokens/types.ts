@@ -24,4 +24,14 @@ export interface TokenI {
   ticker?: string;
   accountType?: KeyringAccountType;
   pricePercentChange1d?: number;
+  metadata?: {
+    assetType?: 'stock';
+    containsProfanity: boolean;
+    market: {
+      openingHour: Date;
+      closingHour: Date;
+    };
+    isPaused: boolean;
+    restrictedCountries: string[];
+  };
 }

@@ -37,6 +37,8 @@ import SensitiveText, {
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
+import { strings } from '../../../../../../locales/i18n';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
@@ -74,6 +76,8 @@ export const TokenListItemBip44 = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
+
+    const { isAssetStockToken } = useRWAToken();
 
     const chainId = asset?.chainId as Hex;
 
@@ -220,6 +224,7 @@ export const TokenListItemBip44 = React.memo(
             <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
+            {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
             {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
           <View style={styles.percentageChange}>
@@ -234,6 +239,13 @@ export const TokenListItemBip44 = React.memo(
               </SensitiveText>
             }
             {renderEarnCta()}
+            {isAssetStockToken(asset) && (
+              <View style={styles.stockBadge}>
+                <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+                  {strings('token.stock')}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
         <ScamWarningIcon
