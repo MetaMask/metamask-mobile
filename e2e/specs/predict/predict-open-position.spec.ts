@@ -15,7 +15,6 @@ import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
-  POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
@@ -74,7 +73,7 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapOpenPositionValue();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+        await new Promise((resolve) => setTimeout(resolve, 6000));
 
         await PredictDetailsPage.tapPositionAmount(
           positionDetails.positionAmount,
