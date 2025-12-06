@@ -244,14 +244,6 @@ describe('Feature Flags Utility Functions', () => {
       expect(result).toBe('Token search and discovery');
     });
 
-    it('returns correct description for productSafetyDappScanningEnabled', () => {
-      const result = getFeatureFlagDescription(
-        'productSafetyDappScanningEnabled',
-      );
-
-      expect(result).toBe('DApp security scanning');
-    });
-
     it('returns correct description for minimumAppVersion', () => {
       const result = getFeatureFlagDescription('minimumAppVersion');
 
