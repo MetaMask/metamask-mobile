@@ -89,6 +89,17 @@ jest.mock('../EarnLendingBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMusdConversionTokens', () => ({
+  __esModule: true,
+  useMusdConversionTokens: jest.fn().mockReturnValue({
+    isConversionToken: jest.fn().mockReturnValue(false),
+    tokenFilter: jest.fn(),
+    tokens: [],
+    isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
+    getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
+  }),
+}));
+
 describe('EarnBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();

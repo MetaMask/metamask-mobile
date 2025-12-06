@@ -66,6 +66,7 @@ const EarnMusdConversionEducationView = () => {
         await initiateConversion({
           outputChainId,
           preferredPaymentToken,
+          skipEducationCheck: true,
         });
         return;
       }
