@@ -73,7 +73,6 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapOpenPositionValue();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
-        await new Promise((resolve) => setTimeout(resolve, 6000));
 
         await PredictDetailsPage.tapPositionAmount(
           positionDetails.positionAmount,
