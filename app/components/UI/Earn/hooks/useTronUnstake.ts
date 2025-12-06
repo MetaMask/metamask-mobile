@@ -44,8 +44,10 @@ interface UseTronUnstakeReturn {
   validating: boolean;
   /** Validation errors if any */
   errors?: string[];
+  /** Preview data including fee estimate */
+  preview?: Record<string, unknown>;
   /** Validate unstake amount */
-  validate: (amount: string) => Promise<TronUnstakeResult | null>;
+  validateUnstakeAmount: (amount: string) => Promise<TronUnstakeResult | null>;
   /** Confirm unstake with current resource type */
   confirmUnstake: (amount: string) => Promise<TronUnstakeResult | null>;
 }
@@ -81,6 +83,13 @@ const useTronUnstake = ({
     [isTronEnabled, tronResources],
   );
 
+  // Determine the staked balance to use for withdrawal
+  const stakedBalanceOverride = useMemo(() => {
+    if (stakedTrxTotal > 0) return stakedTrxTotal;
+    if (token.isStaked) return token.balance;
+    return undefined;
+  }, [stakedTrxTotal, token.isStaked, token.balance]);
+
   // Build enriched Tron token with staked balance for withdrawal flow (acts as receipt token)
   const tronWithdrawalToken = useMemo(() => {
     if (!isTronEnabled) return undefined;
@@ -88,24 +97,26 @@ const useTronUnstake = ({
     return buildTronEarnTokenIfEligible(token, {
       isTrxStakingEnabled: true,
       isTronEligible: true,
-      stakedBalanceOverride:
-        stakedTrxTotal > 0
-          ? stakedTrxTotal
-          : token.isStaked
-            ? token.balance
-            : undefined,
+      stakedBalanceOverride,
     });
-  }, [isTronEnabled, token, stakedTrxTotal]) as EarnTokenDetails | undefined;
+  }, [isTronEnabled, token, stakedBalanceOverride]) as
+    | EarnTokenDetails
+    | undefined;
 
   // Resource type state (energy or bandwidth)
   const [resourceType, setResourceType] = useState<ResourceType>('energy');
 
   const [validating, setValidating] = useState(false);
   const [errors, setErrors] = useState<string[] | undefined>(undefined);
+  const [preview, setPreview] = useState<Record<string, unknown> | undefined>(
+    undefined,
+  );
 
   const chainId = String(token.chainId);
 
-  const validate = useCallback<UseTronUnstakeReturn['validate']>(
+  const validateUnstakeAmount = useCallback<
+    UseTronUnstakeReturn['validateUnstakeAmount']
+  >(
     async (amount: string) => {
       if (!selectedTronAccount?.id || !chainId) return null;
 
@@ -121,7 +132,27 @@ const useTronUnstake = ({
         options: { purpose: resourceType.toUpperCase() as TronResourceType },
       });
 
-      setErrors(validation?.errors);
+      const { errors: validationErrors, ...rest } = validation ?? {};
+      let nextPreview: Record<string, unknown> | undefined =
+        rest && Object.keys(rest).length > 0 ? rest : undefined;
+
+      try {
+        const fee = {
+          type: 'fee',
+          asset: {
+            unit: 'TRX',
+            type: 'TRX',
+            amount: '0.01',
+            fungible: true,
+          },
+        };
+        nextPreview = { ...(nextPreview ?? {}), fee };
+      } catch {
+        // ignore for now
+      }
+
+      if (nextPreview) setPreview(nextPreview);
+      setErrors(validationErrors);
       setValidating(false);
 
       return validation;
@@ -160,7 +191,8 @@ const useTronUnstake = ({
     tronWithdrawalToken,
     validating,
     errors,
-    validate,
+    preview,
+    validateUnstakeAmount,
     confirmUnstake,
   };
 };

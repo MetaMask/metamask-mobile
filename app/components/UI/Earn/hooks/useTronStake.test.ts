@@ -140,7 +140,7 @@ describe('useTronStake', () => {
 
       let validation: TronStakeResult | null = null;
       await act(async () => {
-        validation = await result.current.validate('10');
+        validation = await result.current.validateStakeAmount('10');
       });
 
       expect(validation).toBeNull();
@@ -163,7 +163,7 @@ describe('useTronStake', () => {
 
       let validation: TronStakeResult | null = null;
       await act(async () => {
-        validation = await result.current.validate('10');
+        validation = await result.current.validateStakeAmount('10');
       });
 
       expect(mockValidateTronStakeAmount).toHaveBeenCalledWith(mockAccount, {
@@ -194,7 +194,7 @@ describe('useTronStake', () => {
       );
 
       await act(async () => {
-        await result.current.validate('1000');
+        await result.current.validateStakeAmount('1000');
       });
 
       expect(result.current.errors).toEqual(['Amount exceeds balance']);
