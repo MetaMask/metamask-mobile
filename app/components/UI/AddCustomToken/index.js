@@ -42,6 +42,7 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      paddingHorizontal: 16,
     },
     overlappingAvatarsContainer: {
       flexDirection: 'row',
