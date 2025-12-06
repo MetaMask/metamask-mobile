@@ -1,34 +1,33 @@
 'use strict';
 
 import { ParseOutput } from 'eth-url-parser';
-import { Dispatch } from 'redux';
 import switchNetwork from './handlers/legacy/switchNetwork';
 import parseDeeplink from './parseDeeplink';
 import approveTransaction from './utils/approveTransaction';
-import { store } from '../../store';
-import NavigationService from '../NavigationService';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './handleDeeplink';
-import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
 
 class DeeplinkManager {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public navigation: any;
+  // singleton instance
+  private static _instance: DeeplinkManager | null = null;
   public pendingDeeplink: string | null;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public dispatch: Dispatch<any>;
 
   constructor() {
-    const navigation = NavigationService.navigation;
-    const dispatch = store.dispatch;
-    this.navigation = navigation;
     this.pendingDeeplink = null;
-    this.dispatch = dispatch;
+  }
+
+  static getInstance(): DeeplinkManager {
+    if (!DeeplinkManager._instance) {
+      DeeplinkManager._instance = new DeeplinkManager();
+    }
+    return DeeplinkManager._instance;
+  }
+
+  static resetInstance(): void {
+    this._instance = null;
   }
 
   setDeeplink = (url: string) => (this.pendingDeeplink = url);
@@ -44,7 +43,6 @@ class DeeplinkManager {
    */
   _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
     switchNetwork({
-      deeplinkManager: this,
       switchToChainId,
     });
 
@@ -77,7 +75,7 @@ class DeeplinkManager {
   }
 
   static start() {
-    SharedDeeplinkManager.init();
+    DeeplinkManager.getInstance();
 
     const getBranchDeeplink = async (uri?: string) => {
       if (uri) {
@@ -141,5 +139,21 @@ class DeeplinkManager {
     });
   }
 }
+
+export const SharedDeeplinkManager = {
+  getInstance: () => DeeplinkManager.getInstance(),
+  init: () => DeeplinkManager.getInstance(),
+  parse: (
+    url: string,
+    args: {
+      browserCallBack?: (url: string) => void;
+      origin: string;
+      onHandled?: () => void;
+    },
+  ) => DeeplinkManager.getInstance().parse(url, args),
+  setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),
+  getPendingDeeplink: () => DeeplinkManager.getInstance().getPendingDeeplink(),
+  expireDeeplink: () => DeeplinkManager.getInstance().expireDeeplink(),
+};
 
 export default DeeplinkManager;

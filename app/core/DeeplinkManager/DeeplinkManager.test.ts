@@ -50,7 +50,6 @@ describe('DeeplinkManager', () => {
     const chainId = '1';
     deeplinkManager._handleNetworkSwitch(chainId);
     expect(switchNetwork).toHaveBeenCalledWith({
-      deeplinkManager,
       switchToChainId: chainId,
     });
   });

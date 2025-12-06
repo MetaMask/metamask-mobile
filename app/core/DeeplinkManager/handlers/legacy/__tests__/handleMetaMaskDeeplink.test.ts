@@ -6,7 +6,6 @@ import AppConstants from '../../../../AppConstants';
 import handleDeeplink from '../../../../SDKConnect/handlers/handleDeeplink';
 import SDKConnect from '../../../../SDKConnect/SDKConnect';
 import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../../DeeplinkManager';
 import extractURLParams from '../../../utils/extractURLParams';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import handleRampUrl from '../handleRampUrl';
@@ -25,7 +24,6 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 
 describe('handleMetaMaskProtocol', () => {
-  const mockParse = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -44,11 +42,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockHandleDepositCashUrl = handleDepositCashUrl as jest.MockedFunction<
     typeof handleDepositCashUrl
   >;
-
-  const instance = {
-    parse: mockParse,
-    navigation: mockNavigate,
-  } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
 
@@ -106,7 +99,6 @@ describe('handleMetaMaskProtocol', () => {
 
   it('should call handled', () => {
     handleMetaMaskDeeplink({
-      instance,
       handled,
       params,
       url,
@@ -124,7 +116,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('should call bindAndroidSDK', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -151,7 +142,6 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(() => {
         handleMetaMaskDeeplink({
-          instance,
           handled,
           params,
           url,
@@ -174,7 +164,6 @@ describe('handleMetaMaskProtocol', () => {
       params.scheme = 'test-scheme';
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -206,7 +195,6 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(() => {
         handleMetaMaskDeeplink({
-          instance,
           handled,
           params,
           url,
@@ -224,7 +212,6 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(() => {
         handleMetaMaskDeeplink({
-          instance,
           handled,
           params,
           url,
@@ -250,7 +237,6 @@ describe('handleMetaMaskProtocol', () => {
       params.scheme = 'test-scheme';
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -283,7 +269,6 @@ describe('handleMetaMaskProtocol', () => {
       Object.defineProperty(Platform, 'Version', { get: () => '17' });
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
@@ -308,7 +293,6 @@ describe('handleMetaMaskProtocol', () => {
       Object.defineProperty(Platform, 'Version', { get: () => '17' });
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
@@ -333,7 +317,6 @@ describe('handleMetaMaskProtocol', () => {
       Object.defineProperty(Platform, 'Version', { get: () => '17' });
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
@@ -355,7 +338,6 @@ describe('handleMetaMaskProtocol', () => {
       mockGetApprovedHosts.mockReturnValue({ ABC: true });
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -397,7 +379,6 @@ describe('handleMetaMaskProtocol', () => {
       mockGetApprovedHosts.mockReturnValue({ ABC: true });
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -439,7 +420,6 @@ describe('handleMetaMaskProtocol', () => {
       mockGetApprovedHosts.mockReturnValue({ ABC: true });
 
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -488,7 +468,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('should call WC2Manager.getInstance().connect', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -507,7 +486,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('calls handleRampUrl with BUY type', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -517,7 +495,6 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(mockHandleRampUrl).toHaveBeenCalledWith(
         expect.objectContaining({
-          navigation: mockNavigate,
           rampType: expect.any(String), // RampType.BUY
         }),
       );
@@ -531,7 +508,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('calls handleRampUrl with SELL type', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -541,7 +517,6 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(mockHandleRampUrl).toHaveBeenCalledWith(
         expect.objectContaining({
-          navigation: mockNavigate,
           rampType: expect.any(String), // RampType.SELL
         }),
       );
@@ -555,7 +530,6 @@ describe('handleMetaMaskProtocol', () => {
 
     it('calls handleDepositCashUrl', () => {
       handleMetaMaskDeeplink({
-        instance,
         handled,
         params,
         url,
@@ -565,7 +539,7 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(mockHandleDepositCashUrl).toHaveBeenCalledWith(
         expect.objectContaining({
-          navigation: mockNavigate,
+          depositPath: expect.any(String), // RampType.DEPOSIT
         }),
       );
     });

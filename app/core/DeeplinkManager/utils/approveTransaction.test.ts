@@ -9,6 +9,7 @@ import { addTransaction } from '../../../util/transaction-controller';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toHex } from '@metamask/controller-utils';
 import { validateWithPPOM } from '../../../components/Views/confirmations/utils/deeplink';
+import NavigationService from '../../NavigationService';
 
 const MOCK_SENDER_ADDRESS = '0xMockSenderAddress';
 const MOCK_TARGET_ADDRESS = '0xTargetAddress';
@@ -55,10 +56,20 @@ const mockEthUrl = {
   chain_id: '1',
 };
 const mockDeeplinkManager = {
+  pendingDeeplink: null,
+  setDeeplink: jest.fn(),
+  getPendingDeeplink: jest.fn(),
+  expireDeeplink: jest.fn(),
+  parse: jest.fn(),
+  _approveTransaction: jest.fn(),
+  _handleNetworkSwitch: jest.fn(),
+};
+
+jest.mock('../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
-};
+}));
 
 const mockOrigin = 'testOrigin';
 
@@ -108,9 +119,7 @@ describe('approveTransaction', () => {
     spyGetNetworkTypeById.mockReturnValue(fakeNetworkType);
 
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -126,9 +135,7 @@ describe('approveTransaction', () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -143,9 +150,7 @@ describe('approveTransaction', () => {
 
   it('should call addTransaction with the correct parameters', async () => {
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -170,9 +175,7 @@ describe('approveTransaction', () => {
 
   it('should call getAddress with the correct parameters', async () => {
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -189,9 +192,7 @@ describe('approveTransaction', () => {
     spyGetAddress.mockResolvedValue('');
 
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -210,16 +211,14 @@ describe('approveTransaction', () => {
     spyGetAddress.mockResolvedValue('');
 
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
 
-    expect(mockDeeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'WalletView',
     );
   });
@@ -228,9 +227,7 @@ describe('approveTransaction', () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -244,16 +241,14 @@ describe('approveTransaction', () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
       origin: mockOrigin,
     });
 
-    expect(mockDeeplinkManager.navigation.navigate).not.toHaveBeenCalled();
+    expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
   });
 
   it('should throw an error if the uint256 parameter is not a number', async () => {
@@ -264,9 +259,7 @@ describe('approveTransaction', () => {
 
     await expect(
       approveTransaction({
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        deeplinkManager: mockDeeplinkManager as any,
+        deeplinkManager: mockDeeplinkManager,
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ethUrl: mockEthUrlWithInvalidUint256 as any,
@@ -283,9 +276,7 @@ describe('approveTransaction', () => {
 
     await expect(
       approveTransaction({
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        deeplinkManager: mockDeeplinkManager as any,
+        deeplinkManager: mockDeeplinkManager,
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ethUrl: mockEthUrlWithInvalidUint256 as any,
@@ -305,9 +296,7 @@ describe('approveTransaction', () => {
     spyGetNetworkTypeById.mockReturnValue(fakeNetworkType);
 
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrlWithInvalidChainId as any,
@@ -321,9 +310,7 @@ describe('approveTransaction', () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
     await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
+      deeplinkManager: mockDeeplinkManager,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,

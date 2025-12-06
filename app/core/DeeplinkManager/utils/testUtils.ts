@@ -2,8 +2,6 @@ import { HandlerContext } from '../types/UniversalLinkHandler';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
 
 export const createMockContext = (overrides = {}): HandlerContext => ({
-  navigation: { navigate: jest.fn() },
-  dispatch: jest.fn(),
   instance: {},
   ...overrides,
 });

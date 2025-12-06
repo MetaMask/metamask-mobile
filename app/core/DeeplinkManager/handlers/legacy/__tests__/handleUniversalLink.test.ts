@@ -146,7 +146,6 @@ describe('handleUniversalLink', () => {
         });
 
         expect(mockHandleMetaMaskDeeplink).toHaveBeenCalledWith({
-          instance,
           handled,
           wcURL,
           origin: 'origin',
@@ -1268,6 +1267,109 @@ describe('handleUniversalLink', () => {
             href: unsignedUrl,
             pathname: `/${ACTIONS.DAPP}/example.com`,
           };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: unsignedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+    });
+
+    describe('external sources always show redirect modal', () => {
+      const sourcesRequiringModal = [AppConstants.DEEPLINKS.ORIGIN_DEEPLINK];
+
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+
+      beforeEach(() => {
+        mockSubtle.verify.mockResolvedValue(true);
+      });
+
+      it.each(sourcesRequiringModal)(
+        'displays "Redirecting you to MetaMask" modal when source is "%s" with signed (PRIVATE) link',
+        async (testSource) => {
+          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com?sig=${validSignature}`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: signedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: signedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PRIVATE,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+
+      it.each(sourcesRequiringModal)(
+        'displays "Proceed with caution" modal when source is "%s" with unsigned (PUBLIC) link',
+        async (testSource) => {
+          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: unsignedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: unsignedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+    });
+
+    describe('non-whitelisted sources', () => {
+      it('displays interstitial modal when source is not whitelisted and URL is not whitelisted', async () => {
+        const nonWhitelistedSource = 'external-browser';
+        const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+        const testUrlObj = {
+          ...urlObj,
+          hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+          href: nonWhitelistedUrl,
+          pathname: `/${ACTIONS.DAPP}/example.com`,
+        };
 
           await handleUniversalLink({
             instance,

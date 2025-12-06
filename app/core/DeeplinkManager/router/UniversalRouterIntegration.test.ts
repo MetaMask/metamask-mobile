@@ -25,10 +25,7 @@ describe('UniversalRouterIntegration', () => {
 
     (UniversalRouter.getInstance as jest.Mock).mockReturnValue(mockRouter);
 
-    mockDeeplinkManager = {
-      navigation: { navigate: jest.fn() },
-      dispatch: jest.fn(),
-    } as unknown as DeeplinkManager;
+    mockDeeplinkManager = {} as unknown as DeeplinkManager;
 
     const mockStore = { getState: jest.fn() };
     (ReduxService as unknown as { store: typeof mockStore }).store = mockStore;
@@ -82,8 +79,6 @@ describe('UniversalRouterIntegration', () => {
         'metamask://home',
         'test-source',
         expect.objectContaining({
-          navigation: expect.any(Object),
-          dispatch: expect.any(Function),
           instance: mockDeeplinkManager,
         }),
       );

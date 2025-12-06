@@ -47,12 +47,6 @@ export class UniversalRouterIntegration {
 
       // Create handler context
       const context: HandlerContext = {
-        navigation: {
-          navigate: (routeName: string, params?: Record<string, unknown>) => {
-            instance.navigation.navigate(routeName, params);
-          },
-        },
-        dispatch: instance.dispatch,
         instance,
         browserCallBack,
       };

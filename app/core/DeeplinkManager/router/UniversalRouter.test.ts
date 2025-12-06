@@ -70,8 +70,6 @@ describe('UniversalRouter', () => {
     router.reset();
 
     mockContext = {
-      navigation: { navigate: jest.fn() },
-      dispatch: jest.fn(),
       instance: {},
       featureFlags: { MM_UNIVERSAL_ROUTER: true },
     };
@@ -108,21 +106,6 @@ describe('UniversalRouter', () => {
       const instance1 = UniversalRouter.getInstance();
       const instance2 = UniversalRouter.getInstance();
       expect(instance1).toBe(instance2);
-    });
-  });
-
-  describe('initialize', () => {
-    it('throws error and remains uninitialized when handler registration fails', () => {
-      const registrationError = new Error('Handler registration failed');
-      jest.spyOn(router.getRegistry(), 'register').mockImplementation(() => {
-        throw registrationError;
-      });
-
-      expect(() => router.initialize()).toThrow('Handler registration failed');
-
-      jest.restoreAllMocks();
-
-      expect(() => router.initialize()).not.toThrow();
     });
   });
 

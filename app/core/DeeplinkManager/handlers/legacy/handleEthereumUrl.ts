@@ -13,6 +13,7 @@ import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../../components/Views/confirmations/utils/deeplink';
+import NavigationService from '../../../NavigationService';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -44,7 +45,7 @@ async function handleEthereumUrl({
       ethUrl.chain_id === getDecimalChainId(CHAIN_IDS.GOERLI) ||
       ethUrl.chain_id === CHAIN_IDS.GOERLI
     ) {
-      deeplinkManager.navigation.navigate('DeprecatedNetworkDetails', {});
+      NavigationService.navigation.navigate('DeprecatedNetworkDetails', {});
       return;
     }
 
@@ -63,7 +64,7 @@ async function handleEthereumUrl({
 
     switch (ethUrl.function_name) {
       case ETH_ACTIONS.TRANSFER: {
-        deeplinkManager.navigation.navigate('SendView', {
+        NavigationService.navigation.navigate('SendView', {
           screen: 'Send',
           params: { txMeta: { ...txMeta, action: 'send-token' } },
         });
@@ -78,12 +79,12 @@ async function handleEthereumUrl({
           ethUrl.parameters.value = formattedDeeplinkParsedValue(
             ethUrl.parameters.value,
           );
-          deeplinkManager.navigation.navigate('SendView', {
+          NavigationService.navigation.navigate('SendView', {
             screen: 'Send',
             params: { txMeta: { ...txMeta, action: 'send-eth' } },
           });
         } else {
-          deeplinkManager.navigation.navigate('SendFlowView', {
+          NavigationService.navigation.navigate('SendFlowView', {
             screen: 'SendTo',
             params: { txMeta },
           });
