@@ -155,45 +155,8 @@ describe('useMusdConversion', () => {
           origin: MMM_ORIGIN,
           skipInitialGasEstimate: true,
           type: TransactionType.musdConversion,
-          nestedTransactions: [
-            {
-              to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-              data: '0xmockedTransferData',
-              value: '0x0',
-            },
-          ],
         },
       );
-    });
-
-    it('includes nestedTransactions array structure for Relay', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
-
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
-        'mainnet',
-      );
-      mockTransactionController.addTransaction.mockResolvedValue({
-        transactionMeta: { id: 'tx-123' },
-      });
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      await result.current.initiateConversion(mockConfig);
-
-      const addTransactionCall =
-        mockTransactionController.addTransaction.mock.calls[0];
-      const options = addTransactionCall[1];
-
-      expect(options.nestedTransactions).toBeDefined();
-      expect(Array.isArray(options.nestedTransactions)).toBe(true);
-      expect(options.nestedTransactions).toHaveLength(1);
-      expect(options.nestedTransactions[0]).toEqual({
-        to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-        data: '0xmockedTransferData',
-        value: '0x0',
-      });
     });
 
     it('throws error when selectedAddress is missing', async () => {
