@@ -135,6 +135,10 @@ jest.mock('../../../core/Engine', () => {
           return { id, provider };
         },
       },
+      BridgeController: {
+        resetState: jest.fn(),
+        updateBridgeQuoteRequestParams: jest.fn(),
+      },
     },
     controllerMessenger: {
       subscribe() {
