@@ -25,6 +25,7 @@ import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { filterMarketsByQuery } from '../../../UI/Perps/utils/marketUtils';
 import PredictMarketRowItem from '../../../UI/Predict/components/PredictMarketRowItem';
+import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
@@ -107,6 +108,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           defaultMarketTypeFilter: 'all',
+          source: 'trending',
         },
       });
     },
@@ -118,7 +120,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
             Routes.PERPS.ROOT,
             {
               screen: Routes.PERPS.MARKET_DETAILS,
-              params: { market: item as PerpsMarketData },
+              params: { market: item as PerpsMarketData, source: 'trending' },
             },
           );
         }}
@@ -163,7 +165,11 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     RowItem: ({ item }) => (
       <Box twClassName="py-2">
-        <PredictMarket market={item as PredictMarketType} isCarousel />
+        <PredictMarket
+          market={item as PredictMarketType}
+          isCarousel
+          entryPoint={PredictEventValues.ENTRY_POINT.TRENDING}
+        />
       </Box>
     ),
     OverrideRowItemSearch: ({ item }) => (

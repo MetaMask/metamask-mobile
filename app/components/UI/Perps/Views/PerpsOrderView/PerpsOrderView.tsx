@@ -142,10 +142,13 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
+  // Entry source for analytics (e.g., 'trending')
+  source?: string;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
+  source?: string;
 }
 
 /**
@@ -161,6 +164,7 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
+  source,
 }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
@@ -815,6 +819,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           feeDiscountPercentage: feeResults.feeDiscountPercentage,
           estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
+          source,
         },
       };
 
@@ -871,6 +876,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
+    source,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -1492,6 +1498,7 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
+    source,
   } = route.params || {};
 
   return (
@@ -1502,7 +1509,7 @@ const PerpsOrderView: React.FC = () => {
       initialLeverage={paramLeverage}
       existingPosition={existingPosition}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} />
+      <PerpsOrderViewContent hideTPSL={hideTPSL} source={source} />
     </PerpsOrderProvider>
   );
 };

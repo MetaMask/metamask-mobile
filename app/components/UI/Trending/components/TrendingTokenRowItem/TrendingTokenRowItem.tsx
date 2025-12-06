@@ -222,7 +222,10 @@ const TrendingTokenRowItem = ({
       }
     }
 
-    navigation.navigate('Asset', assetParams);
+    navigation.navigate('Asset', {
+      ...assetParams,
+      fromTrending: true,
+    });
   }, [assetParams, caipChainId, navigation, networkConfigurations]);
 
   const closeNetworkModal = useCallback(() => {
@@ -232,7 +235,10 @@ const TrendingTokenRowItem = ({
 
   const handleNetworkModalAccept = useCallback(() => {
     if (assetParams) {
-      navigation.navigate('Asset', assetParams);
+      navigation.navigate('Asset', {
+        ...assetParams,
+        fromTrending: true,
+      });
     }
     closeNetworkModal();
   }, [assetParams, navigation, closeNetworkModal]);

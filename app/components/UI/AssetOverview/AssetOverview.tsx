@@ -106,6 +106,7 @@ interface AssetOverviewProps {
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
   networkName?: string;
+  fromTrending?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
@@ -113,6 +114,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   displayBuyButton,
   displaySwapsButton,
   networkName,
+  fromTrending,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
@@ -192,6 +194,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       name: asset.name,
       image: asset.image,
     },
+    fromTrending,
   });
 
   // Hook for handling non-EVM asset sending

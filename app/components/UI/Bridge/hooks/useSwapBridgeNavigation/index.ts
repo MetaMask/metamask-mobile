@@ -37,16 +37,19 @@ export enum SwapBridgeNavigationLocation {
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
  * @param sourceToken token object containing address and chainId we want to set as source.
+ * @param fromTrending whether the user navigated from the Trending view (for CTR analytics).
  * @returns An object containing functions that can be used to navigate to the existing Bridges page in the browser and the MetaMask Swaps page. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export const useSwapBridgeNavigation = ({
   location,
   sourcePage,
   sourceToken: tokenBase,
+  fromTrending,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
   sourceToken?: BridgeToken;
+  fromTrending?: boolean;
 }) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -142,14 +145,18 @@ export const useSwapBridgeNavigation = ({
           ? ActionLocation.NAVBAR
           : ActionLocation.ASSET_DETAILS,
       });
+      const swapEventProperties = {
+        location,
+        chain_id_source: getDecimalChainId(sourceToken.chainId),
+        token_symbol_source: sourceToken?.symbol,
+        token_address_source: sourceToken?.address,
+        from_trending: fromTrending ?? false,
+      };
+      // eslint-disable-next-line no-console
+      console.log('=== SWAP_BUTTON_CLICKED ===', swapEventProperties);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-          .addProperties({
-            location,
-            chain_id_source: getDecimalChainId(sourceToken.chainId),
-            token_symbol_source: sourceToken?.symbol,
-            token_address_source: sourceToken?.address,
-          })
+          .addProperties(swapEventProperties)
           .build(),
       );
       trace({
@@ -166,6 +173,7 @@ export const useSwapBridgeNavigation = ({
       location,
       currentNetworkInfo,
       getIsBridgeEnabledSource,
+      fromTrending,
     ],
   );
   const { networkModal } = useAddNetwork();
