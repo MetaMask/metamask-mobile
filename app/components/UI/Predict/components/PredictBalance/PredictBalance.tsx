@@ -84,7 +84,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   if (isLoading) {
     return (
       <Box
-        twClassName="bg-muted rounded-xl p-4 mx-4 gap-3"
+        twClassName="bg-muted rounded-xl p-4 m-4 gap-3"
         testID="predict-balance-card-skeleton"
       >
         <Box
@@ -130,8 +130,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
       )}
       <Box
         style={tw.style(
-          'bg-muted p-4 mx-4 gap-3 rounded-xl',
-          isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
+          'bg-muted p-4 gap-3 rounded-xl',
+          isAddingFunds ? 'mx-4 mb-4 rounded-t-none' : 'm-4 rounded-t-xl',
         )}
         testID="predict-balance-card"
         onLayout={(event) => {

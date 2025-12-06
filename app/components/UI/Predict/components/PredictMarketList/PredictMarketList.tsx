@@ -1,12 +1,13 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import TabBar from '../../../../Base/TabBar';
-import { useTheme } from '../../../../../util/theme';
+import {
+  TabsList,
+  TabViewProps,
+} from '../../../../../component-library/components-temp/Tabs';
 import { PredictEventValues } from '../../constants/eventNames';
 import MarketListContent from '../MarketListContent';
 import { PredictCategory } from '../../types';
@@ -26,7 +27,6 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
   onTabChange,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
 
   const handleTabChange = useCallback(
     (changeInfo: { i: number; ref: unknown; from?: number }) => {
@@ -64,38 +64,28 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
   return (
     <>
       {isSearchVisible && searchQuery.length > 0 && (
-        <ScrollableTabView
-          renderTabBar={false}
-          style={tw.style('flex-1 w-full')}
-          initialPage={0}
-        >
-          <View key="search" style={tw.style('flex-1 w-full')}>
-            <MarketListContent
-              category="trending"
-              q={searchQuery}
-              entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
-            />
-          </View>
-        </ScrollableTabView>
+        <View style={tw.style('flex-1 w-full')}>
+          <MarketListContent
+            category="trending"
+            q={searchQuery}
+            entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
+          />
+        </View>
       )}
 
       {!isSearchVisible && (
         <Animated.View style={[tw.style('flex-1 w-full'), tabsAnimatedStyle]}>
-          <ScrollableTabView
-            renderTabBar={() => (
-              <TabBar
-                activeTextColor={colors.text.default}
-                underlineStyle={tw.style('h-[2px] bg-text-default')}
-                underlineHeight={2}
-              />
-            )}
-            style={tw.style('flex-1 w-full')}
-            initialPage={0}
+          <TabsList
             onChangeTab={handleTabChange}
+            initialActiveIndex={0}
+            twClassName="flex-1"
+            tabsListContentTwClassName="px-0"
           >
             <View
               key="trending"
-              {...{ tabLabel: strings('predict.category.trending') }}
+              {...({
+                tabLabel: strings('predict.category.trending'),
+              } as TabViewProps)}
               style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.TRENDING_TAB}
             >
@@ -107,7 +97,9 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
 
             <View
               key="new"
-              {...{ tabLabel: strings('predict.category.new') }}
+              {...({
+                tabLabel: strings('predict.category.new'),
+              } as TabViewProps)}
               style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.NEW_TAB}
             >
@@ -119,7 +111,9 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
 
             <View
               key="sports"
-              {...{ tabLabel: strings('predict.category.sports') }}
+              {...({
+                tabLabel: strings('predict.category.sports'),
+              } as TabViewProps)}
               style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.SPORTS_TAB}
             >
@@ -131,7 +125,9 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
 
             <View
               key="crypto"
-              {...{ tabLabel: strings('predict.category.crypto') }}
+              {...({
+                tabLabel: strings('predict.category.crypto'),
+              } as TabViewProps)}
               style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.CRYPTO_TAB}
             >
@@ -143,7 +139,9 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
 
             <View
               key="politics"
-              {...{ tabLabel: strings('predict.category.politics') }}
+              {...({
+                tabLabel: strings('predict.category.politics'),
+              } as TabViewProps)}
               style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.POLITICS_TAB}
             >
@@ -152,7 +150,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
                 scrollCoordinator={scrollCoordinator}
               />
             </View>
-          </ScrollableTabView>
+          </TabsList>
         </Animated.View>
       )}
     </>
