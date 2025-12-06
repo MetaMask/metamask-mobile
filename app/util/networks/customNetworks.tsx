@@ -26,6 +26,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
   'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
   'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
+  'monad-mainnet': () => process.env.QUICKNODE_MONAD_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -166,7 +167,7 @@ export const PopularList = [
     chainId: toHex('143'),
     nickname: 'Monad',
     rpcUrl: `https://monad-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('monad-mainnet'),
     ticker: 'MON',
     warning: true,
     rpcPrefs: {
