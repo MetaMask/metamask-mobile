@@ -26,6 +26,7 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderLeverageReductionFailed',
   [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.insufficientLiquidity',
   [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
+  [PERPS_ERROR_CODES.CONNECTION_LOST]: 'perps.errors.connectionLost',
 };
 
 /**

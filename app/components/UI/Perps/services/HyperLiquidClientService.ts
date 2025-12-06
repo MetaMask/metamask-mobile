@@ -48,6 +48,8 @@ export class HyperLiquidClientService {
   private connectionState: WebSocketConnectionState =
     WebSocketConnectionState.DISCONNECTED;
   private disconnectionPromise: Promise<void> | null = null;
+  private onTerminateCallback: ((error: Error) => void) | null = null;
+  private terminateHandler: ((event: Event) => void) | null = null;
 
   constructor(options: { isTestnet?: boolean } = {}) {
     this.isTestnet = options.isTestnet || false;
@@ -142,6 +144,15 @@ export class HyperLiquidClientService {
       note: 'SDK will auto-select endpoints based on isTestnet flag',
     });
 
+    // Clean up old terminate listener before creating new transport
+    if (this.terminateHandler && this.wsTransport?.socket) {
+      this.wsTransport.socket.removeEventListener(
+        'terminate',
+        this.terminateHandler,
+      );
+      this.terminateHandler = null;
+    }
+
     // HTTP transport for request/response operations (InfoClient, ExchangeClient)
     // SDK automatically selects: mainnet (https://api.hyperliquid.xyz) or testnet (https://api.hyperliquid-testnet.xyz)
     this.httpTransport = new HttpTransport({
@@ -159,6 +170,32 @@ export class HyperLiquidClientService {
         WebSocket, // Use React Native's global WebSocket
       },
     });
+
+    // Listen for WebSocket termination (fired when SDK exhausts all reconnection attempts)
+    // Store handler reference for cleanup on re-initialization
+    this.terminateHandler = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      DevLogger.log('HyperLiquid: WebSocket terminated', {
+        reason: customEvent.detail?.code,
+        timestamp: new Date().toISOString(),
+      });
+
+      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+
+      if (this.onTerminateCallback) {
+        const error =
+          customEvent.detail instanceof Error
+            ? customEvent.detail
+            : new Error(
+                `WebSocket terminated: ${customEvent.detail?.code || 'unknown'}`,
+              );
+        this.onTerminateCallback(error);
+      }
+    };
+    this.wsTransport.socket.addEventListener(
+      'terminate',
+      this.terminateHandler,
+    );
   }
 
   /**
@@ -594,6 +631,15 @@ export class HyperLiquidClientService {
         connectionState: this.connectionState,
       });
 
+      // Clean up terminate listener before closing transport
+      if (this.terminateHandler && this.wsTransport?.socket) {
+        this.wsTransport.socket.removeEventListener(
+          'terminate',
+          this.terminateHandler,
+        );
+        this.terminateHandler = null;
+      }
+
       // Close WebSocket transport only (HTTP is stateless)
       if (this.wsTransport) {
         try {
@@ -642,5 +688,15 @@ export class HyperLiquidClientService {
    */
   public isDisconnected(): boolean {
     return this.connectionState === WebSocketConnectionState.DISCONNECTED;
+  }
+
+  /**
+   * Set callback for WebSocket termination events
+   * Called when the SDK exhausts all reconnection attempts
+   */
+  public setOnTerminateCallback(
+    callback: ((error: Error) => void) | null,
+  ): void {
+    this.onTerminateCallback = callback;
   }
 }

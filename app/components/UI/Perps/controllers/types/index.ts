@@ -912,4 +912,12 @@ export interface IPerpsProvider {
    * @returns Array of DEX names (empty string '' represents main DEX)
    */
   getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
+
+  // Connection lifecycle callbacks
+  /**
+   * Register callback for WebSocket termination events
+   * Called when the provider exhausts all reconnection attempts
+   * @param callback - Function to call on termination, or null to clear
+   */
+  onTerminate?(callback: ((error: Error) => void) | null): void;
 }

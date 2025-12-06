@@ -6356,4 +6356,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       throw error;
     }
   }
+
+  /**
+   * Register callback for WebSocket termination events
+   * Called when the SDK exhausts all reconnection attempts
+   */
+  onTerminate(callback: ((error: Error) => void) | null): void {
+    this.clientService.setOnTerminateCallback(callback);
+  }
 }

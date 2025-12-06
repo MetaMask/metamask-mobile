@@ -21,6 +21,7 @@ export const PERPS_CONSTANTS = {
   // Connection manager timing constants
   BALANCE_UPDATE_THROTTLE_MS: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
   INITIAL_DATA_DELAY_MS: 100, // Delay to allow initial data to load after connection establishment
+  AUTO_RECONNECT_INTERVAL_MS: 30_000, // Auto-reconnect every 30 seconds when WebSocket terminates
 
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
