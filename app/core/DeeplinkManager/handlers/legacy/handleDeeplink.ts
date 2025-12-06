@@ -1,8 +1,8 @@
-import { checkForDeeplink } from '../../actions/user';
-import Logger from '../../util/Logger';
-import { AppStateEventProcessor } from '../AppStateEventListener';
-import ReduxService from '../redux';
-import SDKConnectV2 from '../SDKConnectV2';
+import { checkForDeeplink } from '../../../../actions/user';
+import Logger from '../../../../util/Logger';
+import { AppStateEventProcessor } from '../../../AppStateEventListener';
+import ReduxService from '../../../redux';
+import SDKConnectV2 from '../../../SDKConnectV2';
 
 export function handleDeeplink(opts: { uri?: string }) {
   // This is the earliest JS entry point for deeplinks. We must handle SDKConnectV2

@@ -19,7 +19,7 @@
  */
 
 // Main entry points
-export { handleDeeplink } from './handleDeeplink';
+export { handleDeeplink } from './handlers/legacy/handleDeeplink';
 
 // Core system (new handler-based routing)
 export { UniversalRouter } from './router/UniversalRouter';

@@ -1,14 +1,14 @@
-import { handleDeeplink } from './handleDeeplink';
-import { checkForDeeplink } from '../../actions/user';
-import ReduxService from '../redux';
-import Logger from '../../util/Logger';
-import { AppStateEventProcessor } from '../AppStateEventListener';
+import { handleDeeplink } from '../handleDeeplink';
+import { checkForDeeplink } from '../../../../../actions/user';
+import ReduxService from '../../../../redux';
+import Logger from '../../../../../util/Logger';
+import { AppStateEventProcessor } from '../../../../AppStateEventListener';
 
-jest.mock('../../actions/user', () => ({
+jest.mock('../../../../../actions/user', () => ({
   checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
 }));
 
-jest.mock('../redux', () => ({
+jest.mock('../../../../redux', () => ({
   __esModule: true,
   default: {
     store: {
@@ -17,11 +17,11 @@ jest.mock('../redux', () => ({
   },
 }));
 
-jest.mock('../../util/Logger', () => ({
+jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../AppStateEventListener', () => ({
+jest.mock('../../../../AppStateEventListener', () => ({
   AppStateEventProcessor: {
     setCurrentDeeplink: jest.fn(),
   },

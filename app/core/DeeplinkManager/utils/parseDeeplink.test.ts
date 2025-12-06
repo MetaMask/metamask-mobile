@@ -1,25 +1,25 @@
-import DeeplinkManager from './DeeplinkManager';
-import extractURLParams from './utils/extractURLParams';
-import handleDappUrl from './handlers/legacy/handleDappUrl';
-import handleUniversalLink from './handlers/legacy/handleUniversalLink';
-import connectWithWC from './handlers/legacy/connectWithWC';
+import DeeplinkManager from '../DeeplinkManager';
+import extractURLParams from './extractURLParams';
+import handleDappUrl from '../handlers/legacy/handleDappUrl';
+import handleUniversalLink from '../handlers/legacy/handleUniversalLink';
+import connectWithWC from '../handlers/legacy/connectWithWC';
 import parseDeeplink from './parseDeeplink';
-import handleEthereumUrl from './handlers/legacy/handleEthereumUrl';
+import handleEthereumUrl from '../handlers/legacy/handleEthereumUrl';
 
-jest.mock('../../constants/deeplinks');
-jest.mock('../../util/Logger');
-jest.mock('./DeeplinkManager');
-jest.mock('../SDKConnect/utils/DevLogger');
-jest.mock('./handlers/legacy/handleDappUrl');
-jest.mock('./handlers/legacy/handleUniversalLink');
-jest.mock('./handlers/legacy/connectWithWC');
-jest.mock('./handlers/legacy/handleEthereumUrl');
-jest.mock('../../../locales/i18n', () => ({
+jest.mock('../../../constants/deeplinks');
+jest.mock('../../../util/Logger');
+jest.mock('../DeeplinkManager');
+jest.mock('../../SDKConnect/utils/DevLogger');
+jest.mock('../handlers/legacy/handleDappUrl');
+jest.mock('../handlers/legacy/handleUniversalLink');
+jest.mock('../handlers/legacy/connectWithWC');
+jest.mock('../handlers/legacy/handleEthereumUrl');
+jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
 const invalidUrls = [
-  'htp://incorrect-format-url',
+  'htp://incorrect-format-urls',
   'http://',
   ':invalid-protocol://some-url',
   '',

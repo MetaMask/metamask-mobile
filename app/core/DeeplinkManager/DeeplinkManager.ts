@@ -2,12 +2,12 @@
 
 import { ParseOutput } from 'eth-url-parser';
 import switchNetwork from './handlers/legacy/switchNetwork';
-import parseDeeplink from './parseDeeplink';
+import parseDeeplink from './utils/parseDeeplink';
 import approveTransaction from './utils/approveTransaction';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
-import { handleDeeplink } from './handleDeeplink';
+import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 
 class DeeplinkManager {

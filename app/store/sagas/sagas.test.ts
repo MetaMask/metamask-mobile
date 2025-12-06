@@ -26,7 +26,7 @@ import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkMana
 import Engine from '../../core/Engine';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import branch from 'react-native-branch';
-import { handleDeeplink } from '../../core/DeeplinkManager/handleDeeplink';
+import { handleDeeplink } from '../../core/DeeplinkManager/handlers/legacy/handleDeeplink';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';

@@ -3,22 +3,22 @@ import { waitFor } from '@testing-library/react-native';
 import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
 import DeeplinkManager from './DeeplinkManager';
-import { handleDeeplink } from './handleDeeplink';
+import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import switchNetwork from './handlers/legacy/switchNetwork';
-import parseDeeplink from './parseDeeplink';
+import parseDeeplink from './utils/parseDeeplink';
 import approveTransaction from './utils/approveTransaction';
 
 jest.mock('./utils/approveTransaction');
 jest.mock('./handlers/legacy/handleEthereumUrl');
 jest.mock('./handlers/legacy/handleBrowserUrl');
 jest.mock('./handlers/legacy/handleRampUrl');
-jest.mock('./parseDeeplink');
+jest.mock('./utils/parseDeeplink');
 jest.mock('./handlers/legacy/switchNetwork');
 jest.mock('./handlers/legacy/handleSwapUrl');
 jest.mock('./handlers/legacy/handleCreateAccountUrl');
 jest.mock('./handlers/legacy/handlePerpsUrl');
 jest.mock('./handlers/legacy/handleRewardsUrl');
-jest.mock('./handleDeeplink');
+jest.mock('./handlers/legacy/handleDeeplink');
 jest.mock('./handlers/legacy/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
 
