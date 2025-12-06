@@ -774,77 +774,136 @@ export class HyperLiquidSubscriptionService {
         // HIP-3 disabled: Use webData2 (main DEX only)
         subscriptionClient
           .webData2({ user: userAddress }, (data: WsWebData2Event) => {
-            // webData2 returns clearinghouseState for main DEX only
-            const currentDexName = ''; // Main DEX
+            try {
+              // Log webData2 structure to catch removed fields
+              // eslint-disable-next-line no-console
+              console.log('[HyperLiquid] webData2 received:', {
+                hasClearinghouseState: 'clearinghouseState' in data,
+                hasOpenOrders: 'openOrders' in data,
+                hasPerpsAtOpenInterestCap: 'perpsAtOpenInterestCap' in data,
+                dataKeys: Object.keys(data),
+                clearinghouseState: data.clearinghouseState
+                  ? 'present'
+                  : 'missing',
+                openOrders: data.openOrders ? 'present' : 'missing',
+                perpsAtOpenInterestCap: data.perpsAtOpenInterestCap
+                  ? 'present'
+                  : 'missing',
+              });
 
-            // Extract and process positions from clearinghouseState
-            const positions = data.clearinghouseState.assetPositions
-              .filter((assetPos) => assetPos.position.szi !== '0')
-              .map((assetPos) => adaptPositionFromSDK(assetPos));
+              // webData2 returns clearinghouseState for main DEX only
+              const currentDexName = ''; // Main DEX
 
-            // Extract TP/SL from orders
-            const {
-              tpslMap,
-              tpslCountMap,
-              processedOrders: orders,
-            } = this.extractTPSLFromOrders(data.openOrders || [], positions);
+              // Check for removed fields before accessing
+              if (!data.clearinghouseState) {
+                // eslint-disable-next-line no-console
+                console.log(
+                  '[HyperLiquid] CRITICAL: clearinghouseState missing from webData2',
+                  {
+                    dataKeys: Object.keys(data),
+                    dataStructure: JSON.stringify(data, null, 2),
+                  },
+                );
+                return;
+              }
 
-            // Merge TP/SL data into positions
-            const positionsWithTPSL = this.mergeTPSLIntoPositions(
-              positions,
-              tpslMap,
-              tpslCountMap,
-            );
+              // Extract and process positions from clearinghouseState
+              const positions = data.clearinghouseState.assetPositions
+                .filter((assetPos) => assetPos.position.szi !== '0')
+                .map((assetPos) => adaptPositionFromSDK(assetPos));
 
-            // Extract account data (webData2 provides clearinghouseState)
-            const accountState: AccountState = adaptAccountStateFromSDK(
-              data.clearinghouseState,
-              undefined, // webData2 doesn't include spotState
-            );
+              // Log openOrders access
+              if (!('openOrders' in data)) {
+                // eslint-disable-next-line no-console
+                console.log(
+                  '[HyperLiquid] WARNING: openOrders field missing from webData2, using empty array',
+                );
+              }
 
-            // Store in caches (main DEX only)
-            this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
-            this.dexOrdersCache.set(currentDexName, orders);
-            this.dexAccountCache.set(currentDexName, accountState);
+              // Extract TP/SL from orders
+              const {
+                tpslMap,
+                tpslCountMap,
+                processedOrders: orders,
+              } = this.extractTPSLFromOrders(data.openOrders || [], positions);
 
-            // OI caps (main DEX only)
-            const oiCaps = data.perpsAtOpenInterestCap || [];
-            const oiCapsHash = [...oiCaps]
-              .sort((a: string, b: string) => a.localeCompare(b))
-              .join(',');
-            if (oiCapsHash !== this.cachedOICapsHash) {
-              this.cachedOICaps = oiCaps;
-              this.cachedOICapsHash = oiCapsHash;
-              this.oiCapsCacheInitialized = true;
-              this.oiCapSubscribers.forEach((callback) => callback(oiCaps));
-            }
-
-            // Notify subscribers (no aggregation needed - only main DEX)
-            const positionsHash = this.hashPositions(positionsWithTPSL);
-            const ordersHash = this.hashOrders(orders);
-            const accountHash = this.hashAccountState(accountState);
-
-            if (positionsHash !== this.cachedPositionsHash) {
-              this.cachedPositions = positionsWithTPSL;
-              this.cachedPositionsHash = positionsHash;
-              this.positionsCacheInitialized = true;
-              this.positionSubscribers.forEach((callback) =>
-                callback(positionsWithTPSL),
+              // Merge TP/SL data into positions
+              const positionsWithTPSL = this.mergeTPSLIntoPositions(
+                positions,
+                tpslMap,
+                tpslCountMap,
               );
-            }
 
-            if (ordersHash !== this.cachedOrdersHash) {
-              this.cachedOrders = orders;
-              this.cachedOrdersHash = ordersHash;
-              this.ordersCacheInitialized = true;
-              this.orderSubscribers.forEach((callback) => callback(orders));
-            }
+              // Extract account data (webData2 provides clearinghouseState)
+              const accountState: AccountState = adaptAccountStateFromSDK(
+                data.clearinghouseState,
+                undefined, // webData2 doesn't include spotState
+              );
 
-            if (accountHash !== this.cachedAccountHash) {
-              this.cachedAccount = accountState;
-              this.cachedAccountHash = accountHash;
-              this.accountSubscribers.forEach((callback) =>
-                callback(accountState),
+              // Store in caches (main DEX only)
+              this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
+              this.dexOrdersCache.set(currentDexName, orders);
+              this.dexAccountCache.set(currentDexName, accountState);
+
+              // OI caps (main DEX only)
+              if (!('perpsAtOpenInterestCap' in data)) {
+                // eslint-disable-next-line no-console
+                console.log(
+                  '[HyperLiquid] WARNING: perpsAtOpenInterestCap field missing from webData2, using empty array',
+                );
+              }
+              const oiCaps = data.perpsAtOpenInterestCap || [];
+              const oiCapsHash = [...oiCaps]
+                .sort((a: string, b: string) => a.localeCompare(b))
+                .join(',');
+              if (oiCapsHash !== this.cachedOICapsHash) {
+                this.cachedOICaps = oiCaps;
+                this.cachedOICapsHash = oiCapsHash;
+                this.oiCapsCacheInitialized = true;
+                this.oiCapSubscribers.forEach((callback) => callback(oiCaps));
+              }
+
+              // Notify subscribers (no aggregation needed - only main DEX)
+              const positionsHash = this.hashPositions(positionsWithTPSL);
+              const ordersHash = this.hashOrders(orders);
+              const accountHash = this.hashAccountState(accountState);
+
+              if (positionsHash !== this.cachedPositionsHash) {
+                this.cachedPositions = positionsWithTPSL;
+                this.cachedPositionsHash = positionsHash;
+                this.positionsCacheInitialized = true;
+                this.positionSubscribers.forEach((callback) =>
+                  callback(positionsWithTPSL),
+                );
+              }
+
+              if (ordersHash !== this.cachedOrdersHash) {
+                this.cachedOrders = orders;
+                this.cachedOrdersHash = ordersHash;
+                this.ordersCacheInitialized = true;
+                this.orderSubscribers.forEach((callback) => callback(orders));
+              }
+
+              if (accountHash !== this.cachedAccountHash) {
+                this.cachedAccount = accountState;
+                this.cachedAccountHash = accountHash;
+                this.accountSubscribers.forEach((callback) =>
+                  callback(accountState),
+                );
+              }
+            } catch (error) {
+              // eslint-disable-next-line no-console
+              console.log(
+                '[HyperLiquid] ERROR in webData2 callback - field access failed:',
+                {
+                  error: ensureError(error),
+                  user: userAddress,
+                  dataKeys: data ? Object.keys(data) : 'data is null/undefined',
+                  hasClearinghouseState: data?.clearinghouseState !== undefined,
+                  hasOpenOrders: data?.openOrders !== undefined,
+                  hasPerpsAtOpenInterestCap:
+                    data?.perpsAtOpenInterestCap !== undefined,
+                },
               );
             }
           })
@@ -868,152 +927,234 @@ export class HyperLiquidSubscriptionService {
         // HIP-3 enabled: Use webData3 (main + HIP-3 DEXs)
         subscriptionClient
           .webData3({ user: userAddress }, (data: WsWebData3Event) => {
-            // Process data from each DEX in perpDexStates array
-            // webData3 returns data for ALL protocol DEXs, but we only process the ones we care about
-            data.perpDexStates.forEach((dexState, index) => {
-              // Map webData3 index to DEX name
-              // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
-              const dexIdentifier =
-                index === 0 ? null : this.discoveredDexNames[index - 1];
+            try {
+              // Log webData3 structure to catch removed fields
+              // eslint-disable-next-line no-console
+              console.log('[HyperLiquid] webData3 received:', {
+                hasPerpDexStates: 'perpDexStates' in data,
+                perpDexStatesLength: data.perpDexStates?.length ?? 0,
+                dataKeys: Object.keys(data),
+                firstDexStateKeys: data.perpDexStates?.[0]
+                  ? Object.keys(data.perpDexStates[0])
+                  : [],
+              });
 
-              // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
-              if (index > 0 && dexIdentifier === undefined) {
-                return; // Unknown DEX - skip to prevent misidentifying as main DEX
-              }
+              // Process data from each DEX in perpDexStates array
+              // webData3 returns data for ALL protocol DEXs, but we only process the ones we care about
+              data.perpDexStates.forEach((dexState, index) => {
+                // Map webData3 index to DEX name
+                // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
+                const dexIdentifier =
+                  index === 0 ? null : this.discoveredDexNames[index - 1];
 
-              // Only process DEXs we care about (skip others silently)
-              // webData3 API returns all protocol DEXs regardless of our config
-              if (!this.isDexEnabled(dexIdentifier ?? null)) {
-                return; // Skip this DEX - not enabled in our configuration
-              }
+                // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
+                if (index > 0 && dexIdentifier === undefined) {
+                  return; // Unknown DEX - skip to prevent misidentifying as main DEX
+                }
 
-              const currentDexName = dexIdentifier ?? ''; // null -> '' for Map keys
+                // Only process DEXs we care about (skip others silently)
+                // webData3 API returns all protocol DEXs regardless of our config
+                if (!this.isDexEnabled(dexIdentifier ?? null)) {
+                  return; // Skip this DEX - not enabled in our configuration
+                }
 
-              // Extract and process positions for this DEX
-              const positions = dexState.clearinghouseState.assetPositions
-                .filter((assetPos) => assetPos.position.szi !== '0')
-                .map((assetPos) => adaptPositionFromSDK(assetPos));
+                const currentDexName = dexIdentifier ?? ''; // null -> '' for Map keys
 
-              // Extract TP/SL from orders and process orders using shared helper
-              const {
-                tpslMap,
-                tpslCountMap,
-                processedOrders: orders,
-              } = this.extractTPSLFromOrders(
-                dexState.openOrders || [],
-                positions,
-              );
+                // Log dexState structure for first DEX to catch removed fields
+                if (index === 0) {
+                  // eslint-disable-next-line no-console
+                  console.log('[HyperLiquid] webData3 dexState[0] structure:', {
+                    hasClearinghouseState: 'clearinghouseState' in dexState,
+                    hasOpenOrders: 'openOrders' in dexState,
+                    hasPerpsAtOpenInterestCap:
+                      'perpsAtOpenInterestCap' in dexState,
+                    dexStateKeys: Object.keys(dexState),
+                    clearinghouseState: dexState.clearinghouseState
+                      ? 'present'
+                      : 'missing',
+                    openOrders: dexState.openOrders ? 'present' : 'missing',
+                    perpsAtOpenInterestCap: dexState.perpsAtOpenInterestCap
+                      ? 'present'
+                      : 'missing',
+                  });
+                }
 
-              // Merge TP/SL data into positions using shared helper
-              const positionsWithTPSL = this.mergeTPSLIntoPositions(
-                positions,
-                tpslMap,
-                tpslCountMap,
-              );
+                // Check for removed fields before accessing
+                if (!dexState.clearinghouseState) {
+                  // eslint-disable-next-line no-console
+                  console.log(
+                    '[HyperLiquid] CRITICAL: clearinghouseState missing from webData3.perpDexStates',
+                    {
+                      index,
+                      dexName: currentDexName,
+                      dexStateKeys: Object.keys(dexState),
+                      dexStateStructure: JSON.stringify(dexState, null, 2),
+                    },
+                  );
+                  return;
+                }
 
-              // Extract account data for this DEX
-              // Note: spotState is not included in webData3
-              const accountState: AccountState = adaptAccountStateFromSDK(
-                dexState.clearinghouseState,
-                undefined, // webData3 doesn't include spotState
-              );
+                // Extract and process positions for this DEX
+                const positions = dexState.clearinghouseState.assetPositions
+                  .filter((assetPos) => assetPos.position.szi !== '0')
+                  .map((assetPos) => adaptPositionFromSDK(assetPos));
 
-              // Store per-DEX data in caches
-              this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
-              this.dexOrdersCache.set(currentDexName, orders);
-              this.dexAccountCache.set(currentDexName, accountState);
-            });
+                // Log openOrders access
+                if (!('openOrders' in dexState)) {
+                  // eslint-disable-next-line no-console
+                  console.log(
+                    `[HyperLiquid] WARNING: openOrders field missing from webData3.perpDexStates[${index}] (dex: ${currentDexName})`,
+                  );
+                }
 
-            // Extract OI caps from all DEXs (main + HIP-3)
-            const allOICaps: string[] = [];
-            data.perpDexStates.forEach((dexState, index) => {
-              // Map webData3 index to DEX name
-              // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
-              const dexIdentifier =
-                index === 0 ? null : this.discoveredDexNames[index - 1];
-
-              // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
-              if (index > 0 && dexIdentifier === undefined) {
-                return; // Unknown DEX - skip to prevent misidentifying as main DEX
-              }
-
-              // Only process DEXs we care about (skip others silently)
-              if (!this.isDexEnabled(dexIdentifier ?? null)) {
-                return; // Skip this DEX - not enabled in our configuration
-              }
-
-              const currentDexName = dexIdentifier ?? '';
-              const oiCaps = dexState.perpsAtOpenInterestCap || [];
-
-              // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
-              if (currentDexName) {
-                allOICaps.push(
-                  ...oiCaps.map((symbol) => `${currentDexName}:${symbol}`),
+                // Extract TP/SL from orders and process orders using shared helper
+                const {
+                  tpslMap,
+                  tpslCountMap,
+                  processedOrders: orders,
+                } = this.extractTPSLFromOrders(
+                  dexState.openOrders || [],
+                  positions,
                 );
-              } else {
-                // Main DEX - no prefix needed
-                allOICaps.push(...oiCaps);
+
+                // Merge TP/SL data into positions using shared helper
+                const positionsWithTPSL = this.mergeTPSLIntoPositions(
+                  positions,
+                  tpslMap,
+                  tpslCountMap,
+                );
+
+                // Extract account data for this DEX
+                // Note: spotState is not included in webData3
+                const accountState: AccountState = adaptAccountStateFromSDK(
+                  dexState.clearinghouseState,
+                  undefined, // webData3 doesn't include spotState
+                );
+
+                // Store per-DEX data in caches
+                this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
+                this.dexOrdersCache.set(currentDexName, orders);
+                this.dexAccountCache.set(currentDexName, accountState);
+              });
+
+              // Extract OI caps from all DEXs (main + HIP-3)
+              const allOICaps: string[] = [];
+              data.perpDexStates.forEach((dexState, index) => {
+                // Map webData3 index to DEX name
+                // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
+                const dexIdentifier =
+                  index === 0 ? null : this.discoveredDexNames[index - 1];
+
+                // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
+                if (index > 0 && dexIdentifier === undefined) {
+                  return; // Unknown DEX - skip to prevent misidentifying as main DEX
+                }
+
+                // Only process DEXs we care about (skip others silently)
+                if (!this.isDexEnabled(dexIdentifier ?? null)) {
+                  return; // Skip this DEX - not enabled in our configuration
+                }
+
+                const currentDexName = dexIdentifier ?? '';
+
+                // Log perpsAtOpenInterestCap access
+                if (!('perpsAtOpenInterestCap' in dexState)) {
+                  // eslint-disable-next-line no-console
+                  console.log(
+                    `[HyperLiquid] WARNING: perpsAtOpenInterestCap field missing from webData3.perpDexStates[${index}] (dex: ${currentDexName})`,
+                  );
+                }
+
+                const oiCaps = dexState.perpsAtOpenInterestCap || [];
+
+                // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
+                if (currentDexName) {
+                  allOICaps.push(
+                    ...oiCaps.map((symbol) => `${currentDexName}:${symbol}`),
+                  );
+                } else {
+                  // Main DEX - no prefix needed
+                  allOICaps.push(...oiCaps);
+                }
+              });
+
+              // Update OI caps cache and notify if changed
+              const oiCapsHash = [...allOICaps]
+                .sort((a: string, b: string) => a.localeCompare(b))
+                .join(',');
+              if (oiCapsHash !== this.cachedOICapsHash) {
+                this.cachedOICaps = allOICaps;
+                this.cachedOICapsHash = oiCapsHash;
+                this.oiCapsCacheInitialized = true;
+
+                // Notify all subscribers
+                this.oiCapSubscribers.forEach((callback) =>
+                  callback(allOICaps),
+                );
               }
-            });
 
-            // Update OI caps cache and notify if changed
-            const oiCapsHash = [...allOICaps]
-              .sort((a: string, b: string) => a.localeCompare(b))
-              .join(',');
-            if (oiCapsHash !== this.cachedOICapsHash) {
-              this.cachedOICaps = allOICaps;
-              this.cachedOICapsHash = oiCapsHash;
-              this.oiCapsCacheInitialized = true;
+              // Aggregate data from all DEX caches
+              const aggregatedPositions = Array.from(
+                this.dexPositionsCache.values(),
+              ).flat();
 
-              // Notify all subscribers
-              this.oiCapSubscribers.forEach((callback) => callback(allOICaps));
-            }
+              const aggregatedOrders = Array.from(
+                this.dexOrdersCache.values(),
+              ).flat();
 
-            // Aggregate data from all DEX caches
-            const aggregatedPositions = Array.from(
-              this.dexPositionsCache.values(),
-            ).flat();
+              const aggregatedAccount = this.aggregateAccountStates();
 
-            const aggregatedOrders = Array.from(
-              this.dexOrdersCache.values(),
-            ).flat();
+              // Check if aggregated data changed using fast hash comparison
+              const positionsHash = this.hashPositions(aggregatedPositions);
+              const ordersHash = this.hashOrders(aggregatedOrders);
+              const accountHash = this.hashAccountState(aggregatedAccount);
 
-            const aggregatedAccount = this.aggregateAccountStates();
+              const positionsChanged =
+                positionsHash !== this.cachedPositionsHash;
+              const ordersChanged = ordersHash !== this.cachedOrdersHash;
+              const accountChanged = accountHash !== this.cachedAccountHash;
 
-            // Check if aggregated data changed using fast hash comparison
-            const positionsHash = this.hashPositions(aggregatedPositions);
-            const ordersHash = this.hashOrders(aggregatedOrders);
-            const accountHash = this.hashAccountState(aggregatedAccount);
+              // Only notify subscribers if aggregated data changed
+              if (positionsChanged) {
+                this.cachedPositions = aggregatedPositions;
+                this.cachedPositionsHash = positionsHash;
+                this.positionsCacheInitialized = true; // Mark cache as initialized
+                this.positionSubscribers.forEach((callback) => {
+                  callback(aggregatedPositions);
+                });
+              }
 
-            const positionsChanged = positionsHash !== this.cachedPositionsHash;
-            const ordersChanged = ordersHash !== this.cachedOrdersHash;
-            const accountChanged = accountHash !== this.cachedAccountHash;
+              if (ordersChanged) {
+                this.cachedOrders = aggregatedOrders;
+                this.cachedOrdersHash = ordersHash;
+                this.ordersCacheInitialized = true; // Mark cache as initialized
+                this.orderSubscribers.forEach((callback) => {
+                  callback(aggregatedOrders);
+                });
+              }
 
-            // Only notify subscribers if aggregated data changed
-            if (positionsChanged) {
-              this.cachedPositions = aggregatedPositions;
-              this.cachedPositionsHash = positionsHash;
-              this.positionsCacheInitialized = true; // Mark cache as initialized
-              this.positionSubscribers.forEach((callback) => {
-                callback(aggregatedPositions);
-              });
-            }
-
-            if (ordersChanged) {
-              this.cachedOrders = aggregatedOrders;
-              this.cachedOrdersHash = ordersHash;
-              this.ordersCacheInitialized = true; // Mark cache as initialized
-              this.orderSubscribers.forEach((callback) => {
-                callback(aggregatedOrders);
-              });
-            }
-
-            if (accountChanged) {
-              this.cachedAccount = aggregatedAccount;
-              this.cachedAccountHash = accountHash;
-              this.accountSubscribers.forEach((callback) => {
-                callback(aggregatedAccount);
-              });
+              if (accountChanged) {
+                this.cachedAccount = aggregatedAccount;
+                this.cachedAccountHash = accountHash;
+                this.accountSubscribers.forEach((callback) => {
+                  callback(aggregatedAccount);
+                });
+              }
+            } catch (error) {
+              // eslint-disable-next-line no-console
+              console.log(
+                '[HyperLiquid] ERROR in webData3 callback - field access failed:',
+                {
+                  error: ensureError(error),
+                  user: userAddress,
+                  hasPerpDexStates: data?.perpDexStates !== undefined,
+                  perpDexStatesLength: data?.perpDexStates?.length ?? 0,
+                  dataKeys: data ? Object.keys(data) : 'data is null/undefined',
+                  firstDexStateKeys: data?.perpDexStates?.[0]
+                    ? Object.keys(data.perpDexStates[0])
+                    : [],
+                },
+              );
             }
           })
           .then((sub) => {
