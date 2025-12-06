@@ -5,6 +5,7 @@
 
 #import <RNBranch/RNBranch.h>
 #import <Firebase.h>
+#import <IntercomModule.h>
 
 
 @implementation AppDelegate
@@ -30,6 +31,20 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
+
+  // Initialize Intercom SDK (beta only, privacy-first)
+  // SDK loads but no user data sent until they click the support button
+  NSString *intercomEnabled = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"intercom_enabled"];
+  NSString *metamaskEnvironment = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"metamask_environment"];
+  
+  if ([intercomEnabled isEqualToString:@"true"] && [metamaskEnvironment isEqualToString:@"beta"]) {
+    NSString *apiKey = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"intercom_api_key"];
+    NSString *appId = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"intercom_app_id"];
+    
+    if (apiKey && appId && apiKey.length > 0 && appId.length > 0) {
+      [IntercomModule initialize:apiKey withAppId:appId];
+    }
+  }
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }

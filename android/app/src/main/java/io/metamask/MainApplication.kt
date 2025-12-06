@@ -30,6 +30,7 @@ import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativesdk.NativeSDKPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
+import com.intercom.reactnative.IntercomModule
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -72,6 +73,17 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+        
+        // Initialize Intercom SDK (beta only, privacy-first)
+        // SDK loads but no user data sent until they click the support button
+        if (BuildConfig.MM_INTERCOM_ENABLED == "true" && BuildConfig.METAMASK_ENVIRONMENT == "beta") {
+            val apiKey = BuildConfig.MM_INTERCOM_API_KEY_ANDROID
+            val appId = BuildConfig.MM_INTERCOM_APP_ID
+            
+            if (apiKey.isNotEmpty() && appId.isNotEmpty()) {
+                IntercomModule.initialize(this, apiKey, appId)
+            }
+        }
         
         // Initialize Branch
         RNBranchModule.getAutoInstance(this)
