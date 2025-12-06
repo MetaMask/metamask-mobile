@@ -493,7 +493,7 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 
   // ROE (Return on Equity) threshold (percentage)
   // Shows "Set stop loss" banner when ROE drops below this value
-  ROE_THRESHOLD: -20,
+  ROE_THRESHOLD: -10,
 
   // Debounce duration for ROE threshold (milliseconds)
   // User must have ROE below threshold for this duration before showing banner
