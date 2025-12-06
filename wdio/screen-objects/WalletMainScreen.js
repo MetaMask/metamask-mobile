@@ -284,6 +284,55 @@ class WalletMainScreen {
     }
   }
 
+  async getTotalBalanceText() {
+    if (!this._device) {
+      return await this.totalBalanceText;
+    } else {
+      const balanceContainer = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
+      console.log('balanceContainer', balanceContainer);
+      const balanceContainerText = await balanceContainer.getText();
+      console.log('balanceContainer text', balanceContainerText);
+
+      return balanceContainerText;
+    }
+  }
+
+  async waitForBalanceToStabilize(options = {}) {
+    const { 
+      maxWaitTime = 60000,         // 1 minute timeout
+      pollInterval = 100, 
+      sameResultTimeout = 20000    // 20 seconds with the same result = stable
+    } = options;
+
+    const startTime = Date.now();
+    let previousBalance = '';
+    let sameResultStartTime = null;
+
+    while (true) {
+      // Check if we exceeded the maximum wait time (1 minute)
+      if (Date.now() - startTime > maxWaitTime) {
+        console.log(`Max wait time (${maxWaitTime}ms) exceeded - returning current balance`);
+        return previousBalance;
+      }
+
+      const currentBalance = await this.getTotalBalanceText();
+
+      if (currentBalance === previousBalance && previousBalance !== '') {
+        // Same result - check if 20 seconds have passed
+        const timeSinceSameResult = Date.now() - sameResultStartTime;
+        
+        if (timeSinceSameResult >= sameResultTimeout) {
+          return currentBalance;
+        }
+      } else {
+        sameResultStartTime = Date.now();
+        previousBalance = currentBalance;
+      }
+
+      await AppwrightGestures.wait(pollInterval);
+    }
+  }
+
   async isSubmittedNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
