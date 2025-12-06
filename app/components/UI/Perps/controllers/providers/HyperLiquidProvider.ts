@@ -4611,6 +4611,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
                 dexParam ? { dex: dexParam } : undefined,
               );
               assetCtxs = metaAndCtxs?.[1] || [];
+              // Cache assetCtxs for future calls
+              this.subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
             }
           } else {
             // Cache miss - fetch and populate cache for buildAssetMapping to reuse
@@ -4627,6 +4629,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
             if (meta?.universe) {
               this.cachedMetaByDex.set(dexKey, meta);
               this.subscriptionService.setDexMetaCache(dexKey, meta);
+              // Also cache assetCtxs for consistency with buildAssetMapping
+              this.subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
               DevLogger.log(
                 `[getMarketDataWithPrices] Cached meta for ${dex || 'main'}`,
                 { universeSize: meta.universe.length },
