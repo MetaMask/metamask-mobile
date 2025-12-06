@@ -801,10 +801,10 @@ export class HyperLiquidSubscriptionService {
                   new Error(
                     '[HyperLiquid] CRITICAL: clearinghouseState missing from webData2',
                   ),
-                  this.getErrorContext('webData2 missing clearinghouseState', {
-                    dataKeys: Object.keys(data),
-                    dataStructure: JSON.stringify(data, null, 2),
-                  }),
+                  this.getErrorContext(
+                    'webData2 missing clearinghouseState',
+                    {},
+                  ),
                 );
                 return;
               }
