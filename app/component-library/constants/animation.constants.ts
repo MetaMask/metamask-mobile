@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 /**
- * Animation Tokens in miliseconds.
+ * Animation Tokens is miliseconds.
  */
 export enum AnimationDuration {
   Instantly = 0,
