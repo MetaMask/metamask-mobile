@@ -49,6 +49,7 @@ import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
+import { PlatformDetector } from '../PlatformLocator';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -403,7 +404,7 @@ export const loadFixture = async (
 
   // Update dapp URLs and mock server URLs with actual allocated ports (iOS only)
   // On Android, fixture uses fallback ports which are mapped via adb reverse
-  if (device.getPlatform() === 'ios') {
+  if (await PlatformDetector.isIOS()) {
     state = updateDappUrlsWithAllocatedPorts(state);
     state = updateMockServerUrlsInFixture(state);
   }
