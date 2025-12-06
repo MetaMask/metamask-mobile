@@ -184,13 +184,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   };
 
   const renderPositionsSection = () => {
-    if (isInitialLoading) {
-      // Removed loading state as it was redundant to the first loading state and only appeared for very little time
-      return (
-        <Skeleton height={30} width="100%" style={styles.loadingContainer} />
-      );
-    }
-
     if (positions.length === 0) {
       return null;
     }
@@ -264,6 +257,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             </View>
           ) : (
             <View style={styles.tradeInfoContainer}>
+              <Text>Hello</Text>
               <View>{renderPositionsSection()}</View>
               <View>{renderOrdersSection()}</View>
             </View>

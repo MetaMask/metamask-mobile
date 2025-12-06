@@ -1045,17 +1045,23 @@ export class PerpsController extends BaseController<
     }
 
     this.isInitialized = false;
+    // Ensure initializationError is never undefined - use null or a default string
+    const errorMessage = lastError?.message ?? 'Unknown error';
     this.update((state) => {
       state.initializationState = InitializationState.FAILED;
-      state.initializationError = lastError?.message ?? 'Unknown error';
+      state.initializationError = errorMessage;
     });
     this.initializationPromise = null; // Clear promise to allow retry
 
     DevLogger.log('PerpsController: Initialization failed', {
-      error: lastError?.message,
+      error: errorMessage,
       attempts: maxAttempts,
       timestamp: new Date().toISOString(),
     });
+
+    // Throw error to signal initialization failure to callers
+    // This ensures PerpsConnectionManager can properly detect and handle failures
+    throw lastError || new Error(errorMessage);
   }
 
   /**
@@ -1142,9 +1148,12 @@ export class PerpsController extends BaseController<
       this.state.initializationState !== InitializationState.INITIALIZED ||
       !this.isInitialized
     ) {
+      // Ensure initializationError is never undefined - use null coalescing with fallback
+      const initializationError =
+        this.state.initializationError ?? 'Initialization failed';
       const errorMessage =
         this.state.initializationState === InitializationState.FAILED
-          ? `${PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED}: ${this.state.initializationError || 'Initialization failed'}`
+          ? `${PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED}: ${initializationError}`
           : PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
 
       this.update((state) => {

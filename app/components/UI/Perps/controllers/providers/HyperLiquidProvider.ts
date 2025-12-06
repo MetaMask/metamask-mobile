@@ -132,6 +132,7 @@ import type {
   ExtendedAssetMeta,
   ExtendedPerpDex,
 } from '../../types/perps-types';
+import { Alert } from 'react-native';
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
 interface GetAssetInfoParams {
@@ -5943,11 +5944,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async ping(timeoutMs?: number): Promise<void> {
     // Read-only operation: only need client initialization
+    await awaitAlert('pingStart');
     this.ensureClientsInitialized();
     this.clientService.ensureInitialized();
-
+    await awaitAlert('pingEnsureInitialized');
     const subscriptionClient = this.clientService.getSubscriptionClient();
+    await awaitAlert('pingSubscriptionClient');
     if (!subscriptionClient) {
+      await awaitAlert('pingSubscriptionClientNotFound');
       throw new Error('Subscription client not initialized');
     }
 
@@ -5972,6 +5976,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       DevLogger.log('HyperLiquid: WebSocket health check ping succeeded');
     } catch (error) {
+      await awaitAlert('pingError', String(error));
       // Check if we timed out first
       if (didTimeout) {
         DevLogger.log(
@@ -6251,3 +6256,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
   }
 }
+const awaitAlert = async (message: string) => {
+  return new Promise((resolve) => {
+    Alert.alert(message, resolve);
+  });
+};

@@ -38,10 +38,10 @@ const PerpsTabViewWithProvider: React.FC<PerpsTabViewWithProviderProps> = (
   }, [onVisibilityChange]);
 
   return (
-    <PerpsConnectionProvider isVisible={isVisible}>
-      <PerpsStreamProvider>
-        <PerpsStreamBridge />
-        <PerpsTabView {...props} />
+    <PerpsConnectionProvider isVisible={isVisible} key={isVisible.toString()}>
+      <PerpsStreamProvider key={isVisible.toString()}>
+        <PerpsStreamBridge key={isVisible.toString()} />
+        <PerpsTabView {...props} key={isVisible.toString()} />
       </PerpsStreamProvider>
     </PerpsConnectionProvider>
   );

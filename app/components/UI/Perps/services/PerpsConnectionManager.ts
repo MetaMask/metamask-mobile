@@ -23,6 +23,18 @@ import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../utils/perpsErrorHandler';
 import { wait } from '../utils/wait';
+import { Alert } from 'react-native';
+
+/**
+ * Display an alert and wait for user to dismiss it
+ * @param title - Alert title
+ * @param body - Alert body/message (optional, defaults to empty string)
+ * @returns Promise that resolves when alert is dismissed
+ */
+const awaitAlert = async (title: string, body?: string): Promise<void> =>
+  new Promise((resolve) => {
+    Alert.alert(title, body || '', [{ text: 'OK', onPress: () => resolve() }]);
+  });
 
 /**
  * Singleton manager for Perps connection state
@@ -49,6 +61,7 @@ class PerpsConnectionManagerClass {
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+  private connectionTimeoutId: number = 0;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -185,6 +198,8 @@ class PerpsConnectionManagerClass {
     if (this.connectionTimeoutRef) {
       clearTimeout(this.connectionTimeoutRef);
       this.connectionTimeoutRef = null;
+      // Increment timeout ID to invalidate any pending timeout callbacks
+      this.connectionTimeoutId++;
       DevLogger.log('PerpsConnectionManager: Connection timeout cleared');
     }
   }
@@ -198,13 +213,24 @@ class PerpsConnectionManagerClass {
     this.clearConnectionTimeout();
 
     const timeoutMs = PERPS_CONSTANTS.CONNECTION_ATTEMPT_TIMEOUT_MS;
+    // Increment timeout ID to track this specific timeout attempt
+    const currentTimeoutId = ++this.connectionTimeoutId;
     DevLogger.log(
-      `PerpsConnectionManager: Starting ${timeoutMs}ms connection timeout`,
+      `PerpsConnectionManager: Starting ${timeoutMs}ms connection timeout (id: ${currentTimeoutId})`,
     );
 
     this.connectionTimeoutRef = setTimeout(() => {
+      // Only execute timeout callback if this is still the active timeout
+      // This prevents stale timeouts from interfering with new reconnection attempts
+      if (this.connectionTimeoutId !== currentTimeoutId) {
+        DevLogger.log(
+          `PerpsConnectionManager: Timeout callback ignored - timeout was cleared (id: ${currentTimeoutId}, current: ${this.connectionTimeoutId})`,
+        );
+        return;
+      }
+
       DevLogger.log(
-        `PerpsConnectionManager: Connection timeout after ${timeoutMs}ms`,
+        `PerpsConnectionManager: Connection timeout after ${timeoutMs}ms (id: ${currentTimeoutId})`,
       );
       this.isConnecting = false;
       this.isConnected = false;
@@ -435,6 +461,18 @@ class PerpsConnectionManagerClass {
         // Stage 1: Initialize providers
         const initStart = performance.now();
         await Engine.context.PerpsController.init();
+
+        // Verify that controller is actually initialized before proceeding
+        // This prevents issues where init() resolves but initialization actually failed
+        // (Even though init() now throws on failure, this provides an extra safety check)
+        const controllerState = Engine.context.PerpsController.state;
+        if (controllerState.initializationState !== 'initialized') {
+          const errorMessage =
+            controllerState.initializationError ||
+            PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
+          throw new Error(errorMessage);
+        }
+
         this.isInitialized = true;
         setMeasurement(
           PerpsMeasurementName.PERPS_PROVIDER_INIT,
@@ -540,6 +578,10 @@ class PerpsConnectionManagerClass {
         // Clear connection timeout on error
         this.clearConnectionTimeout();
 
+        // Clear initPromise immediately on failure to allow retry
+        // This prevents returning a failed promise on subsequent connect() calls
+        this.initPromise = null;
+
         // Capture exception with connection context
         captureException(
           error instanceof Error ? error : new Error(String(error)),
@@ -593,6 +635,8 @@ class PerpsConnectionManagerClass {
    */
   async reconnectWithNewContext(options?: ReconnectOptions): Promise<void> {
     const force = options?.force ?? false;
+    await awaitAlert('reconnectWithNewContext', JSON.stringify({ force }));
+    this.pendingReconnectPromise = null;
 
     if (force) {
       // Force mode: Cancel all pending operations and start fresh
@@ -606,9 +650,43 @@ class PerpsConnectionManagerClass {
       // Clear connection timeout if active
       this.clearConnectionTimeout();
 
+      // Wait for any existing reconnection to complete before starting a new one
+      // This prevents race conditions where the old reconnection updates state
+      // after we've already started a new reconnection
+      const oldReconnectPromise = this.pendingReconnectPromise;
+      if (oldReconnectPromise) {
+        DevLogger.log(
+          'PerpsConnectionManager: Waiting for existing reconnection to complete before force reconnect',
+        );
+        // Wait for old reconnection but don't let its errors affect us
+        // Use a reasonable timeout (5 seconds) to prevent hanging if the old reconnection is stuck
+        // This is shorter than the full connection timeout since we want to be responsive in force mode
+        const FORCE_RECONNECT_WAIT_TIMEOUT_MS = 5000;
+        await awaitAlert(
+          'FORCE_RECONNECT_WAIT_TIMEOUT_MS',
+          String(FORCE_RECONNECT_WAIT_TIMEOUT_MS),
+        );
+        try {
+          await Promise.race([
+            oldReconnectPromise,
+            wait(FORCE_RECONNECT_WAIT_TIMEOUT_MS),
+          ]);
+          DevLogger.log(
+            'PerpsConnectionManager: Old reconnection completed or timed out, proceeding with force reconnect',
+          );
+        } catch (error) {
+          // Ignore errors from the old reconnection - we're forcing a new one anyway
+          DevLogger.log(
+            'PerpsConnectionManager: Old reconnection completed with error (ignored in force mode)',
+            error,
+          );
+        }
+      }
+
       // Clear all pending promises to cancel in-flight operations
       // Note: Actual disconnect happens in performReconnection → Controller.init → performInitialization
-      this.isConnecting = false;
+      // Note: Don't set isConnecting = false here - let performReconnection() manage it to avoid race conditions
+      // with any existing reconnection that might still be running
       this.initPromise = null;
       this.pendingReconnectPromise = null;
     } else {
@@ -633,8 +711,15 @@ class PerpsConnectionManagerClass {
     // Create a new reconnection promise
     this.pendingReconnectPromise = this.performReconnection();
 
+    await awaitAlert(
+      'pendingReconnectPromise',
+      String(this.pendingReconnectPromise),
+    );
     try {
       await this.pendingReconnectPromise;
+    } catch (error) {
+      await awaitAlert('Reconnection Failed', String(error));
+      throw error;
     } finally {
       this.pendingReconnectPromise = null;
     }
@@ -647,6 +732,7 @@ class PerpsConnectionManagerClass {
     const traceId = uuidv4();
     const reconnectionStartTime = performance.now();
     let traceData: Record<string, string | number | boolean> | undefined;
+    await awaitAlert('performReconnection');
 
     DevLogger.log(
       'PerpsConnectionManager: Reconnecting with new account/network context',
@@ -677,6 +763,7 @@ class PerpsConnectionManagerClass {
       streamManager.account.clearCache();
       streamManager.marketData.clearCache();
       streamManager.oiCaps.clearCache();
+      await awaitAlert('cleanupPreloadedSubscriptions');
       setMeasurement(
         PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
         performance.now() - cleanupStart,
@@ -693,7 +780,9 @@ class PerpsConnectionManagerClass {
 
       // Stage 2: Force the controller to reinitialize with new context
       const reinitStart = performance.now();
+      await awaitAlert('reinitStart');
       await Engine.context.PerpsController.init();
+      await awaitAlert('reinitEnd');
       setMeasurement(
         PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
         performance.now() - reinitStart,
@@ -714,7 +803,9 @@ class PerpsConnectionManagerClass {
       );
       const healthCheckStart = performance.now();
       const provider = Engine.context.PerpsController.getActiveProvider();
+      await awaitAlert('provider.pingStart');
       await provider.ping();
+      await awaitAlert('provider.pingEnd');
       setMeasurement(
         PerpsMeasurementName.PERPS_RECONNECTION_HEALTH_CHECK,
         performance.now() - healthCheckStart,
@@ -748,7 +839,9 @@ class PerpsConnectionManagerClass {
 
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();
+      await awaitAlert('preloadStart');
       await this.preloadSubscriptions();
+      await awaitAlert('preloadEnd');
       setMeasurement(
         PerpsMeasurementName.PERPS_RECONNECTION_PRELOAD,
         performance.now() - preloadStart,
@@ -797,8 +890,10 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Reconnection with new context failed',
         error,
       );
+      await awaitAlert('Reconnection Failed', String(error));
       throw error;
     } finally {
+      await awaitAlert('performReconnectionEnd');
       endTrace({
         name: TraceName.PerpsAccountSwitchReconnection,
         id: traceId,

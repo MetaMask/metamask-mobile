@@ -15,6 +15,7 @@ import type { ReconnectOptions } from '../types/perps-types';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../utils/perpsErrorHandler';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { Alert } from 'react-native';
 
 export interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -260,6 +261,7 @@ export const PerpsConnectionProvider: React.FC<
         // Reset retry attempts and let polling update the state
         setRetryAttempts(0);
       } catch (err) {
+        Alert.alert('Retry connection failed', String(err));
         // Keep retry attempts count for showing back button after failed attempts
         Logger.error(ensureError(err), {
           feature: PERPS_CONSTANTS.FEATURE_NAME,
