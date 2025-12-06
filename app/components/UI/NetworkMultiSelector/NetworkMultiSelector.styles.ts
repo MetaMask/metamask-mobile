@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-const CUSTOM_NETWORK_PADDING_HORIZONTAL = 16;
+const CUSTOM_NETWORK_PADDING_LEFT = 16;
 
 const stylesheet = () =>
   StyleSheet.create({
@@ -8,11 +8,11 @@ const stylesheet = () =>
       flex: 1,
     },
     scrollContentContainer: {
-      paddingBottom: 100,
+      paddingBottom: 16,
     },
     // custom network
     customNetworkContainer: {
-      paddingHorizontal: CUSTOM_NETWORK_PADDING_HORIZONTAL,
+      paddingLeft: CUSTOM_NETWORK_PADDING_LEFT,
     },
   });
 
