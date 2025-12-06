@@ -6,7 +6,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -251,10 +250,7 @@ const ConfirmEmail = () => {
 
   const renderFormFields = () => (
     <>
-      <Box>
-        <Label>
-          {strings('card.card_onboarding.confirm_email.confirm_code_label')}
-        </Label>
+      <Box twClassName="-mt-2">
         <CodeField
           ref={inputRef as React.RefObject<TextInput>}
           {...props}
@@ -293,28 +289,38 @@ const ConfirmEmail = () => {
       </Box>
 
       {/* Resend verification */}
-      <Box twClassName="mt-4 items-center">
+      <Box twClassName="mt-2">
         <Text
-          variant={TextVariant.BodyMd}
-          twClassName={`${
-            resendCooldown > 0
-              ? 'text-text-alternative'
-              : 'text-primary-default cursor-pointer'
-          }`}
-          onPress={resendCooldown > 0 ? undefined : handleResendVerification}
-          disabled={
-            resendCooldown > 0 ||
-            !email ||
-            !selectedCountry ||
-            emailVerificationIsLoading
-          }
+          variant={TextVariant.BodySm}
+          twClassName="text-text-alternative"
           testID="confirm-email-resend-verification"
         >
-          {resendCooldown > 0
-            ? strings('card.card_onboarding.confirm_email.resend_cooldown', {
-                seconds: resendCooldown,
-              })
-            : strings('card.card_onboarding.confirm_email.resend_verification')}
+          {resendCooldown > 0 ? (
+            strings('card.card_onboarding.confirm_email.resend_cooldown', {
+              seconds: resendCooldown,
+            })
+          ) : (
+            <>
+              {strings('card.card_onboarding.confirm_email.didnt_receive_code')}
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative underline"
+                onPress={
+                  resendCooldown > 0 ? undefined : handleResendVerification
+                }
+                disabled={
+                  resendCooldown > 0 ||
+                  !email ||
+                  !selectedCountry ||
+                  emailVerificationIsLoading
+                }
+              >
+                {strings(
+                  'card.card_onboarding.confirm_email.resend_verification',
+                )}
+              </Text>
+            </>
+          )}
         </Text>
         {emailVerificationIsError && (
           <Text

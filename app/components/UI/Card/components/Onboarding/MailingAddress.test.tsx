@@ -833,7 +833,17 @@ describe('MailingAddress Component', () => {
   describe('Edge Cases', () => {
     it('handles empty Redux state gracefully', () => {
       const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation(() => ({}));
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: null,
+              onboardingId: null,
+              consentSetId: null,
+            },
+          },
+        }),
+      );
 
       const { getByTestId } = render(
         <Provider store={store}>
