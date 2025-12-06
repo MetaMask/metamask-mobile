@@ -185,11 +185,6 @@ function getMinimalOptions() {
     url: { current: '' },
     title: { current: '' },
     icon: { current: undefined },
-    // Bookmarks
-    isHomepage: jest.fn(),
-    // Show autocomplete
-    fromHomepage: { current: false },
-    toggleUrlModal: jest.fn(),
     // For the browser
     tabId: '' as const,
     // For WalletConnect
@@ -199,7 +194,6 @@ function getMinimalOptions() {
     getApprovedHosts: jest.fn(),
     setApprovedHosts: jest.fn(),
     approveHost: jest.fn(),
-    injectHomePageScripts: jest.fn(),
     analytics: {},
   };
 }

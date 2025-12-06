@@ -144,8 +144,6 @@ export class RPCBridgeAdapter
               this.connInfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
-          toggleUrlModal: () => null,
-          injectHomePageScripts: () => null,
         }),
       isMainFrame: true,
       getApprovedHosts: () => ({

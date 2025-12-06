@@ -48,15 +48,11 @@ export const executionServiceInit: ControllerInitFunction<
           navigation: null,
           title: { current: 'Snap' },
           icon: { current: undefined },
-          isHomepage: () => false,
-          fromHomepage: { current: false },
-          toggleUrlModal: () => null,
           tabId: false,
           isWalletConnect: true,
           isMMSDK: false,
           url: { current: '' },
           analytics: {},
-          injectHomePageScripts: () => null,
         }),
     });
 
