@@ -70,8 +70,6 @@ describe('UniversalRouter', () => {
     router.reset();
 
     mockContext = {
-      navigation: { navigate: jest.fn() },
-      dispatch: jest.fn(),
       instance: {},
       featureFlags: { MM_UNIVERSAL_ROUTER: true },
     };

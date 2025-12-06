@@ -1,5 +1,4 @@
 import switchNetwork from '../switchNetwork';
-import DeeplinkManager from '../../../DeeplinkManager';
 import { showAlert } from '../../../../../actions/alert';
 import { strings } from '../../../../../../locales/i18n';
 import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
@@ -21,17 +20,12 @@ jest.mock('../../../../../actions/alert', () => ({
 }));
 
 describe('switchNetwork', () => {
-  let deeplinkManager: DeeplinkManager;
   const mockHandleNetworkSwitch = handleNetworkSwitch as jest.MockedFunction<
     typeof handleNetworkSwitch
   >;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    deeplinkManager = {
-      dispatch: jest.fn(),
-    } as unknown as DeeplinkManager;
 
     // Mock the switchNetwork function to return a valid network name
     mockHandleNetworkSwitch.mockReturnValue('Ethereum Mainnet');

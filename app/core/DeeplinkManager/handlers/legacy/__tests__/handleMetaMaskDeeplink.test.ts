@@ -6,7 +6,6 @@ import AppConstants from '../../../../AppConstants';
 import handleDeeplink from '../../../../SDKConnect/handlers/handleDeeplink';
 import SDKConnect from '../../../../SDKConnect/SDKConnect';
 import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../../DeeplinkManager';
 import extractURLParams from '../../../utils/extractURLParams';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import handleRampUrl from '../handleRampUrl';
@@ -25,7 +24,6 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 
 describe('handleMetaMaskProtocol', () => {
-  const mockParse = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -44,11 +42,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockHandleDepositCashUrl = handleDepositCashUrl as jest.MockedFunction<
     typeof handleDepositCashUrl
   >;
-
-  const instance = {
-    parse: mockParse,
-    navigation: mockNavigate,
-  } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
 

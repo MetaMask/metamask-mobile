@@ -151,7 +151,7 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY}`, '');
     handleRampUrl({
-      rampPath, 
+      rampPath,
       rampType: RampType.BUY,
     });
   } else if (
@@ -162,7 +162,7 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     handleRampUrl({
-      rampPath,  
+      rampPath,
       rampType: RampType.SELL,
     });
   } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
@@ -171,7 +171,7 @@ export function handleMetaMaskDeeplink({
       '',
     );
     handleDepositCashUrl({
-      depositPath: depositCashPath,   
+      depositPath: depositCashPath,
     });
   }
 }

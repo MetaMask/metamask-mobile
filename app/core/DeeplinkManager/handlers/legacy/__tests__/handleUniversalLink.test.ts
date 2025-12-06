@@ -146,7 +146,6 @@ describe('handleUniversalLink', () => {
         });
 
         expect(mockHandleMetaMaskDeeplink).toHaveBeenCalledWith({
-          instance,
           handled,
           wcURL,
           origin: 'origin',

@@ -43,7 +43,6 @@ class DeeplinkManager {
    */
   _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
     switchNetwork({
-      deeplinkManager: this,
       switchToChainId,
     });
 

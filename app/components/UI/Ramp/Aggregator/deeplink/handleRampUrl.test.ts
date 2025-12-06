@@ -22,13 +22,11 @@ describe('handleRampUrl', () => {
     handleRampUrl({
       rampPath: '/somePath?as=example',
       rampType: RampType.BUY,
-      navigation,
     });
     expect(handleRedirection).toHaveBeenCalledWith(
       ['somePath'],
       { as: 'example' },
       RampType.BUY,
-      navigation,
     );
   });
 
@@ -36,7 +34,6 @@ describe('handleRampUrl', () => {
     handleRampUrl({
       rampPath: '?as=example',
       rampType: RampType.BUY,
-      navigation,
     });
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.BUY);
@@ -46,7 +43,6 @@ describe('handleRampUrl', () => {
     handleRampUrl({
       rampPath: '?as=example',
       rampType: RampType.SELL,
-      navigation,
     });
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.SELL);
@@ -56,7 +52,6 @@ describe('handleRampUrl', () => {
     handleRampUrl({
       rampPath: '?chainId=1&address=0x123456',
       rampType: RampType.BUY,
-      navigation,
     });
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.BUY, {
@@ -74,7 +69,6 @@ describe('handleRampUrl', () => {
     handleRampUrl({
       rampPath: '?chainId=1&address=0x123456',
       rampType: RampType.SELL,
-      navigation,
     });
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.SELL, {
