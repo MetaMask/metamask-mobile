@@ -27,12 +27,13 @@ describe(
     });
 
     // TODO: Enable when devnet is supported on mobile (https://github.com/MetaMask/metamask-mobile/issues/15002)
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('Should send a transaction', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
 
-        await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
+        // await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
 
         const sendSolTest = SolanaTestDApp.getSendSolTest();
         await sendSolTest.sendTransaction();

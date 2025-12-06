@@ -438,7 +438,9 @@ describe('RevealPrivateCredential', () => {
     expect(getByTestId('reveal-private-credential-screen')).toBeTruthy();
 
     // Should render password input
-    expect(getByTestId('private-credential-password-text-input')).toBeTruthy();
+    expect(
+      getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID),
+    ).toBeTruthy();
   });
 
   it('handles navigation with navigation object', () => {
