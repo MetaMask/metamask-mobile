@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- release: release/7.60.4-Changelog ([#23755](https://github.com/MetaMask/metamask-mobile/pull/23755))
+- 9ec45c639138391d4af6e00f2ca0d4ac48405baf cherry-picked
+- bump semvar version to 7.60.4 && build version to 3254
 - fix(perps): add fallback subscriptions for missing HyperLiquid API fields cp-7.60.4 (#23753)
 
 ## [7.59.0]
