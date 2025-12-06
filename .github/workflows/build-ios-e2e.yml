@@ -48,6 +48,7 @@ jobs:
       GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
     steps:
       # Get the source code from the repository
