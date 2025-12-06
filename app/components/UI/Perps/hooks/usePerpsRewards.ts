@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { OrderFeesResult } from './usePerpsOrderFees';
-import { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
+import { useRewardsAccountOptedIn } from './useRewardsAccountOptedIn';
 
 interface UsePerpsRewardsParams {
   /** Result from usePerpsOrderFees hook containing rewards data */
@@ -49,9 +49,13 @@ export const usePerpsRewards = ({
   // Track previous points to detect refresh state
   const [previousPoints, setPreviousPoints] = useState<number | undefined>();
 
-  // Use the extracted hook for opt-in status
-  const { accountOptedIn, account: selectedAccount } =
-    usePerpsRewardAccountOptedIn(feeResults?.estimatedPoints);
+  // Use the consolidated rewards opt-in hook with Perps-specific configuration
+  const { accountOptedIn, account: selectedAccount } = useRewardsAccountOptedIn(
+    {
+      trigger: feeResults?.estimatedPoints,
+      requireActiveSeason: true, // Perps checks for active season
+    },
+  );
 
   // Development-only simulations for testing different states
   // Amount "42": Triggers error state to test error handling UI
