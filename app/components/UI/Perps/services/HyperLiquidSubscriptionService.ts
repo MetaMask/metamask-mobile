@@ -797,15 +797,6 @@ export class HyperLiquidSubscriptionService {
 
               // Check for removed fields before accessing
               if (!data.clearinghouseState) {
-                Logger.error(
-                  new Error(
-                    '[HyperLiquid] CRITICAL: clearinghouseState missing from webData2',
-                  ),
-                  this.getErrorContext(
-                    'webData2 missing clearinghouseState',
-                    {},
-                  ),
-                );
                 return;
               }
 
