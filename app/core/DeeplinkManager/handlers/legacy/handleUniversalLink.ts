@@ -135,7 +135,6 @@ async function handleUniversalLink({
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
     const wcURL = params?.uri || mappedUrlObj.href;
     handleMetaMaskDeeplink({
-      instance,
       handled,
       wcURL,
       origin: source,
@@ -263,7 +262,6 @@ async function handleUniversalLink({
         : RampType.SELL;
       handleRampUrl({
         rampPath: actionBasedRampPath,
-        navigation: instance.navigation,
         rampType,
       });
       break;
@@ -271,7 +269,6 @@ async function handleUniversalLink({
     case SUPPORTED_ACTIONS.DEPOSIT:
       handleDepositCashUrl({
         depositPath: actionBasedRampPath,
-        navigation: instance.navigation,
       });
       break;
     case SUPPORTED_ACTIONS.HOME:
@@ -304,8 +301,7 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.CREATE_ACCOUNT: {
       handleCreateAccountUrl({
-        path: actionBasedRampPath,
-        navigation: instance.navigation,
+        path: actionBasedRampPath
       });
       return;
     }

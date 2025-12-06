@@ -11,6 +11,7 @@ import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import NavigationService from '../../NavigationService';
 
 const toHexOrFallback = (value: string) => {
   try {
@@ -21,7 +22,6 @@ const toHexOrFallback = (value: string) => {
 };
 
 async function approveTransaction({
-  deeplinkManager,
   ethUrl,
   origin,
 }: {
@@ -59,7 +59,7 @@ async function approveTransaction({
       title: strings('transaction.invalid_recipient'),
       description: strings('transaction.invalid_recipient_description'),
     });
-    deeplinkManager.navigation.navigate('WalletView');
+    NavigationService.navigation.navigate('WalletView');
   }
 
   const selectedAccount = AccountsController.getSelectedAccount();

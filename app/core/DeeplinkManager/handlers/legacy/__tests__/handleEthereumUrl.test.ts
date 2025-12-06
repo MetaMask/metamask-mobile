@@ -11,6 +11,13 @@ import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../../../components/Views/confirmations/utils/deeplink';
+import NavigationService from '../../../../NavigationService';
+
+jest.mock('../../../../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
 
 jest.mock('react-native');
 
@@ -112,7 +119,7 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ deeplinkManager, url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'DeprecatedNetworkDetails',
       {},
     );
@@ -129,7 +136,7 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ deeplinkManager, url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'SendView',
       expect.any(Object),
     );
@@ -186,7 +193,7 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ deeplinkManager, url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'SendFlowView',
       expect.any(Object),
     );
@@ -232,7 +239,7 @@ describe('handleEthereumUrl', () => {
       // do nothing
     });
 
-    mockNavigate.mockImplementation(() => {
+    (NavigationService.navigation.navigate as jest.Mock).mockImplementation(() => {
       throw new Error('Unknown error');
     });
 
@@ -256,7 +263,7 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ deeplinkManager, url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'SendFlowView',
       expect.any(Object),
     );
@@ -321,7 +328,7 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ deeplinkManager, url, origin });
 
-    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       'SendView',
       expect.any(Object), // The exact expectations here depend on the intended behavior
     );

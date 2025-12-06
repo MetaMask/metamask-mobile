@@ -1,12 +1,9 @@
 'use strict';
 
 import { ParseOutput } from 'eth-url-parser';
-import { Dispatch } from 'redux';
 import switchNetwork from './handlers/legacy/switchNetwork';
 import parseDeeplink from './parseDeeplink';
 import approveTransaction from './utils/approveTransaction';
-import { store } from '../../store';
-import NavigationService from '../NavigationService';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
@@ -16,20 +13,10 @@ import FCMService from '../../util/notifications/services/FCMService';
 class DeeplinkManager {
   // singleton instance
   private static _instance: DeeplinkManager | null = null;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public navigation: any;
   public pendingDeeplink: string | null;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public dispatch: Dispatch<any>;
 
   constructor() {
-    const navigation = NavigationService.navigation;
-    const dispatch = store.dispatch;
-    this.navigation = navigation;
     this.pendingDeeplink = null;
-    this.dispatch = dispatch;
   }
 
   static getInstance(): DeeplinkManager {
