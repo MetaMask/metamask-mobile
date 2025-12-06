@@ -929,19 +929,6 @@ export class HyperLiquidSubscriptionService {
                 // HOTFIX: Handle missing fields by using fallback subscriptions
                 // Check if clearinghouseState is missing and ensure fallback subscription
                 if (!dexState.clearinghouseState) {
-                  Logger.error(
-                    new Error(
-                      '[HyperLiquid] CRITICAL: clearinghouseState missing from webData3.perpDexStates - using fallback subscription',
-                    ),
-                    this.getErrorContext(
-                      'webData3 missing clearinghouseState',
-                      {
-                        index,
-                        dexName: currentDexName,
-                        dexStateKeys: Object.keys(dexState),
-                      },
-                    ),
-                  );
                   // Ensure fallback subscription exists
                   this.setupFallbackClearinghouseStateSubscription(
                     userAddress,
