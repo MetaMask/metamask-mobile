@@ -793,8 +793,7 @@ export class HyperLiquidSubscriptionService {
           .webData2({ user: userAddress }, (data: WsWebData2Event) => {
             try {
               // Log webData2 structure to catch removed fields
-              // eslint-disable-next-line no-console
-              console.log('[HyperLiquid] webData2 received:', {
+              DevLogger.log('[HyperLiquid] webData2 received:', {
                 hasClearinghouseState: 'clearinghouseState' in data,
                 hasOpenOrders: 'openOrders' in data,
                 hasPerpsAtOpenInterestCap: 'perpsAtOpenInterestCap' in data,
@@ -813,13 +812,14 @@ export class HyperLiquidSubscriptionService {
 
               // Check for removed fields before accessing
               if (!data.clearinghouseState) {
-                // eslint-disable-next-line no-console
-                console.log(
-                  '[HyperLiquid] CRITICAL: clearinghouseState missing from webData2',
-                  {
+                Logger.error(
+                  new Error(
+                    '[HyperLiquid] CRITICAL: clearinghouseState missing from webData2',
+                  ),
+                  this.getErrorContext('webData2 missing clearinghouseState', {
                     dataKeys: Object.keys(data),
                     dataStructure: JSON.stringify(data, null, 2),
-                  },
+                  }),
                 );
                 return;
               }
@@ -831,9 +831,11 @@ export class HyperLiquidSubscriptionService {
 
               // Log openOrders access
               if (!('openOrders' in data)) {
-                // eslint-disable-next-line no-console
-                console.log(
-                  '[HyperLiquid] WARNING: openOrders field missing from webData2, using empty array',
+                Logger.error(
+                  new Error(
+                    '[HyperLiquid] WARNING: openOrders field missing from webData2, using empty array',
+                  ),
+                  this.getErrorContext('webData2 missing openOrders', {}),
                 );
               }
 
@@ -864,9 +866,14 @@ export class HyperLiquidSubscriptionService {
 
               // OI caps (main DEX only)
               if (!('perpsAtOpenInterestCap' in data)) {
-                // eslint-disable-next-line no-console
-                console.log(
-                  '[HyperLiquid] WARNING: perpsAtOpenInterestCap field missing from webData2, using empty array',
+                Logger.error(
+                  new Error(
+                    '[HyperLiquid] WARNING: perpsAtOpenInterestCap field missing from webData2, using empty array',
+                  ),
+                  this.getErrorContext(
+                    'webData2 missing perpsAtOpenInterestCap',
+                    {},
+                  ),
                 );
               }
               const oiCaps = data.perpsAtOpenInterestCap || [];
@@ -909,18 +916,16 @@ export class HyperLiquidSubscriptionService {
                 );
               }
             } catch (error) {
-              // eslint-disable-next-line no-console
-              console.log(
-                '[HyperLiquid] ERROR in webData2 callback - field access failed:',
-                {
-                  error: ensureError(error),
+              Logger.error(
+                ensureError(error),
+                this.getErrorContext('webData2 callback error', {
                   user: userAddress,
                   dataKeys: data ? Object.keys(data) : 'data is null/undefined',
                   hasClearinghouseState: data?.clearinghouseState !== undefined,
                   hasOpenOrders: data?.openOrders !== undefined,
                   hasPerpsAtOpenInterestCap:
                     data?.perpsAtOpenInterestCap !== undefined,
-                },
+                }),
               );
             }
           })
@@ -946,8 +951,7 @@ export class HyperLiquidSubscriptionService {
           .webData3({ user: userAddress }, (data: WsWebData3Event) => {
             try {
               // Log webData3 structure to catch removed fields
-              // eslint-disable-next-line no-console
-              console.log('[HyperLiquid] webData3 received:', {
+              DevLogger.log('[HyperLiquid] webData3 received:', {
                 hasPerpDexStates: 'perpDexStates' in data,
                 perpDexStatesLength: data.perpDexStates?.length ?? 0,
                 dataKeys: Object.keys(data),
@@ -979,34 +983,40 @@ export class HyperLiquidSubscriptionService {
 
                 // Log dexState structure for first DEX to catch removed fields
                 if (index === 0) {
-                  // eslint-disable-next-line no-console
-                  console.log('[HyperLiquid] webData3 dexState[0] structure:', {
-                    hasClearinghouseState: 'clearinghouseState' in dexState,
-                    hasOpenOrders: 'openOrders' in dexState,
-                    hasPerpsAtOpenInterestCap:
-                      'perpsAtOpenInterestCap' in dexState,
-                    dexStateKeys: Object.keys(dexState),
-                    clearinghouseState: dexState.clearinghouseState
-                      ? 'present'
-                      : 'missing',
-                    openOrders: dexState.openOrders ? 'present' : 'missing',
-                    perpsAtOpenInterestCap: dexState.perpsAtOpenInterestCap
-                      ? 'present'
-                      : 'missing',
-                  });
+                  DevLogger.log(
+                    '[HyperLiquid] webData3 dexState[0] structure:',
+                    {
+                      hasClearinghouseState: 'clearinghouseState' in dexState,
+                      hasOpenOrders: 'openOrders' in dexState,
+                      hasPerpsAtOpenInterestCap:
+                        'perpsAtOpenInterestCap' in dexState,
+                      dexStateKeys: Object.keys(dexState),
+                      clearinghouseState: dexState.clearinghouseState
+                        ? 'present'
+                        : 'missing',
+                      openOrders: dexState.openOrders ? 'present' : 'missing',
+                      perpsAtOpenInterestCap: dexState.perpsAtOpenInterestCap
+                        ? 'present'
+                        : 'missing',
+                    },
+                  );
                 }
 
                 // HOTFIX: Handle missing fields by using fallback subscriptions
                 // Check if clearinghouseState is missing and ensure fallback subscription
                 if (!dexState.clearinghouseState) {
-                  // eslint-disable-next-line no-console
-                  console.log(
-                    '[HyperLiquid] CRITICAL: clearinghouseState missing from webData3.perpDexStates - using fallback subscription',
-                    {
-                      index,
-                      dexName: currentDexName,
-                      dexStateKeys: Object.keys(dexState),
-                    },
+                  Logger.error(
+                    new Error(
+                      '[HyperLiquid] CRITICAL: clearinghouseState missing from webData3.perpDexStates - using fallback subscription',
+                    ),
+                    this.getErrorContext(
+                      'webData3 missing clearinghouseState',
+                      {
+                        index,
+                        dexName: currentDexName,
+                        dexStateKeys: Object.keys(dexState),
+                      },
+                    ),
                   );
                   // Ensure fallback subscription exists
                   this.ensureFallbackClearinghouseStateSubscription(
@@ -1033,9 +1043,14 @@ export class HyperLiquidSubscriptionService {
 
                 // Check if openOrders is missing and ensure fallback subscription
                 if (!('openOrders' in dexState) || !dexState.openOrders) {
-                  // eslint-disable-next-line no-console
-                  console.log(
-                    `[HyperLiquid] WARNING: openOrders field missing from webData3.perpDexStates[${index}] (dex: ${currentDexName}) - using fallback subscription`,
+                  Logger.error(
+                    new Error(
+                      `[HyperLiquid] WARNING: openOrders field missing from webData3.perpDexStates[${index}] (dex: ${currentDexName}) - using fallback subscription`,
+                    ),
+                    this.getErrorContext('webData3 missing openOrders', {
+                      index,
+                      dexName: currentDexName,
+                    }),
                   );
                   // Ensure fallback subscription exists
                   this.ensureFallbackOpenOrdersSubscription(
@@ -1114,9 +1129,17 @@ export class HyperLiquidSubscriptionService {
 
                 // Log perpsAtOpenInterestCap access
                 if (!('perpsAtOpenInterestCap' in dexState)) {
-                  // eslint-disable-next-line no-console
-                  console.log(
-                    `[HyperLiquid] WARNING: perpsAtOpenInterestCap field missing from webData3.perpDexStates[${index}] (dex: ${currentDexName})`,
+                  Logger.error(
+                    new Error(
+                      `[HyperLiquid] WARNING: perpsAtOpenInterestCap field missing from webData3.perpDexStates[${index}] (dex: ${currentDexName})`,
+                    ),
+                    this.getErrorContext(
+                      'webData3 missing perpsAtOpenInterestCap',
+                      {
+                        index,
+                        dexName: currentDexName,
+                      },
+                    ),
                   );
                 }
 
@@ -1151,11 +1174,9 @@ export class HyperLiquidSubscriptionService {
               // Aggregate and notify subscribers
               this.aggregateAndNotifySubscribers();
             } catch (error) {
-              // eslint-disable-next-line no-console
-              console.log(
-                '[HyperLiquid] ERROR in webData3 callback - field access failed:',
-                {
-                  error: ensureError(error),
+              Logger.error(
+                ensureError(error),
+                this.getErrorContext('webData3 callback error', {
                   user: userAddress,
                   hasPerpDexStates: data?.perpDexStates !== undefined,
                   perpDexStatesLength: data?.perpDexStates?.length ?? 0,
@@ -1163,7 +1184,7 @@ export class HyperLiquidSubscriptionService {
                   firstDexStateKeys: data?.perpDexStates?.[0]
                     ? Object.keys(data.perpDexStates[0])
                     : [],
-                },
+                }),
               );
             }
           })
@@ -1217,8 +1238,7 @@ export class HyperLiquidSubscriptionService {
             cacheKey,
             data.clearinghouseState,
           );
-          // eslint-disable-next-line no-console
-          console.log(
+          DevLogger.log(
             `[HyperLiquid] Fallback clearinghouseState received for DEX: ${cacheKey || 'main'}`,
           );
           // Update caches and notify subscribers if we have positions/account subscribers
@@ -1293,8 +1313,7 @@ export class HyperLiquidSubscriptionService {
           // Cache the fallback orders
           const cacheKey = data.dex || '';
           this.fallbackOpenOrdersCache.set(cacheKey, data.orders);
-          // eslint-disable-next-line no-console
-          console.log(
+          DevLogger.log(
             `[HyperLiquid] Fallback openOrders received for DEX: ${cacheKey || 'main'}, orders: ${data.orders.length}`,
           );
           // Update caches and notify subscribers if we have order subscribers
