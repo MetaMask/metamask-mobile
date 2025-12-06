@@ -7,7 +7,7 @@ module.exports = {
         shouldTakeAutomaticSnapshots: true,
         keepOnlyFailedTestsArtifacts: true,
         takeWhen: {
-          testStart: fase,
+          testStart: false,
           testDone: false,
         },
       },
