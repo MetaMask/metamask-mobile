@@ -38,6 +38,7 @@ export enum ACTIONS {
   PERPS_MARKETS = 'perps-markets',
   PERPS_ASSET = 'perps-asset',
   REWARDS = 'rewards',
+  SHIELD = 'shield',
   PREDICT = 'predict',
   ONBOARDING = 'onboarding',
 }
@@ -66,6 +67,7 @@ export const PREFIXES = {
   [ACTIONS.REWARDS]: '',
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
+  [ACTIONS.SHIELD]: '',
   [ACTIONS.ENABLE_CARD_BUTTON]: '',
   METAMASK: 'metamask://',
 };
