@@ -92,15 +92,6 @@ jest.mock('../../../../hooks/useStyles', () => ({
 // Mock formatUtils
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((value: number) => `$${value.toLocaleString()}`),
-  formatLargeNumber: jest.fn(
-    (value: number, options?: { decimals?: number }) => {
-      const decimals = options?.decimals ?? 0;
-      if (value >= 1_000_000)
-        return `${(value / 1_000_000).toFixed(decimals)}M`;
-      if (value >= 1_000) return `${(value / 1_000).toFixed(decimals)}K`;
-      return value.toFixed(decimals);
-    },
-  ),
   PRICE_RANGES_UNIVERSAL: [],
 }));
 

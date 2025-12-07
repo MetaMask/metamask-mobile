@@ -19,11 +19,21 @@ import Avatar, {
 import { strings } from '../../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
-import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { usePopularNetworks } from '../../hooks/usePopularNetworks/usePopularNetworks';
 
 export enum NetworkOption {
   AllNetworks = 'all',
 }
+
+/**
+ * List of CAIP chain IDs to exclude from the network selection list
+ */
+const EXCLUDED_NETWORKS: CaipChainId[] = [
+  'eip155:11297108109', // Palm
+  'eip155:999', // Hyper EVM
+  'eip155:143', // Monad
+  'bip122:000000000019d6689c085ae165831e93', // btc mainnet
+];
 
 export interface TrendingTokenNetworkBottomSheetProps {
   isVisible: boolean;
@@ -51,7 +61,11 @@ const TrendingTokenNetworkBottomSheet: React.FC<
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
-  const networks = TRENDING_NETWORKS_LIST;
+  const popularNetworks = usePopularNetworks();
+  // exclude Palm and hyper EVM from networks list and call it networksPopular
+  const networks = popularNetworks.filter(
+    (network) => !EXCLUDED_NETWORKS.includes(network.caipChainId),
+  );
 
   // Default to "All networks" if no selection
   const [selectedNetwork, setSelectedNetwork] = useState<

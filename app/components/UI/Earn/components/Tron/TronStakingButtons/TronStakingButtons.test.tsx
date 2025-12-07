@@ -1,21 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import TronStakingButtons from './TronStakingButtons';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
-import { selectAsset } from '../../../../../../selectors/assets/assets-list';
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../../../selectors/assets/assets-list', () => ({
-  selectAsset: jest.fn(),
-}));
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockSelectAsset = selectAsset as jest.MockedFunction<typeof selectAsset>;
 
 const mockNavigate = jest.fn();
 
@@ -65,9 +52,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 describe('TronStakingButtons', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockUseSelector.mockImplementation(() => undefined);
-    mockSelectAsset.mockReset();
   });
 
   const baseAsset = {
@@ -79,9 +63,13 @@ describe('TronStakingButtons', () => {
     isStaked: false,
   } as TokenI;
 
-  it('navigates to stake screen with base asset TRX when not staked and uses default hasStakedPositions', () => {
+  it('navigates to stake screen with base asset TRX when not staked', () => {
     const { getByTestId, getByText } = render(
-      <TronStakingButtons asset={baseAsset} showUnstake={false} />,
+      <TronStakingButtons
+        asset={baseAsset}
+        hasStakedPositions={false}
+        showUnstake={false}
+      />,
     );
 
     expect(getByText('stake.stake')).toBeTruthy();
@@ -103,15 +91,6 @@ describe('TronStakingButtons', () => {
       isStaked: true,
       nativeAsset: undefined,
     } as TokenI;
-
-    mockSelectAsset.mockReturnValue({
-      ...baseAsset,
-      isStaked: false,
-    } as TokenI);
-
-    mockUseSelector.mockImplementation((selector) =>
-      selector({} as unknown as ReturnType<typeof Object>),
-    );
 
     const { getByTestId } = render(
       <TronStakingButtons asset={stakedTrx} hasStakedPositions />,

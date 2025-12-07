@@ -13,9 +13,9 @@ import {
 } from '../../../../util/test/renderWithProvider';
 import { updateSelectedGasFeeToken } from '../../../../util/transaction-controller';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
-import { useHasInsufficientBalance } from './useHasInsufficientBalance';
+import { useIsInsufficientBalance } from './useIsInsufficientBalance';
 
-jest.mock('./useHasInsufficientBalance');
+jest.mock('./useIsInsufficientBalance');
 jest.mock('../../../../util/transaction-controller');
 jest.mock('./gas/useIsGaslessSupported');
 
@@ -89,26 +89,21 @@ describe('useAutomaticGasFeeTokenSelect', () => {
   const updateSelectedGasFeeTokenMock = jest.mocked(updateSelectedGasFeeToken);
   const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
 
-  const useHasInsufficientBalanceMock = jest.mocked(useHasInsufficientBalance);
+  const useIsInsufficientBalanceMock = jest.mocked(useIsInsufficientBalance);
 
   beforeEach(() => {
     jest.resetAllMocks();
-    useHasInsufficientBalanceMock.mockReturnValue({
-      hasInsufficientBalance: false,
-    });
+    useIsInsufficientBalanceMock.mockReturnValue(false);
     updateSelectedGasFeeTokenMock.mockReturnValue();
 
     useIsGaslessSupportedMock.mockReturnValue({
       isSupported: true,
       isSmartTransaction: true,
-      pending: false,
     });
   });
 
   it('selects first gas fee token', () => {
-    useHasInsufficientBalanceMock.mockReturnValue({
-      hasInsufficientBalance: true,
-    });
+    useIsInsufficientBalanceMock.mockReturnValue(true);
     runHook();
 
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(1);
@@ -149,7 +144,6 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     useIsGaslessSupportedMock.mockReturnValue({
       isSupported: false,
       isSmartTransaction: false,
-      pending: false,
     });
 
     runHook();
@@ -158,14 +152,15 @@ describe('useAutomaticGasFeeTokenSelect', () => {
   });
 
   it('does not select first gas fee token if sufficient balance', () => {
+    useIsInsufficientBalanceMock.mockReturnValue(false);
+
     runHook();
+
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
   });
 
   it('does not select first gas fee token after firstCheck is set to false', () => {
-    useHasInsufficientBalanceMock.mockReturnValue({
-      hasInsufficientBalance: true,
-    });
+    useIsInsufficientBalanceMock.mockReturnValue(true);
     const { rerender, state } = runHook();
     // Simulate a rerender with new state that would otherwise trigger selection
     act(() => {
@@ -187,7 +182,6 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     useIsGaslessSupportedMock.mockReturnValue({
       isSupported: true,
       isSmartTransaction: false,
-      pending: false,
     });
 
     runHook({
@@ -206,11 +200,8 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     useIsGaslessSupportedMock.mockReturnValue({
       isSupported: true,
       isSmartTransaction: false,
-      pending: false,
     });
-    useHasInsufficientBalanceMock.mockReturnValue({
-      hasInsufficientBalance: true,
-    });
+    useIsInsufficientBalanceMock.mockReturnValue(true);
 
     runHook({
       gasFeeTokens: [

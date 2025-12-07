@@ -67,7 +67,7 @@ export function buildTaskPrompt(
   }
 
   const instruction = `Analyze the changed files and the impacted codebase to select the E2E test tags to run so the changes can be verified safely with minimal risk.`;
-  const tagsSection = `AVAILABLE TEST TAGS (these are the ONLY valid tags - do NOT search for tags.ts or any tags file, they are already provided here):\n${tagCoverageList}`;
+  const tagsSection = `AVAILABLE TEST TAGS (select from these and don't search for additional tags):\n${tagCoverageList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;

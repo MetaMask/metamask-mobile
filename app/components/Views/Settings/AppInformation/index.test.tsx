@@ -1,12 +1,8 @@
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Image, TouchableOpacity } from 'react-native';
-import {
-  DeepPartial,
-  renderScreen,
-} from '../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../util/test/renderWithProvider';
 import AppInformation from './';
 import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
-import { RootState } from '../../../../reducers';
 
 // Mock device info
 const mockGetApplicationName = jest.fn();
@@ -36,28 +32,6 @@ jest.mock(
   }),
 );
 
-const MOCK_STATE = {
-  engine: {
-    backgroundState: {
-      SnapController: {
-        snaps: {
-          'npm:@metamask/solana-snap': {
-            id: 'npm:@metamask/solana-snap',
-            enabled: true,
-            version: '1.7.0',
-            status: 'running',
-            manifest: {
-              proposedName: 'Solana',
-              description: 'Manage Solana using MetaMask',
-            },
-            preinstalled: true,
-          },
-        },
-      },
-    },
-  },
-} as DeepPartial<RootState>;
-
 describe('AppInformation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,7 +47,7 @@ describe('AppInformation', () => {
     const { toJSON } = renderScreen(
       AppInformation,
       { name: 'AppInformation' },
-      { state: MOCK_STATE },
+      { state: {} },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -82,7 +56,7 @@ describe('AppInformation', () => {
     const { getByTestId } = renderScreen(
       AppInformation,
       { name: 'AppInformation' },
-      { state: MOCK_STATE },
+      { state: {} },
     );
 
     expect(getByTestId(AboutMetaMaskSelectorsIDs.CONTAINER)).toBeTruthy();
@@ -92,7 +66,7 @@ describe('AppInformation', () => {
     const { getByText } = renderScreen(
       AppInformation,
       { name: 'AppInformation' },
-      { state: MOCK_STATE },
+      { state: {} },
     );
 
     // Given the device info is mocked
@@ -108,7 +82,7 @@ describe('AppInformation', () => {
       const { getByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // Given the component is rendered
@@ -126,7 +100,7 @@ describe('AppInformation', () => {
       const { getByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       expect(getByText(/Links/)).toBeTruthy();
@@ -135,11 +109,7 @@ describe('AppInformation', () => {
 
   describe('Component Lifecycle', () => {
     it('fetches device info on mount', async () => {
-      renderScreen(
-        AppInformation,
-        { name: 'AppInformation' },
-        { state: MOCK_STATE },
-      );
+      renderScreen(AppInformation, { name: 'AppInformation' }, { state: {} });
 
       // Given the component is mounted
       // When the componentDidMount lifecycle method runs
@@ -159,7 +129,7 @@ describe('AppInformation', () => {
       const { getByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // Given device info returns specific values
@@ -176,7 +146,7 @@ describe('AppInformation', () => {
       const { UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // Given the component is rendered
@@ -203,7 +173,7 @@ describe('AppInformation', () => {
       const { queryByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // When the component renders
@@ -222,7 +192,7 @@ describe('AppInformation', () => {
       const { getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // When the user long-presses the fox icon
@@ -243,7 +213,6 @@ describe('AppInformation', () => {
         expect(
           getByText('Remote Feature Flag Distribution: main'),
         ).toBeTruthy();
-        expect(getByText('Solana: 1.7.0 (running)')).toBeTruthy();
       });
     });
 
@@ -256,7 +225,7 @@ describe('AppInformation', () => {
       const { queryByText, getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // When initially rendered
@@ -293,7 +262,7 @@ describe('AppInformation', () => {
       const { getByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // When the component renders
@@ -315,7 +284,7 @@ describe('AppInformation', () => {
       const { UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // Given the component is rendered
@@ -339,7 +308,7 @@ describe('AppInformation', () => {
       const { queryByText, getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // Given environment info is initially hidden
@@ -373,7 +342,7 @@ describe('AppInformation', () => {
       const { getByText, queryByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // Given environment info is initially hidden
@@ -415,7 +384,7 @@ describe('AppInformation', () => {
       const { getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       // When the fox icon is long-pressed
@@ -443,7 +412,7 @@ describe('AppInformation', () => {
       const { queryByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       expect(queryByText(/Expo Project ID:/)).toBeNull();
@@ -459,7 +428,7 @@ describe('AppInformation', () => {
       const { getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: MOCK_STATE },
+        { state: {} },
       );
 
       const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);

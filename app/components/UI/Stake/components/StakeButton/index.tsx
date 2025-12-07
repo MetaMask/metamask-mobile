@@ -13,7 +13,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
-import { useBuildPortfolioUrl } from '../../../../hooks/useBuildPortfolioUrl';
 import {
   selectEvmChainId,
   selectNetworkConfigurationByChainId,
@@ -42,10 +41,10 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
 interface StakeButtonProps {
@@ -58,7 +57,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
@@ -77,7 +75,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
+  const isTronNative =
+    asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -90,10 +89,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
-    useMusdConversion();
-  const { isConversionToken, isMusdSupportedOnChain } =
-    useMusdConversionTokens();
+  const { initiateConversion } = useMusdConversion();
+  const { isConversionToken } = useMusdConversionTokens();
 
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset);
@@ -151,8 +148,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        const stakeUrl = buildPortfolioUrlWithMetrics(AppConstants.STAKE.URL);
-        newTabUrl = stakeUrl.href;
+        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),
@@ -225,35 +221,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Asset address or chain ID is not set');
       }
 
-      const assetChainId = toHex(asset.chainId);
-
-      const isSupportedChain = isMusdSupportedOnChain(assetChainId);
-
-      if (!isSupportedChain) {
-        throw new Error('Chain is not supported for mUSD conversion');
-      }
-
-      const config = {
-        outputChainId: assetChainId,
+      await initiateConversion({
+        outputChainId: CHAIN_IDS.MAINNET,
         preferredPaymentToken: {
           address: toHex(asset.address),
-          chainId: assetChainId,
+          chainId: toHex(asset.chainId),
         },
         navigationStack: Routes.EARN.ROOT,
-      };
-
-      if (!hasSeenConversionEducationScreen) {
-        navigation.navigate(config.navigationStack, {
-          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-          params: {
-            preferredPaymentToken: config.preferredPaymentToken,
-            outputChainId: config.outputChainId,
-          },
-        });
-        return;
-      }
-
-      await initiateConversion(config);
+      });
     } catch (error) {
       Logger.error(
         error as Error,
@@ -268,14 +243,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [
-    asset.address,
-    asset.chainId,
-    hasSeenConversionEducationScreen,
-    initiateConversion,
-    isMusdSupportedOnChain,
-    navigation,
-  ]);
+  }, [asset.address, asset.chainId, initiateConversion]);
 
   const onEarnButtonPress = async () => {
     if (isConvertibleStablecoin) {
@@ -294,25 +262,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   if (
     areEarnExperiencesDisabled ||
     (!isConvertibleStablecoin && // Show for convertible stablecoins even with 0 balance
-      primaryExperienceType !== EARN_EXPERIENCES.STABLECOIN_LENDING &&
       !earnToken?.isETH &&
       earnToken?.balanceMinimalUnit === '0') ||
     (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
-
-  const renderEarnButtonText = () => {
-    if (isConvertibleStablecoin) {
-      return strings('asset_overview.convert_to_musd');
-    }
-
-    const aprNumber = Number(earnToken?.experience?.apr);
-    const aprText =
-      Number.isFinite(aprNumber) && aprNumber > 0
-        ? ` ${aprNumber.toFixed(1)}%`
-        : '';
-    return `${strings('stake.earn')}${aprText}`;
-  };
 
   return (
     <TouchableOpacity
@@ -324,7 +278,18 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         {' • '}
       </Text>
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
-        {renderEarnButtonText()}
+        {(() => {
+          if (isConvertibleStablecoin) {
+            return strings('asset_overview.convert');
+          }
+
+          const aprNumber = Number(earnToken?.experience?.apr);
+          const aprText =
+            Number.isFinite(aprNumber) && aprNumber > 0
+              ? ` ${aprNumber.toFixed(1)}%`
+              : '';
+          return `${strings('stake.earn')}${aprText}`;
+        })()}
       </Text>
     </TouchableOpacity>
   );

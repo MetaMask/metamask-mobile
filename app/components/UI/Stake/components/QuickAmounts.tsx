@@ -28,7 +28,9 @@ const createStyles = (colors: Colors) =>
     },
     amount: {
       flex: 1,
-      backgroundColor: colors.background.muted,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      backgroundColor: colors.background.default,
       flexDirection: 'row',
       justifyContent: 'center',
       paddingHorizontal: 16,

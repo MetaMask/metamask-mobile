@@ -74,18 +74,11 @@ export const useConfirmActions = () => {
       return;
     }
 
-    const waitForResult = approvalType !== ApprovalType.TransactionBatch;
-
     await onRequestConfirm({
-      waitForResult,
+      waitForResult: true,
       deleteAfterResult: true,
       handleErrors: false,
     });
-
-    if (approvalType === ApprovalType.TransactionBatch) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      return;
-    }
 
     navigation.goBack();
 
@@ -104,7 +97,6 @@ export const useConfirmActions = () => {
     setScannerVisible,
     onTransactionConfirm,
     captureSignatureMetrics,
-    approvalType,
   ]);
 
   return { onConfirm, onReject };

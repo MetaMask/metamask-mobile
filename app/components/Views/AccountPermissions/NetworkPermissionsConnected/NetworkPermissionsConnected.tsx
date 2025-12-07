@@ -11,6 +11,8 @@ import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import {
+  selectProviderConfig,
+  ProviderConfig,
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
@@ -46,7 +48,6 @@ import { getCaip25Caveat } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipChainId } from '@metamask/utils';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/popular-networks';
 
 // Needs to be updated to handle non-evm
 const NetworkPermissionsConnected = ({
@@ -58,6 +59,7 @@ const NetworkPermissionsConnected = ({
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const evmChainId = useSelector(selectEvmChainId);
   const evmCaipChainId = `eip155:${parseInt(evmChainId, 16)}`;
 
@@ -139,15 +141,12 @@ const NetworkPermissionsConnected = ({
             const theNetworkName = handleNetworkSwitch(reference);
 
             if (theNetworkName) {
-              const targetChainId = toHex(reference);
               trackEvent(
                 createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
                   .addProperties({
                     chain_id: reference,
-                    from_network: evmChainId,
-                    to_network: targetChainId,
-                    custom_network:
-                      !POPULAR_NETWORK_CHAIN_IDS.has(targetChainId),
+                    from_network: providerConfig?.nickname || theNetworkName,
+                    to_network: theNetworkName,
                   })
                   .build(),
               );

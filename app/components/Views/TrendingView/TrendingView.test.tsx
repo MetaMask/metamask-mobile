@@ -31,7 +31,6 @@ import {
   selectChainId,
   selectPopularNetworkConfigurationsByCaipChainId,
   selectCustomNetworkConfigurationsByCaipChainId,
-  selectNetworkConfigurationsByCaipChainId,
 } from '../../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
@@ -48,7 +47,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
 }));
 
 jest.mock('../../../util/browser', () => ({
-  buildPortfolioUrl: jest.fn((url) => ({
+  appendURLParams: jest.fn((url) => ({
     href: `${url}?metamaskEntry=mobile&metricsEnabled=true&marketingEnabled=false`,
   })),
 }));
@@ -107,33 +106,12 @@ describe('TrendingView', () => {
     typeof useSelector
   >;
 
-  /**
-   * Helper function to create mock selector implementation with optional overrides
-   */
-  const createMockSelectorImplementation =
-    (
-      overrides: {
-        browserTabsCount?: number;
-        multichainEnabled?: boolean;
-        basicFunctionalityEnabled?: boolean;
-      } = {},
-    ) =>
-    (selector: unknown) => {
-      // Handle browser tabs count selector
-      if (typeof selector === 'function') {
-        const selectorStr = selector.toString();
-        if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
-          return overrides.browserTabsCount ?? 0;
-        }
-        // Handle selectSelectedInternalAccountByScope which is a selector factory
-        if (
-          selectorStr.includes('selectSelectedInternalAccountByScope') ||
-          selectorStr.includes('SelectedInternalAccountByScope')
-        ) {
-          return (_scope: string) => null;
-        }
-      }
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEnabled.mockReturnValue(true);
+    mockAddListener.mockReturnValue(jest.fn());
 
+    mockUseSelector.mockImplementation((selector) => {
       // Compare selectors by reference for memoized selectors
       if (selector === selectChainId) {
         return '0x1';
@@ -148,41 +126,97 @@ describe('TrendingView', () => {
           },
         };
       }
-      if (selector === selectNetworkConfigurationsByCaipChainId) {
-        return {};
-      }
       if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+        // Return empty array to prevent Object.entries() error
         return [];
       }
       if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+        // Return empty array to prevent Object.entries() error
         return [];
       }
       if (selector === selectMultichainAccountsState2Enabled) {
-        return overrides.multichainEnabled ?? false;
+        // Return false to use default networks behavior
+        return false;
       }
       if (selector === selectBasicFunctionalityEnabled) {
-        return overrides.basicFunctionalityEnabled ?? true;
+        // Return true by default (enabled)
+        return true;
       }
+      // Handle selectSelectedInternalAccountByScope which is a selector factory
+      // It returns a function that takes a scope and returns an account
       if (selector === selectSelectedInternalAccountByScope) {
+        // Return a function that returns null (no account selected)
         return (_scope: string) => null;
       }
-
+      // Fallback: if selector is a function and might be a selector factory, return a function
+      if (typeof selector === 'function') {
+        const selectorStr = selector.toString();
+        if (
+          selectorStr.includes('selectSelectedInternalAccountByScope') ||
+          selectorStr.includes('SelectedInternalAccountByScope')
+        ) {
+          return (_scope: string) => null;
+        }
+      }
       return undefined;
-    };
+    });
+  });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockIsEnabled.mockReturnValue(true);
-    mockAddListener.mockReturnValue(jest.fn());
+  it('renders browser button in header', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
 
-    mockUseSelector.mockImplementation(createMockSelectorImplementation());
+    const browserButton = getByTestId('trending-view-browser-button');
+
+    expect(browserButton).toBeDefined();
   });
 
   describe('browser button states', () => {
     it('displays add icon when no browser tabs are open', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 0 }),
-      );
+      mockUseSelector.mockImplementation((selector) => {
+        // Handle browser tabs count selector
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
+            return 0;
+          }
+        }
+        // Return default mock values for other selectors
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectEnabledNetworksByNamespace) {
+          return { eip155: { '0x1': true } };
+        }
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (_scope: string) => null;
+        }
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (
+            selectorStr.includes('selectSelectedInternalAccountByScope') ||
+            selectorStr.includes('SelectedInternalAccountByScope')
+          ) {
+            return (_scope: string) => null;
+          }
+        }
+        return undefined;
+      });
 
       const { getByTestId, queryByText } = render(
         <NavigationContainer>
@@ -191,14 +225,53 @@ describe('TrendingView', () => {
       );
 
       const browserButton = getByTestId('trending-view-browser-button');
-      expect(browserButton).toBeOnTheScreen();
+
+      expect(browserButton).toBeDefined();
       expect(queryByText(/^\d+$/)).toBeNull();
     });
 
     it('displays tab count when one browser tab is open', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 1 }),
-      );
+      mockUseSelector.mockImplementation((selector) => {
+        // Handle browser tabs count selector
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
+            return 1;
+          }
+        }
+        // Return default mock values for other selectors
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectEnabledNetworksByNamespace) {
+          return { eip155: { '0x1': true } };
+        }
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (_scope: string) => null;
+        }
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (
+            selectorStr.includes('selectSelectedInternalAccountByScope') ||
+            selectorStr.includes('SelectedInternalAccountByScope')
+          ) {
+            return (_scope: string) => null;
+          }
+        }
+        return undefined;
+      });
 
       const { getByText } = render(
         <NavigationContainer>
@@ -206,13 +279,51 @@ describe('TrendingView', () => {
         </NavigationContainer>,
       );
 
-      expect(getByText('1')).toBeOnTheScreen();
+      expect(getByText('1')).toBeDefined();
     });
 
     it('displays tab count when multiple browser tabs are open', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 5 }),
-      );
+      mockUseSelector.mockImplementation((selector) => {
+        // Handle browser tabs count selector
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
+            return 5;
+          }
+        }
+        // Return default mock values for other selectors
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectEnabledNetworksByNamespace) {
+          return { eip155: { '0x1': true } };
+        }
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (_scope: string) => null;
+        }
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (
+            selectorStr.includes('selectSelectedInternalAccountByScope') ||
+            selectorStr.includes('SelectedInternalAccountByScope')
+          ) {
+            return (_scope: string) => null;
+          }
+        }
+        return undefined;
+      });
 
       const { getByText } = render(
         <NavigationContainer>
@@ -220,13 +331,51 @@ describe('TrendingView', () => {
         </NavigationContainer>,
       );
 
-      expect(getByText('5')).toBeOnTheScreen();
+      expect(getByText('5')).toBeDefined();
     });
 
     it('displays tab count when many browser tabs are open', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 99 }),
-      );
+      mockUseSelector.mockImplementation((selector) => {
+        // Handle browser tabs count selector
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
+            return 99;
+          }
+        }
+        // Return default mock values for other selectors
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectEnabledNetworksByNamespace) {
+          return { eip155: { '0x1': true } };
+        }
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+          return [];
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (_scope: string) => null;
+        }
+        if (typeof selector === 'function') {
+          const selectorStr = selector.toString();
+          if (
+            selectorStr.includes('selectSelectedInternalAccountByScope') ||
+            selectorStr.includes('SelectedInternalAccountByScope')
+          ) {
+            return (_scope: string) => null;
+          }
+        }
+        return undefined;
+      });
 
       const { getByText } = render(
         <NavigationContainer>
@@ -234,7 +383,7 @@ describe('TrendingView', () => {
         </NavigationContainer>,
       );
 
-      expect(getByText('99')).toBeOnTheScreen();
+      expect(getByText('99')).toBeDefined();
     });
 
     it('navigates to TrendingBrowser when button is pressed', () => {
@@ -264,7 +413,7 @@ describe('TrendingView', () => {
       </NavigationContainer>,
     );
 
-    expect(getByText('Explore')).toBeOnTheScreen();
+    expect(getByText('Explore')).toBeDefined();
   });
 
   it('renders search bar button', () => {
@@ -276,7 +425,7 @@ describe('TrendingView', () => {
 
     const searchButton = getByTestId('explore-view-search-button');
 
-    expect(searchButton).toBeOnTheScreen();
+    expect(searchButton).toBeDefined();
   });
 
   it('navigates to ExploreSearch route when search bar is pressed', () => {
@@ -287,6 +436,7 @@ describe('TrendingView', () => {
     );
 
     const searchButton = getByTestId('explore-view-search-button');
+
     fireEvent.press(searchButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
@@ -294,9 +444,12 @@ describe('TrendingView', () => {
 
   describe('basic functionality toggle', () => {
     it('displays empty state when basic functionality is disabled', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ basicFunctionalityEnabled: false }),
-      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBasicFunctionalityEnabled) {
+          return false;
+        }
+        return undefined;
+      });
 
       const { getByTestId } = render(
         <NavigationContainer>
@@ -304,7 +457,7 @@ describe('TrendingView', () => {
         </NavigationContainer>,
       );
 
-      expect(getByTestId('basic-functionality-empty-state')).toBeOnTheScreen();
+      expect(getByTestId('basic-functionality-empty-state')).toBeDefined();
     });
   });
 });

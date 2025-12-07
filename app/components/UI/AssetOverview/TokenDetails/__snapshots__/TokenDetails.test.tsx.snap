@@ -5,7 +5,7 @@ exports[`TokenDetails should render correctly 1`] = `
   style={
     {
       "gap": 24,
-      "marginTop": 16,
+      "marginTop": 24,
     }
   }
 >

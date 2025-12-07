@@ -1,11 +1,20 @@
 import { useMemo } from 'react';
+import { Hex, add0x } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
+import {
+  addHexes,
+  decimalToHex,
+  multiplyHexes,
+} from '../../../../../util/conversions';
 import { strings } from '../../../../../../locales/i18n';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
@@ -13,10 +22,10 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
-import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
-import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 
 const IGNORE_TYPES = [TransactionType.predictWithdraw];
+
+const HEX_ZERO = '0x0';
 
 export const useInsufficientBalanceAlert = ({
   ignoreGasFeeToken,
@@ -25,15 +34,16 @@ export const useInsufficientBalanceAlert = ({
 } = {}): Alert[] => {
   const { goToBuy } = useRampNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const { balanceWeiInHex } = useAccountNativeBalance(
+    transactionMetadata?.chainId as Hex,
+    transactionMetadata?.txParams?.from as string,
+  );
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
-  const { isSupported: isGaslessSupported, pending: isGaslessCheckPending } =
-    useIsGaslessSupported();
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
   const { payToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
-  const { hasInsufficientBalance, nativeCurrency } =
-    useHasInsufficientBalance();
 
   const primaryRequiredToken = (requiredTokens ?? []).find(
     (token) => !token.skipIfBalance,
@@ -54,35 +64,34 @@ export const useInsufficientBalanceAlert = ({
       return [];
     }
 
-    const { selectedGasFeeToken, isGasFeeSponsored, gasFeeTokens } =
+    const { txParams, selectedGasFeeToken, isGasFeeSponsored } =
       transactionMetadata;
+    const { maxFeePerGas, gas, gasPrice } = txParams;
+    const { nativeCurrency } =
+      networkConfigurations[transactionMetadata.chainId as Hex];
 
-    const isGasFeeTokensEmpty = gasFeeTokens?.length === 0;
+    const maxFeeNativeInHex = multiplyHexes(
+      maxFeePerGas ? (decimalToHex(maxFeePerGas) as Hex) : (gasPrice as Hex),
+      gas as Hex,
+    );
 
-    // Check if gasless check has completed (regardless of result)
-    const isGaslessCheckComplete = !isGaslessCheckPending;
+    const transactionValue = txParams?.value || HEX_ZERO;
+    const totalTransactionValue = addHexes(maxFeeNativeInHex, transactionValue);
+    const totalTransactionInHex = add0x(totalTransactionValue as string);
 
-    // Transaction is sponsored only if it's marked as sponsored AND gasless is supported
+    const balanceWeiInHexBN = new BigNumber(balanceWeiInHex);
+    const totalTransactionValueBN = new BigNumber(totalTransactionInHex);
+
+    const hasInsufficientBalance = balanceWeiInHexBN.lt(
+      totalTransactionValueBN,
+    );
+
     const isSponsoredTransaction = isGasFeeSponsored && isGaslessSupported;
-
-    // Simulation is complete if it's disabled, or if enabled and gasFeeTokens is loaded
-    const isSimulationComplete = !isSimulationEnabled || Boolean(gasFeeTokens);
-
-    // Check if user has selected a gas fee token (or we're ignoring that check)
-    const hasNoGasFeeTokenSelected = ignoreGasFeeToken || !selectedGasFeeToken;
-
-    // Show alert when gasless check is done and either:
-    // - Gasless is NOT supported (user needs native currency for gas)
-    // - Gasless IS supported but gasFeeTokens is empty (no alternative tokens available)
-    const shouldCheckGaslessConditions =
-      isGaslessCheckComplete && (!isGaslessSupported || isGasFeeTokensEmpty);
 
     const showAlert =
       hasInsufficientBalance &&
-      isSimulationComplete &&
-      hasNoGasFeeTokenSelected &&
+      (ignoreGasFeeToken || !selectedGasFeeToken) &&
       !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
-      shouldCheckGaslessConditions &&
       !isSponsoredTransaction;
 
     if (!showAlert) {
@@ -112,17 +121,15 @@ export const useInsufficientBalanceAlert = ({
       },
     ];
   }, [
-    transactionMetadata,
-    isTransactionValueUpdating,
-    payToken,
-    isPayTokenTarget,
-    isGaslessCheckPending,
-    isGaslessSupported,
-    isSimulationEnabled,
+    balanceWeiInHex,
     ignoreGasFeeToken,
-    hasInsufficientBalance,
-    nativeCurrency,
-    goToBuy,
+    isGaslessSupported,
+    isPayTokenTarget,
+    isTransactionValueUpdating,
+    networkConfigurations,
     onReject,
+    payToken,
+    transactionMetadata,
+    goToBuy,
   ]);
 };
