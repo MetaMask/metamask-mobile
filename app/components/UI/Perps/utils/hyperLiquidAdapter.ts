@@ -505,7 +505,7 @@ export interface RawHyperLiquidLedgerUpdate {
 
 /**
  * Transform raw HyperLiquid ledger updates to UserHistoryItem format
- * Filters for deposits, withdrawals, and internal transfers only, extracting amount and asset information
+ * Filters for deposits and withdrawals only, extracting amount and asset information
  * @param rawLedgerUpdates - Array of raw ledger updates from HyperLiquid SDK
  * @returns Array of UserHistoryItem objects
  */
@@ -513,18 +513,10 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
   rawLedgerUpdates: RawHyperLiquidLedgerUpdate[],
 ): UserHistoryItem[] {
   return (rawLedgerUpdates || [])
-    .filter((update) =>
-      // Only include deposits, withdrawals, and positive internal transfers, skip other types
-      {
-        if (update.delta.type === 'deposit') return true;
-        if (update.delta.type === 'withdraw') return true;
-        if (update.delta.type === 'internalTransfer') {
-          const usdc = Number.parseFloat(update.delta.usdc ?? '0');
-          if (Number.isNaN(usdc)) return false;
-          return usdc > 0;
-        }
-        return false;
-      },
+    .filter(
+      (update) =>
+        // Only include deposits and withdrawals, skip other types
+        update.delta.type === 'deposit' || update.delta.type === 'withdraw',
     )
     .map((update) => {
       // Extract amount and asset based on delta type

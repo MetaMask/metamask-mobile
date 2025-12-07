@@ -440,6 +440,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                               style={
                                 [
                                   {
+                                    "backgroundColor": "#ffffff",
                                     "flexDirection": "row",
                                     "gap": 16,
                                     "padding": 16,

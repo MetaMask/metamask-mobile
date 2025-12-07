@@ -16,9 +16,9 @@ class RewardsGTMModal {
   }
 
   get notNowButton() {
-    return AppwrightSelectors.getElementByID(
+    return AppwrightSelectors.getElementByCatchAll(
       this._device,
-      'rewards-view-skip-button',
+      'Not now',
     );
   }
 
@@ -32,7 +32,8 @@ class RewardsGTMModal {
   }
   
   async tapNotNowButton() {
-    await AppwrightGestures.tap(this.notNowButton);
+    const notNowButton = await this.notNowButton;
+    await AppwrightGestures.tap(notNowButton);
   }
 }
 

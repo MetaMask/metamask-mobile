@@ -113,6 +113,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
           style={
             [
               {
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "padding": 16,
@@ -607,6 +608,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
         <View
           style={
             {
+              "backgroundColor": "#ffffff",
               "flexDirection": "row",
               "paddingBottom": 16,
               "paddingHorizontal": 16,

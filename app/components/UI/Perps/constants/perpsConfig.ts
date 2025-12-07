@@ -71,9 +71,6 @@ export const VALIDATION_THRESHOLDS = {
 
   // Limit price difference threshold (as decimal, 0.1 = 10%)
   LIMIT_PRICE_DIFFERENCE_WARNING: 0.1, // Warn if limit price differs by >10% from current price
-
-  // Price deviation threshold (as decimal, 0.1 = 10%)
-  PRICE_DEVIATION: 0.1, // Warn if perps price deviates by >10% from spot price
 } as const;
 
 /**

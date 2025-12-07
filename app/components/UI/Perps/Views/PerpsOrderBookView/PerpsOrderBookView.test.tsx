@@ -121,33 +121,12 @@ jest.mock('../../hooks/usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
 }));
 
-// Mock usePerpsNavigation and usePerpsMarkets
+// Mock usePerpsNavigation
 const mockNavigateToOrder = jest.fn();
 
 jest.mock('../../hooks', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateToOrder: mockNavigateToOrder,
-  })),
-  usePerpsMarkets: jest.fn(() => ({
-    markets: [
-      {
-        symbol: 'BTC',
-        price: '$50,000.00',
-        leverage: 50,
-      },
-    ],
-    isLoading: false,
-    error: null,
-  })),
-}));
-
-// Mock usePerpsOrderBookGrouping
-const mockSaveGrouping = jest.fn();
-
-jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
-  usePerpsOrderBookGrouping: jest.fn(() => ({
-    savedGrouping: undefined,
-    saveGrouping: mockSaveGrouping,
   })),
 }));
 
@@ -176,35 +155,6 @@ jest.mock('../../components/PerpsOrderBookDepthChart', () => {
   return (props: { testID?: string }) => (
     <View testID={props.testID || 'perps-order-book-depth-chart'} {...props} />
   );
-});
-
-// Mock PerpsMarketHeader to avoid PerpsStreamProvider dependency
-jest.mock('../../components/PerpsMarketHeader', () => {
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  const selectors = jest.requireActual<
-    typeof import('../../../../../../e2e/selectors/Perps/Perps.selectors')
-  >('../../../../../../e2e/selectors/Perps/Perps.selectors');
-  return {
-    __esModule: true,
-    default: ({
-      market,
-      onBackPress,
-    }: {
-      market?: { symbol: string };
-      onBackPress?: () => void;
-    }) => (
-      <View testID="perps-market-header">
-        <TouchableOpacity
-          testID={selectors.PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
-          onPress={onBackPress}
-        >
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <Text>Order Book</Text>
-        {market && <Text>{market.symbol}</Text>}
-      </View>
-    ),
-  };
 });
 
 // Mock BottomSheet components to avoid SafeAreaProvider requirement
@@ -380,17 +330,11 @@ describe('PerpsOrderBookView', () => {
 
   describe('unit toggle', () => {
     it('displays BTC symbol on base unit toggle', () => {
-      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+      const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
         state: initialState,
       });
 
-      // Find the base unit toggle button by testID
-      const baseToggle = getByTestId(
-        PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE,
-      );
-      expect(baseToggle).toBeOnTheScreen();
-      // The button should contain "BTC" text
-      expect(baseToggle).toHaveTextContent('BTC');
+      expect(getByText('BTC')).toBeOnTheScreen();
     });
 
     it('displays USD on USD unit toggle', () => {
@@ -518,23 +462,15 @@ describe('PerpsOrderBookView', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
-    it('uses dynamic nSigFigs based on grouping and price (server-side aggregation)', () => {
+    it('always uses nSigFigs: 5 for API (client-side aggregation)', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
-      // nSigFigs is dynamically calculated based on grouping and price
-      // For BTC at ~$50k with default grouping of 10, nSigFigs should be 4
+      // nSigFigs should always be 5 (finest granularity) regardless of grouping selection
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          nSigFigs: expect.any(Number),
+          nSigFigs: 5,
         }),
       );
-      // Verify nSigFigs is within valid API range (2-5)
-      const calls = mockUsePerpsLiveOrderBook.mock.calls as [
-        { nSigFigs: number },
-      ][];
-      const lastCall = calls[calls.length - 1];
-      expect(lastCall[0].nSigFigs).toBeGreaterThanOrEqual(2);
-      expect(lastCall[0].nSigFigs).toBeLessThanOrEqual(5);
     });
   });
 
@@ -692,13 +628,12 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with MAX_ORDER_BOOK_LEVELS (20) for server-side aggregation', () => {
+    it('subscribes to live order book with 50 levels for client-side aggregation', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
-      // Uses MAX_ORDER_BOOK_LEVELS (20) - API returns at most ~20 levels per side with nSigFigs
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          levels: 20,
+          levels: 50,
         }),
       );
     });
@@ -713,13 +648,12 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with valid nSigFigs for aggregation', () => {
+    it('subscribes to live order book with finest nSigFigs (5) for aggregation', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
-      // nSigFigs is calculated dynamically based on price and grouping
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          nSigFigs: expect.any(Number),
+          nSigFigs: 5,
         }),
       );
     });

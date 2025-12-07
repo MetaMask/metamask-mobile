@@ -1,29 +1,25 @@
-import React, { useCallback, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../component-library/components/Texts/Text/Text';
+import styleSheet from './selected-gas-fee-token.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
+import React, { useCallback, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { GasFeeTokenIcon, GasFeeTokenIconSize } from '../gas-fee-token-icon';
+import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useIsInsufficientBalance } from '../../../hooks/useIsInsufficientBalance';
-import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
-import useNetworkInfo from '../../../hooks/useNetworkInfo';
-import { GasFeeTokenIcon, GasFeeTokenIconSize } from '../gas-fee-token-icon';
 import { GasFeeTokenModal } from '../gas-fee-token-modal';
-import styleSheet from './selected-gas-fee-token.styles';
+import { useIsInsufficientBalance } from '../../../hooks/useIsInsufficientBalance';
 
 export function SelectedGasFeeToken() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  const { chainId: chainIdSingle, gasFeeTokens } = transactionMetadata || {};
-  const { chainId: chainIdBatch } = transactionBatchesMetadata || {};
-  const chainId = chainIdSingle ?? chainIdBatch;
+  const { chainId, gasFeeTokens } = transactionMetadata || {};
   const hasGasFeeTokens = Boolean(gasFeeTokens?.length);
 
   const { styles } = useStyles(styleSheet, {
