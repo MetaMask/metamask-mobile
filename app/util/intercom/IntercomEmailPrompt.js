@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Alert, TextInput } from 'react-native';
+import { Alert, TextInput, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import Intercom from '@intercom/intercom-react-native';
 import StorageWrapper from '../../store/storage-wrapper';
@@ -62,7 +62,7 @@ const loginToIntercom = async (email = null) => {
       await Intercom.loginUnidentifiedUser();
     }
   } catch (error) {
-    console.error('Intercom login failed:', error);
+    Logger.error('Intercom login failed:', error);
   }
 };
 
@@ -222,6 +222,21 @@ export const useIntercom = () => {
         await loginToIntercom(email);
         setIsLoggedIn(true);
       }
+
+      // Update platform in parallel with presenting (non-blocking)
+      Logger.log(`[Intercom] Starting platform update: ${Platform.OS}`);
+      Intercom.updateUser({
+        customAttributes: {
+          last_platform: Platform.OS,
+        },
+      })
+        .then(() => {
+          Logger.log(`[Intercom] Platform update completed: ${Platform.OS}`);
+        })
+        .catch((error) => {
+          Logger.error('[Intercom] Platform update failed:', error);
+        });
+
       Intercom.present();
     } else {
       setShowSheet(true);
@@ -242,7 +257,7 @@ export const useIntercom = () => {
           try {
             await Intercom.logout();
           } catch (error) {
-            console.error('Intercom logout failed:', error);
+            Logger.error('Intercom logout failed:', error);
           }
         },
       },
