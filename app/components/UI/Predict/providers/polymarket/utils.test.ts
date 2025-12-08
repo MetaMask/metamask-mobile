@@ -1965,6 +1965,18 @@ describe('polymarket utils', () => {
       expect(result.groupItemTitle).toBe('Team A 3.5');
     });
 
+    it('formats spread market groupItemTitle preserving dashes in team names', () => {
+      const market = createMarket({
+        sportsMarketType: 'spreads',
+        groupItemTitle: 'FC-Dallas -3.5',
+      });
+      const event = createTestEvent({ title: 'FC-Dallas vs. St.-Louis' });
+
+      const result = parsePolymarketMarket(market, event);
+
+      expect(result.groupItemTitle).toBe('FC-Dallas 3.5');
+    });
+
     it('formats spread market outcome titles with line values', () => {
       const market = createMarket({
         sportsMarketType: 'spreads',
@@ -1989,8 +2001,8 @@ describe('polymarket utils', () => {
 
       const result = parsePolymarketMarket(market, event);
 
-      expect(result.tokens[0].title).toBe('Team A ');
-      expect(result.tokens[1].title).toBe('Team B ');
+      expect(result.tokens[0].title).toBe('Team A');
+      expect(result.tokens[1].title).toBe('Team B');
     });
 
     it('handles undefined volumeNum as 0', () => {

@@ -417,7 +417,9 @@ const getSportsMarketTypePriority = (type: string): number => {
 
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   if (isSpreadMarket(market)) {
-    return market.groupItemTitle.replace('-', '');
+    // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
+    // Uses negative lookahead to target dash followed by digit, not dashes in team names
+    return market.groupItemTitle.replace(/-(?=\d)/, '');
   }
   return market.groupItemTitle;
 };
@@ -426,9 +428,8 @@ const formatOutcomeTitles = (market: PolymarketApiMarket): string[] => {
   const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
   if (isSpreadMarket(market)) {
     const line = market.line ? Math.abs(market.line) : 0;
-    return outcomes.map(
-      (outcome: string, index: number) =>
-        `${outcome} ${line ? (index > 0 ? `+${line}` : `-${line}`) : ''}`,
+    return outcomes.map((outcome: string, index: number) =>
+      line ? `${outcome} ${index > 0 ? `+${line}` : `-${line}`}` : outcome,
     );
   }
   return outcomes;
