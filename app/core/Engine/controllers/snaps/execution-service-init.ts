@@ -8,7 +8,6 @@ import { createWebView, removeWebView } from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
 import { SnapBridge } from '../../../Snaps';
 import getRpcMethodMiddleware from '../../../RPCMethods/RPCMethodMiddleware';
-import { Duration, inMilliseconds } from '@metamask/utils';
 import { SnapId } from '@metamask/snaps-sdk';
 
 /**
@@ -69,7 +68,6 @@ export const executionServiceInit: ControllerInitFunction<
       setupSnapProvider,
       createWebView,
       removeWebView,
-      pingTimeout: inMilliseconds(5, Duration.Second),
     }),
   };
 };
