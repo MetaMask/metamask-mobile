@@ -2200,7 +2200,7 @@ export function getStakingNavbar(
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >
-          <Icon name={IconName.Question} />
+          <Icon name={IconName.Question} size={IconSize.Lg} />
         </TouchableOpacity>
       ) : (
         <></>

@@ -123,7 +123,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       horizontal
       showsHorizontalScrollIndicator={false}
       style={tw.style('flex-grow-0')}
-      contentContainerStyle={tw.style('flex-row items-center gap-2 mx-2')}
+      contentContainerStyle={tw.style('flex-row items-center gap-2')}
       onContentSizeChange={handleContentSizeChange}
     >
       {/* All CTA - First pill */}

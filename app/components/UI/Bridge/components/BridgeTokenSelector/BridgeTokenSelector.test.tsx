@@ -234,9 +234,6 @@ jest.mock('../TokenSelectorItem', () => ({
   },
 }));
 
-jest.mock('../BridgeDestTokenSelector', () => ({
-  getNetworkName: jest.fn(() => 'Ethereum'),
-}));
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>

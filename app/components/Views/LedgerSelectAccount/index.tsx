@@ -28,6 +28,7 @@ import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
+import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import {
   LEDGER_BIP44_PATH,
@@ -41,6 +42,7 @@ import {
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
+import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 
 interface OptionType {
   key: string;
@@ -60,6 +62,14 @@ const LedgerSelectAccount = () => {
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
   );
+
+  const ledgerModelName = useMemo(() => {
+    if (selectedDevice) {
+      const [bluetoothServiceId] = selectedDevice.serviceUUIDs;
+      return ledgerDeviceUUIDToModelName(bluetoothServiceId);
+    }
+    return undefined;
+  }, [selectedDevice]);
 
   const ledgerPathOptions: OptionType[] = useMemo(
     () => [
@@ -138,22 +148,35 @@ const LedgerSelectAccount = () => {
     setBlockingModalVisible(true);
   };
 
+  useEffect(() => {
+    if (selectedDevice && accounts.length > 0) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
+        )
+          .addProperties({
+            device_type: HardwareDeviceTypes.LEDGER,
+            device_model: ledgerModelName,
+          })
+          .build(),
+      );
+    }
+  }, [
+    trackEvent,
+    createEventBuilder,
+    selectedDevice,
+    accounts,
+    ledgerModelName,
+  ]);
+
   const onConnectHardware = useCallback(async () => {
     setErrorMsg(null);
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET)
-        .addProperties({
-          device_type: HardwareDeviceTypes.LEDGER,
-        })
-        .build(),
-    );
 
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_FIRST_PAGE,
     );
     setAccounts(_accounts);
-  }, [trackEvent, createEventBuilder]);
+  }, []);
 
   useEffect(() => {
     if (accounts.length > 0 && selectedOption) {
@@ -226,34 +249,47 @@ const LedgerSelectAccount = () => {
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
       showLoadingModal();
+
       try {
         for (const index of accountIndexes) {
           await unlockLedgerWalletAccount(index);
         }
-
+        const numberOfConnectedDevices = await getConnectedDevicesCount();
         await updateNewLegacyAccountsLabel();
 
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS)
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ADD_ACCOUNT)
             .addProperties({
               device_type: HardwareDeviceTypes.LEDGER,
+              device_model: ledgerModelName,
               hd_path: getPathString(selectedOption.value),
+              connected_device_count: numberOfConnectedDevices.toString(),
             })
             .build(),
         );
         navigation.pop(2);
       } catch (err) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+            .addProperties({
+              device_type: HardwareDeviceTypes.LEDGER,
+              device_model: ledgerModelName,
+              error: (err as Error).message,
+            })
+            .build(),
+        );
         setErrorMsg((err as Error).message);
       } finally {
         setBlockingModalVisible(false);
       }
     },
     [
-      navigation,
-      selectedOption.value,
-      trackEvent,
       updateNewLegacyAccountsLabel,
+      ledgerModelName,
+      trackEvent,
       createEventBuilder,
+      selectedOption.value,
+      navigation,
     ],
   );
 
@@ -265,12 +301,13 @@ const LedgerSelectAccount = () => {
       createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
         .addProperties({
           device_type: HardwareDeviceTypes.LEDGER,
+          device_model: ledgerModelName,
         })
         .build(),
     );
     setBlockingModalVisible(false);
     navigation.dispatch(StackActions.pop(2));
-  }, [dispatch, navigation, trackEvent, createEventBuilder]);
+  }, [dispatch, trackEvent, createEventBuilder, ledgerModelName, navigation]);
 
   const onAnimationCompleted = useCallback(async () => {
     if (!blockingModalVisible) {

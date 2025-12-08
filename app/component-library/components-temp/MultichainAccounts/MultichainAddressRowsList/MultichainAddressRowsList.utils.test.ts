@@ -242,5 +242,26 @@ describe('MultichainAddressRowsList Utils', () => {
 
       expect(result[0].address).toBe(testAddress);
     });
+
+    it('converts lowercase EVM address to checksummed format', () => {
+      const lowercaseEvmAddress = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+      const expectedChecksummed = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+      const account = createMockAccount(lowercaseEvmAddress, ['eip155:0x1']);
+
+      const result = getCompatibleNetworksForAccount(account, mockNetworks);
+
+      expect(result[0].address).toBe(expectedChecksummed);
+    });
+
+    it('returns unmodified address for non-EVM networks', () => {
+      const solanaAddress = 'DRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC86PZ8okm21hy';
+      const account = createMockAccount(solanaAddress, [
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      ]);
+
+      const result = getCompatibleNetworksForAccount(account, mockNetworks);
+
+      expect(result[0].address).toBe(solanaAddress);
+    });
   });
 });
