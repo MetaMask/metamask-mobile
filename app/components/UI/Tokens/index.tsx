@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -43,7 +43,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
-import MusdConversionCta from '../Earn/components/Musd/MusdConversionCta';
+import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 
 interface TokenListNavigationParamList {
@@ -225,7 +225,11 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
         <>
-          {isMusdConversionFlowEnabled && <MusdConversionCta />}
+          {isMusdConversionFlowEnabled && (
+            <View style={isFullView ? tw`px-4` : undefined}>
+              <MusdConversionAssetListCta />
+            </View>
+          )}
           <TokenList
             tokenKeys={sortedTokenKeys}
             refreshing={refreshing}

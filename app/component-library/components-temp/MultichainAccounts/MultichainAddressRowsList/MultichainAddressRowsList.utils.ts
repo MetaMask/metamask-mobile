@@ -4,6 +4,7 @@ import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { toFormattedAddress } from '../../../../util/address';
 
 export interface NetworkAddressItem {
   chainId: CaipChainId;
@@ -89,13 +90,14 @@ export const sortNetworkAddressItems = (
 
 /**
  * Creates a NetworkAddressItem from chain ID, network config, and address
+ * Ensures addresses are properly formatted: checksummed for EVM, raw for non-EVM
  *
  * @param chainId - Chain ID
  * @param network - Network configuration
  * @param network.name - Network name
  * @param network.chainId - Network chain ID
  * @param address - Address to associate with the network
- * @returns NetworkAddressItem object
+ * @returns NetworkAddressItem object with properly formatted address
  */
 const createNetworkAddressItem = (
   chainId: CaipChainId,
@@ -104,7 +106,7 @@ const createNetworkAddressItem = (
 ): NetworkAddressItem => ({
   chainId,
   networkName: network.name,
-  address,
+  address: toFormattedAddress(address),
 });
 
 /**
