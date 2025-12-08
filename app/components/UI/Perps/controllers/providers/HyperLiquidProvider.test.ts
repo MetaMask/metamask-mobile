@@ -24,6 +24,9 @@ import { HyperLiquidProvider } from './HyperLiquidProvider';
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: jest.fn(),
+}));
 
 // Mock Sentry
 jest.mock('@sentry/react-native', () => ({
@@ -6457,6 +6460,90 @@ describe('HyperLiquidProvider', () => {
         // With buffer (1.003) = 4212.6
         expect(result).toBeCloseTo(4212.6, 1);
       });
+    });
+  });
+
+  describe('Reconnection Callback', () => {
+    let mockReconnectAllChannels: jest.Mock;
+    let mockStreamManager: { reconnectAllChannels: jest.Mock };
+    let mockGetStreamManagerInstance: jest.Mock;
+
+    beforeEach(() => {
+      mockReconnectAllChannels = jest.fn();
+      mockStreamManager = {
+        reconnectAllChannels: mockReconnectAllChannels,
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const streamManagerModule = require('../../providers/PerpsStreamManager');
+      mockGetStreamManagerInstance = jest.mocked(
+        streamManagerModule.getStreamManagerInstance,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockGetStreamManagerInstance.mockReturnValue(mockStreamManager as any);
+    });
+
+    it('sets reconnection callback that restores subscriptions and reconnects channels', async () => {
+      // Arrange
+      const mockRestoreSubscriptions = jest.fn().mockResolvedValue(undefined);
+      mockSubscriptionService.restoreSubscriptions = mockRestoreSubscriptions;
+
+      // Act - initialize provider (which sets up the callback)
+      await provider.initialize();
+
+      // Assert - setOnReconnectCallback was called
+      expect(mockClientService.setOnReconnectCallback).toHaveBeenCalled();
+      const callback =
+        mockClientService.setOnReconnectCallback.mock.calls[0][0];
+
+      // Act - invoke the callback
+      await callback();
+
+      // Assert - restoreSubscriptions and reconnectAllChannels were called
+      expect(mockRestoreSubscriptions).toHaveBeenCalledTimes(1);
+      expect(mockReconnectAllChannels).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles errors during reconnection gracefully', async () => {
+      // Arrange
+      const mockRestoreSubscriptions = jest
+        .fn()
+        .mockRejectedValue(new Error('Restore failed'));
+      mockSubscriptionService.restoreSubscriptions = mockRestoreSubscriptions;
+
+      await provider.initialize();
+
+      const callback =
+        mockClientService.setOnReconnectCallback.mock.calls[0][0];
+
+      // Act - invoke the callback (should not throw)
+      await expect(callback()).resolves.not.toThrow();
+
+      // Assert - both methods were attempted
+      expect(mockRestoreSubscriptions).toHaveBeenCalled();
+      expect(mockReconnectAllChannels).toHaveBeenCalled();
+    });
+
+    it('handles errors during channel reconnection gracefully', async () => {
+      // Arrange
+      const mockRestoreSubscriptions = jest.fn().mockResolvedValue(undefined);
+      mockSubscriptionService.restoreSubscriptions = mockRestoreSubscriptions;
+
+      mockReconnectAllChannels.mockImplementation(() => {
+        throw new Error('Reconnect failed');
+      });
+
+      await provider.initialize();
+
+      const callback =
+        mockClientService.setOnReconnectCallback.mock.calls[0][0];
+
+      // Act - invoke the callback (should not throw)
+      await expect(callback()).resolves.not.toThrow();
+
+      // Assert - both methods were attempted
+      expect(mockRestoreSubscriptions).toHaveBeenCalled();
+      expect(mockReconnectAllChannels).toHaveBeenCalled();
     });
   });
 });

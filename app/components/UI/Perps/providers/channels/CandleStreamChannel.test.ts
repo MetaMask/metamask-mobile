@@ -1057,4 +1057,56 @@ describe('CandleStreamChannel', () => {
       expect(secondCallback).toHaveBeenCalledWith(mockCandleData);
     });
   });
+
+  describe('disconnect without cacheKey', () => {
+    it('calls disconnectAll when disconnect is called without cacheKey', () => {
+      const mockBtcUnsubscribe = jest.fn();
+      const mockEthUnsubscribe = jest.fn();
+
+      // Set up subscriptions
+      mockSubscribeToCandles
+        .mockReturnValueOnce(mockBtcUnsubscribe)
+        .mockReturnValueOnce(mockEthUnsubscribe);
+
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      channel.subscribe({
+        coin: 'ETH',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      // Act - call disconnect without cacheKey
+      channel.disconnect();
+
+      // Assert - both unsubscribe functions should be called (via disconnectAll)
+      expect(mockBtcUnsubscribe).toHaveBeenCalled();
+      expect(mockEthUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('calls disconnectAll when disconnect is called with undefined cacheKey', () => {
+      const mockBtcUnsubscribe = jest.fn();
+
+      mockSubscribeToCandles.mockReturnValueOnce(mockBtcUnsubscribe);
+
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      // Act - call disconnect with undefined
+      channel.disconnect(undefined);
+
+      // Assert - unsubscribe function should be called (via disconnectAll)
+      expect(mockBtcUnsubscribe).toHaveBeenCalled();
+    });
+  });
 });
