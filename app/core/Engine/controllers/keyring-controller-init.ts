@@ -10,6 +10,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
+import { hmacSha512 } from '@metamask/native-utils';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../../Encryptor';
 
 const encryptor = new Encryptor({
@@ -56,7 +57,7 @@ export const keyringControllerInit: ControllerInitFunction<
 
   const hdKeyringBuilder = () =>
     new HdKeyring({
-      cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
+      cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
     });
 
   hdKeyringBuilder.type = HdKeyring.type;
