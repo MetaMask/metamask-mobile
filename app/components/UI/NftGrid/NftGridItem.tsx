@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import {
   Box,
   Text,
@@ -33,7 +33,7 @@ const NftGridItem = ({
   }, [navigation, item, source]);
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={tw.style('self-stretch mb-3')}
       onPress={onPress}
       onLongPress={() => onLongPress(item)}
@@ -64,7 +64,7 @@ const NftGridItem = ({
       >
         {item.collection?.name}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
