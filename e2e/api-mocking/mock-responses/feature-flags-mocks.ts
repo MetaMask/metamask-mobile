@@ -150,6 +150,10 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
     enabled,
     minimumVersion: '7.60.0',
   },
+  predictGtmOnboardingModalEnabled: {
+    enabled: false,
+    minimumVersion: '7.60.0',
+  },
 });
 
 export const remoteFeatureFlagSendRedesignDisabled = {
