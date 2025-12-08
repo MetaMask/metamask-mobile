@@ -20,6 +20,8 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import { handleSnapRequest } from '../../../../core/Snaps/utils';
+import { SolMethod, SolScope } from '@metamask/keyring-api';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -68,8 +70,37 @@ jest.mock('../../../../core/Engine', () => ({
   },
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
+    call: jest.fn(),
   },
 }));
+
+jest.mock('../../../../core/Snaps/utils', () => ({
+  handleSnapRequest: jest.fn(),
+}));
+
+const mockKeyringClientSubmitRequest = jest.fn();
+
+jest.mock('@metamask/keyring-snap-client', () => ({
+  KeyringClient: jest.fn().mockImplementation(() => ({
+    submitRequest: mockKeyringClientSubmitRequest,
+  })),
+}));
+
+jest.mock('../../../../core/SnapKeyring/SolanaWalletSnap', () => ({
+  SolanaWalletSnapSender: jest.fn().mockImplementation(() => ({})),
+  SOLANA_WALLET_SNAP_ID: 'npm:@metamask/solana-wallet-snap',
+}));
+
+const mockHandleSnapRequest = handleSnapRequest as jest.MockedFunction<
+  typeof handleSnapRequest
+>;
+
+// Mock crypto.randomUUID for Solana tests
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: jest.fn().mockReturnValue('mock-uuid-123'),
+  },
+});
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
@@ -116,6 +147,8 @@ describe('useCardDelegation', () => {
     generateDelegationToken: jest.Mock;
     encodeApproveTransaction: jest.Mock;
     completeEVMDelegation: jest.Mock;
+    buildSolanaApproveTransaction: jest.Mock;
+    completeSolanaDelegation: jest.Mock;
   };
   let mockTrackEvent: jest.Mock;
   let mockCreateEventBuilder: jest.Mock;
@@ -130,6 +163,8 @@ describe('useCardDelegation', () => {
       generateDelegationToken: jest.fn(),
       encodeApproveTransaction: jest.fn(),
       completeEVMDelegation: jest.fn(),
+      buildSolanaApproveTransaction: jest.fn(),
+      completeSolanaDelegation: jest.fn(),
     };
 
     mockUseCardSDK.mockReturnValue({
@@ -209,6 +244,18 @@ describe('useCardDelegation', () => {
     });
     mockSDK.encodeApproveTransaction.mockReturnValue('0xencodedData');
     mockSDK.completeEVMDelegation.mockResolvedValue({});
+    mockSDK.buildSolanaApproveTransaction.mockResolvedValue(
+      'base64EncodedTransaction',
+    );
+    mockSDK.completeSolanaDelegation.mockResolvedValue({});
+
+    // Setup Solana Snap mocks
+    mockHandleSnapRequest.mockResolvedValue({
+      transactionId: 'solana-tx-hash',
+    });
+    mockKeyringClientSubmitRequest.mockResolvedValue({
+      result: { signature: 'solana-signature-123' },
+    });
   });
 
   afterEach(() => {
@@ -1122,6 +1169,7 @@ describe('useCardDelegation', () => {
     it('uses raw address for solana network without checksum', async () => {
       const mockToken = createMockToken();
       const mockSolanaAddress = 'SolanaAddress123ABC';
+      const mockSolanaAccountId = 'solana-account-uuid';
       const params = {
         ...createMockDelegationParams(),
         network: 'solana' as const,
@@ -1130,8 +1178,21 @@ describe('useCardDelegation', () => {
       mockUseSelector.mockReturnValue(
         jest.fn().mockReturnValue({
           address: mockSolanaAddress,
+          id: mockSolanaAccountId,
         }),
       );
+
+      // Setup Solana-specific mocks for this test
+      mockKeyringClientSubmitRequest.mockResolvedValue({
+        result: { signature: 'solana-signature' },
+      });
+      mockHandleSnapRequest.mockResolvedValue({
+        transactionId: 'solana-tx-hash',
+      });
+      mockSDK.buildSolanaApproveTransaction.mockResolvedValue(
+        'base64EncodedTransaction',
+      );
+      mockSDK.completeSolanaDelegation.mockResolvedValue({});
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1260,6 +1321,774 @@ describe('useCardDelegation', () => {
           currency: 'usdc',
         }),
       );
+    });
+  });
+
+  describe('Solana integration', () => {
+    const mockSolanaAddress = 'SolanaAddress123ABC';
+    const mockSolanaAccountId = 'solana-account-uuid-123';
+    const mockSolanaSignature = 'solana-signature-123';
+    const mockSolanaTxHash = 'solana-tx-hash';
+
+    const createSolanaToken = (
+      overrides: Partial<CardTokenAllowance> = {},
+    ): CardTokenAllowance => ({
+      address: 'SolanaTokenMintAddress123',
+      caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      decimals: 6,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      allowanceState: AllowanceState.Enabled,
+      allowance: '1000',
+      availableBalance: '500',
+      walletAddress: mockSolanaAddress,
+      delegationContract: 'SolanaDelegateAddress123',
+      ...overrides,
+    });
+
+    const createSolanaDelegationParams = () => ({
+      amount: '100',
+      currency: 'USDC',
+      network: 'solana' as const,
+    });
+
+    beforeEach(() => {
+      // Setup selector mock for Solana account
+      mockUseSelector.mockReturnValue(
+        jest.fn().mockReturnValue({
+          address: mockSolanaAddress,
+          id: mockSolanaAccountId,
+        }),
+      );
+
+      // Reset Solana-specific mocks
+      mockHandleSnapRequest.mockResolvedValue({
+        transactionId: mockSolanaTxHash,
+      });
+      mockKeyringClientSubmitRequest.mockResolvedValue({
+        result: { signature: mockSolanaSignature },
+      });
+    });
+
+    describe('generateSolanaSignatureMessage', () => {
+      it('generates Solana SIWE message with correct format', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockKeyringClientSubmitRequest).toHaveBeenCalledWith(
+          expect.objectContaining({
+            request: expect.objectContaining({
+              method: 'signMessage',
+              params: expect.objectContaining({
+                scope: SolScope.Mainnet,
+                account: expect.objectContaining({
+                  address: mockSolanaAddress,
+                }),
+              }),
+            }),
+          }),
+        );
+
+        // Verify the message contains expected SIWE format for Solana
+        const signCall = mockKeyringClientSubmitRequest.mock.calls[0][0];
+        const base64Message = signCall.request.params.message;
+        const decodedMessage = Buffer.from(base64Message, 'base64').toString(
+          'utf8',
+        );
+
+        expect(decodedMessage).toContain('Solana account');
+        expect(decodedMessage).toContain(mockSolanaAddress);
+        expect(decodedMessage).toContain('Chain ID: 1');
+        expect(decodedMessage).toContain(mockNonce);
+      });
+
+      it('uses Chain ID 1 for Solana SIWE message regardless of token caipChainId', async () => {
+        const mockToken = createSolanaToken({
+          caipChainId: 'solana:devnet123',
+        });
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        const signCall = mockKeyringClientSubmitRequest.mock.calls[0][0];
+        const base64Message = signCall.request.params.message;
+        const decodedMessage = Buffer.from(base64Message, 'base64').toString(
+          'utf8',
+        );
+
+        expect(decodedMessage).toContain('Chain ID: 1');
+      });
+    });
+
+    describe('signSolanaMessage', () => {
+      it('signs message via Solana keyring client', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockKeyringClientSubmitRequest).toHaveBeenCalledWith({
+          id: expect.any(String),
+          scope: SolScope.Mainnet,
+          account: mockSolanaAccountId,
+          origin: 'metamask',
+          request: {
+            method: 'signMessage',
+            params: {
+              scope: SolScope.Mainnet,
+              account: {
+                address: mockSolanaAddress,
+              },
+              message: expect.any(String),
+            },
+          },
+        });
+      });
+
+      it('throws error when account ID is missing', async () => {
+        mockUseSelector.mockReturnValue(
+          jest.fn().mockReturnValue({
+            address: mockSolanaAddress,
+            id: undefined,
+          }),
+        );
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'Account ID is required',
+          );
+        });
+
+        expect(result.current.error).toBe('Account ID is required');
+      });
+
+      it('throws error when keyring client returns no signature', async () => {
+        mockKeyringClientSubmitRequest.mockResolvedValue({
+          result: {},
+        });
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'No signature found',
+          );
+        });
+
+        expect(result.current.error).toBe('No signature found');
+      });
+
+      it('logs error when signing fails', async () => {
+        const signError = new Error('Keyring signing failed');
+        mockKeyringClientSubmitRequest.mockRejectedValue(signError);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'Keyring signing failed',
+          );
+        });
+
+        expect(Logger.log).toHaveBeenCalledWith(
+          'Error signing Solana message:',
+          signError,
+        );
+      });
+    });
+
+    describe('executeSolanaApprovalTransaction', () => {
+      it('completes Solana delegation flow', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.error).toBeNull();
+        expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
+          'solana',
+          mockSolanaAddress,
+        );
+        expect(mockSDK.buildSolanaApproveTransaction).toHaveBeenCalled();
+        expect(mockHandleSnapRequest).toHaveBeenCalled();
+        expect(mockSDK.completeSolanaDelegation).toHaveBeenCalled();
+      });
+
+      it('builds Solana approve transaction with correct parameters', async () => {
+        const mockToken = createSolanaToken({ decimals: 6 });
+        const params = createSolanaDelegationParams();
+
+        mockToTokenMinimalUnit.mockReturnValue('100000000');
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.buildSolanaApproveTransaction).toHaveBeenCalledWith({
+          tokenMintAddress: mockToken.address,
+          delegateAddress: '3UsCVSxLJmWXBKFyVSsCJTG133dd1sMuxo1Uee5wqqUn',
+          ownerAddress: mockSolanaAddress,
+          amount: '100000000',
+        });
+      });
+
+      it('uses stagingTokenAddress for Solana when present', async () => {
+        const mockToken = createSolanaToken({
+          stagingTokenAddress: 'StagingSolanaTokenMint123',
+        });
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.buildSolanaApproveTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenMintAddress: 'StagingSolanaTokenMint123',
+          }),
+        );
+      });
+
+      it('uses default decimals of 6 for Solana when not provided', async () => {
+        const mockToken = createSolanaToken({ decimals: undefined });
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockToTokenMinimalUnit).toHaveBeenCalledWith(params.amount, 6);
+      });
+
+      it('submits transaction through Solana Snap with correct parameters', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockHandleSnapRequest).toHaveBeenCalledWith(
+          Engine.controllerMessenger,
+          {
+            origin: 'metamask',
+            snapId: 'npm:@metamask/solana-wallet-snap',
+            handler: 'onClientRequest',
+            request: {
+              id: expect.any(String),
+              jsonrpc: '2.0',
+              method: SolMethod.SignAndSendTransaction,
+              params: {
+                transaction: 'base64EncodedTransaction',
+                scope: SolScope.Mainnet,
+                accountId: mockSolanaAccountId,
+              },
+            },
+          },
+        );
+      });
+
+      it('calls completeSolanaDelegation with correct parameters', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.completeSolanaDelegation).toHaveBeenCalledWith({
+          address: mockSolanaAddress,
+          network: 'solana',
+          currency: 'usdc',
+          amount: params.amount,
+          txHash: mockSolanaTxHash,
+          sigHash: mockSolanaSignature,
+          sigMessage: expect.any(String),
+          token: mockDelegationJWTToken,
+        });
+      });
+    });
+
+    describe('Solana snap response formats', () => {
+      it('extracts transactionId from snap response object', async () => {
+        mockHandleSnapRequest.mockResolvedValue({
+          transactionId: 'tx-from-transactionId',
+        });
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.completeSolanaDelegation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            txHash: 'tx-from-transactionId',
+          }),
+        );
+      });
+
+      it('extracts signature from snap response object', async () => {
+        mockHandleSnapRequest.mockResolvedValue({
+          signature: 'tx-from-signature',
+        });
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.completeSolanaDelegation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            txHash: 'tx-from-signature',
+          }),
+        );
+      });
+
+      it('extracts signature from nested result object', async () => {
+        mockHandleSnapRequest.mockResolvedValue({
+          result: { signature: 'tx-from-result-signature' },
+        });
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.completeSolanaDelegation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            txHash: 'tx-from-result-signature',
+          }),
+        );
+      });
+
+      it('extracts transactionId from nested result object', async () => {
+        mockHandleSnapRequest.mockResolvedValue({
+          result: { transactionId: 'tx-from-result-transactionId' },
+        });
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.completeSolanaDelegation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            txHash: 'tx-from-result-transactionId',
+          }),
+        );
+      });
+
+      it('handles direct string response from snap', async () => {
+        mockHandleSnapRequest.mockResolvedValue('direct-string-tx-hash');
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.completeSolanaDelegation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            txHash: 'direct-string-tx-hash',
+          }),
+        );
+      });
+
+      it('throws error when no transaction signature returned', async () => {
+        mockHandleSnapRequest.mockResolvedValue({});
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'No transaction signature returned from Solana Snap',
+          );
+        });
+
+        expect(result.current.error).toBe(
+          'No transaction signature returned from Solana Snap',
+        );
+      });
+
+      it('throws error when snap returns null', async () => {
+        mockHandleSnapRequest.mockResolvedValue(null);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'No transaction signature returned from Solana Snap',
+          );
+        });
+      });
+    });
+
+    describe('Solana error handling', () => {
+      it('throws error when token configuration is missing for Solana', async () => {
+        const mockToken = createSolanaToken({ delegationContract: undefined });
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'Missing token configuration',
+          );
+        });
+
+        expect(result.current.error).toBe('Missing token configuration');
+      });
+
+      it('throws error when Solana token address is missing', async () => {
+        const mockToken = createSolanaToken({
+          address: undefined,
+          stagingTokenAddress: undefined,
+        });
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'Missing token address',
+          );
+        });
+
+        expect(result.current.error).toBe('Missing token address');
+      });
+
+      it('logs error when Solana transaction fails', async () => {
+        const snapError = new Error('Solana transaction failed');
+        mockHandleSnapRequest.mockRejectedValue(snapError);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'Solana transaction failed',
+          );
+        });
+
+        expect(Logger.error).toHaveBeenCalledWith(
+          snapError,
+          'Failed to execute Solana approval transaction',
+        );
+      });
+
+      it('throws error when Solana delegation completion fails', async () => {
+        const completionError = new Error(
+          'Solana delegation completion failed',
+        );
+        mockSDK.completeSolanaDelegation.mockRejectedValue(completionError);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'Solana delegation completion failed',
+          );
+        });
+
+        expect(result.current.error).toBe(
+          'Solana delegation completion failed',
+        );
+      });
+    });
+
+    describe('Solana user cancellation', () => {
+      it('throws UserCancelledError when user denies Solana transaction', async () => {
+        const error = new Error('User denied transaction');
+        mockHandleSnapRequest.mockRejectedValue(error);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            UserCancelledError,
+          );
+        });
+
+        expect(result.current.error).toBe('User denied transaction');
+      });
+
+      it('throws UserCancelledError when user rejects Solana transaction', async () => {
+        const error = new Error('User rejected the request');
+        mockHandleSnapRequest.mockRejectedValue(error);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            UserCancelledError,
+          );
+        });
+      });
+
+      it('throws UserCancelledError when user cancels Solana transaction', async () => {
+        const error = new Error('User cancelled transaction');
+        mockHandleSnapRequest.mockRejectedValue(error);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            UserCancelledError,
+          );
+        });
+      });
+
+      it('throws UserCancelledError with alternate spelling for Solana', async () => {
+        const error = new Error('User canceled the transaction');
+        mockHandleSnapRequest.mockRejectedValue(error);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            UserCancelledError,
+          );
+        });
+      });
+
+      it('tracks user cancelled event for Solana transactions', async () => {
+        const error = new Error('User denied transaction');
+        mockHandleSnapRequest.mockRejectedValue(error);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            UserCancelledError,
+          );
+        });
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.CARD_DELEGATION_PROCESS_USER_CANCELED,
+        );
+        expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+          MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED,
+        );
+      });
+
+      it('throws regular error for non-cancellation Solana errors', async () => {
+        const error = new Error('Network connection failed');
+        mockHandleSnapRequest.mockRejectedValue(error);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(result.current.submitDelegation(params)).rejects.toThrow(
+            'Network connection failed',
+          );
+        });
+
+        expect(result.current.error).toBe('Network connection failed');
+      });
+    });
+
+    describe('Solana metrics tracking', () => {
+      it('tracks delegation started event for Solana', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.CARD_DELEGATION_PROCESS_STARTED,
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          token_symbol: params.currency,
+          token_chain_id: 'solana',
+          delegation_type: 'limited',
+          delegation_amount: 100,
+        });
+      });
+
+      it('tracks delegation completed event for Solana', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.CARD_DELEGATION_PROCESS_COMPLETED,
+        );
+      });
+
+      it('tracks delegation failed event for Solana errors', async () => {
+        const error = new Error('Solana transaction failed');
+        mockHandleSnapRequest.mockRejectedValue(error);
+
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await expect(
+            result.current.submitDelegation(params),
+          ).rejects.toThrow();
+        });
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED,
+        );
+      });
+    });
+
+    describe('Solana does not use EVM components', () => {
+      it('does not call EVM TransactionController for Solana', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(
+          Engine.context.TransactionController.addTransaction,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('does not call EVM KeyringController for signing for Solana', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(
+          Engine.context.KeyringController.signPersonalMessage,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('does not call encodeApproveTransaction for Solana', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.encodeApproveTransaction).not.toHaveBeenCalled();
+      });
+
+      it('does not call completeEVMDelegation for Solana', async () => {
+        const mockToken = createSolanaToken();
+        const params = createSolanaDelegationParams();
+
+        const { result } = renderHook(() => useCardDelegation(mockToken));
+
+        await act(async () => {
+          await result.current.submitDelegation(params);
+        });
+
+        expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
+      });
     });
   });
 });

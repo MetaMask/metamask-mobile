@@ -5,7 +5,7 @@ import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { SolMethod, SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Logger from '../../../../util/Logger';
@@ -77,7 +77,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   /**
    * Generate SIWE signature message
    */
-  const generateSignatureMessage = useCallback(
+  const generateEVMSignatureMessage = useCallback(
     (address: string, nonce: string): string => {
       const now = new Date();
       // Expiration time needs to be 2 minutes
@@ -89,6 +89,23 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
     },
     [token],
+  );
+
+  /**
+   * Generate SIWE signature message
+   */
+  const generateSolanaSignatureMessage = useCallback(
+    (address: string, nonce: string): string => {
+      const now = new Date();
+      // Expiration time needs to be 2 minutes
+      const expirationTime = new Date(now.getTime() + 2 * 60 * 1000);
+      const chainId = 1;
+      const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
+      const uri = `https://${domain}`;
+
+      return `${domain} wants you to sign in with your Solana account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
+    },
+    [],
   );
 
   /**
@@ -113,10 +130,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
 
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         safeFormatChainIdToHex(token.caipChainId ?? '') as Hex,
-      );
-      Logger.log(
-        'executeEVMApprovalTransaction: networkClientId',
-        networkClientId,
       );
 
       // Convert amount to minimal units based on token decimals
@@ -265,23 +278,13 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         token.decimals ?? 6,
       ).toString();
 
-      Logger.log('executeSolanaApprovalTransaction: params', {
-        address,
-        accountId,
-        tokenMintAddress,
-        delegateAddress: token.delegationContract,
-        amount: params.amount,
-        amountInMinimalUnits,
-        decimals: token.decimals,
-      });
-
       try {
         // Build the SPL Token Approve transaction via backend API
         // The backend constructs a properly serialized Solana transaction
         // Returns a base64-encoded serialized Solana transaction
         const transactionData = await sdk.buildSolanaApproveTransaction({
           tokenMintAddress,
-          delegateAddress: token.delegationContract,
+          delegateAddress: '3UsCVSxLJmWXBKFyVSsCJTG133dd1sMuxo1Uee5wqqUn',
           ownerAddress: address,
           amount: amountInMinimalUnits,
         });
@@ -297,7 +300,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
             request: {
               id: crypto.randomUUID(),
               jsonrpc: '2.0' as const,
-              method: 'signAndSendTransaction',
+              method: SolMethod.SignAndSendTransaction,
               params: {
                 transaction: transactionData,
                 scope: SolScope.Mainnet,
@@ -305,11 +308,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
               },
             },
           },
-        );
-
-        Logger.log(
-          'executeSolanaApprovalTransaction: snapResponse',
-          JSON.stringify(snapResponse, null, 2),
         );
 
         // Extract transaction signature (hash) from response
@@ -341,8 +339,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         if (!txHash) {
           throw new Error('No transaction signature returned from Solana Snap');
         }
-
-        Logger.log('executeSolanaApprovalTransaction: txHash', txHash);
 
         // Complete the delegation with the backend API
         await sdk.completeSolanaDelegation({
@@ -458,10 +454,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         const userAccount = selectAccountByScope(
           isSolana ? SolScope.Mainnet : 'eip155:0',
         );
-        Logger.log(
-          'useCardDelegation: userAccount',
-          JSON.stringify(userAccount, null, 2),
-        );
         const address = isSolana
           ? userAccount?.address
           : safeToChecksumAddress(userAccount?.address);
@@ -474,7 +466,9 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         const { token: delegationJWTToken, nonce } =
           await sdk.generateDelegationToken(params.network, address);
         // Step 2: Generate and sign SIWE message
-        const signatureMessage = generateSignatureMessage(address, nonce);
+        const signatureMessage = isSolana
+          ? generateSolanaSignatureMessage(address, nonce)
+          : generateEVMSignatureMessage(address, nonce);
         const signature = isSolana
           ? await signSolanaMessage(userAccount?.id, address, signatureMessage)
           : await KeyringController.signPersonalMessage({
@@ -537,7 +531,8 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
     [
       sdk,
       selectAccountByScope,
-      generateSignatureMessage,
+      generateEVMSignatureMessage,
+      generateSolanaSignatureMessage,
       KeyringController,
       executeEVMApprovalTransaction,
       executeSolanaApprovalTransaction,

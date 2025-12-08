@@ -54,6 +54,14 @@ import { getCardBaanxToken } from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { PublicKey, Transaction, Connection } from '@solana/web3.js';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import {
+  createApproveInstruction,
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -1563,68 +1571,41 @@ export class CardSDK {
     }
 
     try {
-      // Import Solana libraries dynamically to avoid issues with bundling
-      // These packages are available as transitive dependencies from @metamask/test-dapp-solana
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-extraneous-dependencies, @typescript-eslint/no-var-requires
-      const solanaWeb3 = require('@solana/web3.js');
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-extraneous-dependencies, @typescript-eslint/no-var-requires
-      const splToken = require('@solana/spl-token');
-
-      const { PublicKey, Transaction, Connection } = solanaWeb3;
-      const {
-        createApproveInstruction,
-        getAssociatedTokenAddressSync,
-        TOKEN_PROGRAM_ID,
-      } = splToken;
-
-      // Create public keys from addresses
       const ownerPublicKey = new PublicKey(params.ownerAddress);
       const delegatePublicKey = new PublicKey(params.delegateAddress);
       const mintPublicKey = new PublicKey(params.tokenMintAddress);
 
-      // Get the Associated Token Account (ATA) for the owner
-      // This is the account that holds the tokens for the owner
       const tokenAccountAddress = getAssociatedTokenAddressSync(
         mintPublicKey,
         ownerPublicKey,
       );
 
-      // Create the approve instruction
-      // This authorizes the delegate to spend up to `amount` tokens from the owner's ATA
       const approveInstruction = createApproveInstruction(
-        tokenAccountAddress, // The token account to approve spending from
-        delegatePublicKey, // The delegate authorized to spend
-        ownerPublicKey, // The owner of the token account (signer)
-        BigInt(params.amount), // Amount to approve
-        [], // No multisig signers
-        TOKEN_PROGRAM_ID, // SPL Token program
+        tokenAccountAddress,
+        delegatePublicKey,
+        ownerPublicKey,
+        BigInt(params.amount),
+        [],
+        TOKEN_PROGRAM_ID,
       );
 
-      // Create a connection to Solana mainnet to get a recent blockhash
-      // Using the public RPC endpoint - in production, consider using a dedicated RPC
       const connection = new Connection(
         'https://api.mainnet-beta.solana.com',
         'confirmed',
       );
 
-      // Get the latest blockhash for the transaction
       const { blockhash, lastValidBlockHeight } =
         await connection.getLatestBlockhash('confirmed');
 
-      // Create the transaction with the blockhash
       const transaction = new Transaction();
       transaction.recentBlockhash = blockhash;
       transaction.lastValidBlockHeight = lastValidBlockHeight;
       transaction.feePayer = ownerPublicKey;
 
-      // Add the approve instruction to the transaction
       transaction.add(approveInstruction);
 
-      // Serialize the transaction (without signatures - the Snap will sign it)
-      // Use serializeMessage() to get the message that needs to be signed
       const serializedMessage = transaction.serializeMessage();
 
-      // Encode as base64 for transmission to the Snap
       const base64Transaction = serializedMessage.toString('base64');
 
       this.logDebugInfo('buildSolanaApproveTransaction', {

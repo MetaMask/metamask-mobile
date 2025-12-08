@@ -76,6 +76,41 @@ jest.mock('../../../../util/networks', () => ({
 // Mock fetch for geolocation API
 global.fetch = jest.fn();
 
+// Mock Solana dependencies
+const mockTransaction = {
+  recentBlockhash: null as string | null,
+  lastValidBlockHeight: null as number | null,
+  feePayer: null,
+  add: jest.fn(),
+  serializeMessage: jest.fn().mockReturnValue(Buffer.from('serialized-tx')),
+};
+const mockConnection = {
+  getLatestBlockhash: jest.fn().mockResolvedValue({
+    blockhash: 'test-blockhash',
+    lastValidBlockHeight: 12345,
+  }),
+};
+
+jest.mock('@solana/web3.js', () => ({
+  PublicKey: jest.fn().mockImplementation(() => ({
+    toBase58: jest.fn().mockReturnValue('SolanaPublicKeyBase58'),
+  })),
+  Transaction: jest.fn().mockImplementation(() => mockTransaction),
+  Connection: jest.fn().mockImplementation(() => mockConnection),
+}));
+
+jest.mock('@solana/spl-token', () => ({
+  createApproveInstruction: jest.fn().mockReturnValue({
+    programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+    keys: [],
+    data: Buffer.from([]),
+  }),
+  getAssociatedTokenAddressSync: jest.fn().mockReturnValue({
+    toBase58: jest.fn().mockReturnValue('TokenAccountAddressBase58'),
+  }),
+  TOKEN_PROGRAM_ID: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+}));
+
 describe('CardSDK', () => {
   let cardSDK: CardSDK;
   let mockCardFeatureFlag: CardFeatureFlag;
@@ -3831,6 +3866,228 @@ describe('CardSDK', () => {
         'Failed to retrieve Card bearer token:',
         expect.any(Error),
       );
+    });
+  });
+
+  describe('completeSolanaDelegation', () => {
+    const validSolanaDelegationParams = {
+      address: 'SoL1111111111111111111111111111111111111111',
+      network: 'solana' as const,
+      currency: 'usdc',
+      amount: '100000000',
+      txHash:
+        '5UfDuXBZLQGpBLFNVPHvJnhtK3NGPCmKYSZTdZ8bPZzqC5WJBNGQZXqjPxQKPGJKq3xLBVBJGJhNv8aKCLGrQK1p',
+      sigHash: 'base64EncodedSolanaSignature123',
+      sigMessage: 'Test SIWE message for Solana',
+      token: 'jwt-delegation-token',
+    };
+
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'test-bearer-token' },
+      });
+    });
+
+    it('completes Solana delegation with valid parameters', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      const result = await cardSDK.completeSolanaDelegation(
+        validSolanaDelegationParams,
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/delegation/solana/post-approval'),
+        expect.objectContaining({ method: 'POST' }),
+      );
+    });
+
+    it('throws validation error for invalid Solana address', async () => {
+      const invalidParams = {
+        ...validSolanaDelegationParams,
+        address: '0x1234567890123456789012345678901234567890',
+      };
+
+      await expect(
+        cardSDK.completeSolanaDelegation(invalidParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid Solana address format',
+      });
+    });
+
+    it('throws server error when API fails', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: jest.fn().mockResolvedValue('Error'),
+      });
+
+      await expect(
+        cardSDK.completeSolanaDelegation(validSolanaDelegationParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+  });
+
+  describe('buildSolanaApproveTransaction', () => {
+    const validBuildParams = {
+      tokenMintAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      delegateAddress: '3UsCVSxLJmWXBKFyVSsCJTG133dd1sMuxo1Uee5wqqUn',
+      ownerAddress: 'SoL1111111111111111111111111111111111111111',
+      amount: '100000000',
+    };
+
+    beforeEach(() => {
+      mockTransaction.add.mockClear();
+      mockTransaction.serializeMessage.mockClear();
+      mockConnection.getLatestBlockhash.mockClear();
+    });
+
+    it('builds Solana approve transaction with valid parameters', async () => {
+      const result =
+        await cardSDK.buildSolanaApproveTransaction(validBuildParams);
+
+      expect(result).toBe(Buffer.from('serialized-tx').toString('base64'));
+      expect(mockTransaction.add).toHaveBeenCalled();
+      expect(mockConnection.getLatestBlockhash).toHaveBeenCalledWith(
+        'confirmed',
+      );
+    });
+
+    it('throws validation error for invalid address format', async () => {
+      await expect(
+        cardSDK.buildSolanaApproveTransaction({
+          ...validBuildParams,
+          ownerAddress: 'invalid!@#',
+        }),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid owner address format',
+      });
+    });
+
+    it('throws error when transaction building fails', async () => {
+      const { PublicKey } = jest.requireMock('@solana/web3.js');
+      PublicKey.mockImplementationOnce(() => {
+        throw new Error('Invalid public key');
+      });
+
+      await expect(
+        cardSDK.buildSolanaApproveTransaction(validBuildParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+  });
+
+  describe('encodeApproveTransaction', () => {
+    it('encodes EVM approve transaction data', () => {
+      const mockEncodedData = '0xencoded123';
+      (ethers.utils.Interface as unknown as jest.Mock).mockReturnValue({
+        encodeFunctionData: jest.fn().mockReturnValue(mockEncodedData),
+      });
+
+      const result = cardSDK.encodeApproveTransaction('0xSpender', '1000000');
+
+      expect(result).toBe(mockEncodedData);
+    });
+  });
+
+  describe('generateDelegationToken', () => {
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'test-bearer-token' },
+      });
+    });
+
+    it('generates delegation token for solana network', async () => {
+      const mockResponse = {
+        token: 'jwt-token',
+        expiresAt: '2024-01-01T00:00:00Z',
+        nonce: 'nonce-123',
+      };
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await cardSDK.generateDelegationToken(
+        'solana',
+        'SoL1111111111111111111111111111111111111111',
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/delegation/token?network=solana'),
+        expect.any(Object),
+      );
+    });
+
+    it('throws server error when API fails', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: jest.fn().mockResolvedValue('Error'),
+      });
+
+      await expect(
+        cardSDK.generateDelegationToken('linea', '0x1234'),
+      ).rejects.toMatchObject({ type: CardErrorType.SERVER_ERROR });
+    });
+  });
+
+  describe('completeEVMDelegation', () => {
+    const validEVMParams = {
+      address: '0x1234567890123456789012345678901234567890',
+      network: 'linea' as const,
+      currency: 'usdc',
+      amount: '100000000',
+      txHash: '0xTxHash',
+      sigHash:
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12',
+      sigMessage: 'Test message',
+      token: 'jwt-token',
+    };
+
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'test-bearer-token' },
+      });
+    });
+
+    it('completes EVM delegation with valid parameters', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      const result = await cardSDK.completeEVMDelegation(validEVMParams);
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/delegation/evm/post-approval'),
+        expect.objectContaining({ method: 'POST' }),
+      );
+    });
+
+    it('throws validation error for invalid address', async () => {
+      await expect(
+        cardSDK.completeEVMDelegation({
+          ...validEVMParams,
+          address: 'invalid',
+        }),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid Ethereum address format',
+      });
     });
   });
 });
