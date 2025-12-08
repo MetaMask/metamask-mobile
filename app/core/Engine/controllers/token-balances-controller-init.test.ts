@@ -56,7 +56,6 @@ describe('TokenBalancesControllerInit', () => {
       allowExternalServices: expect.any(Function),
       queryMultipleAccounts: expect.any(Boolean),
       accountsApiChainIds: expect.any(Function),
-      platform: 'mobile',
     });
   });
 });

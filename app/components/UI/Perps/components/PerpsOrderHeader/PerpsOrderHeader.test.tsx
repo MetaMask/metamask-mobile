@@ -20,7 +20,7 @@ jest.mock('../../../../../util/theme', () => ({
   })),
 }));
 
-jest.mock('../../../../Base/TokenIcon', () => 'TokenIcon');
+jest.mock('../../../Swaps/components/TokenIcon', () => 'TokenIcon');
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {

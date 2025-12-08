@@ -43,9 +43,3 @@ export const selectIsConnectionRemoved = (state: RootState) =>
  */
 export const selectMultichainAccountsIntroModalSeen = (state: RootState) =>
   state.user?.multichainAccountsIntroModalSeen ?? false;
-
-/**
- * Selects the musdConversionEducationSeen state
- */
-export const selectMusdConversionEducationSeen = (state: RootState) =>
-  state.user?.musdConversionEducationSeen ?? false;

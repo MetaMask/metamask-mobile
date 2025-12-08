@@ -84,11 +84,9 @@ const createStyles = (colors) =>
       margin: 0,
     },
     emptyContainer: {
-      width: '100%',
       justifyContent: 'center',
       alignItems: 'center',
-      paddingVertical: 40,
-      backgroundColor: colors.background.default,
+      paddingBottom: 24,
     },
     keyboardAwareWrapper: {
       flex: 1,
@@ -96,6 +94,11 @@ const createStyles = (colors) =>
     },
     loader: {
       alignSelf: 'center',
+    },
+    text: {
+      fontSize: 20,
+      color: colors.text.muted,
+      ...fontStyles.normal,
     },
     textTransactions: {
       fontSize: 20,

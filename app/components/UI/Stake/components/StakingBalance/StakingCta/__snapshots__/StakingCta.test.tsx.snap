@@ -5,7 +5,6 @@ exports[`StakingCta render matches snapshot 1`] = `
   <View
     style={
       {
-        "alignSelf": "center",
         "borderRadius": 12,
         "flexDirection": "row",
         "flexWrap": "wrap",
@@ -22,7 +21,6 @@ exports[`StakingCta render matches snapshot 1`] = `
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
-          "textAlign": "center",
         }
       }
     >

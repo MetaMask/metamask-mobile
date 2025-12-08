@@ -49,7 +49,7 @@ module.exports = {
     jsEngine: 'hermes',
   },
   expo: {
-    owner: 'metamask',
+    owner: 'metamask-test',
     runtimeVersion: RUNTIME_VERSION,
     updates: {
       codeSigningCertificate: './certs/certificate.pem',

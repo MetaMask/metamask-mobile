@@ -413,6 +413,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -653,7 +654,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                   }
                                 }
                               >
-                                Buy crypto
+                                Buy Crypto
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -1085,6 +1086,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1329,7 +1331,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                   }
                                 }
                               >
-                                Buy crypto
+                                Buy Crypto
                               </Text>
                             </TouchableOpacity>
                           </View>

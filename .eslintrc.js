@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+// eslint-disable-next-line import/no-commonjs
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',

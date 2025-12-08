@@ -203,27 +203,13 @@ if (enableApiCallLogs || isTest) {
     }
 
     // if mockServer is off we route to original destination
-    global.fetch = async (url, options) => {
-      // Extract URL string from Request or URL objects
-      let urlString;
-      if (typeof url === 'string') {
-        urlString = url;
-      } else if (url instanceof URL) {
-        urlString = url.href;
-      } else if (url && typeof url === 'object' && url.url) {
-        // Request object has a 'url' property
-        urlString = url.url;
-      } else {
-        urlString = String(url);
-      }
-
-      return isMockServerAvailable
+    global.fetch = async (url, options) =>
+      isMockServerAvailable
         ? originalFetch(
-            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
+            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`,
             options,
           ).catch(() => originalFetch(url, options))
         : originalFetch(url, options);
-    };
 
     if (isMockServerAvailable) {
       // Patch XMLHttpRequest for Axios and other libraries

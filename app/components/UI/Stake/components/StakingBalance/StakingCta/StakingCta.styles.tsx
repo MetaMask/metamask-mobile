@@ -7,10 +7,6 @@ const styleSheet = () =>
       flexWrap: 'wrap',
       borderRadius: 12,
       marginBottom: 8,
-      alignSelf: 'center',
-    },
-    text: {
-      textAlign: 'center',
     },
   });
 

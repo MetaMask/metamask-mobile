@@ -40,11 +40,6 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../../UI/Predict/components/PredictMarketRowItem',
-  () => () => null,
-);
-
-jest.mock(
   '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter',
   () => {
     const ReactNative = jest.requireActual('react-native');
@@ -79,19 +74,7 @@ describe('ExploreSearchResults', () => {
           { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
         ],
         perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
-        predictions: [
-          {
-            id: '1',
-            title: 'Will Bitcoin reach 100k?',
-            outcomes: [
-              {
-                id: 'outcome-1',
-                status: 'open',
-                tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],
-              },
-            ],
-          },
-        ],
+        predictions: [{ id: '1', title: 'Will Bitcoin reach 100k?' }],
         sites: [],
       },
       isLoading: {

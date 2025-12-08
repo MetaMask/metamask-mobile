@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Logger from '../../../../../util/Logger';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 
@@ -19,6 +19,10 @@ interface ApiDappResponse {
 
 interface ApiSitesResponse {
   dapps: ApiDappResponse[];
+}
+
+interface UseSitesDataParams {
+  limit?: number;
 }
 
 interface UseSitesDataResult {
@@ -47,11 +51,10 @@ const extractDisplayUrl = (url: string): string => {
  * @param params - Parameters for the API request
  * @returns Sites data, loading state, and error
  */
-export const useSitesData = (
-  searchQuery?: string,
+export const useSitesData = ({
   limit = 100,
-): UseSitesDataResult => {
-  const [allSites, setAllSites] = useState<SiteData[]>([]);
+}: UseSitesDataParams = {}): UseSitesDataResult => {
+  const [sites, setSites] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -81,13 +84,13 @@ export const useSitesData = (
         featured: dapp.featured,
       }));
 
-      setAllSites(transformedSites);
+      setSites(transformedSites);
     } catch (err) {
       const fetchError = err instanceof Error ? err : new Error(String(err));
       Logger.error(fetchError, '[useSitesData] Error fetching sites');
       setError(fetchError);
       // Don't use fallback data - return empty array to show the error
-      setAllSites([]);
+      setSites([]);
     } finally {
       setIsLoading(false);
     }
@@ -100,21 +103,6 @@ export const useSitesData = (
   const refetch = useCallback(() => {
     fetchSites();
   }, [fetchSites]);
-
-  // Filter sites locally based on search query
-  const sites = useMemo(() => {
-    if (!searchQuery?.trim()) {
-      return allSites;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-    return allSites.filter(
-      (site) =>
-        site.name.toLowerCase().includes(query) ||
-        site.displayUrl.toLowerCase().includes(query) ||
-        site.url.toLowerCase().includes(query),
-    );
-  }, [allSites, searchQuery]);
 
   return { sites, isLoading, error, refetch };
 };

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import { SortTrendingBy } from '@metamask/assets-controllers';
+import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
@@ -22,7 +22,7 @@ export const useTrendingSearch = (
     useSearchRequest({
       query: searchQuery || '',
       limit: 20,
-      chainIds: chainIds ?? undefined,
+      chainIds: [],
     });
 
   const {
@@ -35,37 +35,19 @@ export const useTrendingSearch = (
   });
 
   const data = useMemo(() => {
-    if (!searchQuery?.trim()) {
+    if (!searchQuery) {
       return sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange);
     }
 
-    const query = searchQuery.toLowerCase().trim();
-
-    const filteredTrendingResults = trendingResults.filter(
-      (item) =>
-        item.symbol?.toLowerCase().includes(query) ||
-        item.name?.toLowerCase().includes(query),
-    );
-
     // Combine trending and search results, avoiding duplicates
     const resultMap = new Map(
-      filteredTrendingResults.map((result) => [result.assetId, result]),
+      trendingResults.map((result) => [result.assetId, result]),
     );
 
-    searchResults.forEach((asset) => {
+    searchResults.forEach((result) => {
+      const asset = result as TrendingAsset;
       if (!resultMap.has(asset.assetId)) {
-        resultMap.set(asset.assetId, {
-          assetId: asset.assetId,
-          symbol: asset.symbol,
-          name: asset.name,
-          decimals: asset.decimals,
-          price: asset.price,
-          aggregatedUsdVolume: asset.aggregatedUsdVolume,
-          marketCap: asset.marketCap,
-          priceChangePct: {
-            h24: asset.pricePercentChange1d,
-          },
-        });
+        resultMap.set(asset.assetId, asset);
       }
     });
 

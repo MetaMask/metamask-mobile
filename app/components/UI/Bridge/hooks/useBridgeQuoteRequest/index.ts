@@ -9,7 +9,7 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
-  selectGasIncludedQuoteParams,
+  selectGasIncluded,
 } from '../../../../../core/redux/slices/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
@@ -46,9 +46,7 @@ export const useBridgeQuoteRequest = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const { gasIncluded, gasIncluded7702 } = useSelector(
-    selectGasIncludedQuoteParams,
-  );
+  const gasIncluded = useSelector(selectGasIncluded);
 
   // Prevents infinite requests when user select max balance on
   // source token input.
@@ -89,7 +87,7 @@ export const useBridgeQuoteRequest = () => {
       walletAddress,
       destWalletAddress: destAddress ?? walletAddress,
       gasIncluded,
-      gasIncluded7702,
+      gasIncluded7702: false, // TODO: https://consensyssoftware.atlassian.net/browse/STX-263
       insufficientBal: insufficientBalRef.current,
     };
 
@@ -107,7 +105,6 @@ export const useBridgeQuoteRequest = () => {
     destAddress,
     context,
     gasIncluded,
-    gasIncluded7702,
   ]);
 
   // Create a stable debounced function that persists across renders

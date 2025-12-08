@@ -1,6 +1,6 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
-import BaseTokenIcon from '../../../../Base/TokenIcon';
+import SwapsTokenIcon from '../../../../UI/Swaps/components/TokenIcon';
 import styleSheet from './token-icon.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import BadgeWrapper, {
@@ -57,7 +57,7 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
         )
       }
     >
-      <BaseTokenIcon
+      <SwapsTokenIcon
         testID="token-icon"
         icon={token?.image}
         symbol={token?.symbol}
