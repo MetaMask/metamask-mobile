@@ -25,13 +25,11 @@ import {
   PredictMarket as PredictMarketType,
   PredictOutcomeToken,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
+import { PredictNavigationParamList } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
+import { usePredictEntryPoint } from '../../hooks/usePredictEntryPoint';
+import { PredictEventValues } from '../../constants/eventNames';
 
 interface SemiCircleYesPercentageProps {
   percentage: number;
@@ -125,16 +123,16 @@ const SemiCircleYesPercentage = ({
 interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
-  entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isCarousel = false,
 }) => {
+  // Auto-detect entry point based on trending session state
+  const entryPoint = usePredictEntryPoint();
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();

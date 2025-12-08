@@ -25,7 +25,6 @@ import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { filterMarketsByQuery } from '../../../UI/Perps/utils/marketUtils';
 import PredictMarketRowItem from '../../../UI/Predict/components/PredictMarketRowItem';
-import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
@@ -165,11 +164,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     RowItem: ({ item }) => (
       <Box twClassName="py-2">
-        <PredictMarket
-          market={item as PredictMarketType}
-          isCarousel
-          entryPoint={PredictEventValues.ENTRY_POINT.TRENDING}
-        />
+        <PredictMarket market={item as PredictMarketType} isCarousel />
       </Box>
     ),
     OverrideRowItemSearch: ({ item }) => (
