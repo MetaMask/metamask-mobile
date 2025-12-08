@@ -322,6 +322,7 @@ describe('HyperLiquidProvider', () => {
       getNetwork: jest.fn().mockReturnValue('mainnet'),
       ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(),
+      setOnReconnectCallback: jest.fn(),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;
 
     mockWalletService = {
