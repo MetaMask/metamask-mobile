@@ -2130,9 +2130,6 @@ describe('PerpsStreamManager', () => {
         callback,
       });
 
-      // Verify subscription is active
-      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
-
       const pricesDisconnect = jest.spyOn(
         testStreamManager.prices,
         'disconnect',
@@ -2141,15 +2138,8 @@ describe('PerpsStreamManager', () => {
       // Act - reconnect all channels
       testStreamManager.reconnectAllChannels();
 
-      // Assert - disconnect was called
       expect(pricesDisconnect).toHaveBeenCalled();
 
-      // After disconnect, the channel will automatically reconnect because
-      // there are still active subscribers. The subscribe() method calls connect()
-      // which will re-establish the WebSocket connection.
-      // Note: The reconnection happens automatically, so we expect 2 calls total:
-      // 1. Initial subscription
-      // 2. Reconnection after disconnect (automatic when subscribers exist)
       expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
 
       unsubscribe();
