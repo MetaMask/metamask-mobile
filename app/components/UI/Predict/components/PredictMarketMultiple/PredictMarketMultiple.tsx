@@ -35,24 +35,34 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
-import { usePredictEntryPoint } from '../../hooks/usePredictEntryPoint';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictEventValues } from '../../constants/eventNames';
+
 interface PredictMarketMultipleProps {
   market: PredictMarket;
   testID?: string;
+  entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
   testID,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isCarousel = false,
 }) => {
   // Auto-detect entry point based on trending session state
-  const entryPoint = usePredictEntryPoint();
+  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
+    .isFromTrending
+    ? PredictEventValues.ENTRY_POINT.TRENDING
+    : entryPoint;
+
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, { isCarousel });
@@ -129,7 +139,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             market,
             outcome,
             outcomeToken,
-            entryPoint,
+            entryPoint: resolvedEntryPoint,
           },
         });
       },
@@ -153,7 +163,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
-            entryPoint,
+            entryPoint: resolvedEntryPoint,
             title: market.title,
             image: market.image,
           },

@@ -25,11 +25,14 @@ import {
   PredictMarket as PredictMarketType,
   PredictOutcomeToken,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
-import { usePredictEntryPoint } from '../../hooks/usePredictEntryPoint';
 import { PredictEventValues } from '../../constants/eventNames';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
 interface SemiCircleYesPercentageProps {
   percentage: number;
@@ -123,16 +126,22 @@ const SemiCircleYesPercentage = ({
 interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
+  entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isCarousel = false,
 }) => {
   // Auto-detect entry point based on trending session state
-  const entryPoint = usePredictEntryPoint();
+  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
+    .isFromTrending
+    ? PredictEventValues.ENTRY_POINT.TRENDING
+    : entryPoint;
+
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -179,7 +188,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             market,
             outcome,
             outcomeToken: token,
-            entryPoint,
+            entryPoint: resolvedEntryPoint,
           },
         });
       },
@@ -198,7 +207,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
-            entryPoint,
+            entryPoint: resolvedEntryPoint,
             title: market.title,
             image: getImageUrl(),
           },
