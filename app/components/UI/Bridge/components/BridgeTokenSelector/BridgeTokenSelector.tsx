@@ -271,12 +271,13 @@ export const BridgeTokenSelector: React.FC = () => {
 
     setSelectedChainId(chainId);
 
+    // Cancel any pending debounced searches
+    debouncedSearch.cancel();
+    // Always reset search results to clear old network's data and ensure clean state
+    resetSearch();
+
     // If there's an active search, prepare to re-trigger it on the new network
     if (isValidSearch) {
-      // Cancel any pending debounced searches
-      debouncedSearch.cancel();
-      // Reset search results to clear old network's data
-      resetSearch();
       // Set flag to trigger search after chain IDs update
       shouldResearchAfterChainChange.current = true;
     }
