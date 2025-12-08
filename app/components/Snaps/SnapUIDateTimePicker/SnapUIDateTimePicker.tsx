@@ -37,10 +37,10 @@ export interface SnapUIDateTimePickerProps {
   disabled?: boolean;
 }
 
-const formatDateForDisplay = (
+function formatDateForDisplay(
   date: Date | null,
   type: 'date' | 'time' | 'datetime',
-) => {
+) {
   if (!date) {
     return undefined;
   }
@@ -52,7 +52,38 @@ const formatDateForDisplay = (
     case 'datetime':
       return DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_SHORT);
   }
-};
+}
+
+/**
+ * Normalizes the date based on the picker type.
+ *
+ * @param date - The date to normalize.
+ * @param type - The type of the picker (date, time, datetime).
+ * @returns The normalized date.
+ */
+function normalizeDate(
+  date: Date | undefined,
+  type: 'date' | 'time' | 'datetime',
+): Date | null {
+  if (!date) {
+    return null;
+  }
+  switch (type) {
+    case 'date':
+      date.setHours(0, 0, 0, 0);
+      break;
+    case 'time':
+      date.setSeconds(0, 0);
+      break;
+    case 'datetime':
+      date.setSeconds(0, 0);
+      break;
+    default:
+      break;
+  }
+
+  return date;
+}
 
 /**
  * The SnapUIDateTimePicker component.
@@ -118,7 +149,8 @@ export const SnapUIDateTimePicker: FunctionComponent<
     _event: DateTimePickerEvent,
     date: Date | undefined,
   ) => {
-    setValue(date ?? null);
+    const normalizedDate = normalizeDate(date, type);
+    setValue(normalizedDate);
   };
 
   /**
@@ -144,30 +176,48 @@ export const SnapUIDateTimePicker: FunctionComponent<
   ) => {
     if (!date) return;
 
+    // Handle the first of two-step process for datetime type. (date selection)
     if (type === 'datetime' && androidMode === 'date' && event.type === 'set') {
       setValue(date);
       setAndroidMode('time');
       return;
     }
 
+    // Handle the second of two-step process for datetime type. (time selection)
     if (type === 'datetime' && androidMode === 'time' && event.type === 'set') {
       const selectedDate = new Date(value ?? new Date());
       selectedDate.setTime(date.getTime());
 
-      setValue(selectedDate);
+      const normalizedDate = normalizeDate(selectedDate, type);
+
+      setValue(normalizedDate);
       setAndroidMode('date');
 
-      const isoString = DateTime.fromJSDate(selectedDate).toISO();
+      const isoString = normalizedDate
+        ? DateTime.fromJSDate(normalizedDate).toISO()
+        : null;
 
       handleInputChange(name, isoString, form);
       setShowDatePicker(false);
       return;
     }
 
-    if (event.type === 'set') {
-      const isoString = DateTime.fromJSDate(date).toISO();
+    // Handle dismissal for datetime type to reset the mode back to date.
+    if (event.type === 'dismissed' && type === 'datetime') {
+      setAndroidMode('date');
+      setShowDatePicker(false);
+      setValue(initialValue ? new Date(initialValue) : null);
+      return;
+    }
 
-      setValue(date);
+    // Handle single step date or time selection.
+    if (event.type === 'set') {
+      const normalizedDate = normalizeDate(date, type);
+      const isoString = normalizedDate
+        ? DateTime.fromJSDate(normalizedDate).toISO()
+        : null;
+
+      setValue(normalizedDate);
       handleInputChange(name, isoString, form);
     }
 
@@ -182,7 +232,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
 
     // If no value is set, default to current date/time.
     if (value === null) {
-      setValue(new Date());
+      setValue(normalizeDate(new Date(), type));
     }
   };
 
@@ -219,6 +269,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
     <Box testID={'snap-ui-renderer__date-time-picker'}>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
+        testID="snap-ui-renderer__date-time-picker-input"
         size={TextFieldSize.Lg}
         placeholder={placeholder}
         isDisabled={disabled}
