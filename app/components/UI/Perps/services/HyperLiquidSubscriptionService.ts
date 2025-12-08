@@ -2431,6 +2431,135 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Restore all active subscriptions after WebSocket reconnection
+   * Re-establishes WebSocket subscriptions for all active subscribers
+   */
+  public async restoreSubscriptions(): Promise<void> {
+    DevLogger.log(
+      'HyperLiquidSubscriptionService: Restoring subscriptions after reconnection',
+      {
+        priceSubscribers: this.priceSubscribers.size,
+        positionSubscribers: this.positionSubscribers.size,
+        orderSubscribers: this.orderSubscribers.size,
+        accountSubscribers: this.accountSubscribers.size,
+        orderFillSubscribers: this.orderFillSubscribers.size,
+        oiCapSubscribers: this.oiCapSubscribers.size,
+      },
+    );
+
+    try {
+      // Re-establish global allMids subscription if there are price subscribers
+      if (this.priceSubscribers.size > 0) {
+        // Clear existing subscription reference (it's dead after reconnection)
+        this.globalAllMidsSubscription = undefined;
+        this.globalAllMidsPromise = undefined;
+
+        // Re-establish the subscription
+        this.ensureGlobalAllMidsSubscription();
+      }
+
+      // Re-establish webData3 subscriptions if there are user data subscribers
+      if (
+        this.positionSubscribers.size > 0 ||
+        this.orderSubscribers.size > 0 ||
+        this.accountSubscribers.size > 0 ||
+        this.oiCapSubscribers.size > 0
+      ) {
+        // Clear existing subscription references (they're dead after reconnection)
+        this.webData3Subscriptions.clear();
+        this.webData3SubscriptionPromise = undefined;
+
+        // Re-establish the subscription (will use current account)
+        await this.ensureSharedWebData3Subscription();
+      }
+
+      // Re-establish activeAsset subscriptions if there are market data subscribers
+      if (this.marketDataSubscribers.size > 0) {
+        // Clear existing subscriptions (they're dead after reconnection)
+        this.globalActiveAssetSubscriptions.clear();
+
+        // Re-establish subscriptions for all symbols with market data subscribers
+        const symbolsNeedingMarketData = Array.from(
+          this.marketDataSubscribers.keys(),
+        );
+        symbolsNeedingMarketData.forEach((symbol) => {
+          this.ensureActiveAssetSubscription(symbol);
+        });
+      }
+
+      // Re-establish L2Book subscriptions if there are order book subscribers
+      // Clear existing subscriptions (they're dead after reconnection)
+      this.globalL2BookSubscriptions.clear();
+
+      // L2Book subscriptions are created lazily via ensureL2BookSubscription
+      // when subscribeToOrderBook is called, so no explicit restoration needed
+
+      // Re-establish assetCtxs subscriptions if there are market data subscribers
+      if (this.marketDataSubscribers.size > 0) {
+        // Clear existing subscriptions (they're dead after reconnection)
+        this.assetCtxsSubscriptions.clear();
+        this.assetCtxsSubscriptionPromises.clear();
+
+        // Re-establish subscriptions for all DEXs with market data subscribers
+        const dexsNeeded = new Set<string>();
+        this.marketDataSubscribers.forEach((_subscribers, symbol) => {
+          const { dex } = parseAssetName(symbol);
+          if (dex) {
+            dexsNeeded.add(dex);
+          }
+        });
+
+        // Add main DEX if any main DEX symbols have subscribers
+        const hasMainDexSubscribers = Array.from(
+          this.marketDataSubscribers.keys(),
+        ).some((symbol) => {
+          const { dex } = parseAssetName(symbol);
+          return !dex;
+        });
+        if (hasMainDexSubscribers) {
+          dexsNeeded.add('');
+        }
+
+        // Re-establish subscriptions
+        await Promise.all(
+          Array.from(dexsNeeded).map((dex) =>
+            this.ensureAssetCtxsSubscription(dex).catch((error) => {
+              Logger.error(
+                ensureError(error),
+                this.getErrorContext(
+                  'restoreSubscriptions.ensureAssetCtxsSubscription',
+                  {
+                    dex,
+                  },
+                ),
+              );
+            }),
+          ),
+        );
+      }
+
+      DevLogger.log(
+        'HyperLiquidSubscriptionService: Subscriptions restored successfully',
+      );
+    } catch (error) {
+      Logger.error(ensureError(error), {
+        tags: {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          provider: 'hyperliquid',
+          network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+        },
+        context: {
+          name: 'HyperLiquidSubscriptionService',
+          data: {
+            method: 'restoreSubscriptions',
+          },
+        },
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Clear all subscriptions and cached data (multi-DEX support)
    */
   public clearAll(): void {
