@@ -52,7 +52,7 @@ const TrendingFeed: React.FC = () => {
     sessionManager.enableAppStateListener();
 
     // Start session
-    sessionManager.startSession();
+    sessionManager.startSession('trending_feed');
 
     return () => {
       // End session and disable listener on unmount
