@@ -49,33 +49,6 @@ interface NftGridProps {
   isFullView?: boolean;
 }
 
-const NftRow = ({
-  items,
-  onLongPress,
-  source,
-}: {
-  items: Nft[];
-  onLongPress: (nft: Nft) => void;
-  source?: 'mobile-nft-list' | 'mobile-nft-list-page';
-}) => (
-  <Box twClassName="flex-row gap-3 mb-3">
-    {items.map((item, index) => {
-      // Create a truly unique key combining multiple identifiers
-      const uniqueKey = `${item.address}-${item.tokenId}-${item.chainId}-${index}`;
-      return (
-        <Box key={uniqueKey} twClassName="flex-1">
-          <NftGridItem item={item} onLongPress={onLongPress} source={source} />
-        </Box>
-      );
-    })}
-    {/* Fill remaining slots if less than 3 items */}
-    {items.length < 3 &&
-      Array.from({ length: 3 - items.length }).map((_, index) => (
-        <Box key={`empty-${index}`} twClassName="flex-1" />
-      ))}
-  </Box>
-);
-
 const NftGridContent = ({
   allFilteredCollectibles,
   nftRowList,
@@ -148,16 +121,12 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     return isHomepageRedesignV1Enabled ? 18 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  const groupedCollectibles: Nft[][] = useMemo(() => {
-    const groups: Nft[][] = [];
+  const collectiblesToRender: Nft[] = useMemo(() => {
     const itemsToProcess = maxItems
       ? allFilteredCollectibles.slice(0, maxItems)
       : allFilteredCollectibles;
 
-    for (let i = 0; i < itemsToProcess.length; i += 3) {
-      groups.push(itemsToProcess.slice(i, i + 3));
-    }
-    return groups;
+    return itemsToProcess;
   }, [allFilteredCollectibles, maxItems]);
 
   useEffect(() => {
@@ -192,10 +161,10 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     () => (
       <FlashList
         ListHeaderComponent={<NftGridHeader />}
-        data={groupedCollectibles}
+        data={collectiblesToRender}
         renderItem={({ item }) => (
-          <NftRow
-            items={item}
+          <NftGridItem
+            item={item}
             onLongPress={handleLongPress}
             source={nftSource}
           />
@@ -205,11 +174,12 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         decelerationRate="fast"
         refreshControl={<NftGridRefreshControl />}
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
-        scrollEnabled={!isFullView && isHomepageRedesignV1Enabled}
+        scrollEnabled={isFullView && isHomepageRedesignV1Enabled}
+        numColumns={3}
       />
     ),
     [
-      groupedCollectibles,
+      collectiblesToRender,
       isFullView,
       isHomepageRedesignV1Enabled,
       handleLongPress,
