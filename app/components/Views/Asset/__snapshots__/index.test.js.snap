@@ -857,63 +857,77 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -2644,63 +2658,77 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -4431,63 +4459,77 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -6259,63 +6301,77 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -8046,63 +8102,77 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -9833,63 +9903,77 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -12192,63 +12276,77 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -13979,63 +14077,77 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
