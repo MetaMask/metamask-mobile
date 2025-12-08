@@ -1,10 +1,7 @@
 import type { CandleData, CandleStick } from '../types/perps-types';
 import type { PerpsMarketData } from '../controllers/types';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
-import {
-  HYPERLIQUID_ASSET_ICONS_BASE_URL,
-  HIP3_ASSET_ICONS_BASE_URL,
-} from '../constants/hyperLiquidConfig';
+import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
 
 /**
  * Maximum length for market filter patterns (prevents DoS attacks)
@@ -449,9 +446,7 @@ export const getAssetIconUrl = (
   // Check for HIP-3 asset (contains colon) BEFORE uppercasing
   if (symbol.includes(':')) {
     const [dex, assetSymbol] = symbol.split(':');
-    // Keep DEX lowercase, uppercase asset: xyz:XYZ100 -> xyz_XYZ100
-    const hip3Symbol = `${dex.toLowerCase()}_${assetSymbol.toUpperCase()}`;
-    return `${HIP3_ASSET_ICONS_BASE_URL}hip3%3A${hip3Symbol}.svg`;
+    return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${dex.toLowerCase()}:${assetSymbol.toUpperCase()}.svg`;
   }
 
   // For regular assets, uppercase the entire symbol
