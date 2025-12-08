@@ -32,11 +32,11 @@ export function GasFeeTokenToast() {
     chainId as Hex,
   );
   const networkImageSource = getNetworkImageSource({
-    chainId: chainId ?? '0x1',
+    chainId: chainId as Hex,
   });
 
   useEffect(() => {
-    if (!toast || !gasFeeToken || !transactionMetadata) return;
+    if (!toast || !gasFeeToken) return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
@@ -68,13 +68,7 @@ export function GasFeeTokenToast() {
         },
       },
     });
-  }, [
-    gasFeeToken,
-    tokenSelected,
-    toast,
-    networkImageSource,
-    transactionMetadata,
-  ]);
+  }, [gasFeeToken, tokenSelected, toast, networkImageSource]);
 
   return null;
 }

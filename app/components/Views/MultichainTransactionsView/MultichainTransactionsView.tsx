@@ -78,7 +78,7 @@ const MultichainTransactionsView = ({
   onScroll,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
-  const style = styles();
+  const style = styles(colors);
   const defaultNavigation = useNavigation();
   const nav = navigation ?? defaultNavigation;
   const { namespace } = parseCaipChainId(chainId as CaipChainId);

@@ -182,15 +182,13 @@ export const useBridgeQuoteData = ({
   );
 
   // Check if price impact warning should be shown
-  const isGasless =
-    activeQuote?.quote.gasIncluded || activeQuote?.quote.gasIncluded7702;
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
-      ((isGasless &&
+      ((activeQuote?.quote.gasIncluded &&
         Number(activeQuote?.quote.priceData?.priceImpact) >=
           bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-        (!isGasless &&
+        (!activeQuote?.quote.gasIncluded &&
           Number(activeQuote?.quote.priceData?.priceImpact) >=
             bridgeFeatureFlags.priceImpactThreshold.normal)),
   );

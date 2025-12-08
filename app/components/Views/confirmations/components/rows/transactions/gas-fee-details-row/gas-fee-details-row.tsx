@@ -56,7 +56,6 @@ const EstimationInfo = ({
   feeCalculations,
   fiatOnly,
   isGasFeeSponsored,
-  isBatch = false,
 }: {
   hideFiatForTestnet: boolean;
   feeCalculations:
@@ -64,7 +63,6 @@ const EstimationInfo = ({
     | ReturnType<typeof useFeeCalculationsTransactionBatch>;
   fiatOnly: boolean;
   isGasFeeSponsored?: boolean;
-  isBatch?: boolean;
 }) => {
   const gasFeeToken = useSelectedGasFeeToken();
   const { styles } = useStyles(styleSheet, {});
@@ -78,7 +76,6 @@ const EstimationInfo = ({
     hideFiatForTestnet || !fiatValue
       ? styles.primaryValue
       : styles.secondaryValue;
-
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, simulationData, networkClientId } =
     (transactionMetadata as TransactionMeta) ?? {};
@@ -87,9 +84,7 @@ const EstimationInfo = ({
     simulationData,
     networkClientId,
   });
-
-  const isSimulationLoading =
-    !isBatch && (!simulationData || balanceChangesResult.pending);
+  const isSimulationLoading = !simulationData || balanceChangesResult.pending;
 
   return (
     <View style={styles.estimationContainer}>
@@ -144,7 +139,6 @@ const BatchEstimateInfo = ({
   const feeCalculations = useFeeCalculationsTransactionBatch(
     transactionBatchesMetadata as TransactionBatchMeta,
   );
-  const isBatch = Boolean(transactionBatchesMetadata);
 
   return (
     <EstimationInfo
@@ -152,7 +146,6 @@ const BatchEstimateInfo = ({
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
       isGasFeeSponsored={isGasFeeSponsored}
-      isBatch={isBatch}
     />
   );
 };

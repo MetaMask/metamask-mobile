@@ -59,11 +59,7 @@ class ImportFromSeedScreen {
       }
     }
     else {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        return `seed-phrase-input_${String(srpIndex)}`;
-      } else {
-        return `//*[@label="${srpIndex+1}."]`;
-      }
+      return `srp-input-word-${String(srpIndex)}`;
     }
    }
  
@@ -76,7 +72,7 @@ class ImportFromSeedScreen {
         const element = await this.screenTitle;
         await appwrightExpect(element).toBeVisible({ timeout: 10000 });
       } else {
-        const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
+        const element = await AppwrightSelectors.getElementByText(this.device, 'Import Secret Recovery Phrase');
         await appwrightExpect(element).toBeVisible({ timeout: 10000 });
       }
     }
@@ -112,12 +108,10 @@ class ImportFromSeedScreen {
         const lastInput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
         await AppwrightGestures.typeText(lastInput, lastWord);
       } else {
-        const firstWordImput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, 'seed-phrase-input') : await AppwrightSelectors.getElementByID(this.device, 'textfield');
-        await AppwrightGestures.typeText(firstWordImput, `${phraseArray[0]} `);
-        for (let i = 1; i < phraseArray.length; i++) {
+        for (let i = 1; i <= phraseArray.length; i++) {
           const wordElement = await this.inputOfIndex(i, false);
-          const input = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
-          await AppwrightGestures.typeText(input, `${phraseArray[i]} `);
+          const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
+          await AppwrightGestures.typeText(input, `${phraseArray[i-1]} `);
           await AppwrightGestures.tap(input);
         }
       }
@@ -129,8 +123,9 @@ class ImportFromSeedScreen {
       if (!this._device) {
         await Gestures.waitAndTap(this.continueButton);
       } else {
+        const element = await this.continueButton;
         await AppwrightGestures.hideKeyboard(this.device);
-        await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
+        await AppwrightGestures.tap(element); // Use static tap method with retry logic
       }
     } else {
       if (!this._device) {
@@ -153,18 +148,15 @@ class ImportFromSeedScreen {
       if (!this._device) {
           await Gestures.waitAndTap(this.screenTitle);
       } else {
-        await AppwrightGestures.tap(this.screenTitle); // Use static tap method with retry logic
+        const element = await this.screenTitle;
+        await AppwrightGestures.tap(element); // Use static tap method with retry logic
       }
     } else {
       if (!this._device) {
         await Gestures.waitAndTap(this.screenTitle);
     } else {
-      if (AppwrightSelectors.isIOS(this._device)) {
-        const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
-        await AppwrightGestures.tap(element);
-      } else {
-        await AppwrightGestures.hideKeyboard(this.device);
-      }
+      const element = await AppwrightSelectors.getElementByText(this.device, 'Import Secret Recovery Phrase');
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
     }
   }

@@ -7,7 +7,6 @@ import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wall
 import {
   hasNotificationComponents,
   hasNotificationModal,
-  isValidNotificationComponent,
   NotificationComponentState,
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
@@ -117,7 +116,6 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
   const menuItemState = useMemo(() => {
     const notificationState =
       props.notification?.type &&
-      isValidNotificationComponent(props.notification) &&
       hasNotificationComponents(props.notification.type)
         ? NotificationComponentState[props.notification.type]
         : undefined;
@@ -125,7 +123,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
     return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
 
-  if (!isValidNotificationComponent(props.notification) || !menuItemState) {
+  if (!hasNotificationComponents(props.notification.type) || !menuItemState) {
     return null;
   }
 

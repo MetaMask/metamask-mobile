@@ -6,7 +6,6 @@ import {
   selectIsConnectionRemoved,
   selectUserLoggedIn,
   selectUserState,
-  selectMusdConversionEducationSeen,
 } from './selectors';
 
 // Mock the redux store state
@@ -15,7 +14,6 @@ const mockState = {
     appServicesReady: false,
     userLoggedIn: true,
     isConnectionRemoved: false,
-    musdConversionEducationSeen: false,
   },
 };
 
@@ -63,28 +61,6 @@ describe('user state selectors', () => {
       const { result } = renderHook(() =>
         useSelector(selectIsConnectionRemoved),
       );
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectMusdConversionEducationSeen', () => {
-    it('returns false when the user has not seen the mUSD conversion education screen', () => {
-      mockState.user.musdConversionEducationSeen = false;
-
-      const { result } = renderHook(() =>
-        useSelector(selectMusdConversionEducationSeen),
-      );
-
-      expect(result.current).toBe(false);
-    });
-
-    it('returns true when the user has already seen the mUSD conversion education screen', () => {
-      mockState.user.musdConversionEducationSeen = true;
-
-      const { result } = renderHook(() =>
-        useSelector(selectMusdConversionEducationSeen),
-      );
-
       expect(result.current).toBe(true);
     });
   });

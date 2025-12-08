@@ -88,7 +88,6 @@ describe('useTransactionConfirm', () => {
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: true,
       isSupported: true,
-      pending: false,
     });
 
     useGaslessSupportedSmartTransactionsMock.mockReturnValue({
@@ -279,26 +278,6 @@ describe('useTransactionConfirm', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-      });
-    });
-
-    it('wallet home if musdConversion', async () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        id: transactionIdMock,
-        type: TransactionType.musdConversion,
-      } as TransactionMeta);
-
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current.onConfirm();
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
       });
     });
 

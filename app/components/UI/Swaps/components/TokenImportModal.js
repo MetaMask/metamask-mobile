@@ -6,7 +6,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import ModalDragger from '../../../Base/ModalDragger';
 import Text from '../../../Base/Text';
 import Alert, { AlertType } from '../../../Base/Alert';
-import TokenIcon from '../../../Base/TokenIcon';
+import TokenIcon from './TokenIcon';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
