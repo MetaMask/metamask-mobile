@@ -575,7 +575,6 @@ class Asset extends PureComponent {
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
-                  fromTrending={asset.fromTrending}
                 />
                 <ActivityHeader asset={asset} />
               </>
@@ -601,7 +600,6 @@ class Asset extends PureComponent {
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
                   }
-                  fromTrending={asset.fromTrending}
                 />
                 <ActivityHeader asset={asset} />
               </>

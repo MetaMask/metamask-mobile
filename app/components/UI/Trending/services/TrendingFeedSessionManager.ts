@@ -171,6 +171,9 @@ class TrendingFeedSessionManager {
       entry_point: this.entryPoint,
     };
 
+    // eslint-disable-next-line no-console
+    console.log('=== TRENDING_FEED_VIEWED ===', analyticsProperties);
+
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
@@ -266,6 +269,15 @@ class TrendingFeedSessionManager {
   public destroy(): void {
     this.removeAppStateListener();
     this.reset();
+  }
+
+  /**
+   * Check if user is currently in an active trending session.
+   * Used for analytics to track if actions originated from trending feed.
+   * @returns true if there's an active (non-ended) trending session
+   */
+  public get isFromTrending(): boolean {
+    return this.sessionId !== null && !this.sessionEnded;
   }
 }
 

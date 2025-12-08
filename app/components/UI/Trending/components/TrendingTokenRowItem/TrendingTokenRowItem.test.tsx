@@ -557,7 +557,6 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: false,
         isETH: false,
-        fromTrending: true,
       });
     });
 
@@ -615,7 +614,6 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: true,
         isETH: true,
-        fromTrending: true,
       });
     });
 
@@ -673,7 +671,6 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: true,
         isETH: false,
-        fromTrending: true,
       });
     });
 

@@ -388,4 +388,46 @@ describe('TrendingFeedSessionManager', () => {
       );
     });
   });
+
+  describe('isFromTrending', () => {
+    it('returns true when session is active', () => {
+      sessionManager.startSession('trending_feed');
+
+      const result = sessionManager.isFromTrending;
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when no session has started', () => {
+      const result = sessionManager.isFromTrending;
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false after session ends', () => {
+      sessionManager.startSession('trending_feed');
+      sessionManager.endSession();
+
+      const result = sessionManager.isFromTrending;
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when session is resumed after app foregrounds', () => {
+      sessionManager.enableAppStateListener();
+      sessionManager.startSession('trending_feed');
+
+      // App goes to background - session ends
+      if (appStateChangeHandler) {
+        appStateChangeHandler('background');
+      }
+      expect(sessionManager.isFromTrending).toBe(false);
+
+      // App returns to foreground - new session starts
+      if (appStateChangeHandler) {
+        appStateChangeHandler('active');
+      }
+      expect(sessionManager.isFromTrending).toBe(true);
+    });
+  });
 });
