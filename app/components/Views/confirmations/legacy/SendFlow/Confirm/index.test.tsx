@@ -220,7 +220,6 @@ jest.mock('../../../../../../reducers/swaps', () => ({
       },
     },
   }),
-  swapsSmartTxFlagEnabled: () => false,
 }));
 
 jest.mock('../../../../../../selectors/preferencesController', () => ({
