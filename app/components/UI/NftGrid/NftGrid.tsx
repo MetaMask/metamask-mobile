@@ -162,12 +162,14 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
       <FlashList
         ListHeaderComponent={<NftGridHeader />}
         data={collectiblesToRender}
-        renderItem={({ item }) => (
-          <NftGridItem
-            item={item}
-            onLongPress={handleLongPress}
-            source={nftSource}
-          />
+        renderItem={({ item, index }) => (
+          <Box twClassName={['pr-2', 'px-1', 'pl-2'][index % 3]}>
+            <NftGridItem
+              item={item}
+              onLongPress={handleLongPress}
+              source={nftSource}
+            />
+          </Box>
         )}
         keyExtractor={(_, index) => `nft-row-${index}`}
         testID={RefreshTestId}

@@ -34,7 +34,7 @@ const NftGridItem = ({
 
   return (
     <TouchableOpacity
-      style={tw.style('self-stretch mb-3 mx-1.5')}
+      style={tw.style('self-stretch mb-3')}
       onPress={onPress}
       onLongPress={() => onLongPress(item)}
       testID={`collectible-${item.name}-${item.tokenId}`}
