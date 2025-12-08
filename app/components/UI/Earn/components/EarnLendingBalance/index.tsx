@@ -33,16 +33,11 @@ import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
 import { trace, TraceName } from '../../../../../util/trace';
-import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
-import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewCta';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -57,13 +52,9 @@ export interface EarnLendingBalanceProps {
 
 const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
 const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
-
-  const { isConversionToken } = useMusdConversionTokens();
-
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const { styles } = useStyles(styleSheet, {});
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -96,10 +87,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     () => new BigNumber(earnToken?.balanceMinimalUnit ?? '0').gt(0),
     [earnToken?.balanceMinimalUnit],
   );
-
-  const { styles } = useStyles(styleSheet, {
-    userHasLendingPositions,
-  });
 
   const emitLendingActionButtonMetaMetric = (
     action: 'deposit' | 'withdrawal',
@@ -178,32 +165,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   if (!isStablecoinLendingEnabled) return null;
 
-  const renderCta = () => {
-    // Favour the mUSD Conversion CTA over the lending empty state CTA
-    const shouldRenderMusdConversionAssetOverviewCta =
-      isMusdConversionFlowEnabled && isConversionToken(asset);
-
-    if (shouldRenderMusdConversionAssetOverviewCta) {
-      return (
-        <View style={styles.musdConversionCta}>
-          <MusdConversionAssetOverviewCta asset={asset} />
-        </View>
-      );
-    }
-
-    const shouldRenderLendingEmptyStateCta =
-      !isAssetReceiptToken && !userHasLendingPositions;
-
-    if (shouldRenderLendingEmptyStateCta) {
-      return (
-        <View style={styles.EarnEmptyStateCta}>
-          <EarnEmptyStateCta token={asset} />
-        </View>
-      );
-    }
-    return null;
-  };
-
   return (
     // Receipt Token Balance
     <View>
@@ -232,7 +193,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               <AvatarToken
                 name={asset.symbol}
                 imageSource={{ uri: asset.image }}
-                size={AvatarSize.Lg}
+                size={AvatarSize.Md}
                 testID={
                   EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO
                 }
@@ -249,21 +210,27 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
             </View>
           </AssetElement>
         )}
-      {renderCta()}
+      {/* Empty State CTA */}
+      {!isAssetReceiptToken && !userHasLendingPositions && (
+        <View style={styles.EarnEmptyStateCta}>
+          <EarnEmptyStateCta token={asset} />
+        </View>
+      )}
       {/* Buttons */}
-      {userHasLendingPositions && (
-        <View style={[styles.container, styles.buttonsContainer]}>
-          {Boolean(receiptToken) && (
-            <Button
-              variant={ButtonVariants.Secondary}
-              style={styles.button}
-              size={ButtonSize.Lg}
-              label={strings('earn.withdraw')}
-              onPress={handleNavigateToWithdrawalInputScreen}
-              testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
-            />
-          )}
-          {userHasUnderlyingTokensAvailableToLend && !isAssetReceiptToken && (
+      <View style={styles.container}>
+        {userHasLendingPositions && receiptToken && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            style={styles.button}
+            size={ButtonSize.Lg}
+            label={strings('earn.withdraw')}
+            onPress={handleNavigateToWithdrawalInputScreen}
+            testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
+          />
+        )}
+        {userHasUnderlyingTokensAvailableToLend &&
+          !isAssetReceiptToken &&
+          userHasLendingPositions && (
             <Button
               variant={ButtonVariants.Secondary}
               style={styles.button}
@@ -273,8 +240,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
             />
           )}
-        </View>
-      )}
+      </View>
       {isAssetReceiptToken && (
         <View style={styles.earnings}>
           <Earnings asset={asset} />

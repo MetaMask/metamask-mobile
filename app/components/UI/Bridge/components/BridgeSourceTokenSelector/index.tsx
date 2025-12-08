@@ -33,7 +33,6 @@ import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
-import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
   const dispatch = useDispatch();
@@ -146,9 +145,7 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
         return <SkeletonItem />;
       }
 
-      const networkName =
-        NETWORK_TO_SHORT_NETWORK_NAME_MAP[item.chainId] ??
-        allNetworkConfigurations[item.chainId]?.name;
+      const networkName = allNetworkConfigurations[item.chainId]?.name;
 
       return (
         <TokenSelectorItem

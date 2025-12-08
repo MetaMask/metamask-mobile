@@ -15,8 +15,6 @@ import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -57,27 +55,18 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  //await dismissRewardsBottomSheetModal(device);
-  await dissmissPredictionsModal(device);
+  await dissmissAllModals(device);
+
   await WalletMainScreen.isMainWalletViewVisible();
 }
 
 export async function dissmissAllModals(device) {
   await dismissMultichainAccountsIntroModal(device);
-  await dissmissPredictionsModal(device);
+  await tapPerpsBottomSheetGotItButton(device);
+  await dismissRewardsBottomSheetModal(device);
 }
 
-export async function dissmissPredictionsModal(device) {
-  const notNowPredictionsModalButton = await AppwrightSelectors.getElementByID(
-    device,
-    'predict-gtm-not-now-button',
-  );
-  if (await notNowPredictionsModalButton.isVisible({ timeout: 5000 })) {
-    await AppwrightGestures.tap(notNowPredictionsModalButton);
-  }
-}
-
-export async function importSRPFlow(device, srp, dismissModals = true) {
+export async function importSRPFlow(device, srp) {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
@@ -96,8 +85,9 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
     'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
   );
 
-  await WalletMainScreen.tapIdenticon();
   timer.start();
+
+  await WalletMainScreen.tapIdenticon();
   await AccountListComponent.isComponentDisplayed();
   timer.stop();
 
@@ -114,7 +104,7 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard(false);
 
   await ImportFromSeedScreen.tapContinueButton(false);
-  dismissModals ? await dissmissAllModals(device) : null;
+  await dissmissAllModals(device);
   timer4.start();
   await WalletMainScreen.isMainWalletViewVisible();
   timer4.stop();
@@ -125,18 +115,16 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { scenarioType = 'login', dismissModals = true } = options;
+  const { scenarioType = 'login' } = options;
 
   const password = getPasswordForScenario(scenarioType);
+
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
 
-  if (dismissModals) {
-    await dismissMultichainAccountsIntroModal(device);
-    await dissmissPredictionsModal(device);
-  }
+  await dissmissAllModals(device);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;
@@ -145,11 +133,15 @@ export async function tapPerpsBottomSheetGotItButton(device) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
   }
+  if (await container.isVisible({ timeout: 5000 })) {
+    await PerpsGTMModal.tapNotNowButton();
+    console.log('Perps onboarding dismissed');
+  }
 }
 
 export async function dismissRewardsBottomSheetModal(device) {
   RewardsGTMModal.device = device;
-  const container = await RewardsGTMModal.notNowButton;
+  const container = await RewardsGTMModal.container;
   if (await container.isVisible({ timeout: 5000 })) {
     await RewardsGTMModal.tapNotNowButton();
   }
@@ -161,6 +153,9 @@ export async function dismissMultichainAccountsIntroModal(
 ) {
   MultichainAccountEducationModal.device = device;
   const closeButton = await MultichainAccountEducationModal.closeButton;
+  if (await closeButton.isVisible({ timeout })) {
+    await MultichainAccountEducationModal.tapGotItButton();
+  }
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
   }

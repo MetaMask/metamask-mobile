@@ -80,12 +80,11 @@ describe('actionButtonTracking', () => {
       // Given/When/Then: enum values should match expected strings
       expect(ActionLocation.HOME).toBe('home');
       expect(ActionLocation.ASSET_DETAILS).toBe('asset details');
-      expect(ActionLocation.NAVBAR).toBe('navbar');
     });
 
     it('covers all location types', () => {
       // Given: all expected location types
-      const expectedLocations = ['home', 'asset details', 'navbar'];
+      const expectedLocations = ['home', 'asset details'];
 
       // When: checking enum values
       const actualLocations = Object.values(ActionLocation);
@@ -94,7 +93,7 @@ describe('actionButtonTracking', () => {
       expect(actualLocations).toEqual(
         expect.arrayContaining(expectedLocations),
       );
-      expect(actualLocations).toHaveLength(3);
+      expect(actualLocations).toHaveLength(2);
     });
   });
 
@@ -384,7 +383,6 @@ describe('actionButtonTracking', () => {
       const locationTestCases = [
         { location: ActionLocation.HOME, expected: 'home' },
         { location: ActionLocation.ASSET_DETAILS, expected: 'asset details' },
-        { location: ActionLocation.NAVBAR, expected: 'navbar' },
       ];
 
       locationTestCases.forEach((testCase) => {
@@ -544,34 +542,10 @@ describe('actionButtonTracking', () => {
       // Then: should include all properties
       expect(mockAddProperties).toHaveBeenCalledWith(properties);
     });
-
-    it('tracks swap button from navbar without action_position', () => {
-      // Given: navbar swap button properties without action_position
-      const properties: ActionButtonProperties = {
-        action_name: ActionButtonType.SWAP,
-        button_label: 'Swap',
-        location: ActionLocation.NAVBAR,
-      };
-
-      // When: tracking navbar swap button click
-      trackActionButtonClick(
-        mockTrackEvent,
-        mockCreateEventBuilder,
-        properties,
-      );
-
-      // Then: should track without action_position
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_name: 'swap',
-        button_label: 'Swap',
-        location: 'navbar',
-      });
-      expect(mockBuild).toHaveBeenCalled();
-    });
   });
 
   describe('ActionButtonProperties interface', () => {
-    it('requires mandatory properties', () => {
+    it('requires all mandatory properties', () => {
       // Given: properties with all mandatory fields
       const validProperties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
@@ -586,22 +560,6 @@ describe('actionButtonTracking', () => {
       expect(validProperties.action_position).toBeDefined();
       expect(validProperties.button_label).toBeDefined();
       expect(validProperties.location).toBeDefined();
-    });
-
-    it('allows action_position to be optional', () => {
-      // Given: properties without action_position (for navbar buttons)
-      const propertiesWithoutPosition: ActionButtonProperties = {
-        action_name: ActionButtonType.SWAP,
-        button_label: 'Swap',
-        location: ActionLocation.NAVBAR,
-      };
-
-      // When: creating properties without action_position
-      // Then: should be valid
-      expect(propertiesWithoutPosition.action_name).toBeDefined();
-      expect(propertiesWithoutPosition.button_label).toBeDefined();
-      expect(propertiesWithoutPosition.location).toBeDefined();
-      expect(propertiesWithoutPosition.action_position).toBeUndefined();
     });
 
     it('allows optional action_id property', () => {

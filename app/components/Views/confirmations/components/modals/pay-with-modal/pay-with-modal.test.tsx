@@ -17,6 +17,7 @@ import {
   TransactionType,
   TransactionStatus,
 } from '@metamask/transaction-controller';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { AssetType, TokenStandard } from '../../../types/token';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
@@ -25,17 +26,11 @@ import { Hex } from '@metamask/utils';
 import { useRoute } from '@react-navigation/native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
+jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
-jest.mock('../../../utils/transaction-pay');
-
-jest.mock('../../../hooks/send/useAccountTokens', () => ({
-  useAccountTokens: () => [],
-}));
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useRoute: jest.fn(),
@@ -165,7 +160,7 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
 describe('PayWithModal', () => {
   const setPayTokenMock = jest.fn();
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const getAvailableTokensMock = jest.mocked(getAvailableTokens);
+  const useAccountTokensMock = jest.mocked(useAccountTokens);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
@@ -177,7 +172,7 @@ describe('PayWithModal', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
+    useAccountTokensMock.mockReturnValue(TOKENS_MOCK);
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -225,6 +220,54 @@ describe('PayWithModal', () => {
       expect(setPayTokenMock).toHaveBeenCalledWith({
         address: TOKENS_MOCK[1].address,
         chainId: TOKENS_MOCK[1].chainId,
+      });
+    });
+  });
+
+  describe('tokenFilter', () => {
+    describe('when transaction type is musdConversion', () => {
+      it('filters tokens using musd conversion payment allowlist', async () => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: transactionIdMock,
+          chainId: CHAIN_ID_1_MOCK,
+          networkClientId: '',
+          status: TransactionStatus.unapproved,
+          time: 0,
+          txParams: {
+            from: EMPTY_ADDRESS,
+          },
+          type: TransactionType.musdConversion,
+        } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+        const { getByText, queryByText } = render();
+
+        expect(getByText('USD Coin')).toBeDefined();
+        expect(getByText('USDC')).toBeDefined();
+
+        expect(queryByText('Test Token 1')).toBeNull();
+        expect(queryByText('Test Token 2')).toBeNull();
+      });
+    });
+
+    describe('when transaction type is NOT musdConversion', () => {
+      it('shows all available tokens without mUSD allowlist filtering', async () => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: transactionIdMock,
+          chainId: CHAIN_ID_1_MOCK,
+          networkClientId: '',
+          status: TransactionStatus.unapproved,
+          time: 0,
+          txParams: {
+            from: EMPTY_ADDRESS,
+          },
+          type: TransactionType.simpleSend,
+        } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+        const { getByText } = render();
+
+        expect(getByText('Native Token 1')).toBeDefined();
+        expect(getByText('Test Token 1')).toBeDefined();
+        expect(getByText('USD Coin')).toBeDefined();
       });
     });
   });

@@ -66,7 +66,7 @@ exports[`AddressList renders correctly 1`] = `
             }
           }
         >
-          Your accounts
+          Your Accounts
         </Text>
         <View
           collapsable={false}

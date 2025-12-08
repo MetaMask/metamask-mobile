@@ -122,6 +122,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
         style={
           [
             {
+              "backgroundColor": "#ffffff",
               "flexDirection": "row",
               "gap": 16,
               "padding": 16,

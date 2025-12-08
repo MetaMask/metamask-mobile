@@ -26,7 +26,7 @@ import { fontStyles } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
-import TokenIcon from '../../../Base/TokenIcon';
+import TokenIcon from './TokenIcon';
 import Alert from '../../../Base/Alert';
 import useBlockExplorer from '../utils/useBlockExplorer';
 import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';

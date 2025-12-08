@@ -10,15 +10,10 @@ import React, {
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  Text,
+import Text, {
   TextVariant,
-  TextColor,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
-import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -41,11 +36,12 @@ import { formatDateSection } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
+import { ButtonSize } from '@metamask/design-system-react-native';
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
-  const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Transaction data is now computed from hooks instead of stored in state
@@ -270,7 +266,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     if (item.fill) {
       return (
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodySM}
           style={item.fill.isPositive ? styles.profitAmount : styles.lossAmount}
         >
           {item.fill.amount}
@@ -289,7 +285,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       }
 
       return (
-        <Text variant={TextVariant.BodySm} style={statusStyle}>
+        <Text variant={TextVariant.BodySM} style={statusStyle}>
           {item.order.text}
         </Text>
       );
@@ -298,7 +294,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     if (item.fundingAmount) {
       return (
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodySM}
           style={
             item.fundingAmount.isPositive
               ? styles.profitAmount
@@ -318,7 +314,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     if (item.type === 'header') {
       return (
         <View style={styles.sectionHeader}>
-          <Text color={TextColor.TextAlternative}>{item.title}</Text>
+          <Text style={styles.sectionHeaderText}>{item.title}</Text>
         </View>
       );
     }
@@ -386,7 +382,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row gap-3')}
+            style={styles.filterScrollView}
             pointerEvents="auto"
             scrollEnabled={false}
           >
@@ -396,7 +392,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
         {filterTabDescription && (
           <View style={styles.tabDescription}>
-            <Text variant={TextVariant.BodySm}>{filterTabDescription}</Text>
+            <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
           </View>
         )}
 
@@ -410,7 +406,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       <View style={styles.filterContainer} pointerEvents="box-none">
         <ScrollView
           horizontal
-          contentContainerStyle={tw.style('flex-row gap-3')}
+          contentContainerStyle={styles.filterTabContainer}
           showsHorizontalScrollIndicator={false}
           pointerEvents="auto"
           scrollEnabled
@@ -421,7 +417,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
       {filterTabDescription && (
         <View style={styles.tabDescription}>
-          <Text variant={TextVariant.BodySm}>{filterTabDescription}</Text>
+          <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
         </View>
       )}
 

@@ -399,7 +399,6 @@ export const TokenListItem = React.memo(
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
-
       const shouldShowMusdConvertCta = isConvertibleStablecoin;
 
       if (
