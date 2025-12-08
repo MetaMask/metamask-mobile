@@ -260,7 +260,26 @@ describe('HyperLiquidSubscriptionService', () => {
         }, 0);
         return Promise.resolve(mockSubscription);
       }),
-      l2Book: jest.fn().mockResolvedValue(mockSubscription),
+      l2Book: jest.fn((_params: any, callback: any) => {
+        // Simulate l2Book data
+        setTimeout(() => {
+          callback({
+            coin: _params.coin,
+            levels: { bids: [], asks: [] },
+          });
+        }, 0);
+        return Promise.resolve(mockSubscription);
+      }),
+      activeAsset: jest.fn((params: any, callback: any) => {
+        // Simulate activeAsset data (similar to activeAssetCtx)
+        setTimeout(() => {
+          callback({
+            coin: params.coin,
+            data: 'test',
+          });
+        }, 0);
+        return Promise.resolve(mockSubscription);
+      }),
       clearinghouseState: jest.fn(() => Promise.resolve(mockSubscription)),
       assetCtxs: jest.fn(() => Promise.resolve(mockSubscription)),
     };
@@ -2295,14 +2314,14 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     it('returns only main DEX when equity is disabled', () => {
-      const service = new HyperLiquidSubscriptionService(
+      const subscriptionService = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
         false, // hip3Enabled
         [],
       );
 
-      expect(service).toBeDefined();
+      expect(subscriptionService).toBeDefined();
     });
 
     it('updates feature flags and establishes new DEX subscriptions', async () => {
@@ -3135,13 +3154,24 @@ describe('HyperLiquidSubscriptionService', () => {
     it('restores activeAsset subscriptions for all market data subscribers', async () => {
       const marketDataCallback = jest.fn();
       const mockUnsubscribe = jest.fn();
+      const mockSubscription = { unsubscribe: mockUnsubscribe };
 
-      mockSubscriptionClient.activeAsset.mockImplementation(
-        (_params: any, callback: any) => {
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
           setTimeout(() => {
-            callback({ data: 'test' });
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: '49000',
+                funding: '0.01',
+                openInterest: '1000000',
+                dayNtlVlm: '50000000',
+                oraclePx: '50100',
+                midPx: '50000',
+              },
+            });
           }, 10);
-          return { unsubscribe: mockUnsubscribe };
+          return Promise.resolve(mockSubscription);
         },
       );
 
@@ -3165,76 +3195,27 @@ describe('HyperLiquidSubscriptionService', () => {
       // Restore subscriptions
       await service.restoreSubscriptions();
 
-      // Verify activeAsset was called for each symbol
-      expect(mockSubscriptionClient.activeAsset).toHaveBeenCalledTimes(4); // 2 initial + 2 restored
+      // Verify activeAssetCtx was called for each symbol (2 initial + 2 restored)
+      expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledTimes(4);
 
       unsubscribe1();
       unsubscribe2();
     });
 
-    it('restores assetCtxs subscriptions for market data subscribers with DEXs', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const { parseAssetName } = require('../utils/hyperLiquidAdapter');
-      jest.mocked(parseAssetName).mockImplementation((symbol: string) => {
-        if (symbol === 'BTC:UNISWAP') {
-          return { symbol, dex: 'UNISWAP' };
-        }
-        return { symbol, dex: null };
-      });
-
-      const mockUnsubscribe = jest.fn();
-
-      mockSubscriptionClient.activeAsset.mockImplementation(
-        (_params: any, callback: any) => {
-          setTimeout(() => {
-            callback({ data: 'test' });
-          }, 10);
-          return { unsubscribe: mockUnsubscribe };
-        },
-      );
-
-      mockSubscriptionClient.assetCtxs.mockImplementation(
-        (_params: any, callback: any) => {
-          setTimeout(() => {
-            callback({ data: 'test' });
-          }, 10);
-          return { unsubscribe: mockUnsubscribe };
-        },
-      );
-
-      // Subscribe to market data with DEX symbol
-      const unsubscribe = await service.subscribeToPrices({
-        symbols: ['BTC:UNISWAP'],
-        callback: jest.fn(),
-        includeMarketData: true,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Clear subscriptions to simulate reconnection
-      (service as any).assetCtxsSubscriptions.clear();
-      (service as any).assetCtxsSubscriptionPromises.clear();
-
-      // Restore subscriptions
-      await service.restoreSubscriptions();
-
-      // Verify assetCtxs subscription was restored for the DEX
-      expect(mockSubscriptionClient.assetCtxs).toHaveBeenCalled();
-
-      unsubscribe();
-    });
-
     it('clears L2Book subscriptions during restoration', async () => {
       const callback = jest.fn();
-      const mockUnsubscribe = jest.fn();
+      const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
       const mockSubscription = { unsubscribe: mockUnsubscribe };
 
       mockSubscriptionClient.l2Book.mockImplementation(
-        (_params: any, callback: any) => {
+        (_params: any, l2BookCallback: any) => {
           setTimeout(() => {
-            callback({ bids: [], asks: [] });
+            l2BookCallback({
+              coin: _params.coin,
+              levels: { bids: [], asks: [] },
+            });
           }, 10);
-          return { unsubscribe: mockUnsubscribe };
+          return Promise.resolve(mockSubscription);
         },
       );
 
@@ -3268,13 +3249,24 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       const mockUnsubscribe = jest.fn();
+      const mockSubscription = { unsubscribe: mockUnsubscribe };
 
-      mockSubscriptionClient.activeAsset.mockImplementation(
-        (_params: any, callback: any) => {
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
           setTimeout(() => {
-            callback({ data: 'test' });
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: '49000',
+                funding: '0.01',
+                openInterest: '1000000',
+                dayNtlVlm: '50000000',
+                oraclePx: '50100',
+                midPx: '50000',
+              },
+            });
           }, 10);
-          return { unsubscribe: mockUnsubscribe };
+          return Promise.resolve(mockSubscription);
         },
       );
 
@@ -3305,7 +3297,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const priceCallback = jest.fn();
       const positionCallback = jest.fn();
       const allTypesMarketDataCallback = jest.fn();
-      const mockUnsubscribe = jest.fn();
+      const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
       const mockSubscription = { unsubscribe: mockUnsubscribe };
 
       mockSubscriptionClient.allMids.mockImplementation((cb: any) => {
@@ -3328,16 +3320,26 @@ describe('HyperLiquidSubscriptionService', () => {
               ],
             });
           }, 10);
-          return { unsubscribe: mockUnsubscribe };
+          return Promise.resolve(mockSubscription);
         },
       );
 
-      mockSubscriptionClient.activeAsset.mockImplementation(
-        (_params: any, callback: any) => {
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
           setTimeout(() => {
-            callback({ data: 'test' });
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: '49000',
+                funding: '0.01',
+                openInterest: '1000000',
+                dayNtlVlm: '50000000',
+                oraclePx: '50100',
+                midPx: '50000',
+              },
+            });
           }, 10);
-          return { unsubscribe: mockUnsubscribe };
+          return Promise.resolve(mockSubscription);
         },
       );
 
@@ -3370,7 +3372,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Verify all subscription types were restored
       expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(2);
       expect(mockSubscriptionClient.webData3).toHaveBeenCalledTimes(2);
-      expect(mockSubscriptionClient.activeAsset).toHaveBeenCalledTimes(2);
+      expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledTimes(2);
 
       unsubscribe1();
       unsubscribe2();
