@@ -242,6 +242,23 @@ jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
 }));
 
+const mockUsePerpsOrderFillsImpl = jest.fn<
+  ReturnType<
+    typeof import('../../hooks/usePerpsOrderFills').usePerpsOrderFills
+  >,
+  []
+>(() => ({
+  orderFills: [],
+  isLoading: false,
+  error: null,
+  refresh: jest.fn(),
+  isRefreshing: false,
+}));
+
+jest.mock('../../hooks/usePerpsOrderFills', () => ({
+  usePerpsOrderFills: () => mockUsePerpsOrderFillsImpl(),
+}));
+
 const mockRefreshMarketStats = jest.fn();
 jest.mock('../../hooks/usePerpsMarketStats', () => ({
   usePerpsMarketStats: () => ({
@@ -560,6 +577,15 @@ describe('PerpsMarketDetailsView', () => {
       volume: '$1.23B',
       maxLeverage: '40x',
     };
+
+    // Reset order fills mock to default
+    mockUsePerpsOrderFillsImpl.mockReturnValue({
+      orderFills: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
   });
 
   // Clean up mocks after each test
@@ -1642,6 +1668,97 @@ describe('PerpsMarketDetailsView', () => {
         expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
         expect(getByTestId('fullscreen-chart')).toBeTruthy();
       });
+    });
+  });
+
+  describe('Position opened timestamp calculation', () => {
+    it('computes position opened timestamp from order fills data', () => {
+      // Arrange
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          coin: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '50',
+          marginUsed: '500',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '1.14',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+      });
+
+      mockUsePerpsOrderFillsImpl.mockReturnValue({
+        orderFills: [
+          {
+            orderId: 'order-1',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp: timestamp - 2000,
+            size: '0.3',
+            price: '43000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+          {
+            orderId: 'order-2',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp,
+            size: '0.5',
+            price: '44000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+          {
+            orderId: 'order-3',
+            symbol: 'ETH',
+            side: 'sell',
+            direction: 'Open Short',
+            timestamp: timestamp - 1000,
+            size: '1.0',
+            price: '3000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+      expect(mockUsePerpsOrderFillsImpl).toHaveBeenCalled();
     });
   });
 

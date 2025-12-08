@@ -160,7 +160,8 @@ const CardHome = () => {
 
   const { provisionCard, isLoading: isLoadingProvisionCard } =
     useCardProvision();
-  const { navigateToCardPage } = useNavigateToCardPage(navigation);
+  const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
+    useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
@@ -992,15 +993,35 @@ const CardHome = () => {
           onPress={navigateToCardPage}
           testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
         />
+        <ManageCardListItem
+          title={strings('card.card_home.manage_card_options.travel_title')}
+          description={strings(
+            'card.card_home.manage_card_options.travel_description',
+          )}
+          rightIcon={IconName.Export}
+          onPress={navigateToTravelPage}
+          testID={CardHomeSelectors.TRAVEL_ITEM}
+        />
       </View>
 
       {isAuthenticated && (
-        <ManageCardListItem
-          title={strings('card.card_home.logout')}
-          description={strings('card.card_home.logout_description')}
-          rightIcon={IconName.Logout}
-          onPress={logoutAction}
-        />
+        <>
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.card_tos_title')}
+            description={strings(
+              'card.card_home.manage_card_options.card_tos_description',
+            )}
+            rightIcon={IconName.Export}
+            onPress={navigateToCardTosPage}
+            testID={CardHomeSelectors.CARD_TOS_ITEM}
+          />
+          <ManageCardListItem
+            title={strings('card.card_home.logout')}
+            description={strings('card.card_home.logout_description')}
+            rightIcon={IconName.Logout}
+            onPress={logoutAction}
+          />
+        </>
       )}
     </ScrollView>
   );
