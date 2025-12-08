@@ -19,7 +19,7 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
     jest.setTimeout(120000);
   });
 
-  it('should complete swap ETH to MUSD with gas included', async (): Promise<void> => {
+  it('displays included label for gasless ETH to MUSD swap quote', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -72,7 +72,7 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         await WalletView.tapWalletSwapButton();
         await device.disableSynchronization();
         await Assertions.expectElementToBeVisible(QuoteView.selectAmountLabel, {
-          description: 'Swap amount selection should be visible',
+          description: 'Swap amount selection visible',
         });
 
         // Tap Max to use maximum balance
@@ -81,12 +81,12 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         // Verify network fee shows "Included" for gasless swap
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
           timeout: 60000,
-          description: 'Network fee label should be visible',
+          description: 'Network fee label visible',
         });
 
         await Assertions.expectElementToBeVisible(QuoteView.includedLabel, {
           timeout: 10000,
-          description: 'Gas should be included in quote',
+          description: 'Gas included in quote',
         });
       },
     );
