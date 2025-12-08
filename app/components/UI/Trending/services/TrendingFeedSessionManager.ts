@@ -171,9 +171,6 @@ class TrendingFeedSessionManager {
       entry_point: this.entryPoint,
     };
 
-    // eslint-disable-next-line no-console
-    console.log('=== TRENDING_FEED_VIEWED ===', analyticsProperties);
-
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,

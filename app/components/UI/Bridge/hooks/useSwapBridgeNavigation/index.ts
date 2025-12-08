@@ -181,8 +181,7 @@ export const useSwapBridgeNavigation = ({
         token_address_source: sourceToken?.address,
         from_trending: isFromTrending,
       };
-      // eslint-disable-next-line no-console
-      console.log('=== SWAP_BUTTON_CLICKED ===', swapEventProperties);
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
           .addProperties(swapEventProperties)
