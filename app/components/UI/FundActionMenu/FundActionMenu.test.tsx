@@ -493,6 +493,11 @@ describe('FundActionMenu', () => {
           text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 1,
+          region: undefined,
+          ramp_routing: undefined,
+          is_authenticated: false,
+          preferred_provider: undefined,
+          order_count: 0,
         });
         expect(mockTrackEvent).toHaveBeenCalledWith(mockBuild());
       });
@@ -536,6 +541,11 @@ describe('FundActionMenu', () => {
           text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 137,
+          region: undefined,
+          ramp_routing: undefined,
+          is_authenticated: false,
+          preferred_provider: undefined,
+          order_count: 0,
         });
       });
     });
