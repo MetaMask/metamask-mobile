@@ -68,10 +68,6 @@ jest.mock('../../../../../../../util/networks/customNetworks', () => ({
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       nickname: 'Solana Mainnet',
     },
-    {
-      chainId: 'pacific-1',
-      nickname: 'Sei Network',
-    },
   ],
 }));
 
@@ -107,7 +103,6 @@ describe('SwapSupportedNetworksSection', () => {
 
   const mockNonEvmNetworks: Record<string, { name: string }> = {
     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': { name: 'Solana Mainnet' },
-    'pacific-1': { name: 'Sei Network' },
   };
 
   beforeEach(() => {
