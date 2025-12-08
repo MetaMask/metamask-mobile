@@ -8,77 +8,17 @@ import { fireEvent } from '@testing-library/react-native';
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 
-jest.mock('../../hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames: {
-    perpsPerpTradingEnabled: 'perpsPerpTradingEnabled',
-    predictTradingEnabled: 'predictTradingEnabled',
-  },
-}));
-
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
->;
-
-// Track which tabs are rendered - populated by mock
-let renderedTabs: string[] = [];
-
-// Helper to get rendered tabs for assertions
-const getRenderedTabs = () => renderedTabs;
-const clearRenderedTabs = () => {
-  renderedTabs = [];
-};
-
-jest.mock('../../../component-library/components-temp/Tabs', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  const TabsList = ReactActual.forwardRef(
-    (
-      props: {
-        children?: React.ReactElement[];
-        onChangeTab?: (params: { i: number }) => void;
-        [key: string]: unknown;
-      },
-      ref: React.Ref<{ goToTabIndex: (index: number) => void }>,
-    ) => {
-      const children = Array.isArray(props.children) ? props.children : [];
-
-      // Track tab keys via effect to avoid writing during render
-      ReactActual.useEffect(() => {
-        const tabKeys: string[] = [];
-        children.forEach((child) => {
-          if (child?.key) {
-            tabKeys.push(child.key as string);
-          }
-        });
-        // Update module-level variable for test assertions
-        renderedTabs = tabKeys;
-      }, [children]);
-
-      ReactActual.useImperativeHandle(ref, () => ({
-        goToTabIndex: (index: number) => {
-          props.onChangeTab?.({ i: index });
-        },
-      }));
-
-      return ReactActual.createElement(
-        View,
-        { testID: 'tabs-list' },
-        children.map((child, index) =>
-          ReactActual.createElement(
-            View,
-            { key: child?.key || index, testID: `tab-${child?.key || index}` },
-            child,
-          ),
-        ),
-      );
-    },
-  );
-
-  return { TabsList };
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
+  const MockScrollableTabView = (props: {
+    children?: unknown;
+    [key: string]: unknown;
+  }) => {
+    const ReactLib = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactLib.createElement(View, props, props.children);
+  };
+  return MockScrollableTabView;
 });
 
 const Stack = createStackNavigator();
@@ -129,6 +69,12 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   },
 }));
 
+jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
+  useNetworkSelection: () => ({
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+}));
 jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
 jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
 
@@ -138,59 +84,6 @@ jest.mock(
     selectMultichainAccountsState2Enabled: () => false,
   }),
 );
-
-jest.mock(
-  '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return function MockPredictTransactionsView({
-      isVisible,
-    }: {
-      isVisible: boolean;
-    }) {
-      return (
-        <View testID="predict-transactions-view">
-          <Text testID="predict-visibility">
-            {isVisible ? 'visible' : 'hidden'}
-          </Text>
-        </View>
-      );
-    };
-  },
-);
-
-jest.mock('../../UI/Perps/Views/PerpsTransactionsView', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockPerpsTransactionsView() {
-    return <View testID="perps-transactions-view" />;
-  };
-});
-
-jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
-  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
-
-jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
-  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
-
-jest.mock('../../UI/Ramp/Aggregator/Views/OrdersList', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockRampOrdersList() {
-    return <View testID="ramp-orders-list" />;
-  };
-});
-
-let mockIsEvmSelected = true;
-jest.mock('../../../selectors/multichainNetworkController', () => ({
-  selectIsEvmNetworkSelected: jest.fn(() => mockIsEvmSelected),
-  selectSelectedNonEvmNetworkSymbol: jest.fn(() => 'SOL'),
-  selectSelectedNonEvmNetworkChainId: jest.fn(() => 'solana:mainnet'),
-  selectNonEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
-  selectSelectedNonEvmNetworkName: jest.fn(() => 'Solana'),
-}));
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -243,18 +136,10 @@ describe('ActivityView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
-    mockIsEvmSelected = true;
-    clearRenderedTabs();
-    mockUseFeatureFlag.mockImplementation((flagName: string) => {
-      if (flagName === 'perpsPerpTradingEnabled') return false;
-      if (flagName === 'predictTradingEnabled') return false;
-      return false;
-    });
   });
 
-  it('matches snapshot', () => {
+  it('should render correctly', () => {
     const { toJSON } = renderComponent(mockInitialState);
-
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -263,13 +148,13 @@ describe('ActivityView', () => {
       jest.clearAllMocks();
     });
 
-    it('displays "Popular networks" text when multiple networks are enabled', () => {
+    it('shows "Popular networks" when multiple networks are enabled', () => {
       const { getByText } = renderComponent(mockInitialState);
 
       expect(getByText('Popular networks')).toBeTruthy();
     });
 
-    it('displays network name when single network is enabled', () => {
+    it('shows current network name when only one network is enabled', () => {
       const singleNetworkInfo = {
         enabledNetworks: [{ chainId: '0x1', enabled: true }],
         getNetworkInfo: jest.fn(() => ({
@@ -298,36 +183,39 @@ describe('ActivityView', () => {
       expect(getByText('Ethereum Mainnet')).toBeTruthy();
     });
 
-    it('navigates to NetworkManager on filter button press', () => {
+    it('navigates to NetworkManager when filter button is pressed', () => {
       const mockNetworkManagerNavDetails = [
         'NetworkManager',
         { screen: 'NetworkSelector' },
       ] as const;
+
       const spyOnCreateNetworkManagerNavDetails = jest
         .spyOn(networkManagerUtils, 'createNetworkManagerNavDetails')
         .mockReturnValue(mockNetworkManagerNavDetails);
+
       const { getByTestId } = renderComponent(mockInitialState);
+
       const filterButton = getByTestId(
         WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
       );
-
       fireEvent.press(filterButton);
 
       expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         ...mockNetworkManagerNavDetails,
       );
+
       spyOnCreateNetworkManagerNavDetails.mockRestore();
     });
 
-    it('disables filter button when network info isDisabled is true', () => {
+    it('disables button when network info is disabled', () => {
       const disabledNetworkInfo = {
         ...defaultNetworkInfo,
         isDisabled: true,
       };
       mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
-      const { getByTestId } = renderComponent(mockInitialState);
 
+      const { getByTestId } = renderComponent(mockInitialState);
       const filterButton = getByTestId(
         WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
       );
@@ -336,7 +224,7 @@ describe('ActivityView', () => {
     });
   });
 
-  describe('back button', () => {
+  describe('back button behavior', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -365,8 +253,9 @@ describe('ActivityView', () => {
       expect(queryByTestId('activity-view-back-button')).toBeNull();
     });
 
-    it('invokes navigation.goBack on back button press', () => {
+    it('calls navigation.goBack when back button is pressed', () => {
       mockRoute.params = { showBackButton: true };
+
       const { getByTestId } = renderComponent(mockInitialState);
       const backButton = getByTestId('activity-view-back-button');
 
@@ -375,9 +264,10 @@ describe('ActivityView', () => {
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     });
 
-    it('does not invoke navigation.goBack when canGoBack returns false', () => {
+    it('does not call navigation.goBack when canGoBack returns false', () => {
       mockRoute.params = { showBackButton: true };
       mockNavigation.canGoBack.mockReturnValueOnce(false);
+
       const { getByTestId } = renderComponent(mockInitialState);
       const backButton = getByTestId('activity-view-back-button');
 
@@ -386,7 +276,7 @@ describe('ActivityView', () => {
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
-    it('sets headerShown to false when showBackButton is true', () => {
+    it('hides default header when showBackButton is true', () => {
       mockRoute.params = { showBackButton: true };
 
       renderComponent(mockInitialState);
@@ -396,7 +286,7 @@ describe('ActivityView', () => {
       });
     });
 
-    it('sets default header options when showBackButton is false', () => {
+    it('shows default header when showBackButton is false', () => {
       mockRoute.params = { showBackButton: false };
 
       renderComponent(mockInitialState);
@@ -408,148 +298,6 @@ describe('ActivityView', () => {
           headerRight: expect.any(Function),
         }),
       );
-    });
-  });
-
-  describe('Perps tab', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockRoute.params = {};
-    });
-
-    it('includes Perps tab when feature flag is enabled on EVM network', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return true;
-        return false;
-      });
-      mockIsEvmSelected = true;
-
-      const { getByTestId } = renderComponent(mockInitialState);
-
-      expect(getByTestId('tab-perps')).toBeTruthy();
-      expect(getRenderedTabs()).toContain('perps');
-    });
-
-    it('excludes Perps tab when feature flag is disabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return false;
-        return false;
-      });
-      mockIsEvmSelected = true;
-
-      renderComponent(mockInitialState);
-
-      expect(getRenderedTabs()).not.toContain('perps');
-    });
-
-    it('excludes Perps tab on non-EVM network even with feature flag enabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return true;
-        return false;
-      });
-      mockIsEvmSelected = false;
-
-      renderComponent(mockInitialState);
-
-      expect(getRenderedTabs()).not.toContain('perps');
-    });
-  });
-
-  describe('Predict tab', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockRoute.params = {};
-    });
-
-    it('includes Predict tab when feature flag is enabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'predictTradingEnabled') return true;
-        return false;
-      });
-
-      const { getByTestId } = renderComponent(mockInitialState);
-
-      expect(getByTestId('tab-predict')).toBeTruthy();
-      expect(getRenderedTabs()).toContain('predict');
-    });
-
-    it('excludes Predict tab when feature flag is disabled', () => {
-      mockUseFeatureFlag.mockImplementation(() => false);
-
-      renderComponent(mockInitialState);
-
-      expect(getRenderedTabs()).not.toContain('predict');
-    });
-
-    it('includes Predict tab on non-EVM network when feature flag is enabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'predictTradingEnabled') return true;
-        return false;
-      });
-      mockIsEvmSelected = false;
-
-      const { getByTestId } = renderComponent(mockInitialState);
-
-      expect(getByTestId('tab-predict')).toBeTruthy();
-      expect(getRenderedTabs()).toContain('predict');
-    });
-  });
-
-  describe('tab ordering', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockRoute.params = {};
-    });
-
-    it('orders tabs as Transactions, Orders, Perps, Predict when all features enabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return true;
-        if (flagName === 'predictTradingEnabled') return true;
-        return false;
-      });
-      mockIsEvmSelected = true;
-
-      renderComponent(mockInitialState);
-
-      expect(getRenderedTabs()).toEqual([
-        'transactions',
-        'orders',
-        'perps',
-        'predict',
-      ]);
-    });
-
-    it('orders tabs as Transactions, Orders, Predict when Perps disabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return false;
-        if (flagName === 'predictTradingEnabled') return true;
-        return false;
-      });
-
-      renderComponent(mockInitialState);
-
-      expect(getRenderedTabs()).toEqual(['transactions', 'orders', 'predict']);
-    });
-
-    it('orders tabs as Transactions, Orders, Perps when Predict disabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return true;
-        if (flagName === 'predictTradingEnabled') return false;
-        return false;
-      });
-      mockIsEvmSelected = true;
-
-      renderComponent(mockInitialState);
-
-      expect(getRenderedTabs()).toEqual(['transactions', 'orders', 'perps']);
-    });
-
-    it('includes only Transactions and Orders tabs when all feature flags disabled', () => {
-      mockUseFeatureFlag.mockImplementation(() => false);
-
-      renderComponent(mockInitialState);
-
-      expect(getRenderedTabs()).toEqual(['transactions', 'orders']);
     });
   });
 });

@@ -7,10 +7,9 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       alignItems: 'center',
-      marginTop: 8,
-      padding: 16,
+      backgroundColor: colors.background.alternative,
       borderRadius: 12,
-      backgroundColor: colors.background.section,
+      padding: 16,
     },
     heading: {
       paddingBottom: 8,

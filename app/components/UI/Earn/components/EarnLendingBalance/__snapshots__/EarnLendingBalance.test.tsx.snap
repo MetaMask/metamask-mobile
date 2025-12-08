@@ -4,20 +4,12 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
 <View>
   <View
     style={
-      [
-        {
-          "flexDirection": "row",
-          "gap": 16,
-          "justifyContent": "space-between",
-          "paddingTop": 14,
-        },
-        {
-          "backgroundColor": "#f3f5f9",
-          "borderRadius": 12,
-          "marginTop": 16,
-          "padding": 16,
-        },
-      ]
+      {
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "space-between",
+        "paddingTop": 14,
+      }
     }
   >
     <TouchableOpacity
@@ -289,10 +281,10 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 20,
-              "height": 40,
+              "borderRadius": 16,
+              "height": 32,
               "overflow": "hidden",
-              "width": 40,
+              "width": 32,
             }
           }
           testID="receipt-token-balance-asset-logo"
@@ -480,20 +472,12 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
   </TouchableOpacity>
   <View
     style={
-      [
-        {
-          "flexDirection": "row",
-          "gap": 16,
-          "justifyContent": "space-between",
-          "paddingTop": 14,
-        },
-        {
-          "backgroundColor": "#f3f5f9",
-          "borderRadius": 12,
-          "marginTop": 16,
-          "padding": 16,
-        },
-      ]
+      {
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "space-between",
+        "paddingTop": 14,
+      }
     }
   >
     <TouchableOpacity

@@ -497,7 +497,7 @@ exports[`SendTo Component render matches snapshot 1`] = `
               }
             }
           >
-            Your accounts
+            Your Accounts
           </Text>
           <View
             collapsable={false}

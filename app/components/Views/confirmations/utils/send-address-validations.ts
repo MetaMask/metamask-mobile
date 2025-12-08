@@ -14,7 +14,11 @@ import {
   isBtcMainnetAddress,
   isTronAddress,
 } from '../../../../core/Multichain/utils';
-import { LOWER_CASED_BURN_ADDRESSES } from '../../../../constants/address';
+
+export const LOWER_CASED_BURN_ADDRESSES = [
+  '0x0000000000000000000000000000000000000000',
+  '0x000000000000000000000000000000000000dead',
+];
 
 export const validateBitcoinAddress = (
   toAddress: string,

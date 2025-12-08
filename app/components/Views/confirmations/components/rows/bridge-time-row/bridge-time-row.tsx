@@ -13,24 +13,17 @@ import {
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
-
-const HIDE_TYPES = [TransactionType.musdConversion];
 
 export function BridgeTimeRow() {
   const isLoading = useIsTransactionPayLoading();
   const { estimatedDuration } = useTransactionPayTotals() ?? {};
   const quotes = useTransactionPayQuotes();
   const { payToken } = useTransactionPayToken();
-  const transactionMetadata = useTransactionMetadataRequest();
-  const { chainId } = transactionMetadata ?? {};
+  const { chainId } = useTransactionMetadataRequest() ?? {};
 
-  const showEstimate =
-    !hasTransactionType(transactionMetadata, HIDE_TYPES) &&
-    (isLoading || Boolean(quotes?.length));
+  const showEstimate = isLoading || Boolean(quotes?.length);
 
   if (!showEstimate) {
     return null;

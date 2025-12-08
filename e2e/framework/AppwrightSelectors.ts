@@ -4,9 +4,8 @@ export default class AppwrightSelectors {
   static async getElementByID(
     testDevice: Device,
     id: string,
-    exact: boolean = false,
   ): Promise<AppwrightLocator> {
-    return await testDevice.getById(id, { exact });
+    return await testDevice.getById(id, { exact: true });
   }
 
   static async getElementByXpath(
