@@ -25,3 +25,4 @@ export const useHardwareWallet = (): HardwareWalletContextType => {
 };
 
 export default useHardwareWallet;
+

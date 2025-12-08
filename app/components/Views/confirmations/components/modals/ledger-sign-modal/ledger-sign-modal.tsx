@@ -12,8 +12,9 @@ import { resetEventStage } from '../../../../../../actions/rpcEvents';
 import LedgerConfirmationModal from '../../../../../UI/LedgerModals/LedgerConfirmationModal';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import { useLedgerContext } from '../../../context/ledger-context';
+import { useHardwareWalletSigningContext } from '../../../context/hardware-wallet-signing-context';
 import styleSheet from './ledger-sign-modal.styles';
+import Logger from '../../../../../../util/Logger';
 
 const LedgerSignModal = () => {
   const dispatch = useDispatch();
@@ -21,13 +22,27 @@ const LedgerSignModal = () => {
   const { signingEvent }: iEventGroup = useSelector(
     (state: RootState) => state.rpcEvents,
   );
-  const { closeLedgerSignModal, deviceId } = useLedgerContext();
+  const { closeSignModal, deviceId } = useHardwareWalletSigningContext();
   const { onConfirm, onReject } = useConfirmActions();
 
+  // Debug logging
+  useEffect(() => {
+    Logger.log('[LedgerSignModal] signingEvent changed:', {
+      eventStage: signingEvent.eventStage,
+      rpcName: signingEvent.rpcName,
+      error: signingEvent.error,
+    });
+  }, [signingEvent]);
+
+  useEffect(() => {
+    Logger.log('[LedgerSignModal] deviceId changed:', deviceId);
+  }, [deviceId]);
+
   const completeRequest = useCallback(() => {
-    closeLedgerSignModal();
+    Logger.log('[LedgerSignModal] completeRequest called');
+    closeSignModal();
     dispatch(resetEventStage(signingEvent.rpcName));
-  }, [closeLedgerSignModal, dispatch, signingEvent.rpcName]);
+  }, [closeSignModal, dispatch, signingEvent.rpcName]);
 
   useEffect(() => {
     //Close the modal when the signMessageStage is complete or error, error will return the error message to the user
@@ -35,24 +50,33 @@ const LedgerSignModal = () => {
       signingEvent.eventStage === RPCStageTypes.COMPLETE ||
       signingEvent.eventStage === RPCStageTypes.ERROR
     ) {
+      Logger.log(
+        '[LedgerSignModal] Closing modal due to eventStage:',
+        signingEvent.eventStage,
+      );
       completeRequest();
     }
   }, [signingEvent.eventStage, completeRequest]);
 
   const onConfirmation = useCallback(async () => {
+    Logger.log('[LedgerSignModal] onConfirmation called, calling onConfirm...');
     try {
       await onConfirm();
+      Logger.log('[LedgerSignModal] onConfirm completed successfully');
     } catch (err) {
+      Logger.error(err as Error, '[LedgerSignModal] onConfirm error');
       onReject();
     }
   }, [onConfirm, onReject]);
 
   const onRejection = useCallback(() => {
+    Logger.log('[LedgerSignModal] onRejection called');
     onReject();
     completeRequest();
   }, [completeRequest, onReject]);
 
   if (!deviceId) {
+    Logger.log('[LedgerSignModal] No deviceId, returning null');
     return null;
   }
 

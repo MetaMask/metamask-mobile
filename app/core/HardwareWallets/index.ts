@@ -51,6 +51,26 @@ export {
   type HardwareWalletAdapter,
   type HardwareWalletAdapterOptions,
   type HardwareWalletContextType,
+  // QR Hardware Wallet Types
+  QRSigningStatus,
+  QRSigningState,
+  CameraPermissionStatus,
+  QRHardwareErrorCode,
+  // QR Type guards
+  isQRIdle,
+  isQRAwaitingScan,
+  isQRScanning,
+  isQRProcessing,
+  isQRCompleted,
+  isQRError,
+  isQRNeedsCameraPermission,
+  type QRScanRequestType,
+  type QRHardwareError,
+  type QRHardwareAdapterOptions,
+  type QRHardwareContextType,
+  type QRHardwareContextIdle,
+  type QRHardwareContextSigning,
+  type QRHardwareContextError,
 } from './types';
 
 // Errors
@@ -60,6 +80,12 @@ export {
   parseLedgerError,
   isRetryableError,
   requiresSettings,
+  // QR Error utilities
+  createQRHardwareError,
+  parseQRError,
+  isQRRetryableError,
+  isQRCameraPermissionError,
+  isQRScanCancelledError,
 } from './errors';
 
 // Context
@@ -70,9 +96,8 @@ export {
 } from './context';
 
 // Adapters
-export { createAdapter, LedgerAdapter } from './adapters';
+export { createAdapter, LedgerAdapter, QRAdapter } from './adapters';
 export { AppSwitchRequiredError } from './adapters/LedgerAdapter';
 
 // Components
 export { HardwareWalletErrorModal } from './components';
-

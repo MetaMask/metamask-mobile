@@ -5,17 +5,15 @@
  * Handles BLE transport events for connection state, errors, and device status.
  */
 
-import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import type { BleError } from 'react-native-ble-plx';
+import BleTransport from '@ledgerhq/react-native-hw-transport-ble';
+import { type BleError } from 'react-native-ble-plx';
 import {
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
   HardwareWalletAccount,
   HardwareWalletType,
   HardwareWalletErrorCode,
-  BluetoothState,
   DeviceEvent,
-  Unsubscribe,
 } from '../types';
 import {
   createHardwareWalletError,
@@ -61,32 +59,10 @@ export class LedgerAdapter implements HardwareWalletAdapter {
   private deviceId: string | null = null;
   private options: HardwareWalletAdapterOptions;
   private hdPath: string = LEDGER_LIVE_PATH;
-  private bluetoothStateSubscription: Unsubscribe | null = null;
-  private currentBluetoothState: BluetoothState = BluetoothState.UNKNOWN;
   private lastKnownAppName: string | null = null;
 
   constructor(options?: HardwareWalletAdapterOptions) {
     this.options = options || {};
-  }
-
-  /**
-   * Map BLE state string to BluetoothState enum
-   */
-  private mapBleState(state: string): BluetoothState {
-    switch (state) {
-      case 'PoweredOn':
-        return BluetoothState.POWERED_ON;
-      case 'PoweredOff':
-        return BluetoothState.POWERED_OFF;
-      case 'Resetting':
-        return BluetoothState.RESETTING;
-      case 'Unauthorized':
-        return BluetoothState.UNAUTHORIZED;
-      case 'Unsupported':
-        return BluetoothState.UNSUPPORTED;
-      default:
-        return BluetoothState.UNKNOWN;
-    }
   }
 
   /**
@@ -173,12 +149,8 @@ export class LedgerAdapter implements HardwareWalletAdapter {
   async connect(deviceId: string): Promise<void> {
     try {
       // Dynamic import to avoid loading Bluetooth module until needed
-      const BluetoothTransport = await import(
-        '@ledgerhq/react-native-hw-transport-ble'
-      );
-
       Logger.log(LOG_TAG, `Opening transport for device ${deviceId}`);
-      this.transport = await BluetoothTransport.default.open(deviceId);
+      this.transport = await BleTransport.open(deviceId);
       this.deviceId = deviceId;
 
       // Set up disconnect handler with error details
@@ -186,6 +158,11 @@ export class LedgerAdapter implements HardwareWalletAdapter {
 
       // Set up error handler
       this.transport.on('error', this.handleTransportError);
+
+      // Set up device-level disconnect monitoring
+      this.transport.device.onDisconnected((error) => {
+        console.log('[LedgerAdapter] Device disconnected via BLE:', error);
+      });
 
       // Verify connection and check which app is running
       const appName = await connectLedgerHardware(this.transport, deviceId);
@@ -384,9 +361,6 @@ export class LedgerAdapter implements HardwareWalletAdapter {
   destroy(): void {
     Logger.log(LOG_TAG, 'Destroying adapter');
 
-    // Stop Bluetooth state observation
-    this.stopBluetoothStateObservation();
-
     if (this.transport) {
       // Remove event listeners before closing
       this.transport.off?.('disconnect', this.handleTransportDisconnect);
@@ -406,70 +380,6 @@ export class LedgerAdapter implements HardwareWalletAdapter {
    */
   getTransport(): BleTransport | null {
     return this.transport;
-  }
-
-  /**
-   * Subscribe to Bluetooth state changes
-   * @returns Unsubscribe function
-   */
-  subscribeToBluetoothState(): Unsubscribe {
-    if (this.bluetoothStateSubscription) {
-      // Already subscribed, return existing unsubscribe
-      return () => this.stopBluetoothStateObservation();
-    }
-
-    // Dynamic import to get BleTransport
-    import('@ledgerhq/react-native-hw-transport-ble')
-      .then((BluetoothTransport) => {
-        const subscription = BluetoothTransport.default.observeState({
-          next: ({ type, available }) => {
-            const newState = this.mapBleState(type);
-            const previousState = this.currentBluetoothState;
-            this.currentBluetoothState = newState;
-
-            Logger.log(
-              LOG_TAG,
-              `Bluetooth state changed: ${previousState} -> ${newState}, available: ${available}`,
-            );
-
-            this.options.onBluetoothStateChange?.(newState, available);
-            this.options.onDeviceEvent?.({
-              event: DeviceEvent.BLUETOOTH_STATE_CHANGED,
-              bluetoothState: newState,
-            });
-          },
-          error: (err) => {
-            Logger.log(LOG_TAG, 'Bluetooth state observation error', err);
-          },
-          complete: () => {
-            Logger.log(LOG_TAG, 'Bluetooth state observation completed');
-          },
-        });
-
-        this.bluetoothStateSubscription = () => subscription.unsubscribe();
-      })
-      .catch((err) => {
-        Logger.log(LOG_TAG, 'Failed to subscribe to Bluetooth state', err);
-      });
-
-    return () => this.stopBluetoothStateObservation();
-  }
-
-  /**
-   * Stop observing Bluetooth state changes
-   */
-  private stopBluetoothStateObservation(): void {
-    if (this.bluetoothStateSubscription) {
-      this.bluetoothStateSubscription();
-      this.bluetoothStateSubscription = null;
-    }
-  }
-
-  /**
-   * Get the current Bluetooth state
-   */
-  async getBluetoothState(): Promise<BluetoothState> {
-    return this.currentBluetoothState;
   }
 
   /**

@@ -21,7 +21,7 @@ import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
+import { useHardwareWalletSigningContext } from '../../context/hardware-wallet-signing-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -56,9 +56,9 @@ export const Footer = () => {
     hasUnconfirmedDangerAlerts,
   } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
-  const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
+  const { isSigning, needsPermission } = useHardwareWalletSigningContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const confirmDisabled = needsCameraPermission;
+  const confirmDisabled = needsPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
@@ -118,7 +118,7 @@ export const Footer = () => {
   });
 
   const confirmButtonLabel = () => {
-    if (isSigningQRObject) {
+    if (isSigning) {
       return strings('confirm.qr_get_sign');
     }
 
@@ -153,7 +153,7 @@ export const Footer = () => {
   };
 
   const isConfirmDisabled =
-    needsCameraPermission ||
+    needsPermission ||
     hasBlockingAlerts ||
     isTransactionValueUpdating ||
     isPayLoading;

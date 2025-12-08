@@ -43,6 +43,7 @@ import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import { isErrorState, useHardwareWallet } from '../../../core/HardwareWallets';
 
 interface OptionType {
   key: string;
@@ -52,7 +53,9 @@ interface OptionType {
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
-  const [selectedDevice, setSelectedDevice] = useState<LedgerDevice>(null);
+  const [selectedDevice, setSelectedDevice] = useState<LedgerDevice | null>(
+    null,
+  );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const dispatch = useDispatch();
   const { colors } = useTheme();
@@ -92,12 +95,7 @@ const LedgerSelectAccount = () => {
     [],
   );
 
-  const {
-    isSendingLedgerCommands,
-    isAppLaunchConfirmationNeeded,
-    ledgerLogicToRun,
-    error: ledgerError,
-  } = useLedgerBluetooth(selectedDevice?.id);
+  const { connectionState } = useHardwareWallet();
 
   const keyringController = useMemo(() => {
     const { KeyringController: controller } = Engine.context as {
@@ -138,10 +136,10 @@ const LedgerSelectAccount = () => {
   }, [keyringController]);
 
   useEffect(() => {
-    if (ledgerError) {
+    if (isErrorState(connectionState)) {
       setBlockingModalVisible(false);
     }
-  }, [ledgerError]);
+  }, [connectionState]);
 
   const showLoadingModal = () => {
     setErrorMsg(null);
@@ -178,22 +176,31 @@ const LedgerSelectAccount = () => {
     setAccounts(_accounts);
   }, []);
 
-  useEffect(() => {
-    if (accounts.length > 0 && selectedOption) {
-      showLoadingModal();
+  const [hasLoadedAccounts, setHasLoadedAccounts] = useState(false);
 
-      getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
-        .then((_accounts) => {
-          setAccounts(_accounts);
-        })
-        .catch((e) => {
-          setErrorMsg(e.message);
-        })
-        .finally(() => {
-          setBlockingModalVisible(false);
-        });
+  useEffect(() => {
+    if (accounts.length > 0 && !hasLoadedAccounts) {
+      setHasLoadedAccounts(true);
     }
-  }, [accounts.length, selectedOption]);
+  }, [accounts.length, hasLoadedAccounts]);
+
+  useEffect(() => {
+    // Only re-fetch when HD path changes and accounts are already displayed
+    if (!hasLoadedAccounts) return;
+
+    showLoadingModal();
+
+    getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
+      .then((_accounts) => {
+        setAccounts(_accounts);
+      })
+      .catch((e) => {
+        setErrorMsg(e.message);
+      })
+      .finally(() => {
+        setBlockingModalVisible(false);
+      });
+  }, [selectedOption, hasLoadedAccounts]);
 
   const nextPage = useCallback(async () => {
     showLoadingModal();
@@ -344,15 +351,11 @@ const LedgerSelectAccount = () => {
     [ledgerPathOptions],
   );
 
-  return ledgerError || accounts.length <= 0 ? (
+  return isErrorState(connectionState) || accounts.length <= 0 ? (
     <LedgerConnect
       onConnectLedger={onConnectHardware}
       selectedDevice={selectedDevice}
       setSelectedDevice={setSelectedDevice}
-      ledgerLogicToRun={ledgerLogicToRun}
-      isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
-      isSendingLedgerCommands={isSendingLedgerCommands}
-      ledgerError={ledgerError}
     />
   ) : (
     <>
@@ -371,7 +374,7 @@ const LedgerSelectAccount = () => {
             <MaterialIcon name="close" size={15} style={styles.closeIcon} />
           </TouchableOpacity>
         </View>
-        <View style-={styles.selectorContainer}>
+        <View style={styles.selectorContainer}>
           {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
           <Text style={styles.mainTitle}>
             {strings('ledger.select_accounts')}

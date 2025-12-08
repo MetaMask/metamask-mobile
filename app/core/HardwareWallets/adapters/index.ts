@@ -8,8 +8,10 @@ import {
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
   HardwareWalletType,
+  QRHardwareAdapterOptions,
 } from '../types';
 import { LedgerAdapter } from './LedgerAdapter';
+import { QRAdapter } from './QRAdapter';
 
 /**
  * Factory function to create the appropriate adapter for a hardware wallet type
@@ -24,10 +26,11 @@ export const createAdapter = (
     case HardwareWalletType.TREZOR:
       throw new Error('Trezor adapter not yet implemented');
     case HardwareWalletType.QR:
-      throw new Error('QR adapter not yet implemented');
+      return new QRAdapter(options as QRHardwareAdapterOptions);
     default:
       throw new Error(`Unknown hardware wallet type: ${type}`);
   }
 };
 
 export { LedgerAdapter } from './LedgerAdapter';
+export { QRAdapter } from './QRAdapter';

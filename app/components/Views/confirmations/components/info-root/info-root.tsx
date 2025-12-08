@@ -2,7 +2,7 @@ import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
-import { useQRHardwareContext } from '../../context/qr-hardware-context';
+import { useHardwareWalletSigningContext } from '../../context/hardware-wallet-signing-context';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
 import StakingWithdrawal from '../../external/staking/info/staking-withdrawal';
@@ -77,7 +77,7 @@ interface InfoProps {
 const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isSigningQRObject } = useQRHardwareContext();
+  const { isSigning } = useHardwareWalletSigningContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
 
   if (!approvalRequest?.type) {
@@ -88,7 +88,7 @@ const Info = ({ route }: InfoProps) => {
     return <SwitchAccountType />;
   }
 
-  if (isSigningQRObject) {
+  if (isSigning) {
     return <QRInfo />;
   }
 

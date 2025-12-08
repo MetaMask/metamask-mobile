@@ -12,19 +12,19 @@ import AnimatedQRScannerModal from '../../../../UI/QRHardware/AnimatedQRScanner'
 import Alert, { AlertType } from '../../../../Base/Alert';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
-import { useQRHardwareContext } from '../../context/qr-hardware-context';
+import { useHardwareWalletSigningContext } from '../../context/hardware-wallet-signing-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import styleSheet from './qr-info.styles';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 const QRInfo = () => {
   const {
-    pendingScanRequest,
-    cameraError,
-    scannerVisible,
-    setRequestCompleted,
-    setScannerVisible,
-  } = useQRHardwareContext();
+    pendingRequest: pendingScanRequest,
+    error: cameraError,
+    modalVisible: scannerVisible,
+    markRequestCompleted,
+    closeSignModal,
+  } = useHardwareWalletSigningContext();
   const { createEventBuilder, trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
@@ -38,7 +38,7 @@ const QRInfo = () => {
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
-      setScannerVisible(false);
+      closeSignModal();
       const signature = ETHSignature.fromCBOR(ur.cbor);
       const buffer = signature.getRequestId();
       if (buffer) {
@@ -48,7 +48,7 @@ const QRInfo = () => {
             type: ur.type,
             cbor: ur.cbor.toString('hex'),
           });
-          setRequestCompleted();
+          markRequestCompleted();
           return;
         }
       }
@@ -65,18 +65,18 @@ const QRInfo = () => {
     [
       pendingScanRequest?.request?.requestId,
       createEventBuilder,
-      setRequestCompleted,
-      setScannerVisible,
+      markRequestCompleted,
+      closeSignModal,
       trackEvent,
     ],
   );
 
   const onScanError = useCallback(
     (errorMsg: string) => {
-      setScannerVisible(false);
+      closeSignModal();
       setErrorMessage(errorMsg);
     },
-    [setScannerVisible],
+    [closeSignModal],
   );
 
   return (
@@ -123,7 +123,7 @@ const QRInfo = () => {
         purpose={QrScanRequestType.SIGN}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
-        hideModal={() => setScannerVisible(false)}
+        hideModal={closeSignModal}
       />
     </View>
   );

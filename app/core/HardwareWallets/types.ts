@@ -333,6 +333,23 @@ export interface HardwareWalletAdapter {
    * @returns The app name (e.g., "Ethereum", "BOLOS" for main menu)
    */
   getCurrentAppName?(): Promise<string>;
+
+  /**
+   * Start periodic health checks to detect silent disconnections
+   * Health checks poll the device to verify the connection is still active
+   */
+  startHealthCheck?(): void;
+
+  /**
+   * Stop periodic health checks
+   */
+  stopHealthCheck?(): void;
+
+  /**
+   * Mark that a user-interactive operation is pending.
+   * Used to prevent health checks from interfering with signing operations.
+   */
+  setPendingOperation?(pending: boolean): void;
 }
 
 /**
@@ -416,4 +433,284 @@ export interface HardwareWalletContextType {
   stopBluetoothStateObservation: () => void;
   /** Verify the Ethereum app is still open and update state */
   verifyEthereumApp: () => Promise<boolean>;
+}
+
+// ============================================================================
+// QR Hardware Wallet Types
+// ============================================================================
+
+/**
+ * QR signing flow status values (for discriminated union)
+ */
+export enum QRSigningStatus {
+  /** No signing operation in progress */
+  IDLE = 'idle',
+  /** Awaiting user to scan the QR code displayed on their hardware wallet */
+  AWAITING_SCAN = 'awaiting_scan',
+  /** Camera is active and scanning */
+  SCANNING = 'scanning',
+  /** Scan completed successfully, processing signature */
+  PROCESSING = 'processing',
+  /** Signing request was completed */
+  COMPLETED = 'completed',
+  /** An error occurred during the signing flow */
+  ERROR = 'error',
+  /** Awaiting camera permission */
+  NEEDS_CAMERA_PERMISSION = 'needs_camera_permission',
+}
+
+/**
+ * QR scan request type
+ */
+export type QRScanRequestType = 'sign' | 'sync';
+
+/**
+ * Camera permission status
+ */
+export enum CameraPermissionStatus {
+  UNKNOWN = 'unknown',
+  GRANTED = 'granted',
+  DENIED = 'denied',
+}
+
+/**
+ * QR signing state (discriminated union)
+ */
+export type QRSigningState =
+  | { status: QRSigningStatus.IDLE }
+  | {
+      status: QRSigningStatus.AWAITING_SCAN;
+      requestType: QRScanRequestType;
+      requestData?: unknown;
+    }
+  | {
+      status: QRSigningStatus.SCANNING;
+      requestType: QRScanRequestType;
+    }
+  | {
+      status: QRSigningStatus.PROCESSING;
+    }
+  | {
+      status: QRSigningStatus.COMPLETED;
+    }
+  | {
+      status: QRSigningStatus.ERROR;
+      error: QRHardwareError;
+    }
+  | {
+      status: QRSigningStatus.NEEDS_CAMERA_PERMISSION;
+    };
+
+/**
+ * Helper to create QR signing states
+ */
+export const QRSigningState = {
+  idle: (): QRSigningState => ({
+    status: QRSigningStatus.IDLE,
+  }),
+  awaitingScan: (
+    requestType: QRScanRequestType,
+    requestData?: unknown,
+  ): QRSigningState => ({
+    status: QRSigningStatus.AWAITING_SCAN,
+    requestType,
+    requestData,
+  }),
+  scanning: (requestType: QRScanRequestType): QRSigningState => ({
+    status: QRSigningStatus.SCANNING,
+    requestType,
+  }),
+  processing: (): QRSigningState => ({
+    status: QRSigningStatus.PROCESSING,
+  }),
+  completed: (): QRSigningState => ({
+    status: QRSigningStatus.COMPLETED,
+  }),
+  error: (error: QRHardwareError): QRSigningState => ({
+    status: QRSigningStatus.ERROR,
+    error,
+  }),
+  needsCameraPermission: (): QRSigningState => ({
+    status: QRSigningStatus.NEEDS_CAMERA_PERMISSION,
+  }),
+} as const;
+
+/**
+ * Type guards for QR signing state
+ */
+export const isQRIdle = (
+  state: QRSigningState,
+): state is { status: QRSigningStatus.IDLE } =>
+  state.status === QRSigningStatus.IDLE;
+
+export const isQRAwaitingScan = (
+  state: QRSigningState,
+): state is {
+  status: QRSigningStatus.AWAITING_SCAN;
+  requestType: QRScanRequestType;
+  requestData?: unknown;
+} => state.status === QRSigningStatus.AWAITING_SCAN;
+
+export const isQRScanning = (
+  state: QRSigningState,
+): state is {
+  status: QRSigningStatus.SCANNING;
+  requestType: QRScanRequestType;
+} => state.status === QRSigningStatus.SCANNING;
+
+export const isQRProcessing = (
+  state: QRSigningState,
+): state is { status: QRSigningStatus.PROCESSING } =>
+  state.status === QRSigningStatus.PROCESSING;
+
+export const isQRCompleted = (
+  state: QRSigningState,
+): state is { status: QRSigningStatus.COMPLETED } =>
+  state.status === QRSigningStatus.COMPLETED;
+
+export const isQRError = (
+  state: QRSigningState,
+): state is {
+  status: QRSigningStatus.ERROR;
+  error: QRHardwareError;
+} => state.status === QRSigningStatus.ERROR;
+
+export const isQRNeedsCameraPermission = (
+  state: QRSigningState,
+): state is { status: QRSigningStatus.NEEDS_CAMERA_PERMISSION } =>
+  state.status === QRSigningStatus.NEEDS_CAMERA_PERMISSION;
+
+/**
+ * QR Hardware wallet error codes
+ */
+export enum QRHardwareErrorCode {
+  CAMERA_PERMISSION_DENIED = 'CAMERA_PERMISSION_DENIED',
+  INVALID_QR_CODE = 'INVALID_QR_CODE',
+  SCAN_CANCELLED = 'SCAN_CANCELLED',
+  SCAN_TIMEOUT = 'SCAN_TIMEOUT',
+  DEVICE_NOT_SUPPORTED = 'DEVICE_NOT_SUPPORTED',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+}
+
+/**
+ * QR Hardware error
+ */
+export interface QRHardwareError {
+  code: QRHardwareErrorCode;
+  title: string;
+  subtitle: string;
+  isRetryable: boolean;
+}
+
+/**
+ * QR Hardware wallet adapter options
+ */
+export interface QRHardwareAdapterOptions {
+  /**
+   * Callback when a scan request is initiated
+   */
+  onScanRequested?: (
+    requestType: QRScanRequestType,
+    requestData?: unknown,
+  ) => void;
+
+  /**
+   * Callback when scan is completed
+   */
+  onScanCompleted?: () => void;
+
+  /**
+   * Callback when scan is cancelled or rejected
+   */
+  onScanRejected?: (error: Error) => void;
+
+  /**
+   * Callback when camera permission is needed
+   */
+  onCameraPermissionNeeded?: () => void;
+
+  /**
+   * Callback when camera permission is granted
+   */
+  onCameraPermissionGranted?: () => void;
+
+  /**
+   * Callback when camera permission is denied
+   */
+  onCameraPermissionDenied?: () => void;
+}
+
+/**
+ * QR Hardware wallet context type (discriminated union for return type)
+ */
+export type QRHardwareContextType =
+  | QRHardwareContextIdle
+  | QRHardwareContextSigning
+  | QRHardwareContextError;
+
+/**
+ * Base properties shared by all QR context states
+ */
+interface QRHardwareContextBase {
+  /** Whether the currently selected account is a QR hardware wallet account */
+  isQRHardwareAccount: boolean;
+  /** Camera permission status */
+  cameraPermission: CameraPermissionStatus;
+  /** Camera error message if any */
+  cameraError: string | undefined;
+}
+
+/**
+ * QR context when idle (no signing operation)
+ */
+export interface QRHardwareContextIdle extends QRHardwareContextBase {
+  signingState: { status: QRSigningStatus.IDLE };
+  /** Cancel is a no-op when idle */
+  cancelScanRequest: () => void;
+  /** Scanner visibility control */
+  scannerVisible: false;
+  setScannerVisible: (visible: boolean) => void;
+  /** Mark request as completed (no-op when idle) */
+  setRequestCompleted: () => void;
+}
+
+/**
+ * QR context when signing (scan in progress)
+ */
+export interface QRHardwareContextSigning extends QRHardwareContextBase {
+  signingState:
+    | {
+        status: QRSigningStatus.AWAITING_SCAN;
+        requestType: QRScanRequestType;
+        requestData?: unknown;
+      }
+    | {
+        status: QRSigningStatus.SCANNING;
+        requestType: QRScanRequestType;
+      }
+    | { status: QRSigningStatus.PROCESSING }
+    | { status: QRSigningStatus.COMPLETED }
+    | { status: QRSigningStatus.NEEDS_CAMERA_PERMISSION };
+  /** Cancel the current scan request */
+  cancelScanRequest: () => Promise<void>;
+  /** Whether the scanner view is visible */
+  scannerVisible: boolean;
+  setScannerVisible: (visible: boolean) => void;
+  /** Mark the current request as completed */
+  setRequestCompleted: () => void;
+}
+
+/**
+ * QR context when in error state
+ */
+export interface QRHardwareContextError extends QRHardwareContextBase {
+  signingState: {
+    status: QRSigningStatus.ERROR;
+    error: QRHardwareError;
+  };
+  /** Clear error and return to idle */
+  cancelScanRequest: () => void;
+  scannerVisible: boolean;
+  setScannerVisible: (visible: boolean) => void;
+  setRequestCompleted: () => void;
 }

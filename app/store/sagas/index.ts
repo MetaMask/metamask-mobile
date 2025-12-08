@@ -21,6 +21,7 @@ import {
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
+import { INIT_BG_STATE_KEY } from '../../core/EngineService/constants';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../core/AppConstants';
@@ -261,6 +262,11 @@ export function* startAppServices() {
 
   // Start Engine service
   yield call(EngineService.start);
+
+  // Wait for controllers to be fully initialized and synced to Redux.
+  // This prevents race conditions where UI components access controller state
+  // (like TransactionController) before it's available in Redux.
+  yield take(INIT_BG_STATE_KEY);
 
   // Start DeeplinkManager and process branch deeplinks
   DeeplinkManager.start();

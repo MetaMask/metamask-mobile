@@ -11,8 +11,7 @@ import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
-import { LedgerContextProvider } from '../../context/ledger-context';
-import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
+import { HardwareWalletSigningContextProvider } from '../../context/hardware-wallet-signing-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
@@ -65,28 +64,26 @@ const ConfirmWrapped = ({
     <ConfirmationContextProvider>
       <ConfirmationAssetPollingProvider>
         <ConfirmationAlerts>
-          <QRHardwareContextProvider>
-            <LedgerContextProvider>
-              <Title />
-              <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
-                nestedScrollEnabled
-                scrollEnabled={!isScrollDisabled}
-              >
-                <TouchableWithoutFeedback>
-                  <>
-                    <AlertBanner
-                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
-                    />
-                    <Info route={route} />
-                  </>
-                </TouchableWithoutFeedback>
-              </ScrollView>
-              <Footer />
-              <Splash />
-            </LedgerContextProvider>
-          </QRHardwareContextProvider>
+          <HardwareWalletSigningContextProvider>
+            <Title />
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollViewContent}
+              nestedScrollEnabled
+              scrollEnabled={!isScrollDisabled}
+            >
+              <TouchableWithoutFeedback>
+                <>
+                  <AlertBanner
+                    ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                  />
+                  <Info route={route} />
+                </>
+              </TouchableWithoutFeedback>
+            </ScrollView>
+            <Footer />
+            <Splash />
+          </HardwareWalletSigningContextProvider>
         </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>

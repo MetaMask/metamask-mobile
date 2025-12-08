@@ -6,11 +6,11 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
-import { useLedgerContext } from '../context/ledger-context';
-import { useQRHardwareContext } from '../context/qr-hardware-context';
+import { useHardwareWalletSigningContext } from '../context/hardware-wallet-signing-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+import Logger from '../../../../util/Logger';
 
 export const useConfirmActions = () => {
   const {
@@ -20,9 +20,8 @@ export const useConfirmActions = () => {
   } = useApprovalRequest();
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
   const { captureSignatureMetrics } = useSignatureMetrics();
-  const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
-    useQRHardwareContext();
-  const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
+  const { cancelRequest, isSigning, isSigningInProgress, openSignModal } =
+    useHardwareWalletSigningContext();
   const navigation = useNavigation();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
@@ -31,7 +30,7 @@ export const useConfirmActions = () => {
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
-      await cancelQRScanRequestIfPresent();
+      await cancelRequest();
       onRequestReject(error);
       if (!skipNavigation) {
         navigation.goBack();
@@ -50,7 +49,7 @@ export const useConfirmActions = () => {
       }
     },
     [
-      cancelQRScanRequestIfPresent,
+      cancelRequest,
       captureSignatureMetrics,
       navigation,
       onRequestReject,
@@ -59,28 +58,35 @@ export const useConfirmActions = () => {
   );
 
   const onConfirm = useCallback(async () => {
-    if (ledgerSigningInProgress) {
-      openLedgerSignModal();
-      return;
-    }
+    Logger.log('[useConfirmActions] onConfirm called', {
+      isSigningInProgress,
+      isSigning,
+      isTransactionReq,
+      isSignatureReq,
+      approvalType,
+    });
 
-    if (isSigningQRObject) {
-      setScannerVisible(true);
+    if (isSigningInProgress || isSigning) {
+      Logger.log('[useConfirmActions] Opening sign modal');
+      openSignModal();
       return;
     }
 
     if (isTransactionReq) {
-      onTransactionConfirm();
+      Logger.log('[useConfirmActions] Calling onTransactionConfirm');
+      await onTransactionConfirm();
       return;
     }
 
     const waitForResult = approvalType !== ApprovalType.TransactionBatch;
 
+    Logger.log('[useConfirmActions] Calling onRequestConfirm for signature');
     await onRequestConfirm({
       waitForResult,
       deleteAfterResult: true,
       handleErrors: false,
     });
+    Logger.log('[useConfirmActions] onRequestConfirm completed');
 
     if (approvalType === ApprovalType.TransactionBatch) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
@@ -94,17 +100,16 @@ export const useConfirmActions = () => {
       PPOMUtil.clearSignatureSecurityAlertResponse();
     }
   }, [
-    ledgerSigningInProgress,
-    isSigningQRObject,
+    approvalType,
+    isSigningInProgress,
+    isSigning,
     isTransactionReq,
     onRequestConfirm,
     navigation,
     isSignatureReq,
-    openLedgerSignModal,
-    setScannerVisible,
+    openSignModal,
     onTransactionConfirm,
     captureSignatureMetrics,
-    approvalType,
   ]);
 
   return { onConfirm, onReject };
