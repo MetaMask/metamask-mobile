@@ -1,6 +1,5 @@
 import { CaipAccountId, type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
-import { Alert } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
@@ -360,10 +359,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Set reconnection callback to restore subscriptions when WebSocket reconnects
     this.clientService.setOnReconnectCallback(async () => {
       try {
-        DevLogger.log(
-          'HyperLiquidProvider: Restoring subscriptions after WebSocket reconnection',
-        );
-
         // Restore subscription service subscriptions
         await this.subscriptionService.restoreSubscriptions();
 
@@ -377,27 +372,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log(
           'HyperLiquidProvider: Subscriptions and stream channels restored successfully',
         );
-
-        // Show success alert to user
-        Alert.alert(
-          strings('perps.reconnection.success.title') || 'Connection Restored',
-          strings('perps.reconnection.success.message') ||
-            'WebSocket connection has been restored. Live data streaming resumed.',
-        );
       } catch (error) {
-        Logger.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
-            provider: 'hyperliquid',
-            network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
-          },
-          context: {
-            name: 'HyperLiquidProvider',
-            data: {
-              method: 'onReconnectCallback',
-            },
-          },
-        });
+        // Ignore errors during reconnection
       }
     });
 

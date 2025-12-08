@@ -1222,10 +1222,6 @@ export class PerpsStreamManager {
    * will automatically reconnect when subscribers are still active
    */
   public reconnectAllChannels(): void {
-    DevLogger.log(
-      'PerpsStreamManager: Forcing reconnection of all stream channels',
-    );
-
     // Disconnect all channels to clear dead WebSocket subscriptions
     // Channels will automatically reconnect when subscribers call connect()
     this.prices.disconnect();
@@ -1237,10 +1233,6 @@ export class PerpsStreamManager {
     this.oiCaps.disconnect();
     this.topOfBook.disconnect();
     this.candles.disconnect();
-
-    DevLogger.log(
-      'PerpsStreamManager: All stream channels disconnected, will reconnect automatically',
-    );
   }
 }
 

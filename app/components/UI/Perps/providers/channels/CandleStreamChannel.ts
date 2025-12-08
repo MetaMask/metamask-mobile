@@ -257,7 +257,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   /**
    * Disconnect from WebSocket for specific coin+interval
    */
-  private disconnect(cacheKey: string): void {
+  public disconnect(cacheKey: string): void {
     const unsubscribe = this.wsSubscriptions.get(cacheKey);
     if (unsubscribe) {
       unsubscribe();

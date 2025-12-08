@@ -5,7 +5,6 @@ import {
   SubscriptionClient,
   WebSocketTransport,
 } from '@nktkas/hyperliquid';
-import { Alert } from 'react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
@@ -681,44 +680,16 @@ export class HyperLiquidClientService {
     // Health check interval: 5 seconds for faster detection of connection drops
     const HEALTH_CHECK_INTERVAL_MS = 5_000;
 
-    DevLogger.log('HyperLiquid: Starting WebSocket health check monitoring', {
-      intervalMs: HEALTH_CHECK_INTERVAL_MS,
-    });
-
     this.healthCheckInterval = setInterval(() => {
-      this.performHealthCheck().catch((error) => {
-        Logger.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
-            service: 'HyperLiquidClientService',
-            network: this.isTestnet ? 'testnet' : 'mainnet',
-          },
-          context: {
-            name: 'health_check_monitoring',
-            data: {
-              operation: 'performHealthCheck',
-            },
-          },
-        });
+      this.performHealthCheck().catch(() => {
+        // Ignore errors during health check
       });
     }, HEALTH_CHECK_INTERVAL_MS);
 
     // Perform initial health check after a short delay
     setTimeout(() => {
-      this.performHealthCheck().catch((error) => {
-        Logger.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
-            service: 'HyperLiquidClientService',
-            network: this.isTestnet ? 'testnet' : 'mainnet',
-          },
-          context: {
-            name: 'health_check_initial',
-            data: {
-              operation: 'performHealthCheck',
-            },
-          },
-        });
+      this.performHealthCheck().catch(() => {
+        // Ignore errors during initial health check
       });
     }, 5000); // Initial check after 5 seconds
   }
@@ -756,13 +727,11 @@ export class HyperLiquidClientService {
 
     try {
       const controller = new AbortController();
-      let didTimeout = false;
 
       // Health check timeout: 5 seconds
       const HEALTH_CHECK_TIMEOUT_MS = 5_000;
 
       this.healthCheckTimeout = setTimeout(() => {
-        didTimeout = true;
         controller.abort();
       }, HEALTH_CHECK_TIMEOUT_MS);
 
@@ -772,25 +741,7 @@ export class HyperLiquidClientService {
 
         // Health check succeeded
         this.lastSuccessfulHealthCheck = Date.now();
-        DevLogger.log('HyperLiquid: WebSocket health check succeeded', {
-          timestamp: new Date().toISOString(),
-        });
       } catch (error) {
-        if (didTimeout || ensureError(error).message === 'Aborted') {
-          DevLogger.log(
-            'HyperLiquid: WebSocket health check failed - connection appears dead',
-            {
-              timestamp: new Date().toISOString(),
-              error: didTimeout ? 'timeout' : 'aborted',
-            },
-          );
-        } else {
-          DevLogger.log('HyperLiquid: WebSocket health check failed', {
-            timestamp: new Date().toISOString(),
-            error: ensureError(error).message,
-          });
-        }
-
         // Connection appears to be dead - trigger reconnection
         await this.handleConnectionDrop();
       } finally {
@@ -811,26 +762,8 @@ export class HyperLiquidClientService {
   private async handleConnectionDrop(): Promise<void> {
     // Prevent multiple simultaneous reconnection attempts
     if (this.connectionState === WebSocketConnectionState.CONNECTING) {
-      DevLogger.log(
-        'HyperLiquid: Reconnection already in progress, skipping duplicate attempt',
-      );
       return;
     }
-
-    DevLogger.log(
-      'HyperLiquid: Connection drop detected, initiating reconnection',
-      {
-        timestamp: new Date().toISOString(),
-        lastSuccessfulHealthCheck: this.lastSuccessfulHealthCheck,
-      },
-    );
-
-    // Show alert to user about disconnection
-    Alert.alert(
-      strings('perps.reconnection.disconnect.title') || 'Connection Lost',
-      strings('perps.reconnection.disconnect.message') ||
-        'WebSocket connection lost. Attempting to reconnect...',
-    );
 
     try {
       this.connectionState = WebSocketConnectionState.CONNECTING;
@@ -839,12 +772,8 @@ export class HyperLiquidClientService {
       if (this.wsTransport) {
         try {
           await this.wsTransport.close();
-        } catch (error) {
+        } catch {
           // Ignore errors during close - transport may already be dead
-          DevLogger.log(
-            'HyperLiquid: Error closing dead transport (expected)',
-            error,
-          );
         }
       }
 
@@ -863,34 +792,12 @@ export class HyperLiquidClientService {
       this.connectionState = WebSocketConnectionState.CONNECTED;
       this.lastSuccessfulHealthCheck = Date.now();
 
-      DevLogger.log('HyperLiquid: WebSocket recreated successfully', {
-        timestamp: new Date().toISOString(),
-      });
-
       // Notify callback to restore subscriptions
       if (this.onReconnectCallback) {
-        DevLogger.log(
-          'HyperLiquid: Notifying callback to restore subscriptions',
-        );
         await this.onReconnectCallback();
       }
-    } catch (error) {
-      const errorInstance = ensureError(error);
+    } catch {
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
-
-      Logger.error(errorInstance, {
-        tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
-          service: 'HyperLiquidClientService',
-          network: this.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: 'websocket_reconnection',
-          data: {
-            operation: 'handleConnectionDrop',
-          },
-        },
-      });
 
       // Stop health checks if reconnection failed
       this.stopHealthCheckMonitoring();
