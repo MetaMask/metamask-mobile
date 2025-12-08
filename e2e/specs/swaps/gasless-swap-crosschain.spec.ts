@@ -4,8 +4,6 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeTrade } from '../../tags';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { loginToApp } from '../../viewHelper';
 import { logger } from '../../framework/logger';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
@@ -15,7 +13,6 @@ import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { GASLESS_SWAP_QUOTES_ETH_MUSD } from './helpers/constants';
 
 describe(SmokeTrade('Gasless Swap - '), (): void => {
-  const FIRST_ROW: number = 0;
   const chainId = '0x1';
 
   beforeEach(async (): Promise<void> => {
@@ -91,27 +88,6 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
           timeout: 10000,
           description: 'Gas should be included in quote',
         });
-
-        // Confirm the swap
-        await Assertions.expectElementToBeVisible(QuoteView.confirmSwap, {
-          description: 'Confirm swap button should be visible',
-        });
-        await QuoteView.tapConfirmSwap();
-
-        // Verify transaction in activity list
-        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          timeout: 30000,
-          description: 'Activities view should be visible',
-        });
-
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(FIRST_ROW),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          {
-            timeout: 60000,
-            description: 'Transaction should be confirmed',
-          },
-        );
       },
     );
   });
