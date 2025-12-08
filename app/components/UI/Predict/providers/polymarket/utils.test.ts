@@ -64,7 +64,6 @@ import {
   roundDown,
   roundUp,
   roundOrderAmount,
-  roundOrderAmounts,
   previewOrder,
   getAllowanceCalls,
 } from './utils';
@@ -1833,6 +1832,7 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(expectedTotal);
       expect(fees.providerFee).toBe(expectedEach);
       expect(fees.metamaskFee).toBe(expectedEach);
+      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
     });
 
     it('calculates fees correctly for various amounts', async () => {
@@ -1846,6 +1846,7 @@ describe('polymarket utils', () => {
       expect(fees.providerFee).toBeGreaterThanOrEqual(0);
       expect(fees.metamaskFee).toBeGreaterThanOrEqual(0);
       expect(fees.totalFee).toBeGreaterThanOrEqual(0);
+      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
     });
 
     it('handles large amounts correctly', async () => {
@@ -1861,6 +1862,7 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(expectedTotal);
       expect(fees.providerFee).toBe(expectedEach);
       expect(fees.metamaskFee).toBe(expectedEach);
+      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
     });
 
     it('handles small amounts correctly', async () => {
@@ -1879,6 +1881,7 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(expectedTotal);
       expect(fees.providerFee).toBe(expectedEach);
       expect(fees.metamaskFee).toBe(expectedEach);
+      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
     });
 
     it('waives fees for markets with middle-east tag', async () => {
@@ -1900,6 +1903,7 @@ describe('polymarket utils', () => {
       expect(fees.providerFee).toBe(0);
       expect(fees.metamaskFee).toBe(0);
       expect(fees.totalFee).toBe(0);
+      expect(fees.totalFeePercentage).toBe(0);
     });
   });
 
@@ -2108,26 +2112,6 @@ describe('polymarket utils', () => {
       expect(result[0].id).toBe('0xhash3');
     });
 
-    it('filters out REDEEM activities with no payout (lost positions)', () => {
-      const input = [
-        {
-          type: 'REDEEM' as const,
-          side: '' as const,
-          timestamp: 3000,
-          usdcSize: 0, // No payout - lost position
-          price: 0,
-          conditionId: '',
-          outcomeIndex: 0,
-          title: 'Lost Market',
-          outcome: '' as const,
-          icon: '',
-          transactionHash: '0xhash3',
-        },
-      ];
-      const result = parsePolymarketActivity(input);
-      expect(result).toHaveLength(0);
-    });
-
     it('generates fallback id and timestamp when missing', () => {
       const input = [
         {
@@ -2293,62 +2277,6 @@ describe('polymarket utils', () => {
     it('handles amounts that round up to exceed decimals', () => {
       expect(roundOrderAmount({ amount: 1.996, decimals: 2 })).toBe(1.99);
       expect(roundOrderAmount({ amount: 0.999999, decimals: 2 })).toBe(0.99);
-    });
-  });
-
-  describe('roundOrderAmounts', () => {
-    const mockRoundConfig = {
-      price: 4,
-      size: 2,
-      amount: 2,
-    };
-
-    it('rounds BUY order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('rounds SELL order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.SELL,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('handles price rounding down', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 100,
-        price: 0.456789,
-      });
-
-      expect(result.makerAmount).toBe(100);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('applies additional rounding when necessary', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 123.456789,
-        price: 0.123456789,
-      });
-
-      expect(result.makerAmount).toBeLessThanOrEqual(123.46);
-      expect(result.takerAmount).toBeGreaterThan(0);
     });
   });
 

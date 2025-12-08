@@ -101,7 +101,7 @@ export type PredictControllerState = {
   // Account balances
   balances: { [providerId: string]: { [address: string]: PredictBalance } };
 
-  // Claim management
+  // Claim management (this should always be ALL claimable positions)
   claimablePositions: { [address: string]: PredictPosition[] };
 
   // Deposit management
@@ -1660,6 +1660,10 @@ export class PredictController extends BaseController<
           });
           geoBlockResponse.isEligible = !isLocallyGeoblocked;
         }
+        if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
+          geoBlockResponse.isEligible = true;
+          geoBlockResponse.country = 'N/A';
+        }
         this.update((state) => {
           state.eligibility[providerId] = {
             eligible: geoBlockResponse.isEligible,
@@ -1760,6 +1764,8 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
+        skipInitialGasEstimate: true,
         transactions,
       });
 

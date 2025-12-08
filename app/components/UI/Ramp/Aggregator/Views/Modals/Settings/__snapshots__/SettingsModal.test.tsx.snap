@@ -433,7 +433,6 @@ exports[`SettingsModal renders snapshot correctly 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -692,7 +691,7 @@ exports[`SettingsModal renders snapshot correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Use new buy experience
+                                    More ways to buy
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -706,7 +705,7 @@ exports[`SettingsModal renders snapshot correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Try new native on ramp
+                                    Switch to the new version
                                   </Text>
                                 </View>
                               </View>

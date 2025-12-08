@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 
 import NetworksFilterBar from '../../../components/NetworksFilterBar';
 import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
@@ -32,6 +33,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../../util/theme';
 import useAnalytics from '../../../../hooks/useAnalytics';
+import { getRampRoutingDecision } from '../../../../../../../reducers/fiatOrders';
 
 interface TokenSelectorModalParams {
   cryptoCurrencies: DepositCryptoCurrency[];
@@ -59,6 +61,7 @@ function TokenSelectorModal() {
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const {
     setSelectedCryptoCurrency,
@@ -90,6 +93,9 @@ function TokenSelectorModal() {
           currency_destination_network: getNetworkName(selectedToken.chainId),
           currency_source: selectedRegion?.currency || '',
           is_authenticated: isAuthenticated,
+          token_caip19: selectedToken.assetId,
+          token_symbol: selectedToken.symbol,
+          ramp_routing: rampRoutingDecision ?? undefined,
         });
         setSelectedCryptoCurrency(selectedToken);
       }
@@ -103,6 +109,7 @@ function TokenSelectorModal() {
       selectedRegion?.currency,
       isAuthenticated,
       setSelectedCryptoCurrency,
+      rampRoutingDecision,
     ],
   );
 

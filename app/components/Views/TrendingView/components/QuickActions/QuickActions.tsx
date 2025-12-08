@@ -1,32 +1,56 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Box, TextVariant } from '@metamask/design-system-react-native';
-import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
-import { SECTIONS_ARRAY } from '../../config/sections.config';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SECTIONS_ARRAY, SectionId } from '../../config/sections.config';
+
+interface QuickActionsProps {
+  /** Set of section IDs that have empty data and should be hidden */
+  emptySections: Set<SectionId>;
+}
 
 /**
  * A dynamic component that automatically generates action buttons based on the
  * centralized sections configuration. When a new section is added to SECTIONS_CONFIG,
  * a corresponding button will automatically appear here.
  */
-const QuickActions: React.FC = () => {
+const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const navigation = useNavigation();
+  const tw = useTailwind();
+
+  const visibleSections = SECTIONS_ARRAY.filter(
+    (s) => !emptySections.has(s.id),
+  );
 
   return (
-    <Box twClassName="mb-3">
+    <Box twClassName="mt-1 mb-4">
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <Box twClassName="flex-row gap-2">
-          {SECTIONS_ARRAY.map((section) => (
-            <ButtonFilter
+          {visibleSections.map((section) => (
+            <TouchableOpacity
               key={section.id}
-              isActive={false}
               onPress={() => section.viewAllAction(navigation)}
               testID={`quick-action-${section.id}`}
-              textProps={{ variant: TextVariant.BodySm }}
+              style={tw.style(
+                'flex-row items-center justify-center gap-1 rounded-2xl bg-background-section px-3 py-2',
+              )}
             >
-              {section.title}
-            </ButtonFilter>
+              <Icon
+                name={section.icon}
+                size={IconSize.Md}
+                color={IconColor.IconAlternative}
+                style={tw.style('-ml-1')}
+              />
+              <Text variant={TextVariant.BodySm}>{section.title}</Text>
+            </TouchableOpacity>
           ))}
         </Box>
       </ScrollView>

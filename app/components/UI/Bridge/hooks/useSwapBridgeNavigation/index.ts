@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex, CaipChainId } from '@metamask/utils';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
@@ -20,11 +20,19 @@ import {
   ActionPosition,
 } from '../../../../../util/analytics/actionButtonTracking';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
-import { selectIsBridgeEnabledSourceFactory } from '../../../../../core/redux/slices/bridge';
+import {
+  selectIsBridgeEnabledSourceFactory,
+  setSourceToken,
+  setDestToken,
+} from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
-import { getNativeSourceToken } from '../../utils/tokenUtils';
+import {
+  getNativeSourceToken,
+  getDefaultDestToken,
+} from '../../utils/tokenUtils';
+import { areAddressesEqual } from '../../../../../util/address';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -49,6 +57,7 @@ export const useSwapBridgeNavigation = ({
   sourceToken?: BridgeToken;
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const getIsBridgeEnabledSource = useSelector(
     selectIsBridgeEnabledSourceFactory,
@@ -57,12 +66,15 @@ export const useSwapBridgeNavigation = ({
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
-    (bridgeViewMode: BridgeViewMode) => {
+    (bridgeViewMode: BridgeViewMode, tokenOverride?: BridgeToken) => {
+      // Use tokenOverride if provided, otherwise fall back to tokenBase
+      const effectiveTokenBase = tokenOverride ?? tokenBase;
+
       // Determine effective chain ID - use home page filter network when no sourceToken provided
       const getEffectiveChainId = (): CaipChainId | Hex => {
-        if (tokenBase) {
+        if (effectiveTokenBase) {
           // If specific token provided, use its chainId
-          return tokenBase.chainId;
+          return effectiveTokenBase.chainId;
         }
 
         // No token provided - check home page filter network
@@ -82,7 +94,7 @@ export const useSwapBridgeNavigation = ({
 
       let bridgeSourceNativeAsset;
       try {
-        if (!tokenBase) {
+        if (!effectiveTokenBase) {
           bridgeSourceNativeAsset = getNativeAssetForChainId(effectiveChainId);
         }
       } catch (error) {
@@ -104,7 +116,7 @@ export const useSwapBridgeNavigation = ({
           : undefined;
 
       const candidateSourceToken =
-        tokenBase ?? bridgeNativeSourceTokenFormatted;
+        effectiveTokenBase ?? bridgeNativeSourceTokenFormatted;
       const isBridgeEnabledSource = getIsBridgeEnabledSource(effectiveChainId);
       let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
@@ -113,6 +125,24 @@ export const useSwapBridgeNavigation = ({
       if (!sourceToken) {
         // fallback to ETH on mainnet
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
+      }
+
+      // Pre-populate Redux state before navigation to prevent empty button flash
+      dispatch(setSourceToken(sourceToken));
+
+      const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
+      // Make sure source and dest tokens are different
+      if (
+        defaultDestToken &&
+        !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+      ) {
+        dispatch(setDestToken(defaultDestToken));
+      } else {
+        // Fall back to native token if default dest is same as source
+        const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
+        if (!areAddressesEqual(sourceToken.address, nativeDestToken.address)) {
+          dispatch(setDestToken(nativeDestToken));
+        }
       }
 
       const params: BridgeRouteParams = {
@@ -127,14 +157,17 @@ export const useSwapBridgeNavigation = ({
       });
 
       // Track Swap button click with new consolidated event
+      const isFromNavbar = location === SwapBridgeNavigationLocation.TabBar;
       trackActionButtonClick(trackEvent, createEventBuilder, {
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SECOND_POSITION,
+        // Omit action_position for navbar to avoid confusion with main action buttons
+        ...(isFromNavbar
+          ? {}
+          : { action_position: ActionPosition.SECOND_POSITION }),
         button_label: strings('asset_overview.swap'),
-        location:
-          location === 'TabBar'
-            ? ActionLocation.HOME
-            : ActionLocation.ASSET_DETAILS,
+        location: isFromNavbar
+          ? ActionLocation.NAVBAR
+          : ActionLocation.ASSET_DETAILS,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
@@ -153,6 +186,7 @@ export const useSwapBridgeNavigation = ({
     },
     [
       navigation,
+      dispatch,
       tokenBase,
       sourcePage,
       trackEvent,
@@ -164,9 +198,12 @@ export const useSwapBridgeNavigation = ({
   );
   const { networkModal } = useAddNetwork();
 
-  const goToSwaps = useCallback(() => {
-    goToNativeBridge(BridgeViewMode.Unified);
-  }, [goToNativeBridge]);
+  const goToSwaps = useCallback(
+    (tokenOverride?: BridgeToken) => {
+      goToNativeBridge(BridgeViewMode.Unified, tokenOverride);
+    },
+    [goToNativeBridge],
+  );
 
   return {
     goToSwaps,

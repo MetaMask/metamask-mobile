@@ -30,12 +30,10 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../Ramp/hooks/useRampNavigation';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 import {
   createNavigationDetails,
   useParams,
@@ -64,7 +62,8 @@ const AddFundsBottomSheet: React.FC = () => {
   });
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToRamps } = useRampNavigation();
+  const { goToDeposit } = useRampNavigation();
+  const buttonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -82,7 +81,7 @@ const AddFundsBottomSheet: React.FC = () => {
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      goToRamps({ mode: RampMode.DEPOSIT });
+      goToDeposit();
     });
     trackEvent(
       createEventBuilder(
@@ -98,6 +97,10 @@ const AddFundsBottomSheet: React.FC = () => {
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
           ramp_type: 'DEPOSIT',
           region: rampGeodetectedRegion,
+          ramp_routing: buttonClickData.ramp_routing,
+          is_authenticated: buttonClickData.is_authenticated,
+          preferred_provider: buttonClickData.preferred_provider,
+          order_count: buttonClickData.order_count,
         })
         .build(),
     );
@@ -108,10 +111,11 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    goToRamps,
+    goToDeposit,
     trackEvent,
     createEventBuilder,
     priorityToken,
+    buttonClickData,
   ]);
 
   const options = [

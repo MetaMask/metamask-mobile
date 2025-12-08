@@ -6,6 +6,7 @@ import { useCardSDK } from '../../sdk';
 import {
   AllowanceState,
   CardExternalWalletDetailsResponse,
+  CardNetwork,
   CardTokenAllowance,
   DelegationSettingsResponse,
 } from '../../types';
@@ -118,7 +119,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
   // Get supported tokens from the card SDK to display in the bottom sheet.
   const cardSupportedTokens = useMemo(
-    () => sdk?.getSupportedTokensByChainId(sdk?.lineaChainId) ?? [],
+    () => sdk?.getSupportedTokensByChainId() ?? [],
     [sdk],
   );
 
@@ -162,7 +163,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
       // Filter unsupported networks and unknown chains
       if (
-        !SUPPORTED_ASSET_NETWORKS.includes(networkLower) ||
+        !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork) ||
         networkLower === 'unknown'
       ) {
         return true;
@@ -194,12 +195,23 @@ const AssetSelectionBottomSheet: React.FC = () => {
       userToken: CardTokenAllowance,
     ): CardTokenAllowance & { chainName: string } => {
       const chainName = mapCaipChainIdToChainName(userToken.caipChainId);
+      const supportedToken = sdk
+        ?.getSupportedTokensByChainId(userToken.caipChainId)
+        ?.find(
+          (token) =>
+            token.address?.toLowerCase() === userToken.address?.toLowerCase() &&
+            token.symbol?.toLowerCase() === userToken.symbol?.toLowerCase(),
+        );
 
       return {
         ...userToken,
         address: userToken.address ?? '',
-        symbol: userToken.symbol?.toUpperCase() ?? '',
-        name: userToken.name ?? userToken.symbol?.toUpperCase() ?? '',
+        symbol: supportedToken?.symbol ?? userToken.symbol?.toUpperCase() ?? '',
+        name:
+          supportedToken?.name ??
+          userToken.name ??
+          userToken.symbol?.toUpperCase() ??
+          '',
         decimals: userToken.decimals ?? 0,
         chainName,
         allowance: userToken.allowance || '0',
@@ -207,7 +219,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
         stagingTokenAddress: userToken.stagingTokenAddress ?? undefined,
       } as CardTokenAllowance & { chainName: string };
     },
-    [],
+    [sdk],
   );
 
   // Helper: Check if token exists in user tokens
@@ -260,7 +272,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
       const networkLower = network.network?.toLowerCase();
 
       // Filter unsupported networks
-      if (!networkLower || !SUPPORTED_ASSET_NETWORKS.includes(networkLower)) {
+      if (
+        !networkLower ||
+        !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork)
+      ) {
         return false;
       }
 
@@ -411,11 +426,20 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
           const tokenAddress = getTokenAddress(tokenConfig, network);
           const isNonProduction = network.environment !== 'production';
+          const supportedToken = sdk
+            ?.getSupportedTokensByChainId(caipChainId)
+            ?.find(
+              (token) =>
+                token.address?.toLowerCase() ===
+                  tokenConfig.address?.toLowerCase() &&
+                token.symbol?.toLowerCase() ===
+                  tokenConfig.symbol?.toLowerCase(),
+            );
 
           supportedFromSettings.push({
             address: tokenAddress,
-            symbol: tokenConfig.symbol.toUpperCase(),
-            name: tokenConfig.symbol.toUpperCase(),
+            symbol: supportedToken?.symbol ?? tokenConfig.symbol,
+            name: supportedToken?.name ?? tokenConfig.symbol,
             decimals: tokenConfig.decimals,
             caipChainId,
             walletAddress: undefined,

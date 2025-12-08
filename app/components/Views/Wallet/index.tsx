@@ -21,13 +21,20 @@ import {
   TabsList,
   TabsListRef,
 } from '../../../component-library/components-temp/Tabs';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
-  isPastPrivacyPolicyDate,
+  CONSENSYS_PRIVACY_POLICY,
+  HOWTO_MANAGE_METAMETRICS,
+} from '../../../constants/urls';
+import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
+import {
   shouldShowNewPrivacyToastSelector,
+  selectShouldShowPna25Toast,
+} from '../../../selectors/legalNotices';
+import {
+  storePna25Acknowledged as storePna25AcknowledgedAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
-} from '../../../reducers/legalNotices';
+} from '../../../actions/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
 import {
@@ -170,19 +177,13 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import {
-  selectPerpsEnabledFlag,
-  selectPerpsGtmOnboardingModalEnabledFlag,
-} from '../../UI/Perps';
+import { selectPerpsGtmOnboardingModalEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import {
-  selectPredictEnabledFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
-} from '../../UI/Predict/selectors/featureFlags';
+import { selectPredictGtmOnboardingModalEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
@@ -192,6 +193,7 @@ import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModa
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
+import { ButtonIconVariant } from '../../../component-library/components/Toast/Toast.types';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -227,6 +229,8 @@ interface WalletProps {
   navigation: NavigationProp<ParamListBase>;
   storePrivacyPolicyShownDate: () => void;
   shouldShowNewPrivacyToast: boolean;
+  shouldShowPna25Toast: boolean;
+  storePna25Acknowledged: () => void;
   currentRouteName: string;
   storePrivacyPolicyClickedOrClosed: () => void;
   showNftFetchingLoadingIndicator: () => void;
@@ -247,7 +251,9 @@ interface WalletTokensTabViewProps {
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
-  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsFlagEnabled = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -261,7 +267,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       (isEvmSelected || isMultichainAccountsState2Enabled),
     [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
-  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictFlagEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isPredictEnabled = useMemo(
     () => isPredictFlagEnabled,
     [isPredictFlagEnabled],
@@ -506,6 +514,8 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
+  shouldShowPna25Toast,
+  storePna25Acknowledged,
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
@@ -513,14 +523,19 @@ const Wallet = ({
   const { navigate } = useNavigation();
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
+  const pna25ToastShownRef = useRef(false);
   const theme = useTheme();
 
-  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsFlagEnabled = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictFlagEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isPredictGTMModalEnabled = useSelector(
     selectPredictGtmOnboardingModalEnabledFlag,
   );
@@ -570,7 +585,6 @@ const Wallet = ({
       }
       return false;
     }
-
     return enabledNetworks.some((network) => isTestNet(network));
   }, [enabledNetworks, isMultichainAccountsState2Enabled, allEnabledNetworks]);
 
@@ -693,14 +707,14 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigateToSendPage(InitSendLocation.HomePage);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigateToSendPage(InitSendLocation.HomePage);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
     }
   }, [
     trackEvent,
@@ -925,6 +939,61 @@ const Wallet = ({
     currentToast,
   ]);
 
+  useEffect(() => {
+    if (!shouldShowPna25Toast || pna25ToastShownRef.current) return;
+
+    currentToast?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Info,
+      labelOptions: [
+        {
+          label: strings(`privacy_policy.pna25_toast_message`),
+          isBold: false,
+        },
+      ],
+      closeButtonOptions: {
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
+        onPress: () => {
+          storePna25Acknowledged();
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.TOAST_DISPLAYED)
+              .addProperties({
+                toast_name: 'pna25',
+                closed: true,
+              })
+              .build(),
+          );
+          currentToast?.closeToast();
+        },
+      },
+      linkButtonOptions: {
+        label: strings(`privacy_policy.gather_basic_usage_learn_more`),
+        onPress: () => {
+          Linking.openURL(HOWTO_MANAGE_METAMETRICS);
+        },
+      },
+      hasNoTimeout: true,
+    });
+
+    pna25ToastShownRef.current = true;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOAST_DISPLAYED)
+        .addProperties({
+          toast_name: 'pna25',
+          closed: false,
+        })
+        .build(),
+    );
+  }, [
+    shouldShowPna25Toast,
+    storePna25Acknowledged,
+    currentToast,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   /**
    * Network onboarding state
    */
@@ -955,7 +1024,9 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
+  const isCarouselBannersEnabled = useFeatureFlag(
+    FeatureFlagNames.carouselBanners,
+  );
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -1413,6 +1484,7 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+  shouldShowPna25Toast: selectShouldShowPna25Toast(state),
 });
 
 // TODO: Replace "any" with type
@@ -1426,6 +1498,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(showNftFetchingLoadingIndicatorAction()),
   hideNftFetchingLoadingIndicator: () =>
     dispatch(hideNftFetchingLoadingIndicatorAction()),
+  storePna25Acknowledged: () => dispatch(storePna25AcknowledgedAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

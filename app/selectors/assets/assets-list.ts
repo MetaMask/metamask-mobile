@@ -28,63 +28,65 @@ import {
 } from '../../core/Multichain/constants';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 
-export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
-  (state: RootState) => {
-    const {
-      AccountTreeController,
-      AccountsController,
-      TokensController,
-      TokenBalancesController,
-      TokenRatesController,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      MultichainAssetsController,
-      MultichainBalancesController,
-      MultichainAssetsRatesController,
-      ///: END:ONLY_INCLUDE_IF
-      CurrencyRateController,
-      NetworkController,
-      AccountTrackerController,
-    } = state.engine.backgroundState;
-
-    let multichainState = {
-      accountsAssets: {},
-      assetsMetadata: {},
-      allIgnoredAssets: {},
-      balances: {},
-      conversionRates: {},
-    };
-
+const getStateForAssetSelector = (state: RootState) => {
+  const {
+    AccountTreeController,
+    AccountsController,
+    TokensController,
+    TokenBalancesController,
+    TokenRatesController,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    multichainState = {
-      ...MultichainAssetsController,
-      ...MultichainBalancesController,
-      ...MultichainAssetsRatesController,
-    };
+    MultichainAssetsController,
+    MultichainBalancesController,
+    MultichainAssetsRatesController,
     ///: END:ONLY_INCLUDE_IF
+    CurrencyRateController,
+    NetworkController,
+    AccountTrackerController,
+  } = state.engine.backgroundState;
 
-    return {
-      ...AccountTreeController,
-      ...AccountsController,
-      ...TokensController,
-      ...TokenBalancesController,
-      ...TokenRatesController,
-      ...multichainState,
-      ...CurrencyRateController,
-      ...NetworkController,
-      ...(AccountTrackerController as {
-        accountsByChainId: Record<
+  let multichainState = {
+    accountsAssets: {},
+    assetsMetadata: {},
+    allIgnoredAssets: {},
+    balances: {},
+    conversionRates: {},
+  };
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  multichainState = {
+    ...MultichainAssetsController,
+    ...MultichainBalancesController,
+    ...MultichainAssetsRatesController,
+  };
+  ///: END:ONLY_INCLUDE_IF
+
+  return {
+    ...AccountTreeController,
+    ...AccountsController,
+    ...TokensController,
+    ...TokenBalancesController,
+    ...TokenRatesController,
+    ...multichainState,
+    ...CurrencyRateController,
+    ...NetworkController,
+    ...(AccountTrackerController as {
+      accountsByChainId: Record<
+        Hex,
+        Record<
           Hex,
-          Record<
-            Hex,
-            {
-              balance: Hex | null;
-            }
-          >
-        >;
-      }),
-    };
-  },
-  (filteredState) => _selectAssetsBySelectedAccountGroup(filteredState),
+          {
+            balance: Hex | null;
+          }
+        >
+      >;
+    }),
+  };
+};
+
+export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
+  getStateForAssetSelector,
+  (assetsState) => _selectAssetsBySelectedAccountGroup(assetsState),
 );
 
 // BIP44 MAINTENANCE: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
@@ -200,19 +202,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets)
-      .filter((asset) => {
-        // We need to filter out Tron resources from this list
-        if (
-          asset.chainId?.includes('tron:') &&
-          TRON_RESOURCE_SYMBOLS_SET.has(
-            asset.symbol?.toLowerCase() as TronResourceSymbol,
-          )
-        ) {
-          return false;
-        }
-        return true;
-      });
+      .flatMap(([_, chainAssets]) => chainAssets);
 
     const stakedAssetsArray = [];
     for (const asset of assets) {
@@ -353,9 +343,12 @@ function assetToToken(
 // This is used to select Tron resources (Energy & Bandwidth)
 export const selectTronResourcesBySelectedAccountGroup =
   createDeepEqualSelector(
-    [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
-    (bip44Assets, enabledNetworks) => {
-      const assets = Object.entries(bip44Assets)
+    [getStateForAssetSelector, selectEnabledNetworks],
+    (assetsState, enabledNetworks) => {
+      const allAssets = _selectAssetsBySelectedAccountGroup(assetsState, {
+        filterTronStakedTokens: false,
+      });
+      const tronResources = Object.entries(allAssets)
         .filter(([networkId, _]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) => chainAssets)
         .filter(
@@ -366,6 +359,6 @@ export const selectTronResourcesBySelectedAccountGroup =
             ),
         );
 
-      return assets;
+      return tronResources;
     },
   );

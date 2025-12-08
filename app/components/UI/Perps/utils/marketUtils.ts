@@ -1,10 +1,7 @@
 import type { CandleData, CandleStick } from '../types/perps-types';
 import type { PerpsMarketData } from '../controllers/types';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
-import {
-  HYPERLIQUID_ASSET_ICONS_BASE_URL,
-  HIP3_ASSET_ICONS_BASE_URL,
-} from '../constants/hyperLiquidConfig';
+import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
 
 /**
  * Maximum length for market filter patterns (prevents DoS attacks)
@@ -393,6 +390,37 @@ export const getMarketBadgeType = (
   market.marketType || (market.marketSource ? 'experimental' : undefined);
 
 /**
+ * Filter markets by search query
+ * Searches through both symbol and name fields (case-insensitive)
+ *
+ * @param markets - Array of markets to filter
+ * @param searchQuery - Search query string
+ * @returns Filtered array of markets matching the query
+ *
+ * @example
+ * filterMarketsByQuery([{ symbol: 'BTC', name: 'Bitcoin' }], 'btc') // → [{ symbol: 'BTC', name: 'Bitcoin' }]
+ * filterMarketsByQuery([{ symbol: 'BTC', name: 'Bitcoin' }], 'coin') // → [{ symbol: 'BTC', name: 'Bitcoin' }]
+ * filterMarketsByQuery([{ symbol: 'BTC', name: 'Bitcoin' }], '') // → [{ symbol: 'BTC', name: 'Bitcoin' }]
+ */
+export const filterMarketsByQuery = (
+  markets: PerpsMarketData[],
+  searchQuery: string,
+): PerpsMarketData[] => {
+  // Return all markets if query is empty
+  if (!searchQuery?.trim()) {
+    return markets;
+  }
+
+  const lowerQuery = searchQuery.toLowerCase().trim();
+
+  return markets.filter(
+    (market) =>
+      market.symbol?.toLowerCase().includes(lowerQuery) ||
+      market.name?.toLowerCase().includes(lowerQuery),
+  );
+};
+
+/**
  * Generate the appropriate icon URL for an asset symbol
  * Handles both regular assets and HIP-3 assets (dex:symbol format)
  *
@@ -418,9 +446,7 @@ export const getAssetIconUrl = (
   // Check for HIP-3 asset (contains colon) BEFORE uppercasing
   if (symbol.includes(':')) {
     const [dex, assetSymbol] = symbol.split(':');
-    // Keep DEX lowercase, uppercase asset: xyz:XYZ100 -> xyz_XYZ100
-    const hip3Symbol = `${dex.toLowerCase()}_${assetSymbol.toUpperCase()}`;
-    return `${HIP3_ASSET_ICONS_BASE_URL}hip3%3A${hip3Symbol}.svg`;
+    return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${dex.toLowerCase()}:${assetSymbol.toUpperCase()}.svg`;
   }
 
   // For regular assets, uppercase the entire symbol

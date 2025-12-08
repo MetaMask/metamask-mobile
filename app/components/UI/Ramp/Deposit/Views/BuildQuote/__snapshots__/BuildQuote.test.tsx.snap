@@ -231,7 +231,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={28}
+              handlerTag={29}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -558,6 +558,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -582,7 +583,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -1813,6 +1814,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -2105,7 +2107,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2321,7 +2323,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={30}
+              handlerTag={31}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2432,6 +2434,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -2456,7 +2459,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -3687,6 +3690,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -3979,7 +3983,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4195,7 +4199,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={32}
+              handlerTag={33}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4306,6 +4310,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -4330,7 +4335,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -5561,6 +5566,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -5853,7 +5859,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6180,6 +6186,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -6204,7 +6211,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -7374,6 +7381,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -7666,7 +7674,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -7993,6 +8001,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -8017,7 +8026,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -9187,6 +9196,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -9478,7 +9488,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -9805,6 +9815,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -9829,7 +9840,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -10999,6 +11010,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -11291,7 +11303,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -11618,6 +11630,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -11642,7 +11655,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -12040,7 +12053,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         }
                                       }
                                     >
-                                      Try Again
+                                      Try again
                                     </Text>
                                   </Text>
                                 </View>
@@ -12905,6 +12918,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -13197,7 +13211,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -13524,6 +13538,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -13548,7 +13563,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -14673,6 +14688,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -14965,7 +14981,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -15292,6 +15308,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -15316,7 +15333,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -16486,6 +16503,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -16778,7 +16796,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -17105,6 +17123,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -17129,7 +17148,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -18299,6 +18318,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -18591,7 +18611,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -18918,6 +18938,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -18942,7 +18963,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -20112,6 +20133,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -20404,7 +20426,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -20731,6 +20753,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -20755,7 +20778,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -21925,6 +21948,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -22217,7 +22241,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -22544,6 +22568,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -22568,7 +22593,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -22966,7 +22991,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         }
                                       }
                                     >
-                                      Try Again
+                                      Try again
                                     </Text>
                                   </Text>
                                 </View>
@@ -23831,6 +23856,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -24123,7 +24149,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -24450,6 +24476,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -24474,7 +24501,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -25642,6 +25669,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -25934,7 +25962,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -26261,6 +26289,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -26285,7 +26314,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -26681,7 +26710,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         }
                                       }
                                     >
-                                      Try Again
+                                      Try again
                                     </Text>
                                   </Text>
                                 </View>
@@ -27546,6 +27575,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -27838,7 +27868,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -28165,6 +28195,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -28189,7 +28220,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -28587,7 +28618,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         }
                                       }
                                     >
-                                      Try Again
+                                      Try again
                                     </Text>
                                   </Text>
                                 </View>
@@ -29452,6 +29483,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -29744,7 +29776,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -30071,6 +30103,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -30095,7 +30128,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "#b7bbc866",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -31265,6 +31298,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,

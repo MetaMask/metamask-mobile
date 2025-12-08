@@ -8,26 +8,31 @@ import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
-const mockIsNonEvmChainId = jest.fn();
 
-// Mock network utilities
-jest.mock('../../../util/networks', () => ({
-  getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
-  getNetworkImageSource: jest.fn(() => 'ethereum'),
-  getBlockExplorerAddressUrl: jest.fn(() => ({
-    title: 'View on Etherscan',
-    url: 'https://etherscan.io',
-  })),
-  isTestNet: jest.fn(() => false),
-  getTestNetImageByChainId: jest.fn(() => 'testnet-image'),
-  getDefaultNetworkByChainId: jest.fn(() => ({
-    imageSource: 'default-image',
-  })),
-}));
+// Mock network utilities, preserving other exports like getDecimalChainId
+jest.mock('../../../util/networks', () => {
+  const actual = jest.requireActual('../../../util/networks');
+
+  return {
+    ...actual,
+    getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
+    getNetworkImageSource: jest.fn(() => 'ethereum'),
+    getBlockExplorerAddressUrl: jest.fn(() => ({
+      title: 'View on Etherscan',
+      url: 'https://etherscan.io',
+    })),
+    isTestNet: jest.fn(() => false),
+    getTestNetImageByChainId: jest.fn(() => 'testnet-image'),
+    getDefaultNetworkByChainId: jest.fn(() => ({
+      imageSource: 'default-image',
+    })),
+  };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -75,8 +80,12 @@ jest.mock('../../UI/Bridge/hooks/useTopTokens', () => ({
 
 jest.mock('../../../core/Multichain/utils', () => ({
   ...jest.requireActual('../../../core/Multichain/utils'),
-  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+  isNonEvmChainId: jest.fn(),
 }));
+
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -89,6 +98,36 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
   },
+}));
+
+const mockEnableNetworkEnablement = {
+  enabledNetworksForCurrentNamespace: {
+    '0x1': true,
+    '0x89': false,
+    '0xa': true,
+  },
+  enabledNetworksForAllNamespaces: {
+    // EVM networks
+    '0x1': true,
+    '0x89': true,
+    '0xa': true,
+    '0xa4b1': true,
+    '0x38': true,
+    // Solana networks
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+    'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': false,
+    'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': false,
+    // Bitcoin networks
+    'bip122:000000000019d6689c085ae165831e93': true,
+    'bip122:000000000933ea01ad0ee984209779ba': false,
+    // Tron networks
+    'tron:728126428': true,
+    'tron:2494104990': false,
+  },
+};
+
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: jest.fn(() => mockEnableNetworkEnablement),
 }));
 
 const initialState = {
@@ -389,6 +428,103 @@ describe('AddAsset component', () => {
       // The actual conditional logic happens in the NetworkListBottomSheet setSelectedNetwork callback
       // This test verifies the component renders correctly with the non-EVM chain logic in place
       expect(mockIsNonEvmChainId).toHaveBeenCalled();
+    });
+  });
+
+  describe('Enabled Network Selection', () => {
+    it('should select first enabled network from enabledNetworksForCurrentNamespace', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      // The component should select 0x1 as the first enabled network
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      expect(getByTestId('add-asset-network-selector')).toBeOnTheScreen();
+    });
+
+    it('should handle only one enabled network correctly', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': true,
+        '0x89': false,
+        '0xa': false,
+      };
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+    });
+
+    it('should handle multiple enabled networks and pick the first one', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': true,
+        '0x89': true,
+        '0xa': true,
+      };
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+      // Network selector should be present
+      expect(getByTestId('add-asset-network-selector')).toBeOnTheScreen();
+    });
+
+    it('should handle no enabled networks gracefully', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': false,
+        '0x89': false,
+        '0xa': false,
+      };
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+    });
+
+    it('should filter out disabled networks when finding enabled chain ID', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': false,
+        '0x89': false,
+        '0xa': true,
+      };
+
+      // Should select 0xa (first enabled network)
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+    });
+
+    it('should handle empty enabledNetworksForCurrentNamespace object', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      // @ts-expect-error - mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace is not defined
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {};
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+    });
+
+    it('should only consider networks with value === true as enabled', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockEnableNetworkEnablement.enabledNetworksForCurrentNamespace = {
+        '0x1': false,
+        '0x89': true,
+        '0xa': false,
+      };
+
+      // Should only select 0x89 as it's the only one with true value
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeOnTheScreen();
     });
   });
 });

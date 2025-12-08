@@ -7,6 +7,7 @@ import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wall
 import {
   hasNotificationComponents,
   hasNotificationModal,
+  isValidNotificationComponent,
   NotificationComponentState,
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
@@ -16,6 +17,7 @@ import {
   useListNotifications,
   useMarkNotificationAsRead,
 } from '../../../../util/notifications/hooks/useNotifications';
+import onChainAnalyticProperties from '../../../../util/notifications/methods/notification-analytics';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
@@ -70,25 +72,13 @@ export function useNotificationOnClick(
         },
       ]);
 
-      const otherNotificationProperties = () => {
-        if (
-          'notification_type' in item &&
-          item.notification_type === 'on-chain' &&
-          item.payload?.chain_id
-        ) {
-          return { chain_id: item.payload.chain_id };
-        }
-
-        return undefined;
-      };
-
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
           .addProperties({
             notification_id: item.id,
             notification_type: item.type,
             previously_read: item.isRead,
-            ...otherNotificationProperties(),
+            ...onChainAnalyticProperties(item),
             data: item, // data blob for feature teams to analyse their notification shapes
           })
           .build(),
@@ -127,6 +117,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
   const menuItemState = useMemo(() => {
     const notificationState =
       props.notification?.type &&
+      isValidNotificationComponent(props.notification) &&
       hasNotificationComponents(props.notification.type)
         ? NotificationComponentState[props.notification.type]
         : undefined;
@@ -134,7 +125,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
     return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
 
-  if (!hasNotificationComponents(props.notification.type) || !menuItemState) {
+  if (!isValidNotificationComponent(props.notification) || !menuItemState) {
     return null;
   }
 

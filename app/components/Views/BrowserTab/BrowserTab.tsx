@@ -1315,8 +1315,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const handleBackPress = useCallback(() => {
-      navigation.navigate('TrendingFeed');
-    }, [navigation]);
+      if (fromTrending) {
+        // If within trending follow the normal back button behavior
+        navigation.goBack();
+      } else {
+        // By default go to trending
+        navigation.navigate(Routes.TRENDING_VIEW, {
+          screen: Routes.TRENDING_FEED,
+        });
+      }
+    }, [navigation, fromTrending]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();

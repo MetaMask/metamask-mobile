@@ -11,6 +11,7 @@ import { addLeadingZeroIfNeeded, submitEvmTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
+import { ConfirmationLoader } from '../../components/confirm/confirm-component';
 
 export const useSendActions = () => {
   const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
@@ -41,6 +42,7 @@ export const useSendActions = () => {
             params: {
               maxValueMode,
             },
+            loader: ConfirmationLoader.Transfer,
           },
         );
       } else {
@@ -77,7 +79,8 @@ export const useSendActions = () => {
 
   const handleCancelPress = useCallback(() => {
     captureSendExit();
-    navigation.navigate(Routes.WALLET_VIEW);
+
+    navigation.goBack();
   }, [captureSendExit, navigation]);
 
   const handleBackPress = useCallback(() => {

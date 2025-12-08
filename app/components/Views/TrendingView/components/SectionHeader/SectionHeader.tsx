@@ -1,29 +1,26 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-} from '@metamask/design-system-react-native';
-import Text, {
-  TextColor,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
 import { useNavigation } from '@react-navigation/native';
 
-interface SectionHeaderProps {
+export interface SectionHeaderProps {
   sectionId: SectionId;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 4,
-    marginBottom: 8,
-  },
-});
 
 /**
  * Displays a section header with title and "View All" button.
@@ -33,6 +30,7 @@ const styles = StyleSheet.create({
  * consistency between QuickActions buttons and section "View All" buttons.
  */
 const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const sectionConfig = SECTIONS_CONFIG[sectionId];
 
@@ -41,15 +39,21 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
       alignItems={BoxAlignItems.Center}
-      style={styles.container}
+      twClassName="mb-2"
     >
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-        {sectionConfig.title}
-      </Text>
-      <TouchableOpacity onPress={() => sectionConfig.viewAllAction(navigation)}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
+      <Text variant={TextVariant.HeadingSm}>{sectionConfig.title}</Text>
+      <TouchableOpacity
+        onPress={() => sectionConfig.viewAllAction(navigation)}
+        style={tw.style('flex-row items-center justify-center gap-1')}
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('trending.view_all')}
         </Text>
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
       </TouchableOpacity>
     </Box>
   );

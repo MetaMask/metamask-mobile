@@ -10,7 +10,11 @@ import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../components/ScreenLayout';
 import OrderDetail from '../../components/OrderDetails';
 import Row from '../../components/Row';
-import StyledButton from '../../../../StyledButton';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import {
   FiatOrder,
   getOrderById,
@@ -31,8 +35,7 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
 import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
-import { useRampNavigation, RampMode } from '../../../hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../../types';
+import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
 
 interface OrderDetailsParams {
@@ -59,7 +62,7 @@ const OrderDetails = () => {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();
-  const { goToRamps } = useRampNavigation();
+  const { goToAggregator, goToSell } = useRampNavigation();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
@@ -188,17 +191,11 @@ const OrderDetails = () => {
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
     if (order?.orderType === OrderOrderTypeEnum.Buy) {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-      });
+      goToAggregator();
     } else {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.SELL },
-      });
+      goToSell();
     }
-  }, [navigation, order?.orderType, goToRamps]);
+  }, [navigation, order?.orderType, goToAggregator, goToSell]);
 
   useInterval(
     () => {
@@ -269,27 +266,29 @@ const OrderDetails = () => {
             !order.sellTxHash &&
             order.state === FIAT_ORDER_STATES.CREATED ? (
               <Row>
-                <StyledButton
-                  type="confirm"
+                <Button
+                  size={ButtonSize.Lg}
                   onPress={navigateToSendTransaction}
-                >
-                  {strings(
+                  label={strings(
                     'fiat_on_ramp_aggregator.order_details.continue_order',
                   )}
-                </StyledButton>
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                />
               </Row>
             ) : null}
 
             {order.state !== FIAT_ORDER_STATES.CREATED &&
               order.state !== FIAT_ORDER_STATES.PENDING && (
-                <StyledButton
-                  type="confirm"
+                <Button
+                  size={ButtonSize.Lg}
                   onPress={handleMakeAnotherPurchase}
-                >
-                  {strings(
+                  label={strings(
                     'fiat_on_ramp_aggregator.order_details.start_new_order',
                   )}
-                </StyledButton>
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                />
               )}
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

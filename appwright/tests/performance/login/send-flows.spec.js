@@ -13,7 +13,7 @@ import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 
 import { TEST_AMOUNTS } from '../../../utils/TestConstants.js';
-import { login } from '../../../utils/Flows.js';
+import { dissmissPredictionsModal, login } from '../../../utils/Flows.js';
 import TokenOverviewScreen from '../../../../wdio/screen-objects/TokenOverviewScreen.js';
 
 const ethAddress = '0xbea21b0b30ddd5e04f426ffb0c4c79157fc4047d';
@@ -23,7 +23,6 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
-  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   WalletAccountModal.device = device;
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
@@ -36,7 +35,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   NetworksScreen.device = device;
   TokenOverviewScreen.device = device;
   await login(device);
-  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
+  await dissmissPredictionsModal(device);
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
   );
@@ -94,7 +93,6 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   NetworksScreen.device = device;
   TokenOverviewScreen.device = device;
   await login(device);
-  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
   );
@@ -112,7 +110,6 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SendScreen.assetsListIsDisplayed();
   timer1.stop();
   await SendScreen.typeTokenName('Solana\n');
-  console.log('Solana typed, so waiting 5 seconds');
   await SendScreen.clickOnFirstTokenBadge();
   timer2.start();
 

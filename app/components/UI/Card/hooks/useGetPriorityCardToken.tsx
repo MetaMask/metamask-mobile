@@ -17,7 +17,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { CardSDK } from '../sdk/CardSDK';
 import {
@@ -64,7 +64,7 @@ const fetchAllowances = async (
     const supportedTokensAllowances =
       await sdk.getSupportedTokensAllowances(selectedAddress);
 
-    const supportedTokens = sdk.getSupportedTokensByChainId(sdk.lineaChainId);
+    const supportedTokens = sdk.getSupportedTokensByChainId();
 
     const mappedAllowances = supportedTokensAllowances.map((token) => {
       const tokenInfo = supportedTokens.find(
@@ -268,7 +268,7 @@ export const useGetPriorityCardToken = (
         const cardTokenAllowances = await fetchAllowances(
           sdk,
           selectedAddress,
-          formatChainIdToCaip(LINEA_CHAIN_ID),
+          formatChainIdToCaip(CHAIN_IDS.LINEA_MAINNET),
         );
 
         // Store all tokens for asset selection
@@ -279,16 +279,14 @@ export const useGetPriorityCardToken = (
         });
 
         if (!cardTokenAllowances || cardTokenAllowances.length === 0) {
-          const supportedTokens = sdk.getSupportedTokensByChainId(
-            sdk.lineaChainId,
-          );
+          const supportedTokens = sdk.getSupportedTokensByChainId();
 
           if (supportedTokens[0]) {
             const fallbackToken = {
               ...supportedTokens[0],
               allowanceState: AllowanceState.NotEnabled,
               isStaked: false,
-              caipChainId: LINEA_CHAIN_ID,
+              caipChainId: formatChainIdToCaip(CHAIN_IDS.LINEA_MAINNET),
               allowance: '0',
             } as CardTokenAllowance;
 

@@ -10,11 +10,23 @@ import {
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../../sdk';
+import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
-const mockGoToRamps = jest.fn();
+const mockGoToDeposit = jest.fn();
 const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -33,8 +45,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+  useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
 }));
 
 const mockUseRampSDKValues: DeepPartial<RampSDK> = {
@@ -89,11 +100,11 @@ describe('SettingsModal', () => {
     expect(getByText('View order history')).toBeTruthy();
   });
 
-  it('displays use new buy experience menu item', () => {
+  it('displays more ways to buy menu item', () => {
     const { getByText } = render();
 
-    expect(getByText('Use new buy experience')).toBeTruthy();
-    expect(getByText('Try new native on ramp')).toBeTruthy();
+    expect(getByText('More ways to buy')).toBeTruthy();
+    expect(getByText('Switch to the new version')).toBeTruthy();
   });
 
   it('navigates to transactions view when view order history is pressed', () => {
@@ -110,17 +121,14 @@ describe('SettingsModal', () => {
     });
   });
 
-  it('navigates to deposit when use new buy experience is pressed', () => {
+  it('navigates to deposit when more ways to buy is pressed', () => {
     const { getByText } = render();
-    const newBuyExperienceButton = getByText('Use new buy experience');
+    const moreWaysToBuyButton = getByText('More ways to buy');
 
-    fireEvent.press(newBuyExperienceButton);
+    fireEvent.press(moreWaysToBuyButton);
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'DEPOSIT',
-      overrideUnifiedBuyFlag: true,
-    });
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
   it('navigates back through parent navigation when deposit is pressed', () => {
@@ -132,9 +140,9 @@ describe('SettingsModal', () => {
     });
 
     const { getByText } = render();
-    const newBuyExperienceButton = getByText('Use new buy experience');
+    const moreWaysToBuyButton = getByText('More ways to buy');
 
-    fireEvent.press(newBuyExperienceButton);
+    fireEvent.press(moreWaysToBuyButton);
 
     expect(mockParentGoBack).toHaveBeenCalled();
   });
@@ -154,10 +162,10 @@ describe('SettingsModal', () => {
       expect(getByText('View order history')).toBeTruthy();
     });
 
-    it('renders add icon for new buy experience', () => {
+    it('renders add icon for more ways to buy', () => {
       const { getByText } = render();
 
-      expect(getByText('Use new buy experience')).toBeTruthy();
+      expect(getByText('More ways to buy')).toBeTruthy();
     });
   });
 
@@ -171,14 +179,18 @@ describe('SettingsModal', () => {
 
     it('tracks event when deposit is pressed', () => {
       const { getByText } = render();
-      const newBuyExperienceButton = getByText('Use new buy experience');
+      const moreWaysToBuyButton = getByText('More ways to buy');
 
-      fireEvent.press(newBuyExperienceButton);
+      fireEvent.press(moreWaysToBuyButton);
 
       expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
         location: 'Buy Settings Modal',
         ramp_type: 'DEPOSIT',
         region: 'us',
+        ramp_routing: undefined,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
       });
     });
   });

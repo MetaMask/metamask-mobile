@@ -14,6 +14,7 @@ import {
   CardExchangeTokenResponse,
   CardLocation,
   CreateOnboardingConsentRequest,
+  UserResponse,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
@@ -23,7 +24,6 @@ import AppConstants from '../../../../core/AppConstants';
 interface CardSDKPrivateAccess {
   userCardLocation: string;
   enableLogs: boolean;
-  mapAPINetworkToCaipChainId: (network: string) => string;
   getFirstSupportedTokenOrNull: () => CardToken | null;
   findSupportedTokenByAddress: (address: string) => CardToken | null;
   mapSupportedTokenToCardToken: (token: SupportedToken) => CardToken;
@@ -155,7 +155,7 @@ describe('CardSDK', () => {
   describe('constructor', () => {
     it('initializes with correct card feature flag and chain ID', () => {
       expect(cardSDK.isCardEnabled).toBe(true);
-      expect(cardSDK.getSupportedTokensByChainId(cardSDK.lineaChainId)).toEqual(
+      expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
         mockSupportedTokens,
       );
     });
@@ -199,7 +199,7 @@ describe('CardSDK', () => {
 
   describe('getSupportedTokensByChainId', () => {
     it('returns supported tokens when card is enabled', () => {
-      expect(cardSDK.getSupportedTokensByChainId(cardSDK.lineaChainId)).toEqual(
+      expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
         mockSupportedTokens,
       );
     });
@@ -222,9 +222,7 @@ describe('CardSDK', () => {
       });
 
       expect(
-        disabledCardholderSDK.getSupportedTokensByChainId(
-          disabledCardholderSDK.lineaChainId,
-        ),
+        disabledCardholderSDK.getSupportedTokensByChainId('eip155:59144'),
       ).toEqual([]);
     });
 
@@ -246,9 +244,7 @@ describe('CardSDK', () => {
       });
 
       expect(
-        noTokensCardSDK.getSupportedTokensByChainId(
-          noTokensCardSDK.lineaChainId,
-        ),
+        noTokensCardSDK.getSupportedTokensByChainId('eip155:59144'),
       ).toEqual([]);
     });
 
@@ -276,9 +272,7 @@ describe('CardSDK', () => {
         cardFeatureFlag: customFeatureFlag,
       });
 
-      const tokens = customSDK.getSupportedTokensByChainId(
-        customSDK.lineaChainId,
-      );
+      const tokens = customSDK.getSupportedTokensByChainId('eip155:59144');
       expect(tokens).toHaveLength(1);
       expect(tokens[0].address).toBe(mockSupportedTokens[0].address);
     });
@@ -309,7 +303,7 @@ describe('CardSDK', () => {
           '0x1234567890123456789012345678901234567890',
         ),
       ).rejects.toThrow(
-        'FoxConnect addresses are not defined for the current chain',
+        'FoxConnect contracts are not defined for the current network',
       );
     });
 
@@ -347,9 +341,7 @@ describe('CardSDK', () => {
 
   describe('supportedTokensAddresses', () => {
     it('returns valid token addresses', () => {
-      const addresses = cardSDK.getSupportedTokensByChainId(
-        cardSDK.lineaChainId,
-      );
+      const addresses = cardSDK.getSupportedTokensByChainId('eip155:59144');
       expect(addresses).toHaveLength(2);
       expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
       expect(addresses[1].address).toBe(mockSupportedTokens[1].address);
@@ -381,9 +373,7 @@ describe('CardSDK', () => {
         cardFeatureFlag: customFeatureFlag,
       });
 
-      const addresses = customSDK.getSupportedTokensByChainId(
-        customSDK.lineaChainId,
-      );
+      const addresses = customSDK.getSupportedTokensByChainId('eip155:59144');
       expect(addresses).toHaveLength(1);
       expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
     });
@@ -2712,7 +2702,7 @@ describe('CardSDK', () => {
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
       const mockRequest: Omit<CreateOnboardingConsentRequest, 'tenantId'> = {
-        policyType: 'US',
+        policyType: 'us',
         onboardingId: 'onboarding123',
         consents: [],
         metadata: {
@@ -2749,7 +2739,7 @@ describe('CardSDK', () => {
 
     it('handles create onboarding consent error', async () => {
       const mockRequest: Omit<CreateOnboardingConsentRequest, 'tenantId'> = {
-        policyType: 'US',
+        policyType: 'us',
         onboardingId: 'onboarding123',
         consents: [],
         metadata: {
@@ -2789,7 +2779,7 @@ describe('CardSDK', () => {
             accepted: true,
           },
         ],
-        policyType: 'US',
+        policyType: 'us',
       };
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -3029,22 +3019,6 @@ describe('CardSDK', () => {
   });
 
   describe('private helper methods', () => {
-    describe('mapAPINetworkToCaipChainId', () => {
-      it('maps linea network to correct CAIP chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToCaipChainId('linea');
-        expect(result).toBe('eip155:59144');
-      });
-
-      it('maps solana network to correct CAIP chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToCaipChainId('solana');
-        expect(result).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
-      });
-    });
-
     describe('getFirstSupportedTokenOrNull', () => {
       it('returns first supported token when tokens exist', () => {
         const result = (
@@ -3173,6 +3147,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('11806489');
@@ -3209,6 +3184,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('15000000');
@@ -3262,6 +3238,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('11806489');
@@ -3303,6 +3280,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('5000000'); // Returns latest log
@@ -3315,6 +3293,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBeNull();
@@ -3378,6 +3357,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       // Most recent should be block 100, logIndex 2
@@ -3421,6 +3401,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('0'); // Returns most recent, even if zero
@@ -3434,6 +3415,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBeNull();
@@ -3453,6 +3435,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(mockProvider.getLogs).toHaveBeenCalledWith({
@@ -3493,9 +3476,254 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe(largeValue);
+    });
+  });
+
+  describe('getUserDetails', () => {
+    const mockUserDetails: UserResponse = {
+      id: 'user-123',
+      firstName: 'John',
+      lastName: 'Doe',
+      dateOfBirth: '1990-01-01',
+      email: 'john.doe@example.com',
+      verificationState: 'VERIFIED',
+      phoneNumber: '1234567890',
+      phoneCountryCode: '+1',
+      addressLine1: '123 Main St',
+      addressLine2: null,
+      city: 'New York',
+      usState: 'NY',
+      zip: '10001',
+      countryOfResidence: 'US',
+      countryOfNationality: 'US',
+      ssn: null,
+      createdAt: '2021-01-01',
+    };
+
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'mock-access-token' },
+      });
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should successfully retrieve user details', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockUserDetails),
+      });
+
+      const result = await cardSDK.getUserDetails();
+
+      expect(result).toEqual(mockUserDetails);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/user'),
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-access-token',
+            'Content-Type': 'application/json',
+          }),
+        }),
+      );
+    });
+
+    it('should throw CardError with INVALID_CREDENTIALS for 401 status', async () => {
+      const mockErrorResponse = {
+        message: 'Unauthorized access',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue(mockErrorResponse),
+      });
+
+      await expect(cardSDK.getUserDetails()).rejects.toThrow(CardError);
+      await expect(cardSDK.getUserDetails()).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+        message: mockErrorResponse.message,
+      });
+    });
+
+    it('should throw CardError with INVALID_CREDENTIALS for 403 status', async () => {
+      const mockErrorResponse = {
+        message: 'Forbidden access',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue(mockErrorResponse),
+      });
+
+      await expect(cardSDK.getUserDetails()).rejects.toThrow(CardError);
+      await expect(cardSDK.getUserDetails()).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+        message: mockErrorResponse.message,
+      });
+    });
+
+    it('should throw CardError with INVALID_CREDENTIALS default message for 401 when no message in response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(cardSDK.getUserDetails()).rejects.toThrow(CardError);
+      await expect(cardSDK.getUserDetails()).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+        message: 'Invalid credentials. Please try logging in again.',
+      });
+    });
+
+    it('should throw CardError with SERVER_ERROR for 500 status', async () => {
+      const mockErrorResponse = {
+        message: 'Internal server error',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue(mockErrorResponse),
+      });
+
+      await expect(cardSDK.getUserDetails()).rejects.toThrow(CardError);
+      await expect(cardSDK.getUserDetails()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: mockErrorResponse.message,
+      });
+    });
+
+    it('should throw CardError with SERVER_ERROR default message when no message in response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(cardSDK.getUserDetails()).rejects.toThrow(CardError);
+      await expect(cardSDK.getUserDetails()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to get user details. Please try again.',
+      });
+    });
+
+    it('should throw CardError with SERVER_ERROR for 404 status', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({ message: 'User not found' }),
+      });
+
+      await expect(cardSDK.getUserDetails()).rejects.toThrow(CardError);
+      await expect(cardSDK.getUserDetails()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'User not found',
+      });
+    });
+
+    it('should handle response body parsing error gracefully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockRejectedValue(new Error('Parse error')),
+      });
+
+      await expect(cardSDK.getUserDetails()).rejects.toThrow(CardError);
+      await expect(cardSDK.getUserDetails()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to get user details. Please try again.',
+      });
+    });
+
+    it('should log debug info on error when enableLogs is true', async () => {
+      const cardSDKWithLogs = new CardSDK({
+        cardFeatureFlag: mockCardFeatureFlag,
+        enableLogs: true,
+      });
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      });
+
+      await expect(cardSDKWithLogs.getUserDetails()).rejects.toThrow(CardError);
+
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.stringContaining('CardSDK Debug Log - getUserDetails::error'),
+        expect.stringContaining('Status: 401'),
+      );
+    });
+
+    it('should use authenticated request with bearer token', async () => {
+      const mockAccessToken = 'test-bearer-token';
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: mockAccessToken },
+      });
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockUserDetails),
+      });
+
+      await cardSDK.getUserDetails();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${mockAccessToken}`,
+          }),
+        }),
+      );
+    });
+
+    it('should handle missing bearer token gracefully', async () => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: false,
+      });
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockUserDetails),
+      });
+
+      const result = await cardSDK.getUserDetails();
+
+      expect(result).toEqual(mockUserDetails);
+      // Should still make the request even without bearer token
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    it('should handle bearer token retrieval error', async () => {
+      (getCardBaanxToken as jest.Mock).mockRejectedValue(
+        new Error('Token retrieval failed'),
+      );
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockUserDetails),
+      });
+
+      const result = await cardSDK.getUserDetails();
+
+      expect(result).toEqual(mockUserDetails);
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Failed to retrieve Card bearer token:',
+        expect.any(Error),
+      );
     });
   });
 });

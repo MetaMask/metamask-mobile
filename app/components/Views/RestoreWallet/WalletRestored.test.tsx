@@ -1,6 +1,7 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import WalletRestored from './WalletRestored';
 import { useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -8,11 +9,22 @@ import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import Routes from '../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import Logger from '../../../util/Logger';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 
 // Mock all external dependencies
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+jest.mock('redux-persist-filesystem-storage', () => ({
+  removeItem: jest.fn(() => Promise.resolve()),
+  setItem: jest.fn(() => Promise.resolve()),
+  getItem: jest.fn(() => Promise.resolve(null)),
+}));
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
 }));
 jest.mock('../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
@@ -73,7 +85,7 @@ describe('WalletRestored', () => {
   });
 
   it('renders correctly with all required elements', () => {
-    // Arrange
+    // Arrange & Act
     const { getByText } = renderWithProvider(<WalletRestored />);
 
     // Assert
@@ -96,35 +108,43 @@ describe('WalletRestored', () => {
     });
   });
 
-  it('navigates to LOGIN with vault recovery flag when continue is pressed', () => {
+  it('navigates to LOGIN with vault recovery flag when continue is pressed', async () => {
     // Arrange
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
 
     // Act
-    fireEvent.press(continueButton);
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
     // Assert
-    expect(mockNavigation.replace).toHaveBeenCalledWith(
-      Routes.ONBOARDING.LOGIN,
-      { isVaultRecovery: true },
-    );
+    await waitFor(() => {
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.LOGIN,
+        { isVaultRecovery: true },
+      );
+    });
   });
 
-  it('tracks continue button press event with device metadata', () => {
+  it('tracks continue button press event with device metadata', async () => {
     // Arrange
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
 
     // Act
-    fireEvent.press(continueButton);
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
     // Assert
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: expect.any(String),
-      }),
-    );
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.any(String),
+        }),
+      );
+    });
   });
 
   it('generates device metadata once using useMemo', () => {
@@ -141,5 +161,70 @@ describe('WalletRestored', () => {
 
     // Assert
     expect(mockNavigation.replace).not.toHaveBeenCalled();
+  });
+
+  it('clears migration error flag when continue is pressed', async () => {
+    // Arrange
+    const mockFilesystemRemoveItem = FilesystemStorage.removeItem as jest.Mock;
+    mockFilesystemRemoveItem.mockResolvedValue(undefined);
+    const { getByText } = renderWithProvider(<WalletRestored />);
+    const continueButton = getByText('Continue to wallet');
+
+    // Act
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(mockFilesystemRemoveItem).toHaveBeenCalledWith(
+        MIGRATION_ERROR_HAPPENED,
+      );
+    });
+  });
+
+  it('logs error when clearing migration error flag fails', async () => {
+    // Arrange
+    const mockError = new Error('FilesystemStorage removeItem failed');
+    const mockFilesystemRemoveItem = FilesystemStorage.removeItem as jest.Mock;
+    mockFilesystemRemoveItem.mockRejectedValue(mockError);
+    const mockLoggerError = Logger.error as jest.Mock;
+    const { getByText } = renderWithProvider(<WalletRestored />);
+    const continueButton = getByText('Continue to wallet');
+
+    // Act
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        'Failed to clear migration error flag',
+      );
+    });
+  });
+
+  it('navigates to LOGIN even when clearing migration error flag fails', async () => {
+    // Arrange
+    const mockError = new Error('FilesystemStorage removeItem failed');
+    const mockFilesystemRemoveItem = FilesystemStorage.removeItem as jest.Mock;
+    mockFilesystemRemoveItem.mockRejectedValue(mockError);
+    const { getByText } = renderWithProvider(<WalletRestored />);
+    const continueButton = getByText('Continue to wallet');
+
+    // Act
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
+    // Assert - Navigation proceeds to allow user access, recovery will retry on next launch
+    await waitFor(() => {
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.LOGIN,
+        { isVaultRecovery: true },
+      );
+    });
   });
 });
