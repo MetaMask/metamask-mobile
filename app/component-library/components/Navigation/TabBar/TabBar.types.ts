@@ -37,6 +37,8 @@ export interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
     tabBarIconKey: TabBarIconKey;
     callback: () => void;
     rootScreenName: string;
+    isSelected?: (rootScreenName: string) => boolean;
+    isHidden?: boolean;
   };
 }
 

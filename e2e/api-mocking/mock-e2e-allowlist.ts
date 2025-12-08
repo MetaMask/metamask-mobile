@@ -21,7 +21,6 @@ export const ALLOWLISTED_HOSTS = [
 
 export const ALLOWLISTED_URLS = [
   // Temporarily allow existing live requests during migration
-  'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
   'https://clients3.google.com/generate_204',
   'https://api.avax.network/ext/bc/C/rpc',
   // Token SVGs in notifications list
@@ -47,7 +46,6 @@ export const ALLOWLISTED_URLS = [
   'https://nft.api.cx.metamask.io/collections?contract=0xb66a603f4cfe17e3d27b87a8bfcad319856518b8&chainId=1',
   'https://nft.api.cx.metamask.io/users/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=',
   'https://bridge.dev-api.cx.metamask.io/getTokens?chainId=1',
-  'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
   'https://acl.execution.metamask.io/latest/registry.json',
   'https://acl.execution.metamask.io/latest/signature.json',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
