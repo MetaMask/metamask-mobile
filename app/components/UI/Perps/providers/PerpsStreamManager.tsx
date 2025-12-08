@@ -1277,4 +1277,13 @@ export const usePerpsStream = () => {
   return context;
 };
 
+// Type that only includes channel properties (excludes methods like reconnectAllChannels)
+export type PerpsStreamChannelKey = {
+  [K in keyof PerpsStreamManager]: PerpsStreamManager[K] extends {
+    pause(): void;
+  }
+    ? K
+    : never;
+}[keyof PerpsStreamManager];
+
 // Types are exported from controllers/types
