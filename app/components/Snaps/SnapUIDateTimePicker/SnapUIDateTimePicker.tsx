@@ -269,7 +269,6 @@ export const SnapUIDateTimePicker: FunctionComponent<
     <Box testID={'snap-ui-renderer__date-time-picker'}>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
-        testID="snap-ui-renderer__date-time-picker-input"
         size={TextFieldSize.Lg}
         placeholder={placeholder}
         isDisabled={disabled}
@@ -282,6 +281,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
         value={formatDateForDisplay(value, type)}
         inputElement={
           <TouchableOpacity
+            testID="snap-ui-renderer__date-time-picker-touchable"
             onPress={
               Platform.OS === 'ios'
                 ? handleOpenIosPicker
@@ -290,6 +290,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
             activeOpacity={0.7}
           >
             <Input
+              testID="snap-ui-renderer__date-time-picker-input"
               isStateStylesDisabled
               readOnly
               pointerEvents="none"

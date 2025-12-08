@@ -1,11 +1,20 @@
 import { Box, DateTimePicker, Field } from '@metamask/snaps-sdk/jsx';
 import { renderInterface } from '../testUtils';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from 'luxon';
 
-jest.mock('../../../../core/Engine/Engine');
+jest.mock('../../../../core/Engine/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+  context: {
+    SnapInterfaceController: {
+      updateInterfaceState: jest.fn(),
+    },
+  },
+}));
 
 describe('SnapUIDateTimePicker', () => {
   it('renders a date time picker', () => {
@@ -52,8 +61,8 @@ describe('SnapUIDateTimePicker', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('can select a date and time', () => {
-    const { getByTestId, UNSAFE_getByType } = renderInterface(
+  it('can select a date and time', async () => {
+    const { getByTestId, UNSAFE_getByType, getByText } = renderInterface(
       Box({
         children: DateTimePicker({
           name: 'date-time-picker',
@@ -62,25 +71,135 @@ describe('SnapUIDateTimePicker', () => {
       }),
     );
 
+    act(() => {
+      fireEvent.press(
+        getByTestId('snap-ui-renderer__date-time-picker-touchable'),
+      );
+    });
+
+    await waitFor(() => UNSAFE_getByType(RNDateTimePicker));
+
     const date = new Date('2024-12-25T15:30:00Z');
 
-    fireEvent(
-      UNSAFE_getByType(RNDateTimePicker),
-      'onChange',
-      {
-        type: 'set',
-        nativeEvent: {
-          timestamp: date.getTime(),
-          utcOffset: 0,
+    act(() => {
+      fireEvent(
+        UNSAFE_getByType(RNDateTimePicker),
+        'onChange',
+        {
+          type: 'set',
+          nativeEvent: {
+            timestamp: date.getTime(),
+            utcOffset: 0,
+          },
         },
-      },
-      date,
-    );
+        date,
+      );
+    });
+
+    act(() => {
+      fireEvent.press(getByText('OK'));
+    });
 
     expect(
       getByTestId('snap-ui-renderer__date-time-picker-input').props.value,
     ).toEqual(
       DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_SHORT),
+    );
+  });
+
+  it('can select a date', async () => {
+    const { getByTestId, UNSAFE_getByType, getByText } = renderInterface(
+      Box({
+        children: DateTimePicker({
+          name: 'date-picker',
+          type: 'date',
+        }),
+      }),
+    );
+
+    act(() => {
+      fireEvent.press(
+        getByTestId('snap-ui-renderer__date-time-picker-touchable'),
+      );
+    });
+
+    await waitFor(() => UNSAFE_getByType(RNDateTimePicker));
+
+    const date = new Date('2024-12-25T15:30:00Z');
+
+    act(() => {
+      fireEvent(
+        UNSAFE_getByType(RNDateTimePicker),
+        'onChange',
+        {
+          type: 'set',
+          nativeEvent: {
+            timestamp: date.getTime(),
+            utcOffset: 0,
+          },
+        },
+        date,
+      );
+    });
+
+    act(() => {
+      fireEvent.press(getByText('OK'));
+    });
+
+    expect(
+      getByTestId('snap-ui-renderer__date-time-picker-input').props.value,
+    ).toEqual(
+      DateTime.fromJSDate(date)
+        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+        .toLocaleString(DateTime.DATE_SHORT),
+    );
+  });
+
+  it('can select a time', async () => {
+    const { getByTestId, UNSAFE_getByType, getByText } = renderInterface(
+      Box({
+        children: DateTimePicker({
+          name: 'time-picker',
+          type: 'time',
+        }),
+      }),
+    );
+
+    act(() => {
+      fireEvent.press(
+        getByTestId('snap-ui-renderer__date-time-picker-touchable'),
+      );
+    });
+
+    await waitFor(() => UNSAFE_getByType(RNDateTimePicker));
+
+    const date = new Date('2024-12-25T15:30:00Z');
+
+    act(() => {
+      fireEvent(
+        UNSAFE_getByType(RNDateTimePicker),
+        'onChange',
+        {
+          type: 'set',
+          nativeEvent: {
+            timestamp: date.getTime(),
+            utcOffset: 0,
+          },
+        },
+        date,
+      );
+    });
+
+    act(() => {
+      fireEvent.press(getByText('OK'));
+    });
+
+    expect(
+      getByTestId('snap-ui-renderer__date-time-picker-input').props.value,
+    ).toEqual(
+      DateTime.fromJSDate(date)
+        .set({ second: 0, millisecond: 0 })
+        .toLocaleString(DateTime.TIME_SIMPLE),
     );
   });
 
