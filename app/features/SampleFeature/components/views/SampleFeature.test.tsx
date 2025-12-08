@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SampleFeature from './SampleFeature';
 import initialRootState from '../../../../util/test/initial-root-state';
-import { useFeatureFlag } from '../../../../components/hooks/useFeatureFlag';
+import { selectSampleFeatureCounterEnabled } from '../../selectors/sampleFeatureCounter';
 
 /**
  * Mock implementation for react-native Linking module
@@ -16,13 +16,10 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 /**
- * Mock the feature flag hook to control test scenarios
+ * Mock the feature flag selector to control test scenarios
  */
-jest.mock('../../../../components/hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames: {
-    sampleFeatureCounterEnabled: 'sampleFeatureCounterEnabled',
-  },
+jest.mock('../../selectors/sampleFeatureCounter', () => ({
+  selectSampleFeatureCounterEnabled: jest.fn(),
 }));
 
 /**
@@ -54,9 +51,10 @@ jest.mock('./SamplePetNames/SamplePetNames', () => ({
  * @group SampleFeature
  */
 describe('SampleFeature', () => {
-  const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-    typeof useFeatureFlag
-  >;
+  const mockSelectSampleFeatureCounterEnabled =
+    selectSampleFeatureCounterEnabled as jest.MockedFunction<
+      typeof selectSampleFeatureCounterEnabled
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -69,7 +67,7 @@ describe('SampleFeature', () => {
    */
   it('matches rendered snapshot when feature flag is enabled', () => {
     // Arrange
-    mockUseFeatureFlag.mockReturnValue(true);
+    mockSelectSampleFeatureCounterEnabled.mockReturnValue(true);
 
     // Act
     const { toJSON } = renderWithProvider(<SampleFeature />, {
@@ -87,7 +85,7 @@ describe('SampleFeature', () => {
    */
   it('matches rendered snapshot when feature flag is disabled', () => {
     // Arrange
-    mockUseFeatureFlag.mockReturnValue(false);
+    mockSelectSampleFeatureCounterEnabled.mockReturnValue(false);
 
     // Act
     const { toJSON } = renderWithProvider(<SampleFeature />, {

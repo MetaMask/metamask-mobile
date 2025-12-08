@@ -11,10 +11,7 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../../../components/hooks/useFeatureFlag';
+import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
 import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
@@ -83,6 +80,21 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Mock useFeatureFlag hook
+jest.mock('../../../../../../../components/hooks/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn((key: string) => {
+    if (key === 'rewardsEnableMusdHolding') {
+      return mockIsMusdHoldingEnabled;
+    }
+    return false;
+  }),
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+    otaUpdatesEnabled: 'otaUpdatesEnabled',
+    rewardsEnableMusdHolding: 'rewardsEnableMusdHolding',
+  },
+}));
+
 // Mock useMetrics hook
 jest.mock('../../../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(() => ({
@@ -94,17 +106,6 @@ jest.mock('../../../../../../hooks/useMetrics', () => ({
     REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
   },
 }));
-
-// Mock useFeatureFlag hook
-jest.mock('../../../../../../../components/hooks/useFeatureFlag', () => {
-  const actual = jest.requireActual(
-    '../../../../../../../components/hooks/useFeatureFlag',
-  );
-  return {
-    useFeatureFlag: jest.fn(),
-    FeatureFlagNames: actual.FeatureFlagNames,
-  };
-});
 
 // Mock getNativeAssetForChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -119,10 +120,6 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
->;
-
 const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
   typeof useRampNavigation
 >;
@@ -134,7 +131,6 @@ const mockToCaipAssetType = toCaipAssetType as jest.MockedFunction<
 const mockGetDecimalChainId = getDecimalChainId as jest.MockedFunction<
   typeof getDecimalChainId
 >;
-
 // Mock i18n strings
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -281,20 +277,13 @@ describe('WaysToEarn', () => {
       if (selector === selectRewardsCardSpendFeatureFlags) {
         return mockIsCardSpendEnabled;
       }
+      if (selector === selectPredictEnabledFlag) {
+        return mockIsPredictEnabled;
+      }
       if (selector === selectRewardsMusdDepositEnabledFlag) {
         return mockIsMusdDepositEnabled;
       }
       return undefined;
-    });
-    // Mock useFeatureFlag to return different values based on flag name
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.predictTradingEnabled) {
-        return mockIsPredictEnabled;
-      }
-      if (flagName === FeatureFlagNames.rewardsEnableMusdHolding) {
-        return mockIsMusdHoldingEnabled;
-      }
-      return false;
     });
 
     // Configure useSwapBridgeNavigation mock implementation
