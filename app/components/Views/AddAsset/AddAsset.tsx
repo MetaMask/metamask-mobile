@@ -121,6 +121,8 @@ const AddAsset = () => {
     () => [...(topTokens || []), ...(remainingTokens || [])],
     [topTokens, remainingTokens],
   );
+  // eslint-disable-next-line no-console
+  console.log('allTokens', allTokens);
 
   return (
     <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
