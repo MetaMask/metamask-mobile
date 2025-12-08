@@ -107,7 +107,6 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           defaultMarketTypeFilter: 'all',
-          source: 'trending',
         },
       });
     },
@@ -119,7 +118,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
             Routes.PERPS.ROOT,
             {
               screen: Routes.PERPS.MARKET_DETAILS,
-              params: { market: item as PerpsMarketData, source: 'trending' },
+              params: { market: item as PerpsMarketData },
             },
           );
         }}

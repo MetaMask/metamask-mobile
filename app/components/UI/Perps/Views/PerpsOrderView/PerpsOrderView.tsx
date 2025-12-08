@@ -95,6 +95,7 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import {
   usePerpsLiveAccount,
   usePerpsLivePrices,
@@ -142,13 +143,10 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
-  // Entry source for analytics (e.g., 'trending')
-  source?: string;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
-  source?: string;
 }
 
 /**
@@ -164,8 +162,11 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
-  source,
 }) => {
+  // Auto-detect source based on trending session state
+  const source = TrendingFeedSessionManager.getInstance().isFromTrending
+    ? 'trending'
+    : undefined;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -1498,7 +1499,6 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
-    source,
   } = route.params || {};
 
   return (
@@ -1509,7 +1509,7 @@ const PerpsOrderView: React.FC = () => {
       initialLeverage={paramLeverage}
       existingPosition={existingPosition}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} source={source} />
+      <PerpsOrderViewContent hideTPSL={hideTPSL} />
     </PerpsOrderProvider>
   );
 };
