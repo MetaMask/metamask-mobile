@@ -578,6 +578,9 @@ export class BackgroundBridge extends EventEmitter {
     // messages before attempting to establish the connection meaning that it will
     // have listeners ready for this solana accountChanged event below.
     this.notifySolanaAccountChangedForCurrentAccount();
+    ///: BEGIN: ONLY_INCLUDE_IF(tron)
+    this.notifyTronAccountChangedForCurrentAccount();
+    ///: END: ONLY_INCLUDE_IF
 
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
@@ -947,7 +950,7 @@ export class BackgroundBridge extends EventEmitter {
     try {
       this.lastSelectedTronAccountAddress =
         AccountsController.getSelectedMultichainAccount(
-          'tron:0x2b6653dc', // TronScope.Mainnet
+          TrxScope.Mainnet,
         )?.address;
     } catch {
       // noop
