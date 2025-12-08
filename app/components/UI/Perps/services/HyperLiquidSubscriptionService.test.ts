@@ -3146,13 +3146,15 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Subscribe to market data for multiple symbols
-      const unsubscribe1 = await service.subscribeToMarketData({
-        symbol: 'BTC',
+      const unsubscribe1 = await service.subscribeToPrices({
+        symbols: ['BTC'],
         callback: marketDataCallback,
+        includeMarketData: true,
       });
-      const unsubscribe2 = await service.subscribeToMarketData({
-        symbol: 'ETH',
+      const unsubscribe2 = await service.subscribeToPrices({
+        symbols: ['ETH'],
         callback: marketDataCallback,
+        includeMarketData: true,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -3201,9 +3203,10 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Subscribe to market data with DEX symbol
-      const unsubscribe = await service.subscribeToMarketData({
-        symbol: 'BTC:UNISWAP',
-        callback,
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: jest.fn(),
+        includeMarketData: true,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -3280,9 +3283,10 @@ describe('HyperLiquidSubscriptionService', () => {
         new Error('Subscription failed'),
       );
 
-      const unsubscribe = await service.subscribeToMarketData({
-        symbol: 'BTC:UNISWAP',
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
         callback: jest.fn(),
+        includeMarketData: true,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -3345,9 +3349,10 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe2 = await service.subscribeToPositions({
         callback: positionCallback,
       });
-      const unsubscribe3 = await service.subscribeToMarketData({
-        symbol: 'ETH',
+      const unsubscribe3 = await service.subscribeToPrices({
+        symbols: ['ETH'],
         callback: allTypesMarketDataCallback,
+        includeMarketData: true,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 50));
