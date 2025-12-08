@@ -57,10 +57,22 @@ const storage = {
 const loginToIntercom = async (email = null) => {
   try {
     if (email) {
-      await Intercom.loginUserWithUserAttributes({ email });
+      await Intercom.loginUserWithUserAttributes({
+        email,
+        customAttributes: {
+          last_platform: Platform.OS,
+        },
+      });
     } else {
       await Intercom.loginUnidentifiedUser();
+      // For unidentified users, update platform after login
+      await Intercom.updateUser({
+        customAttributes: {
+          last_platform: Platform.OS,
+        },
+      });
     }
+    Logger.log(`[Intercom] Login completed with platform: ${Platform.OS}`);
   } catch (error) {
     Logger.error('Intercom login failed:', error);
   }
@@ -222,21 +234,6 @@ export const useIntercom = () => {
         await loginToIntercom(email);
         setIsLoggedIn(true);
       }
-
-      // Update platform in parallel with presenting (non-blocking)
-      Logger.log(`[Intercom] Starting platform update: ${Platform.OS}`);
-      Intercom.updateUser({
-        customAttributes: {
-          last_platform: Platform.OS,
-        },
-      })
-        .then(() => {
-          Logger.log(`[Intercom] Platform update completed: ${Platform.OS}`);
-        })
-        .catch((error) => {
-          Logger.error('[Intercom] Platform update failed:', error);
-        });
-
       Intercom.present();
     } else {
       setShowSheet(true);
