@@ -12,6 +12,7 @@ import {
   selectIsSolanaToNonSolana,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
+import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import {
   fromTokenMinimalUnit,
@@ -87,8 +88,17 @@ export const useBridgeQuoteData = ({
 
   const activeQuote = isExpired && !willRefresh ? undefined : bestQuote;
 
+  // Validate that the quote's destination asset matches the selected destination token
+  // This prevents showing stale quote data (with wrong decimals) when user changes destination token
+  const isQuoteDestTokenMatch = (() => {
+    if (!activeQuote || !destToken) return false;
+    const quoteDestAddress = activeQuote.quote.destAsset.address;
+    const selectedDestAddress = destToken.address;
+    return areAddressesEqual(quoteDestAddress, selectedDestAddress);
+  })();
+
   const destTokenAmount =
-    activeQuote && destToken
+    activeQuote && destToken && isQuoteDestTokenMatch
       ? fromTokenMinimalUnit(
           activeQuote.quote.destTokenAmount,
           destToken.decimals,
