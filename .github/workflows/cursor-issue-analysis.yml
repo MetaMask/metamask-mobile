@@ -16,7 +16,7 @@ jobs:
       contains(github.event.issue.labels.*.name, 'team-confirmations') &&
       (contains(github.event.issue.labels.*.name, 'Sev1-high') || contains(github.event.issue.labels.*.name, 'Sev2-normal'))
     steps:
-      - name: Check for existing @cursor comment
+      - name: Check for existing analysis comment
         id: check-comment
         uses: actions/github-script@v6
         with:
@@ -27,31 +27,65 @@ jobs:
               issue_number: context.issue.number
             });
 
-            const hasCursorComment = comments.some(comment => 
-              comment.body.trim().startsWith('@cursor')
+            const hasAnalysis = comments.some(comment => 
+              comment.body.includes('## Cursor Analysis')
             );
 
-            core.setOutput('exists', hasCursorComment);
-            return hasCursorComment;
+            core.setOutput('exists', hasAnalysis);
 
       - name: Checkout repository
         if: steps.check-comment.outputs.exists != 'true'
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: .github/cursorPrompts
-          sparse-checkout-cone-mode: false
 
-      - name: Add @cursor analysis comment
+      - name: Install Cursor CLI
+        if: steps.check-comment.outputs.exists != 'true'
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+
+      - name: Fetch issue details
+        if: steps.check-comment.outputs.exists != 'true'
+        id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE_CONTENT=$(gh issue view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json title,body,comments,labels)
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$ISSUE_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run Cursor Analysis
+        if: steps.check-comment.outputs.exists != 'true'
+        id: analysis
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          PROMPT=$(cat .github/cursorPrompts/issue-analysis.md)
+          PROMPT="$PROMPT
+
+          Issue details (JSON):
+          ${{ steps.issue.outputs.content }}"
+          ANALYSIS=$(cursor-agent -p "$PROMPT")
+
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          echo "$ANALYSIS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post analysis comment
         if: steps.check-comment.outputs.exists != 'true'
         uses: actions/github-script@v6
         with:
           script: |
-            const fs = require('fs');
-            const body = fs.readFileSync('.github/cursorPrompts/issue-analysis.md', 'utf8');
+            const analysis = `## Cursor Analysis
+
+            ${{ steps.analysis.outputs.result }}
+
+            ---
+            *Automated analysis by Cursor CLI*`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: body
+              body: analysis
             });
