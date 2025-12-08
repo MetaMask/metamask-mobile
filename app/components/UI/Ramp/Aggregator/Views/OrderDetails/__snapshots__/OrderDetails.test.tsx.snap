@@ -603,9 +603,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -1429,49 +1428,34 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Start a new order
@@ -2116,9 +2100,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -2942,49 +2925,34 @@ exports[`OrderDetails renders a completed order 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Start a new order
@@ -3644,9 +3612,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -5087,9 +5054,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -5913,49 +5879,34 @@ exports[`OrderDetails renders a failed order 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Start a new order
@@ -6615,9 +6566,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -8511,49 +8461,34 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Try again
@@ -9228,9 +9163,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -10066,49 +10000,34 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      [
-                                        [
-                                          {
-                                            "borderRadius": 12,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#4459ff",
-                                            "minHeight": 50,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "#121314",
+                                        "borderRadius": 12,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          [
-                                            {
-                                              "fontFamily": "Geist Bold",
-                                              "fontSize": 14,
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#ffffff",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        {
+                                          "color": "#ffffff",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       Continue this order
@@ -10781,9 +10700,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -11626,49 +11544,34 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  activeOpacity={0.2}
+                                  activeOpacity={1}
                                   onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      [
-                                        {
-                                          "borderRadius": 12,
-                                          "justifyContent": "center",
-                                          "padding": 15,
-                                        },
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "minHeight": 50,
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
-                                          "textAlign": "center",
-                                        },
-                                        null,
-                                        [
-                                          {
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 14,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#ffffff",
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
                                     }
                                   >
                                     Start a new order
@@ -12328,9 +12231,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {
@@ -13819,9 +13721,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           [
                                             {
-                                              "borderColor": "#b7bbc8",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 8,
-                                              "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             {

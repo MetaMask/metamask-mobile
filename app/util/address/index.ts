@@ -4,6 +4,11 @@ import {
   isValidChecksumAddress,
   isHexPrefixed,
 } from 'ethereumjs-util';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+import {
+  isBtcMainnetAddress,
+  isTronAddress,
+} from '../../core/Multichain/utils';
 import {
   getChecksumAddress,
   type Hex,
@@ -462,7 +467,7 @@ export function getAddressAccountType(address: string) {
   if (targetKeyring) {
     switch (targetKeyring.type) {
       case ExtendedKeyringTypes.qr:
-        return 'QR';
+        return 'QR Hardware';
       case ExtendedKeyringTypes.simple:
         return 'Imported';
       case ExtendedKeyringTypes.ledger:
@@ -777,13 +782,25 @@ export async function validateAddressOrENS(
     confusableCollection,
   };
 }
-/** Method to evaluate if an input is a valid ethereum address
+/** Method to evaluate if an input is a valid ethereum, solana, bitcoin, or tron address
  * via QR code scanning.
  *
  * @param {string} input - a random string.
  * @returns {boolean} indicates if the string is a valid input.
  */
 export function isValidAddressInputViaQRCode(input: string) {
+  if (isSolanaAddress(input)) {
+    return true;
+  }
+
+  if (isBtcMainnetAddress(input)) {
+    return true;
+  }
+
+  if (isTronAddress(input)) {
+    return true;
+  }
+
   if (input.includes(PROTOCOLS.ETHEREUM)) {
     const { pathname } = new URL(input);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

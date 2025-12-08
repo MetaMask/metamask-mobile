@@ -1085,6 +1085,7 @@ export class CardSDK {
     walletAddress: string,
     tokenAddress: string,
     delegationContractAddress: string,
+    cardNetwork: CardNetwork,
   ): Promise<string | null> => {
     try {
       const approvalInterface = new ethers.utils.Interface([
@@ -1102,7 +1103,7 @@ export class CardSDK {
       );
 
       const spendersDeployedBlock = 2715910; // Block where the delegation contracts were deployed
-      const ethersProvider = this.getEthersProvider('linea');
+      const ethersProvider = this.getEthersProvider(cardNetwork);
 
       // Get all approval logs for this specific wallet + token + spender combination
       const logs = await ethersProvider.getLogs({

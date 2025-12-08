@@ -792,7 +792,7 @@ exports[`ConfigurationModal render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Use a different payment provider
+                                    Switch to the classic version
                                   </Text>
                                 </View>
                               </View>

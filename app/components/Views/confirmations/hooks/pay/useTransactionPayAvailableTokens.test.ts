@@ -4,8 +4,10 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { AssetType, TokenStandard } from '../../types/token';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { getAvailableTokens } from '../../utils/transaction-pay';
 
 jest.mock('../send/useAccountTokens');
+jest.mock('../../utils/transaction-pay');
 
 const TOKEN_MOCK = {
   accountType: EthAccountType.Eoa,
@@ -25,7 +27,8 @@ describe('useTransactionPayAvailableTokens', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useAccountTokensMock.mockReturnValue([TOKEN_MOCK]);
+    useAccountTokensMock.mockReturnValue([]);
+    jest.mocked(getAvailableTokens).mockReturnValue([TOKEN_MOCK]);
   });
 
   it('returns available tokens', () => {

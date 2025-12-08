@@ -10,7 +10,11 @@ import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../components/ScreenLayout';
 import OrderDetail from '../../components/OrderDetails';
 import Row from '../../components/Row';
-import StyledButton from '../../../../StyledButton';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import {
   FiatOrder,
   getOrderById,
@@ -262,27 +266,29 @@ const OrderDetails = () => {
             !order.sellTxHash &&
             order.state === FIAT_ORDER_STATES.CREATED ? (
               <Row>
-                <StyledButton
-                  type="confirm"
+                <Button
+                  size={ButtonSize.Lg}
                   onPress={navigateToSendTransaction}
-                >
-                  {strings(
+                  label={strings(
                     'fiat_on_ramp_aggregator.order_details.continue_order',
                   )}
-                </StyledButton>
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                />
               </Row>
             ) : null}
 
             {order.state !== FIAT_ORDER_STATES.CREATED &&
               order.state !== FIAT_ORDER_STATES.PENDING && (
-                <StyledButton
-                  type="confirm"
+                <Button
+                  size={ButtonSize.Lg}
                   onPress={handleMakeAnotherPurchase}
-                >
-                  {strings(
+                  label={strings(
                     'fiat_on_ramp_aggregator.order_details.start_new_order',
                   )}
-                </StyledButton>
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                />
               )}
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

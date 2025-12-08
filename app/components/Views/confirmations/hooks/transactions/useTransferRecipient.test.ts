@@ -44,6 +44,25 @@ const erc20TransferState = merge({}, transferConfirmationState, {
   },
 });
 
+const nftSafeTransferState = merge({}, transferConfirmationState, {
+  engine: {
+    backgroundState: {
+      TransactionController: {
+        transactions: [
+          {
+            type: TransactionType.tokenMethodSafeTransferFrom,
+            txParams: {
+              // safeTransferFrom(address from, address to, uint256 tokenId)
+              data: '0x42842e0e000000000000000000000000dc47789de4ceff0e8fe9d15d728af7f17550c16400000000000000000000000097cb1fdd071da9960d38306c07f146bc98b2d3170000000000000000000000000000000000000000000000000000000000000001',
+              from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+            },
+          },
+        ],
+      },
+    },
+  },
+});
+
 const noNestedTransactionsState = merge({}, transferConfirmationState, {
   engine: {
     backgroundState: {
@@ -188,6 +207,14 @@ describe('useTransferRecipient', () => {
   it('returns the correct recipient for erc20 transfer', async () => {
     const { result } = renderHookWithProvider(() => useTransferRecipient(), {
       state: erc20TransferState,
+    });
+
+    expect(result.current).toBe('0x97cb1fdD071da9960d38306C07F146bc98b2D317');
+  });
+
+  it('returns the correct recipient for NFT safeTransferFrom', async () => {
+    const { result } = renderHookWithProvider(() => useTransferRecipient(), {
+      state: nftSafeTransferState,
     });
 
     expect(result.current).toBe('0x97cb1fdD071da9960d38306C07F146bc98b2D317');

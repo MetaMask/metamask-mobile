@@ -18,13 +18,21 @@ import { MetaMetrics } from '../../Analytics';
 export const profileMetricsControllerInit: ControllerInitFunction<
   ProfileMetricsController,
   ProfileMetricsControllerMessenger
-> = ({ controllerMessenger, persistedState, getController, metaMetricsId }) => {
+> = ({
+  controllerMessenger,
+  persistedState,
+  getController,
+  metaMetricsId,
+  getState,
+}) => {
   const remoteFeatureFlagController = getController(
     'RemoteFeatureFlagController',
   );
   const assertUserOptedIn = () =>
     remoteFeatureFlagController.state.remoteFeatureFlags.extensionUxPna25 ===
-      true && MetaMetrics.getInstance().isEnabled() === true;
+      true &&
+    MetaMetrics.getInstance().isEnabled() === true &&
+    getState().legalNotices.isPna25Acknowledged === true;
 
   const controller = new ProfileMetricsController({
     messenger: controllerMessenger,

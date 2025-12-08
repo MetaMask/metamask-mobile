@@ -316,6 +316,50 @@ describe('isValidAddressInputViaQRCode', () => {
     const mockInput = 'https://www.metamask.io';
     expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
   });
+
+  describe('Bitcoin mainnet addresses', () => {
+    it('should be valid for P2WPKH address (bc1)', () => {
+      const mockInput = 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be valid for P2PKH address (1)', () => {
+      const mockInput = '1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be invalid for testnet address', () => {
+      const mockInput = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+
+    it('should be invalid for regtest address', () => {
+      const mockInput = 'bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+  });
+
+  describe('Tron addresses', () => {
+    it('should be valid for Tron mainnet address', () => {
+      const mockInput = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be valid for another Tron mainnet address', () => {
+      const mockInput = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be invalid for invalid Tron address (wrong length)', () => {
+      const mockInput = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5w';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+
+    it('should be invalid for invalid Tron address (does not start with T)', () => {
+      const mockInput = 'RLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+  });
 });
 
 describe('stripHexPrefix', () => {
@@ -517,8 +561,8 @@ describe('getAddressAccountType', () => {
       'Invalid address: undefined',
     );
   });
-  it('should return QR if address is from a keyring type qr', () => {
-    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR');
+  it('should return QR Hardware if address is from a keyring type qr', () => {
+    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR Hardware');
   });
   it('should return imported if address is from a keyring type simple', () => {
     expect(getAddressAccountType(mockSimpleKeyringAddress)).toBe('Imported');

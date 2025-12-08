@@ -56,6 +56,7 @@ function getRecipientByType(
       return transactionTo;
     case TransactionType.tokenMethodTransfer:
     case TransactionType.tokenMethodTransferFrom:
+    case TransactionType.tokenMethodSafeTransferFrom:
       return getTransactionDataRecipient(data);
     default:
       return undefined;

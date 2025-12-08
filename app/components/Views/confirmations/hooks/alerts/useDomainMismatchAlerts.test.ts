@@ -14,7 +14,8 @@ describe('useDomainMismatchAlerts', () => {
   const ALERT_MOCK = {
     field: RowAlertKey.RequestFrom,
     key: AlertKeys.DomainMismatch,
-    message: `The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials.`,
+    message:
+      "The site making the request is not the site you're signing into. This could be an attempt to steal your login credentials.",
     title: 'Suspicious sign-in request',
     severity: Severity.Danger,
   };

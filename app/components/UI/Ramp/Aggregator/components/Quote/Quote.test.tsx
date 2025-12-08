@@ -124,7 +124,7 @@ describe('Quote Component', () => {
   });
 
   it('shows loading indicator when isLoading is true', () => {
-    const { getByTestId } = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <Quote
         quote={mockQuote}
         isLoading
@@ -134,7 +134,7 @@ describe('Quote Component', () => {
       { state: defaultState },
     );
 
-    expect(getByTestId('buy-button-loading')).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays previously used provider tag', () => {

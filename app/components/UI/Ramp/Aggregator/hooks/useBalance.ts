@@ -6,7 +6,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
+import { selectContractBalancesPerChainId } from '../../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
@@ -52,7 +52,7 @@ export default function useBalance(asset?: Asset) {
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const balances = useSelector(selectContractBalances);
+  const balancesPerChainId = useSelector(selectContractBalancesPerChainId);
 
   if (!asset || (!asset.address && !asset.assetId) || !selectedAddress) {
     return defaultReturn;
@@ -99,10 +99,13 @@ export default function useBalance(asset?: Asset) {
   } else if (asset.address) {
     const assetAddress = safeToChecksumAddress(asset.address);
     const exchangeRate = tokenExchangeRates?.[assetAddress as Hex]?.price;
+    // Use the asset's chainId to get balances for the correct chain
+    const hexChainId = asset.chainId ? toHex(asset.chainId) : undefined;
+    const chainBalances = hexChainId ? balancesPerChainId[hexChainId] : {};
     balance =
-      assetAddress && assetAddress in balances
+      assetAddress && chainBalances && assetAddress in chainBalances
         ? renderFromTokenMinimalUnit(
-            balances[assetAddress],
+            chainBalances[assetAddress],
             asset.decimals ?? 18,
           )
         : 0;
@@ -113,8 +116,8 @@ export default function useBalance(asset?: Asset) {
       currentCurrency,
     );
     balanceBN =
-      assetAddress && assetAddress in balances
-        ? hexToBN(balances[assetAddress])
+      assetAddress && chainBalances && assetAddress in chainBalances
+        ? hexToBN(chainBalances[assetAddress])
         : null;
   }
 

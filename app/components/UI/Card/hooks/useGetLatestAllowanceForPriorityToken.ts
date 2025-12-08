@@ -3,7 +3,10 @@ import { useCardSDK } from '../sdk';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import Logger from '../../../../util/Logger';
 import { ethers } from 'ethers';
-import { SPENDING_LIMIT_UNSUPPORTED_TOKENS } from '../constants';
+import {
+  caipChainIdToNetwork,
+  SPENDING_LIMIT_UNSUPPORTED_TOKENS,
+} from '../constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 /**
@@ -77,12 +80,14 @@ const useGetLatestAllowanceForPriorityToken = (
 
     setIsLoading(true);
     setError(null);
+    const cardNetwork = caipChainIdToNetwork[priorityToken.caipChainId];
 
     try {
       const rawLatestAllowance = await sdk.getLatestAllowanceFromLogs(
         priorityToken.walletAddress,
         tokenAddress,
         priorityToken.delegationContract,
+        cardNetwork ?? 'linea',
       );
 
       if (rawLatestAllowance) {

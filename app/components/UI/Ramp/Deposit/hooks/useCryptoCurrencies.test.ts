@@ -429,5 +429,102 @@ describe('useCryptoCurrencies', () => {
         cryptosWithMissing[0],
       );
     });
+
+    it('selects native token when intent has slip44 wildcard assetId', () => {
+      const intent = { assetId: 'eip155:1/slip44:.' };
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+          selectedCryptoCurrency: null,
+          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
+          intent,
+          setIntent: mockSetIntent,
+        }),
+      );
+
+      renderHook(() => useCryptoCurrencies());
+
+      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
+        MOCK_ETH_TOKEN,
+      );
+    });
+
+    it('selects native token when intent has slip44 wildcard with different chainId', () => {
+      const mockPolygonNativeToken = {
+        assetId: 'eip155:137/slip44:966',
+        chainId: 'eip155:137',
+        name: 'Polygon',
+        symbol: 'POL',
+        decimals: 18,
+        iconUrl: 'https://example.com/pol.png',
+      };
+      const cryptosWithPolygon = [
+        ...MOCK_CRYPTOCURRENCIES,
+        mockPolygonNativeToken,
+      ];
+      mockUseDepositSdkMethod.mockReturnValue([
+        { data: cryptosWithPolygon, error: null, isFetching: false },
+        mockRetryFetchCryptoCurrencies,
+      ]);
+      mockUseSelector.mockReturnValue({
+        ...mockNetworkConfigurations,
+        'eip155:137': { name: 'Polygon', chainId: '0x89' },
+      });
+
+      const intent = { assetId: 'eip155:137/slip44:.' };
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+          selectedCryptoCurrency: null,
+          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
+          intent,
+          setIntent: mockSetIntent,
+        }),
+      );
+
+      renderHook(() => useCryptoCurrencies());
+
+      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
+        mockPolygonNativeToken,
+      );
+    });
+
+    it('falls back to first token when slip44 wildcard does not match any native token', () => {
+      const intent = { assetId: 'eip155:999/slip44:.' };
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+          selectedCryptoCurrency: null,
+          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
+          intent,
+          setIntent: mockSetIntent,
+        }),
+      );
+
+      renderHook(() => useCryptoCurrencies());
+
+      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
+        MOCK_CRYPTOCURRENCIES[0],
+      );
+    });
+
+    it('prefers direct match over slip44 wildcard matching', () => {
+      const intent = { assetId: MOCK_USDC_TOKEN.assetId };
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+          selectedCryptoCurrency: null,
+          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
+          intent,
+          setIntent: mockSetIntent,
+        }),
+      );
+
+      renderHook(() => useCryptoCurrencies());
+
+      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
+        MOCK_USDC_TOKEN,
+      );
+    });
   });
 });

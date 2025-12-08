@@ -46,9 +46,16 @@ jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
+const mockGetAddressAccountType = jest.fn().mockReturnValue('MetaMask');
+const mockIsValidHexAddress = jest.fn().mockReturnValue(true);
+const mockIsHardwareAccount = jest.fn().mockReturnValue(false);
+
 jest.mock('../../../../util/address', () => ({
-  getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
-  isValidHexAddress: jest.fn().mockReturnValue(true),
+  ...jest.requireActual('../../../../util/address'),
+  getAddressAccountType: (...args: unknown[]) =>
+    mockGetAddressAccountType(...args),
+  isValidHexAddress: (...args: unknown[]) => mockIsValidHexAddress(...args),
+  isHardwareAccount: (...args: unknown[]) => mockIsHardwareAccount(...args),
 }));
 
 jest.mock('../../../../util/rpc-domain-utils', () => ({
@@ -295,6 +302,10 @@ describe('generateDefaultTransactionMetrics', () => {
       mockEventBuilder,
     );
 
+    mockGetAddressAccountType.mockReturnValue('MetaMask');
+    mockIsValidHexAddress.mockReturnValue(true);
+    mockIsHardwareAccount.mockReturnValue(false);
+
     mockNativeBalance('0x1', FROM_ADDRESS_MOCK, '0x0000000000000000000');
   });
 
@@ -309,6 +320,7 @@ describe('generateDefaultTransactionMetrics', () => {
       metametricsEvent: mockMetametricsEvent,
       properties: expect.objectContaining({
         account_eip7702_upgraded: undefined,
+        account_hardware_type: null,
         account_type: 'MetaMask',
         additional_property: 'test_value',
         chain_id: '0x1',
@@ -347,6 +359,7 @@ describe('generateDefaultTransactionMetrics', () => {
       metametricsEvent: mockMetametricsEvent,
       properties: expect.objectContaining({
         account_eip7702_upgraded: undefined,
+        account_hardware_type: null,
         account_type: 'MetaMask',
         chain_id: '0x1',
         dapp_host_name: 'N/A',
@@ -770,6 +783,7 @@ describe('generateDefaultTransactionMetrics', () => {
       expect(metrics.properties).toEqual(
         expect.objectContaining({
           account_eip7702_upgraded: undefined,
+          account_hardware_type: null,
           account_type: 'MetaMask',
           api_method: 'wallet_sendCalls',
           batch_transaction_count: 2,
@@ -808,6 +822,7 @@ describe('generateDefaultTransactionMetrics', () => {
       expect(metrics.properties).toEqual(
         expect.objectContaining({
           account_eip7702_upgraded: undefined,
+          account_hardware_type: null,
           account_type: 'MetaMask',
           chain_id: '0xaa36a7',
           dapp_host_name: 'metamask',
@@ -848,6 +863,7 @@ describe('generateDefaultTransactionMetrics', () => {
       expect(metrics.properties).toEqual(
         expect.objectContaining({
           account_eip7702_upgraded: undefined,
+          account_hardware_type: null,
           account_type: 'MetaMask',
           chain_id: '0xaa36a7',
           dapp_host_name: 'metamask',
@@ -884,6 +900,7 @@ describe('generateDefaultTransactionMetrics', () => {
         expect.objectContaining({
           account_eip7702_upgraded:
             '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
+          account_hardware_type: null,
           account_type: 'MetaMask',
           api_method: 'wallet_sendCalls',
           batch_transaction_count: 2,
@@ -906,6 +923,79 @@ describe('generateDefaultTransactionMetrics', () => {
           transaction_type: 'batch',
         }),
       );
+    });
+  });
+
+  describe('hardware wallet metrics', () => {
+    it('sets account_hardware_type to Ledger for Ledger hardware wallet', async () => {
+      mockIsHardwareAccount.mockReturnValue(true);
+      mockGetAddressAccountType.mockReturnValue('Ledger');
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('Ledger');
+      expect(result.properties.account_hardware_type).toBe('Ledger');
+    });
+
+    it('sets account_hardware_type to QR Hardware for QR hardware wallet', async () => {
+      mockIsHardwareAccount.mockReturnValue(true);
+      mockGetAddressAccountType.mockReturnValue('QR Hardware');
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('QR Hardware');
+      expect(result.properties.account_hardware_type).toBe('QR Hardware');
+    });
+
+    it('sets account_hardware_type to null for non-hardware wallet', async () => {
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockGetAddressAccountType.mockReturnValue('MetaMask');
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('MetaMask');
+      expect(result.properties.account_hardware_type).toBeNull();
+    });
+
+    it('sets account_type to unknown when from address is invalid', async () => {
+      mockIsValidHexAddress.mockReturnValue(false);
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('unknown');
+      expect(result.properties.account_hardware_type).toBeNull();
+    });
+
+    it('defaults to unknown account_type when getAddressAccountType throws', async () => {
+      mockIsValidHexAddress.mockReturnValue(true);
+      mockGetAddressAccountType.mockImplementation(() => {
+        throw new Error('Wallet locked');
+      });
+
+      const result = await generateDefaultTransactionMetrics(
+        mockMetametricsEvent,
+        mockTransactionMeta as TransactionMeta,
+        mockEventHandlerRequest as TransactionEventHandlerRequest,
+      );
+
+      expect(result.properties.account_type).toBe('unknown');
+      expect(result.properties.account_hardware_type).toBeNull();
     });
   });
 });

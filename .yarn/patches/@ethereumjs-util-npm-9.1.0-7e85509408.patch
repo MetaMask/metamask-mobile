@@ -1,0 +1,13 @@
+diff --git a/dist/cjs/account.js b/dist/cjs/account.js
+index 9c7b96d50a1e1e9a08463e0be74f1462576b8b53..04f390b50c11a10b20971bccb46d212978c2ac89 100644
+--- a/dist/cjs/account.js
++++ b/dist/cjs/account.js
+@@ -476,7 +476,7 @@ const pubToAddress = function (pubKey, sanitize = false) {
+     // Only take the lower 160bits of the hash
+     return (0, keccak_js_1.keccak256)(pubKey).subarray(-20);
+ };
+-exports.pubToAddress = pubToAddress;
++exports.pubToAddress = require('@metamask/native-utils').pubToAddress;
+ exports.publicToAddress = exports.pubToAddress;
+ /**
+  * Returns the ethereum public key of a given private key.

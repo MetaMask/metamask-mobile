@@ -9,6 +9,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
           "flexDirection": "row",
           "gap": 16,
           "justifyContent": "space-between",
+          "paddingTop": 14,
         },
         {
           "backgroundColor": "#f3f5f9",
@@ -288,10 +289,10 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
-              "height": 32,
+              "borderRadius": 20,
+              "height": 40,
               "overflow": "hidden",
-              "width": 32,
+              "width": 40,
             }
           }
           testID="receipt-token-balance-asset-logo"
@@ -484,6 +485,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
           "flexDirection": "row",
           "gap": 16,
           "justifyContent": "space-between",
+          "paddingTop": 14,
         },
         {
           "backgroundColor": "#f3f5f9",

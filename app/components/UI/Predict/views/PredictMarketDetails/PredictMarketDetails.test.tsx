@@ -2193,14 +2193,19 @@ describe('PredictMarketDetails', () => {
       it('requests higher fidelity when MAX history span is shorter than a month', async () => {
         const shortRangeHistory = buildPriceHistory(12 * 60 * 60 * 1000); // 12 hours
 
-        setupPredictMarketDetailsTest(
-          { status: 'closed' },
-          {},
-          { priceHistory: { priceHistories: shortRangeHistory } },
-        );
-
         const { usePredictPriceHistory } = jest.requireMock(
           '../../hooks/usePredictPriceHistory',
+        );
+
+        const { rerender } = setupPredictMarketDetailsTest(
+          { status: 'closed' },
+          {},
+          {
+            priceHistory: {
+              priceHistories: shortRangeHistory,
+              isFetching: true,
+            },
+          },
         );
 
         await waitFor(() => {
@@ -2209,17 +2214,37 @@ describe('PredictMarketDetails', () => {
               call[0]?.interval === PredictPriceHistoryInterval.MAX,
           );
           expect(maxCalls.length).toBeGreaterThan(0);
-          expect(
-            maxCalls.some(
-              (call: [UsePredictPriceHistoryOptions]) =>
-                call[0]?.fidelity === SHORT_RANGE_FIDELITY,
-            ),
-          ).toBe(true);
         });
-      });
+
+        usePredictPriceHistory.mockReturnValue({
+          priceHistories: shortRangeHistory,
+          isFetching: false,
+          errors: [],
+          refetch: jest.fn().mockResolvedValue(undefined),
+        });
+
+        await act(async () => {
+          rerender(<PredictMarketDetails />);
+        });
+        await waitFor(
+          () => {
+            const maxCalls = usePredictPriceHistory.mock.calls.filter(
+              (call: [UsePredictPriceHistoryOptions]) =>
+                call[0]?.interval === PredictPriceHistoryInterval.MAX,
+            );
+            expect(
+              maxCalls.some(
+                (call: [UsePredictPriceHistoryOptions]) =>
+                  call[0]?.fidelity === SHORT_RANGE_FIDELITY,
+              ),
+            ).toBe(true);
+          },
+          { timeout: 10000 },
+        );
+      }, 15000);
 
       it('keeps default MAX fidelity when history span exceeds the threshold', async () => {
-        const longRangeHistory = buildPriceHistory(45 * 24 * 60 * 60 * 1000); // 45 days
+        const longRangeHistory = buildPriceHistory(45 * 24 * 60 * 60 * 1000);
 
         setupPredictMarketDetailsTest(
           { status: 'closed' },
@@ -2237,6 +2262,37 @@ describe('PredictMarketDetails', () => {
               call[0]?.interval === PredictPriceHistoryInterval.MAX,
           );
           expect(maxCalls.length).toBeGreaterThan(0);
+          expect(
+            maxCalls.every(
+              (call: [UsePredictPriceHistoryOptions]) =>
+                call[0]?.fidelity === MAX_DEFAULT_FIDELITY,
+            ),
+          ).toBe(true);
+        });
+      });
+
+      it('handles empty price history gracefully', async () => {
+        // Empty price history should not cause errors
+        // The effect should wait for valid data before making fidelity decisions
+        setupPredictMarketDetailsTest(
+          { status: 'closed' },
+          {},
+          { priceHistory: { priceHistories: [[], []], isFetching: false } },
+        );
+
+        const { usePredictPriceHistory } = jest.requireMock(
+          '../../hooks/usePredictPriceHistory',
+        );
+
+        // omponent should still render and make MAX interval calls
+        // but fidelity adjustment won't happen until valid data is available
+        await waitFor(() => {
+          const maxCalls = usePredictPriceHistory.mock.calls.filter(
+            (call: [UsePredictPriceHistoryOptions]) =>
+              call[0]?.interval === PredictPriceHistoryInterval.MAX,
+          );
+          expect(maxCalls.length).toBeGreaterThan(0);
+          // Should use default MAX fidelity since no valid range data available
           expect(
             maxCalls.every(
               (call: [UsePredictPriceHistoryOptions]) =>

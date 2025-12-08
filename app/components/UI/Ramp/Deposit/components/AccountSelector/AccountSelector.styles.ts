@@ -10,7 +10,7 @@ const stylesheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       gap: 10,
       alignItems: 'center',
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: 12,
       padding: 8,
       borderWidth: 1,

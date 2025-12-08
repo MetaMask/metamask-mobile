@@ -64,7 +64,7 @@ describe('SdkErrorAlert', () => {
       />,
     );
 
-    const retryButton = screen.getByText('Try Again');
+    const retryButton = screen.getByText('Try again');
     fireEvent.press(retryButton);
 
     expect(mockRetry).toHaveBeenCalledTimes(1);

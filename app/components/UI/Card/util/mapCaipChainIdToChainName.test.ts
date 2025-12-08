@@ -1,14 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
 import { mapCaipChainIdToChainName } from './mapCaipChainIdToChainName';
-import { CardNetwork } from '../types';
-
-jest.mock('../constants', () => ({
-  caipChainIdToNetwork: {
-    'eip155:59144': 'linea',
-    'eip155:8453': 'base',
-    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
-  } as Record<CaipChainId, CardNetwork>,
-}));
 
 describe('mapCaipChainIdToChainName', () => {
   describe('mapped chain IDs', () => {

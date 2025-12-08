@@ -125,19 +125,20 @@ describe('PerpsAdjustMarginActionSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders reduce margin option', () => {
-    render(
-      <PerpsAdjustMarginActionSheet
-        onClose={mockOnClose}
-        onSelectAction={mockOnSelectAction}
-      />,
-    );
+  // TODO: Re-enable when remove margin feature is re-enabled
+  // it('renders reduce margin option', () => {
+  //   render(
+  //     <PerpsAdjustMarginActionSheet
+  //       onClose={mockOnClose}
+  //       onSelectAction={mockOnSelectAction}
+  //     />,
+  //   );
 
-    expect(screen.getByText('Remove Margin')).toBeOnTheScreen();
-    expect(
-      screen.getByText('Withdraw excess margin from position'),
-    ).toBeOnTheScreen();
-  });
+  //   expect(screen.getByText('Remove Margin')).toBeOnTheScreen();
+  //   expect(
+  //     screen.getByText('Withdraw excess margin from position'),
+  //   ).toBeOnTheScreen();
+  // });
 
   it('calls onSelectAction with add_margin when add margin is pressed', () => {
     render(
@@ -152,18 +153,19 @@ describe('PerpsAdjustMarginActionSheet', () => {
     expect(mockOnSelectAction).toHaveBeenCalledWith('add_margin');
   });
 
-  it('calls onSelectAction with reduce_margin when reduce margin is pressed', () => {
-    render(
-      <PerpsAdjustMarginActionSheet
-        onClose={mockOnClose}
-        onSelectAction={mockOnSelectAction}
-      />,
-    );
+  // TODO: Re-enable when remove margin feature is re-enabled
+  // it('calls onSelectAction with reduce_margin when reduce margin is pressed', () => {
+  //   render(
+  //     <PerpsAdjustMarginActionSheet
+  //       onClose={mockOnClose}
+  //       onSelectAction={mockOnSelectAction}
+  //     />,
+  //   );
 
-    fireEvent.press(screen.getByText('Remove Margin'));
+  //   fireEvent.press(screen.getByText('Remove Margin'));
 
-    expect(mockOnSelectAction).toHaveBeenCalledWith('reduce_margin');
-  });
+  //   expect(mockOnSelectAction).toHaveBeenCalledWith('reduce_margin');
+  // });
 
   it('calls onClose when action is selected', () => {
     render(

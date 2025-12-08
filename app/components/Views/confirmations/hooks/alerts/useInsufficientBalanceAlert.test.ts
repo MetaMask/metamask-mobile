@@ -10,7 +10,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useConfirmActions } from '../useConfirmActions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
@@ -23,6 +22,8 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -48,6 +49,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../selectors/preferencesController');
+jest.mock('../useHasInsufficientBalance');
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayToken');
@@ -71,8 +74,8 @@ describe('useInsufficientBalanceAlert', () => {
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
-  const mockSelectNetworkConfigurations = jest.mocked(
-    selectNetworkConfigurations,
+  const mockSelectUseTransactionSimulations = jest.mocked(
+    selectUseTransactionSimulations,
   );
   const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
@@ -83,6 +86,7 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionPayRequiredTokens,
   );
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useHasInsufficientBalanceMock = jest.mocked(useHasInsufficientBalance);
 
   const mockChainId = '0x1' as Hex;
   const mockFromAddress = '0x123';
@@ -103,16 +107,13 @@ describe('useInsufficientBalanceAlert', () => {
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: false,
       isSupported: false,
+      pending: false,
     });
     mockUseAccountNativeBalance.mockReturnValue({
       balanceWeiInHex: '0x8', // 8 wei
     } as unknown as ReturnType<typeof useAccountNativeBalance>);
     mockUseTransactionMetadataRequest.mockReturnValue(mockTransaction);
-    mockSelectNetworkConfigurations.mockReturnValue({
-      [mockChainId]: {
-        nativeCurrency: mockNativeCurrency,
-      },
-    } as unknown as ReturnType<typeof selectNetworkConfigurations>);
+    mockSelectUseTransactionSimulations.mockReturnValue(false);
     mockUseTransactionPayToken.mockReturnValue({
       payToken: undefined,
       setPayToken: noop as never,
@@ -149,6 +150,11 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
       setPayToken: jest.fn(),
+    });
+
+    useHasInsufficientBalanceMock.mockReturnValue({
+      hasInsufficientBalance: true,
+      nativeCurrency: mockNativeCurrency,
     });
   });
 
@@ -220,17 +226,6 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
   });
 
-  it('return empty array when balance is sufficient for value and gas', () => {
-    // Transaction needs: value (5) + (maxFeePerGas (3) * gas (2)) = 11 wei
-    // Balance is 12 wei, no alert
-    mockUseAccountNativeBalance.mockReturnValue({
-      balanceWeiInHex: '0xC',
-    } as unknown as ReturnType<typeof useAccountNativeBalance>);
-
-    const { result } = renderHook(() => useInsufficientBalanceAlert());
-    expect(result.current).toEqual([]);
-  });
-
   it('handle transaction with no value but with gas fees', () => {
     const txWithNoValue = {
       ...mockTransaction,
@@ -297,9 +292,10 @@ describe('useInsufficientBalanceAlert', () => {
 
   describe('when ignoreGasFeeToken is true', () => {
     it('returns empty array', () => {
-      mockUseAccountNativeBalance.mockReturnValue({
-        balanceWeiInHex: '0xC',
-      } as unknown as ReturnType<typeof useAccountNativeBalance>);
+      useHasInsufficientBalanceMock.mockReturnValue({
+        hasInsufficientBalance: false,
+        nativeCurrency: mockNativeCurrency,
+      });
 
       const { result } = renderHook(() =>
         useInsufficientBalanceAlert({ ignoreGasFeeToken: true }),
@@ -332,6 +328,11 @@ describe('useInsufficientBalanceAlert', () => {
 
   describe('when isGasFeeSponsored is true', () => {
     it('returns empty array', () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: true,
+        isSupported: true,
+        pending: false,
+      });
       mockUseAccountNativeBalance.mockReturnValue({
         balanceWeiInHex: '0xC',
       } as unknown as ReturnType<typeof useAccountNativeBalance>);

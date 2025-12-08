@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       gap: 8,
       paddingVertical: 24,

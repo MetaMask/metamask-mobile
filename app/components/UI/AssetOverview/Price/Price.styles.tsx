@@ -16,7 +16,13 @@ const styleSheet = (params: {
     wrapper: {
       paddingHorizontal: 16,
     },
+    priceDiffContainer: {
+      flexDirection: 'row',
+      flexWrap: 'nowrap',
+      overflow: 'hidden',
+    },
     priceDiff: {
+      flexShrink: 1,
       color:
         priceDiff > 0
           ? colors.success.default
