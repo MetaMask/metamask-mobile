@@ -33,6 +33,7 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
     state: persistedState.RemoteFeatureFlagController,
     disabled,
     getMetaMetricsId: () => metaMetricsId,
+    // @ts-expect-error - clientVersion is required by the controller but not in the type definition
     clientVersion: getBaseSemVerVersion(),
     clientConfigApiService: new ClientConfigApiService({
       fetch,

@@ -34,6 +34,10 @@ import {
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
 import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../../hooks/useFeatureFlag';
 import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
 import {
   MetaMetricsEvents,

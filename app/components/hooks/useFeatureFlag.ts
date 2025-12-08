@@ -5,6 +5,8 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 export enum FeatureFlagNames {
   rewardsEnabled = 'rewardsEnabled',
   otaUpdatesEnabled = 'otaUpdatesEnabled',
+  rewardsEnableMusdHolding = 'rewardsEnableMusdHolding',
+  fullPageAccountList = 'fullPageAccountList',
 }
 
 export const useFeatureFlag = (key: FeatureFlagNames) => {
