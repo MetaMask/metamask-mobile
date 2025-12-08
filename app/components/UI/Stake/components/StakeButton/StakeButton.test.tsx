@@ -140,6 +140,7 @@ const mockUseMusdConversionTokens =
 mockUseMusdConversionTokens.mockReturnValue({
   isConversionToken: jest.fn().mockReturnValue(false),
   tokenFilter: jest.fn(),
+  isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
   tokens: [],
 });
 
@@ -498,6 +499,7 @@ describe('StakeButton', () => {
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(false),
         tokenFilter: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         tokens: [],
       });
     });
@@ -516,6 +518,7 @@ describe('StakeButton', () => {
             asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
         ),
         tokenFilter: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         tokens: [],
       });
 
@@ -547,6 +550,7 @@ describe('StakeButton', () => {
             asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
         ),
         tokenFilter: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         tokens: [],
       });
 
@@ -589,6 +593,7 @@ describe('StakeButton', () => {
             asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
         ),
         tokenFilter: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         tokens: [],
       });
 
@@ -626,6 +631,7 @@ describe('StakeButton', () => {
             asset?.chainId === MOCK_USDC_MAINNET_ASSET.chainId,
         ),
         tokenFilter: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         tokens: [],
       });
 
