@@ -1891,10 +1891,28 @@ describe('polymarket utils', () => {
       ...overrides,
     });
 
+    const createTestEvent = (
+      overrides: Partial<PolymarketApiEvent> = {},
+    ): PolymarketApiEvent => ({
+      id: 'event-1',
+      slug: 'test-event',
+      title: 'Test Event',
+      description: 'A test event',
+      icon: 'https://example.com/icon.png',
+      closed: false,
+      tags: [],
+      series: [],
+      markets: [],
+      liquidity: 1000,
+      volume: 5000,
+      ...overrides,
+    });
+
     it('parses market to PredictOutcome correctly', () => {
       const market = createMarket();
+      const event = createTestEvent();
 
-      const result = parsePolymarketMarket(market, 'event-1');
+      const result = parsePolymarketMarket(market, event);
 
       expect(result).toEqual({
         id: 'market-1',
@@ -1919,16 +1937,18 @@ describe('polymarket utils', () => {
 
     it('uses image when icon is not available', () => {
       const market = createMarket({ icon: undefined as any });
+      const event = createTestEvent();
 
-      const result = parsePolymarketMarket(market, 'event-1');
+      const result = parsePolymarketMarket(market, event);
 
       expect(result.image).toBe('https://example.com/image.png');
     });
 
     it('returns closed status for closed markets', () => {
       const market = createMarket({ closed: true });
+      const event = createTestEvent();
 
-      const result = parsePolymarketMarket(market, 'event-1');
+      const result = parsePolymarketMarket(market, event);
 
       expect(result.status).toBe('closed');
     });
@@ -1938,8 +1958,9 @@ describe('polymarket utils', () => {
         sportsMarketType: 'spreads',
         groupItemTitle: 'Team A -3.5',
       });
+      const event = createTestEvent({ title: 'Team A vs. Team B' });
 
-      const result = parsePolymarketMarket(market, 'event-1');
+      const result = parsePolymarketMarket(market, event);
 
       expect(result.groupItemTitle).toBe('Team A 3.5');
     });
@@ -1950,9 +1971,11 @@ describe('polymarket utils', () => {
         line: 3.5,
         outcomes: '["Team A", "Team B"]',
       });
+      const event = createTestEvent({ title: 'Team A vs. Team B' });
 
-      const result = parsePolymarketMarket(market, 'event-1');
+      const result = parsePolymarketMarket(market, event);
 
+      // Team A comes first (from event title split)
       expect(result.tokens[0].title).toBe('Team A -3.5');
       expect(result.tokens[1].title).toBe('Team B +3.5');
     });
@@ -1962,8 +1985,9 @@ describe('polymarket utils', () => {
         sportsMarketType: 'spreads',
         outcomes: '["Team A", "Team B"]',
       });
+      const event = createTestEvent({ title: 'Team A vs. Team B' });
 
-      const result = parsePolymarketMarket(market, 'event-1');
+      const result = parsePolymarketMarket(market, event);
 
       expect(result.tokens[0].title).toBe('Team A ');
       expect(result.tokens[1].title).toBe('Team B ');
@@ -1971,10 +1995,28 @@ describe('polymarket utils', () => {
 
     it('handles undefined volumeNum as 0', () => {
       const market = createMarket({ volumeNum: undefined as any });
+      const event = createTestEvent();
 
-      const result = parsePolymarketMarket(market, 'event-1');
+      const result = parsePolymarketMarket(market, event);
 
       expect(result.volume).toBe(0);
+    });
+
+    it('sorts spread market outcome tokens with teamA first', () => {
+      const market = createMarket({
+        sportsMarketType: 'spreads',
+        line: 3.5,
+        clobTokenIds: '["token-b", "token-a"]',
+        outcomes: '["Team B", "Team A"]',
+        outcomePrices: '["0.4", "0.6"]',
+      });
+      const event = createTestEvent({ title: 'Team A vs. Team B' });
+
+      const result = parsePolymarketMarket(market, event);
+
+      // Team A should be sorted first based on event title
+      expect(result.tokens[0].title).toBe('Team A +3.5');
+      expect(result.tokens[1].title).toBe('Team B -3.5');
     });
   });
 

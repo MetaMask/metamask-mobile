@@ -434,8 +434,31 @@ const formatOutcomeTitles = (market: PolymarketApiMarket): string[] => {
   return outcomes;
 };
 
+const sortOutcomeTokens = (
+  outcomeTokens: PredictOutcomeToken[],
+  market: PolymarketApiMarket,
+  event: PolymarketApiEvent,
+): PredictOutcomeToken[] => {
+  if (isSpreadMarket(market)) {
+    const teamA = event.title.split(' vs. ')[0];
+    return [...outcomeTokens].sort((a, b) => {
+      // teamA should come first
+      if (a.title.includes(teamA)) {
+        return -1;
+      }
+      if (b.title.includes(teamA)) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
+  return outcomeTokens;
+};
+
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
+  event: PolymarketApiEvent,
 ): PredictOutcomeToken[] => {
   const outcomeTokensIds = market.clobTokenIds
     ? JSON.parse(market.clobTokenIds)
@@ -444,11 +467,14 @@ const parsePolymarketMarketOutcomes = (
   const outcomePrices = market.outcomePrices
     ? JSON.parse(market.outcomePrices)
     : [];
-  return outcomeTokensIds.map((tokenId: string, index: number) => ({
-    id: tokenId,
-    title: outcomes[index],
-    price: parseFloat(outcomePrices[index]),
-  }));
+  const outcomeTokens = outcomeTokensIds.map(
+    (tokenId: string, index: number) => ({
+      id: tokenId,
+      title: outcomes[index],
+      price: parseFloat(outcomePrices[index]),
+    }),
+  );
+  return sortOutcomeTokens(outcomeTokens, market, event);
 };
 
 /**
@@ -547,18 +573,18 @@ export const sortMarkets = (
 
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
-  eventId: string,
+  event: PolymarketApiEvent,
 ): PredictOutcome => ({
   id: market.conditionId,
   providerId: 'polymarket',
-  marketId: eventId,
+  marketId: event.id,
   title: market.question,
   description: market.description,
   image: market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
   volume: market.volumeNum ?? 0,
-  tokens: parsePolymarketMarketOutcomes(market),
+  tokens: parsePolymarketMarketOutcomes(market, event),
   negRisk: market.negRisk,
   tickSize: market.orderPriceMinTickSize.toString(),
   resolvedBy: market.resolvedBy,
@@ -588,7 +614,7 @@ export const parsePolymarketEvents = (
       outcomes: sortMarkets(event, sortMarketsBy)
         .filter((market: PolymarketApiMarket) => market.active !== false)
         .map((market: PolymarketApiMarket) =>
-          parsePolymarketMarket(market, event.id),
+          parsePolymarketMarket(market, event),
         ),
       liquidity: event.liquidity,
       volume: event.volume,
