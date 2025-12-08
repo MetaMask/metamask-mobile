@@ -79,7 +79,7 @@ describe('SecureKeychain - setGenericPassword', () => {
       'metamask-user',
       expect.any(String),
       expect.objectContaining({
-        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY,
       }),
     );
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(BIOMETRY_CHOICE, TRUE);
