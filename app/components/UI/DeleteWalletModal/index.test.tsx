@@ -9,7 +9,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
 import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
-import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
+import {
+  SET_COMPLETED_ONBOARDING,
+  SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION,
+} from '../../../actions/onboarding';
 import { InteractionManager } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
@@ -185,6 +188,24 @@ describe('DeleteWalletModal', () => {
         }),
       );
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
+    });
+
+    it('resets seedlessOnboardingMigrationVersion to 0 when deleting the wallet', async () => {
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      fireEvent.press(
+        getByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId(ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON),
+      );
+
+      expect(mockUseDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION,
+          version: 0,
+        }),
+      );
     });
   });
 

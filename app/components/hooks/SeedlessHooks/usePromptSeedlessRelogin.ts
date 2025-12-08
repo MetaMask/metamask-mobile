@@ -10,7 +10,10 @@ import storageWrapper from '../../../store/storage-wrapper';
 import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import { clearHistory } from '../../../actions/browser';
 import { strings } from '../../../../locales/i18n';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  setSeedlessOnboardingMigrationVersion,
+} from '../../../actions/onboarding';
 import { useDeleteWallet } from '../DeleteWallet';
 import Logger from '../../../util/Logger';
 
@@ -62,6 +65,7 @@ const usePromptSeedlessRelogin = () => {
     await deleteUser();
     await storageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     dispatch(setCompletedOnboarding(false));
+    dispatch(setSeedlessOnboardingMigrationVersion(0));
     navigateOnboardingRoot();
     setIsDeletingInProgress(false);
   }, [

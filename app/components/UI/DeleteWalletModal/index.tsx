@@ -14,7 +14,10 @@ import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
 import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  setSeedlessOnboardingMigrationVersion,
+} from '../../../actions/onboarding';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
@@ -119,6 +122,7 @@ const DeleteWalletModal: React.FC = () => {
       await deleteUser();
       await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
       dispatch(setCompletedOnboarding(false));
+      dispatch(setSeedlessOnboardingMigrationVersion(0));
       // Track analytics for successful deletion
       track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
       InteractionManager.runAfterInteractions(() => {

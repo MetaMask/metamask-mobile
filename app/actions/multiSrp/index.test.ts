@@ -11,7 +11,10 @@ import { createMockInternalAccount } from '../../util/test/accountsControllerTes
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import {
+  SecretType,
+  EncAccountDataType,
+} from '@metamask/seedless-onboarding-controller';
 import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 
@@ -125,8 +128,8 @@ jest.mock('../../core/Engine', () => ({
       addNewSecretData: (
         seed: Uint8Array,
         type: SecretType,
-        keyringId: string,
-      ) => mockAddNewSecretData(seed, type, keyringId),
+        options: { keyringId: string; dataType?: EncAccountDataType },
+      ) => mockAddNewSecretData(seed, type, options),
     },
     AccountTreeController: {
       syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
@@ -334,6 +337,7 @@ describe('MultiSRP Actions', () => {
           SecretType.Mnemonic,
           {
             keyringId: 'keyring-id-123',
+            dataType: EncAccountDataType.ImportedSrp,
           },
         );
         expect(mockEndTrace).toHaveBeenCalledWith({
@@ -362,6 +366,7 @@ describe('MultiSRP Actions', () => {
           SecretType.Mnemonic,
           {
             keyringId: 'keyring-id-123',
+            dataType: EncAccountDataType.ImportedSrp,
           },
         );
         expect(mockTrace).toHaveBeenCalledWith({
@@ -399,6 +404,7 @@ describe('MultiSRP Actions', () => {
         SecretType.Mnemonic,
         {
           keyringId: 'test-keyring-id',
+          dataType: EncAccountDataType.ImportedSrp,
         },
       );
       expect(result).toEqual({

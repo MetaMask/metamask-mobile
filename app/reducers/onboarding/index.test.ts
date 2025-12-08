@@ -3,6 +3,8 @@ import {
   CLEAR_EVENTS,
   SAVE_EVENT,
   SET_COMPLETED_ONBOARDING,
+  SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION,
+  SeedlessOnboardingMigrationVersion,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 
@@ -10,6 +12,7 @@ describe('onboardingReducer', () => {
   const initialState = {
     events: [],
     completedOnboarding: false,
+    seedlessOnboardingMigrationVersion: 0,
   };
 
   it('returns the initial state when no action is provided', () => {
@@ -34,12 +37,23 @@ describe('onboardingReducer', () => {
     expect(state.events).toEqual([]);
   });
 
-  it('handle the SET_COMPLETED_ONBOARDING action', () => {
+  it('handles the SET_COMPLETED_ONBOARDING action', () => {
     const action = {
       type: SET_COMPLETED_ONBOARDING,
       completedOnboarding: true,
     } as const;
     const state = onboardingReducer(initialState, action);
     expect(state.completedOnboarding).toBe(true);
+  });
+
+  it('handles the SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION action', () => {
+    const action = {
+      type: SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION,
+      version: SeedlessOnboardingMigrationVersion.DataType,
+    } as const;
+    const state = onboardingReducer(initialState, action);
+    expect(state.seedlessOnboardingMigrationVersion).toBe(
+      SeedlessOnboardingMigrationVersion.DataType,
+    );
   });
 });

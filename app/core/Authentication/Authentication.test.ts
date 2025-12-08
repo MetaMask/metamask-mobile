@@ -25,6 +25,7 @@ import {
   SecretType,
   SeedlessOnboardingController,
   SeedlessOnboardingControllerErrorMessage,
+  EncAccountDataType,
 } from '@metamask/seedless-onboarding-controller';
 import {
   KeyringController,
@@ -58,6 +59,27 @@ jest.mock('../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
   selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountId: jest.fn(),
+}));
+
+// Mock onboarding selectors and actions for migration tests
+const mockSelectCompletedOnboarding = jest.fn().mockReturnValue(true);
+const mockSelectSeedlessOnboardingMigrationVersion = jest
+  .fn()
+  .mockReturnValue(1);
+const mockSetSeedlessOnboardingMigrationVersion = jest.fn();
+
+jest.mock('../../selectors/onboarding', () => ({
+  selectCompletedOnboarding: () => mockSelectCompletedOnboarding(),
+  selectSeedlessOnboardingMigrationVersion: () =>
+    mockSelectSeedlessOnboardingMigrationVersion(),
+}));
+
+jest.mock('../../actions/onboarding', () => ({
+  setSeedlessOnboardingMigrationVersion: (version: number) =>
+    mockSetSeedlessOnboardingMigrationVersion(version),
+  SeedlessOnboardingMigrationVersion: {
+    DataType: 1,
+  },
 }));
 
 jest.useFakeTimers();
@@ -1166,7 +1188,7 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
-    it('calls dispatchOauthReset on successful backup', async () => {
+    it('calls dispatchOauthReset and sets migration version on successful backup', async () => {
       const Engine = jest.requireMock('../Engine');
       const OAuthService = jest.requireMock('../OAuthService/OAuthService');
 
@@ -1202,6 +1224,7 @@ describe('Authentication', () => {
       await Authentication.createAndBackupSeedPhrase('test-password');
 
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
+      expect(mockSetSeedlessOnboardingMigrationVersion).toHaveBeenCalledWith(1);
 
       createWalletSpy.mockRestore();
     });
@@ -2514,13 +2537,14 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.addNewSecretData,
       ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
         keyringId: mockImportedAddress,
+        dataType: EncAccountDataType.ImportedPrivateKey,
       });
       expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
         mockImportedAddress,
       );
     });
 
-    it('import account from private key with seedless flow but no social backup', async () => {
+    it('imports account from private key with seedless flow but no social backup', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: false,
@@ -2578,7 +2602,7 @@ describe('Authentication', () => {
       ).rejects.toThrow('Failed to import account');
     });
 
-    it('handle SeedlessOnboardingController.addNewSecretData failure and revert import', async () => {
+    it('handles SeedlessOnboardingController.addNewSecretData failure and reverts import', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: true,
@@ -2729,7 +2753,7 @@ describe('Authentication', () => {
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
     });
 
-    it('add private key backup with social sync', async () => {
+    it('adds private key backup with social sync', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -2742,13 +2766,14 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.addNewSecretData,
       ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
         keyringId: mockKeyringId,
+        dataType: EncAccountDataType.ImportedPrivateKey,
       });
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
     });
 
-    it('add private key backup without social sync', async () => {
+    it('adds private key backup without social sync', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -2769,7 +2794,7 @@ describe('Authentication', () => {
       });
     });
 
-    it('use default syncWithSocial value (true)', async () => {
+    it('uses default syncWithSocial value (true)', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -2781,13 +2806,14 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.addNewSecretData,
       ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
         keyringId: mockKeyringId,
+        dataType: EncAccountDataType.ImportedPrivateKey,
       });
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
     });
 
-    it('handle private key without 0x prefix', async () => {
+    it('handles private key without 0x prefix', async () => {
       // Arrange
       const privateKeyWithoutPrefix =
         '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
@@ -2804,10 +2830,11 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.addNewSecretData,
       ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
         keyringId: mockKeyringId,
+        dataType: EncAccountDataType.ImportedPrivateKey,
       });
     });
 
-    it('handle SeedlessOnboardingController.addNewSecretData failure', async () => {
+    it('handles SeedlessOnboardingController.addNewSecretData failure', async () => {
       // Arrange
       const error = new Error('Failed to add secret data');
       Engine.context.SeedlessOnboardingController.addNewSecretData.mockRejectedValue(
@@ -3164,6 +3191,186 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
+    });
+  });
+
+  describe('runSeedlessOnboardingMigrations', () => {
+    const Engine = jest.requireMock('../Engine');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectCompletedOnboarding.mockReturnValue(true);
+      mockSelectSeedlessOnboardingMigrationVersion.mockReturnValue(0);
+      Engine.context.SeedlessOnboardingController = {
+        fetchAllSecretData: jest.fn().mockResolvedValue([]),
+      };
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(),
+      } as unknown as ReduxStore);
+    });
+
+    it('runs migration when version is below DataType', async () => {
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).toHaveBeenCalled();
+      expect(mockSetSeedlessOnboardingMigrationVersion).toHaveBeenCalledWith(1);
+    });
+
+    it('skips migration when version is already at DataType', async () => {
+      mockSelectSeedlessOnboardingMigrationVersion.mockReturnValue(1);
+
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).not.toHaveBeenCalled();
+      expect(mockSetSeedlessOnboardingMigrationVersion).not.toHaveBeenCalled();
+    });
+
+    it('skips migration when onboarding not complete and skipOnboardingCheck is false', async () => {
+      mockSelectCompletedOnboarding.mockReturnValue(false);
+
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).not.toHaveBeenCalled();
+      expect(mockSetSeedlessOnboardingMigrationVersion).not.toHaveBeenCalled();
+    });
+
+    it('runs migration when onboarding not complete but skipOnboardingCheck is true', async () => {
+      mockSelectCompletedOnboarding.mockReturnValue(false);
+
+      await Authentication.runSeedlessOnboardingMigrations({
+        skipOnboardingCheck: true,
+      });
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).toHaveBeenCalled();
+      expect(mockSetSeedlessOnboardingMigrationVersion).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('migrateSeedlessDataTypes', () => {
+    const Engine = jest.requireMock('../Engine');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectCompletedOnboarding.mockReturnValue(true);
+      mockSelectSeedlessOnboardingMigrationVersion.mockReturnValue(0);
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(),
+      } as unknown as ReduxStore);
+    });
+
+    it('assigns PrimarySrp to first mnemonic without dataType', async () => {
+      Engine.context.SeedlessOnboardingController = {
+        fetchAllSecretData: jest.fn().mockResolvedValue([
+          {
+            itemId: 'item-1',
+            type: SecretType.Mnemonic,
+            dataType: undefined,
+            data: new Uint8Array([1, 2, 3]),
+          },
+        ]),
+        updateSecretDataItem: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.updateSecretDataItem,
+      ).toHaveBeenCalledWith({
+        itemId: 'item-1',
+        dataType: EncAccountDataType.PrimarySrp,
+      });
+    });
+
+    it('assigns ImportedSrp to subsequent mnemonics without dataType', async () => {
+      Engine.context.SeedlessOnboardingController = {
+        fetchAllSecretData: jest.fn().mockResolvedValue([
+          {
+            itemId: 'item-1',
+            type: SecretType.Mnemonic,
+            dataType: EncAccountDataType.PrimarySrp,
+            data: new Uint8Array([1, 2, 3]),
+          },
+          {
+            itemId: 'item-2',
+            type: SecretType.Mnemonic,
+            dataType: undefined,
+            data: new Uint8Array([4, 5, 6]),
+          },
+        ]),
+        updateSecretDataItem: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.updateSecretDataItem,
+      ).toHaveBeenCalledWith({
+        itemId: 'item-2',
+        dataType: EncAccountDataType.ImportedSrp,
+      });
+    });
+
+    it('batch updates all dataTypes and skips secrets that already have dataType', async () => {
+      Engine.context.SeedlessOnboardingController = {
+        fetchAllSecretData: jest.fn().mockResolvedValue([
+          // Already has dataType - should be skipped
+          {
+            itemId: 'existing-primary',
+            type: SecretType.Mnemonic,
+            dataType: EncAccountDataType.PrimarySrp,
+            data: new Uint8Array([1, 2, 3]),
+          },
+          // No dataType - should become ImportedSrp (primary already exists)
+          {
+            itemId: 'new-srp',
+            type: SecretType.Mnemonic,
+            dataType: undefined,
+            data: new Uint8Array([4, 5, 6]),
+          },
+          // No dataType - should become ImportedPrivateKey
+          {
+            itemId: 'new-pk',
+            type: SecretType.PrivateKey,
+            dataType: undefined,
+            data: new Uint8Array([7, 8, 9]),
+          },
+        ]),
+        batchUpdateSecretDataItems: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.batchUpdateSecretDataItems,
+      ).toHaveBeenCalledWith({
+        updates: [
+          { itemId: 'new-srp', dataType: EncAccountDataType.ImportedSrp },
+          { itemId: 'new-pk', dataType: EncAccountDataType.ImportedPrivateKey },
+        ],
+      });
+      expect(mockSetSeedlessOnboardingMigrationVersion).toHaveBeenCalledWith(1);
+    });
+
+    it('does not set migration version on error', async () => {
+      Engine.context.SeedlessOnboardingController = {
+        fetchAllSecretData: jest
+          .fn()
+          .mockRejectedValue(new Error('Network error')),
+      };
+
+      await expect(
+        Authentication.runSeedlessOnboardingMigrations(),
+      ).resolves.toBeUndefined();
     });
   });
 });
