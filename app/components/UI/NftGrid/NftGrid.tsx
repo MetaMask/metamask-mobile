@@ -174,7 +174,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         decelerationRate="fast"
         refreshControl={<NftGridRefreshControl />}
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
-        scrollEnabled={isFullView && isHomepageRedesignV1Enabled}
+        scrollEnabled={isFullView || !isHomepageRedesignV1Enabled}
         numColumns={3}
       />
     ),
