@@ -29,10 +29,8 @@ jest.mock('../../services/HyperLiquidSubscriptionService');
 let mockStreamManagerInstance: any;
 const mockGetStreamManagerInstance = jest.fn(() => mockStreamManagerInstance);
 jest.mock('../../providers/PerpsStreamManager', () => ({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getStreamManagerInstance: (...args: unknown[]) =>
-      mockGetStreamManagerInstance(...args),
-  }));
+  getStreamManagerInstance: mockGetStreamManagerInstance,
+}));
 
 // Mock Sentry
 jest.mock('@sentry/react-native', () => ({
