@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -18,11 +17,6 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  lastTrendingScreenRef,
-  updateLastTrendingScreen,
-} from '../../Nav/Main/MainNavigator';
-import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
@@ -30,9 +24,7 @@ import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 
-const Stack = createStackNavigator();
-
-const TrendingFeed: React.FC = () => {
+export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -43,15 +35,6 @@ const TrendingFeed: React.FC = () => {
 
   // Track which sections have empty data
   const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
-
-  // Update state when returning to TrendingFeed
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      updateLastTrendingScreen('TrendingFeed');
-    });
-
-    return unsubscribe;
-  }, [navigation]);
 
   const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 
@@ -80,11 +63,13 @@ const TrendingFeed: React.FC = () => {
     return callbacks;
   }, []);
   const handleBrowserPress = useCallback(() => {
-    updateLastTrendingScreen('TrendingBrowser');
-    navigation.navigate('TrendingBrowser', {
-      newTabUrl: portfolioUrl.href,
-      timestamp: Date.now(),
-      fromTrending: true,
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: portfolioUrl.href,
+        timestamp: Date.now(),
+        fromTrending: true,
+      },
     });
   }, [navigation, portfolioUrl.href]);
 
@@ -185,24 +170,3 @@ const TrendingFeed: React.FC = () => {
     </Box>
   );
 };
-
-const TrendingView: React.FC = () => {
-  const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
-
-  return (
-    <Stack.Navigator
-      initialRouteName={initialRoot}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-      <Stack.Screen
-        name={Routes.EXPLORE_SEARCH}
-        component={ExploreSearchScreen}
-      />
-    </Stack.Navigator>
-  );
-};
-
-export default TrendingView;
