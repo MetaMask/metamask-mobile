@@ -2144,8 +2144,14 @@ describe('PerpsStreamManager', () => {
       // Assert - disconnect was called
       expect(pricesDisconnect).toHaveBeenCalled();
 
-      // Channel can reconnect when subscriber calls connect again
-      // (This would happen automatically when the channel detects active subscribers)
+      // After disconnect, the channel will automatically reconnect because
+      // there are still active subscribers. The subscribe() method calls connect()
+      // which will re-establish the WebSocket connection.
+      // Note: The reconnection happens automatically, so we expect 2 calls total:
+      // 1. Initial subscription
+      // 2. Reconnection after disconnect (automatic when subscribers exist)
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
       unsubscribe();
       pricesDisconnect.mockRestore();
     });
