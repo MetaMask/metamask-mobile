@@ -15,8 +15,10 @@ import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
+  POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 
 /*
 Test Scenario: Open position on Celtics vs. Nets market
@@ -109,6 +111,21 @@ describe(SmokePredictions('Predictions'), () => {
         await TabBarComponent.tapActivity();
         await ActivitiesView.tapOnPredictionsTab();
         await ActivitiesView.tapPredictPosition(positionDetails.name);
+
+        /*
+        When opening a position, the balance is optimistically updated in PredictController
+        with a cache valid for 5 seconds. When getBalance() is called after cache expiration
+        it invalidates the NetworkController's block cache and
+        makes a fresh RPC balance request. The mock is placed here to
+        verify that when the cache expires and a balance refresh request
+        is made, it successfully returns the updated balance.
+       */
+        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+
+        await PredictActivityDetails.tapBackButton();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
+        await Assertions.expectTextDisplayed(positionDetails.newBalance);
       },
     );
   });
