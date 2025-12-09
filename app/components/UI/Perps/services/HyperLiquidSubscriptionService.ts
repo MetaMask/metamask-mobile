@@ -85,6 +85,12 @@ export class HyperLiquidSubscriptionService {
     Set<(prices: PriceUpdate[]) => void>
   >();
 
+  // Track which subscribers want L2Book (order book) data
+  private readonly orderBookSubscribers = new Map<
+    string,
+    Set<(prices: PriceUpdate[]) => void>
+  >();
+
   // Global singleton subscriptions
   private globalAllMidsSubscription?: Subscription;
   private globalAllMidsPromise?: Promise<void>; // Track in-progress subscription
@@ -635,6 +641,12 @@ export class HyperLiquidSubscriptionService {
       if (includeMarketData) {
         unsubscribers.push(
           this.createSubscription(this.marketDataSubscribers, callback, symbol),
+        );
+      }
+      // Track order book subscribers separately
+      if (includeOrderBook) {
+        unsubscribers.push(
+          this.createSubscription(this.orderBookSubscribers, callback, symbol),
         );
       }
     });
@@ -2528,11 +2540,18 @@ export class HyperLiquidSubscriptionService {
     }
 
     // Re-establish L2Book subscriptions if there are order book subscribers
-    // Clear existing subscriptions (they're dead after reconnection)
-    this.globalL2BookSubscriptions.clear();
+    if (this.orderBookSubscribers.size > 0) {
+      // Clear existing subscriptions (they're dead after reconnection)
+      this.globalL2BookSubscriptions.clear();
 
-    // L2Book subscriptions are created lazily via ensureL2BookSubscription
-    // when subscribeToOrderBook is called, so no explicit restoration needed
+      // Re-establish subscriptions for all symbols with order book subscribers
+      const symbolsNeedingOrderBook = Array.from(
+        this.orderBookSubscribers.keys(),
+      );
+      symbolsNeedingOrderBook.forEach((symbol) => {
+        this.ensureL2BookSubscription(symbol);
+      });
+    }
 
     // Re-establish assetCtxs subscriptions if there are market data subscribers
     if (this.marketDataSubscribers.size > 0) {
@@ -2584,6 +2603,7 @@ export class HyperLiquidSubscriptionService {
     this.orderSubscribers.clear();
     this.accountSubscribers.clear();
     this.marketDataSubscribers.clear();
+    this.orderBookSubscribers.clear();
 
     // Clear order fill subscriptions
     this.orderFillSubscriptions.forEach((subscription) => {
