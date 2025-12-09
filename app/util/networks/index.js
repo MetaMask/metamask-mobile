@@ -683,15 +683,18 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId['monad-testnet']]: 'Monad Testnet',
   [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HyperEVM',
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'MegaEth',
 };
 
 // Whitelisted symbols for specific chain IDs to prevent showing warnings on Network Settings.
 export const WHITELIST_SYMBOL = {
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HYPE',
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'ETH',
 };
 
 export const WHITELIST_NETWORK_RPC_URL = {
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz',
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'https://mainnet.megaeth.com/rpc',
 };
 
 /**
