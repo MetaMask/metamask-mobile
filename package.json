@@ -286,7 +286,7 @@
     "@metamask/snaps-utils": "^11.6.1",
     "@metamask/solana-wallet-snap": "^2.5.0",
     "@metamask/solana-wallet-standard": "^0.6.0",
-    "@metamask/stake-sdk": "^3.2.0",
+    "@metamask/stake-sdk": "^3.4.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/token-search-discovery-controller": "^4.0.0",
