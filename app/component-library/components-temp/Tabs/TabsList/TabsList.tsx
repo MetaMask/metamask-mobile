@@ -235,7 +235,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               return (
                 <Box
                   key={tab.key}
-                  twClassName={isActive ? 'flex-1' : 'absolute opacity-0'}
+                  twClassName={isActive ? 'flex-1' : 'hidden'}
                   pointerEvents={!isActive ? 'none' : 'auto'}
                 >
                   {tab.content}
