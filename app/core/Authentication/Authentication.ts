@@ -6,6 +6,7 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
+  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -1293,6 +1294,22 @@ class AuthenticationService {
     await SeedlessOnboardingController.storeKeyringEncryptionKey(
       keyringEncryptionKey,
     );
+  };
+
+  /**
+   * Returns the stored password if biometric login is enabled, otherwise null.
+   */
+  getBiometricPasswordIfAllowed = async (): Promise<string | null> => {
+    const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
+    if (!biometryChoice) {
+      return null;
+    }
+
+    const credentials = await this.getPassword();
+    if (!credentials) {
+      return null;
+    }
+    return credentials?.password ?? null;
   };
 }
 

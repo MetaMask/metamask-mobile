@@ -4,6 +4,7 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SOLANA_DISCOVERY_PENDING,
+  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -3164,6 +3165,44 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
+    });
+  });
+
+  describe('getBiometricPasswordIfAllowed', () => {
+    beforeEach(() => {
+      (SecureKeychain.getGenericPassword as jest.Mock).mockReset();
+    });
+
+    it('returns null when biometry choice is not enabled', async () => {
+      const result = await Authentication.getBiometricPasswordIfAllowed();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when biometry choice is enabled but no credentials are stored', async () => {
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+
+      (SecureKeychain.getGenericPassword as jest.Mock).mockResolvedValue(null);
+
+      const result = await Authentication.getBiometricPasswordIfAllowed();
+
+      expect(SecureKeychain.getGenericPassword).toHaveBeenCalledTimes(1);
+      expect(result).toBeNull();
+    });
+
+    it('returns stored password when biometry choice is enabled and credentials exist', async () => {
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+
+      const mockPassword = 'test-password';
+      (SecureKeychain.getGenericPassword as jest.Mock).mockResolvedValue({
+        username: 'test-user',
+        password: mockPassword,
+      });
+
+      const result = await Authentication.getBiometricPasswordIfAllowed();
+
+      expect(SecureKeychain.getGenericPassword).toHaveBeenCalledTimes(1);
+      expect(result).toBe(mockPassword);
     });
   });
 });

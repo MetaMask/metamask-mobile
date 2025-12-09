@@ -399,13 +399,9 @@ class ResetPassword extends PureComponent {
   };
 
   unlockWithBiometrics = async () => {
-    // Try to use biometrics to unlock
-    const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-    if (biometryChoice) {
-      const credentials = await Authentication.getPassword();
-      if (credentials) {
-        this.tryUnlockWithPassword(credentials.password);
-      }
+    const password = await Authentication.getBiometricPasswordIfAllowed();
+    if (password) {
+      this.tryUnlockWithPassword(password);
     }
   };
 

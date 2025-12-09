@@ -16,7 +16,7 @@ import NavigationService from '../../../core/NavigationService';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { Authentication } from '../../../core';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { BIOMETRY_TYPE, STORAGE_TYPE } from 'react-native-keychain';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
 import Device from '../../../util/device';
 import ReduxService from '../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../core/redux/types';
@@ -63,6 +63,7 @@ jest.mock('../../../core/Authentication', () => ({
     availableBiometryType: null,
   }),
   getPassword: jest.fn().mockResolvedValue(null),
+  getBiometricPasswordIfAllowed: jest.fn().mockResolvedValue(null),
   resetPassword: jest.fn().mockResolvedValue(undefined),
   storePassword: jest.fn().mockResolvedValue(undefined),
   newWalletAndKeychain: jest
@@ -602,14 +603,12 @@ describe('ResetPassword', () => {
       availableBiometryType: BIOMETRY_TYPE.FACE_ID,
     });
 
-    // Mock Authentication.getPassword to return credentials
-    const mockGetPassword = jest.spyOn(Authentication, 'getPassword');
-    mockGetPassword.mockResolvedValueOnce({
-      username: 'testUser',
-      password: 'testPassword123',
-      service: 'testService',
-      storage: STORAGE_TYPE.AES_GCM,
-    });
+    // Mock Authentication.getBiometricPasswordIfAllowed to return a password
+    const mockGetBiometricPasswordIfAllowed = jest.spyOn(
+      Authentication,
+      'getBiometricPasswordIfAllowed',
+    );
+    mockGetBiometricPasswordIfAllowed.mockResolvedValueOnce('testPassword123');
 
     // Mock StorageWrapper.getItem to return biometry choice
     const mockStorageWrapper = jest.mocked(StorageWrapper);
@@ -642,6 +641,9 @@ describe('ResetPassword', () => {
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
     );
+
+    // Verify that biometric password lookup was attempted
+    expect(mockGetBiometricPasswordIfAllowed).toHaveBeenCalled();
 
     // Component should render without errors
     expect(component).toBeTruthy();
