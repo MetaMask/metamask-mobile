@@ -73,7 +73,7 @@ describe('SnapUIDateTimePicker', () => {
 
     act(() => {
       fireEvent.press(
-        getByTestId('snap-ui-renderer__date-time-picker-touchable'),
+        getByTestId('snap-ui-renderer__date-time-picker--datetime-touchable'),
       );
     });
 
@@ -101,7 +101,8 @@ describe('SnapUIDateTimePicker', () => {
     });
 
     expect(
-      getByTestId('snap-ui-renderer__date-time-picker-input').props.value,
+      getByTestId('snap-ui-renderer__date-time-picker--datetime-input').props
+        .value,
     ).toEqual(
       DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_SHORT),
     );
@@ -119,7 +120,7 @@ describe('SnapUIDateTimePicker', () => {
 
     act(() => {
       fireEvent.press(
-        getByTestId('snap-ui-renderer__date-time-picker-touchable'),
+        getByTestId('snap-ui-renderer__date-time-picker--date-touchable'),
       );
     });
 
@@ -147,7 +148,7 @@ describe('SnapUIDateTimePicker', () => {
     });
 
     expect(
-      getByTestId('snap-ui-renderer__date-time-picker-input').props.value,
+      getByTestId('snap-ui-renderer__date-time-picker--date-input').props.value,
     ).toEqual(
       DateTime.fromJSDate(date)
         .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
@@ -167,7 +168,7 @@ describe('SnapUIDateTimePicker', () => {
 
     act(() => {
       fireEvent.press(
-        getByTestId('snap-ui-renderer__date-time-picker-touchable'),
+        getByTestId('snap-ui-renderer__date-time-picker--time-touchable'),
       );
     });
 
@@ -195,7 +196,7 @@ describe('SnapUIDateTimePicker', () => {
     });
 
     expect(
-      getByTestId('snap-ui-renderer__date-time-picker-input').props.value,
+      getByTestId('snap-ui-renderer__date-time-picker--time-input').props.value,
     ).toEqual(
       DateTime.fromJSDate(date)
         .set({ second: 0, millisecond: 0 })

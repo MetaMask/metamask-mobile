@@ -37,6 +37,12 @@ export interface SnapUIDateTimePickerProps {
   disabled?: boolean;
 }
 
+/**
+ * Formats the date for display based on the picker type.
+ * @param date - The date to format.
+ * @param type - The type of the picker (date, time, datetime).
+ * @returns The formatted date string.
+ */
 function formatDateForDisplay(
   date: Date | null,
   type: 'date' | 'time' | 'datetime',
@@ -61,13 +67,7 @@ function formatDateForDisplay(
  * @param type - The type of the picker (date, time, datetime).
  * @returns The normalized date.
  */
-function normalizeDate(
-  date: Date | undefined,
-  type: 'date' | 'time' | 'datetime',
-): Date | null {
-  if (!date) {
-    return null;
-  }
+function normalizeDate(date: Date, type: 'date' | 'time' | 'datetime'): Date {
   switch (type) {
     case 'date':
       date.setHours(0, 0, 0, 0);
@@ -126,6 +126,12 @@ export const SnapUIDateTimePicker: FunctionComponent<
     initialValue ? new Date(initialValue) : null,
   );
 
+  // Internal state to manage the picker value before submission.
+  const [internalValue, setInternalValue] = useState<Date>(value ?? new Date());
+
+  // Android mode state to handle the two-step process for datetime type.
+  // First step is date selection, second step is time selection.
+  // We have to manage this manually as there is no native datetime picker on Android.
   const [androidMode, setAndroidMode] = useState<'date' | 'time' | undefined>(
     type === 'datetime' ? 'date' : type,
   );
@@ -149,16 +155,19 @@ export const SnapUIDateTimePicker: FunctionComponent<
     _event: DateTimePickerEvent,
     date: Date | undefined,
   ) => {
+    if (!date) return;
+
     const normalizedDate = normalizeDate(date, type);
-    setValue(normalizedDate);
+    setInternalValue(normalizedDate);
   };
 
   /**
    * Submits the internal value to the snap.
    */
   const submitInternalValue = () => {
-    const isoString = value ? DateTime.fromJSDate(value).toISO() : null;
+    const isoString = DateTime.fromJSDate(internalValue).toISO();
 
+    setValue(internalValue);
     handleInputChange(name, isoString, form);
     setShowDatePicker(false);
   };
@@ -178,47 +187,52 @@ export const SnapUIDateTimePicker: FunctionComponent<
 
     // Handle the first of two-step process for datetime type. (date selection)
     if (type === 'datetime' && androidMode === 'date' && event.type === 'set') {
-      setValue(date);
+      setInternalValue(date);
       setAndroidMode('time');
       return;
     }
 
     // Handle the second of two-step process for datetime type. (time selection)
     if (type === 'datetime' && androidMode === 'time' && event.type === 'set') {
-      const selectedDate = new Date(value ?? new Date());
+      const selectedDate = new Date(internalValue);
       selectedDate.setTime(date.getTime());
 
       const normalizedDate = normalizeDate(selectedDate, type);
 
-      setValue(normalizedDate);
+      setInternalValue(normalizedDate);
+      submitInternalValue();
+
       setAndroidMode('date');
-
-      const isoString = normalizedDate
-        ? DateTime.fromJSDate(normalizedDate).toISO()
-        : null;
-
-      handleInputChange(name, isoString, form);
-      setShowDatePicker(false);
       return;
     }
 
-    // Handle dismissal for datetime type to reset the mode back to date.
-    if (event.type === 'dismissed' && type === 'datetime') {
-      setAndroidMode('date');
+    // Handle dismissal for datetime type when selecting a date.
+    if (
+      event.type === 'dismissed' &&
+      type === 'datetime' &&
+      androidMode === 'date'
+    ) {
       setShowDatePicker(false);
-      setValue(initialValue ? new Date(initialValue) : null);
+      setInternalValue(value ?? new Date());
       return;
     }
 
+    // Handle dismissal for datetime type when selecting a time.
+    // This resets the mode back to date for next opening.
+    if (
+      event.type === 'dismissed' &&
+      type === 'datetime' &&
+      androidMode === 'time'
+    ) {
+      setAndroidMode('date');
+      return;
+    }
     // Handle single step date or time selection.
     if (event.type === 'set') {
       const normalizedDate = normalizeDate(date, type);
-      const isoString = normalizedDate
-        ? DateTime.fromJSDate(normalizedDate).toISO()
-        : null;
 
-      setValue(normalizedDate);
-      handleInputChange(name, isoString, form);
+      setInternalValue(normalizedDate);
+      submitInternalValue();
     }
 
     setShowDatePicker(false);
@@ -227,19 +241,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
   /**
    * Handles opening the picker.
    */
-  const handleOpenIosPicker = () => {
-    setShowDatePicker(true);
-
-    // If no value is set, default to current date/time.
-    if (value === null) {
-      setValue(normalizeDate(new Date(), type));
-    }
-  };
-
-  /**
-   * Handles opening the picker.
-   */
-  const handleOpenAndroidPicker = () => {
+  const handleOpenPicker = () => {
     setShowDatePicker(true);
   };
 
@@ -248,11 +250,10 @@ export const SnapUIDateTimePicker: FunctionComponent<
    * Submits the internal value before closing.
    */
   const handleClosePicker = () => {
-    submitInternalValue();
     setShowDatePicker(false);
 
     // Revert to initial value if the user cancels.
-    setValue(initialValue ? new Date(initialValue) : null);
+    setInternalValue(value ?? new Date());
   };
 
   /**
@@ -269,6 +270,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
     <Box testID={'snap-ui-renderer__date-time-picker'}>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
+        testID={`snap-ui-renderer__date-time-picker--${type}`}
         size={TextFieldSize.Lg}
         placeholder={placeholder}
         isDisabled={disabled}
@@ -281,16 +283,13 @@ export const SnapUIDateTimePicker: FunctionComponent<
         value={formatDateForDisplay(value, type)}
         inputElement={
           <TouchableOpacity
-            testID="snap-ui-renderer__date-time-picker-touchable"
-            onPress={
-              Platform.OS === 'ios'
-                ? handleOpenIosPicker
-                : handleOpenAndroidPicker
-            }
+            disabled={disabled}
+            testID={`snap-ui-renderer__date-time-picker--${type}-touchable`}
+            onPress={handleOpenPicker}
             activeOpacity={0.7}
           >
             <Input
-              testID="snap-ui-renderer__date-time-picker-input"
+              testID={`snap-ui-renderer__date-time-picker--${type}-input`}
               isStateStylesDisabled
               readOnly
               pointerEvents="none"
@@ -306,8 +305,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
 
       {Platform.OS === 'android' && showDatePicker && (
         <DateTimePicker
-          // Default selection to current date/time.
-          value={value ?? new Date()}
+          value={internalValue}
           display="default"
           mode={androidMode}
           onChange={handleAndroidChange}
@@ -324,8 +322,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
         >
           <View style={styles.modal}>
             <DateTimePicker
-              // Default selection to current date/time.
-              value={value ?? new Date()}
+              value={internalValue}
               mode={type}
               display={type === 'datetime' ? 'inline' : 'spinner'}
               onChange={handleIosChange}

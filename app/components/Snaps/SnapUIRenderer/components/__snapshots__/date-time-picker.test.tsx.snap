@@ -135,7 +135,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={[Function]}
-                    testID="snap-ui-renderer__date-time-picker-touchable"
+                    testID="snap-ui-renderer__date-time-picker--datetime-touchable"
                   >
                     <TextInput
                       autoFocus={true}
@@ -161,7 +161,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                           "textAlignVertical": "center",
                         }
                       }
-                      testID="snap-ui-renderer__date-time-picker-input"
+                      testID="snap-ui-renderer__date-time-picker--datetime-input"
                     />
                   </TouchableOpacity>
                 </View>
@@ -315,7 +315,7 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={[Function]}
-                    testID="snap-ui-renderer__date-time-picker-touchable"
+                    testID="snap-ui-renderer__date-time-picker--date-touchable"
                   >
                     <TextInput
                       autoFocus={true}
@@ -341,7 +341,7 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                           "textAlignVertical": "center",
                         }
                       }
-                      testID="snap-ui-renderer__date-time-picker-input"
+                      testID="snap-ui-renderer__date-time-picker--date-input"
                     />
                   </TouchableOpacity>
                 </View>
@@ -480,7 +480,7 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={[Function]}
-                    testID="snap-ui-renderer__date-time-picker-touchable"
+                    testID="snap-ui-renderer__date-time-picker--datetime-touchable"
                   >
                     <TextInput
                       autoFocus={true}
@@ -506,7 +506,7 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                           "textAlignVertical": "center",
                         }
                       }
-                      testID="snap-ui-renderer__date-time-picker-input"
+                      testID="snap-ui-renderer__date-time-picker--datetime-input"
                     />
                   </TouchableOpacity>
                 </View>
@@ -645,7 +645,7 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={[Function]}
-                    testID="snap-ui-renderer__date-time-picker-touchable"
+                    testID="snap-ui-renderer__date-time-picker--time-touchable"
                   >
                     <TextInput
                       autoFocus={true}
@@ -671,7 +671,7 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                           "textAlignVertical": "center",
                         }
                       }
-                      testID="snap-ui-renderer__date-time-picker-input"
+                      testID="snap-ui-renderer__date-time-picker--time-input"
                     />
                   </TouchableOpacity>
                 </View>
@@ -825,7 +825,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={[Function]}
-                    testID="snap-ui-renderer__date-time-picker-touchable"
+                    testID="snap-ui-renderer__date-time-picker--datetime-touchable"
                   >
                     <TextInput
                       autoFocus={true}
@@ -851,7 +851,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                           "textAlignVertical": "center",
                         }
                       }
-                      testID="snap-ui-renderer__date-time-picker-input"
+                      testID="snap-ui-renderer__date-time-picker--datetime-input"
                     />
                   </TouchableOpacity>
                 </View>
