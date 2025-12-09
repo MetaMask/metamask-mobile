@@ -255,9 +255,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
-   * Disconnect from WebSocket for specific coin+interval
+   * Disconnect from WebSocket for specific coin+interval, or all subscriptions if no cacheKey provided
+   * @param cacheKey - Optional cache key for specific coin+interval. If omitted, disconnects all subscriptions.
    */
-  private disconnect(cacheKey: string): void {
+  public disconnect(cacheKey?: string): void {
+    if (cacheKey === undefined) {
+      // Disconnect all subscriptions
+      this.disconnectAll();
+      return;
+    }
+    // Disconnect specific subscription
     const unsubscribe = this.wsSubscriptions.get(cacheKey);
     if (unsubscribe) {
       unsubscribe();
