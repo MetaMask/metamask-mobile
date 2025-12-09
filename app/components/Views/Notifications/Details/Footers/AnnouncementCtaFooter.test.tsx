@@ -13,7 +13,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
 
-jest.mock('../../../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+jest.mock('../../../../../core/DeeplinkManager/DeeplinkManager', () => ({
   parse: jest.fn(),
 }));
 
@@ -112,7 +112,7 @@ describe('AnnouncementCtaFooter', () => {
       expect(getByText('Try Swap')).toBeOnTheScreen();
     });
 
-    it('calls SharedDeeplinkManager.parse when mobile link button is pressed', () => {
+    it('calls SharedDeeplinkManager.getInstance().parse when mobile link button is pressed', () => {
       const props = {
         type: ModalFooterType.ANNOUNCEMENT_CTA,
         mobileLink: {
@@ -126,7 +126,7 @@ describe('AnnouncementCtaFooter', () => {
       const button = getByText('Try Swap');
       fireEvent.press(button);
 
-      expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+      expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalledWith(
         'metamask://swap',
         {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,

@@ -23,11 +23,10 @@ import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import Engine from '../../core/Engine';
-import DeeplinkManager, {
+import {
   SharedDeeplinkManager,
 } from '../../core/DeeplinkManager/DeeplinkManager';
-import branch from 'react-native-branch';
-import { handleDeeplink } from '../../core/DeeplinkManager/handlers/legacy/handleDeeplink';
+
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
@@ -35,14 +34,6 @@ import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 const mockBioStateMachineId = '123';
 
 const mockNavigate = jest.fn();
-
-jest.mock('../../util/notifications/services/FCMService', () => ({
-  __esModule: true,
-  default: {
-    onClickPushNotificationWhenAppClosed: jest.fn().mockResolvedValue(null),
-    onClickPushNotificationWhenAppSuspended: jest.fn(),
-  },
-}));
 
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
@@ -94,39 +85,23 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
+const mockParse = jest.fn().mockImplementation(() => Promise.resolve());
+
 jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => ({
   __esModule: true,
   SharedDeeplinkManager: {
     // ← Named export, not default
-    getInstance: jest.fn(),
+    getInstance: () => ({
+      parse: mockParse,
+    }),  
     init: jest.fn(),
-    parse: jest.fn(),
     setDeeplink: jest.fn(),
     getPendingDeeplink: jest.fn(),
     expireDeeplink: jest.fn(),
   },
-  default: jest.fn(), // Mock the class if needed
-}));
-
-// Use real DeeplinkManager to verify Branch/linking behavior triggered by startAppServices
-
-// Branch and Linking mocks for DeeplinkManager.start tests
-jest.mock('react-native-branch', () => ({
-  __esModule: true,
   default: {
-    subscribe: jest.fn(),
-    getLatestReferringParams: jest.fn(),
-  },
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  getInitialURL: jest.fn().mockResolvedValue(null),
-}));
-
-jest.mock('../../core/DeeplinkManager/handlers/legacy/handleDeeplink', () => ({
-  handleDeeplink: jest.fn(),
+    start: jest.fn(),
+  }, // Mock the class if needed
 }));
 
 // (AppStateEventListener mock defined above)
@@ -370,7 +345,7 @@ describe('handleDeeplinkSaga', () => {
         .dispatch(checkForDeeplink())
         .silentRun();
 
-      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
@@ -405,7 +380,7 @@ describe('handleDeeplinkSaga', () => {
           .silentRun();
 
         expect(Engine.context.KeyringController.isUnlocked).toHaveBeenCalled();
-        expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+        expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
@@ -429,7 +404,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
@@ -455,7 +430,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
@@ -493,7 +468,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
@@ -519,7 +494,7 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
         });
       });
 
@@ -540,7 +515,7 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalled();
         });
 
         it('not handle onboarding deeplink when pathname is not /onboarding', async () => {
@@ -559,53 +534,10 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
         });
       });
     });
-  });
-});
-
-describe('DeeplinkManager.start Branch deeplink handling', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('initializes SharedDeeplinkManager', async () => {
-    DeeplinkManager.start();
-    expect(SharedDeeplinkManager.init).toHaveBeenCalled();
-  });
-
-  it('calls getLatestReferringParams immediately for cold start deeplink check', async () => {
-    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
-    DeeplinkManager.start();
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
-  });
-
-  it('processes cold start deeplink when non-branch link is found', async () => {
-    const mockDeeplink = 'https://link.metamask.io/home';
-    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
-      '+non_branch_link': mockDeeplink,
-    });
-    DeeplinkManager.start();
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
-  });
-
-  it('subscribes to Branch deeplink events', async () => {
-    DeeplinkManager.start();
-    expect(branch.subscribe).toHaveBeenCalled();
-  });
-
-  it('processes deeplink from subscription callback when uri is provided', async () => {
-    DeeplinkManager.start();
-    expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
-    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
-    const mockUri = 'https://link.metamask.io/home';
-    callback({ uri: mockUri });
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
   });
 });
 

@@ -369,7 +369,7 @@ const QRScanner = ({
           return;
         }
 
-        const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
+        const handledByDeeplink = await SharedDeeplinkManager.getInstance().parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           onHandled: () => {
             const stackNavigation = navigation as {

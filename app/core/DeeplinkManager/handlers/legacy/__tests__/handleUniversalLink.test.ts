@@ -1376,8 +1376,8 @@ describe('handleUniversalLink', () => {
             handled,
             urlObj: testUrlObj,
             browserCallBack: mockBrowserCallBack,
-            url: unsignedUrl,
-            source: testSource,
+            url: nonWhitelistedUrl,
+            source: nonWhitelistedSource,
           });
 
           expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({

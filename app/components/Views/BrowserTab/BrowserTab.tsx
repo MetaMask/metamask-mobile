@@ -764,7 +764,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       // Check if this is an internal MetaMask deeplink that should be handled within the app
       if (isInternalDeepLink(urlToLoad)) {
         // Handle the deeplink internally instead of passing to OS
-        SharedDeeplinkManager.parse(urlToLoad, {
+        SharedDeeplinkManager.getInstance().parse(urlToLoad, {
           origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
           browserCallBack: (url: string) => {
             // If the deeplink handler wants to navigate to a different URL in the browser

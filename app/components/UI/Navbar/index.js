@@ -1005,7 +1005,7 @@ export function getWalletNavbarOptions(
       );
     } else {
       setTimeout(() => {
-        SharedDeeplinkManager.parse(content, {
+        SharedDeeplinkManager.getInstance().parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
         });
       }, 500);

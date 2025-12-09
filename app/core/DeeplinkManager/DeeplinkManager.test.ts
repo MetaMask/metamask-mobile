@@ -9,6 +9,7 @@ import parseDeeplink from './utils/parseDeeplink';
 import approveTransaction from './utils/approveTransaction';
 import { store } from '../../store';
 import { RootState } from '../../reducers';
+import branch from 'react-native-branch';
 
 jest.mock('./utils/approveTransaction');
 jest.mock('./handlers/legacy/handleEthereumUrl');
@@ -26,6 +27,15 @@ jest.mock('../../util/notifications/services/FCMService');
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
+  },
+}));
+
+// Branch and Linking mocks for DeeplinkManager.start tests
+jest.mock('react-native-branch', () => ({
+  __esModule: true,
+  default: {
+    subscribe: jest.fn(),
+    getLatestReferringParams: jest.fn(),
   },
 }));
 
@@ -236,7 +246,7 @@ describe('SharedDeeplinkManager', () => {
       onHandled: jest.fn(),
     };
 
-    SharedDeeplinkManager.parse(url, args);
+    SharedDeeplinkManager.getInstance().parse(url, args);
 
     expect(spyParse).toHaveBeenCalledWith(url, args);
   });
@@ -267,5 +277,52 @@ describe('SharedDeeplinkManager', () => {
     SharedDeeplinkManager.expireDeeplink();
 
     expect(spyExpireDeeplink).toHaveBeenCalled();
+  });
+});
+
+describe('DeeplinkManager.start Branch deeplink handling', () => {
+  let RealDeeplinkManager: typeof DeeplinkManager;
+
+  beforeAll(() => {
+    jest.isolateModules(() => {
+      jest.unmock('../../core/DeeplinkManager/DeeplinkManager');
+      RealDeeplinkManager = require('../../core/DeeplinkManager/DeeplinkManager').default;
+    });
+  });  
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getLatestReferringParams immediately for cold start deeplink check', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+    RealDeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
+  });
+
+  it('processes cold start deeplink when non-branch link is found', async () => {
+    const mockDeeplink = 'https://link.metamask.io/home';
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+non_branch_link': mockDeeplink,
+    });
+    RealDeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+  });
+
+  it('subscribes to Branch deeplink events', async () => {
+    RealDeeplinkManager.start();
+    expect(branch.subscribe).toHaveBeenCalled();
+  });
+
+  it('processes deeplink from subscription callback when uri is provided', async () => {
+    RealDeeplinkManager.start();
+    expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockUri = 'https://link.metamask.io/home';
+    callback({ uri: mockUri });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
   });
 });

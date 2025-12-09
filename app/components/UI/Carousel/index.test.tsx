@@ -67,8 +67,19 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
+const mockParse = jest.fn().mockImplementation(() => Promise.resolve());
+
 jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
-  parse: jest.fn(() => Promise.resolve()),
+  SharedDeeplinkManager: {
+    getInstance: () => ({
+      parse: mockParse
+    }),
+    init: jest.fn(),
+    parse: mockParse,
+    setDeeplink: jest.fn(),
+    getPendingDeeplink: jest.fn(),
+    expireDeeplink: jest.fn(),
+  },
 }));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -221,7 +232,7 @@ describe('Carousel Navigation', () => {
     fireEvent.press(slide);
 
     expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io');
-    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+    expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
   });
 
   it('handles internal deeplinks through SharedDeeplinkManager', async () => {
@@ -240,7 +251,7 @@ describe('Carousel Navigation', () => {
     const slide = await findByTestId(slideTestID);
     fireEvent.press(slide);
 
-    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+    expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalledWith(
       'https://link.metamask.io/swap',
       {
         origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,

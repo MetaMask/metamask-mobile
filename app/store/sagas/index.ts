@@ -180,7 +180,7 @@ export function* handleDeeplinkSaga() {
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
         setTimeout(() => {
-          SharedDeeplinkManager.parse(url.href, {
+          SharedDeeplinkManager.getInstance().parse(url.href, {
             origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
           });
         }, 200);
@@ -208,7 +208,7 @@ export function* handleDeeplinkSaga() {
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
-        SharedDeeplinkManager.parse(deeplink, {
+        SharedDeeplinkManager.getInstance().parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);

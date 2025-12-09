@@ -367,7 +367,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       // Check if this is an internal MetaMask deeplink
       if (isInternalDeepLink(href)) {
         // Handle internal deeplinks through SharedDeeplinkManager
-        return SharedDeeplinkManager.parse(href, {
+        return SharedDeeplinkManager.getInstance().parse(href, {
           origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
         }).catch((error) => {
           console.error('Failed to handle internal deeplink:', error);
