@@ -14,7 +14,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
@@ -86,6 +89,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { navigateToOrder } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
+  const insets = useSafeAreaInsets();
 
   // A/B Testing: Button color test (TAT-1937)
   const {
@@ -220,6 +224,12 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     if (currentGrouping === null) return '—';
     return formatGroupingLabel(currentGrouping);
   }, [currentGrouping]);
+
+  // Dynamic footer style with safe area insets
+  const footerStyle = useMemo(
+    () => [styles.footer, { paddingBottom: 16 + insets.bottom }],
+    [styles.footer, insets.bottom],
+  );
 
   // Handle grouping dropdown press
   const handleDepthBandPress = useCallback(() => {
@@ -449,7 +459,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       </ScrollView>
 
       {/* Footer with Spread and Actions */}
-      <View style={styles.footer}>
+      <View style={footerStyle}>
         {/* Spread Row */}
         {orderBook && (
           <View style={styles.spreadContainer}>
