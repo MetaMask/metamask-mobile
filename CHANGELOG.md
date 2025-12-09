@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+<<<<<<< HEAD
+## [7.60.3]
+
+### Fixed
+
+- chore(runway): cherry-pick chore: Fix to only bypass 'Redirect' modal for in-app signed links ([#23702](https://github.com/MetaMask/metamask-mobile/pull/23702))
+
 ## [7.60.2]
 
 ### Fixed
@@ -9131,7 +9138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.2...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.3...HEAD
+[7.60.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.2...v7.60.3
 [7.60.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.1...v7.60.2
 [7.60.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.0...v7.60.1
 [7.60.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.59.0...v7.60.0
