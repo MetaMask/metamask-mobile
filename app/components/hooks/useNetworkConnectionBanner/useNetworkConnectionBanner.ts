@@ -198,6 +198,33 @@ const useNetworkConnectionBanner = (): {
     bannerStateRef.current = networkConnectionBannerState;
   }, [networkConnectionBannerState]);
 
+  // Subscribe to NetworkController:rpcEndpointChainAvailable event
+  // to hide the banner when a network becomes available again
+  useEffect(() => {
+    const handleChainAvailable = ({ chainId }: { chainId: Hex }) => {
+      const currentBannerState = bannerStateRef.current;
+      // Only hide the banner if it's visible and matches the chain that became available
+      if (
+        currentBannerState.visible &&
+        currentBannerState.chainId === chainId
+      ) {
+        dispatch(hideNetworkConnectionBanner());
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'NetworkController:rpcEndpointChainAvailable',
+      handleChainAvailable,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'NetworkController:rpcEndpointChainAvailable',
+        handleChainAvailable,
+      );
+    };
+  }, [dispatch]);
+
   useEffect(() => {
     if (networkConnectionBannerState.visible) {
       const sanitizedUrl = sanitizeRpcUrl(networkConnectionBannerState.rpcUrl);

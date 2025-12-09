@@ -115,7 +115,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Header with title and DEX badge */}
+      {/* Header with title with DEX badge */}
       <View style={styles.header}>
         <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
           {strings('perps.market.stats')}
