@@ -5680,8 +5680,11 @@
       "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
-      "estimated_annual_reward": "Estimated annual reward",
+      "estimated_annual_reward": "Est. annual reward",
       "trx_locked_for": "TRX locked for",
+      "trx_locked_for_minimum_time": "~3 days",
+      "trx_released_in": "TRX released in",
+      "trx_released_in_minimum_time": "~14 days",
       "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
