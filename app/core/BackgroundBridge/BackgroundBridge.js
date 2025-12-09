@@ -86,10 +86,10 @@ import { getAuthorizedScopes } from '../../selectors/permissions';
 import {
   SolAccountType,
   SolScope,
-  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   TrxAccountType,
-  ///: END: ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
@@ -157,9 +157,9 @@ export class BackgroundBridge extends EventEmitter {
     this.multichainMiddlewareManager = null;
 
     this.lastSelectedSolanaAccountAddress = null;
-    ///: BEGIN: ONLY_INCLUDE_IF(tron)
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     this.lastSelectedTronAccountAddress = null;
-    ///: END: ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IF
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
@@ -522,7 +522,7 @@ export class BackgroundBridge extends EventEmitter {
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
       );
-      ///: BEGIN: ONLY_INCLUDE_IF(tron)
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       controllerMessenger.unsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleTronAccountChangedFromScopeChanges,
@@ -535,7 +535,7 @@ export class BackgroundBridge extends EventEmitter {
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleTronAccountChangedFromSelectedAccountGroupChanges,
       );
-      ///: END: ONLY_INCLUDE_IF
+      ///: END:ONLY_INCLUDE_IF
     }
 
     this.port.emit('disconnect', { name: this.port.name, data: null });
@@ -576,11 +576,11 @@ export class BackgroundBridge extends EventEmitter {
     // transport. Unlike externally_connectable's chrome.runtime.connect() API, the
     // window.postMessage API allows the inpage provider to setup listeners for
     // messages before attempting to establish the connection meaning that it will
-    // have listeners ready for this solana accountChanged event below.
+    // have listeners ready for this Solana accountChanged event below.
     this.notifySolanaAccountChangedForCurrentAccount();
-    ///: BEGIN: ONLY_INCLUDE_IF(tron)
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     this.notifyTronAccountChangedForCurrentAccount();
-    ///: END: ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IF
 
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
@@ -937,7 +937,7 @@ export class BackgroundBridge extends EventEmitter {
       context: { AccountsController, PermissionController },
     } = Engine;
 
-    // this throws if there is no solana or tron account... perhaps we should handle this better at the controller level
+    // this throws if there is no Solana or Tron account... perhaps we should handle this better at the controller level
     try {
       this.lastSelectedSolanaAccountAddress =
         AccountsController.getSelectedMultichainAccount(
@@ -946,7 +946,7 @@ export class BackgroundBridge extends EventEmitter {
     } catch {
       // noop
     }
-    ///: BEGIN: ONLY_INCLUDE_IF(tron)
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     try {
       this.lastSelectedTronAccountAddress =
         AccountsController.getSelectedMultichainAccount(
@@ -955,7 +955,7 @@ export class BackgroundBridge extends EventEmitter {
     } catch {
       // noop
     }
-    ///: END: ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IF
 
     // wallet_sessionChanged and eth_subscription setup/teardown
     controllerMessenger.subscribe(
@@ -964,14 +964,14 @@ export class BackgroundBridge extends EventEmitter {
       getAuthorizedScopes(this.channelIdOrOrigin),
     );
 
-    // wallet_notify for solana accountChanged when permission changes
+    // wallet_notify for Solana accountChanged when permission changes
     controllerMessenger.subscribe(
       `${PermissionController.name}:stateChange`,
       this.handleSolanaAccountChangedFromScopeChanges,
       getAuthorizedScopes(this.channelIdOrOrigin),
     );
 
-    // wallet_notify for solana accountChanged when selected account changes
+    // wallet_notify for Solana accountChanged when selected account changes
     controllerMessenger.subscribe(
       `${AccountsController.name}:selectedAccountChange`,
       this.handleSolanaAccountChangedFromSelectedAccountChanges,
@@ -982,7 +982,7 @@ export class BackgroundBridge extends EventEmitter {
       this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
     );
 
-    ///: BEGIN: ONLY_INCLUDE_IF(tron)
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     // wallet_notify for tron accountChanged when permission changes
     controllerMessenger.subscribe(
       `${PermissionController.name}:stateChange`,
@@ -1000,7 +1000,7 @@ export class BackgroundBridge extends EventEmitter {
       `${AccountTreeController.name}:selectedAccountGroupChange`,
       this.handleTronAccountChangedFromSelectedAccountGroupChanges,
     );
-    ///: END: ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IF
   }
 
   /**
@@ -1119,10 +1119,11 @@ export class BackgroundBridge extends EventEmitter {
       previousSelectedSolanaAccountAddress !==
       currentSelectedSolanaAccountAddress
     ) {
-      this._notifySolanaAccountChange(
+      this._notifyMultichainAccountChange(
         currentSelectedSolanaAccountAddress
           ? [currentSelectedSolanaAccountAddress]
           : [],
+        SolScope.Mainnet,
       );
     }
   };
@@ -1168,7 +1169,10 @@ export class BackgroundBridge extends EventEmitter {
       });
 
       if (parsedSolanaAddresses.includes(account.address)) {
-        this._notifySolanaAccountChange([account.address]);
+        this._notifyMultichainAccountChange(
+          [account.address],
+          SolScope.Mainnet,
+        );
       }
     }
   };
@@ -1190,7 +1194,7 @@ export class BackgroundBridge extends EventEmitter {
     return solanaAccount;
   }
 
-  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   handleTronAccountChangedFromScopeChanges = (currentValue, previousValue) => {
     const previousTronAccountChangedNotificationsEnabled = Boolean(
       previousValue?.sessionProperties?.[
@@ -1241,16 +1245,15 @@ export class BackgroundBridge extends EventEmitter {
     if (
       previousSelectedTronAccountAddress !== currentSelectedTronAccountAddress
     ) {
-      this._notifyTronAccountChange(
+      this._notifyMultichainAccountChange(
         currentSelectedTronAccountAddress
           ? [currentSelectedTronAccountAddress]
           : [],
+        TrxScope.Mainnet,
       );
     }
   };
-  ///: END: ONLY_INCLUDE_IF
 
-  ///: BEGIN: ONLY_INCLUDE_IF(tron)
   handleTronAccountChangedFromSelectedAccountChanges = (account) => {
     if (
       account.type === TrxAccountType.Eoa &&
@@ -1292,22 +1295,21 @@ export class BackgroundBridge extends EventEmitter {
       });
 
       if (parsedTronAddresses.includes(account.address)) {
-        this._notifyTronAccountChange([account.address]);
+        this._notifyMultichainAccountChange(
+          [account.address],
+          TrxScope.Mainnet,
+        );
       }
     }
   };
-  ///: END: ONLY_INCLUDE_IF
 
-  ///: BEGIN: ONLY_INCLUDE_IF(tron)
   handleTronAccountChangedFromSelectedAccountGroupChanges = () => {
     const tronAccount = this.getTronAccountFromSelectedAccountGroup();
     if (tronAccount) {
       this.handleTronAccountChangedFromSelectedAccountChanges(tronAccount);
     }
   };
-  ///: END: ONLY_INCLUDE_IF
 
-  ///: BEGIN: ONLY_INCLUDE_IF(tron)
   getTronAccountFromSelectedAccountGroup() {
     const controllerMessenger = Engine.controllerMessenger;
 
@@ -1317,7 +1319,7 @@ export class BackgroundBridge extends EventEmitter {
     );
     return tronAccount;
   }
-  ///: END: ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IF
 
   sendNotificationEip1193(payload) {
     DevLogger.log(`BackgroundBridge::sendNotificationEip1193: `, payload);
@@ -1410,11 +1412,11 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   /**
-   * For origins with a solana scope permitted, sends a wallet_notify -> metamask_accountChanged
-   * event to fire for the solana scope with the currently selected solana account if any are
+   * For origins with a Solana scope permitted, sends a wallet_notify -> metamask_accountChanged
+   * event to fire for the Solana scope with the currently selected Solana account if any are
    * permitted or empty array otherwise.
    *
-   * @param {string} origin - The origin to notify with the current solana account
+   * @param {string} origin - The origin to notify with the current Solana account
    */
   notifySolanaAccountChangedForCurrentAccount() {
     let caip25Caveat;
@@ -1454,9 +1456,10 @@ export class BackgroundBridge extends EventEmitter {
         this.getSolanaAccountFromSelectedAccountGroup();
 
       if (currentSolanaAccountFromSelectedAccountGroup) {
-        this._notifySolanaAccountChange([
-          currentSolanaAccountFromSelectedAccountGroup.address,
-        ]);
+        this._notifyMultichainAccountChange(
+          [currentSolanaAccountFromSelectedAccountGroup.address],
+          SolScope.Mainnet,
+        );
         return;
       }
 
@@ -1467,12 +1470,15 @@ export class BackgroundBridge extends EventEmitter {
       if (accountIdToEmit) {
         const accountAddressToEmit =
           parseCaipAccountId(accountIdToEmit).address;
-        this._notifySolanaAccountChange([accountAddressToEmit]);
+        this._notifyMultichainAccountChange(
+          [accountAddressToEmit],
+          SolScope.Mainnet,
+        );
       }
     }
   }
 
-  ///: BEGIN: ONLY_INCLUDE_IF(tron)
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   /**
    * For origins with a tron scope permitted, sends a wallet_notify -> metamask_accountChanged
    * event to fire for the tron scope with the currently selected tron account if any are
@@ -1518,9 +1524,10 @@ export class BackgroundBridge extends EventEmitter {
         this.getTronAccountFromSelectedAccountGroup();
 
       if (currentTronAccountFromSelectedAccountGroup) {
-        this._notifyTronAccountChange([
-          currentTronAccountFromSelectedAccountGroup.address,
-        ]);
+        this._notifyMultichainAccountChange(
+          [currentTronAccountFromSelectedAccountGroup.address],
+          TrxScope.Mainnet,
+        );
         return;
       }
 
@@ -1531,17 +1538,20 @@ export class BackgroundBridge extends EventEmitter {
       if (accountIdToEmit) {
         const accountAddressToEmit =
           parseCaipAccountId(accountIdToEmit).address;
-        this._notifyTronAccountChange([accountAddressToEmit]);
+        this._notifyMultichainAccountChange(
+          [accountAddressToEmit],
+          TrxScope.Mainnet,
+        );
       }
     }
   }
-  ///: END: ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IF
 
-  _notifySolanaAccountChange(value) {
+  _notifyMultichainAccountChange(value, scope) {
     this.sendNotificationMultichain({
       method: MultichainApiNotifications.walletNotify,
       params: {
-        scope: SolScope.Mainnet,
+        scope,
         notification: {
           method: NOTIFICATION_NAMES.accountsChanged,
           params: value,
@@ -1549,21 +1559,6 @@ export class BackgroundBridge extends EventEmitter {
       },
     });
   }
-
-  ///: BEGIN: ONLY_INCLUDE_IF(tron)
-  _notifyTronAccountChange(value) {
-    this.sendNotificationMultichain({
-      method: MultichainApiNotifications.walletNotify,
-      params: {
-        scope: TrxScope.Mainnet,
-        notification: {
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: value,
-        },
-      },
-    });
-  }
-  ///: END: ONLY_INCLUDE_IF
 }
 
 export default BackgroundBridge;
