@@ -206,7 +206,10 @@ const PersonalDetails = () => {
 
       if (user) {
         setUser(user);
-        navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
+        });
       }
     } catch (error) {
       if (

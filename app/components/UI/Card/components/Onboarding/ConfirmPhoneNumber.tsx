@@ -97,7 +97,7 @@ const ConfirmPhoneNumber = () => {
         setUser(user);
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
         });
       }
     } catch (error) {

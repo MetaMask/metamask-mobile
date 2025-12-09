@@ -503,7 +503,7 @@ describe('ConfirmPhoneNumber Component', () => {
       expect(button.props.disabled).toBe(false);
     });
 
-    it('navigates to PHYSICAL_ADDRESS when continue button is pressed', async () => {
+    it('navigates to VERIFY_IDENTITY when continue button is pressed', async () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -523,7 +523,7 @@ describe('ConfirmPhoneNumber Component', () => {
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
         });
       });
     });
@@ -547,7 +547,7 @@ describe('ConfirmPhoneNumber Component', () => {
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
         });
       });
     });
@@ -991,7 +991,7 @@ describe('ConfirmPhoneNumber Component', () => {
       });
     });
 
-    it('navigates to PHYSICAL_ADDRESS on successful verification', async () => {
+    it('navigates to VERIFY_IDENTITYon successful verification', async () => {
       const mockVerifyPhoneVerification = jest.fn().mockResolvedValue({
         user: { id: 'user-123' },
       });
@@ -1024,7 +1024,7 @@ describe('ConfirmPhoneNumber Component', () => {
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
         });
       });
     });

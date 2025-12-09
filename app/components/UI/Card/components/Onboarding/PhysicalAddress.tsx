@@ -34,7 +34,9 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { Linking } from 'react-native';
+import { Linking, TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Checkbox from '../../../../../component-library/components/Checkbox';
 
 // No-op function for disabled SelectComponent
 const noop = () => undefined;
@@ -215,6 +217,7 @@ export const AddressFields = ({
 
 const PhysicalAddress = () => {
   const navigation = useNavigation();
+  const tw = useTailwind();
   const dispatch = useDispatch();
   const { user, setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
@@ -226,6 +229,7 @@ const PhysicalAddress = () => {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [electronicConsent, setElectronicConsent] = useState(false);
 
   const { data: registrationSettings } = useRegistrationSettings();
 
@@ -249,6 +253,7 @@ const PhysicalAddress = () => {
     isLoading: consentLoading,
     isError: consentIsError,
     error: consentError,
+    reset: resetConsent,
   } = useRegisterUserConsent();
 
   const openESignConsentDisclosureUS = useCallback(() => {
@@ -297,6 +302,12 @@ const PhysicalAddress = () => {
     [resetRegisterAddress],
   );
 
+  const handleElectronicConsentToggle = useCallback(() => {
+    resetConsent();
+    resetRegisterAddress();
+    setElectronicConsent(!electronicConsent);
+  }, [electronicConsent, resetRegisterAddress, resetConsent]);
+
   const isDisabled = useMemo(
     () =>
       registerLoading ||
@@ -308,7 +319,8 @@ const PhysicalAddress = () => {
       !addressLine1 ||
       !city ||
       (!state && selectedCountry === 'US') ||
-      !zipCode,
+      !zipCode ||
+      !electronicConsent,
     [
       registerLoading,
       registerIsError,
@@ -321,6 +333,7 @@ const PhysicalAddress = () => {
       state,
       selectedCountry,
       zipCode,
+      electronicConsent,
     ],
   );
 
@@ -330,8 +343,9 @@ const PhysicalAddress = () => {
       !user?.id ||
       !addressLine1 ||
       !city ||
-      (!state && selectedCountry === 'US') ||
-      !zipCode
+      (selectedCountry === 'US' && !state) ||
+      !zipCode ||
+      !electronicConsent
     ) {
       return;
     }
@@ -415,7 +429,7 @@ const PhysicalAddress = () => {
         // Reset the navigation stack to the verifying registration screen
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
+          routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
         });
         return;
       }
@@ -445,18 +459,43 @@ const PhysicalAddress = () => {
   }, [trackEvent, createEventBuilder]);
 
   const renderFormFields = () => (
-    <AddressFields
-      addressLine1={addressLine1}
-      handleAddressLine1Change={handleAddressLine1Change}
-      addressLine2={addressLine2}
-      handleAddressLine2Change={handleAddressLine2Change}
-      city={city}
-      handleCityChange={handleCityChange}
-      state={state}
-      handleStateChange={handleStateChange}
-      zipCode={zipCode}
-      handleZipCodeChange={handleZipCodeChange}
-    />
+    <>
+      <AddressFields
+        addressLine1={addressLine1}
+        handleAddressLine1Change={handleAddressLine1Change}
+        addressLine2={addressLine2}
+        handleAddressLine2Change={handleAddressLine2Change}
+        city={city}
+        handleCityChange={handleCityChange}
+        state={state}
+        handleStateChange={handleStateChange}
+        zipCode={zipCode}
+        handleZipCodeChange={handleZipCodeChange}
+      />
+      <Checkbox
+        isChecked={electronicConsent}
+        onPress={handleElectronicConsentToggle}
+        label={
+          <TouchableOpacity onPress={openESignConsentDisclosureUS}>
+            <Text variant={TextVariant.BodyMd}>
+              {strings(
+                'card.card_onboarding.physical_address.electronic_consent_1',
+              )}
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-primary-default underline"
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.electronic_consent_2',
+                )}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+        }
+        style={tw.style('h-auto')}
+        testID="physical-address-electronic-consent-checkbox"
+      />
+    </>
   );
 
   const renderActions = () => (
@@ -487,13 +526,6 @@ const PhysicalAddress = () => {
         isDisabled={isDisabled}
         testID="physical-address-continue-button"
       />
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName="text-text-alternative text-center my-2 px-4"
-        onPress={openESignConsentDisclosureUS}
-      >
-        {strings('card.card_onboarding.physical_address.electronic_consent')}
-      </Text>
     </Box>
   );
 
