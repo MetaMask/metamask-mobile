@@ -438,7 +438,6 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "paddingHorizontal": 8,
         "paddingVertical": 4,
@@ -932,7 +931,6 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "paddingHorizontal": 8,
         "paddingVertical": 4,

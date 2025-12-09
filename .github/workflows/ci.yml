@@ -370,6 +370,8 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52

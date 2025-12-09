@@ -285,7 +285,6 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 16,
           "paddingVertical": 4,

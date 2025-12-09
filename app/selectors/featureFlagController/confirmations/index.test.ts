@@ -11,9 +11,12 @@ import {
   SLIPPAGE_DEFAULT,
   BUFFER_SUBSEQUENT_DEFAULT,
   selectNonZeroUnusedApprovalsAllowList,
+  selectGasFeeTokenFlags,
+  GasFeeTokenFlags,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
@@ -435,5 +438,83 @@ describe('Non-Zero Unused Approvals Allow List', () => {
       undefinedFeatureFlagState,
     );
     expect(result).toEqual([]);
+  });
+});
+
+describe('Gas Fee Token Flags', () => {
+  const chainIdMock = '0x1' as Hex;
+
+  const mockedGasFeeTokenFlags: GasFeeTokenFlags = {
+    gasFeeTokens: {
+      [chainIdMock]: {
+        name: 'Ethereum',
+        tokens: [
+          {
+            name: 'USDC',
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
+          },
+          {
+            name: 'DAI',
+            address: '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex,
+          },
+        ],
+      },
+      '0x89': {
+        name: 'Polygon',
+        tokens: [{ name: 'USDC.e', address: '0xusdce' as Hex }],
+      },
+    },
+  };
+
+  const mockedStateWithGasFeeTokenFlags = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            confirmations_gas_fee_tokens: mockedGasFeeTokenFlags,
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+  };
+
+  it('returns empty gasFeeTokens when empty feature flag state', () => {
+    const result = selectGasFeeTokenFlags(mockedEmptyFlagsState);
+
+    expect(result).toEqual({ gasFeeTokens: {} });
+  });
+
+  it('returns empty gasFeeTokens when undefined RemoteFeatureFlagController state', () => {
+    const result = selectGasFeeTokenFlags(mockedUndefinedFlagsState);
+
+    expect(result).toEqual({ gasFeeTokens: {} });
+  });
+
+  it('returns gas fee tokens from feature flag', () => {
+    const result = selectGasFeeTokenFlags(
+      mockedStateWithGasFeeTokenFlags as never,
+    );
+
+    expect(result).toEqual(mockedGasFeeTokenFlags);
+  });
+
+  it('returns empty gasFeeTokens when confirmations_gas_fee_tokens exists but gasFeeTokens is undefined', () => {
+    const stateWithUndefinedGasFeeTokens = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              confirmations_gas_fee_tokens: {},
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    const result = selectGasFeeTokenFlags(stateWithUndefinedGasFeeTokens);
+
+    expect(result).toEqual({ gasFeeTokens: {} });
   });
 });
