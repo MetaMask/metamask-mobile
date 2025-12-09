@@ -78,7 +78,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   // Fill amount
   await TimerHelper.withTimer(
     performanceTracker,
-    'Fill amount - 10 USD',
+    'Fill amount - 2 USD',
     async () => {
       await PerpsDepositScreen.fillUsdAmount('2');
     },

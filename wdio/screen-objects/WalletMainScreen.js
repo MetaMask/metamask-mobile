@@ -289,9 +289,7 @@ class WalletMainScreen {
       return await this.totalBalanceText;
     } else {
       const balanceContainer = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
-      console.log('balanceContainer', balanceContainer);
       const balanceContainerText = await balanceContainer.getText();
-      console.log('balanceContainer text', balanceContainerText);
 
       return balanceContainerText;
     }
