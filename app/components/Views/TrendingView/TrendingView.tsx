@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
+import { createStackNavigator } from '@react-navigation/stack';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -15,7 +15,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
+import { appendURLParams } from '../../../util/browser';
+import { useMetrics } from '../../hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -26,7 +27,7 @@ import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
+import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 
@@ -36,13 +37,10 @@ const TrendingFeed: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
+  const { isEnabled } = useMetrics();
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // Track which sections have empty data
-  const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -53,32 +51,25 @@ const TrendingFeed: React.FC = () => {
     return unsubscribe;
   }, [navigation]);
 
-  const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: { security: { dataCollectionForMarketing?: boolean } }) =>
+      state.security.dataCollectionForMarketing,
+  );
 
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
+  // check if basic functionality toggle is on
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
 
-  const sectionCallbacks = useMemo(() => {
-    const callbacks = {} as Record<SectionId, (isEmpty: boolean) => void>;
-    HOME_SECTIONS_ARRAY.forEach((section) => {
-      callbacks[section.id] = (isEmpty: boolean) => {
-        setEmptySections((prev) => {
-          const next = new Set(prev);
-          if (isEmpty) {
-            next.add(section.id);
-          } else {
-            next.delete(section.id);
-          }
-          return next;
-        });
-      };
-    });
-    return callbacks;
-  }, []);
+  const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
+    metamaskEntry: 'mobile',
+    metricsEnabled: isEnabled(),
+    marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+  });
+
   const handleBrowserPress = useCallback(() => {
     updateLastTrendingScreen('TrendingBrowser');
     navigation.navigate('TrendingBrowser', {
@@ -159,25 +150,14 @@ const TrendingFeed: React.FC = () => {
             />
           }
         >
-          <QuickActions emptySections={emptySections} />
+          <QuickActions />
 
-          {HOME_SECTIONS_ARRAY.map((section) => {
-            // Hide section visually but keep mounted so it can report when data arrives
-            const isHidden = emptySections.has(section.id);
-
-            return (
-              <Box
-                key={section.id}
-                twClassName={isHidden ? 'hidden' : undefined}
-              >
-                <SectionHeader sectionId={section.id} />
-                <section.Section
-                  refreshTrigger={refreshTrigger}
-                  toggleSectionEmptyState={sectionCallbacks[section.id]}
-                />
-              </Box>
-            );
-          })}
+          {HOME_SECTIONS_ARRAY.map((section) => (
+            <React.Fragment key={section.id}>
+              <SectionHeader sectionId={section.id} />
+              <section.Section refreshTrigger={refreshTrigger} />
+            </React.Fragment>
+          ))}
         </ScrollView>
       ) : (
         <BasicFunctionalityEmptyState />

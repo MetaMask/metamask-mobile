@@ -3728,7 +3728,7 @@
     "show_test_networks": "显示测试网络",
     "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。",
     "network_deprecated_title": "该网络已弃用",
-    "network_deprecated_description": "您尝试连接的网络在 MetaMask 上不再受支持。",
+    "network_deprecated_description": "您尝试连接的网络在 Metamask 上不再受支持。",
     "edit_networks_title": "编辑网络"
   },
   "permissions": {

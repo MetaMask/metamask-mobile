@@ -40,15 +40,6 @@ const styleSheet = (params: { theme: Theme }) => {
     headerUnitButtonActive: {
       backgroundColor: colors.primary.default,
     },
-    controlsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-    },
     scrollView: {
       flex: 1,
     },

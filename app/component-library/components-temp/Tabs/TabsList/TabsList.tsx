@@ -35,24 +35,30 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
     const tabs: TabItem[] = useMemo(
       () =>
-        React.Children.toArray(children)
-          .filter((child) => React.isValidElement(child))
-          .map((child, index) => {
-            const props = (child as React.ReactElement).props as {
+        React.Children.map(children, (child, index) => {
+          if (React.isValidElement(child)) {
+            const props = child.props as {
               tabLabel?: string;
               isDisabled?: boolean;
             };
             const tabLabel = props.tabLabel || `Tab ${index + 1}`;
             const isDisabled = props.isDisabled || false;
             return {
-              key:
-                (child as React.ReactElement).key?.toString() || `tab-${index}`,
+              key: child.key?.toString() || `tab-${index}`,
               label: tabLabel,
               content: child,
               isDisabled,
               isLoaded: false,
             };
-          }),
+          }
+          return {
+            key: `tab-${index}`,
+            label: `Tab ${index + 1}`,
+            content: child,
+            isDisabled: false,
+            isLoaded: false,
+          };
+        }) || [],
       [children],
     );
 

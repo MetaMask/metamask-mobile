@@ -45,16 +45,6 @@ export interface GetUserHistoryParams {
 // Trade configuration saved per market per network
 export interface TradeConfiguration {
   leverage?: number; // Last used leverage for this market
-  // Pending trade configuration (temporary, expires after 5 minutes)
-  pendingConfig?: {
-    amount?: string; // Order size in USD
-    leverage?: number; // Leverage
-    takeProfitPrice?: string; // Take profit price
-    stopLossPrice?: string; // Stop loss price
-    limitPrice?: string; // Limit price (for limit orders)
-    orderType?: OrderType; // Market vs limit
-    timestamp: number; // When the config was saved (for expiration check)
-  };
 }
 
 // Order type enumeration
@@ -688,10 +678,8 @@ export interface SubscribeOrderBookParams {
   symbol: string;
   /** Number of levels to return per side (default: 10) */
   levels?: number;
-  /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
-  nSigFigs?: 2 | 3 | 4 | 5;
-  /** Mantissa for aggregation when nSigFigs is 5 (2 or 5). Controls finest price increments */
-  mantissa?: 2 | 5;
+  /** Price aggregation significant figures (default: 5). Higher = finer granularity */
+  nSigFigs?: number;
   /** Callback function receiving order book updates */
   callback: (orderBook: OrderBookData) => void;
   /** Callback for errors */

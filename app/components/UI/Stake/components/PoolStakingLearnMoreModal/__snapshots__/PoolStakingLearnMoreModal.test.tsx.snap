@@ -117,6 +117,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               style={
                 [
                   {
+                    "backgroundColor": "#ffffff",
                     "flexDirection": "row",
                     "gap": 16,
                     "padding": 16,
@@ -614,6 +615,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
         <View
           style={
             {
+              "backgroundColor": "#ffffff",
               "flexDirection": "row",
               "paddingHorizontal": 16,
               "paddingVertical": 16,

@@ -1,6 +1,0 @@
-export const EARN_TEST_IDS = {
-  MUSD: {
-    ASSET_LIST_CONVERSION_CTA: 'musd-conversion-asset-list-conversion-cta',
-    ASSET_OVERVIEW_CONVERSION_CTA: 'musd-conversion-asset-overview-cta',
-  },
-};

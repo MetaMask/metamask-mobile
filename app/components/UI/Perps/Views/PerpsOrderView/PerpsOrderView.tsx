@@ -102,7 +102,6 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
@@ -221,9 +220,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     maxPossibleAmount,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
-
-  // Save pending trade config when user navigates away
-  usePerpsSavePendingConfig(orderForm);
 
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
