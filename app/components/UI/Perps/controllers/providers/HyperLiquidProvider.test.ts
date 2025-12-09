@@ -24,6 +24,13 @@ import { HyperLiquidProvider } from './HyperLiquidProvider';
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
+// Mock stream manager - will be set up in test
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mockStreamManagerInstance: any;
+const mockGetStreamManagerInstance = jest.fn(() => mockStreamManagerInstance);
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: mockGetStreamManagerInstance,
+}));
 
 // Mock Sentry
 jest.mock('@sentry/react-native', () => ({
@@ -294,6 +301,7 @@ describe('HyperLiquidProvider', () => {
       getNetwork: jest.fn().mockReturnValue('mainnet'),
       ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(),
+      setOnReconnectCallback: jest.fn(),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;
 
     mockWalletService = {
@@ -5877,6 +5885,7 @@ describe('HyperLiquidProvider', () => {
         cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithDexMethods;
 
       beforeEach(() => {
@@ -6018,6 +6027,7 @@ describe('HyperLiquidProvider', () => {
         useDexAbstraction: boolean;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithDexAbstraction;
 
       beforeEach(() => {
@@ -6186,6 +6196,7 @@ describe('HyperLiquidProvider', () => {
         }): Promise<{ success: boolean; error?: string }>;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithAutoTransfer;
 
       beforeEach(() => {
@@ -6284,6 +6295,7 @@ describe('HyperLiquidProvider', () => {
         >;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithMarginCalc;
 
       beforeEach(() => {

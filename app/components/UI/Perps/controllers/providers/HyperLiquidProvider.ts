@@ -132,6 +132,7 @@ import type {
   ExtendedAssetMeta,
   ExtendedPerpDex,
 } from '../../types/perps-types';
+import { getStreamManagerInstance } from '../../providers/PerpsStreamManager';
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
 interface GetAssetInfoParams {
@@ -353,6 +354,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     const wallet = this.walletService.createWalletAdapter();
     this.clientService.initialize(wallet);
+
+    // Set reconnection callback to restore subscriptions when WebSocket reconnects
+    this.clientService.setOnReconnectCallback(async () => {
+      try {
+        // Restore subscription service subscriptions
+        await this.subscriptionService.restoreSubscriptions();
+
+        const streamManager = getStreamManagerInstance();
+        streamManager.clearAllChannels();
+      } catch {
+        // Ignore errors during reconnection
+      }
+    });
 
     // Only set flag AFTER successful initialization
     this.clientsInitialized = true;
