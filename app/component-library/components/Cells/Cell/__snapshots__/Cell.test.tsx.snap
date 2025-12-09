@@ -312,7 +312,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#121314",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 4,
                 "borderWidth": 2,
                 "height": 20,
@@ -636,7 +636,7 @@ exports[`Cell should render CellMultiSelectWithMenu given the type MultiSelectWi
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#121314",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 4,
                 "borderWidth": 2,
                 "height": 20,

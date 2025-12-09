@@ -468,7 +468,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -743,7 +743,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -894,7 +894,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -1045,7 +1045,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#121314",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
