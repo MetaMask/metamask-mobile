@@ -1033,7 +1033,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const renderActionButtons = () => (
     <>
       {(() => {
-        if (market?.status === PredictMarketStatus.CLOSED && hasPositivePnl) {
+        if (!isClaimablePositionsLoading && hasPositivePnl) {
           return (
             <ButtonHero
               size={ButtonSizeHero.Lg}
