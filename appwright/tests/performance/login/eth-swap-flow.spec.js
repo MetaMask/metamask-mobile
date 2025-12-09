@@ -33,9 +33,10 @@ test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
   );
-  swapLoadTimer.start();
-  // await TabBarModal.tapActionButton();
+
   await WalletMainScreen.tapSwapButton();
+  swapLoadTimer.start();
+  await BridgeScreen.isVisible();
   swapLoadTimer.stop();
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
