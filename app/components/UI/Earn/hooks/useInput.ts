@@ -13,6 +13,7 @@ import {
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 import { Keys } from '../../../Base/Keypad/constants';
+import type { QuickAmount } from '../../Ramp/Aggregator/types';
 
 export interface InputHandlerParams {
   balance: string;
@@ -132,7 +133,7 @@ const useInputHandler = ({
     setIsFiat(!isFiat);
   }, [isFiat]);
 
-  const percentageOptions = [
+  const percentageOptions: QuickAmount[] = [
     { value: 0.25, label: '25%' },
     { value: 0.5, label: '50%' },
     { value: 0.75, label: '75%' },
