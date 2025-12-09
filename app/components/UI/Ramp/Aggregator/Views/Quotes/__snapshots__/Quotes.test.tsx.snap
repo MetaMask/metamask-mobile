@@ -1159,6 +1159,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1567,6 +1568,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                           <View
                             style={
                               {
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "column",
                                 "paddingHorizontal": 8,
                                 "paddingVertical": 4,
@@ -3439,6 +3441,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -5323,6 +5326,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -5881,6 +5885,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                           <View
                             style={
                               {
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "column",
                                 "paddingHorizontal": 8,
                                 "paddingVertical": 4,

@@ -65,7 +65,7 @@ exports[`SampleFeature matches rendered snapshot when feature flag is disabled 1
         }
       }
     >
-      Sample feature
+      Sample Feature
     </Text>
     <Text
       accessibilityRole="text"
@@ -157,7 +157,7 @@ exports[`SampleFeature matches rendered snapshot when feature flag is enabled 1`
         }
       }
     >
-      Sample feature
+      Sample Feature
     </Text>
     <Text
       accessibilityRole="text"

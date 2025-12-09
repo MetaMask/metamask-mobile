@@ -89,7 +89,7 @@ exports[`SdkErrorAlert disables retry button when isRetrying is true 1`] = `
           }
         }
       >
-        Try again
+        Try Again
       </Text>
     </Text>
   </View>
@@ -246,7 +246,7 @@ exports[`SdkErrorAlert renders payment methods error message 1`] = `
           }
         }
       >
-        Try again
+        Try Again
       </Text>
     </Text>
   </View>
@@ -342,7 +342,7 @@ exports[`SdkErrorAlert renders regions error message 1`] = `
           }
         }
       >
-        Try again
+        Try Again
       </Text>
     </Text>
   </View>
@@ -438,7 +438,7 @@ exports[`SdkErrorAlert renders tokens error message 1`] = `
           }
         }
       >
-        Try again
+        Try Again
       </Text>
     </Text>
   </View>
@@ -534,7 +534,7 @@ exports[`SdkErrorAlert renders user details error message 1`] = `
           }
         }
       >
-        Try again
+        Try Again
       </Text>
     </Text>
   </View>

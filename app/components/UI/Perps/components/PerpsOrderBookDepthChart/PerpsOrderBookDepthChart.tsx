@@ -204,12 +204,18 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
             />
           )}
         </Svg>
+
+        {/* Mid price line */}
+        <View style={styles.midPriceContainer} />
       </View>
 
-      {/* Price labels - min and max only, no mid-price */}
+      {/* Price labels */}
       <View style={styles.labelContainer}>
         <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
           {formatPrice(priceRange.min)}
+        </Text>
+        <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+          {formatPrice(parseFloat(orderBook.midPrice))}
         </Text>
         <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
           {formatPrice(priceRange.max)}
