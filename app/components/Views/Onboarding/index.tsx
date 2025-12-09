@@ -28,7 +28,11 @@ import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
+import {
+  storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
+  storePna25Acknowledged as storePna25AcknowledgedAction,
+} from '../../../actions/legalNotices';
+import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -126,6 +130,7 @@ const Onboarding = () => {
   const loadingMsg = useSelector(
     (state: RootState) => state.user.loadingMsg || '',
   );
+  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
 
   const setLoading = useCallback(
     (msg?: string) => dispatch(loadingSet(msg || '')),
@@ -138,6 +143,10 @@ const Onboarding = () => {
   );
   const saveOnboardingEvent = useCallback(
     (...eventArgs: [ITrackingEvent]) => dispatch(saveEvent(eventArgs)),
+    [dispatch],
+  );
+  const storePna25Acknowledged = useCallback(
+    () => dispatch(storePna25AcknowledgedAction()),
     [dispatch],
   );
 
@@ -816,6 +825,14 @@ const Onboarding = () => {
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
+
+  useEffect(() => {
+    // When a new user has onboarded and the PNA25 feature flag is on,
+    // set the PNA25 acknowledgement as true to prevent the toast from showing
+    if (isPna25FlagEnabled) {
+      storePna25Acknowledged();
+    }
+  }, [isPna25FlagEnabled, storePna25Acknowledged]);
 
   const { existingUser, errorToThrow, startFoxAnimation } = state;
   const hasFooter = existingUser && !loading;

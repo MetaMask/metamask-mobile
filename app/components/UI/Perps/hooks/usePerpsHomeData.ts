@@ -1,11 +1,20 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { usePerpsLivePositions, usePerpsLiveOrders } from './stream';
+import {
+  usePerpsLivePositions,
+  usePerpsLiveOrders,
+  usePerpsLiveFills,
+} from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
-import { usePerpsConnection } from './usePerpsConnection';
-import type { Position, Order, PerpsMarketData } from '../controllers/types';
+import type {
+  Position,
+  Order,
+  PerpsMarketData,
+  OrderFill,
+} from '../controllers/types';
 import type { PerpsTransaction } from '../types/transactionHistory';
+import { transformFillsToTransactions } from '../utils/transactionTransforms';
+import Engine from '../../../../core/Engine';
 import {
   HOME_SCREEN_CONFIG,
   MARKET_SORTING_CONFIG,
@@ -69,19 +78,69 @@ export const usePerpsHomeData = ({
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
     });
 
-  // Get connection status for transaction history
-  const { isConnected } = usePerpsConnection();
-
-  // Fetch all transaction history (trades, orders, funding, deposits)
-  const { transactions: allTransactions, isLoading: isActivityLoading } =
-    usePerpsTransactionHistory({
-      skipInitialFetch: !isConnected,
+  // Fetch fills via WebSocket for recent activity (instant updates, already cached)
+  const { fills: liveFills, isInitialLoading: isFillsLoading } =
+    usePerpsLiveFills({
+      throttleMs: 0, // No throttle for instant activity updates
     });
 
-  // Filter to only trades - same as Trades tab in TransactionsView
+  // REST API fills state - WebSocket snapshot only contains recent fills,
+  // so we need to fetch complete history via REST API
+  const [restFills, setRestFills] = useState<OrderFill[]>([]);
+  const [isRestFillsLoading, setIsRestFillsLoading] = useState(true);
+
+  // Fetch historical fills via REST API on mount
+  // This ensures we have complete fill history, not just WebSocket snapshot
+  useEffect(() => {
+    const fetchFills = async () => {
+      try {
+        const controller = Engine.context.PerpsController;
+        const provider = controller?.getActiveProvider();
+        if (!provider) {
+          setIsRestFillsLoading(false);
+          return;
+        }
+
+        const fills = await provider.getOrderFills({ aggregateByTime: false });
+        setRestFills(fills);
+      } catch (error) {
+        // Log error but don't fail - WebSocket fills still work
+        console.error('[usePerpsHomeData] Failed to fetch REST fills:', error);
+      } finally {
+        setIsRestFillsLoading(false);
+      }
+    };
+    fetchFills();
+  }, []);
+
+  // Merge REST + WebSocket fills with deduplication
+  // Live fills take precedence over REST fills (more up-to-date)
+  const mergedFills = useMemo(() => {
+    // Use Map for efficient deduplication
+    const fillsMap = new Map<string, OrderFill>();
+
+    // Add REST fills first
+    for (const fill of restFills) {
+      const key = `${fill.orderId}-${fill.timestamp}`;
+      fillsMap.set(key, fill);
+    }
+
+    // Add live fills (overwrites duplicates from REST - live data is fresher)
+    for (const fill of liveFills) {
+      const key = `${fill.orderId}-${fill.timestamp}`;
+      fillsMap.set(key, fill);
+    }
+
+    // Convert back to array and sort by timestamp descending (newest first)
+    return Array.from(fillsMap.values()).sort(
+      (a, b) => b.timestamp - a.timestamp,
+    );
+  }, [restFills, liveFills]);
+
+  // Transform merged fills to PerpsTransaction format for activity display
   const tradesOnly = useMemo(
-    () => allTransactions.filter((tx) => tx.type === 'trade'),
-    [allTransactions],
+    () => transformFillsToTransactions(mergedFills),
+    [mergedFills],
   );
 
   // Fetch markets data for trending section (markets don't need real-time updates)
@@ -313,7 +372,7 @@ export const usePerpsHomeData = ({
       positions: isPositionsLoading,
       orders: isOrdersLoading,
       markets: isMarketsLoading,
-      activity: isActivityLoading,
+      activity: isFillsLoading || isRestFillsLoading,
     },
     refresh,
   };

@@ -57,7 +57,7 @@ jest.mock(
             onPress: () => onSelectAction('reduce_margin'),
             testID: 'reduce-margin',
           },
-          ReactModule.createElement(Text, null, 'Reduce Margin'),
+          ReactModule.createElement(Text, null, 'Remove Margin'),
         ),
         ReactModule.createElement(
           TouchableOpacity,
@@ -109,7 +109,7 @@ describe('PerpsSelectAdjustMarginActionView', () => {
   it('renders reduce margin option', () => {
     render(<PerpsSelectAdjustMarginActionView />);
 
-    expect(screen.getByText('Reduce Margin')).toBeOnTheScreen();
+    expect(screen.getByText('Remove Margin')).toBeOnTheScreen();
   });
 
   it('renders with position from props', () => {

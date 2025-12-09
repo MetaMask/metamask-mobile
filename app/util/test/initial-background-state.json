@@ -541,6 +541,10 @@
   "TransactionPayController": {
     "transactionData": {}
   },
+  "ProfileMetricsController": {
+    "initialEnqueueCompleted": false,
+    "syncQueue": {}
+  },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,

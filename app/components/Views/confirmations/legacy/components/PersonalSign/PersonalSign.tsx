@@ -127,7 +127,7 @@ const PersonalSign = ({
     const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED)
+          createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED)
             .addProperties(getAnalyticsParams())
             .build(),
         );

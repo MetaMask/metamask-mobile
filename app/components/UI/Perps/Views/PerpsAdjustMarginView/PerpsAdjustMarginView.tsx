@@ -224,11 +224,13 @@ const PerpsAdjustMarginView: React.FC = () => {
   );
 
   const handleSliderChange = useCallback((value: number) => {
-    setMarginAmountString(Math.floor(value).toString());
+    // Keep 2 decimal places for precision with small amounts
+    setMarginAmountString(value.toFixed(2));
   }, []);
 
   const handleMaxPress = useCallback(() => {
-    setMarginAmountString(Math.floor(maxAmount).toString());
+    // Keep 2 decimal places for precision with small amounts
+    setMarginAmountString(maxAmount.toFixed(2));
   }, [maxAmount]);
 
   // Keypad handlers
@@ -241,7 +243,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       const numValue = parseFloat(value) || 0;
       // Clamp to maxAmount for remove mode to prevent invalid submissions
       if (!isAddMode && numValue > maxAmount) {
-        setMarginAmountString(Math.floor(maxAmount).toString());
+        setMarginAmountString(maxAmount.toFixed(2));
       } else {
         setMarginAmountString(value || '0');
       }
@@ -255,8 +257,9 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
-      const amount = Math.floor(maxAmount * percentage);
-      setMarginAmountString(amount.toString());
+      // Keep 2 decimal places for precision with small amounts
+      const amount = maxAmount * percentage;
+      setMarginAmountString(amount.toFixed(2));
     },
     [maxAmount],
   );
@@ -381,7 +384,21 @@ const PerpsAdjustMarginView: React.FC = () => {
             </Text>
           </View>
 
-          {/* Second row: Liquidation price with transition */}
+          {/* Second row: Margin available to add/remove */}
+          <View style={styles.infoRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {isAddMode
+                ? strings('perps.adjust_margin.margin_available_to_add')
+                : strings('perps.adjust_margin.margin_available_to_remove')}
+            </Text>
+            <Text variant={TextVariant.BodyMD}>
+              {formatPerpsFiat(maxAmount, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
+            </Text>
+          </View>
+
+          {/* Liquidation price with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -428,7 +445,7 @@ const PerpsAdjustMarginView: React.FC = () => {
             )}
           </View>
 
-          {/* Third row: Liquidation distance with transition */}
+          {/* Liquidation distance with transition */}
           <View style={styles.infoRow}>
             <View style={styles.labelWithIcon}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -525,7 +542,7 @@ const PerpsAdjustMarginView: React.FC = () => {
             value={marginAmountString}
             onChange={handleKeypadChange}
             currency="USD"
-            decimals={0}
+            decimals={2}
             style={styles.keypad}
           />
         </View>

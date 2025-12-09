@@ -693,7 +693,7 @@
       "error_sdk_not_initialized": "SDK not initialized",
       "logged_out_error": "Error logging out",
       "more_ways_to_buy": "More ways to buy",
-      "more_ways_to_buy_description": "Use a different payment provider"
+      "more_ways_to_buy_description": "Switch to the classic version"
     },
     "region_modal": {
       "select_a_region": "Select a region",
@@ -1326,22 +1326,24 @@
       "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
     },
     "flip_position": {
-      "title": "Flip Position",
+      "title": "Reverse Position",
       "direction": "Direction",
       "est_size": "Est. Size",
-      "flip": "Flip",
-      "flipping": "Flipping...",
+      "flip": "Reverse",
+      "flipping": "Reversing...",
       "cancel": "Cancel"
     },
     "adjust_margin": {
       "title": "Adjust Margin",
       "add_margin": "Add Margin",
       "add_margin_description": "Increase margin to reduce liquidation risk",
-      "reduce_margin": "Reduce Margin",
+      "reduce_margin": "Remove Margin",
       "reduce_margin_description": "Withdraw excess margin from position",
       "add_title": "Add Margin",
-      "remove_title": "Reduce Margin",
+      "remove_title": "Remove Margin",
       "margin_in_position": "Margin in position",
+      "margin_available_to_add": "Margin available to add",
+      "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance"
@@ -2106,6 +2108,7 @@
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
+      "no_funds_enough": "Not enough funds.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again."
@@ -2431,6 +2434,7 @@
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "gather_basic_usage_title": "Gather basic usage data",
     "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
+    "gather_basic_usage_description_updated": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "Learn more",
     "checkbox_marketing": "Marketing updates",
     "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
@@ -2458,7 +2462,8 @@
     "action_description_never_legacy": "Never",
     "toast_message": "We’ve updated our privacy policy",
     "toast_action_button": "Close",
-    "toast_read_more": "Read more"
+    "toast_read_more": "Read more",
+    "pna25_toast_message": "We’re updating MetaMetrics. We'll associate some in-app activity to on-chain data to better understand usage. You can opt out via Settings."
   },
   "template_confirmation": {
     "ok": "OK",
@@ -2843,7 +2848,7 @@
     "clear_history_desc": "Choose this option to clear your entire browsing history.",
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
-    "metametrics_description": "Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.",
+    "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
     "data_collection_title": "Data collection for marketing",
     "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
     "batch_balance_requests_title": "Batch account balance requests",
@@ -4665,8 +4670,8 @@
     "webview_error_no_address_provided": "No wallet address was provided to continue",
     "settings_modal": {
       "title": "Settings",
-      "use_new_buy_experience": "Use new buy experience",
-      "use_new_buy_experience_description": "Try new native on ramp"
+      "use_new_buy_experience": "More ways to buy",
+      "use_new_buy_experience_description": "Switch to the new version"
     },
     "onboarding": {
       "what_to_expect": "What to Expect",
@@ -6920,7 +6925,17 @@
       "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
       "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
       "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
-      "step4_legal_disclaimer_4": "learn more"
+      "step4_legal_disclaimer_4": "learn more",
+      "no_active_season": {
+        "title": "Sign up for Rewards",
+        "description": "Get more out of MetaMask with the best loyalty program in crypto.",
+        "sign_up": "Sign up",
+        "sign_up_loading": "Signing up...",
+        "legal_disclaimer_1": "By clicking 'Sign up,' you agree to the MetaMask Rewards",
+        "legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+        "legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+        "legal_disclaimer_4": "learn more"
+      }
     },
     "settings": {
       "title": "Rewards Settings",
