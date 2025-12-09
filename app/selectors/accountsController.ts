@@ -224,7 +224,7 @@ export const selectCanSignTransactions = createSelector(
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
       selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
-      selectedAccount?.methods?.includes(TrxMethod.SignMessageV2) ||
+      selectedAccount?.methods?.includes(TrxMethod.SignMessage) ||
       selectedAccount?.methods?.includes(BtcMethod.SignPsbt)) ??
     false,
 );
