@@ -267,8 +267,9 @@ const CardHome = () => {
     const isPriorityTokenSupportedDeposit = !!DEPOSIT_SUPPORTED_TOKENS.find(
       (t) => t.toLowerCase() === priorityToken?.symbol?.toLowerCase(),
     );
+    const isLineaChainId = priorityToken?.caipChainId === 'eip155:59144';
 
-    if (isPriorityTokenSupportedDeposit) {
+    if (isLineaChainId && isPriorityTokenSupportedDeposit) {
       navigation.navigate(
         ...createAddFundsModalNavigationDetails({
           priorityToken: priorityToken ?? undefined,
