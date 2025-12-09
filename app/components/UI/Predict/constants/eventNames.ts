@@ -103,7 +103,7 @@ export const PredictEventValues = {
     WITHDRAW: 'withdraw',
   },
   BALANCE: {
-    ZERO: '0',
+    ZERO: 'zero',
     NON_ZERO: 'non-zero',
   },
 } as const;
