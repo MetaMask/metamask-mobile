@@ -135,7 +135,6 @@ describe('parseDeeplink', () => {
     });
 
     expect(mockHandleEthereumUrl).toHaveBeenCalledWith({
-      deeplinkManager: instance,
       url,
       origin: 'testOrigin',
     });

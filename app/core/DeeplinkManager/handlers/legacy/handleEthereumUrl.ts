@@ -8,20 +8,18 @@ import { NetworkSwitchErrorType } from '../../../../constants/error';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MAINNET } from '../../../../constants/network';
 import Engine from '../../../Engine';
-import DeeplinkManager from '../../DeeplinkManager';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../../components/Views/confirmations/utils/deeplink';
 import NavigationService from '../../../NavigationService';
 import handleApproveUrl from './handleApproveUrl';
+import switchNetwork from '../../../../util/networks/switchNetwork';
 
 async function handleEthereumUrl({
-  deeplinkManager,
   url,
   origin,
 }: {
-  deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
 }) {
@@ -61,7 +59,7 @@ async function handleEthereumUrl({
     /**
      * Validate and switch network before performing any other action
      */
-    deeplinkManager._handleNetworkSwitch(ethUrl.chain_id);
+    switchNetwork({ switchToChainId: ethUrl.chain_id });
 
     switch (ethUrl.function_name) {
       case ETH_ACTIONS.TRANSFER: {

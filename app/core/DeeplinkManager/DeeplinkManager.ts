@@ -1,6 +1,5 @@
 'use strict';
 
-import switchNetwork from '../../util/networks/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
@@ -33,16 +32,6 @@ class DeeplinkManager {
   getPendingDeeplink = () => this.pendingDeeplink;
 
   expireDeeplink = () => (this.pendingDeeplink = null);
-
-  /**
-   * Method in charge of changing network if is needed
-   *
-   * @param switchToChainId - Corresponding chain id for new network
-   */
-  _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
-    switchNetwork({
-      switchToChainId,
-    });
 
   async parse(
     url: string,

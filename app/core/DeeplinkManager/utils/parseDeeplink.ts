@@ -70,7 +70,6 @@ async function parseDeeplink({
       case PROTOCOLS.ETHEREUM:
         handled();
         handleEthereumUrl({
-          deeplinkManager: instance,
           url,
           origin,
         }).catch((err) => {
