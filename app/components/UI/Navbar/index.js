@@ -2148,7 +2148,7 @@ export function getStakingNavbar(
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Success}
               >
-                {`${apr}% ${strings('earn.apr')}`}
+                {`${apr} ${strings('earn.apr')}`}
               </MorphText>
             </View>
           )
