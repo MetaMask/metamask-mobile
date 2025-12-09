@@ -543,6 +543,7 @@ describe('EarnInputView', () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
+        null,
       );
 
       // "0" in the input display and on the keypad
@@ -1167,6 +1168,7 @@ describe('EarnInputView', () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
+        null,
       );
     });
   });
