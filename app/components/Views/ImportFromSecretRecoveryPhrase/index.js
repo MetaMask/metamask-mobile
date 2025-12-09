@@ -228,16 +228,14 @@ const ImportFromSecretRecoveryPhrase = ({
 
   useEffect(() => {
     updateNavBar();
-    const setBiometricsOption = async () => {
-      const authData = await Authentication.getType();
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-        setBiometryType(passcodeType(authData.currentAuthType));
-      } else if (authData.availableBiometryType) {
-        setBiometryType(authData.availableBiometryType);
+    const loadBiometricsOption = async () => {
+      const option = await Authentication.getBiometricsOption();
+      if (option) {
+        setBiometryType(option);
       }
     };
 
-    setBiometricsOption();
+    loadBiometricsOption();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);

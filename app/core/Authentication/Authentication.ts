@@ -73,6 +73,7 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import { passcodeType } from '../../util/authentication';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1293,6 +1294,25 @@ class AuthenticationService {
     await SeedlessOnboardingController.storeKeyringEncryptionKey(
       keyringEncryptionKey,
     );
+  };
+
+  /**
+   * Determines the current biometric or passcode option available for authentication.
+   *
+   * Uses the stored authentication configuration and device capabilities to resolve
+   * to either a biometric type, a passcode-based option, or `null` when no option
+   * is available.
+   *
+   * @returns Promise that resolves to the available biometry type, a passcode label,
+   * or null if no biometric/passcode option is configured.
+   */
+  getBiometricsOption = async (): Promise<BIOMETRY_TYPE | string | null> => {
+    const authData = await this.getType();
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      return passcodeType(authData.currentAuthType);
+    }
+
+    return authData.availableBiometryType ?? null;
   };
 }
 
