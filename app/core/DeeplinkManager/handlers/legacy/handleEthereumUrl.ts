@@ -14,6 +14,7 @@ import {
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../../components/Views/confirmations/utils/deeplink';
 import NavigationService from '../../../NavigationService';
+import handleApproveUrl from './handleApproveUrl';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -71,7 +72,7 @@ async function handleEthereumUrl({
         break;
       }
       case ETH_ACTIONS.APPROVE: {
-        await deeplinkManager._approveTransaction(ethUrl, origin);
+        await handleApproveUrl({ ethUrl, origin });
         break;
       }
       default: {

@@ -22,6 +22,8 @@ jest.mock('../../../../NavigationService', () => ({
 
 jest.mock('react-native');
 
+jest.mock('../handleApproveUrl');
+
 jest.mock('eth-url-parser', () => ({
   parse: jest.fn(),
 }));
@@ -54,7 +56,7 @@ describe('handleEthereumUrl', () => {
 
   const mockHandleNetworkSwitch = jest.fn();
   const mockNavigate = jest.fn();
-  const mockApproveTransaction = jest.fn();
+  const mockHandleApproveUrl = handleApproveUrl as jest.Mock;
   const mockIsDeeplinkRedesignedConfirmationCompatible = jest.mocked(
     isDeeplinkRedesignedConfirmationCompatible,
   );
@@ -65,7 +67,6 @@ describe('handleEthereumUrl', () => {
 
     deeplinkManager = {
       _handleNetworkSwitch: mockHandleNetworkSwitch,
-      _approveTransaction: mockApproveTransaction,
       navigation: {
         navigate: mockNavigate,
       },
@@ -177,7 +178,10 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ deeplinkManager, url, origin });
 
-    expect(handleApproveUrl).toHaveBeenCalledWith(expect.any(Object), origin);
+    expect(handleApproveUrl).toHaveBeenCalledWith({
+      ethUrl: expect.any(Object),
+      origin,
+    });
   });
 
   it('navigates to SendFlowView for default action', () => {
@@ -304,7 +308,7 @@ describe('handleEthereumUrl', () => {
       parameters: {},
     });
 
-    mockApproveTransaction.mockImplementation(() => {
+    mockHandleApproveUrl.mockImplementation(() => {
       throw mockError;
     });
 
