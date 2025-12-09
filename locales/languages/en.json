@@ -1,6 +1,6 @@
 {
   "sample_feature": {
-    "title": "Sample Feature",
+    "title": "Sample feature",
     "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
     "counter": {
       "title": "Counter",
@@ -8,8 +8,8 @@
       "increment": "Increment Redux Counter"
     },
     "pet_name": {
-      "list_count_text": "Pet Names on this network",
-      "add_pet_name_button": "Add Pet Name",
+      "list_count_text": "Pet names on this network",
+      "add_pet_name_button": "Add pet name",
       "address": "Address",
       "address_placeholder": "0x...",
       "name": "Name",
@@ -25,7 +25,7 @@
       "title": "Alert",
       "checkbox_label": "I have acknowledged the risk and still want to proceed",
       "got_it_btn": "Got it",
-      "alert_details": "Alert Details"
+      "alert_details": "Alert details"
     },
     "confirm_modal": {
       "title": "High risk request",
@@ -52,7 +52,11 @@
     },
     "domain_mismatch": {
       "title": "Suspicious sign-in request",
-      "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
+      "message": "The site making the request is not the site you're signing into. This could be an attempt to steal your login credentials."
+    },
+    "gas_estimate_failed": {
+      "title": "Inaccurate fee",
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you to input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "Insufficient funds",
@@ -107,7 +111,7 @@
     },
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
-      "title": "Sending Assets to Burn Address"
+      "title": "Sending assets to burn address"
     },
     "token_trust_signal": {
       "malicious": {
@@ -126,7 +130,7 @@
       },
       "warning": {
         "message": "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
-        "title": "Address Needs Review"
+        "title": "Address needs review"
       }
     },
     "url_trust_signal": {
@@ -168,7 +172,7 @@
     "continue": "Continue",
     "cancel": "Cancel",
     "got_it": "Got it",
-    "try_again": "Try Again",
+    "try_again": "Try again",
     "failed": "Something went wrong"
   },
   "date": {
@@ -302,7 +306,7 @@
     "get_started": "Get started"
   },
   "onboarding_wizard": {
-    "skip_tutorial": "Skip Tutorial",
+    "skip_tutorial": "Skip tutorial",
     "coachmark": {
       "action_back": "No, Thanks",
       "action_next": "Take the tour",
@@ -315,18 +319,18 @@
       "content2": "We'll show you how to buy ETH, or you can request some from a friend."
     },
     "step2": {
-      "title": "Your Accounts",
+      "title": "Your accounts",
       "content1": "This is your first account, total value, and its unique public address (0x...).",
       "content2": "You can create multiple accounts within this wallet by tapping on the profile icon."
     },
     "step3": {
-      "title": "Edit Account Name",
+      "title": "Edit account name",
       "content1": "Why not give your account a memorable and distinct name?",
       "content2": "Long tap",
       "content3": "now to edit account name."
     },
     "step4": {
-      "title": "Main Menu",
+      "title": "Main menu",
       "content1": "You can access Transaction history, Settings, and Support from this menu.",
       "content2": "You can take more actions with your accounts & access MetaMask settings."
     },
@@ -391,7 +395,7 @@
     "import_from_seed_button": "Import using Secret Recovery Phrase"
   },
   "login": {
-    "title": "Welcome Back!",
+    "title": "Welcome back!",
     "password": "Password",
     "password_placeholder": "Enter password",
     "unlock_button": "Unlock",
@@ -423,7 +427,7 @@
     "seedless_controller_error_prompt_title": "Something went wrong",
     "seedless_controller_error_prompt_description": "An issue occurred while unlocking. Re-login with Google and your MetaMask password.",
     "seedless_controller_error_prompt_primary_button_label": "Log in",
-    "security_alert_title": "Security Alert",
+    "security_alert_title": "Security alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
@@ -478,7 +482,7 @@
     "seed_phrase": "Secret Recovery Phrase",
     "must_be_at_least": "Must be at least {{number}} characters",
     "remember_me": "Remember me",
-    "security_alert_title": "Security Alert",
+    "security_alert_title": "Security alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "i_understand": "I understand that MetaMask cannot recover this password for me.",
     "learn_more": "Learn more",
@@ -509,7 +513,7 @@
     "seed_phrase": "Secret Recovery Phrase",
     "must_be_at_least": "Must be at least {{number}} characters",
     "remember_me": "Remember me",
-    "security_alert_title": "Security Alert",
+    "security_alert_title": "Security alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "i_understand": "I understand that MetaMask cannot recover this password for me.",
     "learn_more": "Learn more",
@@ -592,9 +596,9 @@
     "transaction_activity": "Activity",
     "request_feature": "Request a Feature",
     "submit_feedback_message": "Choose the type of feedback to send.",
-    "submit_bug": "Bug Report",
+    "submit_bug": "Bug report",
     "submit_general_feedback": "General",
-    "share_address": "Share my Public Address",
+    "share_address": "Share my public address",
     "view_in_etherscan": "View on Etherscan",
     "view_in": "View on",
     "browser": "Browser",
@@ -608,7 +612,7 @@
     "lock_cancel": "NO",
     "feedback": "Feedback",
     "metamask_support": "MetaMask Support",
-    "public_address": "Public Address"
+    "public_address": "Public address"
   },
   "send": {
     "available": "available",
@@ -641,7 +645,7 @@
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first.",
     "network_missing_id": "Missing chain id.",
-    "search_tokens":"Search tokens",
+    "search_tokens": "Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
@@ -659,7 +663,7 @@
   },
   "deposit": {
     "title": "Deposit",
-    "selectRegion": "Select Region",
+    "selectRegion": "Select region",
     "chooseYourRegionToContinue": "Choose your region to continue",
     "buildQuote": {
       "payWith": "Pay with",
@@ -697,7 +701,7 @@
       "error_sdk_not_initialized": "SDK not initialized",
       "logged_out_error": "Error logging out",
       "more_ways_to_buy": "More ways to buy",
-      "more_ways_to_buy_description": "Use a different payment provider"
+      "more_ways_to_buy_description": "Switch to the classic version"
     },
     "region_modal": {
       "select_a_region": "Select a region",
@@ -710,7 +714,7 @@
       "no_state_results": "No states match \"{{searchString}}\""
     },
     "payment_modal": {
-      "select_a_payment_method": "Select a Payment Method"
+      "select_a_payment_method": "Select a payment method"
     },
     "payment_duration": {
       "instant": "Instant",
@@ -721,7 +725,7 @@
       "location_prefix": "It looks like you're in:",
       "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.",
       "change_region": "Change region",
-      "buy_crypto": "Buy Crypto"
+      "buy_crypto": "Buy crypto"
     },
     "unsupported_state_modal": {
       "title": "Region not supported",
@@ -800,7 +804,7 @@
       "button": "Agree and continue"
     },
     "additional_verification": {
-      "title": "Additional Verification",
+      "title": "Additional verification",
       "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
       "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
       "button": "Continue"
@@ -839,7 +843,7 @@
       "address_line_2": "Address line 2 (optional)",
       "state": "State/Region",
       "city": "City",
-      "postal_code": "Postal/Zip Code",
+      "postal_code": "Postal/zip code",
       "country": "Country",
       "select_state": "Select state",
       "address_line_1_required": "Address line 1 is required",
@@ -849,7 +853,7 @@
       "city_invalid": "Please enter a valid city",
       "state_required": "State/Region is required",
       "state_invalid": "Please enter a valid state",
-      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_required": "Postal/zip code is required",
       "postal_code_invalid": "Please enter a valid postal code",
       "unexpected_error": "Unexpected error."
     },
@@ -898,7 +902,7 @@
       "cancel_order_button": "Cancel order"
     },
     "order_details": {
-      "title": "Deposit Order",
+      "title": "Deposit order",
       "error_title": "There was an error with your deposit order",
       "error_message": "An unexpected error occurred."
     },
@@ -949,8 +953,8 @@
       "fetch_tokens": "There was an issue fetching the tokens.",
       "fetch_payment_methods": "There was an issue fetching the payment methods.",
       "fetch_user_details": "There was an issue fetching the user details.",
-      "try_again": "Try Again",
-      "error_details_title": "Error Details",
+      "try_again": "Try again",
+      "error_details_title": "Error details",
       "see_more": "See more"
     }
   },
@@ -976,7 +980,7 @@
     "add_funds": "Add funds",
     "trade_perps": "Trade perps",
     "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
-    "available": "available to trade",
+    "available": "available",
     "deposit_in_progress": "Deposit in progress",
     "withdraw_in_progress": "Withdraw in progress",
     "multiple_transactions_in_progress": "Transactions in progress",
@@ -3361,7 +3365,8 @@
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
     "open_settings": "Settings",
-    "camera_not_available": "Camera not available"
+    "camera_not_available": "Camera not available",
+    "tron_address_not_supported": "Tron addresses are not currently supported"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -4680,8 +4685,8 @@
     "webview_error_no_address_provided": "No wallet address was provided to continue",
     "settings_modal": {
       "title": "Settings",
-      "use_new_buy_experience": "Use new buy experience",
-      "use_new_buy_experience_description": "Try new native on ramp"
+      "use_new_buy_experience": "More ways to buy",
+      "use_new_buy_experience_description": "Switch to the new version"
     },
     "onboarding": {
       "what_to_expect": "What to Expect",
@@ -5659,11 +5664,11 @@
       "fee": "Fee"
     },
     "musd_conversion": {
-      "confirmation_button": "Convert to mUSD",
-      "earn_rewards_with": "Earn rewards with mUSD",
+      "convert_to_musd": "Convert to mUSD",
       "toasts": {
-        "in_progress": "mUSD conversion in progress",
-        "success": "mUSD conversion succeeded",
+        "converting": "Converting {{token}} → mUSD",
+        "eta": "~{{time}}",
+        "delivered": "Your mUSD has been delivered!",
         "failed": "mUSD conversion failed"
       },
       "education": {
@@ -5673,7 +5678,9 @@
       },
       "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD"
+      "get_musd": "Get mUSD",
+      "earn_rewards_when": "Earn rewards when",
+      "you_convert_to": "you convert to"
     },
     "rewards": {
       "rewards_tag_label": "Rewards",
@@ -6699,7 +6706,11 @@
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See card details, transactions and more"
+        "advanced_card_management_description": "See card details, transactions and more",
+        "travel_title": "MetaMask Travel",
+        "travel_description": "Book hotels with up to 60% discounts vs. Expedia",
+        "card_tos_title": "Card Terms and Conditions",
+        "card_tos_description": "Read the card provider's terms"
       }
     },
     "card_spending_limit": {

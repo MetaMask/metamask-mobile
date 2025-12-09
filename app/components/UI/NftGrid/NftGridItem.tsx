@@ -34,7 +34,7 @@ const NftGridItem = ({
 
   return (
     <Pressable
-      style={tw.style('self-stretch ')}
+      style={tw.style('self-stretch mb-3')}
       onPress={onPress}
       onLongPress={() => onLongPress(item)}
       testID={`collectible-${item.name}-${item.tokenId}`}

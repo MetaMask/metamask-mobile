@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex, CaipChainId } from '@metamask/utils';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
@@ -20,11 +20,19 @@ import {
   ActionPosition,
 } from '../../../../../util/analytics/actionButtonTracking';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
-import { selectIsBridgeEnabledSourceFactory } from '../../../../../core/redux/slices/bridge';
+import {
+  selectIsBridgeEnabledSourceFactory,
+  setSourceToken,
+  setDestToken,
+} from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
-import { getNativeSourceToken } from '../../utils/tokenUtils';
+import {
+  getNativeSourceToken,
+  getDefaultDestToken,
+} from '../../utils/tokenUtils';
+import { areAddressesEqual } from '../../../../../util/address';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -49,6 +57,7 @@ export const useSwapBridgeNavigation = ({
   sourceToken?: BridgeToken;
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const getIsBridgeEnabledSource = useSelector(
     selectIsBridgeEnabledSourceFactory,
@@ -118,6 +127,24 @@ export const useSwapBridgeNavigation = ({
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
       }
 
+      // Pre-populate Redux state before navigation to prevent empty button flash
+      dispatch(setSourceToken(sourceToken));
+
+      const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
+      // Make sure source and dest tokens are different
+      if (
+        defaultDestToken &&
+        !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+      ) {
+        dispatch(setDestToken(defaultDestToken));
+      } else {
+        // Fall back to native token if default dest is same as source
+        const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
+        if (!areAddressesEqual(sourceToken.address, nativeDestToken.address)) {
+          dispatch(setDestToken(nativeDestToken));
+        }
+      }
+
       const params: BridgeRouteParams = {
         sourceToken,
         sourcePage,
@@ -159,6 +186,7 @@ export const useSwapBridgeNavigation = ({
     },
     [
       navigation,
+      dispatch,
       tokenBase,
       sourcePage,
       trackEvent,
