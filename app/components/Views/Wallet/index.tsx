@@ -362,8 +362,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
   // Calculate Predict tab visibility
-  const predictTabIndex =
-    isPerpsEnabled && isPredictEnabled ? 2 : isPredictEnabled ? 1 : -1;
+  let predictTabIndex = -1;
+  if (isPerpsEnabled && isPredictEnabled) {
+    predictTabIndex = 2;
+  } else if (isPredictEnabled) {
+    predictTabIndex = 1;
+  }
   const isPredictTabVisible = currentTabIndex === predictTabIndex;
 
   // Store the visibility update callback from PerpsTabView

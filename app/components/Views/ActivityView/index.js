@@ -225,7 +225,6 @@ const ActivityView = () => {
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;
-  const isOrdersTabActive = activeTabIndex === 1;
 
   useFocusEffect(
     useCallback(() => {
@@ -256,6 +255,16 @@ const ActivityView = () => {
     selectMultichainAccountsState2Enabled,
   );
   const showUnifiedActivityList = isMultichainAccountsState2Enabled;
+
+  const renderTransactionsView = () => {
+    if (showUnifiedActivityList) {
+      return <UnifiedTransactionsView chainId={currentChainId} />;
+    }
+    if (selectedAddress && isNonEvmAddress(selectedAddress)) {
+      return <MultichainTransactionsView chainId={currentChainId} />;
+    }
+    return <TransactionsView />;
+  };
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
@@ -337,13 +346,7 @@ const ActivityView = () => {
                 disabled={isDisabled && !isMultichainAccountsState2Enabled}
               />
             </View>
-            {showUnifiedActivityList ? (
-              <UnifiedTransactionsView chainId={currentChainId} />
-            ) : selectedAddress && isNonEvmAddress(selectedAddress) ? (
-              <MultichainTransactionsView chainId={currentChainId} />
-            ) : (
-              <TransactionsView />
-            )}
+            {renderTransactionsView()}
           </View>
           <View
             key="orders"

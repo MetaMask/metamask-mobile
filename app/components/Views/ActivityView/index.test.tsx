@@ -8,19 +8,21 @@ import { fireEvent } from '@testing-library/react-native';
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 
-jest.mock('../../hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames: {
-    perpsPerpTradingEnabled: 'perpsPerpTradingEnabled',
-    predictTradingEnabled: 'predictTradingEnabled',
-  },
+// Mock the Perps feature flag selector - will be controlled per test
+let mockPerpsEnabled = false;
+jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
+  selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
+  selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(() => false),
 }));
 
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
->;
+// Mock the Predict feature flag selector - will be controlled per test
+let mockPredictEnabled = false;
+jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
+  selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
+  selectPredictGtmOnboardingModalEnabledFlag: jest.fn(() => false),
+}));
 
 // Track which tabs are rendered - populated by mock
 let renderedTabs: string[] = [];
@@ -49,9 +51,9 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
       // Track tab keys via effect to avoid writing during render
       ReactActual.useEffect(() => {
         const tabKeys: string[] = [];
-        children.forEach((child) => {
-          if (child?.key) {
-            tabKeys.push(child.key as string);
+        ReactActual.Children.forEach(children, (child) => {
+          if (ReactActual.isValidElement(child) && child.key) {
+            tabKeys.push(String(child.key));
           }
         });
         // Update module-level variable for test assertions
@@ -67,13 +69,17 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
       return ReactActual.createElement(
         View,
         { testID: 'tabs-list' },
-        children.map((child, index) =>
-          ReactActual.createElement(
+        ReactActual.Children.map(children, (child, index) => {
+          const key =
+            ReactActual.isValidElement(child) && child.key
+              ? String(child.key)
+              : index;
+          return ReactActual.createElement(
             View,
-            { key: child?.key || index, testID: `tab-${child?.key || index}` },
+            { key, testID: `tab-${key}` },
             child,
-          ),
-        ),
+          );
+        }),
       );
     },
   );
@@ -244,12 +250,9 @@ describe('ActivityView', () => {
     jest.clearAllMocks();
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
     mockIsEvmSelected = true;
+    mockPerpsEnabled = false;
+    mockPredictEnabled = false;
     clearRenderedTabs();
-    mockUseFeatureFlag.mockImplementation((flagName: string) => {
-      if (flagName === 'perpsPerpTradingEnabled') return false;
-      if (flagName === 'predictTradingEnabled') return false;
-      return false;
-    });
   });
 
   it('matches snapshot', () => {
@@ -418,10 +421,7 @@ describe('ActivityView', () => {
     });
 
     it('includes Perps tab when feature flag is enabled on EVM network', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return true;
-        return false;
-      });
+      mockPerpsEnabled = true;
       mockIsEvmSelected = true;
 
       const { getByTestId } = renderComponent(mockInitialState);
@@ -431,10 +431,7 @@ describe('ActivityView', () => {
     });
 
     it('excludes Perps tab when feature flag is disabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return false;
-        return false;
-      });
+      mockPerpsEnabled = false;
       mockIsEvmSelected = true;
 
       renderComponent(mockInitialState);
@@ -443,10 +440,7 @@ describe('ActivityView', () => {
     });
 
     it('excludes Perps tab on non-EVM network even with feature flag enabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return true;
-        return false;
-      });
+      mockPerpsEnabled = true;
       mockIsEvmSelected = false;
 
       renderComponent(mockInitialState);
@@ -462,10 +456,7 @@ describe('ActivityView', () => {
     });
 
     it('includes Predict tab when feature flag is enabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'predictTradingEnabled') return true;
-        return false;
-      });
+      mockPredictEnabled = true;
 
       const { getByTestId } = renderComponent(mockInitialState);
 
@@ -474,7 +465,7 @@ describe('ActivityView', () => {
     });
 
     it('excludes Predict tab when feature flag is disabled', () => {
-      mockUseFeatureFlag.mockImplementation(() => false);
+      mockPredictEnabled = false;
 
       renderComponent(mockInitialState);
 
@@ -482,10 +473,7 @@ describe('ActivityView', () => {
     });
 
     it('includes Predict tab on non-EVM network when feature flag is enabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'predictTradingEnabled') return true;
-        return false;
-      });
+      mockPredictEnabled = true;
       mockIsEvmSelected = false;
 
       const { getByTestId } = renderComponent(mockInitialState);
@@ -502,11 +490,8 @@ describe('ActivityView', () => {
     });
 
     it('orders tabs as Transactions, Orders, Perps, Predict when all features enabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return true;
-        if (flagName === 'predictTradingEnabled') return true;
-        return false;
-      });
+      mockPerpsEnabled = true;
+      mockPredictEnabled = true;
       mockIsEvmSelected = true;
 
       renderComponent(mockInitialState);
@@ -520,11 +505,8 @@ describe('ActivityView', () => {
     });
 
     it('orders tabs as Transactions, Orders, Predict when Perps disabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return false;
-        if (flagName === 'predictTradingEnabled') return true;
-        return false;
-      });
+      mockPerpsEnabled = false;
+      mockPredictEnabled = true;
 
       renderComponent(mockInitialState);
 
@@ -532,11 +514,8 @@ describe('ActivityView', () => {
     });
 
     it('orders tabs as Transactions, Orders, Perps when Predict disabled', () => {
-      mockUseFeatureFlag.mockImplementation((flagName: string) => {
-        if (flagName === 'perpsPerpTradingEnabled') return true;
-        if (flagName === 'predictTradingEnabled') return false;
-        return false;
-      });
+      mockPerpsEnabled = true;
+      mockPredictEnabled = false;
       mockIsEvmSelected = true;
 
       renderComponent(mockInitialState);
@@ -545,7 +524,8 @@ describe('ActivityView', () => {
     });
 
     it('includes only Transactions and Orders tabs when all feature flags disabled', () => {
-      mockUseFeatureFlag.mockImplementation(() => false);
+      mockPerpsEnabled = false;
+      mockPredictEnabled = false;
 
       renderComponent(mockInitialState);
 
