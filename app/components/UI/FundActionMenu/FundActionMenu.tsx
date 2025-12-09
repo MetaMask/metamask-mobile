@@ -118,7 +118,7 @@ const FundActionMenu = () => {
             text: 'Buy',
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
-            ramp_type: 'BUY',
+            ramp_type: 'UNIFIED_BUY',
             region: rampGeodetectedRegion,
             ramp_routing: rampsButtonClickData.ramp_routing,
             is_authenticated: rampsButtonClickData.is_authenticated,
