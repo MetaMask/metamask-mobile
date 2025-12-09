@@ -29,6 +29,7 @@ describe('useAnalytics', () => {
       location: 'Amount to Buy Screen',
       text: 'Buy',
       ramp_type: 'BUY',
+      region: 'US',
     } as const;
 
     result.current(testEvent, testEventParams);
