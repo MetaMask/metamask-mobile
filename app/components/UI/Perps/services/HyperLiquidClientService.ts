@@ -52,7 +52,6 @@ export class HyperLiquidClientService {
   private healthCheckInterval?: ReturnType<typeof setInterval>;
   private healthCheckTimeout?: ReturnType<typeof setTimeout>;
   private isHealthCheckRunning = false;
-  private lastSuccessfulHealthCheck: number | null = null;
   private onReconnectCallback?: () => Promise<void>;
 
   constructor(options: { isTestnet?: boolean } = {}) {
@@ -631,7 +630,6 @@ export class HyperLiquidClientService {
       this.httpTransport = undefined;
 
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
-      this.lastSuccessfulHealthCheck = null;
 
       DevLogger.log('HyperLiquid: SDK clients fully disconnected', {
         timestamp: new Date().toISOString(),
@@ -731,9 +729,6 @@ export class HyperLiquidClientService {
       try {
         // Use transport.ready() to check if WebSocket is actually connected
         await this.subscriptionClient.transport.ready(controller.signal);
-
-        // Health check succeeded
-        this.lastSuccessfulHealthCheck = Date.now();
       } catch {
         // Connection appears to be dead - trigger reconnection
         await this.handleConnectionDrop();
@@ -783,7 +778,6 @@ export class HyperLiquidClientService {
       });
 
       this.connectionState = WebSocketConnectionState.CONNECTED;
-      this.lastSuccessfulHealthCheck = Date.now();
 
       // Notify callback to restore subscriptions
       if (this.onReconnectCallback) {
