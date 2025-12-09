@@ -17,6 +17,8 @@ describe(SmokeAccounts('Wallet details'), () => {
   const FIRST = 0;
 
   it('goes to the wallet details, creates an account and exports srp', async () => {
+    await device.disableSynchronization();
+
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
