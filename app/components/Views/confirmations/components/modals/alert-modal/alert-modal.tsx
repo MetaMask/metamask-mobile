@@ -277,7 +277,12 @@ const AlertModal: React.FC<AlertModalProps> = ({
           action={selectedAlert.action}
           styles={styles}
           onHandleActionClick={handleActionClick}
-          isConfirmed={selectedAlert.isBlocking ? isConfirmed : true}
+          isConfirmed={
+            selectedAlert.severity === Severity.Danger &&
+            !selectedAlert.isBlocking
+              ? isConfirmed
+              : !selectedAlert.isBlocking
+          }
         />
       </View>
     </BottomModal>
