@@ -35,6 +35,7 @@ import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
+import { useRWAToken } from '../../hooks/useRWAToken';
 
 export const getNetworkName = (
   chainId: Hex,
@@ -56,6 +57,7 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
   const { styles } = useStyles(createStyles);
   const navigation = useNavigation();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
+  const { isStockToken, isTokenTradingOpen } = useRWAToken();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedDestToken = useSelector(selectDestToken);
@@ -77,11 +79,21 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
   });
 
   const handleTokenPress = useCallback(
-    (token: BridgeToken) => {
+    async (token: BridgeToken) => {
+      // Check if token is a stock token and market is closed
+      if (isStockToken(token)) {
+        const isTradingOpen = await isTokenTradingOpen(token);
+        if (!isTradingOpen) {
+          // Show market closed bottom sheet
+          navigation.navigate(Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL);
+          return;
+        }
+      }
+
       dispatch(setDestToken(token));
       navigation.goBack();
     },
-    [dispatch, navigation],
+    [dispatch, navigation, isStockToken, isTokenTradingOpen],
   );
 
   const debouncedTokenPress = useMemo(

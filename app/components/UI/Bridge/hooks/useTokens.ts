@@ -105,8 +105,9 @@ export function useTokens({
             assetType: 'stock',
             containsProfanity: false,
             market: {
-              openingHour: new Date(),
-              closingHour: new Date(),
+              // TODO change the  opening hour
+              openingHour: new Date(new Date().setHours(9, 0, 0, 0)),
+              closingHour: new Date(new Date().setHours(16, 0, 0, 0)),
             },
             isPaused: false,
             restrictedCountries: [],

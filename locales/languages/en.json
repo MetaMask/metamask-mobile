@@ -6194,7 +6194,13 @@
     "market_cap_fdv": "Market cap (FDV)",
     "listed_on": "Listed on",
     "centralized_exchanges": "Centralized exchanges",
-    "contract_address": "Contract address"
+    "contract_address": "Contract address",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "done": "Done"
+    }
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
