@@ -192,7 +192,7 @@ export const AddressFields = ({
           testID="zip-code-input"
         />
       </Box>
-      {/* Country (read-only) */}
+      {/* Country */}
       <Box>
         <Label>
           {strings('card.card_onboarding.physical_address.country_label')}
@@ -205,8 +205,6 @@ export const AddressFields = ({
             label={strings(
               'card.card_onboarding.physical_address.country_label',
             )}
-            disabled
-            showDropDown={false}
             testID="country-select"
           />
         </Box>

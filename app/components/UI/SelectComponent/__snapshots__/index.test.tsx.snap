@@ -16,7 +16,6 @@ exports[`SelectComponent should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      disabled={false}
       onPress={[Function]}
     >
       <View

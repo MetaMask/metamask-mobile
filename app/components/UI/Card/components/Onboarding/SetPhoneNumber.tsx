@@ -190,7 +190,6 @@ const SetPhoneNumber = () => {
                 'card.card_onboarding.set_phone_number.country_area_code_label',
               )}
               testID="set-phone-number-country-area-code-select"
-              showDropDown={false}
             />
           </Box>
         </Box>
