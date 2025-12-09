@@ -1,16 +1,17 @@
 # GitHub Actions-specific Gradle settings
 # Optimized for E2E builds on GitHub Actions runners
 
-# JVM configuration - balanced settings to avoid OOM while maintaining performance
-# Using 16GB heap to leave room for parallel workers and native memory
-org.gradle.jvmargs=-Xmx16g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
+# JVM configuration - optimized for lg runner (16GB RAM) to avoid OOM
+# Using 8GB heap to leave room for Node.js (8GB) and OS overhead on 16GB runners
+# For xl runners (32GB), these settings can be increased
+org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
 
-# Enable performance optimizations but limit parallelism to prevent OOM
+# Enable performance optimizations but limit parallelism to prevent OOM on lg runners
 org.gradle.parallel=true
 org.gradle.configureondemand=true
 org.gradle.caching=true
 org.gradle.daemon=true
-org.gradle.workers.max=6
+org.gradle.workers.max=4
 org.gradle.vfs.watch=false
 
 # CI-specific optimizations - enabled for GitHub Actions
