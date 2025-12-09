@@ -106,7 +106,7 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
         const fee = feeResult[0];
         nextPreview = { ...(nextPreview ?? {}), fee };
       } catch {
-        // ignore for now
+        // no action needed
       }
 
       if (nextPreview) setPreview(nextPreview);

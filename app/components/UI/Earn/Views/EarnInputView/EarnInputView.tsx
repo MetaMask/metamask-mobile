@@ -936,6 +936,18 @@ const EarnInputView = () => {
     earnToken?.experience.type,
   ]);
 
+  const isReviewButtonDisabled =
+    isOverMaximum.isOverMaximumToken ||
+    isOverMaximum.isOverMaximumEth ||
+    !isNonZeroAmount ||
+    (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
+    isSubmittingStakeDepositTransaction;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const shouldShowTronReviewButton =
+    isTronEnabled && isTronNative && isPreviewVisible && isNonZeroAmount;
+  ///: END:ONLY_INCLUDE_IF
+
   const renderReviewButton = (isDisabled: boolean) => (
     <View style={styles.reviewButtonContainer}>
       <Button
@@ -1025,27 +1037,10 @@ const EarnInputView = () => {
       )}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronEnabled &&
-          isTronNative &&
-          isPreviewVisible &&
-          isNonZeroAmount &&
-          renderReviewButton(
-            isOverMaximum.isOverMaximumToken ||
-              isOverMaximum.isOverMaximumEth ||
-              !isNonZeroAmount ||
-              (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
-              isSubmittingStakeDepositTransaction,
-          )
+        shouldShowTronReviewButton && renderReviewButton(isReviewButtonDisabled)
         ///: END:ONLY_INCLUDE_IF
       }
-      {!isTronEnabled &&
-        renderReviewButton(
-          isOverMaximum.isOverMaximumToken ||
-            isOverMaximum.isOverMaximumEth ||
-            !isNonZeroAmount ||
-            (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
-            isSubmittingStakeDepositTransaction,
-        )}
+      {!isTronEnabled && renderReviewButton(isReviewButtonDisabled)}
     </ScreenLayout>
   );
 };

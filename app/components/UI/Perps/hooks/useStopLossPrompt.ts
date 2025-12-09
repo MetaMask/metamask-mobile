@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import type { Position } from '../controllers/types';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
@@ -24,6 +24,8 @@ export interface UseStopLossPromptParams {
   currentPrice: number;
   /** Enable/disable the hook (default: true) */
   enabled?: boolean;
+  /** Timestamp when position was opened (from order fills) - bypasses debounce if position is >2min old */
+  positionOpenedTimestamp?: number;
 }
 
 export interface UseStopLossPromptResult {
@@ -44,7 +46,7 @@ export interface UseStopLossPromptResult {
  *
  * Implements the logic from TASK_AUTOSET.md:
  * - Shows "add_margin" variant when within 3% of liquidation
- * - Shows "stop_loss" variant when ROE <= -20% for 60s (debounced)
+ * - Shows "stop_loss" variant when ROE <= -10% for 60s (debounced)
  * - Suppresses when position has cross margin or existing stop loss
  *
  * @example
@@ -57,6 +59,7 @@ export interface UseStopLossPromptResult {
  * } = useStopLossPrompt({
  *   position: existingPosition,
  *   currentPrice: 50000,
+ *   positionOpenedTimestamp: 1234567890000, // Optional: from order fills
  * });
  * ```
  */
@@ -64,9 +67,11 @@ export const useStopLossPrompt = ({
   position,
   currentPrice,
   enabled = true,
+  positionOpenedTimestamp,
 }: UseStopLossPromptParams): UseStopLossPromptResult => {
   // Track when ROE first dropped below threshold for debouncing
   const roeBelowThresholdSinceRef = useRef<number | null>(null);
+  const hasBeenShownRef = useRef(false);
   const [roeDebounceComplete, setRoeDebounceComplete] = useState(false);
 
   // Calculate liquidation distance
@@ -96,11 +101,42 @@ export const useStopLossPrompt = ({
     return roeValue * 100;
   }, [position?.returnOnEquity]);
 
+  const finishDebounce = useCallback(() => {
+    setRoeDebounceComplete(true);
+    hasBeenShownRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    hasBeenShownRef.current = false;
+  }, [position?.coin]);
+
+  useEffect(() => {
+    if (!enabled || roePercent === null || hasBeenShownRef.current) {
+      return;
+    }
+
+    // Check if position was opened more than 2 minutes ago (from order fills timestamp)
+    const POSITION_AGE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes
+    const positionAge = positionOpenedTimestamp
+      ? Date.now() - positionOpenedTimestamp
+      : 0;
+
+    const isBelowThreshold =
+      roePercent <= STOP_LOSS_PROMPT_CONFIG.ROE_THRESHOLD;
+
+    // If position is old enough (from actual order fill data), bypass debounce
+    if (positionAge >= POSITION_AGE_THRESHOLD_MS && isBelowThreshold) {
+      finishDebounce();
+      return;
+    }
+  }, [positionOpenedTimestamp, enabled, roePercent, finishDebounce]);
+
   // Handle ROE debounce logic
   useEffect(() => {
     if (!enabled || roePercent === null) {
       roeBelowThresholdSinceRef.current = null;
       setRoeDebounceComplete(false);
+      hasBeenShownRef.current = false; // Reset when position is closed
       return;
     }
 
@@ -116,14 +152,14 @@ export const useStopLossPrompt = ({
       // Check if debounce period has passed
       const elapsed = Date.now() - roeBelowThresholdSinceRef.current;
       if (elapsed >= STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS) {
-        setRoeDebounceComplete(true);
+        finishDebounce();
       } else {
         // Set up timer to check again
         const remainingTime = STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS - elapsed;
         const timer = setTimeout(() => {
           // Re-check if still below threshold
           if (roeBelowThresholdSinceRef.current !== null) {
-            setRoeDebounceComplete(true);
+            finishDebounce();
           }
         }, remainingTime);
 
@@ -136,7 +172,7 @@ export const useStopLossPrompt = ({
     }
 
     return undefined;
-  }, [enabled, roePercent]);
+  }, [enabled, roePercent, position, positionOpenedTimestamp, finishDebounce]);
 
   // Calculate suggested stop loss price based on entry price and target ROE
   // Formula: For a position, SL price at -50% ROE = entryPrice * (1 + targetROE/100/leverage)

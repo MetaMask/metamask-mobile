@@ -709,7 +709,7 @@ describe('EarnInputView', () => {
       });
 
       expect(queryByText('Max')).toBeNull();
-      expect(getByText(strings('onboarding_success.done'))).toBeTruthy();
+      expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
     });
   });
 
