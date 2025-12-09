@@ -30,6 +30,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../component-library/components/Icons/Icon';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../component-library/components/Texts/SensitiveText';
@@ -254,24 +259,34 @@ const Balance = ({
             {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
 
-          {secondaryBalance && (
-            <SensitiveText
-              variant={TextVariant.BodySMMedium}
-              style={styles.tokenAmount}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-              testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
-            >
-              {secondaryBalance}
-              {isAssetStockToken(asset) && (
-                <View style={styles.stockBadge}>
-                  <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
-                    {strings('token.stock')}
-                  </Text>
-                </View>
-              )}
-            </SensitiveText>
-          )}
+          <View style={styles.balanceRow}>
+            {secondaryBalance && (
+              <SensitiveText
+                variant={TextVariant.BodySMMedium}
+                style={styles.tokenAmount}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
+              >
+                {secondaryBalance}
+              </SensitiveText>
+            )}
+            {isAssetStockToken(asset) && (
+              <View style={styles.stockBadge}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('token.stock')}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </AssetElement>
       <EarnBalance asset={asset} />

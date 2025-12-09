@@ -27,6 +27,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../component-library/hooks';
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../reducers';
@@ -108,11 +113,13 @@ const createStyles = ({
       height: 32,
     },
     stockBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: theme.colors.background.muted,
-      borderRadius: 12,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      alignSelf: 'flex-start',
+      borderRadius: 8,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      gap: 4,
     },
   });
 
@@ -252,7 +259,15 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             </Text>
             {isAssetStockToken(token) && (
               <View style={styles.stockBadge}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('token.stock')}
                 </Text>
               </View>

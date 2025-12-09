@@ -13,6 +13,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
@@ -238,14 +243,22 @@ export const TokenListItemBip44 = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
-            {renderEarnCta()}
             {isAssetStockToken(asset) && (
               <View style={styles.stockBadge}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('token.stock')}
                 </Text>
               </View>
             )}
+            {renderEarnCta()}
           </View>
         </View>
         <ScamWarningIcon

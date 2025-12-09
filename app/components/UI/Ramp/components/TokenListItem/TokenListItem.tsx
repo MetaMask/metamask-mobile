@@ -15,6 +15,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconSize,
+  IconColor,
+  IconName as ComponentIconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -85,7 +90,12 @@ function TokenListItem({
         </Text>
 
         <View style={styles.stockBadge}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+          <Icon
+            name={ComponentIconName.Clock}
+            size={IconSize.Xs}
+            color={IconColor.Alternative}
+          />
+          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
             {strings('token.stock')}
           </Text>
         </View>

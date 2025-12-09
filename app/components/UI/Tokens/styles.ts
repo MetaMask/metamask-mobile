@@ -44,12 +44,13 @@ const createStyles = (colors: Colors) =>
       textAlign: 'center',
     },
     stockBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: colors.background.muted,
-      borderRadius: 12,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      alignSelf: 'flex-start',
-      marginLeft: 4,
+      borderRadius: 8,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      gap: 4,
     },
     assetName: {
       flexDirection: 'row',
