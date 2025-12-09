@@ -24,7 +24,6 @@ jobs:
       METAMASK_BUILD_TYPE: main
       IS_TEST: true
       E2E: 'true'
-      E2E_FRAMEWORK: 'detox'
       IGNORE_BOXLOGS_DEVELOPMENT: true
       CI: 'true'
       NODE_OPTIONS: '--max-old-space-size=8192'
@@ -173,7 +172,6 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          E2E_FRAMEWORK: 'detox'
           NODE_OPTIONS: '--max-old-space-size=8192'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'

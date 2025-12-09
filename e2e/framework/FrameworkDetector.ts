@@ -8,8 +8,17 @@ export enum TestFramework {
   APPIUM = 'appium',
 }
 
+// Declare globals that may exist at runtime
+declare const device: unknown;
+declare const driver: unknown;
+declare const browser: unknown;
+
 /**
  * Framework detector - determines which testing framework is currently running
+ *
+ * Detection is automatic based on framework-specific globals:
+ * - Detox: `device` global object
+ * - Appium/WebdriverIO: `driver` or `browser` global objects
  */
 export class FrameworkDetector {
   private static framework?: TestFramework;
@@ -26,30 +35,62 @@ export class FrameworkDetector {
   }
 
   /**
-   * Detect current framework based on environment
+   * Check if Detox globals are available
+   */
+  private static hasDetoxGlobals(): boolean {
+    try {
+      return typeof device !== 'undefined' && device !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Check if WebdriverIO/Appium globals are available
+   */
+  private static hasAppiumGlobals(): boolean {
+    try {
+      return (
+        (typeof driver !== 'undefined' && driver !== null) ||
+        (typeof browser !== 'undefined' && browser !== null)
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Detect current framework based on available globals
+   *
+   * Priority order:
+   * 1. Cached framework (if already detected)
+   * 2. Appium/WebdriverIO globals (driver/browser)
+   * 3. Detox globals (device)
+   * 4. Default to Detox for backwards compatibility
    */
   static detect(): TestFramework {
     if (this.framework) {
       return this.framework;
     }
 
-    // Check for Detox globals
-    if (process.env.E2E_FRAMEWORK === 'detox') {
-      this.framework = TestFramework.DETOX;
-      this.logger.debug('Detox framework detected.');
-      return TestFramework.DETOX;
+    // Check for WebdriverIO/Appium globals first
+    // (checking Appium first since Detox is the fallback default)
+    if (this.hasAppiumGlobals()) {
+      this.framework = TestFramework.APPIUM;
+      this.logger.debug('Appium framework detected via driver/browser global.');
+      return TestFramework.APPIUM;
     }
 
-    // Check for WebdriverIO globals
-    if (process.env.E2E_FRAMEWORK === 'appium') {
-      this.framework = TestFramework.APPIUM;
-      this.logger.debug('Appium framework detected.');
-      return TestFramework.APPIUM;
+    // Check for Detox globals
+    if (this.hasDetoxGlobals()) {
+      this.framework = TestFramework.DETOX;
+      this.logger.debug('Detox framework detected via device global.');
+      return TestFramework.DETOX;
     }
 
     // Default to Detox for backwards compatibility
     this.framework = TestFramework.DETOX;
-    this.logger.debug('Detox framework detected as default.');
+    this.logger.debug('No framework globals detected, defaulting to Detox.');
     return TestFramework.DETOX;
   }
 

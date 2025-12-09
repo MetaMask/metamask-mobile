@@ -66,7 +66,6 @@ jobs:
       PLATFORM: ${{ inputs.platform }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       CHANGED_FILES: ${{ inputs.changed_files }}
-      E2E_FRAMEWORK: 'detox'
       GITHUB_CI: 'true'
       SPLIT_NUMBER: ${{ inputs.split_number }}
       TOTAL_SPLITS: ${{ inputs.total_splits }}

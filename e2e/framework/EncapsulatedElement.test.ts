@@ -33,13 +33,14 @@ import type { PlaywrightElement } from './PlaywrightAdapter';
 declare const global: typeof globalThis & {
   device?: { getPlatform: () => string };
   driver?: { capabilities: Promise<{ platformName?: string }> };
+  browser?: { capabilities: Promise<{ platformName?: string }> };
 };
 
 describe('EncapsulatedElement', () => {
-  // Store original environment and globals
-  const originalE2EFramework = process.env.E2E_FRAMEWORK;
+  // Store original globals
   const originalDevice = global.device;
   const originalDriver = global.driver;
+  const originalBrowser = global.browser;
 
   // Mock factory helpers
   const createMockDetoxElement = (): DetoxElement =>
@@ -60,25 +61,20 @@ describe('EncapsulatedElement', () => {
     jest.clearAllMocks();
     // Reset FrameworkDetector FIRST to clear any cached framework
     FrameworkDetector.reset();
-    // Clear E2E_FRAMEWORK to ensure clean state for each test
-    delete process.env.E2E_FRAMEWORK;
 
-    // Reset globals
+    // Reset globals to ensure clean state for each test
     delete (global as Record<string, unknown>).device;
     delete (global as Record<string, unknown>).driver;
+    delete (global as Record<string, unknown>).browser;
   });
 
   afterEach(() => {
     // Reset framework detection after each test
     FrameworkDetector.reset();
-    // Restore original E2E_FRAMEWORK value
-    if (originalE2EFramework !== undefined) {
-      process.env.E2E_FRAMEWORK = originalE2EFramework;
-    } else {
-      delete process.env.E2E_FRAMEWORK;
-    }
+    // Restore original globals
     (global as Record<string, unknown>).device = originalDevice;
     (global as Record<string, unknown>).driver = originalDriver;
+    (global as Record<string, unknown>).browser = originalBrowser;
   });
 
   describe('LocatorStrategy', () => {
@@ -120,7 +116,54 @@ describe('EncapsulatedElement', () => {
         expect(result).toBe(TestFramework.APPIUM);
       });
 
-      it('returns DETOX as default when framework is not set', () => {
+      it('returns DETOX when device global exists', () => {
+        FrameworkDetector.reset();
+        (global as Record<string, unknown>).device = {
+          getPlatform: jest.fn().mockReturnValue('ios'),
+        };
+
+        const result = FrameworkDetector.detect();
+
+        expect(result).toBe(TestFramework.DETOX);
+      });
+
+      it('returns APPIUM when driver global exists', () => {
+        FrameworkDetector.reset();
+        (global as Record<string, unknown>).driver = {
+          capabilities: Promise.resolve({ platformName: 'Android' }),
+        };
+
+        const result = FrameworkDetector.detect();
+
+        expect(result).toBe(TestFramework.APPIUM);
+      });
+
+      it('returns APPIUM when browser global exists', () => {
+        FrameworkDetector.reset();
+        (global as Record<string, unknown>).browser = {
+          capabilities: Promise.resolve({ platformName: 'iOS' }),
+        };
+
+        const result = FrameworkDetector.detect();
+
+        expect(result).toBe(TestFramework.APPIUM);
+      });
+
+      it('prioritizes APPIUM when both driver and device globals exist', () => {
+        FrameworkDetector.reset();
+        (global as Record<string, unknown>).device = {
+          getPlatform: jest.fn().mockReturnValue('ios'),
+        };
+        (global as Record<string, unknown>).driver = {
+          capabilities: Promise.resolve({ platformName: 'Android' }),
+        };
+
+        const result = FrameworkDetector.detect();
+
+        expect(result).toBe(TestFramework.APPIUM);
+      });
+
+      it('returns DETOX as default when no globals are present', () => {
         FrameworkDetector.reset();
 
         const result = FrameworkDetector.detect();
@@ -133,8 +176,6 @@ describe('EncapsulatedElement', () => {
         FrameworkDetector.setFramework(TestFramework.APPIUM);
         FrameworkDetector.detect();
 
-        // Change framework, but cached value persists
-        // Note: setFramework directly sets the cache, so we need to test via detect behavior
         const result = FrameworkDetector.detect();
 
         expect(result).toBe(TestFramework.APPIUM);
@@ -170,8 +211,10 @@ describe('EncapsulatedElement', () => {
         expect(result).toBe(TestFramework.APPIUM);
       });
 
-      it('overrides environment-based detection', () => {
-        process.env.E2E_FRAMEWORK = 'detox';
+      it('overrides global-based detection', () => {
+        (global as Record<string, unknown>).device = {
+          getPlatform: jest.fn().mockReturnValue('ios'),
+        };
         FrameworkDetector.setFramework(TestFramework.APPIUM);
 
         const result = FrameworkDetector.detect();
@@ -182,10 +225,15 @@ describe('EncapsulatedElement', () => {
 
     describe('reset', () => {
       it('clears cached framework allowing re-detection', () => {
-        process.env.E2E_FRAMEWORK = 'appium';
+        (global as Record<string, unknown>).driver = {
+          capabilities: Promise.resolve({ platformName: 'Android' }),
+        };
         FrameworkDetector.detect();
         FrameworkDetector.reset();
-        process.env.E2E_FRAMEWORK = 'detox';
+        delete (global as Record<string, unknown>).driver;
+        (global as Record<string, unknown>).device = {
+          getPlatform: jest.fn().mockReturnValue('ios'),
+        };
 
         const result = FrameworkDetector.detect();
 
