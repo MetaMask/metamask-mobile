@@ -12,13 +12,7 @@ import {
 } from './app/util/test/utils.js';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
 
-import { getPublicKey } from '@metamask/native-utils';
-
-// polyfill getPublicKey with much faster C++ implementation
-// IMPORTANT: This patching works only if @noble/curves version in root package.json is same as @noble/curves version in package.json of @scure/bip32.
-// eslint-disable-next-line import/no-commonjs, import/no-extraneous-dependencies
-const secp256k1_1 = require('@noble/curves/secp256k1');
-secp256k1_1.secp256k1.getPublicKey = getPublicKey;
+import './shimPerf';
 
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
@@ -203,13 +197,27 @@ if (enableApiCallLogs || isTest) {
     }
 
     // if mockServer is off we route to original destination
-    global.fetch = async (url, options) =>
-      isMockServerAvailable
+    global.fetch = async (url, options) => {
+      // Extract URL string from Request or URL objects
+      let urlString;
+      if (typeof url === 'string') {
+        urlString = url;
+      } else if (url instanceof URL) {
+        urlString = url.href;
+      } else if (url && typeof url === 'object' && url.url) {
+        // Request object has a 'url' property
+        urlString = url.url;
+      } else {
+        urlString = String(url);
+      }
+
+      return isMockServerAvailable
         ? originalFetch(
-            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`,
+            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
             options,
           ).catch(() => originalFetch(url, options))
         : originalFetch(url, options);
+    };
 
     if (isMockServerAvailable) {
       // Patch XMLHttpRequest for Axios and other libraries

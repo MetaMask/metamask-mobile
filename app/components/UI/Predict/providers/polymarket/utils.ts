@@ -16,6 +16,8 @@ import {
   type PredictPosition,
   PredictActivity,
   Result,
+  PredictOutcome,
+  PredictOutcomeToken,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import type {
@@ -383,9 +385,217 @@ export const submitClobOrder = async ({
   }
 };
 
+export const isSportEvent = (event: PolymarketApiEvent): boolean =>
+  event.tags.some((tag) => tag.slug === 'sports');
+
+export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
+  market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
+/**
+ * Sort markets within a sports market type group by liquidity + volume (descending)
+ */
+const sortByLiquidityAndVolume = (
+  markets: PolymarketApiMarket[],
+): PolymarketApiMarket[] =>
+  [...markets].sort((a, b) => {
+    const aScore = (a.liquidity ?? 0) + (a.volumeNum ?? 0);
+    const bScore = (b.liquidity ?? 0) + (b.volumeNum ?? 0);
+    return bScore - aScore;
+  });
+
+/**
+ * Get the sort priority for a sports market type
+ * moneyline: 0, spreads: 1, totals: 2, others: 3 (then alphabetically)
+ */
+const getSportsMarketTypePriority = (type: string): number => {
+  const priorities: Record<string, number> = {
+    moneyline: 0,
+    spreads: 1,
+    totals: 2,
+  };
+  return priorities[type.toLowerCase()] ?? 3;
+};
+
+const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
+  if (isSpreadMarket(market)) {
+    // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
+    // Uses negative lookahead to target dash followed by digit, not dashes in team names
+    return market.groupItemTitle.replace(/-(?=\d)/, '');
+  }
+  return market.groupItemTitle;
+};
+
+const formatOutcomeTitles = (market: PolymarketApiMarket): string[] => {
+  const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
+  if (isSpreadMarket(market)) {
+    const line = market.line ? Math.abs(market.line) : 0;
+    return outcomes.map((outcome: string, index: number) =>
+      line ? `${outcome} ${index > 0 ? `+${line}` : `-${line}`}` : outcome,
+    );
+  }
+  return outcomes;
+};
+
+const sortOutcomeTokens = (
+  outcomeTokens: PredictOutcomeToken[],
+  market: PolymarketApiMarket,
+  event: PolymarketApiEvent,
+): PredictOutcomeToken[] => {
+  if (isSpreadMarket(market)) {
+    const teamA = event.title.split(' vs. ')[0];
+    return [...outcomeTokens].sort((a, b) => {
+      // teamA should come first
+      if (a.title.includes(teamA)) {
+        return -1;
+      }
+      if (b.title.includes(teamA)) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
+  return outcomeTokens;
+};
+
+const parsePolymarketMarketOutcomes = (
+  market: PolymarketApiMarket,
+  event: PolymarketApiEvent,
+): PredictOutcomeToken[] => {
+  const outcomeTokensIds = market.clobTokenIds
+    ? JSON.parse(market.clobTokenIds)
+    : [];
+  const outcomes = formatOutcomeTitles(market);
+  const outcomePrices = market.outcomePrices
+    ? JSON.parse(market.outcomePrices)
+    : [];
+  const outcomeTokens = outcomeTokensIds.map(
+    (tokenId: string, index: number) => ({
+      id: tokenId,
+      title: outcomes[index],
+      price: parseFloat(outcomePrices[index]),
+    }),
+  );
+  return sortOutcomeTokens(outcomeTokens, market, event);
+};
+
+/**
+ * Sort sport markets by:
+ * 1. Group by sportsMarketType
+ * 2. Order groups: moneyline first, spreads second, totals third, then alphabetically
+ * 3. Within each group, sort by liquidity + volume (descending)
+ * 4. Return flattened array of all groups in order
+ */
+export const sortSportMarkets = (
+  markets: PolymarketApiMarket[],
+): PolymarketApiMarket[] => {
+  // Group markets by sportsMarketType
+  const groupedMarkets = markets.reduce<Record<string, PolymarketApiMarket[]>>(
+    (acc, market) => {
+      const type = market.sportsMarketType ?? 'other';
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push(market);
+      return acc;
+    },
+    {},
+  );
+
+  // Get all unique types and sort them by priority
+  const sortedTypes = Object.keys(groupedMarkets).sort((a, b) => {
+    const priorityA = getSportsMarketTypePriority(a);
+    const priorityB = getSportsMarketTypePriority(b);
+
+    // If same priority (both are "other" category), sort alphabetically
+    if (priorityA === priorityB && priorityA === 3) {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    }
+
+    return priorityA - priorityB;
+  });
+
+  // Sort each group by liquidity + volume, then flatten
+  return sortedTypes.flatMap((type) =>
+    sortByLiquidityAndVolume(groupedMarkets[type]),
+  );
+};
+
+export const sortMarketsByField = (
+  markets: PolymarketApiMarket[],
+  sortBy: 'price' | 'ascending' | 'descending',
+): PolymarketApiMarket[] => {
+  // If sortBy is not returned, do not sort
+  if (!sortBy) {
+    return markets;
+  }
+
+  return [...markets].sort((a, b) => {
+    switch (sortBy) {
+      case 'price': {
+        // Sort by descending percentage chance from market.outcomePrices[0]
+        const aPrice = a.outcomePrices ? JSON.parse(a.outcomePrices)[0] : '0';
+        const bPrice = b.outcomePrices ? JSON.parse(b.outcomePrices)[0] : '0';
+        return parseFloat(bPrice) - parseFloat(aPrice);
+      }
+      case 'ascending': {
+        // Sort by market.groupItemThreshold ascending
+        return (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0);
+      }
+      case 'descending': {
+        // Sort by market.groupItemThreshold descending
+        return (b.groupItemThreshold ?? 0) - (a.groupItemThreshold ?? 0);
+      }
+      default:
+        return 0;
+    }
+  });
+};
+
+export const sortMarkets = (
+  event: PolymarketApiEvent,
+  sortBy?: 'price' | 'ascending' | 'descending',
+): PolymarketApiMarket[] => {
+  const { markets, sortBy: eventSortBy } = event;
+
+  if (sortBy) {
+    return sortMarketsByField(markets, sortBy);
+  }
+
+  if (eventSortBy) {
+    return sortMarketsByField(markets, eventSortBy);
+  }
+
+  if (isSportEvent(event)) {
+    return sortSportMarkets(markets);
+  }
+
+  return markets;
+};
+
+export const parsePolymarketMarket = (
+  market: PolymarketApiMarket,
+  event: PolymarketApiEvent,
+): PredictOutcome => ({
+  id: market.conditionId,
+  providerId: 'polymarket',
+  marketId: event.id,
+  title: market.question,
+  description: market.description,
+  image: market.icon ?? market.image,
+  groupItemTitle: formatMarketGroupItemTitle(market),
+  status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
+  volume: market.volumeNum ?? 0,
+  tokens: parsePolymarketMarketOutcomes(market, event),
+  negRisk: market.negRisk,
+  tickSize: market.orderPriceMinTickSize.toString(),
+  resolvedBy: market.resolvedBy,
+  resolutionStatus: market.umaResolutionStatus,
+});
+
 export const parsePolymarketEvents = (
   events: PolymarketApiEvent[],
   category: PredictCategory,
+  sortMarketsBy?: 'price' | 'ascending' | 'descending',
 ): PredictMarket[] => {
   const parsedMarkets: PredictMarket[] = events.map(
     (event: PolymarketApiEvent) => ({
@@ -402,44 +612,11 @@ export const parsePolymarketEvents = (
       endDate: event.endDate,
       category,
       tags: event.tags.map((t) => t.label),
-      outcomes: event.markets
+      outcomes: sortMarkets(event, sortMarketsBy)
         .filter((market: PolymarketApiMarket) => market.active !== false)
-        .sort((a: PolymarketApiMarket, b: PolymarketApiMarket) => {
-          const aPrice = a.outcomePrices ? JSON.parse(a.outcomePrices)[0] : '0';
-          const bPrice = b.outcomePrices ? JSON.parse(b.outcomePrices)[0] : '0';
-          return parseFloat(bPrice) - parseFloat(aPrice);
-        })
-        .map((market: PolymarketApiMarket) => {
-          const outcomeTokensIds = market.clobTokenIds
-            ? JSON.parse(market.clobTokenIds)
-            : [];
-          const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
-          const outcomePrices = market.outcomePrices
-            ? JSON.parse(market.outcomePrices)
-            : [];
-          return {
-            id: market.conditionId,
-            marketId: event.id,
-            providerId: 'polymarket',
-            title: market.question,
-            description: market.description,
-            image: market.icon ?? market.image,
-            groupItemTitle: market.groupItemTitle,
-            status: market.closed
-              ? PredictMarketStatus.CLOSED
-              : PredictMarketStatus.OPEN,
-            volume: market.volumeNum ?? 0,
-            tokens: outcomeTokensIds.map((tokenId: string, index: number) => ({
-              id: tokenId,
-              title: outcomes[index],
-              price: parseFloat(outcomePrices[index]),
-            })),
-            negRisk: market.negRisk,
-            tickSize: market.orderPriceMinTickSize.toString(),
-            resolvedBy: market.resolvedBy,
-            resolutionStatus: market.umaResolutionStatus,
-          };
-        }),
+        .map((market: PolymarketApiMarket) =>
+          parsePolymarketMarket(market, event),
+        ),
       liquidity: event.liquidity,
       volume: event.volume,
     }),
@@ -587,6 +764,7 @@ export const getParsedMarketsFromPolymarketApi = async (
   const parsedMarkets: PredictMarket[] = parsePolymarketEvents(
     events,
     category,
+    'price',
   );
 
   return parsedMarkets;
@@ -755,6 +933,7 @@ export async function calculateFees({
       metamaskFee: 0,
       providerFee: 0,
       totalFee: 0,
+      totalFeePercentage: 0,
     };
   }
 
@@ -773,6 +952,7 @@ export async function calculateFees({
     metamaskFee,
     providerFee,
     totalFee,
+    totalFeePercentage: FEE_PERCENTAGE,
   };
 }
 

@@ -100,6 +100,14 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     (o) => o.id === currentPosition.outcomeId && o.groupItemTitle,
   )?.groupItemTitle;
 
+  const outcomeToken = market?.outcomes
+    .find(
+      (o) =>
+        o.id === currentPosition.outcomeId &&
+        o.tokens.find((t) => t.id === currentPosition.outcomeTokenId),
+    )
+    ?.tokens.find((t) => t.id === currentPosition.outcomeTokenId);
+
   const onCashOut = () => {
     executeGuardedAction(
       () => {
@@ -175,7 +183,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
               initialValue: formatPrice(initialValue, {
                 maximumDecimals: 2,
               }),
-              outcome,
+              outcome: outcomeToken?.title ?? outcome,
               shares: formatPrice(size, {
                 maximumDecimals: 2,
               }),

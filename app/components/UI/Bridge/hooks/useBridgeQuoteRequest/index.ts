@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
 import { type GenericQuoteRequest } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
@@ -50,6 +50,13 @@ export const useBridgeQuoteRequest = () => {
     selectGasIncludedQuoteParams,
   );
 
+  // Prevents infinite requests when user select max balance on
+  // source token input.
+  const insufficientBalRef = useRef(insufficientBal);
+  useEffect(() => {
+    insufficientBalRef.current = insufficientBal;
+  }, [insufficientBal]);
+
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -83,7 +90,7 @@ export const useBridgeQuoteRequest = () => {
       destWalletAddress: destAddress ?? walletAddress,
       gasIncluded,
       gasIncluded7702,
-      insufficientBal,
+      insufficientBal: insufficientBalRef.current,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
@@ -101,7 +108,6 @@ export const useBridgeQuoteRequest = () => {
     context,
     gasIncluded,
     gasIncluded7702,
-    insufficientBal,
   ]);
 
   // Create a stable debounced function that persists across renders

@@ -1,5 +1,6 @@
 /* eslint-disable import/no-namespace */
 import { act, fireEvent } from '@testing-library/react-native';
+import { TrxScope } from '@metamask/keyring-api';
 import React from 'react';
 import * as ReactNative from 'react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
@@ -57,6 +58,27 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
+
+const mockIsTronChainId = jest.fn().mockReturnValue(false);
+const mockIsNonEvmChainId = jest.fn().mockReturnValue(false);
+
+jest.mock('../../../../../core/Multichain/utils', () => {
+  const actual = jest.requireActual('../../../../../core/Multichain/utils');
+  return {
+    ...actual,
+    isTronChainId: (...args: unknown[]) =>
+      mockIsTronChainId(...(args as [string])),
+    isNonEvmChainId: (...args: unknown[]) =>
+      mockIsNonEvmChainId(...(args as [string])),
+  };
+});
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/trxStakingEnabled',
+  () => ({
+    selectTrxStakingEnabled: jest.fn().mockReturnValue(true),
+  }),
+);
 
 const mockNavigate = jest.fn();
 
@@ -779,6 +801,109 @@ describe('EarnTokenList', () => {
 
       // Should not call polling when feature flags are disabled and component doesn't render
       expect(useEarnNetworkPollingSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Tron tokens', () => {
+    beforeEach(() => {
+      mockIsTronChainId.mockReturnValue(false);
+    });
+
+    it('includes Tron native token in deposit list when staking is enabled even with zero balance', () => {
+      mockIsTronChainId.mockImplementation(
+        (chainId: string) => chainId === TrxScope.Mainnet,
+      );
+
+      const tronToken: EarnTokenDetails = {
+        ...(mockEarnTokens[0] as EarnTokenDetails),
+        name: 'Tron',
+        symbol: 'TRX',
+        chainId: TrxScope.Mainnet as unknown as string,
+        isNative: true,
+        isETH: false,
+        balanceMinimalUnit: '0',
+        balanceFormatted: '0 TRX',
+      };
+
+      useEarnTokensSpy.mockReturnValue({
+        earnTokens: [tronToken],
+        earnOutputTokens: [],
+        earnableTotalFiatFormatted: '$0.00',
+        earnableTotalFiatNumber: 0,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
+
+      const { getByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      expect(getByText('Tron')).toBeDefined();
+    });
+
+    it('navigates directly to Tron deposit screen without switching EVM network', async () => {
+      mockIsTronChainId.mockImplementation(
+        (chainId: string) => chainId === TrxScope.Mainnet,
+      );
+      mockIsNonEvmChainId.mockImplementation(
+        (chainId: string) => chainId === TrxScope.Mainnet,
+      );
+
+      const tronToken: EarnTokenDetails = {
+        ...(mockEarnTokens[0] as EarnTokenDetails),
+        name: 'Tron',
+        symbol: 'TRX',
+        chainId: TrxScope.Mainnet as unknown as string,
+        isNative: true,
+        isETH: false,
+        balanceMinimalUnit: '1',
+        balanceFormatted: '1 TRX',
+      };
+
+      useEarnTokensSpy.mockReturnValue({
+        earnTokens: [tronToken],
+        earnOutputTokens: [],
+        earnableTotalFiatFormatted: '$0.00',
+        earnableTotalFiatNumber: 0,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
+
+      const { getByText } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        { state: initialState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText('Tron'));
+      });
+
+      expect(
+        Engine.context.NetworkController.setActiveNetwork,
+      ).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: 'Stake',
+        params: { token: expect.objectContaining({ symbol: 'TRX' }) },
+      });
     });
   });
 });

@@ -12,7 +12,7 @@ export const CLAUDE_CONFIG = {
    * Claude model to use for analysis
    * - See available models: https://docs.anthropic.com/en/docs/about-claude/models
    */
-  model: 'claude-sonnet-4-5-20250929' as const,
+  model: 'claude-opus-4-5-20251101' as const,
 
   /**
    * Maximum tokens allowed for the AI response. Controls the length of reasoning and tool calls
@@ -41,7 +41,7 @@ export const CLAUDE_CONFIG = {
    * - Iteration 2: AI investigates dependencies (2-3 tool calls)
    * - Iteration 3: AI calls finalize tool (e.g., finalize_tag_selection) → DONE
    */
-  maxIterations: 15,
+  maxIterations: 20,
 };
 
 /**

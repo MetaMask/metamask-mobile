@@ -220,6 +220,35 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 }
 
 /**
+ * Normalizes a localized numeric string to dot-decimal with no grouping.
+ * Examples: "9,336822" -> "9.336822", "1.234,56" -> "1234.56", "1,234.56" -> "1234.56"
+ *
+ * @param {string | number} value - The value to normalize.
+ * @returns {string} - The normalized value.
+ */
+export const normalizeToDotDecimal = (value) => {
+  const s = String(value ?? '0').trim();
+
+  // keep only digits, separators, and sign
+  const cleaned = s.replace(/[^\d.,-]/g, '');
+
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+
+  if (lastComma === -1 && lastDot === -1) {
+    return cleaned;
+  }
+
+  if (lastComma > lastDot) {
+    // comma is decimal separator: remove all dots (grouping), turn comma into dot
+    return cleaned.replace(/\./g, '').replace(',', '.');
+  }
+
+  // dot is decimal separator: remove all commas (grouping)
+  return cleaned.replace(/,/g, '');
+};
+
+/**
  * Converts some token minimal unit to render format string, showing 5 decimals
  *
  * @param {Number|String|BN4} tokenValue - Token value to convert
