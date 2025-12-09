@@ -5,8 +5,8 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
-  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
+import { useRewardsAccountOptedIn } from '../../hooks/useRewardsAccountOptedIn';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock all dependencies
@@ -22,7 +22,10 @@ jest.mock('../../hooks', () => ({
   usePerpsLivePositions: jest.fn(),
   usePerpsCloseAllCalculations: jest.fn(),
   usePerpsCloseAllPositions: jest.fn(),
-  usePerpsRewardAccountOptedIn: jest.fn(),
+}));
+
+jest.mock('../../hooks/useRewardsAccountOptedIn', () => ({
+  useRewardsAccountOptedIn: jest.fn(),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -113,9 +116,9 @@ const mockUsePerpsCloseAllPositions =
   usePerpsCloseAllPositions as jest.MockedFunction<
     typeof usePerpsCloseAllPositions
   >;
-const mockUsePerpsRewardAccountOptedIn =
-  usePerpsRewardAccountOptedIn as jest.MockedFunction<
-    typeof usePerpsRewardAccountOptedIn
+const mockUseRewardsAccountOptedIn =
+  useRewardsAccountOptedIn as jest.MockedFunction<
+    typeof useRewardsAccountOptedIn
   >;
 
 describe('PerpsCloseAllPositionsView', () => {
@@ -194,7 +197,7 @@ describe('PerpsCloseAllPositionsView', () => {
     });
     mockUsePerpsCloseAllCalculations.mockReturnValue(mockCalculations);
     mockUsePerpsCloseAllPositions.mockReturnValue(mockCloseAllHook);
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+    mockUseRewardsAccountOptedIn.mockReturnValue({
       accountOptedIn: true,
       account: mockRewardAccountOptedIn as unknown as InternalAccount,
     });
@@ -298,14 +301,15 @@ describe('PerpsCloseAllPositionsView', () => {
     expect(getByText('perps.close_all_modal.description')).toBeTruthy();
   });
 
-  it('calls usePerpsRewardAccountOptedIn with totalEstimatedPoints', () => {
+  it('calls useRewardsAccountOptedIn with totalEstimatedPoints trigger', () => {
     // Arrange & Act
     render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalledWith(
-      mockCalculations.totalEstimatedPoints,
-    );
+    expect(mockUseRewardsAccountOptedIn).toHaveBeenCalledWith({
+      trigger: mockCalculations.totalEstimatedPoints,
+      requireActiveSeason: true,
+    });
   });
 
   it('passes accountOptedIn and rewardsAccount to PerpsCloseSummary', () => {
@@ -321,7 +325,7 @@ describe('PerpsCloseAllPositionsView', () => {
         },
       },
     };
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+    mockUseRewardsAccountOptedIn.mockReturnValue({
       accountOptedIn: true,
       account: mockAccount as unknown as InternalAccount,
     });
@@ -330,12 +334,12 @@ describe('PerpsCloseAllPositionsView', () => {
     render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
+    expect(mockUseRewardsAccountOptedIn).toHaveBeenCalled();
   });
 
   it('handles null accountOptedIn value', () => {
     // Arrange
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+    mockUseRewardsAccountOptedIn.mockReturnValue({
       accountOptedIn: null,
       account: null,
     });
@@ -345,12 +349,12 @@ describe('PerpsCloseAllPositionsView', () => {
 
     // Assert
     expect(getByText('perps.close_all_modal.description')).toBeTruthy();
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
+    expect(mockUseRewardsAccountOptedIn).toHaveBeenCalled();
   });
 
   it('handles false accountOptedIn value', () => {
     // Arrange
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+    mockUseRewardsAccountOptedIn.mockReturnValue({
       accountOptedIn: false,
       account: null,
     });
@@ -360,6 +364,6 @@ describe('PerpsCloseAllPositionsView', () => {
 
     // Assert
     expect(getByText('perps.close_all_modal.description')).toBeTruthy();
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
+    expect(mockUseRewardsAccountOptedIn).toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { CustomAmountInfo } from '../custom-amount-info';
 import {
   MUSD_TOKEN,
@@ -7,6 +7,49 @@ import {
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
 import { useParams } from '../../../../../../util/navigation/navUtils';
+import { useCustomAmountRewards } from '../../../hooks/earn/useCustomAmountRewards';
+import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
+import RewardsTag from '../../../../../UI/Earn/components/RewardsTag';
+import { PayWithRow } from '../../rows/pay-with-row';
+
+interface MusdOverrideContentProps {
+  amountHuman: string;
+}
+
+const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
+  amountHuman,
+}) => {
+  const {
+    shouldShowRewardsTag,
+    estimatedPoints,
+    onRewardsTagPress,
+    shouldShowOutputAmountTag,
+    outputAmount,
+    outputSymbol,
+    renderRewardsTooltip,
+  } = useCustomAmountRewards({ amountHuman });
+
+  return (
+    <>
+      {shouldShowOutputAmountTag && outputAmount !== null && (
+        <OutputAmountTag
+          amount={outputAmount}
+          symbol={outputSymbol ?? undefined}
+          showBackground={false}
+        />
+      )}
+      <PayWithRow />
+      {shouldShowRewardsTag && estimatedPoints !== null && (
+        <RewardsTag
+          points={estimatedPoints}
+          onPress={onRewardsTagPress}
+          showBackground={false}
+        />
+      )}
+      {renderRewardsTooltip()}
+    </>
+  );
+};
 
 export const MusdConversionInfo = () => {
   const { outputChainId, preferredPaymentToken } =
@@ -30,5 +73,15 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  return <CustomAmountInfo preferredToken={preferredPaymentToken} />;
+  const renderOverrideContent = useCallback(
+    (amountHuman: string) => <MusdOverrideContent amountHuman={amountHuman} />,
+    [],
+  );
+
+  return (
+    <CustomAmountInfo
+      preferredToken={preferredPaymentToken}
+      overrideContent={renderOverrideContent}
+    />
+  );
 };

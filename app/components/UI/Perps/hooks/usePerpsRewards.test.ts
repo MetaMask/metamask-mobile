@@ -11,16 +11,14 @@ jest.mock('../constants/perpsConfig', () => ({
   },
 }));
 
-// Mock the usePerpsRewardAccountOptedIn hook
-jest.mock('./usePerpsRewardAccountOptedIn', () => ({
-  usePerpsRewardAccountOptedIn: jest.fn(),
+// Mock the useRewardsAccountOptedIn hook
+jest.mock('./useRewardsAccountOptedIn', () => ({
+  useRewardsAccountOptedIn: jest.fn(),
 }));
 
-import { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
+import { useRewardsAccountOptedIn } from './useRewardsAccountOptedIn';
 
-const mockUsePerpsRewardAccountOptedIn = jest.mocked(
-  usePerpsRewardAccountOptedIn,
-);
+const mockUseRewardsAccountOptedIn = jest.mocked(useRewardsAccountOptedIn);
 
 describe('usePerpsRewards', () => {
   // Mock fee results for testing
@@ -57,7 +55,7 @@ describe('usePerpsRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Default mock: account opted in, with a mock account
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+    mockUseRewardsAccountOptedIn.mockReturnValue({
       accountOptedIn: true,
       account: createMockAccount(),
     });
@@ -66,7 +64,7 @@ describe('usePerpsRewards', () => {
   describe('Rewards row visibility', () => {
     it('should show rewards row when has valid amount and account opted in', () => {
       // Arrange
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: true,
         account: createMockAccount(),
       });
@@ -90,7 +88,7 @@ describe('usePerpsRewards', () => {
 
     it('should show rewards row when has valid amount and account not opted in', () => {
       // Arrange
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: false,
         account: createMockAccount(),
       });
@@ -113,7 +111,7 @@ describe('usePerpsRewards', () => {
 
     it('should not show rewards row when accountOptedIn is null', () => {
       // Arrange
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: null,
         account: null,
       });
@@ -136,7 +134,7 @@ describe('usePerpsRewards', () => {
 
     it('should not show rewards row when hasValidAmount is false', () => {
       // Arrange
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: true,
         account: createMockAccount(),
       });
@@ -480,7 +478,7 @@ describe('usePerpsRewards', () => {
     it('should return all expected properties from fee results', () => {
       // Arrange
       const mockAccount = createMockAccount();
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: true,
         account: mockAccount,
       });
@@ -510,7 +508,7 @@ describe('usePerpsRewards', () => {
 
     it('should handle undefined values gracefully', () => {
       // Arrange
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: false,
         account: createMockAccount(),
       });
@@ -537,10 +535,10 @@ describe('usePerpsRewards', () => {
       expect(result.current.accountOptedIn).toBe(false);
     });
 
-    it('should return accountOptedIn and account from usePerpsRewardAccountOptedIn', () => {
+    it('should return accountOptedIn and account from useRewardsAccountOptedIn', () => {
       // Arrange
       const mockAccount = createMockAccount();
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: true,
         account: mockAccount,
       });
@@ -563,7 +561,7 @@ describe('usePerpsRewards', () => {
 
     it('should return null account when accountOptedIn is null', () => {
       // Arrange
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: null,
         account: null,
       });
@@ -588,7 +586,7 @@ describe('usePerpsRewards', () => {
   describe('Edge cases', () => {
     it('should handle empty order amount', () => {
       // Arrange
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: true,
         account: createMockAccount(),
       });
@@ -612,7 +610,7 @@ describe('usePerpsRewards', () => {
 
     it('should handle transitions from points to no points', () => {
       // Arrange
-      mockUsePerpsRewardAccountOptedIn.mockReturnValue({
+      mockUseRewardsAccountOptedIn.mockReturnValue({
         accountOptedIn: true,
         account: createMockAccount(),
       });
