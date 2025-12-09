@@ -685,13 +685,6 @@ export class HyperLiquidClientService {
         // Ignore errors during health check
       });
     }, HEALTH_CHECK_INTERVAL_MS);
-
-    // Perform initial health check after a short delay
-    setTimeout(() => {
-      this.performHealthCheck().catch(() => {
-        // Ignore errors during initial health check
-      });
-    }, 5000); // Initial check after 5 seconds
   }
 
   /**
@@ -741,7 +734,7 @@ export class HyperLiquidClientService {
 
         // Health check succeeded
         this.lastSuccessfulHealthCheck = Date.now();
-      } catch (error) {
+      } catch {
         // Connection appears to be dead - trigger reconnection
         await this.handleConnectionDrop();
       } finally {

@@ -69,8 +69,10 @@ export class HyperLiquidSubscriptionService {
   private readonly positionSubscribers = new Set<
     (positions: Position[]) => void
   >();
-  private readonly orderFillSubscribers = new Set<
-    (fills: OrderFill[]) => void
+  // Order fill subscribers keyed by accountId (normalized: undefined -> 'default')
+  private readonly orderFillSubscribers = new Map<
+    string,
+    Set<(fills: OrderFill[], isSnapshot?: boolean) => void>
   >();
   private readonly orderSubscribers = new Set<(orders: Order[]) => void>();
   private readonly accountSubscribers = new Set<
@@ -91,6 +93,8 @@ export class HyperLiquidSubscriptionService {
     Subscription
   >();
   private readonly globalL2BookSubscriptions = new Map<string, Subscription>();
+  // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
+  private readonly orderFillSubscriptions = new Map<string, Subscription>();
   private readonly symbolSubscriberCounts = new Map<string, number>();
   private readonly dexSubscriberCounts = new Map<string, number>(); // Track subscribers per DEX for assetCtxs
 
@@ -1507,88 +1511,113 @@ export class HyperLiquidSubscriptionService {
 
   /**
    * Subscribe to live order fill updates
+   * Shares subscriptions per accountId to avoid duplicate WebSocket connections
    */
   public subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
     const { callback, accountId } = params;
+    // Normalize accountId: undefined -> 'default' for Map key
+    const normalizedAccountId = accountId ?? 'default';
     const unsubscribe = this.createSubscription(
       this.orderFillSubscribers,
       callback,
+      normalizedAccountId,
     );
 
-    let subscription: Subscription | undefined;
-    let cancelled = false;
-
-    this.clientService.ensureSubscriptionClient(
-      this.walletService.createWalletAdapter(),
-    );
-    const subscriptionClient = this.clientService.getSubscriptionClient();
-
-    if (subscriptionClient) {
-      this.walletService
-        .getUserAddressWithDefault(accountId)
-        .then((userAddress) =>
-          subscriptionClient.userFills(
-            { user: userAddress },
-            (data: WsUserFillsEvent) => {
-              const orderFills: OrderFill[] = data.fills.map((fill) => ({
-                orderId: fill.oid.toString(),
-                symbol: fill.coin,
-                side: fill.side,
-                size: fill.sz,
-                price: fill.px,
-                fee: fill.fee,
-                timestamp: fill.time,
-                pnl: fill.closedPnl,
-                direction: fill.dir,
-                feeToken: fill.feeToken,
-                startPosition: fill.startPosition,
-                liquidation: fill.liquidation
-                  ? {
-                      liquidatedUser: fill.liquidation.liquidatedUser,
-                      markPx: fill.liquidation.markPx,
-                      method: fill.liquidation.method,
-                    }
-                  : undefined,
-              }));
-
-              callback(orderFills, data.isSnapshot);
-            },
-          ),
-        )
-        .then((sub) => {
-          // If cleanup was called before subscription completed, immediately unsubscribe
-          if (cancelled) {
-            sub.unsubscribe().catch((error: Error) => {
-              Logger.error(
-                ensureError(error),
-                this.getErrorContext('subscribeToOrderFills.cleanup'),
-              );
-            });
-          } else {
-            subscription = sub;
-          }
-        })
-        .catch((error) => {
-          Logger.error(
-            ensureError(error),
-            this.getErrorContext('subscribeToOrderFills'),
-          );
-        });
-    }
+    // Ensure subscription is established for this accountId
+    this.ensureOrderFillSubscription(accountId).catch((error) => {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrderFills'),
+      );
+    });
 
     return () => {
-      cancelled = true;
       unsubscribe();
 
-      if (subscription) {
-        subscription.unsubscribe().catch((error: Error) => {
-          Logger.error(
-            ensureError(error),
-            this.getErrorContext('subscribeToOrderFills.unsubscribe'),
-          );
-        });
+      // If no more subscribers for this accountId, clean up subscription
+      const subscribers = this.orderFillSubscribers.get(normalizedAccountId);
+      if (!subscribers || subscribers.size === 0) {
+        const subscription =
+          this.orderFillSubscriptions.get(normalizedAccountId);
+        if (subscription) {
+          subscription.unsubscribe().catch((error: Error) => {
+            Logger.error(
+              ensureError(error),
+              this.getErrorContext('subscribeToOrderFills.unsubscribe'),
+            );
+          });
+          this.orderFillSubscriptions.delete(normalizedAccountId);
+        }
       }
     };
+  }
+
+  /**
+   * Ensure order fill subscription is active for the given accountId
+   * Shares subscription across all callbacks for the same accountId
+   */
+  private async ensureOrderFillSubscription(
+    accountId?: CaipAccountId,
+  ): Promise<void> {
+    // Normalize accountId: undefined -> 'default' for Map key
+    const normalizedAccountId = accountId ?? 'default';
+
+    // If subscription already exists, no need to create another
+    if (this.orderFillSubscriptions.has(normalizedAccountId)) {
+      return;
+    }
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      this.clientService.ensureSubscriptionClient(
+        this.walletService.createWalletAdapter(),
+      );
+      const client = this.clientService.getSubscriptionClient();
+      if (!client) {
+        throw new Error('SubscriptionClient not available');
+      }
+      return this.ensureOrderFillSubscription(accountId);
+    }
+
+    const userAddress =
+      await this.walletService.getUserAddressWithDefault(accountId);
+
+    // userFills returns a Promise<Subscription>, need to await it
+    const subscription = await subscriptionClient.userFills(
+      { user: userAddress },
+      (data: WsUserFillsEvent) => {
+        const orderFills: OrderFill[] = data.fills.map((fill) => ({
+          orderId: fill.oid.toString(),
+          symbol: fill.coin,
+          side: fill.side,
+          size: fill.sz,
+          price: fill.px,
+          fee: fill.fee,
+          timestamp: fill.time,
+          pnl: fill.closedPnl,
+          direction: fill.dir,
+          feeToken: fill.feeToken,
+          startPosition: fill.startPosition,
+          liquidation: fill.liquidation
+            ? {
+                liquidatedUser: fill.liquidation.liquidatedUser,
+                markPx: fill.liquidation.markPx,
+                method: fill.liquidation.method,
+              }
+            : undefined,
+        }));
+
+        // Distribute to all callbacks for this accountId
+        const subscribers = this.orderFillSubscribers.get(normalizedAccountId);
+        if (subscribers) {
+          subscribers.forEach((callback) => {
+            callback(orderFills, data.isSnapshot);
+          });
+        }
+      },
+    );
+
+    this.orderFillSubscriptions.set(normalizedAccountId, subscription);
   }
 
   /**
@@ -2445,6 +2474,28 @@ export class HyperLiquidSubscriptionService {
       this.ensureGlobalAllMidsSubscription();
     }
 
+    // Re-establish order fill subscriptions if there are fill subscribers
+    if (this.orderFillSubscribers.size > 0) {
+      // Clear existing subscription references (they're dead after reconnection)
+      this.orderFillSubscriptions.clear();
+
+      // Re-establish subscriptions for all accountIds with subscribers
+      // Note: normalizedAccountId is 'default' for undefined, need to convert back
+      const normalizedAccountIds = Array.from(this.orderFillSubscribers.keys());
+      await Promise.all(
+        normalizedAccountIds.map((normalizedAccountId) => {
+          // Convert normalized key back to original accountId (undefined if 'default')
+          const accountId =
+            normalizedAccountId === 'default'
+              ? undefined
+              : (normalizedAccountId as CaipAccountId);
+          return this.ensureOrderFillSubscription(accountId).catch(() => {
+            // Ignore errors during order fill subscription restoration
+          });
+        }),
+      );
+    }
+
     // Re-establish webData3 subscriptions if there are user data subscribers
     if (
       this.positionSubscribers.size > 0 ||
@@ -2529,6 +2580,14 @@ export class HyperLiquidSubscriptionService {
     this.orderSubscribers.clear();
     this.accountSubscribers.clear();
     this.marketDataSubscribers.clear();
+
+    // Clear order fill subscriptions
+    this.orderFillSubscriptions.forEach((subscription) => {
+      subscription.unsubscribe().catch(() => {
+        // Ignore errors during cleanup
+      });
+    });
+    this.orderFillSubscriptions.clear();
 
     // Clear cached data
     this.cachedPriceData = null;
