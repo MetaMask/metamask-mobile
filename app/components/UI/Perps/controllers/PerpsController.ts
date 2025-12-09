@@ -25,6 +25,7 @@ import { MetaMetrics } from '../../../../core/Analytics';
 import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
@@ -93,6 +94,7 @@ import type {
   WithdrawResult,
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
+  OrderType,
 } from './types';
 import type {
   RemoteFeatureFlagControllerState,
@@ -161,6 +163,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this withdrawal
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -184,6 +187,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this deposit
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -739,6 +743,28 @@ export class PerpsController extends BaseController<
     );
 
     this.providers = new Map();
+
+    // Migrate old persisted data without accountAddress
+    this.migrateRequestsIfNeeded();
+  }
+
+  /**
+   * Clean up old withdrawal/deposit requests that don't have accountAddress
+   * These are from before the accountAddress field was added and can't be displayed
+   * in the UI (which filters by account), so we discard them
+   */
+  private migrateRequestsIfNeeded(): void {
+    this.update((state) => {
+      // Remove withdrawal requests without accountAddress - they can't be attributed to any account
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => !!req.accountAddress,
+      );
+
+      // Remove deposit requests without accountAddress - they can't be attributed to any account
+      state.depositRequests = state.depositRequests.filter(
+        (req) => !!req.accountAddress,
+      );
+    });
   }
 
   protected setBlockedRegionList(
@@ -1336,12 +1362,17 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastDepositResult = null;
 
+        // Get current account address
+        const evmAccount = getEvmAccountFromSelectedAccountGroup();
+        const accountAddress = evmAccount?.address || 'unknown';
+
         // Add deposit request to tracking
         const depositRequest = {
           id: currentDepositId,
           timestamp: Date.now(),
           amount: amount || '0', // Use provided amount or default to '0'
           asset: USDC_SYMBOL,
+          accountAddress, // Track which account initiated deposit
           success: false, // Will be updated when transaction completes
           txHash: undefined,
           status: 'pending' as TransactionStatus,
@@ -2279,9 +2310,130 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
       state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
         leverage,
       };
+    });
+  }
+
+  /**
+   * Save pending trade configuration for a market
+   * This is a temporary configuration that expires after 5 minutes
+   * @param coin - Market symbol
+   * @param config - Pending trade configuration
+   */
+  savePendingTradeConfiguration(
+    coin: string,
+    config: {
+      amount?: string;
+      leverage?: number;
+      takeProfitPrice?: string;
+      stopLossPrice?: string;
+      limitPrice?: string;
+      orderType?: OrderType;
+    },
+  ): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving pending trade configuration', {
+      coin,
+      network,
+      config,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
+      state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
+        pendingConfig: {
+          ...config,
+          timestamp: Date.now(),
+        },
+      };
+    });
+  }
+
+  /**
+   * Get pending trade configuration for a market
+   * Returns undefined if config doesn't exist or has expired (more than 5 minutes old)
+   * @param coin - Market symbol
+   * @returns Pending trade configuration or undefined
+   */
+  getPendingTradeConfiguration(coin: string):
+    | {
+        amount?: string;
+        leverage?: number;
+        takeProfitPrice?: string;
+        stopLossPrice?: string;
+        limitPrice?: string;
+        orderType?: OrderType;
+      }
+    | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const config =
+      this.state.tradeConfigurations[network]?.[coin]?.pendingConfig;
+
+    if (!config) {
+      return undefined;
+    }
+
+    // Check if config has expired (5 minutes = 300,000 milliseconds)
+    const FIVE_MINUTES_MS = 5 * 60 * 1000;
+    const now = Date.now();
+    const age = now - config.timestamp;
+
+    if (age > FIVE_MINUTES_MS) {
+      DevLogger.log('PerpsController: Pending trade config expired', {
+        coin,
+        network,
+        age,
+        timestamp: config.timestamp,
+      });
+      // Clear expired config
+      this.update((state) => {
+        if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
+          delete state.tradeConfigurations[network][coin].pendingConfig;
+        }
+      });
+      return undefined;
+    }
+
+    DevLogger.log('PerpsController: Retrieved pending trade config', {
+      coin,
+      network,
+      config,
+      age,
+    });
+
+    // Return config without timestamp
+    const { timestamp, ...configWithoutTimestamp } = config;
+    return configWithoutTimestamp;
+  }
+
+  /**
+   * Clear pending trade configuration for a market
+   * @param coin - Market symbol
+   */
+  clearPendingTradeConfiguration(coin: string): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Clearing pending trade configuration', {
+      coin,
+      network,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
+        delete state.tradeConfigurations[network][coin].pendingConfig;
+      }
     });
   }
 

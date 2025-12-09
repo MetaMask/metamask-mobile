@@ -95,6 +95,7 @@ describe('useLinkAccountAddress', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (mockEngineCall as jest.Mock).mockResolvedValue(undefined);
 
     // Setup useMetrics mock
     mockUseMetrics.mockReturnValue({

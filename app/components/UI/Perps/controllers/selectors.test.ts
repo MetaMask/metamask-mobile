@@ -1,6 +1,7 @@
 import {
   selectIsFirstTimeUser,
   selectTradeConfiguration,
+  selectPendingTradeConfiguration,
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
   selectHasPlacedFirstOrder,
