@@ -17,6 +17,10 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
+    fullScreenModal: {
+      flex: 1,
+      margin: 0,
+    },
     // We use absolute positioning with opacity instead of display: 'none' or conditional rendering
     // to keep all screens mounted while preventing visual flickering during transitions.
     screenVisible: {

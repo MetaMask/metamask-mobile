@@ -6,6 +6,7 @@ const createStyles = (params: { theme: Theme }) => {
   return StyleSheet.create({
     fullScreenModal: {
       flex: 1,
+      margin: 0,
     },
     bottomSheetBackground: {
       backgroundColor: theme.colors.background.alternative,
