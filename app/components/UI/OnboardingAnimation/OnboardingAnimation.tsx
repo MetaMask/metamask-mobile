@@ -73,7 +73,7 @@ const OnboardingAnimation = ({
   const { themeAppearance } = useAppThemeFromContext();
   const styles = createStyles();
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(isE2E);
 
   const moveLogoUp = useCallback(() => {
     Animated.parallel([
