@@ -7,7 +7,7 @@ on:
 permissions:
   issues: write
   contents: read
-‰
+
 jobs:
   automated-rca:
     name: Automated RCA
