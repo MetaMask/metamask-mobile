@@ -5,7 +5,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../locales/i18n';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import type {
   PerpsMarketData,
@@ -92,21 +96,23 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
     [navigation],
   );
 
-  // Header component
+  // Header component - full row is pressable with chevron icon next to title
   const SectionHeader = useCallback(
     () => (
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-          {title}
-        </Text>
-        <TouchableOpacity onPress={handleViewAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.home.see_all')}
+      <TouchableOpacity style={styles.header} onPress={handleViewAll}>
+        <View style={styles.titleRow}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {title}
           </Text>
-        </TouchableOpacity>
-      </View>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        </View>
+      </TouchableOpacity>
     ),
-    [styles.header, title, handleViewAll],
+    [styles.header, styles.titleRow, title, handleViewAll],
   );
 
   // Show skeleton during initial load
