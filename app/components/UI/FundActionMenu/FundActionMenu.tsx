@@ -9,7 +9,7 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { selectChainId } from '../../../selectors/networkController';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, Box } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
@@ -31,6 +31,7 @@ import type {
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
+import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -49,6 +50,7 @@ const FundActionMenu = () => {
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const { goToBuy, goToAggregator, goToSell, goToDeposit } =
     useRampNavigation();
+  const rampsButtonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -117,6 +119,10 @@ const FundActionMenu = () => {
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           navigationAction: () => {
             if (customOnBuy) {
@@ -140,6 +146,10 @@ const FundActionMenu = () => {
             chain_id_destination: getDecimalChainId(chainId),
             ramp_type: 'DEPOSIT',
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadDepositExperience,
           navigationAction: () => goToDeposit(),
@@ -157,6 +167,10 @@ const FundActionMenu = () => {
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.BUY } },
@@ -182,6 +196,10 @@ const FundActionMenu = () => {
             location: 'FundActionMenu',
             chain_id_source: getDecimalChainId(chainId),
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.SELL } },
@@ -202,25 +220,28 @@ const FundActionMenu = () => {
       goToAggregator,
       goToSell,
       goToDeposit,
+      rampsButtonClickData,
     ],
   );
 
   return (
     <BottomSheet ref={sheetRef}>
-      {actionConfigs.map(
-        (config) =>
-          config.isVisible && (
-            <ActionListItem
-              key={config.type}
-              label={config.label}
-              description={config.description}
-              iconName={config.iconName}
-              onPress={createActionHandler(config)}
-              testID={config.testID}
-              isDisabled={config.isDisabled}
-            />
-          ),
-      )}
+      <Box twClassName="py-4">
+        {actionConfigs.map(
+          (config) =>
+            config.isVisible && (
+              <ActionListItem
+                key={config.type}
+                label={config.label}
+                description={config.description}
+                iconName={config.iconName}
+                onPress={createActionHandler(config)}
+                testID={config.testID}
+                isDisabled={config.isDisabled}
+              />
+            ),
+        )}
+      </Box>
     </BottomSheet>
   );
 };

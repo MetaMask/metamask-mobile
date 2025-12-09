@@ -9,8 +9,10 @@ import {
   PredictMarketStatus,
   PredictPositionStatus,
   Recurrence,
+  Side,
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -44,6 +46,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: () => ({ navigate: mockNavigate }),
+    useIsFocused: () => true, // Mock as focused by default
   };
 });
 
@@ -67,6 +70,10 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictOrderPreview', () => ({
+  usePredictOrderPreview: jest.fn(),
+}));
+
 const basePosition: PredictPositionType = {
   id: 'pos-1',
   providerId: 'polymarket',
@@ -81,10 +88,10 @@ const basePosition: PredictPositionType = {
   price: 0.67,
   status: PredictPositionStatus.OPEN,
   size: 10,
-  cashPnl: 100,
+  cashPnl: 6.48,
   percentPnl: 5.25,
   initialValue: 123.45,
-  currentValue: 2345.67,
+  currentValue: 129.93, // currentValue = initialValue * (1 + percentPnl/100) = 123.45 * 1.0525
   avgPrice: 0.34,
   claimable: false,
   endDate: '2025-12-31T00:00:00Z',
@@ -142,6 +149,7 @@ const renderComponent = (
   overrides?: Partial<PredictPositionType>,
   marketOverrides?: Partial<PredictMarket>,
   marketStatus: PredictMarketStatus = PredictMarketStatus.OPEN,
+  previewOverrides?: { minAmountReceived?: number; error?: string | null },
 ) => {
   const position: PredictPositionType = {
     ...basePosition,
@@ -151,6 +159,39 @@ const renderComponent = (
     ...baseMarket,
     ...marketOverrides,
   } as PredictMarket;
+
+  // Update preview mock if custom values provided
+  if (previewOverrides) {
+    const mockUsePredictOrderPreviewFn =
+      usePredictOrderPreview as jest.MockedFunction<
+        typeof usePredictOrderPreview
+      >;
+    const hasPreview =
+      !previewOverrides.error && previewOverrides.minAmountReceived !== null;
+    mockUsePredictOrderPreviewFn.mockReturnValue({
+      preview: hasPreview
+        ? {
+            marketId: position.marketId,
+            outcomeId: position.outcomeId,
+            outcomeTokenId: position.outcomeTokenId,
+            timestamp: Date.now(),
+            side: Side.SELL,
+            sharePrice: 0,
+            maxAmountSpent: 0,
+            minAmountReceived:
+              previewOverrides.minAmountReceived ?? position.currentValue,
+            slippage: 0,
+            tickSize: 0,
+            minOrderSize: 0,
+            negRisk: false,
+          }
+        : null,
+      error: previewOverrides.error ?? null,
+      isCalculating: false,
+      isLoading: false,
+    });
+  }
+
   return renderWithProvider(
     <PredictPositionDetail
       position={position}
@@ -165,6 +206,10 @@ describe('PredictPositionDetail', () => {
   const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
     typeof usePredictPositions
   >;
+  const mockUsePredictOrderPreviewFn =
+    usePredictOrderPreview as jest.MockedFunction<
+      typeof usePredictOrderPreview
+    >;
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -181,6 +226,26 @@ describe('PredictPositionDetail', () => {
       isRefreshing: false,
       error: null,
     });
+    // Mock usePredictOrderPreview to return preview data matching position.currentValue
+    mockUsePredictOrderPreviewFn.mockReturnValue({
+      preview: {
+        marketId: basePosition.marketId,
+        outcomeId: basePosition.outcomeId,
+        outcomeTokenId: basePosition.outcomeTokenId,
+        timestamp: Date.now(),
+        side: Side.SELL,
+        sharePrice: 0,
+        maxAmountSpent: 0,
+        minAmountReceived: basePosition.currentValue,
+        slippage: 0,
+        tickSize: 0,
+        minOrderSize: 0,
+        negRisk: false,
+      },
+      error: null,
+      isCalculating: false,
+      isLoading: false,
+    });
   });
 
   afterEach(() => {
@@ -196,7 +261,7 @@ describe('PredictPositionDetail', () => {
       screen.getByText('$123.45 on Yes to win $10', { exact: false }),
     ).toBeOnTheScreen();
 
-    expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
+    expect(screen.getByText('$129.93')).toBeOnTheScreen();
     expect(screen.getByText('5.25%')).toBeOnTheScreen();
     expect(screen.getByText('Cash out')).toBeOnTheScreen();
   });
@@ -206,7 +271,12 @@ describe('PredictPositionDetail', () => {
     { value: 0, expected: '0%' },
     { value: 7.5, expected: '7.5%' },
   ])('formats percentPnl %p as %p for open market', ({ value, expected }) => {
-    renderComponent({ percentPnl: value });
+    const initialValue = basePosition.initialValue;
+    const currentValue = initialValue * (1 + value / 100);
+
+    renderComponent({ percentPnl: value, currentValue }, undefined, undefined, {
+      minAmountReceived: currentValue,
+    });
 
     expect(screen.getByText(expected)).toBeOnTheScreen();
   });
@@ -225,6 +295,7 @@ describe('PredictPositionDetail', () => {
       { percentPnl: 12.34, currentValue: 500 },
       { status: 'closed' },
       PredictMarketStatus.CLOSED,
+      { minAmountReceived: 500 },
     );
 
     expect(screen.getByText('Won $500')).toBeOnTheScreen();
@@ -234,9 +305,10 @@ describe('PredictPositionDetail', () => {
 
   it('renders lost result with initial value when market is closed and percent not positive', () => {
     renderComponent(
-      { percentPnl: 0, initialValue: 321.09 },
+      { percentPnl: 0, initialValue: 321.09, currentValue: 0 },
       { status: 'closed' },
       PredictMarketStatus.CLOSED,
+      { minAmountReceived: 0 },
     );
 
     expect(screen.getByText('Lost $321.09')).toBeOnTheScreen();
@@ -255,6 +327,72 @@ describe('PredictPositionDetail', () => {
         outcome: expect.objectContaining({ id: 'outcome-1' }),
       }),
     );
+  });
+
+  describe('preview loading and error states', () => {
+    it('shows skeleton for current value when preview is null', () => {
+      mockUsePredictOrderPreviewFn.mockReturnValue({
+        preview: null,
+        error: null,
+        isCalculating: true,
+        isLoading: true,
+      });
+
+      renderComponent();
+
+      // Should show skeletons instead of actual values
+      expect(screen.queryByText('$129.93')).toBeNull();
+      expect(screen.queryByText('5.25%')).toBeNull();
+    });
+
+    it('shows skeleton for percent PnL when preview is null', () => {
+      mockUsePredictOrderPreviewFn.mockReturnValue({
+        preview: null,
+        error: null,
+        isCalculating: true,
+        isLoading: true,
+      });
+
+      renderComponent();
+
+      // Should show skeletons instead of actual values
+      expect(screen.queryByText('5.25%')).toBeNull();
+    });
+
+    it('falls back to position currentValue when preview has error', () => {
+      mockUsePredictOrderPreviewFn.mockReturnValue({
+        preview: null,
+        error: 'Failed to fetch preview',
+        isCalculating: false,
+        isLoading: false,
+      });
+
+      renderComponent({ currentValue: 150, initialValue: 100 });
+
+      // Should display position's currentValue when preview errors
+      expect(screen.getByText('$150')).toBeOnTheScreen();
+      // PnL should be calculated from position values: (150-100)/100 = 50%
+      expect(screen.getByText('50%')).toBeOnTheScreen();
+    });
+
+    it('calculates PnL from position data when preview has error', () => {
+      mockUsePredictOrderPreviewFn.mockReturnValue({
+        preview: null,
+        error: 'Network error',
+        isCalculating: false,
+        isLoading: false,
+      });
+
+      renderComponent({
+        currentValue: 95,
+        initialValue: 100,
+        percentPnl: -5,
+      });
+
+      // Should show negative PnL calculated from position data
+      expect(screen.getByText('$95')).toBeOnTheScreen();
+      expect(screen.getByText('-5%')).toBeOnTheScreen();
+    });
   });
 
   describe('optimistic updates UI', () => {
@@ -353,6 +491,27 @@ describe('PredictPositionDetail', () => {
         error: null,
       });
 
+      // Update preview mock to return the resolved position's currentValue
+      mockUsePredictOrderPreviewFn.mockReturnValue({
+        preview: {
+          marketId: resolvedPosition.marketId,
+          outcomeId: resolvedPosition.outcomeId,
+          outcomeTokenId: resolvedPosition.outcomeTokenId,
+          timestamp: Date.now(),
+          side: Side.SELL,
+          sharePrice: 0,
+          maxAmountSpent: 0,
+          minAmountReceived: resolvedPosition.currentValue,
+          slippage: 0,
+          tickSize: 0,
+          minOrderSize: 0,
+          negRisk: false,
+        },
+        error: null,
+        isCalculating: false,
+        isLoading: false,
+      });
+
       rerender(
         <PredictPositionDetail
           position={resolvedPosition}
@@ -362,7 +521,7 @@ describe('PredictPositionDetail', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
+        expect(screen.getByText('$129.93')).toBeOnTheScreen();
       });
 
       await act(async () => {
@@ -402,7 +561,7 @@ describe('PredictPositionDetail', () => {
       const resolvedPosition = {
         ...basePosition,
         optimistic: false,
-        currentValue: 2500,
+        currentValue: 136.41, // currentValue = initialValue * (1 + percentPnl/100) = 123.45 * 1.105
         percentPnl: 10.5,
       };
 
@@ -416,7 +575,7 @@ describe('PredictPositionDetail', () => {
 
       const { rerender } = renderComponent({ optimistic: true });
 
-      expect(screen.queryByText('$2,500')).toBeNull();
+      expect(screen.queryByText('$136.41')).toBeNull();
 
       mockUsePredictPositions.mockReturnValue({
         positions: [resolvedPosition],
@@ -426,16 +585,37 @@ describe('PredictPositionDetail', () => {
         error: null,
       });
 
+      // Update preview mock to return the new currentValue
+      mockUsePredictOrderPreviewFn.mockReturnValue({
+        preview: {
+          marketId: resolvedPosition.marketId,
+          outcomeId: resolvedPosition.outcomeId,
+          outcomeTokenId: resolvedPosition.outcomeTokenId,
+          timestamp: Date.now(),
+          side: Side.SELL,
+          sharePrice: 0,
+          maxAmountSpent: 0,
+          minAmountReceived: resolvedPosition.currentValue,
+          slippage: 0,
+          tickSize: 0,
+          minOrderSize: 0,
+          negRisk: false,
+        },
+        error: null,
+        isCalculating: false,
+        isLoading: false,
+      });
+
       rerender(
         <PredictPositionDetail
-          position={optimisticPosition}
+          position={resolvedPosition}
           market={baseMarket}
           marketStatus={PredictMarketStatus.OPEN}
         />,
       );
 
       await waitFor(() => {
-        expect(screen.getByText('$2,500')).toBeOnTheScreen();
+        expect(screen.getByText('$136.41')).toBeOnTheScreen();
         expect(screen.getByText('10.5%')).toBeOnTheScreen();
       });
     });

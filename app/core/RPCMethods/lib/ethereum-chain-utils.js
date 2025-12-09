@@ -15,6 +15,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../Engine';
 import { isSnapId } from '@metamask/snaps-utils';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -278,10 +279,14 @@ export async function switchToNetwork({
     networkClientId,
   );
 
+  const fromChainId = hooks.fromNetworkConfiguration?.chainId;
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),
     source: 'Custom Network API',
     symbol: nativeCurrency || 'ETH',
+    from_network: fromChainId,
+    to_network: chainId,
+    custom_network: !POPULAR_NETWORK_CHAIN_IDS.has(chainId),
     ...analytics,
   };
 

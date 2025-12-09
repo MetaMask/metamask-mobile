@@ -34,11 +34,13 @@ import Engine from '../../../../../core/Engine';
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Routes from '../../../../../constants/navigation/Routes';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 export const getNetworkName = (
   chainId: Hex,
   networkConfigurations: Record<string, MultichainNetworkConfiguration>,
 ) =>
+  NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId] ??
   networkConfigurations?.[chainId as Hex]?.name ??
   PopularList.find((network) => network.chainId === chainId)?.nickname ??
   'Unknown Network';

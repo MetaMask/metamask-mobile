@@ -23,6 +23,7 @@ import {
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
 import usePrevious from '../../../../hooks/usePrevious';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
  *
@@ -69,6 +70,7 @@ interface UseRewardsResult {
   estimatedPoints: number | null;
   hasError: boolean;
   accountOptedIn: boolean | null;
+  rewardsAccountScope: InternalAccount | null;
 }
 
 /**
@@ -138,12 +140,12 @@ export const useRewards = ({
     setHasError(false);
 
     try {
-      // Check if rewards feature is enabled
-      const isRewardsEnabled = await Engine.controllerMessenger.call(
-        'RewardsController:isRewardsFeatureEnabled',
+      // Check if there is an active season
+      const hasActiveSeason = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
       );
 
-      if (!isRewardsEnabled) {
+      if (!hasActiveSeason) {
         setEstimatedPoints(null);
         setShouldShowRewardsRow(false);
         setAccountOptedIn(null);
@@ -152,11 +154,11 @@ export const useRewards = ({
       }
 
       // Check if there's a subscription first
-      const firstSubscriptionId = await Engine.controllerMessenger.call(
-        'RewardsController:getFirstSubscriptionId',
+      const candidateSubscriptionId = await Engine.controllerMessenger.call(
+        'RewardsController:getCandidateSubscriptionId',
       );
 
-      if (!firstSubscriptionId) {
+      if (!candidateSubscriptionId) {
         setEstimatedPoints(null);
         setShouldShowRewardsRow(false);
         setAccountOptedIn(null);
@@ -312,10 +314,12 @@ export const useRewards = ({
   }, [estimatePoints]);
 
   return {
-    shouldShowRewardsRow,
+    shouldShowRewardsRow:
+      shouldShowRewardsRow && (accountOptedIn || Boolean(selectedAccount)),
     isLoading: isLoading || isQuoteLoading,
     estimatedPoints,
     hasError,
     accountOptedIn,
+    rewardsAccountScope: selectedAccount ?? null,
   };
 };

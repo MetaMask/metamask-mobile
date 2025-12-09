@@ -51,7 +51,8 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
-import TrendingView from '../../Views/TrendingView/TrendingView';
+import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
+import ExploreSearchScreen from '../../Views/TrendingView/ExploreSearchScreen/ExploreSearchScreen';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -132,6 +133,8 @@ import {
   TOKEN,
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
+import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import BridgeView from '../../UI/Bridge/Views/BridgeView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -275,25 +278,6 @@ const RewardsHome = () => (
   </Stack.Navigator>
 );
 
-// Persist the last trending screen across unmounts
-export const lastTrendingScreenRef = { current: 'TrendingFeed' };
-
-// Callback to update the last trending screen (outside component to persist)
-export const updateLastTrendingScreen = (screenName) => {
-  // eslint-disable-next-line react-compiler/react-compiler
-  lastTrendingScreenRef.current = screenName;
-};
-
-const TrendingHome = () => (
-  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen
-      name={Routes.TRENDING_VIEW}
-      component={TrendingView}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
   <Stack.Navigator
@@ -318,15 +302,62 @@ const BrowserFlow = (props) => (
       component={Asset}
       initialParams={props.route.params}
     />
+  </Stack.Navigator>
+);
+
+const ExploreHome = () => (
+  <Stack.Navigator initialRouteName={Routes.TRENDING_FEED} mode="modal">
     <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
+      name={Routes.TRENDING_FEED}
+      component={ExploreFeed}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
+      name={Routes.EXPLORE_SEARCH}
+      component={ExploreSearchScreen}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
+      name={Routes.SITES_FULL_VIEW}
+      component={SitesFullView}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+
+    {/* Trending Browser Stack (uses existing browser flow) */}
+    <Stack.Screen
+      name={Routes.BROWSER.HOME}
+      component={BrowserFlow}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -649,10 +680,12 @@ const HomeTabs = () => {
     }
 
     // Hide tab bar when browser is in fullscreen mode
-    if (
-      isBrowserFullscreen &&
-      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
-    ) {
+    const currentStackRouteName =
+      currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
+    const isInBrowser =
+      currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
+      currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
+    if (isBrowserFullscreen && isInBrowser) {
       return null;
     }
 
@@ -676,21 +709,33 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       {isAssetsTrendingTokensEnabled ? (
-        <Tab.Screen
-          name={Routes.TRENDING_VIEW}
-          options={options.trending}
-          component={TrendingHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
+        <>
+          <Tab.Screen
+            name={Routes.TRENDING_VIEW}
+            options={{
+              ...options.trending,
+              isSelected: (rootScreenName) =>
+                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                  rootScreenName,
+                ),
+            }}
+            component={ExploreHome}
+            layout={({ children }) => UnmountOnBlurComponent(children)}
+          />
+          <Tab.Screen
+            name={Routes.BROWSER.HOME}
+            options={{
+              ...options.browser,
+              isHidden: true,
+            }}
+            component={BrowserFlow}
+            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          />
+        </>
       ) : (
         <Tab.Screen
           name={Routes.BROWSER.HOME}
-          options={{
-            ...options.browser,
-            tabBarButton: isAssetsTrendingTokensEnabled
-              ? () => null
-              : undefined,
-          }}
+          options={options.browser}
           component={BrowserFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
@@ -849,21 +894,6 @@ const NotificationsModeView = (props) => (
       name="ContactForm"
       component={ContactForm}
       options={ContactForm.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
-const Swaps = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
-    />
-    <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -1035,6 +1065,7 @@ const MainNavigator = () => {
           }),
         }}
       />
+
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
@@ -1078,7 +1109,6 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name="Swaps" component={Swaps} />
       <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}

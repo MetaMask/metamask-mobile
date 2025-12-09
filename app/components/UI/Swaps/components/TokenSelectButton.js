@@ -4,7 +4,7 @@ import { View, StyleSheet } from 'react-native';
 
 import SelectorButton from '../../../Base/SelectorButton';
 import Text from '../../../Base/Text';
-import TokenIcon from './TokenIcon';
+import TokenIcon from '../../../Base/TokenIcon';
 
 const styles = StyleSheet.create({
   icon: {

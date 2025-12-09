@@ -6,7 +6,10 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 import { Hex } from '@metamask/utils';
 import { CONVERTIBLE_STABLECOINS_BY_CHAIN } from '../../constants/musd';
-import { convertSymbolAllowlistToAddresses } from '../../utils/musd';
+import {
+  areValidAllowedPaymentTokens,
+  convertSymbolAllowlistToAddresses,
+} from '../../utils/musd';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -86,7 +89,14 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
 
       if (localEnvValue) {
         const parsed = JSON.parse(localEnvValue);
-        localAllowlist = convertSymbolAllowlistToAddresses(parsed);
+        const converted = convertSymbolAllowlistToAddresses(parsed);
+        if (areValidAllowedPaymentTokens(converted)) {
+          localAllowlist = converted;
+        } else {
+          console.warn(
+            'Local MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST produced invalid structure',
+          );
+        }
       }
     } catch (error) {
       console.warn(
@@ -95,7 +105,6 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
       );
     }
 
-    // RemoteFeatureFlagController already parses the flag.
     const remoteAllowlist =
       remoteFeatureFlags?.earnMusdConvertibleTokensAllowlist;
 
@@ -106,14 +115,19 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
             ? JSON.parse(remoteAllowlist)
             : remoteAllowlist;
 
-        // Validate it's an object (not array) before passing to converter
         if (
           parsedRemote &&
           typeof parsedRemote === 'object' &&
           !Array.isArray(parsedRemote)
         ) {
-          return convertSymbolAllowlistToAddresses(
+          const converted = convertSymbolAllowlistToAddresses(
             parsedRemote as Record<string, string[]>,
+          );
+          if (areValidAllowedPaymentTokens(converted)) {
+            return converted;
+          }
+          console.warn(
+            'Remote earnMusdConvertibleTokensAllowlist produced invalid structure',
           );
         }
       } catch (error) {

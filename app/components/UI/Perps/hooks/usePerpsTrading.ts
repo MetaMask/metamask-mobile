@@ -7,6 +7,7 @@ import type {
   ClosePositionParams,
   FeeCalculationParams,
   FeeCalculationResult,
+  FlipPositionParams,
   GetAccountStateParams,
   GetOrderFillsParams,
   GetOrdersParams,
@@ -16,6 +17,7 @@ import type {
   Funding,
   LiquidationPriceParams,
   MaintenanceMarginParams,
+  MarginResult,
   MarketInfo,
   OrderParams,
   OrderResult,
@@ -23,6 +25,7 @@ import type {
   SubscribeOrderFillsParams,
   SubscribePricesParams,
   SubscribePositionsParams,
+  UpdateMarginParams,
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
@@ -151,6 +154,22 @@ export function usePerpsTrading() {
     [],
   );
 
+  const updateMargin = useCallback(
+    async (params: UpdateMarginParams): Promise<MarginResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.updateMargin(params);
+    },
+    [],
+  );
+
+  const flipPosition = useCallback(
+    async (params: FlipPositionParams): Promise<OrderResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.flipPosition(params);
+    },
+    [],
+  );
+
   const calculateFees = useCallback(
     async (params: FeeCalculationParams): Promise<FeeCalculationResult> => {
       const controller = Engine.context.PerpsController;
@@ -230,6 +249,8 @@ export function usePerpsTrading() {
     calculateMaintenanceMargin,
     getMaxLeverage,
     updatePositionTPSL,
+    updateMargin,
+    flipPosition,
     calculateFees,
     validateOrder,
     validateClosePosition,

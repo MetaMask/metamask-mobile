@@ -123,9 +123,9 @@ describe('TrendingTokenTimeBottomSheet', () => {
       <TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByText('Time')).toBeTruthy();
-    expect(getByText('24 hours')).toBeTruthy();
-    expect(getByTestId('icon-Check')).toBeTruthy();
+    expect(getByText('Time')).toBeOnTheScreen();
+    expect(getByText('24 hours')).toBeOnTheScreen();
+    expect(getByTestId('icon-Check')).toBeOnTheScreen();
   });
 
   it('renders all time options', () => {
@@ -133,10 +133,10 @@ describe('TrendingTokenTimeBottomSheet', () => {
       <TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByText('24 hours')).toBeTruthy();
-    expect(getByText('6 hours')).toBeTruthy();
-    expect(getByText('1 hour')).toBeTruthy();
-    expect(getByText('5 minutes')).toBeTruthy();
+    expect(getByText('24 hours')).toBeOnTheScreen();
+    expect(getByText('6 hours')).toBeOnTheScreen();
+    expect(getByText('1 hour')).toBeOnTheScreen();
+    expect(getByText('5 minutes')).toBeOnTheScreen();
   });
 
   it('calls onTimeSelect with correct sortBy when 24 hours is pressed', () => {
@@ -274,8 +274,8 @@ describe('TrendingTokenTimeBottomSheet', () => {
       <TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByText('24 hours')).toBeTruthy();
-    expect(getByTestId('icon-Check')).toBeTruthy();
+    expect(getByText('24 hours')).toBeOnTheScreen();
+    expect(getByTestId('icon-Check')).toBeOnTheScreen();
   });
 
   it('does not render when isVisible is false', () => {
@@ -295,8 +295,8 @@ describe('TrendingTokenTimeBottomSheet', () => {
       />,
     );
 
-    expect(getByText('6 hours')).toBeTruthy();
-    expect(getByTestId('icon-Check')).toBeTruthy();
+    expect(getByText('6 hours')).toBeOnTheScreen();
+    expect(getByTestId('icon-Check')).toBeOnTheScreen();
   });
 
   it('calls onOpenBottomSheet when isVisible becomes true', () => {

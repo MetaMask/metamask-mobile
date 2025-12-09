@@ -413,24 +413,15 @@ exports[`BrowserTab render Browser 1`] = `
     </View>
     <View
       style={
-        [
-          {
-            "shadowOffset": {
-              "height": 6.6,
-            },
-            "shadowOpacity": 0.1965,
-            "shadowRadius": 5.94,
-          },
-          {
-            "backgroundColor": "#ffffff",
-            "borderColor": "#b7bbc866",
-            "borderTopWidth": 0.5,
-            "flex": 0,
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "paddingBottom": 0,
-          },
-        ]
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc866",
+          "borderTopWidth": 0.5,
+          "flex": 0,
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingBottom": 0,
+        }
       }
     >
       <TouchableOpacity

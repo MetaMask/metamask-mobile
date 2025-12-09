@@ -1080,7 +1080,11 @@ export class PolymarketProvider implements PredictProvider {
           outcomeTokenId,
         });
         if (error.includes(`order couldn't be fully filled`)) {
-          throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
+          throw new Error(
+            side === Side.BUY
+              ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
+              : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+          );
         }
         if (
           error.includes(`not available in your region`) ||

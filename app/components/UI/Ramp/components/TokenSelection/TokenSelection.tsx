@@ -9,6 +9,7 @@ import { ActivityIndicator } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
@@ -24,6 +25,7 @@ import TextFieldSearch from '../../../../../component-library/components/Form/Te
 
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { useRampTokens, RampsToken } from '../../hooks/useRampTokens';
+import { useDepositCryptoCurrencyNetworkName } from '../../Deposit/hooks/useDepositCryptoCurrencyNetworkName';
 
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
@@ -31,6 +33,11 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
+import useAnalytics from '../../hooks/useAnalytics';
+import {
+  getRampRoutingDecision,
+  getDetectedGeolocation,
+} from '../../../../../reducers/fiatOrders';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -47,6 +54,10 @@ function TokenSelection() {
   const navigation = useNavigation();
 
   const { topTokens, allTokens, isLoading, error } = useRampTokens();
+  const trackEvent = useAnalytics();
+  const getNetworkName = useDepositCryptoCurrencyNetworkName();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const detectedGeolocation = useSelector(getDetectedGeolocation);
 
   // Use topTokens for initial display, allTokens when searching
   const supportedTokens = useMemo(() => {
@@ -64,10 +75,36 @@ function TokenSelection() {
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
+      const selectedToken = supportedTokens.find(
+        (token) => token.assetId === assetId,
+      );
+      if (selectedToken) {
+        trackEvent('RAMPS_TOKEN_SELECTED', {
+          ramp_type: 'UNIFIED BUY',
+          region: detectedGeolocation || '',
+          chain_id: selectedToken.chainId,
+          currency_destination: selectedToken.assetId,
+          currency_destination_symbol: selectedToken.symbol,
+          currency_destination_network: getNetworkName(selectedToken.chainId),
+          currency_source: '',
+          is_authenticated: false,
+          token_caip19: selectedToken.assetId,
+          token_symbol: selectedToken.symbol,
+          ramp_routing: rampRoutingDecision ?? undefined,
+        });
+      }
       navigation.dangerouslyGetParent()?.goBack();
       goToBuy({ assetId });
     },
-    [goToBuy, navigation],
+    [
+      supportedTokens,
+      trackEvent,
+      getNetworkName,
+      detectedGeolocation,
+      rampRoutingDecision,
+      goToBuy,
+      navigation,
+    ],
   );
 
   const scrollToTop = useCallback(() => {

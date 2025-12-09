@@ -19,6 +19,9 @@ class PredictMarketList {
   get categoryTabs(): DetoxElement {
     return Matchers.getElementByID(PredictMarketListSelectorsIDs.CATEGORY_TABS);
   }
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(PredictMarketListSelectorsIDs.BACK_BUTTON);
+  }
 
   getMarketCard(category: CategoryTab, cardIndex: number): DetoxElement {
     return Matchers.getElementByID(
@@ -91,6 +94,12 @@ class PredictMarketList {
 
     await Gestures.waitAndTap(noByTextWithAncestor, {
       elemDescription: `Tap No in ${category} feed index ${cardIndex}`,
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Tap Back button on market feed',
     });
   }
 }

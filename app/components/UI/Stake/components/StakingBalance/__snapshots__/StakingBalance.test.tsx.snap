@@ -236,7 +236,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
   <View
     style={
       {
-        "paddingHorizontal": 16,
+        "backgroundColor": "#f3f5f9",
+        "borderRadius": 12,
+        "marginTop": 16,
+        "padding": 16,
       }
     }
   >
@@ -404,12 +407,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
         [
           {
             "flexDirection": "row",
-            "gap": 8,
+            "gap": 16,
             "justifyContent": "space-between",
           },
-          {
-            "paddingTop": 8,
-          },
+          undefined,
         ]
       }
     >
@@ -1028,7 +1029,10 @@ exports[`StakingBalance should match the snapshot 1`] = `
   <View
     style={
       {
-        "paddingHorizontal": 16,
+        "backgroundColor": "#f3f5f9",
+        "borderRadius": 12,
+        "marginTop": 16,
+        "padding": 16,
       }
     }
   >
@@ -1196,12 +1200,10 @@ exports[`StakingBalance should match the snapshot 1`] = `
         [
           {
             "flexDirection": "row",
-            "gap": 8,
+            "gap": 16,
             "justifyContent": "space-between",
           },
-          {
-            "paddingTop": 8,
-          },
+          undefined,
         ]
       }
     >

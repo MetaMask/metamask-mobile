@@ -1482,6 +1482,154 @@ exports[`Confirm should render correctly 1`] = `
                             <View />
                             <View />
                           </View>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "borderColor": "#b7bbc8",
+                                "borderRadius": 8,
+                                "borderWidth": 1,
+                                "display": "flex",
+                                "flexDirection": "row",
+                                "marginHorizontal": 24,
+                                "marginTop": 10,
+                                "paddingHorizontal": 16,
+                                "paddingVertical": 14,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 30,
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontFamily": "Geist Bold",
+                                  },
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Nonce
+                            </Text>
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 30,
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontFamily": "Geist Bold",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#4459ff",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                                
+                              Edit
+                            </Text>
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 30,
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontFamily": "Geist Bold",
+                                  },
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "marginLeft": "auto",
+                                  },
+                                ]
+                              }
+                            />
+                          </TouchableOpacity>
                           <View
                             style={
                               {

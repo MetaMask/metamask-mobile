@@ -1,12 +1,6 @@
-import { swapsUtils } from '@metamask/swaps-controller/';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-  ActivityIndicator,
-  InteractionManager,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -17,11 +11,8 @@ import {
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
 import AppConstants from '../../../core/AppConstants';
-import {
-  getFeatureFlagChainId,
-  setSwapsLiveness,
-  swapsTokensMultiChainObjectSelector,
-} from '../../../reducers/swaps';
+import { swapsTokensMultiChainObjectSelector } from '../../../reducers/swaps';
+import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
 import {
   selectChainId,
   selectNetworkClientId,
@@ -70,11 +61,9 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../selectors/transactionController';
-import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
@@ -194,10 +183,6 @@ class Asset extends PureComponent {
      * Boolean that indicates if deposit functionality is enabled
      */
     isDepositEnabled: PropTypes.bool,
-    /**
-     * Function to set the swaps liveness
-     */
-    setLiveness: PropTypes.func,
   };
 
   state = {
@@ -271,26 +256,8 @@ class Asset extends PureComponent {
     this.updateNavBar(contentOffset);
   };
 
-  checkLiveness = async (chainId) => {
-    try {
-      const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
-        getFeatureFlagChainId(chainId),
-        AppConstants.SWAPS.CLIENT_ID,
-      );
-      this.props.setLiveness(chainId, featureFlags);
-    } catch (error) {
-      Logger.error(error, 'Swaps: error while fetching swaps liveness');
-      this.props.setLiveness(chainId, null);
-    }
-  };
-
   componentDidMount() {
     this.updateNavBar();
-
-    const tokenChainId = this.props.route?.params?.chainId;
-    if (tokenChainId) {
-      this.checkLiveness(tokenChainId);
-    }
 
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
@@ -382,7 +349,9 @@ class Asset extends PureComponent {
         );
       if (
         swapsTransactions[tx.id] &&
-        (to?.toLowerCase() === swapsUtils.getSwapsContractAddress(chainId) ||
+        // TODO replace this with the address from Bridge controller
+        (to?.toLowerCase() ===
+          FIRST_PARTY_CONTRACT_NAMES.Swaps?.[chainId]?.toLowerCase() ||
           to?.toLowerCase() === this.navAddress)
       ) {
         const { destinationToken, sourceToken } = swapsTransactions[tx.id];
@@ -801,12 +770,4 @@ const mapStateToProps = (state, { route }) => {
   };
 };
 
-const mapDispatchToProps = (dispatch) => ({
-  setLiveness: (chainId, featureFlags) =>
-    dispatch(setSwapsLiveness(chainId, featureFlags)),
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withMetricsAwareness(Asset));
+export default connect(mapStateToProps)(withMetricsAwareness(Asset));

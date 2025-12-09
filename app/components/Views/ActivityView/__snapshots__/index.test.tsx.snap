@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ActivityView should render correctly 1`] = `
+exports[`ActivityView matches snapshot 1`] = `
 <View
   style={
     {
@@ -317,8 +317,11 @@ exports[`ActivityView should render correctly 1`] = `
                         [
                           {
                             "backgroundColor": "#ffffff",
-                            "flexDirection": "row",
-                            "paddingHorizontal": 16,
+                            "display": "flex",
+                            "flexBasis": "0%",
+                            "flexGrow": 1,
+                            "flexShrink": 1,
+                            "gap": 16,
                           },
                           {
                             "marginTop": 0,
@@ -326,143 +329,52 @@ exports[`ActivityView should render correctly 1`] = `
                         ]
                       }
                     >
-                      <Text
-                        style={
-                          {
-                            "color": "#121314",
-                            "fontFamily": "Geist Bold",
-                            "fontSize": 18,
-                            "fontWeight": "700",
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                            "marginTop": 20,
-                          }
-                        }
-                        variant="sHeadingSM"
-                      >
-                        Transactions
-                      </Text>
-                    </View>
-                    <View
-                      style={
-                        {
-                          "flex": 1,
-                        }
-                      }
-                    >
                       <View
                         style={
-                          {
-                            "flexDirection": "row",
-                            "justifyContent": "space-between",
-                            "paddingHorizontal": 8,
-                            "paddingVertical": 16,
-                            "width": "100%",
-                          }
-                        }
-                      >
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
+                          [
                             {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
-                              "justifyContent": "center",
-                              "maxWidth": "80%",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 12,
-                            }
-                          }
-                          testID="tokens-network-filter"
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "display": "flex",
-                                "flexDirection": "row",
-                                "gap": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "height": 16,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "width": 16,
-                                }
-                              }
-                            >
-                              <Image
-                                onError={[Function]}
-                                resizeMode="contain"
-                                source={1}
-                                style={
-                                  {
-                                    "height": 16,
-                                    "width": 16,
-                                  }
-                                }
-                                testID="network-avatar-image"
-                              />
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              numberOfLines={1}
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Medium",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Popular networks
-                            </Text>
-                          </View>
-                          <SvgMock
-                            color="#121314"
-                            fill="currentColor"
-                            height={16}
-                            name="ArrowDown"
-                            style={
-                              {
-                                "height": 16,
-                                "marginLeft": 8,
-                                "width": 16,
-                              }
-                            }
-                            width={16}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        onChangeTab={[Function]}
-                        renderTabBar={[Function]}
+                              "gap": 16,
+                              "marginBottom": 16,
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                            },
+                            false,
+                          ]
+                        }
+                        testID="header"
                       >
                         <View
                           style={
                             {
+                              "alignItems": "flex-start",
                               "flex": 1,
                             }
                           }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist Bold",
+                                "fontSize": 24,
+                                "letterSpacing": 0,
+                                "lineHeight": 32,
+                                "textAlign": "left",
+                              }
+                            }
+                            testID="header-title"
+                          >
+                            Activity
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        testID="tabs-list"
+                      >
+                        <View
+                          testID="tab-transactions"
                         >
                           <View
                             style={
@@ -471,273 +383,175 @@ exports[`ActivityView should render correctly 1`] = `
                                 "flex": 1,
                               }
                             }
+                            tabLabel="Transactions"
                           >
                             <View
                               style={
                                 {
                                   "alignItems": "center",
-                                  "justifyContent": "center",
-                                  "paddingBottom": 24,
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 8,
+                                  "paddingHorizontal": 16,
+                                  "width": "100%",
                                 }
                               }
                             >
-                              <ActivityIndicator
-                                size="small"
-                                style={
-                                  {
-                                    "alignSelf": "center",
-                                  }
-                                }
-                              />
-                            </View>
-                          </View>
-                          <View />
-                        </View>
-                        <RCTScrollView
-                          ListEmptyComponent={
-                            <Row>
-                              <Text
-                                color="Muted"
-                                style={
-                                  {
-                                    "textAlign": "center",
-                                  }
-                                }
-                                variant="sHeadingMD"
-                              >
-                                No bank or card transfers yet.
-                              </Text>
-                            </Row>
-                          }
-                          ListHeaderComponent={
-                            <ForwardRef
-                              horizontal={true}
-                            >
-                              <Row
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "columnGap": 8,
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
                                     "flexDirection": "row",
-                                    "marginHorizontal": 24,
-                                    "marginVertical": 16,
+                                    "height": 40,
+                                    "justifyContent": "center",
+                                    "maxWidth": "80%",
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 12,
                                   }
                                 }
+                                testID="tokens-network-filter"
                               >
-                                <FilterButton
-                                  label="All"
-                                  onPress={[Function]}
-                                  selected={true}
-                                />
-                                <FilterButton
-                                  label="Purchased"
-                                  onPress={[Function]}
-                                  selected={false}
-                                />
-                                <FilterButton
-                                  label="Sold"
-                                  onPress={[Function]}
-                                  selected={false}
-                                />
-                              </Row>
-                            </ForwardRef>
-                          }
-                          data={[]}
-                          getItem={[Function]}
-                          getItemCount={[Function]}
-                          keyExtractor={[Function]}
-                          onContentSizeChange={[Function]}
-                          onLayout={[Function]}
-                          onMomentumScrollBegin={[Function]}
-                          onMomentumScrollEnd={[Function]}
-                          onScroll={[Function]}
-                          onScrollBeginDrag={[Function]}
-                          onScrollEndDrag={[Function]}
-                          removeClippedSubviews={false}
-                          renderItem={[Function]}
-                          scrollEventThrottle={0.0001}
-                          stickyHeaderIndices={[]}
-                          viewabilityConfigCallbackPairs={[]}
-                        >
-                          <View>
-                            <View
-                              collapsable={false}
-                              onLayout={[Function]}
-                            >
-                              <RCTScrollView
-                                collapsable={false}
-                                handlerTag={-1}
-                                handlerType="NativeViewGestureHandler"
-                                horizontal={true}
-                                onGestureHandlerEvent={[Function]}
-                                onGestureHandlerStateChange={[Function]}
-                              >
-                                <View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "gap": 4,
+                                    }
+                                  }
+                                >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "marginVertical": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "alignItems": "center",
-                                          "columnGap": 8,
-                                          "flexDirection": "row",
-                                          "marginHorizontal": 24,
-                                          "marginVertical": 16,
-                                        },
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 4,
+                                        "height": 16,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "width": 16,
+                                      }
                                     }
                                   >
-                                    <TouchableOpacity
-                                      accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={1}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "flex-start",
-                                          "backgroundColor": "#121314",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "height": 16,
+                                          "width": 16,
                                         }
                                       }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        All
-                                      </Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                      accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "alignSelf": "flex-start",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "transparent",
-                                          "borderRadius": 12,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Purchased
-                                      </Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                      accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "alignSelf": "flex-start",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "transparent",
-                                          "borderRadius": 12,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Sold
-                                      </Text>
-                                    </TouchableOpacity>
+                                      testID="network-avatar-image"
+                                    />
                                   </View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    numberOfLines={1}
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Popular networks
+                                  </Text>
                                 </View>
-                              </RCTScrollView>
+                                <SvgMock
+                                  color="#121314"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="ArrowDown"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "marginLeft": 8,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                              </TouchableOpacity>
                             </View>
                             <View
-                              onLayout={[Function]}
                               style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
+                                {
+                                  "flex": 1,
+                                }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#b7bbc8",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
+                                    "backgroundColor": "#ffffff",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                No bank or card transfers yet.
-                              </Text>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "justifyContent": "center",
+                                      "paddingVertical": 40,
+                                      "width": "100%",
+                                    }
+                                  }
+                                >
+                                  <ActivityIndicator
+                                    size="small"
+                                    style={
+                                      {
+                                        "alignSelf": "center",
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                              <View />
                             </View>
                           </View>
-                        </RCTScrollView>
+                        </View>
+                        <View
+                          testID="tab-orders"
+                        >
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              }
+                            }
+                            tabLabel="Transfers"
+                          >
+                            <View
+                              testID="ramp-orders-list"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          testID="tab-2"
+                        />
+                        <View
+                          testID="tab-3"
+                        />
                       </View>
                     </View>
                   </View>

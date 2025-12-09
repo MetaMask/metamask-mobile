@@ -1,9 +1,8 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -15,96 +14,84 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { appendURLParams } from '../../../util/browser';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
-import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  lastTrendingScreenRef,
-  updateLastTrendingScreen,
-} from '../../Nav/Main/MainNavigator';
-import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
-import {
-  PredictModalStack,
-  PredictMarketDetails,
-  PredictSellPreview,
-} from '../../UI/Predict';
-import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import { HOME_SECTIONS_ARRAY } from './config/sections.config';
+import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 
-const Stack = createStackNavigator();
-
-// Wrapper component to intercept navigation
-const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
-  const navigation = useNavigation();
-
-  // Create a custom navigation object that intercepts navigate calls
-  const customNavigation = useMemo(() => {
-    const originalNavigate = navigation.navigate.bind(navigation);
-
-    return {
-      ...navigation,
-      navigate: (routeName: string, params?: object) => {
-        // If trying to navigate to TRENDING_VIEW, go back in stack instead
-        if (routeName === Routes.TRENDING_VIEW) {
-          navigation.goBack();
-        } else {
-          originalNavigate(routeName, params);
-        }
-      },
-    };
-  }, [navigation]);
-
-  return <Browser navigation={customNavigation} route={route} />;
-};
-
-const TrendingFeed: React.FC = () => {
+export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { isEnabled } = useMetrics();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const { colors } = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Update state when returning to TrendingFeed
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      updateLastTrendingScreen('TrendingFeed');
-    });
+  // Track which sections have empty data
+  const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
 
-    return unsubscribe;
-  }, [navigation]);
-
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: { security: { dataCollectionForMarketing?: boolean } }) =>
-      state.security.dataCollectionForMarketing,
-  );
+  const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
 
-  const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-    metamaskEntry: 'mobile',
-    metricsEnabled: isEnabled(),
-    marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-  });
-
+  const sectionCallbacks = useMemo(() => {
+    const callbacks = {} as Record<SectionId, (isEmpty: boolean) => void>;
+    HOME_SECTIONS_ARRAY.forEach((section) => {
+      callbacks[section.id] = (isEmpty: boolean) => {
+        setEmptySections((prev) => {
+          const next = new Set(prev);
+          if (isEmpty) {
+            next.add(section.id);
+          } else {
+            next.delete(section.id);
+          }
+          return next;
+        });
+      };
+    });
+    return callbacks;
+  }, []);
   const handleBrowserPress = useCallback(() => {
-    updateLastTrendingScreen('TrendingBrowser');
-    navigation.navigate('TrendingBrowser', {
-      newTabUrl: portfolioUrl.href,
-      timestamp: Date.now(),
-      fromTrending: true,
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: portfolioUrl.href,
+        timestamp: Date.now(),
+        fromTrending: true,
+      },
     });
   }, [navigation, portfolioUrl.href]);
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
+
+  // Clean up timeout when component unmounts or refreshing changes
+  useEffect(() => {
+    if (refreshing) {
+      const timeoutId = setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [refreshing]);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
@@ -144,73 +131,42 @@ const TrendingFeed: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      <ScrollView
-        style={tw.style('flex-1 px-4')}
-        showsVerticalScrollIndicator={false}
-      >
-        <QuickActions />
+      {isBasicFunctionalityEnabled ? (
+        <ScrollView
+          style={tw.style('flex-1 px-4')}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.icon.default}
+              colors={[colors.primary.default]}
+            />
+          }
+        >
+          <QuickActions emptySections={emptySections} />
 
-        {HOME_SECTIONS_ARRAY.map((section) => (
-          <React.Fragment key={section.id}>
-            <SectionHeader sectionId={section.id} />
-            <section.Section />
-          </React.Fragment>
-        ))}
-      </ScrollView>
+          {HOME_SECTIONS_ARRAY.map((section) => {
+            // Hide section visually but keep mounted so it can report when data arrives
+            const isHidden = emptySections.has(section.id);
+
+            return (
+              <Box
+                key={section.id}
+                twClassName={isHidden ? 'hidden' : undefined}
+              >
+                <SectionHeader sectionId={section.id} />
+                <section.Section
+                  refreshTrigger={refreshTrigger}
+                  toggleSectionEmptyState={sectionCallbacks[section.id]}
+                />
+              </Box>
+            );
+          })}
+        </ScrollView>
+      ) : (
+        <BasicFunctionalityEmptyState />
+      )}
     </Box>
   );
 };
-
-const TrendingView: React.FC = () => {
-  const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
-
-  return (
-    <Stack.Navigator
-      initialRouteName={initialRoot}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
-      <Stack.Screen
-        name={Routes.EXPLORE_SEARCH}
-        component={ExploreSearchScreen}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.ROOT}
-        component={PredictModalStack}
-        options={{
-          headerShown: false,
-          cardStyle: {
-            backgroundColor: 'transparent',
-          },
-          animationEnabled: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MARKET_DETAILS}
-        component={PredictMarketDetails}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.BUY_PREVIEW}
-        component={PredictBuyPreview}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.SELL_PREVIEW}
-        component={PredictSellPreview}
-        options={{
-          headerShown: false,
-        }}
-      />
-    </Stack.Navigator>
-  );
-};
-
-export default TrendingView;

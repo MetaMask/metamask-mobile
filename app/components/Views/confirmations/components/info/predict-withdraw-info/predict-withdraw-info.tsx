@@ -19,7 +19,7 @@ export function PredictWithdrawInfo() {
   });
 
   return (
-    <CustomAmountInfo disablePay currency={PREDICT_CURRENCY}>
+    <CustomAmountInfo disablePay hasMax currency={PREDICT_CURRENCY}>
       <PredictWithdrawBalance />
     </CustomAmountInfo>
   );

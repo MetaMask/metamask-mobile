@@ -38,7 +38,8 @@ const useIsInsufficientBalance = ({
   const minSolBalance = useSelector(selectMinSolBalance);
 
   const bestQuote = quotes?.recommendedQuote;
-  const { gasIncluded } = bestQuote?.quote ?? {};
+  const { gasIncluded, gasIncluded7702, gasSponsored } = bestQuote?.quote ?? {};
+  const isGasless = gasIncluded7702 || gasIncluded;
 
   const isValidAmount =
     amount !== undefined && amount !== '.' && token?.decimals;
@@ -61,7 +62,8 @@ const useIsInsufficientBalance = ({
     !hasValidDecimals ||
     !token ||
     !latestAtomicBalance ||
-    !!gasIncluded
+    !!isGasless ||
+    !!gasSponsored
   ) {
     return false;
   }
@@ -79,7 +81,7 @@ const useIsInsufficientBalance = ({
   // For native tokens (ETH, MATIC, etc.), gas comes from the SAME balance we're spending,
   // so we need to ensure: balance >= sourceAmount + gasAmount
   let atomicGasFee = BigNumber.from(0);
-  if (isNativeToken && !gasIncluded) {
+  if (isNativeToken && !isGasless) {
     const gasAmount = bestQuote?.gasFee?.effective?.amount;
     const effectiveGasFee = isNumberValue(gasAmount)
       ? // we guard against null and undefined values of gasAmount when checked isNumberValue
@@ -99,7 +101,7 @@ const useIsInsufficientBalance = ({
     const remainingBalance = latestAtomicBalance.sub(inputAmount);
     isInsufficientBalance =
       isInsufficientBalance || remainingBalance.lt(minSolBalanceLamports);
-  } else if (isNativeToken && !gasIncluded && atomicGasFee.gt(0)) {
+  } else if (isNativeToken && !isGasless && atomicGasFee.gt(0)) {
     // Native tokens (ETH, MATIC, etc.): check balance >= sourceAmount + gasAmount
     // Example: User has 1 ETH, wants to send 1 ETH, needs 0.01 ETH gas = insufficient
     const totalRequired = inputAmount.add(atomicGasFee);

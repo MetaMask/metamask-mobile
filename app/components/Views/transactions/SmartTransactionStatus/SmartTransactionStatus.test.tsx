@@ -496,7 +496,7 @@ describe('SmartTransactionStatus', () => {
             }),
           );
           fireEvent.press(primaryButton);
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.SWAPS);
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT);
         });
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
@@ -659,7 +659,7 @@ describe('SmartTransactionStatus', () => {
             strings('smart_transactions.try_again'),
           );
           fireEvent.press(primaryButton);
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.SWAPS);
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT);
         });
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(

@@ -21,8 +21,10 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -61,8 +63,10 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -101,8 +105,10 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -141,8 +147,10 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -181,8 +189,10 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -221,8 +231,10 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -279,7 +291,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -846,63 +857,77 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -1870,7 +1895,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -1942,34 +1967,48 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -1992,7 +2031,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -2053,7 +2092,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -2620,63 +2658,77 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -3644,7 +3696,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -3716,34 +3768,48 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -3766,7 +3832,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -3827,7 +3893,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -4394,63 +4459,77 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -5387,7 +5466,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -5531,34 +5610,48 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -5581,7 +5674,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -5642,7 +5735,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -6209,63 +6301,77 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -7233,7 +7339,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -7305,34 +7411,48 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -7355,7 +7475,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -7416,7 +7536,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -7983,63 +8102,77 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -9007,7 +9140,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -9079,34 +9212,48 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -9129,7 +9276,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -9190,7 +9337,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -9757,63 +9903,77 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -10750,7 +10910,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -10894,34 +11054,48 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -10944,7 +11118,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -11005,7 +11179,6 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -11467,8 +11640,10 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                           style={
                             {
                               "alignItems": "center",
+                              "backgroundColor": "#ffffff",
                               "justifyContent": "center",
-                              "paddingBottom": 24,
+                              "paddingVertical": 40,
+                              "width": "100%",
                             }
                           }
                         >
@@ -11535,7 +11710,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -12102,63 +12276,77 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -13126,7 +13314,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -13198,34 +13386,48 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -13248,7 +13450,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -13309,7 +13511,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -13876,63 +14077,77 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flexDirection": "row",
+                                              "flexWrap": "nowrap",
+                                              "overflow": "hidden",
                                             }
                                           }
                                         >
                                           <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
-                                                {
-                                                  "marginTop": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Feather",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                           
-                                          $0
-                                           (
-                                          0
-                                          %)
-                                           
-                                          <Text
                                             accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.5}
+                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#686e7d",
+                                                "flexShrink": 1,
                                                 "fontFamily": "Geist Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
-                                            testID="price-label"
                                           >
-                                            Today
+                                            <Text
+                                              allowFontScaling={false}
+                                              selectable={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "marginTop": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Feather",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                             
+                                            $0
+                                             (
+                                            0
+                                            %)
+                                             
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                              testID="price-label"
+                                            >
+                                              Today
+                                            </Text>
                                           </Text>
-                                        </Text>
+                                        </View>
                                       </Text>
                                     </View>
                                     <View
@@ -14900,7 +15115,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "gap": 24,
-                                            "marginTop": 24,
+                                            "marginTop": 16,
                                           }
                                         }
                                       >
@@ -14972,34 +15187,48 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -15022,7 +15251,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -15083,7 +15312,6 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
           style={
             [
               {
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
               },
@@ -15545,8 +15773,10 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                           style={
                             {
                               "alignItems": "center",
+                              "backgroundColor": "#ffffff",
                               "justifyContent": "center",
-                              "paddingBottom": 24,
+                              "paddingVertical": 40,
+                              "width": "100%",
                             }
                           }
                         >
@@ -15595,8 +15825,10 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -15635,8 +15867,10 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -15675,8 +15909,10 @@ exports[`Asset should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >

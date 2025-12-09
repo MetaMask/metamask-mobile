@@ -242,6 +242,26 @@ describe('useRampNavigation', () => {
       describe('smart routing based on routing decision', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
 
+        it('navigates to TokenSelection when routing decision is null', () => {
+          mockGetRampRoutingDecision.mockReturnValue(null);
+          const mockNavDetails = [
+            Routes.RAMP.TOKEN_SELECTION,
+            undefined,
+          ] as const;
+          mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+            mockNavDetails,
+          );
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(intent);
+
+          expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
+          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+        });
+
         it('navigates to deposit when routing decision is DEPOSIT', () => {
           mockGetRampRoutingDecision.mockReturnValue(
             UnifiedRampRoutingType.DEPOSIT,

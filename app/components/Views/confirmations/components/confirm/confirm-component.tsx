@@ -59,13 +59,12 @@ const ConfirmWrapped = ({
   styles: ReturnType<typeof styleSheet>;
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
-  const alerts = useConfirmationAlerts();
   const isScrollDisabled = useDisableScroll();
 
   return (
     <ConfirmationContextProvider>
       <ConfirmationAssetPollingProvider>
-        <AlertsContextProvider alerts={alerts}>
+        <ConfirmationAlerts>
           <QRHardwareContextProvider>
             <LedgerContextProvider>
               <Title />
@@ -88,7 +87,7 @@ const ConfirmWrapped = ({
               <Splash />
             </LedgerContextProvider>
           </QRHardwareContextProvider>
-        </AlertsContextProvider>
+        </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
   );
@@ -166,6 +165,14 @@ export const Confirm = ({ route }: ConfirmProps) => {
     </BottomSheet>
   );
 };
+
+function ConfirmationAlerts({ children }: { children: ReactNode }) {
+  const alerts = useConfirmationAlerts();
+
+  return (
+    <AlertsContextProvider alerts={alerts}>{children}</AlertsContextProvider>
+  );
+}
 
 function Loader() {
   const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });

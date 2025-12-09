@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 import { useAppThemeFromContext } from '../../../../../util/theme';
@@ -20,15 +20,35 @@ const createStyles = (theme: Theme) =>
   });
 interface SectionCardProps {
   sectionId: SectionId;
+  refreshTrigger?: number;
+  /** Callback when data empty state changes (only called after loading completes) */
+  toggleSectionEmptyState?: (isEmpty: boolean) => void;
 }
 
-const SectionCard: React.FC<SectionCardProps> = ({ sectionId }) => {
+const SectionCard: React.FC<SectionCardProps> = ({
+  sectionId,
+  refreshTrigger,
+  toggleSectionEmptyState,
+}) => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const section = SECTIONS_CONFIG[sectionId];
-  const { data, isLoading } = section.useSectionData();
+  const { data, isLoading, refetch } = section.useSectionData();
+
+  // Notify parent when data empty state changes (only after loading completes)
+  useEffect(() => {
+    if (!isLoading && toggleSectionEmptyState) {
+      toggleSectionEmptyState(data.length === 0);
+    }
+  }, [data.length, isLoading, toggleSectionEmptyState]);
+
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0 && refetch) {
+      refetch();
+    }
+  }, [refreshTrigger, refetch]);
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
     ({ item }) => <section.RowItem item={item} navigation={navigation} />,
@@ -48,7 +68,7 @@ const SectionCard: React.FC<SectionCardProps> = ({ sectionId }) => {
         <FlashList
           data={data.slice(0, 3)}
           renderItem={renderFlatItem}
-          keyExtractor={(item) => section.keyExtractor(item)}
+          keyExtractor={(_, index) => `${section.id}-${index}`}
           keyboardShouldPersistTaps="handled"
           testID="perps-tokens-list"
         />

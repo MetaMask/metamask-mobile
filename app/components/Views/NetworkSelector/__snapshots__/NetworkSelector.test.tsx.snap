@@ -2616,22 +2616,22 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              numberOfLines={1}
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                            <View>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Regular",
+                                                    "fontSize": 16,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
                                                 }
-                                              }
-                                              testID="cellbase-avatar-title"
-                                            >
-                                              Avalanche Mainnet C-Chain
-                                            </Text>
+                                              >
+                                                Avalanche Mainnet C-Chain
+                                              </Text>
+                                            </View>
                                             <TouchableOpacity
                                               accessibilityState={
                                                 {
@@ -2834,22 +2834,22 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              numberOfLines={1}
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                            <View>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Regular",
+                                                    "fontSize": 16,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
                                                 }
-                                              }
-                                              testID="cellbase-avatar-title"
-                                            >
-                                              Polygon Mainnet
-                                            </Text>
+                                              >
+                                                Polygon Mainnet
+                                              </Text>
+                                            </View>
                                             <TouchableOpacity
                                               accessibilityState={
                                                 {
@@ -3052,22 +3052,22 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              numberOfLines={1}
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                            <View>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Regular",
+                                                    "fontSize": 16,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
                                                 }
-                                              }
-                                              testID="cellbase-avatar-title"
-                                            >
-                                              Optimism
-                                            </Text>
+                                              >
+                                                Optimism
+                                              </Text>
+                                            </View>
                                             <TouchableOpacity
                                               accessibilityState={
                                                 {
@@ -3273,22 +3273,22 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              numberOfLines={1}
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                            <View>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Regular",
+                                                    "fontSize": 16,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
                                                 }
-                                              }
-                                              testID="cellbase-avatar-title"
-                                            >
-                                              Gnosis Chain
-                                            </Text>
+                                              >
+                                                Gnosis Chain
+                                              </Text>
+                                            </View>
                                             <TouchableOpacity
                                               accessibilityState={
                                                 {
@@ -3815,44 +3815,52 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        Arbitrum
-                                      </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          Arbitrum
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={
@@ -3934,44 +3942,68 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        BNB Chain
-                                      </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          BNB Chain
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "alignSelf": "flex-start",
+                                              "color": "#686e7d",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 14,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                              "marginTop": 4,
+                                            }
+                                          }
+                                        >
+                                          No network fee
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={
@@ -4053,44 +4085,52 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        Base
-                                      </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          Base
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={
@@ -4172,44 +4212,52 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        HyperEVM
-                                      </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          HyperEVM
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={
@@ -4291,44 +4339,52 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        Palm
-                                      </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          Palm
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={
@@ -4410,44 +4466,52 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        zkSync Era
-                                      </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          zkSync Era
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={
@@ -4529,44 +4593,52 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        Sei
-                                      </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          Sei
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={
@@ -4648,44 +4720,179 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        Monad
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          Monad
+                                        </Text>
+                                      </View>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Add
                                       </Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "justifyContent": "space-between",
+                                        "marginVertical": 12,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "borderRadius": 10,
+                                            "height": 20,
+                                            "marginRight": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "height": 24,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "width": 24,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          {
+                                            "flexDirection": "column",
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          MegaEth
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={

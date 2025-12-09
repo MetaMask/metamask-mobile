@@ -529,17 +529,20 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockCallback).toHaveBeenCalledWith([
-        expect.objectContaining({
-          orderId: '12345',
-          symbol: 'BTC',
-          side: 'B',
-          size: '0.1',
-          price: '50000',
-          fee: '5',
-          timestamp: expect.any(Number),
-        }),
-      ]);
+      expect(mockCallback).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            side: 'B',
+            size: '0.1',
+            price: '50000',
+            fee: '5',
+            timestamp: expect.any(Number),
+          }),
+        ],
+        undefined, // isSnapshot is undefined for mock data without it
+      );
 
       unsubscribe();
     });
@@ -602,17 +605,62 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockCallback).toHaveBeenCalledWith([
-        expect.objectContaining({
-          orderId: '12345',
-          symbol: 'BTC',
-          liquidation: {
-            liquidatedUser: '0x123',
-            markPx: '44900',
-            method: 'market',
-          },
-        }),
-      ]);
+      expect(mockCallback).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            liquidation: {
+              liquidatedUser: '0x123',
+              markPx: '44900',
+              method: 'market',
+            },
+          }),
+        ],
+        undefined, // isSnapshot is undefined for mock data without it
+      );
+
+      unsubscribe();
+    });
+
+    it('should pass isSnapshot flag to callback', async () => {
+      const mockCallback = jest.fn();
+
+      // Update mock data to include isSnapshot: true (snapshot message)
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              fills: [
+                {
+                  oid: BigInt(12345),
+                  coin: 'BTC',
+                  side: 'B',
+                  sz: '0.1',
+                  px: '50000',
+                  fee: '5',
+                  time: Date.now(),
+                },
+              ],
+              isSnapshot: true, // This is a snapshot message
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToOrderFills({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.any(Array),
+        true, // isSnapshot should be passed through
+      );
 
       unsubscribe();
     });
@@ -2392,39 +2440,25 @@ describe('HyperLiquidSubscriptionService', () => {
   });
 
   describe('Market Data Cache Initialization', () => {
-    it('caches funding rates from initial market data', async () => {
+    it('uses setDexMetaCache to pre-populate meta cache instead of API call', async () => {
+      // Test that setDexMetaCache can be used to pre-populate the cache
+      // This is how Provider shares cached meta with SubscriptionService
+      const mockMeta = {
+        universe: [
+          { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+          { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          { name: 'SOL', szDecimals: 2, maxLeverage: 20 },
+        ],
+      };
+
+      // Pre-populate cache via setDexMetaCache (simulating what Provider does)
+      service.setDexMetaCache('', mockMeta);
+
       const mockCallback = jest.fn();
       const mockInfoClient = {
-        meta: jest.fn().mockResolvedValue({
-          universe: [{ name: 'BTC' }, { name: 'ETH' }, { name: 'SOL' }],
-        }),
-        metaAndAssetCtxs: jest.fn().mockResolvedValue([
-          {}, // meta object (first element)
-          [
-            // assetCtxs array (second element)
-            {
-              funding: '0.0001',
-              prevDayPx: '49000',
-              openInterest: '1000000',
-              dayNtlVlm: '50000000',
-              oraclePx: '50100',
-            },
-            {
-              funding: '0.0002',
-              prevDayPx: '2900',
-              openInterest: '500000',
-              dayNtlVlm: '10000000',
-              oraclePx: '3010',
-            },
-            {
-              funding: '0.00015',
-              prevDayPx: '95',
-              openInterest: '200000',
-              dayNtlVlm: '5000000',
-              oraclePx: '98',
-            },
-          ],
-        ]),
+        // These should NOT be called since cache is populated
+        meta: jest.fn().mockResolvedValue(mockMeta),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([mockMeta, []]),
       };
 
       mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
@@ -2437,9 +2471,10 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 20));
 
-      // Verify meta was called to cache funding rates
-      expect(mockInfoClient.meta).toHaveBeenCalled();
-      expect(mockInfoClient.metaAndAssetCtxs).toHaveBeenCalled();
+      // Verify that metaAndAssetCtxs was NOT called (cache was used)
+      // Note: meta() may still be called by createAssetCtxsSubscription fallback if cache miss,
+      // but with proper cache population, it should hit the cache
+      expect(mockInfoClient.metaAndAssetCtxs).not.toHaveBeenCalled();
 
       unsubscribe();
     });

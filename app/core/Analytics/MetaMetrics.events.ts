@@ -77,6 +77,7 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
+  VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -199,12 +200,19 @@ enum EVENT_NAME {
   // Key Management
   ANDROID_HARDWARE_KEYSTORE = 'Android Hardware Keystore',
 
-  // QR Hardware Wallet
-  CONNECT_HARDWARE_WALLET = 'Clicked Connect Hardware Wallet',
-  CONTINUE_QR_HARDWARE_WALLET = 'Clicked Continue QR Hardware Wallet',
-  CONNECT_HARDWARE_WALLET_SUCCESS = 'Connected Account with hardware wallet',
-  QR_HARDWARE_TRANSACTION_CANCELED = 'User canceled QR hardware transaction',
-  HARDWARE_WALLET_ERROR = 'Hardware wallet error',
+  // Common Hardware Wallet
+  ADD_HARDWARE_WALLET = 'Add Hardware Wallet Clicked',
+  CONNECT_HARDWARE_WALLET = 'Connect Hardware Wallet Clicked',
+  HARDWARE_WALLET_FOUND = 'Connect Hardware Wallet Device Found',
+  HARDWARE_WALLET_CONTINUE_CONNECTION = 'Connect Hardware Wallet Continue Button Clicked',
+  HARDWARE_WALLET_PERMISSION_REQUEST = 'Hardware Wallet Permission Request Clicked',
+  HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN = 'Connect Hardware Wallet Account Selector Viewed',
+  HARDWARE_WALLET_MARKETING = 'Hardware Wallet Marketing Button Clicked',
+  HARDWARE_WALLET_CONNECT_INSTRUCTIONS = 'Connect Hardware Wallet Instructions Viewed',
+  HARDWARE_WALLET_CONNECTION_RETRY = 'Hardware Wallet Connection Error Retry Button Clicked',
+  HARDWARE_WALLET_ADD_ACCOUNT = 'Hardware Wallet Account Connected',
+  HARDWARE_WALLET_FORGOTTEN = 'Hardware Wallet Forgotten',
+  HARDWARE_WALLET_ERROR = 'Hardware Wallet Connection Failed',
 
   // Tokens
   TOKEN_DETECTED = 'Token Detected',
@@ -298,6 +306,7 @@ enum EVENT_NAME {
   SEND_FLOW = 'Send Flow',
   SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
+  TOAST_DISPLAYED = 'Toast Displayed',
 
   // Send Flow
   SEND_ASSET_SELECTED = 'Send Asset Selected',
@@ -443,16 +452,6 @@ enum EVENT_NAME {
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
 
-  //Ledger
-  CONNECT_LEDGER = 'Clicked Connect Ledger',
-  CONTINUE_LEDGER_HARDWARE_WALLET = 'Clicked Continue Ledger Hardware Wallet',
-  CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
-  LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
-  LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-
-  // common hardware wallet
-  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
-
   // Remove an account
   ACCOUNT_REMOVED = 'Account removed',
   ACCOUNT_REMOVE_FAILED = 'Account remove failed',
@@ -513,6 +512,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Modal Viewed
   DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
@@ -594,6 +594,24 @@ enum EVENT_NAME {
   QR_SCANNED = 'QR Scanned',
 }
 
+export enum HARDWARE_WALLET_BUTTON_TYPE {
+  TUTORIAL = 'Tutorial',
+  PICKER = 'Picker',
+  BUY_NOW = 'Buy Now',
+  LEARN_MORE = 'Learn More',
+}
+
+export enum HARDWARE_WALLET_DEVICE_TYPE {
+  LEDGER = 'Ledger',
+  Keystone = 'Keystone',
+  NgraveZero = 'Ngrave Zero',
+  AIRGAP_VAULT = 'AirGap Vault',
+  COOL_WALLET = 'Cool Wallet',
+  DCENT = 'DCent',
+  GRID_PLUS = 'Grid Plus',
+  IMToken = 'IMToken',
+}
+
 enum ACTIONS {
   // Navigation Drawer
   NAVIGATION_DRAWER = 'Navigation Drawer',
@@ -629,6 +647,19 @@ enum ACTIONS {
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
   SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
+}
+
+export enum PERMISSION_RESULT {
+  GRANTED = 'granted',
+  DENIED = 'denied',
+  BLOCKED = 'blocked',
+  LIMITED = 'limited',
+  UNAVAILABLE = 'unavailable',
+}
+
+export enum PERMISSION_TYPE {
+  CAMERA = 'Camera',
+  BLUETOOTH = 'Bluetooth',
 }
 
 const events = {
@@ -682,6 +713,7 @@ const events = {
   DEFI_PROTOCOL_DETAILS_OPENED: generateOpt(
     EVENT_NAME.DEFI_PROTOCOL_DETAILS_OPENED,
   ),
+  VIEW_ALL_ASSETS_CLICKED: generateOpt(EVENT_NAME.VIEW_ALL_ASSETS_CLICKED),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
@@ -829,17 +861,34 @@ const events = {
     EVENT_NAME.REVEAL_PRIVATE_KEY_COMPLETED,
   ),
   ANDROID_HARDWARE_KEYSTORE: generateOpt(EVENT_NAME.ANDROID_HARDWARE_KEYSTORE),
+
+  // Hardware Wallet
+  ADD_HARDWARE_WALLET: generateOpt(EVENT_NAME.ADD_HARDWARE_WALLET),
   CONNECT_HARDWARE_WALLET: generateOpt(EVENT_NAME.CONNECT_HARDWARE_WALLET),
-  CONTINUE_QR_HARDWARE_WALLET: generateOpt(
-    EVENT_NAME.CONTINUE_QR_HARDWARE_WALLET,
+
+  HARDWARE_WALLET_MARKETING: generateOpt(EVENT_NAME.HARDWARE_WALLET_MARKETING),
+  HARDWARE_WALLET_PERMISSION_REQUEST: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_PERMISSION_REQUEST,
   ),
-  CONNECT_HARDWARE_WALLET_SUCCESS: generateOpt(
-    EVENT_NAME.CONNECT_HARDWARE_WALLET_SUCCESS,
+  HARDWARE_WALLET_CONNECT_INSTRUCTIONS: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECT_INSTRUCTIONS,
   ),
-  QR_HARDWARE_TRANSACTION_CANCELED: generateOpt(
-    EVENT_NAME.QR_HARDWARE_TRANSACTION_CANCELED,
+  HARDWARE_WALLET_FOUND: generateOpt(EVENT_NAME.HARDWARE_WALLET_FOUND),
+  HARDWARE_WALLET_CONTINUE_CONNECTION: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONTINUE_CONNECTION,
   ),
+  HARDWARE_WALLET_CONNECTION_RETRY: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECTION_RETRY,
+  ),
+  HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
+  ),
+  HARDWARE_WALLET_ADD_ACCOUNT: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_ADD_ACCOUNT,
+  ),
+  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
   HARDWARE_WALLET_ERROR: generateOpt(EVENT_NAME.HARDWARE_WALLET_ERROR),
+
   TOKEN_DETECTED: generateOpt(EVENT_NAME.TOKEN_DETECTED),
   TOKEN_IMPORT_CLICKED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CLICKED),
   TOKEN_IMPORT_CANCELED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CANCELED),
@@ -1094,20 +1143,6 @@ const events = {
   // Experimental Settings
   SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
 
-  // Ledger
-  CONNECT_LEDGER: generateOpt(EVENT_NAME.CONNECT_LEDGER),
-  CONTINUE_LEDGER_HARDWARE_WALLET: generateOpt(
-    EVENT_NAME.CONTINUE_LEDGER_HARDWARE_WALLET,
-  ),
-  CONNECT_LEDGER_SUCCESS: generateOpt(EVENT_NAME.CONNECT_LEDGER_SUCCESS),
-  LEDGER_HARDWARE_TRANSACTION_CANCELLED: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
-  ),
-  LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
-  ),
-  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
-
   // Remove an account
   ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
   ACCOUNT_REMOVE_FAILED: generateOpt(EVENT_NAME.ACCOUNT_REMOVE_FAILED),
@@ -1330,6 +1365,9 @@ const events = {
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
   ),
+  NetworkConnectionBannerRpcUpdated: generateOpt(
+    EVENT_NAME.NetworkConnectionBannerRpcUpdated,
+  ),
 
   // Multi SRP
   IMPORT_SECRET_RECOVERY_PHRASE_CLICKED: generateOpt(
@@ -1485,6 +1523,9 @@ const events = {
   // QR Scanner
   QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
   QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
+
+  // Toast
+  TOAST_DISPLAYED: generateOpt(EVENT_NAME.TOAST_DISPLAYED),
 };
 
 /**

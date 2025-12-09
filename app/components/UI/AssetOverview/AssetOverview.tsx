@@ -314,7 +314,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       dispatch(newAssetTransaction(asset));
     }
 
-    navigateToSendPage(InitSendLocation.AssetOverview, asset);
+    navigateToSendPage({ location: InitSendLocation.AssetOverview, asset });
   };
 
   const onBuy = () => {

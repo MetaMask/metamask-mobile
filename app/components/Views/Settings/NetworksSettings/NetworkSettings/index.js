@@ -24,7 +24,7 @@ import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';
-import InfoModal from '../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../../../Base/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
@@ -32,6 +32,7 @@ import sanitizeUrl, {
   compareSanitizedUrl,
 } from '../../../../../util/sanitizeUrl';
 import onlyKeepHost from '../../../../../util/onlyKeepHost';
+import { isPublicEndpointUrl } from '../../../../../core/Engine/controllers/network-controller/utils';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import Button, {
@@ -48,6 +49,7 @@ import { selectIsRpcFailoverEnabled } from '../../../../../selectors/featureFlag
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
+import { hexToNumber } from '@metamask/utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
@@ -83,12 +85,11 @@ import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/wallet/CellComponent.selectors';
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
-import { MetaMetrics } from '../../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   addItemToChainIdList,
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { NETWORK_TO_NAME_MAP } from '../../../../../core/Engine/constants';
 import { createStyles } from './index.styles';
 
@@ -532,6 +533,7 @@ export class NetworkSettings extends PureComponent {
     isCustomMainnet,
     shouldNetworkSwitchPopToWallet,
     navigation,
+    trackRpcUpdateFromBanner,
   }) => {
     const { NetworkController } = Engine.context;
 
@@ -569,6 +571,38 @@ export class NetworkSettings extends PureComponent {
             }
           : undefined,
       );
+
+      // Track RPC update from network connection banner
+      if (trackRpcUpdateFromBanner) {
+        const newRpcEndpoint =
+          networkConfig.rpcEndpoints[networkConfig.defaultRpcEndpointIndex];
+        const oldRpcEndpoint =
+          existingNetwork.rpcEndpoints?.[
+            existingNetwork.defaultRpcEndpointIndex ?? 0
+          ];
+
+        const chainIdAsDecimal = hexToNumber(chainId);
+
+        const sanitizeRpcUrl = (url) =>
+          isPublicEndpointUrl(url, infuraProjectId)
+            ? onlyKeepHost(url)
+            : 'custom';
+
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.NetworkConnectionBannerRpcUpdated,
+            )
+            .addProperties({
+              chain_id_caip: `eip155:${chainIdAsDecimal}`,
+              from_rpc_domain: oldRpcEndpoint?.url
+                ? sanitizeRpcUrl(oldRpcEndpoint.url)
+                : 'unknown',
+              to_rpc_domain: sanitizeRpcUrl(newRpcEndpoint.url),
+            })
+            .build(),
+        );
+      }
     } else {
       await NetworkController.addNetwork({
         ...networkConfig,
@@ -614,6 +648,9 @@ export class NetworkSettings extends PureComponent {
 
     const shouldNetworkSwitchPopToWallet =
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
+
+    const trackRpcUpdateFromBanner =
+      route.params?.trackRpcUpdateFromBanner ?? false;
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction || this.disabledByChainId() || this.disabledBySymbol();
@@ -663,10 +700,8 @@ export class NetworkSettings extends PureComponent {
       });
     }
 
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      const { NetworkEnablementController } = Engine.context;
-      NetworkEnablementController.enableNetwork(chainId);
-    }
+    const { NetworkEnablementController } = Engine.context;
+    NetworkEnablementController.enableNetwork(chainId);
 
     await this.handleNetworkUpdate({
       rpcUrl,
@@ -684,6 +719,7 @@ export class NetworkSettings extends PureComponent {
       networkType,
       networkUrl,
       showNetworkOnboarding,
+      trackRpcUpdateFromBanner,
     });
   };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import {
@@ -78,11 +78,13 @@ import { useRecipientInitialization } from '../../hooks/useRecipientInitializati
 import ApprovalTooltip from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
-import { isNullOrUndefined } from '@metamask/utils';
+import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
-import { useGasIncluded } from '../../hooks/useGasIncluded';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
+import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
+import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -139,8 +141,11 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  // Update gasIncluded state based on source chain capabilities
-  useGasIncluded(sourceToken?.chainId);
+  // Update isGasIncludedSTXSendBundleSupported state based on source chain capabilities
+  useIsGasIncludedSTXSendBundleSupported(sourceToken?.chainId);
+
+  // Update isGasIncluded7702Supported state
+  useIsGasIncluded7702Supported(sourceToken?.chainId);
 
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
@@ -204,6 +209,23 @@ const BridgeView = () => {
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
+
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
+
+  // Check if quote is sponsored: both tokens must be on the same chain and that chain must be sponsored
+  const isQuoteSponsored = useMemo(() => {
+    if (!sourceToken?.chainId || !destToken?.chainId) return false;
+    // Both tokens must be on the same chain
+    if (sourceToken.chainId !== destToken.chainId) return false;
+    // Check if the chain is sponsored
+    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId as Hex);
+  }, [
+    sourceToken?.chainId,
+    destToken?.chainId,
+    isGasFeesSponsoredNetworkEnabled,
+  ]);
 
   const isSubmitDisabled =
     isLoading ||
@@ -505,6 +527,7 @@ const BridgeView = () => {
             onMaxPress={handleSourceMaxPress}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
+            isQuoteSponsored={isQuoteSponsored}
           />
           <FLipQuoteButton
             onPress={handleSwitchTokens(destTokenAmount)}
@@ -523,6 +546,7 @@ const BridgeView = () => {
             onTokenPress={handleDestTokenPress}
             isLoading={!destTokenAmount && isLoading}
             style={styles.destTokenArea}
+            isQuoteSponsored={isQuoteSponsored}
           />
         </Box>
 

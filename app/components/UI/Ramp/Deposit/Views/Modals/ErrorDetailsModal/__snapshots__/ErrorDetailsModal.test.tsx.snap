@@ -433,7 +433,6 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -496,7 +495,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  Error Details
+                                  Error details
                                 </Text>
                               </View>
                             </View>

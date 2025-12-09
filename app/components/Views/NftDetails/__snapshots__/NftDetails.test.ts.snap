@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NftDetails should render correctly 1`] = `
+exports[`NftDetails renders correctly 1`] = `
 <View
   style={
     {
@@ -397,6 +397,7 @@ exports[`NftDetails should render correctly 1`] = `
                                         }
                                       >
                                         <View
+                                          chainId={1}
                                           contentFit="contain"
                                           fadeIn={true}
                                           isFullRatio={true}

@@ -43,6 +43,9 @@ jest.mock(
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockHandleAddFunds = jest.fn();
+const mockHandleWithdraw = jest.fn();
+const mockCloseEligibilityModal = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -54,11 +57,47 @@ jest.mock('../../hooks', () => ({
     navigateBack: mockNavigateBack,
     goBack: jest.fn(),
   })),
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: mockHandleAddFunds,
+    handleWithdraw: mockHandleWithdraw,
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: mockCloseEligibilityModal,
+    isEligible: true,
+    isProcessing: false,
+    error: null,
+  })),
+}));
+
+// Mock direct import of usePerpsHomeActions (component imports it directly now)
+jest.mock('../../hooks/usePerpsHomeActions', () => ({
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: mockHandleAddFunds,
+    handleWithdraw: mockHandleWithdraw,
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: mockCloseEligibilityModal,
+    isEligible: true,
+    isProcessing: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
+
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      totalBalance: '0',
+      availableBalance: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    },
+    isInitialLoading: false,
+  })),
+}));
+
+// Use real BigNumber library - mocking it causes issues with module initialization
 
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -229,8 +268,6 @@ jest.mock('../../components/PerpsHomeSection', () => {
     isEmpty?: boolean;
     showWhenEmpty?: boolean;
     onActionPress?: () => void;
-    actionLabel?: string;
-    showActionIcon?: boolean;
   }
 
   return function MockPerpsHomeSection({
@@ -239,26 +276,21 @@ jest.mock('../../components/PerpsHomeSection', () => {
     isEmpty,
     showWhenEmpty,
     onActionPress,
-    actionLabel,
-    showActionIcon,
   }: MockPerpsHomeSectionProps) {
     if (isEmpty && !showWhenEmpty) return null;
     return (
       <View>
-        {title && <Text>{title}</Text>}
-        {children}
-        {(actionLabel || showActionIcon) && onActionPress && (
+        {onActionPress ? (
           <TouchableOpacity
             onPress={onActionPress}
-            testID={showActionIcon ? 'action-icon-button' : undefined}
+            testID="section-header-button"
           >
-            {showActionIcon ? (
-              <Text testID="more-icon">...</Text>
-            ) : (
-              <Text>{actionLabel}</Text>
-            )}
+            {title && <Text>{title}</Text>}
           </TouchableOpacity>
+        ) : (
+          title && <Text>{title}</Text>
         )}
+        {children}
       </View>
     );
   };
@@ -482,8 +514,8 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(getByText('perps.home.positions')).toBeTruthy();
-    // Since we changed to use showActionIcon, look for the icon button instead of text
-    expect(getByTestId('action-icon-button')).toBeTruthy();
+    // Header is pressable (shows action sheet on press)
+    expect(getByTestId('section-header-button')).toBeTruthy();
   });
 
   it('shows orders section when orders exist', () => {
@@ -508,8 +540,8 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(getByText('perps.home.orders')).toBeTruthy();
-    // Since we changed to use showActionIcon, look for the icon button instead of text
-    expect(getByTestId('action-icon-button')).toBeTruthy();
+    // Header is pressable (shows action sheet on press)
+    expect(getByTestId('section-header-button')).toBeTruthy();
   });
 
   it('hides positions section when no positions', () => {
@@ -586,14 +618,13 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Act
-    // Since we changed to use showActionIcon, use the icon button testID
-    // Note: The actual behavior now shows a bottom sheet directly, not navigation
-    fireEvent.press(getByTestId('action-icon-button'));
+    // Press the section header button to open action sheet
+    fireEvent.press(getByTestId('section-header-button'));
 
     // Assert
     // Verify the button exists and press works without error
     // The bottom sheet is now shown directly in the component
-    expect(getByTestId('action-icon-button')).toBeTruthy();
+    expect(getByTestId('section-header-button')).toBeTruthy();
   });
 
   it('handles cancel all button press for orders section', () => {
@@ -616,10 +647,9 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Act
-    // Since we changed to use showActionIcon, use the icon button testID
-    // Note: The actual behavior now shows a bottom sheet directly, not navigation
-    const actionButtons = getByTestId('action-icon-button');
-    expect(actionButtons).toBeTruthy();
+    // Press the section header button to open action sheet
+    const sectionHeaderButton = getByTestId('section-header-button');
+    expect(sectionHeaderButton).toBeTruthy();
 
     // The bottom sheet is now shown directly in the component
   });

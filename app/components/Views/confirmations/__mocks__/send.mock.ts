@@ -34,6 +34,8 @@ export const EVM_NATIVE_ASSET = {
   decimals: 18,
   isNative: true,
   isETH: true,
+  image:
+    'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
   logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
   name: 'Ethereum',
   symbol: 'ETH',

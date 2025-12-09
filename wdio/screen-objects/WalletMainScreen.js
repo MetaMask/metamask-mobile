@@ -197,9 +197,9 @@ class WalletMainScreen {
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
         let tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`); // for some reason by Id does not work sometimeselse {
-        await tokenName.tap();
+        await AppwrightGestures.tap(tokenName);
       } else { // if ios, click on any token that is visible
-        const anyToken = await AppwrightSelectors.getElementByXpath(this._device, `//*[@name="token-list"]//XCUIElementTypeOther[1]`);
+        const anyToken = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
         await AppwrightGestures.tap(anyToken);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
@@ -223,14 +223,14 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await AppwrightGestures.tap(this.accountIcon); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.accountIcon); 
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.swapButton); 
     }
   }
 
@@ -239,7 +239,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await AppwrightGestures.tap(this.networkInNavBar); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.networkInNavBar); 
     }
   }
 
@@ -280,7 +280,7 @@ class WalletMainScreen {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
     }
   }
 
@@ -307,7 +307,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await AppwrightGestures.tap(this.accountActionsButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.accountActionsButton); 
     }
   }
 

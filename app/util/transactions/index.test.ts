@@ -22,6 +22,12 @@ import {
   TOKEN_METHOD_TRANSFER,
   CONTRACT_METHOD_DEPLOY,
   TOKEN_METHOD_TRANSFER_FROM,
+  TOKEN_METHOD_MINT,
+  TRANSFER_FROM_ACTION_KEY,
+  SAFE_MINT_SIGNATURE,
+  MINT_SIGNATURE,
+  MINT_TO_SIGNATURE,
+  SAFE_MINT_WITH_DATA,
   calculateEIP1559Times,
   parseTransactionLegacy,
   getIsNativeTokenTransferred,
@@ -515,6 +521,41 @@ describe('Transactions utils :: getMethodData', () => {
     );
   });
 
+  it('returns mint for safeMint signature', async () => {
+    const safeMintData = `${SAFE_MINT_SIGNATURE}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(safeMintData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for mint signature', async () => {
+    const mintData = `${MINT_SIGNATURE}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(mintData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for mintTo signature', async () => {
+    const mintToData = `${MINT_TO_SIGNATURE}000000000000000000000000abcdef1234567890abcdef1234567890abcdef12`;
+
+    const result = await getMethodData(mintToData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for safeMintWithData signature', async () => {
+    const safeMintWithDataData = `${SAFE_MINT_WITH_DATA}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(
+      safeMintWithDataData,
+      MOCK_NETWORK_CLIENT_ID,
+    );
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
   it('calls handleMethodData with the correct data', async () => {
     (handleMethodData as jest.Mock).mockResolvedValue({
       parsedRegistryMethod: { name: TOKEN_METHOD_TRANSFER },
@@ -845,6 +886,143 @@ describe('Transactions utils :: getActionKey', () => {
     );
 
     expect(result).toBe(strings('transactions.sent_ether'));
+  });
+
+  it('returns "Sent Collectible" for tokenMethodTransferFrom type when user is sender', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_collectible'));
+  });
+
+  it('returns "Received Collectible" for tokenMethodTransferFrom type when user is receiver', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS2,
+        to: MOCK_ADDRESS1,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.received_collectible'));
+  });
+
+  it('returns "Sent Collectible" for tokenMethodSafeTransferFrom type when user is sender', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_collectible'));
+  });
+
+  it('returns "Received Collectible" for tokenMethodSafeTransferFrom type when user is receiver', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS2,
+        to: MOCK_ADDRESS1,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.received_collectible'));
+  });
+
+  it('decodes recipient from ERC20 transferFrom transaction data', async () => {
+    spyOnQueryMethod(undefined);
+    const sender = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+    const recipient = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+    const tokenContract = '0x6b175474e89094c44da98b954eedeac495271d0f';
+
+    // transferFrom(from, to, amount) calldata
+    const transferFromData =
+      '0x23b872dd' + // transferFrom signature
+      '000000000000000000000000' +
+      sender.slice(2).toLowerCase() + // from
+      '000000000000000000000000' +
+      recipient.slice(2).toLowerCase() + // to (recipient - NOT txParams.to which is the contract)
+      '0000000000000000000000000000000000000000000000000de0b6b3a7640000'; // amount
+
+    const tx = {
+      txParams: {
+        from: sender,
+        to: tokenContract, // This is the token contract, not the recipient
+        data: transferFromData,
+      },
+    };
+
+    // User is the recipient - should show received
+    const result = await getActionKey(tx, recipient, undefined, MOCK_CHAIN_ID);
+
+    expect(result).toBe(strings('transactions.received_tokens'));
+  });
+
+  it('returns sent for ERC20 transferFrom when user is sender', async () => {
+    spyOnQueryMethod(undefined);
+    const sender = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+    const recipient = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+    const tokenContract = '0x6b175474e89094c44da98b954eedeac495271d0f';
+
+    const transferFromData =
+      '0x23b872dd' +
+      '000000000000000000000000' +
+      sender.slice(2).toLowerCase() +
+      '000000000000000000000000' +
+      recipient.slice(2).toLowerCase() +
+      '0000000000000000000000000000000000000000000000000de0b6b3a7640000';
+
+    const tx = {
+      txParams: {
+        from: sender,
+        to: tokenContract,
+        data: transferFromData,
+      },
+    };
+
+    // User is the sender - should show sent
+    const result = await getActionKey(tx, sender, undefined, MOCK_CHAIN_ID);
+
+    expect(result).toBe(strings('transactions.sent_tokens'));
   });
 });
 
@@ -1444,6 +1622,71 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     const actionKey = await getTransactionActionKey(transaction, chainId);
 
     expect(actionKey).toBe(type);
+  });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodTransferFrom type', async () => {
+    const transaction = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodSafeTransferFrom type', async () => {
+    const transaction = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for legacy transferfrom type', async () => {
+    const transaction = {
+      type: 'transferfrom',
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns mint for NFT mint method signatures', async () => {
+    const mintSignatures = [
+      SAFE_MINT_SIGNATURE,
+      MINT_SIGNATURE,
+      MINT_TO_SIGNATURE,
+      SAFE_MINT_WITH_DATA,
+    ];
+
+    for (const signature of mintSignatures) {
+      const transaction = {
+        txParams: {
+          to: '0x123',
+          from: '0x456',
+          data: `${signature}0000000000000000000000000000000000000000000000000000000000000001`,
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(TOKEN_METHOD_MINT);
+    }
   });
 });
 

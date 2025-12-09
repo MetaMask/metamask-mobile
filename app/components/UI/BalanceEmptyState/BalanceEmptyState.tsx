@@ -24,6 +24,7 @@ import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 /**
  * BalanceEmptyState smart component displays an empty state for wallet balance
@@ -38,6 +39,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
+  const buttonClickData = useRampsButtonClickData();
 
   const handleAction = () => {
     goToBuy();
@@ -54,6 +56,10 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: 'BUY',
           region: rampGeodetectedRegion,
+          ramp_routing: buttonClickData.ramp_routing,
+          is_authenticated: buttonClickData.is_authenticated,
+          preferred_provider: buttonClickData.preferred_provider,
+          order_count: buttonClickData.order_count,
         })
         .build(),
     );

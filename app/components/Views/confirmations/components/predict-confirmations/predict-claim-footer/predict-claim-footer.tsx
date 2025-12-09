@@ -6,9 +6,6 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
   TextVariant,
@@ -23,6 +20,8 @@ import { PredictPosition } from '../../../../../UI/Predict';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
+import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
+import { ButtonBaseSize } from '@metamask/design-system-react-native';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;
@@ -51,15 +50,14 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
       ) : (
         <SingleWin wonPositions={wonPositions} />
       )}
-      <Button
-        variant={ButtonVariants.Primary}
-        labelTextVariant={TextVariant.BodyLGMedium}
-        style={styles.button}
-        label={strings('confirm.predict_claim.button_label')}
-        onPress={onPress}
-        isInverse
+      <ButtonHero
         testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
-      />
+        onPress={onPress}
+        size={ButtonBaseSize.Lg}
+        isFullWidth
+      >
+        {strings('confirm.predict_claim.button_label')}
+      </ButtonHero>
       <Text
         variant={TextVariant.BodyXS}
         color={TextColor.Alternative}
@@ -72,6 +70,7 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
 }
 
 function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
+  const { styles } = useStyles(styleSheet, {});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   const position = wonPositions[0];
@@ -93,9 +92,15 @@ function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
         imageSource={{ uri: position.icon }}
         size={AvatarSize.Lg}
       />
-      <Box flexDirection={FlexDirection.Column}>
-        <Text variant={TextVariant.BodyMDMedium}>{position.title}</Text>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+      <Box flexDirection={FlexDirection.Column} style={styles.textContainer}>
+        <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+          {position.title}
+        </Text>
+        <Text
+          variant={TextVariant.BodySMMedium}
+          color={TextColor.Alternative}
+          numberOfLines={1}
+        >
           {amountFormatted} on {position.outcome}
         </Text>
       </Box>

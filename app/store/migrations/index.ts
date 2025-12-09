@@ -108,6 +108,7 @@ import migration104 from './104';
 import migration105 from './105';
 import migration106 from './106';
 import migration107 from './107';
+import migration108 from './108';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
@@ -235,6 +236,7 @@ export const migrationList: MigrationsList = {
   105: migration105,
   106: migration106,
   107: migration107,
+  108: migration108,
 };
 
 // Enable both synchronous and asynchronous migrations
@@ -371,13 +373,13 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         try {
           let state = await incomingState;
 
-          if (!didInflate && Number(migrationNumber) > 106) {
+          if (!didInflate && Number(migrationNumber) > 107) {
             state = await inflateFromControllers(state);
             didInflate = true;
           }
 
           const migratedState = await migrationFunction(state);
-          if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
+          if (Number(migrationNumber) === lastVersion && lastVersion >= 107) {
             const s2 = migratedState as StateWithEngine;
             const hasControllers = Boolean(
               s2.engine?.backgroundState &&

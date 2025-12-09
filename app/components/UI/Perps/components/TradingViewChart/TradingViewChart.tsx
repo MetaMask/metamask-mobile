@@ -33,6 +33,7 @@ export interface TPSLLines {
 }
 
 export type { TimeDuration } from '../../constants/chartConfig';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 
 export interface OhlcData {
   open: string;
@@ -80,7 +81,7 @@ const TradingViewChart = React.forwardRef<
       tpslLines,
       onChartReady,
       onNeedMoreHistory,
-      visibleCandleCount = 45, // Default to 45 visible candles
+      visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
       showVolume = true, // Default to showing volume
       showOverlay = false, // Default to hiding overlay
       coloredVolume = true, // Default to colored volume bars
@@ -186,7 +187,7 @@ const TradingViewChart = React.forwardRef<
       [isChartReady],
     );
 
-    // Reset chart to default state (45 candles, most recent data)
+    // Reset chart to default state (30 candles, most recent data)
     const resetToDefault = useCallback(() => {
       if (webViewRef.current && isChartReady) {
         const message = {
@@ -420,6 +421,7 @@ const TradingViewChart = React.forwardRef<
           data: dataToSend,
           source: dataSource,
           visibleCandleCount,
+          interval: dataToUse?.interval, // Pass interval for zoom reset on change
         };
         webViewRef.current.postMessage(JSON.stringify(message));
       }
@@ -547,23 +549,22 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
-          {/* Show skeleton when chart is loading AND (no data OR data doesn't match symbol) */}
-          {!isChartReady &&
-            (!candleData || (symbol && candleData.coin !== symbol)) && (
-              <Skeleton
-                height={height}
-                width="100%"
-                // eslint-disable-next-line react-native/no-inline-styles
-                style={{
-                  position: 'absolute',
-                  zIndex: 10,
-                  backgroundColor: theme.colors.background.default,
-                }} // eslint-disable-line react-native/no-inline-styles
-                testID={`${
-                  testID || TradingViewChartSelectorsIDs.CONTAINER
-                }-skeleton`}
-              />
-            )}
+          {/* Show skeleton when chart WebView is still loading */}
+          {!isChartReady && (
+            <Skeleton
+              height={height}
+              width="100%"
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{
+                position: 'absolute',
+                zIndex: 10,
+                backgroundColor: theme.colors.background.default,
+              }} // eslint-disable-line react-native/no-inline-styles
+              testID={`${
+                testID || TradingViewChartSelectorsIDs.CONTAINER
+              }-skeleton`}
+            />
+          )}
           {Platform.OS === 'android' ? (
             <GestureDetector gesture={Gesture.Pinch()}>
               {webViewElement}

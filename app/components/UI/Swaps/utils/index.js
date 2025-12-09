@@ -10,6 +10,7 @@ import {
   NATIVE_SWAPS_TOKEN_ADDRESS,
   SWAPS_TESTNET_CHAIN_ID,
 } from '../../../../constants/bridge';
+import { isSwapsNativeAsset } from '../../../../util/bridge';
 
 const allowedChainIds = [
   CHAIN_IDS.MAINNET,
@@ -52,10 +53,6 @@ export function isSwapsAllowed(chainId) {
   }
 
   return allowedChainIds.includes(chainId);
-}
-
-export function isSwapsNativeAsset(token) {
-  return Boolean(token) && token?.address === NATIVE_SWAPS_TOKEN_ADDRESS;
 }
 
 export function isDynamicToken(token) {

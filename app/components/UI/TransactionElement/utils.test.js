@@ -1,8 +1,10 @@
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   CONTRACT_CREATION_SIGNATURE,
   TRANSACTION_TYPES,
 } from '../../../util/transactions';
 import decodeTransaction from './utils';
+import { strings } from '../../../../locales/i18n';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -76,6 +78,10 @@ const TX_PARAMS_MOCK = {
 };
 
 describe('Transaction Element Utils', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('decodeTransaction', () => {
     it('if set approval for all', async () => {
       const args = {
@@ -190,17 +196,19 @@ describe('Transaction Element Utils', () => {
 
     it('if incoming transfer', async () => {
       // Arrange
+      const selectedAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const contractAddress = '0xdac17f958d2ee523a2206206994597c13d831ec7';
       const args = {
         tx: {
           txParams: {
-            to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            to: contractAddress, // Token contract address (not recipient)
             from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
             value: '52daf0',
           },
           transferInformation: {
             symbol: 'USDT',
             decimals: 6,
-            contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+            contractAddress,
           },
           hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
           isTransfer: true,
@@ -211,7 +219,7 @@ describe('Transaction Element Utils', () => {
         totalGas: '0x64',
         actionKey: 'key',
         primaryCurrency: 'ETH',
-        selectedAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+        selectedAddress,
         ticker: 'ETH',
         txChainId: '0x1',
       };
@@ -248,17 +256,19 @@ describe('Transaction Element Utils', () => {
 
     it('if large value', async () => {
       // Arrange
+      const selectedAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const contractAddress = '0xdac17f958d2ee523a2206206994597c13d831ec7';
       const args = {
         tx: {
           txParams: {
-            to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            to: contractAddress, // Token contract address (not recipient)
             from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
             value: '3B9ACA00', // 1000000000 in decimal
           },
           transferInformation: {
             symbol: 'USDT',
             decimals: 6,
-            contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+            contractAddress,
           },
           hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
           isTransfer: true,
@@ -269,7 +279,7 @@ describe('Transaction Element Utils', () => {
         totalGas: '0x64',
         actionKey: 'key',
         primaryCurrency: 'ETH',
-        selectedAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+        selectedAddress,
         ticker: 'ETH',
         txChainId: '0x1',
       };
@@ -361,6 +371,341 @@ describe('Transaction Element Utils', () => {
         summarySecondaryTotalAmount: undefined,
         txChainId: '0x89',
       });
+    });
+
+    it.each([
+      [
+        TransactionType.perpsDeposit,
+        strings('transactions.tx_review_perps_deposit'),
+      ],
+      [
+        TransactionType.predictDeposit,
+        strings('transactions.tx_review_predict_deposit'),
+      ],
+      [
+        TransactionType.predictWithdraw,
+        strings('transactions.tx_review_predict_withdraw'),
+      ],
+    ])('if %s', async (transactionType, title) => {
+      const args = {
+        tx: {
+          txParams: {
+            to: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+            from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+            value: '52daf0',
+            data: '0xa9059cbb0000000000000000000000001234567890abcdef1234567890abcdef1234567800000000000000000000000000000000000000000000000000000000052daf0',
+            gas: '0x12345',
+            maxFeePerGas: '0x123456789',
+            maxPriorityFeePerGas: '0x123456789',
+            estimatedBaseFee: '0xABCDEF123',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+          type: transactionType,
+        },
+        currentCurrency: 'usd',
+        contractExchangeRates: {
+          '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359': {
+            price: 2.0,
+          },
+        },
+        conversionRate: 2.0,
+        totalGas: '0x64',
+        actionKey: 'key',
+        primaryCurrency: 'ETH',
+        selectedAddress: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+        ticker: 'POL',
+        txChainId: '0x89',
+        tokens: {
+          '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359': {
+            address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+            symbol: 'USDC',
+            decimals: 6,
+          },
+        },
+      };
+
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
+
+      expect(transactionElement).toEqual({
+        actionKey: title,
+        renderTo: '0x1234567890abcdef1234567890abcdef12345678',
+        value: '5.43 USDC',
+        fiatValue: '$21.72',
+        nonce: undefined,
+        transactionType: 'transaction_sent_token',
+      });
+
+      expect(transactionDetails).toEqual({
+        renderTotalGas: '0.0038 POL',
+        renderValue: '5.43 USDC',
+        renderFrom: '0x1440ec793aE50fA046B95bFeCa5aF475b6003f9e',
+        renderTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        renderGas: '74565',
+        renderGasPrice: 51,
+        hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        summaryAmount: '5.43 USDC',
+        summaryFee: '0.0038 POL',
+        summaryTotalAmount: '5.43 USDC / 0.0038 POL',
+        summarySecondaryTotalAmount: '$21.73',
+        txChainId: '0x89',
+      });
+    });
+
+    it('sets SENT_COLLECTIBLE type when user is sender', async () => {
+      const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const args = {
+        tx: {
+          type: TransactionType.tokenMethodTransferFrom,
+          txParams: {
+            to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            from: selectedAddress,
+            data: '0x23b872dd',
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '123',
+            contractAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
+
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+      expect(transactionDetails.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+    });
+
+    it('sets RECEIVED_COLLECTIBLE type when user is receiver', async () => {
+      const selectedAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const senderAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const contractAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
+
+      // Complete transferFrom data with actual addresses encoded
+      const completeData =
+        '0x23b872dd' + // transferFrom signature
+        '000000000000000000000000' +
+        senderAddress.slice(2) + // from (sender)
+        '000000000000000000000000' +
+        selectedAddress.slice(2) + // to (recipient - the selected address)
+        '0000000000000000000000000000000000000000000000000000000000000456'; // tokenId (456 in hex)
+
+      const args = {
+        tx: {
+          type: TransactionType.tokenMethodTransferFrom,
+          txParams: {
+            to: contractAddress, // Contract address, not recipient
+            from: senderAddress,
+            data: completeData, // Complete data with recipient encoded
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '456',
+            contractAddress,
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Received Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
+
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.RECEIVED_COLLECTIBLE,
+      );
+      expect(transactionDetails.transactionType).toBe(
+        TRANSACTION_TYPES.RECEIVED_COLLECTIBLE,
+      );
+    });
+
+    it('sets SENT_COLLECTIBLE type with case-insensitive address comparison', async () => {
+      const selectedAddress = '0xABCDEF1234567890ABcdef1234567890abcdef12';
+      const args = {
+        tx: {
+          type: TransactionType.tokenMethodTransferFrom,
+          txParams: {
+            to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            from: '0xabcdef1234567890abcdef1234567890abcdef12',
+            data: '0x23b872dd',
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '789',
+            contractAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+    });
+
+    it('decodes recipient from complete data instead of using contract address', async () => {
+      const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const recipientAddress = '0x99999999999999999999999999999999999999aa';
+      const contractAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+
+      // Complete transferFrom data with actual addresses encoded
+      const completeData =
+        '0x23b872dd' + // transferFrom signature
+        '000000000000000000000000' +
+        selectedAddress.slice(2) + // from
+        '000000000000000000000000' +
+        recipientAddress.slice(2) + // to (actual recipient)
+        '0000000000000000000000000000000000000000000000000000000000000123'; // tokenId
+
+      const args = {
+        tx: {
+          type: TransactionType.tokenMethodTransferFrom,
+          txParams: {
+            to: contractAddress, // This is the contract, not the recipient
+            from: selectedAddress,
+            data: completeData,
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '291',
+            contractAddress,
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      // Should decode recipient from data, not use txParams.to (contract address)
+      expect(transactionElement.renderTo).toContain('9999'); // Should show recipient, not contract
+      expect(transactionElement.renderTo).not.toContain('7764'); // Should NOT show contract address
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+    });
+
+    it('uses transferInformation as fallback when data is truncated', async () => {
+      const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const contractAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+
+      const args = {
+        tx: {
+          type: TransactionType.tokenMethodTransferFrom,
+          txParams: {
+            to: contractAddress,
+            from: selectedAddress,
+            data: '0x23b872dd', // Only function signature - truncated data
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '456',
+            contractAddress,
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      // With truncated data, we fall back to transferInformation
+      // Transaction type should still be determined correctly based on txParams.from
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+      expect(transactionElement.value).toContain('456'); // Should use tokenId from transferInformation
+    });
+
+    it('displays token ID 0 correctly', async () => {
+      const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const contractAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const args = {
+        tx: {
+          type: TransactionType.tokenMethodTransferFrom,
+          txParams: {
+            to: contractAddress,
+            from: selectedAddress,
+            data: '0x23b872dd',
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '0',
+            contractAddress,
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [
+          {
+            address: contractAddress,
+            name: 'TestNFT',
+            symbol: 'TNFT',
+          },
+        ],
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      expect(transactionElement.value).toContain('#0');
+      expect(transactionElement.fiatValue).toBe('TNFT');
     });
   });
 });

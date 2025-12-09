@@ -6,6 +6,7 @@ import { Severity } from '../../../../types/alerts';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
 import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
 import { InfoRowVariant } from '../info-row';
+import styleSheet from './alert-row.styles';
 
 jest.mock('../../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
@@ -84,7 +85,7 @@ describe('AlertRow', () => {
     expect(getByText(LABEL_MOCK)).toBeDefined();
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
     const icon = getByTestId('inline-alert-icon');
-    expect(icon.props.name).toBe(IconName.Danger);
+    expect(icon.props.name).toBe(IconName.Info);
   });
 
   it('renders correctly with default alert', () => {
@@ -134,5 +135,68 @@ describe('AlertRow', () => {
     expect(getByText(LABEL_MOCK)).toBeDefined();
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
     expect(queryByTestId('inline-alert')).toBeNull();
+  });
+
+  it('disables inline alert interaction when disableAlertInteraction prop is true', () => {
+    const { getByTestId } = render(
+      <AlertRow {...baseProps} disableAlertInteraction />,
+    );
+    const inlineAlert = getByTestId('inline-alert');
+
+    fireEvent.press(inlineAlert);
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
+  });
+
+  it('calls showAlertModal, setAlertKey and trackInlineAlertClicked when label is clicked', () => {
+    const { getByText } = render(<AlertRow {...baseProps} />);
+
+    fireEvent.press(getByText(LABEL_MOCK));
+
+    expect(mockSetAlertKey).toHaveBeenCalledWith(ALERT_KEY_DANGER);
+    expect(mockShowAlertModal).toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(
+      ALERT_FIELD_DANGER,
+    );
+  });
+
+  it('does not trigger alert modal when label is clicked and disableAlertInteraction is true', () => {
+    const { getByText } = render(
+      <AlertRow {...baseProps} disableAlertInteraction />,
+    );
+
+    fireEvent.press(getByText(LABEL_MOCK));
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
+  });
+
+  it('does not trigger alert modal when label is clicked and no alert is selected', () => {
+    const props = { ...baseProps, alertField: 'non_existent_field' };
+    const { getByText } = render(<AlertRow {...props} />);
+
+    fireEvent.press(getByText(LABEL_MOCK));
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
+  });
+
+  it('renders with the given style if provided', () => {
+    const props = { ...baseProps, style: { backgroundColor: 'red' } };
+    const { getByTestId } = render(<AlertRow {...props} />);
+    const infoRow = getByTestId('info-row');
+    expect(infoRow.props.style.backgroundColor).toBe('red');
+  });
+
+  it('renders with styles.infoRowOverride if no style is provided', () => {
+    const styles = styleSheet();
+    const { getByTestId } = render(<AlertRow {...baseProps} />);
+    const infoRow = getByTestId('info-row');
+
+    expect(infoRow.props.style).toMatchObject(styles.infoRowOverride);
   });
 });

@@ -146,13 +146,15 @@ export function trackRpcEndpointEvent(
     return;
   }
 
+  const isPublicEndpoint = isPublicEndpointUrl(endpointUrl, infuraProjectId);
+  const rpcDomain = isPublicEndpoint ? onlyKeepHost(endpointUrl) : 'custom';
   // The names of Segment properties have a particular case.
   /* eslint-disable @typescript-eslint/naming-convention */
   const properties = {
     chain_id_caip: `eip155:${hexToNumber(chainId)}`,
-    rpc_endpoint_url: isPublicEndpointUrl(endpointUrl, infuraProjectId)
-      ? onlyKeepHost(endpointUrl)
-      : 'custom',
+    // @deprecated: will be removed in a future release
+    rpc_endpoint_url: rpcDomain,
+    rpc_domain: rpcDomain,
     ...(isObject(error) &&
     'httpStatus' in error &&
     isValidJson(error.httpStatus)
