@@ -132,6 +132,7 @@ import type {
   ExtendedAssetMeta,
   ExtendedPerpDex,
 } from '../../types/perps-types';
+import { getStreamManagerInstance } from '../../providers/PerpsStreamManager';
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
 interface GetAssetInfoParams {
@@ -362,10 +363,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
         // Restore subscription service subscriptions
         await this.subscriptionService.restoreSubscriptions();
 
-        // Reconnect stream manager channels
-        const { getStreamManagerInstance } = await import(
-          '../../providers/PerpsStreamManager'
-        );
         const streamManager = getStreamManagerInstance();
         streamManager.clearAllChannels();
       } catch {
