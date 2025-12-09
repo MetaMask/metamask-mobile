@@ -226,32 +226,12 @@ export type PerpsControllerState = {
       [marketSymbol: string]: {
         leverage?: number; // Last used leverage for this market
         orderBookGrouping?: number; // Persisted price grouping for order book
-        // Pending trade configuration (temporary, expires after 5 minutes)
-        pendingConfig?: {
-          amount?: string; // Order size in USD
-          leverage?: number; // Leverage
-          takeProfitPrice?: string; // Take profit price
-          stopLossPrice?: string; // Stop loss price
-          limitPrice?: string; // Limit price (for limit orders)
-          orderType?: OrderType; // Market vs limit
-          timestamp: number; // When the config was saved (for expiration check)
-        };
       };
     };
     mainnet: {
       [marketSymbol: string]: {
         leverage?: number;
         orderBookGrouping?: number; // Persisted price grouping for order book
-        // Pending trade configuration (temporary, expires after 5 minutes)
-        pendingConfig?: {
-          amount?: string; // Order size in USD
-          leverage?: number; // Leverage
-          takeProfitPrice?: string; // Take profit price
-          stopLossPrice?: string; // Stop loss price
-          limitPrice?: string; // Limit price (for limit orders)
-          orderType?: OrderType; // Market vs limit
-          timestamp: number; // When the config was saved (for expiration check)
-        };
       };
     };
   };
@@ -594,18 +574,6 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getMarketFilterPreferences';
       handler: PerpsController['getMarketFilterPreferences'];
-    }
-  | {
-      type: 'PerpsController:savePendingTradeConfiguration';
-      handler: PerpsController['savePendingTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:getPendingTradeConfiguration';
-      handler: PerpsController['getPendingTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:clearPendingTradeConfiguration';
-      handler: PerpsController['clearPendingTradeConfiguration'];
     }
   | {
       type: 'PerpsController:getOrderBookGrouping';
