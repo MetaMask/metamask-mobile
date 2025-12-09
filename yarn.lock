@@ -9521,10 +9521,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/stake-sdk@npm:^3.2.0, @metamask/stake-sdk@npm:^3.2.1":
-  version: 3.3.0
-  resolution: "@metamask/stake-sdk@npm:3.3.0"
-  checksum: 10/69f745168726cb435402dd3279227bb7994715131c2066075c07b924c0caaaf9adbc4f41a73f8baa0cbdbb48cb0b832f25373d2d5730b26a364970299d052df9
+"@metamask/stake-sdk@npm:^3.2.1, @metamask/stake-sdk@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "@metamask/stake-sdk@npm:3.4.0"
+  checksum: 10/32241bf7a904b0b12568467482b28f550eae1a4d97ffb7487a1cd1614d43f3b584d78dc96df72ece024a0402d3591c19d79f370a3955ea4b11369f000c309a08
   languageName: node
   linkType: hard
 
@@ -34390,7 +34390,7 @@ __metadata:
     "@metamask/snaps-utils": "npm:^11.6.1"
     "@metamask/solana-wallet-snap": "npm:^2.5.1"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
-    "@metamask/stake-sdk": "npm:^3.2.0"
+    "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
     "@metamask/swaps-controller": "npm:^15.0.0"
     "@metamask/test-dapp": "npm:9.5.0"
