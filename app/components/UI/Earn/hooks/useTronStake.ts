@@ -37,7 +37,7 @@ interface UseTronStakeReturn {
   /** Preview data including fee estimate */
   preview?: Record<string, unknown>;
   /** Validate stake amount */
-  validate: (amount: string) => Promise<TronStakeResult | null>;
+  validateStakeAmount: (amount: string) => Promise<TronStakeResult | null>;
   /** Confirm stake with current resource type */
   confirmStake: (amount: string) => Promise<TronStakeResult | null>;
 }
@@ -75,7 +75,9 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
 
   const chainId = String(token.chainId);
 
-  const validate = useCallback<UseTronStakeReturn['validate']>(
+  const validateStakeAmount = useCallback<
+    UseTronStakeReturn['validateStakeAmount']
+  >(
     async (amount: string) => {
       if (!selectedTronAccount?.id || !chainId) return null;
 
@@ -148,7 +150,7 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
     validating,
     errors,
     preview,
-    validate,
+    validateStakeAmount,
     confirmStake,
   };
 };

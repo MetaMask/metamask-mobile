@@ -1,6 +1,7 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import AmountScreen from './AmountScreen';
+import { expect } from 'appwright';
 
 class PerpsDepositScreen {
 
@@ -58,6 +59,11 @@ class PerpsDepositScreen {
 
   async tapCancel() {
     await AppwrightGestures.tap(this.cancelButton); // Use static tap method with retry logic
+  }
+
+  async checkTransactionFeeIsVisible() {
+    const transactionFee = await AppwrightSelectors.getElementByID(this._device, 'bridge-fee-row');
+    await expect(transactionFee).toBeVisible();
   }
 }
 
