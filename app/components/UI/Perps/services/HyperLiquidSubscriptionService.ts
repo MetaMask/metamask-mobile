@@ -2515,6 +2515,8 @@ export class HyperLiquidSubscriptionService {
     if (this.marketDataSubscribers.size > 0) {
       // Clear existing subscriptions (they're dead after reconnection)
       this.globalActiveAssetSubscriptions.clear();
+      // Clear reference counts to prevent double-counting after reconnection
+      this.symbolSubscriberCounts.clear();
 
       // Re-establish subscriptions for all symbols with market data subscribers
       const symbolsNeedingMarketData = Array.from(
@@ -2537,6 +2539,8 @@ export class HyperLiquidSubscriptionService {
       // Clear existing subscriptions (they're dead after reconnection)
       this.assetCtxsSubscriptions.clear();
       this.assetCtxsSubscriptionPromises.clear();
+      // Clear reference counts to prevent double-counting after reconnection
+      this.dexSubscriberCounts.clear();
 
       // Re-establish subscriptions for all DEXs with market data subscribers
       const dexsNeeded = new Set<string>();
