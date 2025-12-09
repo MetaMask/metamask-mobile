@@ -144,9 +144,7 @@ mockUseMusdConversionTokens.mockReturnValue({
 jest.mock('../../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
     selectPrimaryEarnExperienceTypeForAsset: jest.fn((_state, asset) =>
-      asset.symbol === 'USDC'
-        ? EARN_EXPERIENCES.STABLECOIN_LENDING
-        : EARN_EXPERIENCES.POOLED_STAKING,
+      asset.symbol === 'USDC' ? 'STABLECOIN_LENDING' : 'POOLED_STAKING',
     ),
   },
 }));
