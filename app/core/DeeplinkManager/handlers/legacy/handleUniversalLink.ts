@@ -301,7 +301,7 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.CREATE_ACCOUNT: {
       handleCreateAccountUrl({
-        path: actionBasedRampPath
+        path: actionBasedRampPath,
       });
       return;
     }

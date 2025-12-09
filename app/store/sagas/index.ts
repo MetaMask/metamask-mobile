@@ -22,7 +22,9 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import DeeplinkManager, { SharedDeeplinkManager } from '../../core/DeeplinkManager/DeeplinkManager';
+import DeeplinkManager, {
+  SharedDeeplinkManager,
+} from '../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,

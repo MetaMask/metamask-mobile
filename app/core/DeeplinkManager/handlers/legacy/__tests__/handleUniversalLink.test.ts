@@ -1371,24 +1371,23 @@ describe('handleUniversalLink', () => {
           pathname: `/${ACTIONS.DAPP}/example.com`,
         };
 
-          await handleUniversalLink({
-            instance,
-            handled,
-            urlObj: testUrlObj,
-            browserCallBack: mockBrowserCallBack,
-            url: nonWhitelistedUrl,
-            source: nonWhitelistedSource,
-          });
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: nonWhitelistedUrl,
+          source: nonWhitelistedSource,
+        });
 
-          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-            linkType: DeepLinkModalLinkType.PUBLIC,
-            pageTitle: 'Dapp',
-            onContinue: expect.any(Function),
-            onBack: expect.any(Function),
-          });
-          expect(handled).toHaveBeenCalled();
-        },
-      );
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
+        expect(handled).toHaveBeenCalled();
+      });
     });
 
     describe('external sources show modal regardless of signature status', () => {

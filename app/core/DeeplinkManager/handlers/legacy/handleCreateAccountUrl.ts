@@ -33,11 +33,7 @@ const getClientType = (chainId: string) => {
   return clientType;
 };
 
-export function handleCreateAccountUrl({
-  path,
-}: {
-  path: string;
-}) {
+export function handleCreateAccountUrl({ path }: { path: string }) {
   const chainId = new URLSearchParams(path).get('chainId');
 
   if (!chainId || !isCaipChainId(chainId)) {

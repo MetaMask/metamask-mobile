@@ -23,9 +23,7 @@ import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import Engine from '../../core/Engine';
-import {
-  SharedDeeplinkManager,
-} from '../../core/DeeplinkManager/DeeplinkManager';
+import { SharedDeeplinkManager } from '../../core/DeeplinkManager/DeeplinkManager';
 
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
@@ -93,7 +91,7 @@ jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => ({
     // ← Named export, not default
     getInstance: () => ({
       parse: mockParse,
-    }),  
+    }),
     init: jest.fn(),
     setDeeplink: jest.fn(),
     getPendingDeeplink: jest.fn(),
@@ -380,7 +378,9 @@ describe('handleDeeplinkSaga', () => {
           .silentRun();
 
         expect(Engine.context.KeyringController.isUnlocked).toHaveBeenCalled();
-        expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
+        expect(
+          SharedDeeplinkManager.getInstance().parse,
+        ).not.toHaveBeenCalled();
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
@@ -404,7 +404,9 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
+          expect(
+            SharedDeeplinkManager.getInstance().parse,
+          ).not.toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
@@ -494,7 +496,9 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
+          expect(
+            SharedDeeplinkManager.getInstance().parse,
+          ).not.toHaveBeenCalled();
         });
       });
 
@@ -534,7 +538,9 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
+          expect(
+            SharedDeeplinkManager.getInstance().parse,
+          ).not.toHaveBeenCalled();
         });
       });
     });

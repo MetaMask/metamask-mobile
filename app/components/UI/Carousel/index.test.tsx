@@ -72,7 +72,7 @@ const mockParse = jest.fn().mockImplementation(() => Promise.resolve());
 jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
   SharedDeeplinkManager: {
     getInstance: () => ({
-      parse: mockParse
+      parse: mockParse,
     }),
     init: jest.fn(),
     parse: mockParse,
