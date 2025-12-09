@@ -946,10 +946,15 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                       </View>
                       <View
                         style={
-                          {
-                            "margin": 16,
-                            "paddingVertical": 16,
-                          }
+                          [
+                            {
+                              "margin": 16,
+                              "paddingVertical": 16,
+                            },
+                            {
+                              "paddingBottom": 0,
+                            },
+                          ]
                         }
                       >
                         <TouchableOpacity

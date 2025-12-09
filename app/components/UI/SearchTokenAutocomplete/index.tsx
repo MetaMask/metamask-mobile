@@ -5,7 +5,9 @@ import {
   InteractionManager,
   Text,
   LayoutAnimation,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import AssetSearch from '../AssetSearch';
 import Engine from '../../../core/Engine';
@@ -42,7 +44,7 @@ import { RootState } from '../../../reducers';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: any, bottomInset: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -71,6 +73,7 @@ const createStyles = (colors: any) =>
     button: {
       paddingVertical: 16,
       margin: 16,
+      paddingBottom: bottomInset,
     },
     searchInput: {
       margin: 16,
@@ -112,7 +115,9 @@ const SearchTokenAutocomplete = ({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const bottomInset = Platform.OS === 'ios' ? 0 : insets.bottom;
+  const styles = createStyles(colors, bottomInset);
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const ticker = useSelector(selectEvmTicker);
