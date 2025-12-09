@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-<<<<<<< HEAD
 ## [7.60.3]
 
 ### Fixed
 
+- chore(runway): cherry-pick feat: add megaeth to additional networks ([#23599](https://github.com/MetaMask/metamask-mobile/pull/23599))
+- chore(runway): cherry-pick fix: select megaeth when all popular network selected cp-7.60.3 ([#23609](https://github.com/MetaMask/metamask-mobile/pull/23609))
+- chore(runway): cherry-pick fix: Prevent interstitial from appearing on barebones deeplinks ([#23651](https://github.com/MetaMask/metamask-mobile/pull/23651))
+- chore(runway): cherry-pick chore: Bypass interstitial modal for URLs that originate from within app ([#23631](https://github.com/MetaMask/metamask-mobile/pull/23631))
 - chore(runway): cherry-pick chore: Fix to only bypass 'Redirect' modal for in-app signed links ([#23702](https://github.com/MetaMask/metamask-mobile/pull/23702))
 
 ## [7.60.2]
