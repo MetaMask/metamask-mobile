@@ -47,7 +47,7 @@ enum SUPPORTED_ACTIONS {
 }
 
 /**
- * Actions that should not show the deep link modal
+ * Actions that should not show the deep link INTERSTITIAL modal
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.WC,
@@ -63,9 +63,17 @@ const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.MMSDK,
 ];
 
-const interstitialWhitelist = [
+const interstitialWhitelistUrls = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
 ] as const;
+
+// This is used when links originate from within the app itself
+const inAppLinkSources = [
+  AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+  AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+  AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+  AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+] as string[];
 
 async function handleUniversalLink({
   instance,
@@ -90,6 +98,13 @@ async function handleUniversalLink({
     validatedUrl.hostname.includes('&')
   ) {
     throw new Error('Invalid hostname');
+  }
+
+  // Skip handling deeplinks that do not have a pathname or query
+  // Ex. It's common for third party apps to open MetaMask using only the scheme (metamask://)
+  if (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) {
+    handled();
+    return;
   }
 
   let isPrivateLink = false;
@@ -183,19 +198,32 @@ async function handleUniversalLink({
   const shouldProceed =
     WHITELISTED_ACTIONS.includes(action) ||
     (await new Promise<boolean>((resolve) => {
+      // async because app may wait for user to dismiss modal
       const [, actionName] = validatedUrl.pathname.split('/');
       const sanitizedAction = actionName?.replace(/-/g, ' ');
       const pageTitle: string =
         capitalize(sanitizedAction?.toLowerCase()) || '';
 
       const validatedUrlString = validatedUrl.toString();
-      if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
+      if (
+        interstitialWhitelistUrls.some((u) => validatedUrlString.startsWith(u))
+      ) {
+        resolve(true);
+        return;
+      }
+
+      // bypass redirect modalif link originated from within this app AND is signed
+      const linkInstanceType = linkType();
+      if (
+        inAppLinkSources.includes(source) &&
+        linkInstanceType === DeepLinkModalLinkType.PRIVATE
+      ) {
         resolve(true);
         return;
       }
 
       handleDeepLinkModalDisplay({
-        linkType: linkType(),
+        linkType: linkInstanceType,
         pageTitle,
         onContinue: () => resolve(true),
         onBack: () => resolve(false),
