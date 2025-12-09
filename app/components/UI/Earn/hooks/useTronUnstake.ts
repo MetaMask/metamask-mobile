@@ -147,8 +147,10 @@ const useTronUnstake = ({
               | TronResourceType.BANDWIDTH,
           },
         });
-        const fee = feeResult[0];
-        nextPreview = { ...(nextPreview ?? {}), fee };
+        if (feeResult.length > 0) {
+          const fee = feeResult[0];
+          nextPreview = { ...(nextPreview ?? {}), fee };
+        }
       } catch {
         // no action needed
       }
