@@ -55,6 +55,7 @@ export const PredictEventProperties = {
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
+  BALANCE: 'balance',
 } as const;
 
 /**
@@ -100,6 +101,10 @@ export const PredictEventValues = {
     CASHOUT: 'cashout',
     CLAIM: 'claim',
     WITHDRAW: 'withdraw',
+  },
+  BALANCE: {
+    ZERO: '0',
+    NON_ZERO: 'non-zero',
   },
 } as const;
 

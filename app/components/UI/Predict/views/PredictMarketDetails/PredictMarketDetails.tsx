@@ -63,6 +63,7 @@ import PredictPositionDetail from '../../components/PredictPositionDetail';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { usePredictPrices } from '../../hooks/usePredictPrices';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 import {
   PriceQuery,
   PredictPriceHistoryInterval,
@@ -230,6 +231,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       !isClaimablePositionsLoading,
     [isMarketFetching, isActivePositionsLoading, isClaimablePositionsLoading],
   );
+
+  const { balance } = usePredictBalance({
+    loadOnMount: true,
+    refreshOnFocus: false,
+  });
 
   const { winningOutcomeToken, losingOutcomeToken, resolutionStatus } =
     useMemo(() => {
@@ -621,6 +627,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     (tabKey: TabKey) => {
       if (!market) return;
 
+      const openPositionsCount = activePositions.length;
+      const balanceStatus =
+        typeof balance === 'number' && !Number.isNaN(balance) && balance > 0
+          ? PredictEventValues.BALANCE.NON_ZERO
+          : PredictEventValues.BALANCE.ZERO;
+
       Engine.context.PredictController.trackMarketDetailsOpened({
         marketId: market.id,
         marketTitle: market.title,
@@ -628,9 +640,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         marketDetailsViewed: tabKey,
+        balance: balanceStatus,
+        openPositionsCount,
       });
     },
-    [market, entryPoint],
+    [market, entryPoint, balance, activePositions],
   );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
