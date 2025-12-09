@@ -51,9 +51,12 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
       // Track tab keys via effect to avoid writing during render
       ReactActual.useEffect(() => {
         const tabKeys: string[] = [];
-        ReactActual.Children.forEach(children, (child) => {
-          if (ReactActual.isValidElement(child) && child.key) {
-            tabKeys.push(String(child.key));
+        ReactActual.Children.forEach(children, (child: React.ReactNode) => {
+          if (child != null && ReactActual.isValidElement(child)) {
+            const element = child as React.ReactElement;
+            if (element.key != null) {
+              tabKeys.push(String(element.key));
+            }
           }
         });
         // Update module-level variable for test assertions
@@ -69,17 +72,22 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
       return ReactActual.createElement(
         View,
         { testID: 'tabs-list' },
-        ReactActual.Children.map(children, (child, index) => {
-          const key =
-            ReactActual.isValidElement(child) && child.key
-              ? String(child.key)
-              : index;
-          return ReactActual.createElement(
-            View,
-            { key, testID: `tab-${key}` },
-            child,
-          );
-        }),
+        ReactActual.Children.map(
+          children,
+          (child: React.ReactNode, index: number) => {
+            const key =
+              child != null && ReactActual.isValidElement(child)
+                ? (child as React.ReactElement).key != null
+                  ? String((child as React.ReactElement).key)
+                  : index
+                : index;
+            return ReactActual.createElement(
+              View,
+              { key, testID: `tab-${key}` },
+              child,
+            );
+          },
+        ),
       );
     },
   );
