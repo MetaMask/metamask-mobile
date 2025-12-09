@@ -6,6 +6,12 @@
       "code": "0x",
       "storage": {}
     },
+    "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": {
+      "nonce": 0,
+      "balance": "0x21e19e0c9bab2400000",
+      "code": "0xef01008438Ad1C834623CfF278AB6829a248E37C2D7E3f",
+      "storage": {}
+    },
     "0x14dc79964da2c08b23698b3d3cc7ca32193d9955": {
       "nonce": 0,
       "balance": "0x21e19e0c9bab2400000",
