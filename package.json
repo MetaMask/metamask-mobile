@@ -168,6 +168,7 @@
     "@expo/fingerprint": "^0.15.0",
     "appwright@^0.1.45": "patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch",
     "@scure/bip32": "1.7.0",
+    "js-sha3": "0.9.3",
     "@metamask/snaps-sdk": "^10.2.0",
     "react-native@0.76.9": "patch:react-native@npm%3A0.76.9#./.yarn/patches/react-native-npm-0.76.9-1c25352097.patch",
     "@ethereumjs/util@npm:^9.0.3": "patch:@ethereumjs/util@npm%3A9.1.0#~/.yarn/patches/@ethereumjs-util-npm-9.1.0-7e85509408.patch",
