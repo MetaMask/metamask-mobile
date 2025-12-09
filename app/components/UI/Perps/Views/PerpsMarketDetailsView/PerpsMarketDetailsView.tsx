@@ -1132,7 +1132,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (
                   <Button
-                    variant={ButtonVariants.Secondary}
+                    variant={ButtonVariants.Primary}
                     size={ButtonSize.Lg}
                     width={ButtonWidthTypes.Full}
                     label={strings('perps.market.long')}
@@ -1157,7 +1157,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (
                   <Button
-                    variant={ButtonVariants.Secondary}
+                    variant={ButtonVariants.Primary}
                     size={ButtonSize.Lg}
                     width={ButtonWidthTypes.Full}
                     label={strings('perps.market.short')}
