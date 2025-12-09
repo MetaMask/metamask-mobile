@@ -1307,7 +1307,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           {buttonColorVariant === 'monochrome' ? (
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               label={placeOrderLabel}

@@ -19,11 +19,15 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
+import ButtonSemantic, {
+  ButtonSemanticSeverity,
+} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -68,6 +72,9 @@ import {
   calculateAggregationParams,
   MAX_ORDER_BOOK_LEVELS,
 } from '../../utils/orderBookGrouping';
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
@@ -79,6 +86,12 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { navigateToOrder } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
+
+  // A/B Testing: Button color test (TAT-1937)
+  const { variantName: buttonColorVariant } = usePerpsABTest({
+    test: BUTTON_COLOR_TEST,
+    featureFlagSelector: selectPerpsButtonColorTestVariant,
+  });
 
   // Get market data for the header
   const { markets } = usePerpsMarkets();
@@ -445,25 +458,49 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
           <View style={styles.actionButtonWrapper}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.market.long')}
-              onPress={handleLongPress}
-              testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-            />
+            {buttonColorVariant === 'monochrome' ? (
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.market.long')}
+                onPress={handleLongPress}
+                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+              />
+            ) : (
+              <ButtonSemantic
+                severity={ButtonSemanticSeverity.Success}
+                onPress={handleLongPress}
+                isFullWidth
+                size={ButtonSizeRNDesignSystem.Lg}
+                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+              >
+                {strings('perps.market.long')}
+              </ButtonSemantic>
+            )}
           </View>
 
           <View style={styles.actionButtonWrapper}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.market.short')}
-              onPress={handleShortPress}
-              testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-            />
+            {buttonColorVariant === 'monochrome' ? (
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.market.short')}
+                onPress={handleShortPress}
+                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+              />
+            ) : (
+              <ButtonSemantic
+                severity={ButtonSemanticSeverity.Danger}
+                onPress={handleShortPress}
+                isFullWidth
+                size={ButtonSizeRNDesignSystem.Lg}
+                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+              >
+                {strings('perps.market.short')}
+              </ButtonSemantic>
+            )}
           </View>
         </View>
       </View>
