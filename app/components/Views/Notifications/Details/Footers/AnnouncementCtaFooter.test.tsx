@@ -13,8 +13,20 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
 
+const mockParse = jest.fn().mockImplementation(() => Promise.resolve());
+
 jest.mock('../../../../../core/DeeplinkManager/DeeplinkManager', () => ({
-  parse: jest.fn(),
+  __esModule: true,
+  SharedDeeplinkManager: {
+    // ← Named export, not default
+    getInstance: () => ({
+      parse: mockParse,
+    }),
+    init: jest.fn(),
+  },
+  default: {
+    start: jest.fn(),
+  }, // Mock the class if needed
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
