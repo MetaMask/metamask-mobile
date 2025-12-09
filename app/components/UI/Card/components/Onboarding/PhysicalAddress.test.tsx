@@ -54,6 +54,46 @@ jest.mock('../../util/extractTokenExpiration', () => ({
   extractTokenExpiration: jest.fn(() => 3600000),
 }));
 
+// Mock useTailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: jest.fn(() => ({
+    style: jest.fn((...args: string[]) => args),
+  })),
+}));
+
+// Mock Checkbox component
+jest.mock('../../../../../component-library/components/Checkbox', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const React = jest.requireActual('react');
+  const { TouchableOpacity, View } = jest.requireActual('react-native');
+
+  return ({
+    testID,
+    isChecked,
+    onPress,
+    label,
+  }: {
+    testID?: string;
+    isChecked?: boolean;
+    onPress?: () => void;
+    label?: React.ReactNode;
+  }) =>
+    React.createElement(
+      TouchableOpacity,
+      {
+        testID,
+        onPress,
+        accessibilityState: { checked: isChecked },
+      },
+      React.createElement(
+        View,
+        { testID: `${testID}-indicator` },
+        isChecked ? '✓' : '',
+      ),
+      label,
+    );
+});
+
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -302,6 +342,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.physical_address.country_label': 'Country',
       'card.card_onboarding.physical_address.electronic_consent':
         'I consent to electronic communications',
+      'card.card_onboarding.physical_address.electronic_consent_1':
+        'I agree to the ',
+      'card.card_onboarding.physical_address.electronic_consent_2':
+        'E-Sign Consent Disclosure',
       'card.card_onboarding.continue_button': 'Continue',
     };
     return translations[key] || key;
@@ -661,6 +705,10 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
+      // Check the electronic consent checkbox
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
 
       // Wait for state updates
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -734,6 +782,9 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -818,6 +869,9 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -890,6 +944,9 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -967,6 +1024,9 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
@@ -1208,6 +1268,143 @@ describe('PhysicalAddress Component', () => {
       );
 
       expect(getByTestId('onboarding-step')).toBeTruthy();
+    });
+  });
+
+  describe('Electronic Consent Checkbox', () => {
+    it('renders electronic consent checkbox', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      expect(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      ).toBeTruthy();
+    });
+
+    it('renders checkbox unchecked by default', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      const checkbox = getByTestId(
+        'physical-address-electronic-consent-checkbox',
+      );
+      expect(checkbox.props.accessibilityState.checked).toBe(false);
+    });
+
+    it('toggles checkbox state when pressed', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      const checkbox = getByTestId(
+        'physical-address-electronic-consent-checkbox',
+      );
+
+      expect(checkbox.props.accessibilityState.checked).toBe(false);
+
+      fireEvent.press(checkbox);
+
+      expect(checkbox.props.accessibilityState.checked).toBe(true);
+
+      fireEvent.press(checkbox);
+
+      expect(checkbox.props.accessibilityState.checked).toBe(false);
+    });
+
+    it('disables continue button when checkbox is unchecked', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Fill all required fields except checkbox
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('physical-address-continue-button');
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('enables continue button when checkbox is checked and all fields filled', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Fill all required fields
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+      fireEvent.press(getByTestId('state-select'));
+
+      // Button should be disabled without checkbox
+      const buttonBefore = getByTestId('physical-address-continue-button');
+      expect(buttonBefore.props.disabled).toBe(true);
+
+      // Check the checkbox
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
+
+      await waitFor(() => {
+        const buttonAfter = getByTestId('physical-address-continue-button');
+        expect(buttonAfter.props.disabled).toBe(false);
+      });
+    });
+
+    it('resets errors when checkbox is toggled', () => {
+      const mockResetRegisterAddress = jest.fn();
+      const mockResetConsent = jest.fn();
+
+      mockUseRegisterPhysicalAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: mockResetRegisterAddress,
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
+        getOnboardingConsentSetByOnboardingId: jest
+          .fn()
+          .mockResolvedValue(null),
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: mockResetConsent,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
+
+      expect(mockResetRegisterAddress).toHaveBeenCalled();
+      expect(mockResetConsent).toHaveBeenCalled();
     });
   });
 
