@@ -50,7 +50,7 @@ const FundActionMenu = () => {
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const { goToBuy, goToAggregator, goToSell, goToDeposit } =
     useRampNavigation();
-  const depositButtonClickData = useRampsButtonClickData();
+  const rampsButtonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -119,6 +119,10 @@ const FundActionMenu = () => {
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           navigationAction: () => {
             if (customOnBuy) {
@@ -142,10 +146,10 @@ const FundActionMenu = () => {
             chain_id_destination: getDecimalChainId(chainId),
             ramp_type: 'DEPOSIT',
             region: rampGeodetectedRegion,
-            ramp_routing: depositButtonClickData.ramp_routing,
-            is_authenticated: depositButtonClickData.is_authenticated,
-            preferred_provider: depositButtonClickData.preferred_provider,
-            order_count: depositButtonClickData.order_count,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadDepositExperience,
           navigationAction: () => goToDeposit(),
@@ -163,6 +167,10 @@ const FundActionMenu = () => {
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.BUY } },
@@ -188,6 +196,10 @@ const FundActionMenu = () => {
             location: 'FundActionMenu',
             chain_id_source: getDecimalChainId(chainId),
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.SELL } },
@@ -208,7 +220,7 @@ const FundActionMenu = () => {
       goToAggregator,
       goToSell,
       goToDeposit,
-      depositButtonClickData,
+      rampsButtonClickData,
     ],
   );
 
