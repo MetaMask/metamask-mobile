@@ -47,6 +47,13 @@ jest.mock('../../../core/Engine', () => ({
 
 jest.mock('lottie-react-native', () => 'LottieView');
 
+const mockUpdateAuthTypeStorageFlags = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../util/authentication', () => ({
+  ...jest.requireActual('../../../util/authentication'),
+  updateAuthTypeStorageFlags: (biometryChoice: boolean) =>
+    mockUpdateAuthTypeStorageFlags(biometryChoice),
+}));
+
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
   getItem: jest.fn().mockResolvedValue(null), // Mock to return null to avoid biometrics interference
@@ -1002,6 +1009,59 @@ describe('ResetPassword', () => {
       expect(mockNavigation.replace).toHaveBeenCalledWith(
         Routes.SETTINGS.SECURITY_SETTINGS,
       );
+    });
+  });
+
+  describe('biometry choice storage', () => {
+    it('saves biometry choice to storage only when password is changed successfully', async () => {
+      mockUpdateAuthTypeStorageFlags.mockClear();
+
+      const component = await renderConfirmPasswordView();
+
+      const newPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(newPasswordInput, 'NewPassword123');
+      });
+
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      fireEvent.press(submitButton);
+
+      await waitFor(() => {
+        expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          expect.objectContaining({
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          }),
+        );
+      });
+
+      const navigationCall = (
+        NavigationService.navigation.navigate as jest.Mock
+      ).mock.calls[0];
+      const onPrimaryButtonPress =
+        navigationCall[1].params.onPrimaryButtonPress;
+
+      await act(async () => {
+        await onPrimaryButtonPress();
+      });
+
+      await waitFor(() => {
+        expect(mockUpdateAuthTypeStorageFlags).toHaveBeenCalled();
+      });
     });
   });
 });
