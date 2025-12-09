@@ -39,6 +39,7 @@ const useTronStakeApy = ({
       if (consensysWitness) {
         setApyDecimal(consensysWitness.annualizedRate);
         setApyPercent(`${truncateNumber(consensysWitness.annualizedRate)}%`);
+        setErrorMessage(null);
       } else {
         setApyDecimal(null);
         setApyPercent(null);
