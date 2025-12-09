@@ -1,21 +1,21 @@
-import switchNetwork from '../switchNetwork';
-import { showAlert } from '../../../../../actions/alert';
-import { strings } from '../../../../../../locales/i18n';
-import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
-import { store } from '../../../../../store';
+import switchNetwork from './switchNetwork';
+import { showAlert } from '../../actions/alert';
+import { strings } from '../../../locales/i18n';
+import { handleNetworkSwitch } from './handleNetworkSwitch';
+import { store } from '../../store';
 
-jest.mock('../../../../../store', () => ({
+jest.mock('../../store', () => ({
   store: {
     dispatch: jest.fn(),
     getState: jest.fn(),
   },
 }));
 
-jest.mock('../../../../../util/networks/handleNetworkSwitch', () => ({
+jest.mock('./handleNetworkSwitch', () => ({
   handleNetworkSwitch: jest.fn(),
 }));
 
-jest.mock('../../../../../actions/alert', () => ({
+jest.mock('../../actions/alert', () => ({
   showAlert: jest.fn(),
 }));
 

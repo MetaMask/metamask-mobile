@@ -1,6 +1,6 @@
 'use strict';
 
-import switchNetwork from './handlers/legacy/switchNetwork';
+import switchNetwork from '../../util/networks/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
