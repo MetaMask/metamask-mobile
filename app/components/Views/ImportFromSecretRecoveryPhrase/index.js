@@ -117,6 +117,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const srpInputGridRef = useRef(null);
 
+  const justBlockedSpuriousEmptyRef = useRef(false);
+  const justBlockedSpuriousEmptyConfirmRef = useRef(false);
+
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -275,6 +278,19 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPasswordChange = (value) => {
+    if (value === '' && password !== '' && password.length > 1) {
+      justBlockedSpuriousEmptyRef.current = true;
+      return;
+    }
+
+    if (justBlockedSpuriousEmptyRef.current && value.length === 1) {
+      justBlockedSpuriousEmptyRef.current = false;
+      setPassword((prevPassword) => prevPassword + value);
+      return;
+    }
+
+    justBlockedSpuriousEmptyRef.current = false;
+
     setPassword(value);
     if (value === '') {
       setConfirmPassword('');
@@ -282,6 +298,19 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPasswordConfirmChange = (value) => {
+    if (value === '' && confirmPassword !== '' && confirmPassword.length > 1) {
+      justBlockedSpuriousEmptyConfirmRef.current = true;
+      return;
+    }
+
+    if (justBlockedSpuriousEmptyConfirmRef.current && value.length === 1) {
+      justBlockedSpuriousEmptyConfirmRef.current = false;
+      setConfirmPassword((prevPassword) => prevPassword + value);
+      return;
+    }
+
+    justBlockedSpuriousEmptyConfirmRef.current = false;
+
     setConfirmPassword(value);
   };
 
@@ -612,6 +641,7 @@ const ImportFromSecretRecoveryPhrase = ({
               </Label>
               <TextField
                 size={TextFieldSize.Lg}
+                selectTextOnFocus={false}
                 value={password}
                 onChangeText={onPasswordChange}
                 secureTextEntry={showPasswordIndex.includes(0)}
@@ -661,6 +691,7 @@ const ImportFromSecretRecoveryPhrase = ({
               <TextField
                 ref={confirmPasswordInput}
                 size={TextFieldSize.Lg}
+                selectTextOnFocus={false}
                 onChangeText={onPasswordConfirmChange}
                 secureTextEntry={showPasswordIndex.includes(1)}
                 autoComplete="new-password"

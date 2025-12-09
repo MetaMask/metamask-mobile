@@ -1321,10 +1321,126 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
 
       await act(async () => {
+        fireEvent.changeText(passwordInput, 'S');
+      });
+
+      await act(async () => {
         fireEvent.changeText(passwordInput, '');
       });
 
       expect(confirmPasswordInput.props.value).toBe('');
+    });
+
+    it('blocks empty value and appends next character when refocusing password field', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'abc');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      expect(passwordInput.props.value).toBe('abc');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'd');
+      });
+
+      expect(passwordInput.props.value).toBe('abcd');
+    });
+
+    it('blocks empty value and appends next character when refocusing confirm password field', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test1234');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'abc');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, '');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('abc');
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'd');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('abcd');
+    });
+
+    it('allows deletion for single character passwords', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'a');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      expect(passwordInput.props.value).toBe('');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test1234');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'b');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, '');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('');
+    });
+
+    it('resets flag and accepts normal multi-character input after blocking', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'abc');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'abcd');
+      });
+
+      expect(passwordInput.props.value).toBe('abcd');
     });
 
     it('minimum password length requirement message shown when create new password field value is less than 8 characters', async () => {
