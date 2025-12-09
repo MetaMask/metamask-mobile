@@ -166,7 +166,7 @@ export const snapControllerInit: ControllerInitFunction<
     detectSnapLocation,
     clientCryptography: {
       pbkdf2Sha512: pbkdf2,
-      hmacSha512,
+      hmacSha512: async (key, data) => hmacSha512(key, data),
     },
     trackEvent: (params: {
       event: string;

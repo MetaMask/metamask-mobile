@@ -57,7 +57,10 @@ export const keyringControllerInit: ControllerInitFunction<
 
   const hdKeyringBuilder = () =>
     new HdKeyring({
-      cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
+      cryptographicFunctions: {
+        pbkdf2Sha512: pbkdf2,
+        hmacSha512: async (key, data) => hmacSha512(key, data),
+      },
     });
 
   hdKeyringBuilder.type = HdKeyring.type;

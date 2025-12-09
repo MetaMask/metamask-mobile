@@ -250,7 +250,11 @@ export const getSnapPermissionSpecifications = (
       messenger.call('ApprovalController:addRequest', opts, true),
     hasPermission: (origin: string, target: string) =>
       messenger.call('PermissionController:hasPermission', origin, target),
-    getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2, hmacSha512 }),
+    getClientCryptography: () => ({
+      pbkdf2Sha512: pbkdf2,
+      hmacSha512: async (key: Uint8Array, data: Uint8Array) =>
+        hmacSha512(key, data),
+    }),
     getPreferences: () => {
       const {
         securityAlertsEnabled,
