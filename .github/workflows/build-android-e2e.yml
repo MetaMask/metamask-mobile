@@ -33,7 +33,7 @@ jobs:
   build-android-apks:
     name: Build Android E2E APKs
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # Using lg runner with optimized Gradle memory settings (see gradle.properties.github)
-    timeout-minutes: 40
+    timeout-minutes: 60  # Increased from 40 to accommodate lg runner's reduced parallelism
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
