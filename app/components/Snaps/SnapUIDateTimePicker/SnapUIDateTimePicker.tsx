@@ -157,17 +157,17 @@ export const SnapUIDateTimePicker: FunctionComponent<
   ) => {
     if (!date) return;
 
-    const normalizedDate = normalizeDate(date, type);
-    setInternalValue(normalizedDate);
+    setInternalValue(date);
   };
 
   /**
    * Submits the internal value to the snap.
    */
   const submitInternalValue = () => {
-    const isoString = DateTime.fromJSDate(internalValue).toISO();
+    const normalizedDate = normalizeDate(internalValue, type);
+    const isoString = DateTime.fromJSDate(normalizedDate).toISO();
 
-    setValue(internalValue);
+    setValue(normalizedDate);
     handleInputChange(name, isoString, form);
     setShowDatePicker(false);
   };
@@ -197,9 +197,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
       const selectedDate = new Date(internalValue);
       selectedDate.setTime(date.getTime());
 
-      const normalizedDate = normalizeDate(selectedDate, type);
-
-      setInternalValue(normalizedDate);
+      setInternalValue(selectedDate);
       submitInternalValue();
 
       setAndroidMode('date');
@@ -229,9 +227,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
     }
     // Handle single step date or time selection.
     if (event.type === 'set') {
-      const normalizedDate = normalizeDate(date, type);
-
-      setInternalValue(normalizedDate);
+      setInternalValue(date);
       submitInternalValue();
     }
 
