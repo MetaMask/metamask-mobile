@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -26,7 +27,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-import TrendingView from './TrendingView';
+import { ExploreFeed } from './TrendingView';
 import {
   selectChainId,
   selectPopularNetworkConfigurationsByCaipChainId,
@@ -39,6 +40,19 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { useSelector } from 'react-redux';
+import Routes from '../../../constants/navigation/Routes';
+
+const Stack = createStackNavigator();
+
+const TrendingView: React.FC = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
+  </Stack.Navigator>
+);
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -248,10 +262,13 @@ describe('TrendingView', () => {
       fireEvent.press(browserButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        'TrendingBrowser',
+        Routes.BROWSER.HOME,
         expect.objectContaining({
-          newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
-          fromTrending: true,
+          screen: Routes.BROWSER.VIEW,
+          params: expect.objectContaining({
+            newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
+            fromTrending: true,
+          }),
         }),
       );
     });

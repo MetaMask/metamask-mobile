@@ -78,7 +78,7 @@ describe('AlertModal', () => {
     const { getByText } = render(<AlertModal />);
     expect(getByText('Test Alert')).toBeDefined();
     expect(getByText(ALERT_MESSAGE_MOCK)).toBeDefined();
-    expect(getByText('Alert Details')).toBeDefined();
+    expect(getByText('Alert details')).toBeDefined();
     expect(getByText('• Detail 1')).toBeDefined();
     expect(getByText('• Detail 2')).toBeDefined();
   });

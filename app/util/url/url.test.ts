@@ -1,6 +1,9 @@
 import {
   isPortfolioUrl,
   isBridgeUrl,
+  isCardUrl,
+  isCardTravelUrl,
+  isCardTosUrl,
   isValidASCIIURL,
   toPunycodeURL,
   isSameOrigin,
@@ -64,6 +67,41 @@ describe('URL Check Functions', () => {
     it('returns false for invalid URLs', () => {
       const url = 'invalid url';
       expect(isBridgeUrl(url)).toBe(false);
+    });
+  });
+
+  describe('isCardUrl', () => {
+    it.each([
+      [AppConstants.CARD.URL, true],
+      [`${AppConstants.CARD.URL}/path`, true],
+      ['https://example.com', false],
+      ['invalid url', false],
+    ])('returns expected result for %s', (url, expected) => {
+      expect(isCardUrl(url)).toBe(expected);
+    });
+  });
+
+  describe('isCardTravelUrl', () => {
+    it.each([
+      [AppConstants.CARD.TRAVEL_URL, true],
+      [`${AppConstants.CARD.TRAVEL_URL}/booking`, true],
+      ['https://example.com', false],
+      ['invalid url', false],
+    ])('returns expected result for %s', (url, expected) => {
+      expect(isCardTravelUrl(url)).toBe(expected);
+    });
+  });
+
+  describe('isCardTosUrl', () => {
+    const tosOrigin = new URL(AppConstants.CARD.CARD_TOS_URL).origin;
+
+    it.each([
+      [AppConstants.CARD.CARD_TOS_URL, true],
+      [`${tosOrigin}/other-doc.pdf`, true],
+      ['https://example.com', false],
+      ['invalid url', false],
+    ])('returns expected result for %s', (url, expected) => {
+      expect(isCardTosUrl(url)).toBe(expected);
     });
   });
 
