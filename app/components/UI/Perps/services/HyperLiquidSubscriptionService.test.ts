@@ -3203,12 +3203,13 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     it('clears L2Book subscriptions during restoration', async () => {
-      const callback = jest.fn();
       const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
       const mockSubscription = { unsubscribe: mockUnsubscribe };
+      let subscriptionCallCount = 0;
 
       mockSubscriptionClient.l2Book.mockImplementation(
         (_params: any, l2BookCallback: any) => {
+          subscriptionCallCount++;
           setTimeout(() => {
             l2BookCallback({
               coin: _params.coin,
@@ -3219,21 +3220,36 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       );
 
-      const unsubscribe = await service.subscribeToOrderBook({
-        symbol: 'BTC',
-        callback,
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeOrderBook: true,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      // Set up a subscription reference to verify it's cleared
-      (service as any).globalL2BookSubscriptions.set('BTC', mockSubscription);
+      // Verify initial subscription was created
+      expect((service as any).globalL2BookSubscriptions.size).toBe(1);
+      const initialCallCount = subscriptionCallCount;
+
+      // Set up a different subscription reference to verify it's cleared
+      const oldSubscription = { unsubscribe: jest.fn() };
+      (service as any).globalL2BookSubscriptions.set('BTC', oldSubscription);
 
       // Restore subscriptions
       await service.restoreSubscriptions();
 
-      // Verify L2Book subscriptions were cleared
-      expect((service as any).globalL2BookSubscriptions.size).toBe(0);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Verify old subscription was cleared and new one was re-established
+      // The map should have the new subscription, not the old one
+      const currentSubscription = (
+        service as any
+      ).globalL2BookSubscriptions.get('BTC');
+      expect(currentSubscription).toBeDefined();
+      expect(currentSubscription).not.toBe(oldSubscription);
+      // Verify l2Book was called again to re-establish the subscription
+      expect(subscriptionCallCount).toBeGreaterThan(initialCallCount);
 
       unsubscribe();
     });

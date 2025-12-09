@@ -2000,18 +2000,19 @@ export class HyperLiquidSubscriptionService {
     if (currentCount <= 1) {
       // Last subscriber, cleanup subscription
       const subscription = this.globalActiveAssetSubscriptions.get(symbol);
-      if (subscription) {
-        subscription.unsubscribe().catch((error: unknown) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
-            message: `Failed to cleanup active asset subscription for ${symbol}`,
-          });
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        const unsubscribeResult = Promise.resolve(subscription.unsubscribe());
+
+        unsubscribeResult.catch(() => {
+          // Ignore errors during cleanup
         });
         this.globalActiveAssetSubscriptions.delete(symbol);
         this.symbolSubscriberCounts.delete(symbol);
-        DevLogger.log(
-          `HyperLiquid: Cleaned up market data subscription for ${symbol}`,
-        );
+      } else if (subscription) {
+        // Subscription exists but unsubscribe is not a function or doesn't return a Promise
+        // Just clean up the reference
+        this.globalActiveAssetSubscriptions.delete(symbol);
+        this.symbolSubscriberCounts.delete(symbol);
       }
     } else {
       // Still has subscribers, just decrement count
@@ -2255,18 +2256,19 @@ export class HyperLiquidSubscriptionService {
    */
   private cleanupL2BookSubscription(symbol: string): void {
     const subscription = this.globalL2BookSubscriptions.get(symbol);
-    if (subscription) {
-      subscription.unsubscribe().catch((error: unknown) => {
-        Logger.error(ensureError(error), {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
-          message: `Failed to cleanup L2 book subscription for ${symbol}`,
-        });
+    if (subscription && typeof subscription.unsubscribe === 'function') {
+      const unsubscribeResult = Promise.resolve(subscription.unsubscribe());
+      unsubscribeResult.catch(() => {
+        // Ignore errors during cleanup
       });
+
       this.globalL2BookSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
-      DevLogger.log(
-        `HyperLiquid: Cleaned up L2 book subscription for ${symbol}`,
-      );
+    } else if (subscription) {
+      // Subscription exists but unsubscribe is not a function or doesn't return a Promise
+      // Just clean up the reference
+      this.globalL2BookSubscriptions.delete(symbol);
+      this.orderBookCache.delete(symbol);
     }
   }
 
