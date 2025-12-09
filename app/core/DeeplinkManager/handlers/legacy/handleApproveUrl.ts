@@ -1,17 +1,16 @@
-import { getNetworkTypeById } from '../../../util/networks';
-import { generateApprovalData } from '../../../util/transactions';
+import { getNetworkTypeById } from '../../../../util/networks';
+import { generateApprovalData } from '../../../../util/transactions';
 import { ParseOutput } from 'eth-url-parser';
-import { strings } from '../../../../locales/i18n';
-import { getAddress } from '../../../util/address';
-import { validateWithPPOM } from '../../../components/Views/confirmations/utils/deeplink';
-import { addTransaction } from '../../../util/transaction-controller';
-import DeeplinkManager from '../DeeplinkManager';
-import Engine from '../../Engine';
-import NotificationManager from '../../NotificationManager';
+import { strings } from '../../../../../locales/i18n';
+import { getAddress } from '../../../../util/address';
+import { validateWithPPOM } from '../../../../components/Views/confirmations/utils/deeplink';
+import { addTransaction } from '../../../../util/transaction-controller';
+import Engine from '../../../Engine';
+import NotificationManager from '../../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
-import NavigationService from '../../NavigationService';
+import NavigationService from '../../../NavigationService';
 
 const toHexOrFallback = (value: string) => {
   try {
@@ -21,11 +20,10 @@ const toHexOrFallback = (value: string) => {
   }
 };
 
-async function approveTransaction({
+async function handleApproveUrl({
   ethUrl,
   origin,
 }: {
-  deeplinkManager: DeeplinkManager;
   ethUrl: ParseOutput;
   origin: string;
 }) {
@@ -90,4 +88,4 @@ async function approveTransaction({
   });
 }
 
-export default approveTransaction;
+export default handleApproveUrl;

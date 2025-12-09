@@ -1,9 +1,7 @@
 'use strict';
 
-import { ParseOutput } from 'eth-url-parser';
 import switchNetwork from './handlers/legacy/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
-import approveTransaction from './utils/approveTransaction';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
@@ -44,13 +42,6 @@ class DeeplinkManager {
   _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
     switchNetwork({
       switchToChainId,
-    });
-
-  _approveTransaction = async (ethUrl: ParseOutput, origin: string) =>
-    approveTransaction({
-      deeplinkManager: this,
-      ethUrl,
-      origin,
     });
 
   async parse(

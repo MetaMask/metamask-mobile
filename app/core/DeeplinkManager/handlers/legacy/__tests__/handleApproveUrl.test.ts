@@ -1,15 +1,15 @@
 /* eslint-disable import/no-namespace */
-import * as AddressUtilsModule from '../../../util/address';
-import * as NetworksUtilsModule from '../../../util/networks';
-import * as TransactionsUtilsModule from '../../../util/transactions';
-import Engine from '../../Engine';
-import NotificationManager from '../../NotificationManager';
-import approveTransaction from './approveTransaction';
-import { addTransaction } from '../../../util/transaction-controller';
-import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import * as AddressUtilsModule from '../../../../../util/address';
+import * as NetworksUtilsModule from '../../../../../util/networks';
+import * as TransactionsUtilsModule from '../../../../../util/transactions';
+import Engine from '../../../../Engine';
+import NotificationManager from '../../../../NotificationManager';
+import handleApproveUrl from '../handleApproveUrl';
+import { addTransaction } from '../../../../../util/transaction-controller';
+import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { toHex } from '@metamask/controller-utils';
-import { validateWithPPOM } from '../../../components/Views/confirmations/utils/deeplink';
-import NavigationService from '../../NavigationService';
+import { validateWithPPOM } from '../../../../../components/Views/confirmations/utils/deeplink';
+import NavigationService from '../../../../NavigationService';
 
 const MOCK_SENDER_ADDRESS = '0xMockSenderAddress';
 const MOCK_TARGET_ADDRESS = '0xTargetAddress';
@@ -19,10 +19,10 @@ const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
   'Account 1',
 );
 
-jest.mock('../../../util/networks');
-jest.mock('../../../util/transactions');
-jest.mock('../../../util/address');
-jest.mock('../../Engine', () => ({
+jest.mock('../../../../../util/networks');
+jest.mock('../../../../../util/transactions');
+jest.mock('../../../../../util/address');
+jest.mock('../../../../Engine', () => ({
   context: {
     NetworkController: {
       setProviderType: jest.fn(),
@@ -40,32 +40,23 @@ jest.mock('../../Engine', () => ({
     },
   },
 }));
-jest.mock('../../NotificationManager');
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('../../../../NotificationManager');
+jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));
-jest.mock('../../../util/transaction-controller', () => ({
+jest.mock('../../../../../util/transaction-controller', () => ({
   __esModule: true,
   addTransaction: jest.fn(),
 }));
-jest.mock('../../../components/Views/confirmations/utils/deeplink');
+jest.mock('../../../../../components/Views/confirmations/utils/deeplink');
 
 const mockEthUrl = {
   parameters: { uint256: '123', address: '0xMockAddress' },
   target_address: MOCK_TARGET_ADDRESS,
   chain_id: '1',
 };
-const mockDeeplinkManager = {
-  pendingDeeplink: null,
-  setDeeplink: jest.fn(),
-  getPendingDeeplink: jest.fn(),
-  expireDeeplink: jest.fn(),
-  parse: jest.fn(),
-  _approveTransaction: jest.fn(),
-  _handleNetworkSwitch: jest.fn(),
-};
 
-jest.mock('../../NavigationService', () => ({
+jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
@@ -73,7 +64,7 @@ jest.mock('../../NavigationService', () => ({
 
 const mockOrigin = 'testOrigin';
 
-describe('approveTransaction', () => {
+describe('handleApproveUrl', () => {
   const spyGetNetworkTypeById = jest.spyOn(
     NetworksUtilsModule,
     'getNetworkTypeById',
@@ -118,8 +109,7 @@ describe('approveTransaction', () => {
 
     spyGetNetworkTypeById.mockReturnValue(fakeNetworkType);
 
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -134,8 +124,7 @@ describe('approveTransaction', () => {
   it('calls generateApprovalData with the correct parameters', async () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -149,8 +138,7 @@ describe('approveTransaction', () => {
   });
 
   it('should call addTransaction with the correct parameters', async () => {
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -174,8 +162,7 @@ describe('approveTransaction', () => {
   });
 
   it('should call getAddress with the correct parameters', async () => {
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -191,8 +178,7 @@ describe('approveTransaction', () => {
   it('should call showSimpleNotification with the correct parameters if the spender address is invalid', async () => {
     spyGetAddress.mockResolvedValue('');
 
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -210,8 +196,7 @@ describe('approveTransaction', () => {
   it('should call navigate with the correct parameters if the spender address is invalid', async () => {
     spyGetAddress.mockResolvedValue('');
 
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -226,8 +211,7 @@ describe('approveTransaction', () => {
   it('should not call showSimpleNotification if the spender address is valid', async () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -240,8 +224,7 @@ describe('approveTransaction', () => {
   it('should not call navigate if the spender address is valid', async () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,
@@ -258,8 +241,7 @@ describe('approveTransaction', () => {
     };
 
     await expect(
-      approveTransaction({
-        deeplinkManager: mockDeeplinkManager,
+      handleApproveUrl({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ethUrl: mockEthUrlWithInvalidUint256 as any,
@@ -275,8 +257,7 @@ describe('approveTransaction', () => {
     };
 
     await expect(
-      approveTransaction({
-        deeplinkManager: mockDeeplinkManager,
+      handleApproveUrl({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ethUrl: mockEthUrlWithInvalidUint256 as any,
@@ -295,8 +276,7 @@ describe('approveTransaction', () => {
 
     spyGetNetworkTypeById.mockReturnValue(fakeNetworkType);
 
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrlWithInvalidChainId as any,
@@ -309,8 +289,7 @@ describe('approveTransaction', () => {
   it('calls validateWithPPOM with the correct parameters', async () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
-    await approveTransaction({
-      deeplinkManager: mockDeeplinkManager,
+    await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ethUrl: mockEthUrl as any,

@@ -6,12 +6,12 @@ import DeeplinkManager, { SharedDeeplinkManager } from './DeeplinkManager';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import switchNetwork from './handlers/legacy/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
-import approveTransaction from './utils/approveTransaction';
+import handleApproveUrl from './handlers/legacy/handleApproveUrl';
 import { store } from '../../store';
 import { RootState } from '../../reducers';
 import branch from 'react-native-branch';
 
-jest.mock('./utils/approveTransaction');
+jest.mock('./handlers/legacy/handleApproveUrl');
 jest.mock('./handlers/legacy/handleEthereumUrl');
 jest.mock('./handlers/legacy/handleBrowserUrl');
 jest.mock('./handlers/legacy/handleRampUrl');
@@ -85,10 +85,9 @@ describe('DeeplinkManager', () => {
 
     const origin = 'testOrigin';
 
-    await deeplinkManager._approveTransaction(ethUrl, origin);
+    await handleApproveUrl({ ethUrl, origin });
 
-    expect(approveTransaction).toHaveBeenCalledWith({
-      deeplinkManager,
+    expect(handleApproveUrl).toHaveBeenCalledWith({
       ethUrl,
       origin,
     });

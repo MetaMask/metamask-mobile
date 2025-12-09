@@ -12,6 +12,7 @@ import {
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../../../components/Views/confirmations/utils/deeplink';
 import NavigationService from '../../../../NavigationService';
+import handleApproveUrl from '../handleApproveUrl';
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
@@ -176,10 +177,7 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ deeplinkManager, url, origin });
 
-    expect(deeplinkManager._approveTransaction).toHaveBeenCalledWith(
-      expect.any(Object),
-      origin,
-    );
+    expect(handleApproveUrl).toHaveBeenCalledWith(expect.any(Object), origin);
   });
 
   it('navigates to SendFlowView for default action', () => {
@@ -239,9 +237,11 @@ describe('handleEthereumUrl', () => {
       // do nothing
     });
 
-    (NavigationService.navigation.navigate as jest.Mock).mockImplementation(() => {
-      throw new Error('Unknown error');
-    });
+    (NavigationService.navigation.navigate as jest.Mock).mockImplementation(
+      () => {
+        throw new Error('Unknown error');
+      },
+    );
 
     handleEthereumUrl({ deeplinkManager, url, origin });
 
