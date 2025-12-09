@@ -2,9 +2,9 @@
 # Optimized for E2E builds on GitHub Actions runners
 
 # JVM configuration - optimized for lg runner (16GB RAM) to avoid OOM
-# Using 8GB heap to leave room for Node.js (8GB) and OS overhead on 16GB runners
-# For xl runners (32GB), these settings can be increased
-org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
+# Memory budget: Gradle 6GB + Node.js 6GB = 12GB, leaving 4GB for OS/SDK tools
+# For xl runners (32GB), these settings can be increased to 12GB each
+org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
 
 # Enable performance optimizations but limit parallelism to prevent OOM on lg runners
 org.gradle.parallel=true
