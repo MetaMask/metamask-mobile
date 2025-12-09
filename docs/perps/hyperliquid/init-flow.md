@@ -310,6 +310,97 @@ public setDexAssetCtxsCache(dex: string, assetCtxs: AssetCtx[]): void {
 - Main DEX: key = `''`
 - HIP-3 DEXes: key = dex name (e.g., `'xyz'`, `'hyna'`, `'flx'`, `'vntl'`)
 
+## Transport Architecture
+
+### Overview
+
+The HyperLiquid SDK supports two transports: HTTP and WebSocket. For optimal performance, we use WebSocket as the default transport for InfoClient API calls during initialization, multiplexing all requests over a single connection.
+
+```mermaid
+flowchart TD
+    subgraph Clients["SDK Clients"]
+        EC[ExchangeClient]
+        IC_WS[InfoClient<br/>WebSocket Default]
+        IC_HTTP[InfoClient<br/>HTTP Fallback]
+        SC[SubscriptionClient]
+    end
+
+    subgraph Transports["Transports"]
+        HTTP[HttpTransport]
+        WS[WebSocketTransport]
+    end
+
+    subgraph API["HyperLiquid API"]
+        REST[REST Endpoints]
+        WSS[WebSocket Server]
+    end
+
+    EC --> HTTP
+    IC_WS --> WS
+    IC_HTTP --> HTTP
+    SC --> WS
+
+    HTTP --> REST
+    WS --> WSS
+```
+
+### Transport Selection
+
+Transport selection is handled at the **HyperLiquidClientService** level:
+
+```typescript
+// HyperLiquidClientService.ts
+
+// WebSocket InfoClient (default) - multiplexed requests
+private infoClient?: InfoClient;        // Uses wsTransport
+
+// HTTP InfoClient (fallback) - per-request connections
+private infoClientHttp?: InfoClient;    // Uses httpTransport
+
+/**
+ * Get the info client
+ * @param options.useHttp - Force HTTP transport instead of WebSocket (default: false)
+ */
+public getInfoClient(options?: { useHttp?: boolean }): InfoClient {
+  if (options?.useHttp) {
+    return this.infoClientHttp;  // HTTP fallback
+  }
+  return this.infoClient;  // WebSocket default
+}
+```
+
+### Transport Usage by Client
+
+| Client                | Transport | Use Case                                                        |
+| --------------------- | --------- | --------------------------------------------------------------- |
+| ExchangeClient        | HTTP      | Write operations (orders, approvals) - must be HTTP for signing |
+| InfoClient (default)  | WebSocket | Read operations (market data, user data) - multiplexed          |
+| InfoClient (fallback) | HTTP      | Fallback if WebSocket has issues with specific calls            |
+| SubscriptionClient    | WebSocket | Real-time pub/sub (price feeds, position updates)               |
+
+### Benefits of WebSocket Transport
+
+| Metric              | HTTP          | WebSocket   |
+| ------------------- | ------------- | ----------- |
+| Network connections | 1 per request | 1 shared    |
+| TLS handshakes      | Per request   | Once        |
+| Connection overhead | High          | Minimal     |
+| Request latency     | Per-request   | Multiplexed |
+
+### Fallback Strategy
+
+If a specific API call has issues with WebSocket transport, it can be overridden in `HyperLiquidProvider`:
+
+```typescript
+// Default (WebSocket):
+const infoClient = this.clientService.getInfoClient();
+
+// Force HTTP for specific call if needed:
+const infoClient = this.clientService.getInfoClient({ useHttp: true });
+```
+
+This architecture keeps transport selection as an implementation detail, invisible to higher layers like `PerpsController`.
+
 ## WebSocket Subscriptions
 
 After initialization, the following WebSocket subscriptions are active:
