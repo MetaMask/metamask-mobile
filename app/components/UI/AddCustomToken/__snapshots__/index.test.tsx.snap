@@ -189,15 +189,11 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
   </RCTScrollView>
   <View
     style={
-      [
-        {
-          "margin": 16,
-          "paddingVertical": 16,
-        },
-        {
-          "paddingBottom": 0,
-        },
-      ]
+      {
+        "margin": 16,
+        "paddingBottom": 0,
+        "paddingVertical": 16,
+      }
     }
   >
     <TouchableOpacity
