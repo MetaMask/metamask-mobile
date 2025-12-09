@@ -27,6 +27,7 @@ import type {
 } from './types';
 import {
   getAddressAccountType,
+  isHardwareAccount,
   isValidHexAddress,
 } from '../../../../util/address';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
@@ -192,12 +193,20 @@ export async function generateDefaultTransactionMetrics(
   const { from } = txParams || {};
 
   let accountType = 'unknown';
+  let accountHardwareType: string | null = null;
 
   // Fails if wallet locked
   try {
-    accountType = isValidHexAddress(from)
-      ? getAddressAccountType(from)
-      : accountType;
+    if (isValidHexAddress(from)) {
+      // Get account type based on the keyring associated with
+      // this address.
+      accountType = getAddressAccountType(from);
+
+      // Also populate this one for HW accounts.
+      if (isHardwareAccount(from)) {
+        accountHardwareType = accountType;
+      }
+    }
   } catch {
     // Intentionally empty
   }
@@ -212,6 +221,7 @@ export async function generateDefaultTransactionMetrics(
         ...batchProperties,
         ...gasFeeProperties,
         account_type: accountType,
+        account_hardware_type: accountHardwareType,
         chain_id: chainId,
         dapp_host_name: origin ?? 'N/A',
         error: error?.message,
