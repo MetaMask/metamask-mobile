@@ -73,6 +73,7 @@ import { EVM_SCOPE } from '../../constants/networks';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronStake from '../../hooks/useTronStake';
+import useTronStakeApy from '../../hooks/useTronStakeApy';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import { ComputeFeeResult } from '../../utils/tron-staking-snap';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
@@ -130,6 +131,7 @@ const EarnInputView = () => {
     validate: tronValidate,
     confirmStake: tronConfirmStake,
   } = useTronStake({ token });
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
@@ -827,6 +829,7 @@ const EarnInputView = () => {
         navBarEventOptions,
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         earnToken,
+        tronApyPercent,
         ///: END:ONLY_INCLUDE_IF
       ),
     );
@@ -841,6 +844,9 @@ const EarnInputView = () => {
     earnToken?.symbol,
     earnToken?.name,
     earnToken,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    tronApyPercent,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   useEffect(() => {

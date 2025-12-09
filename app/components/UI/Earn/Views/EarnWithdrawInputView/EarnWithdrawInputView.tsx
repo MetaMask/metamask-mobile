@@ -63,6 +63,7 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronUnstake from '../../hooks/useTronUnstake';
+import useTronStakeApy from '../../hooks/useTronStakeApy';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 ///: END:ONLY_INCLUDE_IF
@@ -89,6 +90,7 @@ const EarnWithdrawInputView = () => {
     validate: tronValidateUnstake,
     confirmUnstake: tronConfirmUnstake,
   } = useTronUnstake({ token });
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI
@@ -321,6 +323,10 @@ const EarnWithdrawInputView = () => {
         theme.colors,
         navBarOptions,
         navBarEventOptions,
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        receiptTokenToUse,
+        tronApyPercent,
+        ///: END:ONLY_INCLUDE_IF
       ),
     );
   }, [
@@ -330,6 +336,10 @@ const EarnWithdrawInputView = () => {
     navBarEventOptions,
     isLending,
     tokenLabel,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    receiptTokenToUse,
+    tronApyPercent,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
