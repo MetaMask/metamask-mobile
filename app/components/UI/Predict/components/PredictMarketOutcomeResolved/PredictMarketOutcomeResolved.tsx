@@ -55,7 +55,7 @@ const PredictMarketOutcomeResolved: React.FC<
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {outcome.groupItemTitle}
+            {outcome.groupItemTitle ?? outcome.title}
           </Text>
           <Text
             variant={TextVariant.BodySMMedium}

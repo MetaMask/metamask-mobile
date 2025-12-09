@@ -513,6 +513,7 @@
     "@open-rpc/mock-server": "^1.7.5",
     "@open-rpc/schema-utils-js": "^1.16.2",
     "@open-rpc/test-coverage": "^2.2.2",
+    "@playwright/test": "^1.57.0",
     "@react-native/metro-config": "0.76.9",
     "@storybook/addon-controls": "^7.5.1",
     "@storybook/addon-ondevice-controls": "^6.5.6",
@@ -618,6 +619,7 @@
     "tailwindcss": "^3.4.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.4.5",
+    "webdriverio": "^9.21.0",
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
@@ -717,7 +719,9 @@
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/darwin-arm64": false,
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false,
       "react-native-nitro-modules": false,
-      "esbuild": false
+      "esbuild": false,
+      "webdriverio>@wdio/utils>edgedriver": false,
+      "webdriverio>@wdio/utils>geckodriver": false
     }
   },
   "packageManager": "yarn@4.10.3",
