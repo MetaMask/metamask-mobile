@@ -1013,7 +1013,7 @@ describe('ResetPassword', () => {
   });
 
   describe('biometry choice storage', () => {
-    it('saves biometry choice to storage only when password is changed successfully', async () => {
+    it('saves biometry choice to storage when password is changed successfully', async () => {
       mockUpdateAuthTypeStorageFlags.mockClear();
 
       const component = await renderConfirmPasswordView();
@@ -1038,7 +1038,9 @@ describe('ResetPassword', () => {
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
 
-      fireEvent.press(submitButton);
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
 
       await waitFor(() => {
         expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
