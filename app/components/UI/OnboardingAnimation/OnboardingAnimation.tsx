@@ -143,18 +143,20 @@ const OnboardingAnimation = ({
           ]}
           pointerEvents="none"
         >
-          <Rive
-            ref={logoRef}
-            style={styles.image}
-            source={MetaMaskWordmarkAnimation}
-            fit={Fit.Contain}
-            alignment={Alignment.Center}
-            stateMachineName="WordmarkBuildUp"
-            testID="metamask-wordmark-animation"
-            onPlay={() => {
-              setIsPlaying(true);
-            }}
-          />
+          {!isE2E && (
+            <Rive
+              ref={logoRef}
+              style={styles.image}
+              source={MetaMaskWordmarkAnimation}
+              fit={Fit.Contain}
+              alignment={Alignment.Center}
+              stateMachineName="WordmarkBuildUp"
+              testID="metamask-wordmark-animation"
+              onPlay={() => {
+                setIsPlaying(true);
+              }}
+            />
+          )}
         </Animated.View>
       </View>
 
