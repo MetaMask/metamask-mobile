@@ -18,9 +18,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     content: {
       paddingHorizontal: 16,
-      justifyContent: 'center',
       alignItems: 'center',
-      paddingBottom: 24,
     },
     heading: {
       marginBottom: 8,
@@ -28,13 +26,16 @@ export const styleSheet = (params: { theme: Theme }) => {
         Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
     },
     bodyText: {
-      marginBottom: 32,
       textAlign: 'center',
+    },
+    buttonContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      paddingHorizontal: 16,
+      paddingBottom: 16,
     },
     continueButton: {
       alignSelf: 'stretch',
-      marginHorizontal: 32,
-      marginBottom: 24,
     },
   });
 };

@@ -103,13 +103,16 @@ const EarnMusdConversionEducationView = () => {
           {strings('earn.musd_conversion.education.description')}
         </Text>
       </View>
-      <Button
-        variant={ButtonVariants.Primary}
-        label={strings('earn.musd_conversion.education.continue_button')}
-        onPress={handleContinue}
-        size={ButtonSize.Lg}
-        style={styles.continueButton}
-      />
+
+      <View style={styles.buttonContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label={strings('earn.musd_conversion.education.continue_button')}
+          onPress={handleContinue}
+          size={ButtonSize.Lg}
+          style={styles.continueButton}
+        />
+      </View>
     </SafeAreaView>
   );
 };
