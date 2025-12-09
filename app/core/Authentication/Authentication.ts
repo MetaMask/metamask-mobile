@@ -74,6 +74,7 @@ import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessCo
 import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { passcodeType } from '../../util/authentication';
+import { resetProviderToken as depositResetProviderToken } from '../../UI/Ramp/Deposit/utils/ProviderTokenVault';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1313,6 +1314,36 @@ class AuthenticationService {
     }
 
     return authData.availableBiometryType ?? null;
+  };
+
+  /**
+   * Resets the wallet vault and engine state, clears backups and rewards,
+   * and locks the app without navigating to the login screen.
+   */
+  resetWalletState = async (): Promise<void> => {
+    try {
+      await clearAllVaultBackups();
+
+      EngineClass.disableAutomaticVaultBackup = true;
+      try {
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+
+        Engine.context.SeedlessOnboardingController.clearState();
+
+        await depositResetProviderToken();
+
+        await Engine.controllerMessenger.call('RewardsController:resetAll');
+
+        await this.lockApp({ navigateToLogin: false });
+      } finally {
+        EngineClass.disableAutomaticVaultBackup = false;
+      }
+    } catch (error) {
+      const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
+      Logger.log(error as Error, errorMsg);
+    }
   };
 }
 
