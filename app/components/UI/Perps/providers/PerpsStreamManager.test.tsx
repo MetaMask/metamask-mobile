@@ -2005,7 +2005,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  describe('reconnectAllChannels', () => {
+  describe('clearAllChannels', () => {
     it('disconnects all channels when called', () => {
       // Arrange - spy on disconnect methods
       const pricesDisconnect = jest.spyOn(
@@ -2043,7 +2043,7 @@ describe('PerpsStreamManager', () => {
       );
 
       // Act
-      testStreamManager.reconnectAllChannels();
+      testStreamManager.clearAllChannels();
 
       // Assert - all channels should be disconnected
       expect(pricesDisconnect).toHaveBeenCalledTimes(1);
@@ -2106,7 +2106,7 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPositions).toHaveBeenCalled();
 
       // Act - reconnect all channels
-      testStreamManager.reconnectAllChannels();
+      testStreamManager.clearAllChannels();
 
       // Assert - disconnect was called on all channels
       expect(pricesDisconnect).toHaveBeenCalled();
@@ -2136,7 +2136,7 @@ describe('PerpsStreamManager', () => {
       );
 
       // Act - reconnect all channels
-      testStreamManager.reconnectAllChannels();
+      testStreamManager.clearAllChannels();
 
       expect(pricesDisconnect).toHaveBeenCalled();
 

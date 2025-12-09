@@ -1221,7 +1221,7 @@ export class PerpsStreamManager {
    * Disconnects all channels (clearing dead WebSocket subscriptions) so they
    * will automatically reconnect when subscribers are still active
    */
-  public reconnectAllChannels(): void {
+  public clearAllChannels(): void {
     // Disconnect all channels to clear dead WebSocket subscriptions
     // Channels will automatically reconnect when subscribers call connect()
     this.prices.disconnect();
@@ -1277,7 +1277,7 @@ export const usePerpsStream = () => {
   return context;
 };
 
-// Type that only includes channel properties (excludes methods like reconnectAllChannels)
+// Type that only includes channel properties (excludes methods like clearAllChannels)
 export type PerpsStreamChannelKey = {
   [K in keyof PerpsStreamManager]: PerpsStreamManager[K] extends {
     pause(): void;

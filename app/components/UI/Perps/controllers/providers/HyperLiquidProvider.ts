@@ -367,7 +367,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           '../../providers/PerpsStreamManager'
         );
         const streamManager = getStreamManagerInstance();
-        streamManager.reconnectAllChannels();
+        streamManager.clearAllChannels();
       } catch {
         // Ignore errors during reconnection
       }
