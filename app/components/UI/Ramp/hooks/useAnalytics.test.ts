@@ -24,10 +24,11 @@ describe('useAnalytics', () => {
   it('calls trackEvent for non-anonymous params', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
-    const testEvent = 'BUY_BUTTON_CLICKED';
+    const testEvent = 'RAMPS_BUTTON_CLICKED';
     const testEventParams = {
       location: 'Amount to Buy Screen',
       text: 'Buy',
+      ramp_type: 'BUY',
     } as const;
 
     result.current(testEvent, testEventParams);
