@@ -939,6 +939,7 @@ exports[`AccountSelector should render correctly 1`] = `
                           <View
                             style={
                               {
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "marginHorizontal": 16,
                                 "marginVertical": 16,

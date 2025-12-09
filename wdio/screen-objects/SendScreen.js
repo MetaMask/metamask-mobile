@@ -232,8 +232,7 @@ class SendScreen {
       await Gestures.tapTextByXpath(tokenName);
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        const networkButton = await AppwrightSelectors.getElementByID(this._device, `asset-${networkName}`);
-        await AppwrightGestures.tap(networkButton);
+        const networkButton = await AppwrightSelectors.getEl(this._device, `asset-${networkName}`);
         const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenSymbol}`);
         await AppwrightGestures.tap(tokenButton);
       } else {

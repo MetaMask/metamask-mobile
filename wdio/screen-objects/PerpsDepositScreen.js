@@ -1,6 +1,5 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import AmountScreen from './AmountScreen';
 
 class PerpsDepositScreen {
 
@@ -22,7 +21,7 @@ class PerpsDepositScreen {
   }
 
   get amountInput() {
-    return AppwrightSelectors.getElementByID(this._device, 'custom-amount-input');
+    return AppwrightSelectors.getElementByID(this._device, 'edit-amount-input');
   }
 
   get payWithButton() {
@@ -37,15 +36,13 @@ class PerpsDepositScreen {
     await input.isVisible({ timeout: 15000 });
   }
 
-  async selectPayTokenByText(token) {
-    const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
-    await AppwrightGestures.tap(tokenButton); // Use static tap method with retry logic
+  async selectPayTokenByText(networkId, token) {
+    const networkButton = await AppwrightSelectors.getElementByID(this._device, `asset-${networkId}-${token}`);
+    await AppwrightGestures.tap(networkButton); // Use static tap method with retry logic
   }
 
   async fillUsdAmount(amount) {
-    AmountScreen.device = this._device;
-    await AmountScreen.enterAmount(amount);
-    await AmountScreen.tapOnNextButton();
+    await AppwrightGestures.typeText(this.amountInput, String(amount));
   }
 
   async tapPayWith() {

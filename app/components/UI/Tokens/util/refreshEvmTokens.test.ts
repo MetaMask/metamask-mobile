@@ -18,7 +18,7 @@ jest.mock('../../../../core/Engine', () => ({
       updateExchangeRate: jest.fn(),
     },
     TokenRatesController: {
-      updateExchangeRates: jest.fn(),
+      updateExchangeRatesByChainId: jest.fn(),
     },
     NetworkController: {
       state: {
@@ -91,7 +91,7 @@ describe('refreshEvmTokens', () => {
     ).toHaveBeenCalledWith(['ETH', 'POL']);
 
     expect(
-      Engine.context.TokenRatesController.updateExchangeRates,
+      Engine.context.TokenRatesController.updateExchangeRatesByChainId,
     ).toHaveBeenCalledWith([
       { chainId: '0x1', nativeCurrency: 'ETH' },
       { chainId: '0x89', nativeCurrency: 'POL' },
@@ -115,7 +115,7 @@ describe('refreshEvmTokens', () => {
       Engine.context.CurrencyRateController.updateExchangeRate,
     ).not.toHaveBeenCalled();
     expect(
-      Engine.context.TokenRatesController.updateExchangeRates,
+      Engine.context.TokenRatesController.updateExchangeRatesByChainId,
     ).not.toHaveBeenCalled();
   });
 

@@ -5,7 +5,6 @@ import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
 import { SwapsViewSelectorsIDs } from '../../e2e/selectors/swaps/SwapsView.selectors';
-import { splitAmountIntoDigits } from 'appwright/utils/Utils';
 
 class SwapScreen {
 
@@ -58,7 +57,7 @@ class SwapScreen {
 
   async enterSourceTokenAmount(amount) {
     // Split amount into digits
-    const digits = splitAmountIntoDigits(amount);
+    const digits = this.splitAmountIntoDigits(amount);
     console.log('Amount digits:', digits);
     digits.forEach(async digit => {
       if (AppwrightSelectors.isAndroid(this._device)) {
@@ -113,6 +112,15 @@ class SwapScreen {
     await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
     await quotesButton.tap();
     }
+  }
+
+  // Helper method to split amount into digits
+  splitAmountIntoDigits(amount) {
+    // Convert to string and split into array of digits
+    return amount.toString().split('').map(char => {
+      // Return only numeric digits, filter out decimal points, commas, etc.
+      return /\d/.test(char) ? parseInt(char, 10) : char;
+    });
   }
 
   async enterDestinationTokenAmount(amount) {

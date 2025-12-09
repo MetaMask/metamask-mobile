@@ -40,8 +40,10 @@ import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
-import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
+import {
+  appendURLParams,
+  isTokenDiscoveryBrowserEnabled,
+} from '../../../util/browser';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -76,7 +78,7 @@ export const Browser = (props) => {
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { topInset });
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
@@ -87,13 +89,18 @@ export const Browser = (props) => {
 
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state) => state.security.dataCollectionForMarketing,
+  );
   const permittedAccountsList = useSelector(selectPermissionControllerState);
 
-  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
-
   const homePageUrl = useCallback(
-    () => buildPortfolioUrlWithMetrics(AppConstants.HOMEPAGE_URL).href,
-    [buildPortfolioUrlWithMetrics],
+    () =>
+      appendURLParams(AppConstants.HOMEPAGE_URL, {
+        metricsEnabled: isEnabled(),
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      }).href,
+    [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
   const newTab = useCallback(
@@ -113,6 +120,7 @@ export const Browser = (props) => {
   );
 
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
+
   const updateTabInfo = useCallback(
     (tabID, info) => {
       updateTab(tabID, info);

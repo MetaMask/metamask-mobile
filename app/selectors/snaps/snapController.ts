@@ -18,16 +18,7 @@ export const selectSnapsMetadata = createDeepEqualSelector(
   selectSnaps,
   (snaps) =>
     Object.values(snaps).reduce<
-      Record<
-        string,
-        {
-          name: string;
-          description: string;
-          version: string;
-          status: string;
-          preinstalled?: boolean;
-        }
-      >
+      Record<string, { name: string; description: string }>
     >((snapsMetadata, snap) => {
       const snapId = snap.id;
       const manifest = snap.localizationFiles
@@ -42,17 +33,9 @@ export const selectSnapsMetadata = createDeepEqualSelector(
       snapsMetadata[snapId] = {
         name: manifest.proposedName,
         description: manifest.description,
-        version: snap.version,
-        status: snap.status,
-        preinstalled: snap.preinstalled,
       };
       return snapsMetadata;
     }, {}),
-);
-
-export const getPreinstalledSnapsMetadata = createDeepEqualSelector(
-  selectSnapsMetadata,
-  (metadata) => Object.values(metadata).filter((snap) => snap.preinstalled),
 );
 
 export const getEnabledSnaps = createDeepEqualSelector(selectSnaps, (snaps) =>

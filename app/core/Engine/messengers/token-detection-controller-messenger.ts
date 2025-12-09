@@ -42,7 +42,6 @@ export function getTokenDetectionControllerMessenger(
       'AccountsController:getAccount',
       'TokensController:addTokens',
       'NetworkController:findNetworkClientIdByChainId',
-      'AuthenticationController:getBearerToken',
     ],
     events: [
       'KeyringController:lock',

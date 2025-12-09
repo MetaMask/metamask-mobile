@@ -448,7 +448,6 @@ export default class Gestures {
       checkEnabled = true,
       checkVisibility = true,
       elemDescription,
-      startOffsetPercentage = { x: NaN, y: NaN },
     } = options;
 
     return Utilities.executeWithRetry(
@@ -463,13 +462,7 @@ export default class Gestures {
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
         );
-        await el.swipe(
-          direction,
-          speed,
-          percentage,
-          startOffsetPercentage.x,
-          startOffsetPercentage.y,
-        );
+        await el.swipe(direction, speed, percentage);
       },
       {
         timeout,
