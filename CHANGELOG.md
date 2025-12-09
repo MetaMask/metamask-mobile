@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.60.4]
+
+### Fixed
+
+- fix(perps): add fallback subscriptions for missing HyperLiquid API fields cp-7.60.4 (#23753)
+
 ## [7.60.3]
 
 ### Fixed
@@ -9141,7 +9147,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.3...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.4...HEAD
+[7.60.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.3...v7.60.4
 [7.60.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.2...v7.60.3
 [7.60.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.1...v7.60.2
 [7.60.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.0...v7.60.1
