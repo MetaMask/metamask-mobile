@@ -851,7 +851,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         animationOut="slideOutDown"
         style={styles.fullScreenModal}
         backdropOpacity={1}
-        backdropColor={colors.error.default}
+        backdropColor={colors.background.alternative}
         animationInTiming={300}
         animationOutTiming={300}
         useNativeDriver
@@ -868,7 +868,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     ),
     [
       blockedUrl,
-      colors.error.default,
+      colors.background.alternative,
       continueToPhishingSite,
       goBackToSafety,
       goToETHPhishingDetector,
