@@ -28,10 +28,11 @@ const useTronStakeApy = ({
   const fetchConsensysWitness = useCallback(async () => {
     try {
       setIsLoading(true);
+      setErrorMessage(null);
 
       const witnesses = await tronStakingApiService.getWitnesses(chainId);
 
-      const consensysWitness = witnesses?.data.find(
+      const consensysWitness = witnesses?.data?.find(
         (witness) =>
           witness.address === CONSENSYS_WITNESS_ADDRESS_BY_CHAIN_ID[chainId],
       );
@@ -39,7 +40,6 @@ const useTronStakeApy = ({
       if (consensysWitness) {
         setApyDecimal(consensysWitness.annualizedRate);
         setApyPercent(`${truncateNumber(consensysWitness.annualizedRate)}%`);
-        setErrorMessage(null);
       } else {
         setApyDecimal(null);
         setApyPercent(null);
