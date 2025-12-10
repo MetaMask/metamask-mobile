@@ -46,6 +46,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     HeadingMd: 'HeadingMd',
   };
 
+  const IconName = {
+    ArrowDown: 'arrow-down',
+  };
+
+  const IconSize = {
+    Sm: 'sm',
+    Md: 'md',
+    Lg: 'lg',
+  };
+
   return {
     Box: ({
       children,
@@ -63,7 +73,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       testID?: string;
     }) => React.createElement(Text, { testID, ...props }, children),
+    Icon: ({ name, size, ...props }: { name: string; size: string }) =>
+      React.createElement(View, { testID: 'icon', ...props }),
     TextVariant,
+    IconName,
+    IconSize,
   };
 });
 
@@ -187,29 +201,6 @@ jest.mock('../../../../../component-library/components/Form/Label', () => {
     children: React.ReactNode;
     testID?: string;
   }) => React.createElement(Text, { testID }, children);
-});
-
-jest.mock('../../../SelectComponent', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return ({
-    testID,
-    options,
-    selectedValue,
-    onValueChange,
-    ...props
-  }: {
-    testID?: string;
-    options?: { label: string; value: string }[];
-    selectedValue?: string;
-    onValueChange?: (value: string) => void;
-  }) =>
-    React.createElement(
-      View,
-      { testID, ...props },
-      React.createElement(Text, {}, `Selected: ${selectedValue || 'None'}`),
-    );
 });
 
 jest.mock('../../../Ramp/Deposit/components/DepositDateField', () => {
@@ -343,7 +334,12 @@ const mockCreateEventBuilder = jest.fn(() => ({
     card: {
       onboarding: {
         onboardingId: 'test-onboarding-id',
-        selectedCountry: 'US',
+        selectedCountry: {
+          key: 'US',
+          name: 'United States',
+          emoji: '🇺🇸',
+          areaCode: '1',
+        },
       },
     },
   };
@@ -361,8 +357,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
 (useRegistrationSettings as jest.Mock).mockReturnValue({
   data: {
     countries: [
-      { code: 'US', name: 'United States' },
-      { code: 'CA', name: 'Canada' },
+      { iso3166alpha2: 'US', name: 'United States', callingCode: '1' },
+      { iso3166alpha2: 'CA', name: 'Canada', callingCode: '1' },
     ],
   },
 });
@@ -417,7 +413,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -435,7 +436,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'CA',
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -489,7 +495,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -558,7 +569,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '2002-06-07T00:00:00.000Z',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
@@ -580,7 +591,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'Jane',
         lastName: 'Smith',
         dateOfBirth: '1995-03-15T00:00:00.000Z',
-        countryOfResidence: 'CA',
+        countryOfNationality: 'CA',
         ssn: '987654321',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
@@ -603,7 +614,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: null,
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
@@ -623,7 +634,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
@@ -643,7 +654,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: 'invalid-date',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
@@ -663,7 +674,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: 1234567890000,
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
@@ -683,7 +694,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1990-12-25T00:00:00.000Z',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
@@ -703,7 +714,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -711,7 +722,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -737,7 +753,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -824,7 +845,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: null,
-              selectedCountry: 'US',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
             },
           },
         };
@@ -871,7 +897,7 @@ describe('PersonalDetails Component', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfResidence: 'US',
+        countryOfNationality: 'US',
         ssn: '123456789',
       };
       (useCardSDK as jest.Mock).mockReturnValue({
@@ -949,7 +975,12 @@ describe('PersonalDetails Component', () => {
           card: {
             onboarding: {
               onboardingId: 'test-onboarding-id',
-              selectedCountry: 'CA',
+              selectedCountry: {
+                key: 'CA',
+                name: 'Canada',
+                emoji: '🇨🇦',
+                areaCode: '1',
+              },
             },
           },
         };

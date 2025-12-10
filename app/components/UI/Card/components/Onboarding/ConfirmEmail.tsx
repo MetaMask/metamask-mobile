@@ -146,7 +146,7 @@ const ConfirmEmail = () => {
         password,
         verificationCode: confirmCode,
         contactVerificationId,
-        countryOfResidence: selectedCountry,
+        countryOfResidence: selectedCountry?.key || '',
         allowMarketing: true,
         allowSms: true,
       });
