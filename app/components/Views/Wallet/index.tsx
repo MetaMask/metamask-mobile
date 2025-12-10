@@ -159,13 +159,19 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { selectPerpsGtmOnboardingModalEnabledFlag } from '../../UI/Perps';
+import {
+  selectPerpsEnabledFlag,
+  selectPerpsGtmOnboardingModalEnabledFlag,
+} from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectPredictGtmOnboardingModalEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import {
+  selectPredictEnabledFlag,
+  selectPredictGtmOnboardingModalEnabledFlag,
+} from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
@@ -229,9 +235,7 @@ interface WalletTokensTabViewProps {
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
-  const isPerpsFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -245,9 +249,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       (isEvmSelected || isMultichainAccountsState2Enabled),
     [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
-  const isPredictFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => isPredictFlagEnabled,
     [isPredictFlagEnabled],
@@ -338,8 +340,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
   // Calculate Predict tab visibility
-  const predictTabIndex =
-    isPerpsEnabled && isPredictEnabled ? 2 : isPredictEnabled ? 1 : -1;
+  let predictTabIndex = -1;
+  if (isPerpsEnabled && isPredictEnabled) {
+    predictTabIndex = 2;
+  } else if (isPredictEnabled) {
+    predictTabIndex = 1;
+  }
   const isPredictTabVisible = currentTabIndex === predictTabIndex;
 
   // Store the visibility update callback from PerpsTabView
@@ -499,16 +505,12 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
 
-  const isPerpsFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const isPredictFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictGTMModalEnabled = useSelector(
     selectPredictGtmOnboardingModalEnabledFlag,
   );
@@ -938,9 +940,7 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useFeatureFlag(
-    FeatureFlagNames.carouselBanners,
-  );
+  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -1204,13 +1204,16 @@ const Wallet = ({
     if (isEvmSelected) {
       importAllDetectedTokens();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    isEvmSelected,
     isTokenDetectionEnabled,
     evmNetworkConfigurations,
     chainId,
     currentDetectedTokens,
     selectedNetworkClientId,
+    getTokenAddedAnalyticsParams,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const onChangeTab = useCallback(
