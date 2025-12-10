@@ -2205,7 +2205,7 @@ export class PerpsController extends BaseController<
         state.isEligible = isEligible;
       });
     } catch (error) {
-      console.error(
+      Logger.error(
         ensureError(error),
         this.getErrorContext('refreshEligibility'),
       );
