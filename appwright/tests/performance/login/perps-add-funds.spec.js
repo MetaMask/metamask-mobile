@@ -27,8 +27,7 @@ async function screensSetup(device) {
   });
 }
 
-/* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC */
-// TODO: Fix this test: https://consensyssoftware.atlassian.net/browse/MMQA-1190
+/* Scenario 5: Perps add funds */
 test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
   test.setTimeout(10 * 60 * 1000); // 10 minutes
 
@@ -36,8 +35,7 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
     'Select Perps Main Screen',
   );
   const openAddFundsTimer = new TimerHelper('Open Add Funds');
-  const fillAmountTimer = new TimerHelper('Fill amount - 10 USD');
-  const continueTimer = new TimerHelper('Continue - 1 click');
+  const getQuoteTimer = new TimerHelper('Get Quote');
   await screensSetup(device);
 
   await login(device);
@@ -49,9 +47,6 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
   selectPerpsMainScreenTimer.stop();
   performanceTracker.addTimer(selectPerpsMainScreenTimer);
 
-  // Open Tutorial flow
-  // await PerpsTutorialScreen.flowTapContinueTutorial(6);
-
   // Skip tutorial
   await PerpsTutorialScreen.tapSkip();
 
@@ -62,20 +57,12 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
   openAddFundsTimer.stop();
   performanceTracker.addTimer(openAddFundsTimer);
 
-  // Select pay token
-  // selectPayTokenTimer.start();
-  // await PerpsDepositScreen.tapPayWith();
-  // await PerpsDepositScreen.selectPayTokenByText('ETH');
-  // selectPayTokenTimer.stop();
-  // performanceTracker.addTimer(selectPayTokenTimer);
-
-  // Fill amount and try until successful
-  fillAmountTimer.start();
-
+  // Get quote
+  getQuoteTimer.start();
   await PerpsDepositScreen.fillUsdAmount(5);
   await PerpsDepositScreen.isAddFundsVisible({ timeout: 5000 });
   await PerpsDepositScreen.isTotalVisible();
-  fillAmountTimer.stop();
-  performanceTracker.addTimer(fillAmountTimer);
+  getQuoteTimer.stop();
+  performanceTracker.addTimer(getQuoteTimer);
   await performanceTracker.attachToTest(testInfo);
 });

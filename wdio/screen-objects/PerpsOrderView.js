@@ -1,5 +1,6 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AmountScreen from './AmountScreen';
 import { expect as appwrightExpect } from 'appwright';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils';
 
@@ -38,25 +39,8 @@ class PerpsOrderView {
 
   // Reuse logic from AmountScreen.js for Keypad interaction
   async tapNumberKey(digit) {
-    console.log(`tapNumberKey called with digit: "${digit}"`);
-    
-    try {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        console.log(`Android: Looking for button with content-desc='${digit}'`);
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
-        await AppwrightGestures.tap(numberKey);
-      }
-      else {
-        console.log(`iOS: Looking for button with name="${digit}"`);
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
-        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
-        await AppwrightGestures.tap(numberKey);
-      }
-    } catch (error) {
-      console.error(`Error in tapNumberKey for digit "${digit}":`, error);
-      throw error;
-    }
+    AmountScreen.device = this._device;
+    await AmountScreen.tapNumberKey(digit);
   }
 
   async enterAmount(text) {

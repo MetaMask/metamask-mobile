@@ -56,7 +56,21 @@ class AmountScreen {
     try {
       if (AppwrightSelectors.isAndroid(this._device)) {
         console.log(`Android: Looking for button with content-desc='${digit}'`);
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+        // Handle decimal point specifically if needed, or try standard button first
+        let numberKey;
+        if (digit === '.') {
+           // Try both content-desc and text for decimal point
+           try {
+             numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`);
+             await numberKey.waitForDisplayed({ timeout: 5000 });
+           } catch (e) {
+             console.log('Decimal point not found by content-desc, trying text');
+             numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="${digit}"]`);
+           }
+        } else {
+           numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`);
+        }
+        
         console.log(`Android: Found element, checking visibility`);
         await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
         console.log(`Android: Element visible, tapping`);
