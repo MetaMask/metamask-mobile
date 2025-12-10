@@ -99,6 +99,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import { isE2E } from '../../../util/test/utils';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -594,14 +595,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
-        <TouchableOpacity
-          style={styles.foxAnimationWrapper}
-          delayLongPress={10 * 1000} // 10 seconds
-          onLongPress={handleDownloadStateLogs}
-          activeOpacity={1}
-        >
-          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
-        </TouchableOpacity>
+        {!isE2E && (
+          <TouchableOpacity
+            style={styles.foxAnimationWrapper}
+            delayLongPress={10 * 1000} // 10 seconds
+            onLongPress={handleDownloadStateLogs}
+            activeOpacity={1}
+          >
+            <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
+          </TouchableOpacity>
+        )}
       </SafeAreaView>
     </ErrorBoundary>
   );
