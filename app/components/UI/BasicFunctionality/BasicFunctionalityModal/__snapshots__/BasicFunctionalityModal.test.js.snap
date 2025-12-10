@@ -270,7 +270,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#121314",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 4,
                   "borderWidth": 2,
                   "height": 20,

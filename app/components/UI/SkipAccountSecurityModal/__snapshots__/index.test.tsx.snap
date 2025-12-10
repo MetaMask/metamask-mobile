@@ -80,7 +80,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#121314",
+              "borderColor": "#b7bbc8",
               "borderRadius": 4,
               "borderWidth": 2,
               "height": 20,
@@ -285,7 +285,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#121314",
+              "borderColor": "#b7bbc8",
               "borderRadius": 4,
               "borderWidth": 2,
               "height": 20,
