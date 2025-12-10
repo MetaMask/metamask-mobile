@@ -289,7 +289,7 @@ describe('ConnectionRegistry', () => {
     });
 
     describe('when the connection is not found in the store', () => {
-      it('should show error if connection when the keyring is unlocked', async () => {
+      it('should show error when the keyring is unlocked', async () => {
         registry = new ConnectionRegistry(
           RELAY_URL,
           mockKeyManager,
@@ -304,7 +304,7 @@ describe('ConnectionRegistry', () => {
         expect(mockHostApp.showNotFoundError).toHaveBeenCalled();
       });
 
-      it('should show error if the connection is keyring is not unlocked but becomes unlocked later', async () => {
+      it('should show error if the keyring is not unlocked but becomes unlocked later', async () => {
         registry = new ConnectionRegistry(
           RELAY_URL,
           mockKeyManager,
