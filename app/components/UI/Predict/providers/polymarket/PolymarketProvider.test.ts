@@ -38,6 +38,7 @@ import {
   Side,
 } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import { OrderPreview, PlaceOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import {
@@ -741,6 +742,7 @@ describe('PolymarketProvider', () => {
         providerFee: 0.02,
         totalFee: 0.04,
         totalFeePercentage: 0.04,
+        collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
       },
       ...overrides,
     };
@@ -1364,6 +1366,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1385,6 +1388,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1411,6 +1415,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1437,6 +1442,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1464,7 +1470,7 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('uses FEE_COLLECTOR_ADDRESS as recipient', async () => {
+    it('uses collector from fees as recipient', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
@@ -1473,6 +1479,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1503,6 +1510,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0,
           totalFee: 0,
           totalFeePercentage: 0,
+          collector: '0x0',
         },
       });
 
@@ -3459,6 +3467,8 @@ describe('PolymarketProvider', () => {
             metamaskFee: 0.5,
             providerFee: 0.5,
             totalFee: 1,
+            totalFeePercentage: 1,
+            collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
           },
         });
       };
