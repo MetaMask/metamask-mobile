@@ -10,3 +10,9 @@ export enum PROVIDER_LINKS {
   SUPPORT = 'Support',
   TOS = 'Terms of Service',
 }
+
+export interface QuickAmount {
+  value: number;
+  label: string;
+  isNative?: boolean;
+}
