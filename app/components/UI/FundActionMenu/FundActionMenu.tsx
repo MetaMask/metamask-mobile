@@ -50,7 +50,7 @@ const FundActionMenu = () => {
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const { goToBuy, goToAggregator, goToSell, goToDeposit } =
     useRampNavigation();
-  const depositButtonClickData = useRampsButtonClickData();
+  const rampsButtonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -113,12 +113,17 @@ const FundActionMenu = () => {
           iconName: IconName.Add,
           testID: WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON,
           isVisible: rampUnifiedV1Enabled,
-          analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
+          analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
           analyticsProperties: {
             text: 'Buy',
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
+            ramp_type: 'UNIFIED_BUY',
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           navigationAction: () => {
             if (customOnBuy) {
@@ -142,10 +147,10 @@ const FundActionMenu = () => {
             chain_id_destination: getDecimalChainId(chainId),
             ramp_type: 'DEPOSIT',
             region: rampGeodetectedRegion,
-            ramp_routing: depositButtonClickData.ramp_routing,
-            is_authenticated: depositButtonClickData.is_authenticated,
-            preferred_provider: depositButtonClickData.preferred_provider,
-            order_count: depositButtonClickData.order_count,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadDepositExperience,
           navigationAction: () => goToDeposit(),
@@ -157,12 +162,17 @@ const FundActionMenu = () => {
           iconName: IconName.Add,
           testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
           isVisible: !rampUnifiedV1Enabled,
-          analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
+          analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
           analyticsProperties: {
             text: 'Buy',
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
+            ramp_type: 'BUY',
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.BUY } },
@@ -182,12 +192,17 @@ const FundActionMenu = () => {
           testID: WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
           isVisible: isNetworkRampSupported,
           isDisabled: !canSignTransactions,
-          analyticsEvent: MetaMetricsEvents.SELL_BUTTON_CLICKED,
+          analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
           analyticsProperties: {
             text: 'Sell',
             location: 'FundActionMenu',
             chain_id_source: getDecimalChainId(chainId),
+            ramp_type: 'SELL',
             region: rampGeodetectedRegion,
+            ramp_routing: rampsButtonClickData.ramp_routing,
+            is_authenticated: rampsButtonClickData.is_authenticated,
+            preferred_provider: rampsButtonClickData.preferred_provider,
+            order_count: rampsButtonClickData.order_count,
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.SELL } },
@@ -208,7 +223,7 @@ const FundActionMenu = () => {
       goToAggregator,
       goToSell,
       goToDeposit,
-      depositButtonClickData,
+      rampsButtonClickData,
     ],
   );
 

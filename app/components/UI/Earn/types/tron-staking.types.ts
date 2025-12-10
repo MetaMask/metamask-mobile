@@ -19,31 +19,25 @@ export interface TronStakeConfirmParams {
   options: { purpose: TronResourceType.ENERGY | TronResourceType.BANDWIDTH };
 }
 
+interface TronUnstakeParams {
+  value: string;
+  accountId: string;
+  assetId: CaipAssetType;
+  options: { purpose: TronResourceType.ENERGY | TronResourceType.BANDWIDTH };
+}
+
+export type TronUnstakeValidateParams = TronUnstakeParams;
+export type TronUnstakeConfirmParams = TronUnstakeParams;
+
 export interface TronStakeResult {
   valid: boolean;
   errors?: string[];
-}
-
-export interface TronUnstakeValidateParams {
-  value: string;
-  accountId: string;
-  assetId: CaipAssetType;
-  options: { purpose: TronResourceType.ENERGY | TronResourceType.BANDWIDTH };
-}
-
-export interface TronUnstakeConfirmParams {
-  value: string;
-  accountId: string;
-  assetId: CaipAssetType;
-  options: { purpose: TronResourceType.ENERGY | TronResourceType.BANDWIDTH };
 }
 
 export interface TronUnstakeResult {
   valid: boolean;
   errors?: string[];
 }
-
-export type FeeType = string;
 
 export interface ComputeFeeParams {
   transaction: string;
@@ -52,7 +46,7 @@ export interface ComputeFeeParams {
 }
 
 export type ComputeFeeResult = {
-  type: FeeType;
+  type: string;
   asset: {
     unit: string;
     type: string;
