@@ -30,8 +30,8 @@ export const useUnifiedSwapBridgeContext = () => {
   const nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
-  // TODO this is not actually the USD amount source yet, it's the amount source in the user's selected currency
-  const usdAmountSource = useMemo(
+  const usdConversionRate = evmMultiChainCurrencyRates?.usd?.conversionRate;
+  const tokenFiatValue = useMemo(
     () =>
       calcTokenFiatValue({
         token: fromToken ?? undefined,
@@ -50,6 +50,10 @@ export const useUnifiedSwapBridgeContext = () => {
       nonEvmMultichainAssetRates,
     ],
   );
+
+  const usdAmountSource = usdConversionRate
+    ? tokenFiatValue / usdConversionRate
+    : undefined;
 
   return useMemo(
     () => ({
