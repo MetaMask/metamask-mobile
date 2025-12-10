@@ -197,6 +197,7 @@ const EarnInputView = () => {
       modified[modified.length - 1] = {
         ...modified[modified.length - 1],
         label: strings('onboarding_success.done'),
+        isHighlighted: true,
       };
       return modified;
     }

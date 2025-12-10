@@ -15,4 +15,5 @@ export interface QuickAmount {
   value: number;
   label: string;
   isNative?: boolean;
+  isHighlighted?: boolean;
 }

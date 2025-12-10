@@ -1,24 +1,25 @@
+import { TrxScope } from '@metamask/keyring-api';
+import type { CaipAssetType } from '@metamask/snaps-sdk';
+import { Hex } from '@metamask/utils';
 import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { TrxScope } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import type { CaipAssetType } from '@metamask/snaps-sdk';
-import {
-  validateTronUnstakeAmount,
-  confirmTronUnstake,
-  TronUnstakeResult,
-} from '../utils/tron-staking-snap';
 import { TronResourceType } from '../../../../core/Multichain/constants';
 import { isTronChainId } from '../../../../core/Multichain/utils';
-import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TokenI } from '../../Tokens/types';
-import {
-  getStakedTrxTotalFromResources,
-  buildTronEarnTokenIfEligible,
-} from '../utils/tron';
 import { EarnTokenDetails } from '../types/lending.types';
+import {
+  buildTronEarnTokenIfEligible,
+  getStakedTrxTotalFromResources,
+} from '../utils/tron';
+import {
+  computeStakeFee,
+  confirmTronUnstake,
+  TronUnstakeResult,
+  validateTronUnstakeAmount,
+} from '../utils/tron-staking-snap';
 
 /** Resource type for Tron unstaking - matches ResourceToggle component type */
 export type ResourceType = 'energy' | 'bandwidth';
@@ -137,18 +138,21 @@ const useTronUnstake = ({
         rest && Object.keys(rest).length > 0 ? rest : undefined;
 
       try {
-        const fee = {
-          type: 'fee',
-          asset: {
-            unit: 'TRX',
-            type: 'TRX',
-            amount: '0.01',
-            fungible: true,
+        const feeResult = await computeStakeFee(selectedTronAccount, {
+          fromAccountId: selectedTronAccount.id,
+          value: amount,
+          options: {
+            purpose: resourceType.toUpperCase() as
+              | TronResourceType.ENERGY
+              | TronResourceType.BANDWIDTH,
           },
-        };
-        nextPreview = { ...(nextPreview ?? {}), fee };
+        });
+        if (feeResult.length > 0) {
+          const fee = feeResult[0];
+          nextPreview = { ...(nextPreview ?? {}), fee };
+        }
       } catch {
-        // ignore for now
+        // no action needed
       }
 
       if (nextPreview) setPreview(nextPreview);
