@@ -63,6 +63,7 @@ import { EVM_SCOPE } from '../../constants/networks';
 import { formatChainIdForAnalytics } from '../../utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronUnstake from '../../hooks/useTronUnstake';
+import useTronStakeApy from '../../hooks/useTronStakeApy';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
@@ -93,6 +94,7 @@ const EarnWithdrawInputView = () => {
     confirmUnstake: tronConfirmUnstake,
     tronAccountId,
   } = useTronUnstake({ token });
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI
@@ -198,6 +200,7 @@ const EarnWithdrawInputView = () => {
       modified[modified.length - 1] = {
         ...modified[modified.length - 1],
         label: strings('onboarding_success.done'),
+        isHighlighted: true,
       };
       return modified;
     }
@@ -342,6 +345,10 @@ const EarnWithdrawInputView = () => {
         theme.colors,
         navBarOptions,
         navBarEventOptions,
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        receiptTokenToUse,
+        tronApyPercent,
+        ///: END:ONLY_INCLUDE_IF
       ),
     );
   }, [
@@ -351,6 +358,10 @@ const EarnWithdrawInputView = () => {
     navBarEventOptions,
     isLending,
     tokenLabel,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    receiptTokenToUse,
+    tronApyPercent,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
