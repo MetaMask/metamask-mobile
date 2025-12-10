@@ -29,11 +29,11 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # lg runner: 16 vCPUs, 48GB RAM (testing with --stacktrace --info for diagnostics)
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # lg runner: 16 vCPUs, 48GB RAM
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
-      CACHE_GENERATION: v3 # Increment this to bust the cache (v1, v2, v3, etc.)
+      CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
