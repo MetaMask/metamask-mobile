@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 60 # Increased from 40 to provide headroom (lg has 50% fewer vCPUs than xl)
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
-      CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
+      CACHE_GENERATION: v2 # Increment this to bust the cache (v1, v2, v3, etc.)
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
