@@ -18,7 +18,6 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
 import { store } from '../../../store';
-import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -42,7 +41,6 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
-import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -241,12 +239,9 @@ const RevealPrivateCredential = ({
       if (!passwordSet) {
         tryUnlockWithPassword('');
       } else if (availableBiometryType) {
-        const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-        if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
-          const credentials = await Authentication.getPassword();
-          if (credentials) {
-            tryUnlockWithPassword(credentials.password);
-          }
+        const password = await Authentication.getBiometricPasswordIfAllowed();
+        if (password) {
+          tryUnlockWithPassword(password);
         }
       }
     };

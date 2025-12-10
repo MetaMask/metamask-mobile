@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RevealPrivateCredential } from './';
@@ -9,6 +9,9 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 // Mock dispatch function
 const mockDispatch = jest.fn();
@@ -92,6 +95,7 @@ jest.mock('../../UI/ScreenshotDeterrent', () => ({
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({ availableBiometryType: null }),
   getPassword: jest.fn().mockResolvedValue(null),
+  getBiometricPasswordIfAllowed: jest.fn().mockResolvedValue(null),
 }));
 
 // Mock StorageWrapper - necessary for testing without real storage operations
@@ -152,6 +156,19 @@ describe('RevealPrivateCredential', () => {
         <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
       </Provider>,
     );
+
+  const renderWithProvidersPasswordSet = (ui: React.ReactNode) => {
+    const storeWithPasswordSet = mockStore({
+      ...initialState,
+      user: { ...initialState.user, passwordSet: true },
+    });
+
+    return render(
+      <Provider store={storeWithPasswordSet}>
+        <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
+      </Provider>,
+    );
+  };
 
   it('renders reveal SRP correctly when the credential is directly passed', () => {
     const { toJSON } = renderWithProviders(
@@ -358,6 +375,44 @@ describe('RevealPrivateCredential', () => {
       />,
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('uses biometric password when available and password is set', async () => {
+    const mockedUseSelector = useSelector as jest.Mock;
+    mockedUseSelector
+      .mockImplementationOnce(() => '0x1234')
+      .mockImplementationOnce(() => true);
+
+    const mockGetType = jest.spyOn(Authentication, 'getType');
+    mockGetType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+    });
+
+    const mockGetBiometricPasswordIfAllowed = jest.spyOn(
+      Authentication,
+      'getBiometricPasswordIfAllowed',
+    );
+    mockGetBiometricPasswordIfAllowed.mockResolvedValueOnce('biometric-pass');
+
+    renderWithProvidersPasswordSet(
+      <RevealPrivateCredential
+        route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
+          params: {
+            credentialName: SRP_CREDENTIAL,
+          },
+        }}
+        navigation={null}
+        cancel={() => null}
+        credentialName={SRP_CREDENTIAL}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockGetBiometricPasswordIfAllowed).toHaveBeenCalled();
+    });
   });
 
   it('renders TabView when unlocked', async () => {
