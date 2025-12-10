@@ -2189,11 +2189,7 @@ export class PerpsController extends BaseController<
     const versionAtStart = this.blockedRegionListVersion;
 
     try {
-      console.log('PerpsController: Refreshing eligibility', {
-        version: versionAtStart,
-        source: this.blockedRegionList.source,
-      });
-
+      // TODO: It would be good to have this location before we call this async function to avoid the race condition
       const isEligible = await EligibilityService.checkEligibility(
         this.blockedRegionList.list,
       );
@@ -2202,18 +2198,8 @@ export class PerpsController extends BaseController<
       // This prevents stale fallback-based eligibility checks from overwriting
       // results from remote-based checks.
       if (this.blockedRegionListVersion !== versionAtStart) {
-        console.log('PerpsController: Skipping stale eligibility update', {
-          versionAtStart,
-          currentVersion: this.blockedRegionListVersion,
-          wouldHaveSet: isEligible,
-        });
         return;
       }
-
-      console.log('PerpsController: Updating eligibility', {
-        isEligible,
-        version: versionAtStart,
-      });
 
       this.update((state) => {
         state.isEligible = isEligible;
