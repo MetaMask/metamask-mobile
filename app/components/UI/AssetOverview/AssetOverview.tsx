@@ -100,6 +100,7 @@ import { selectTronResourcesBySelectedAccountGroup } from '../../../selectors/as
 import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
 ///: END:ONLY_INCLUDE_IF
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -171,7 +172,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
-
+  const rampsButtonClickData = useRampsButtonClickData();
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
     address: currentAddress,
@@ -340,18 +341,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    goToBuy({ assetId });
-
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
+          ramp_type: 'BUY',
           region: rampGeodetectedRegion,
+          ramp_routing: rampsButtonClickData.ramp_routing,
+          is_authenticated: rampsButtonClickData.is_authenticated,
+          preferred_provider: rampsButtonClickData.preferred_provider,
+          order_count: rampsButtonClickData.order_count,
         })
         .build(),
     );
+
+    goToBuy({ assetId });
   };
 
   const goToBrowserUrl = (url: string) => {

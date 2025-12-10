@@ -47,6 +47,14 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
+  get maxLink(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.MAX);
+  }
+
+  get includedLabel(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
+  }
+
   token(chainId: string, symbol: string): Detox.NativeElement {
     const elementId = `asset-${chainId}-${symbol}`;
     return element(by.id(elementId)).atIndex(0);
@@ -147,6 +155,12 @@ class QuoteView {
   async tapOnCancelButton() {
     await Gestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel swap',
+    });
+  }
+
+  async tapMax(): Promise<void> {
+    await Gestures.waitAndTap(this.maxLink, {
+      elemDescription: 'Tap Max link to use maximum balance',
     });
   }
 }
