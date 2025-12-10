@@ -419,7 +419,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -442,7 +442,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -821,7 +821,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -835,7 +835,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -850,7 +850,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -875,7 +875,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                               {
                                                 "color": "#686e7d",
                                                 "flexShrink": 1,
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -916,7 +916,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1010,7 +1010,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -1040,7 +1040,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -1070,7 +1070,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -1100,7 +1100,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -1130,7 +1130,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -1160,7 +1160,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -1278,7 +1278,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -1391,7 +1391,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -1504,7 +1504,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -1536,7 +1536,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -1733,7 +1733,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1748,7 +1748,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -1792,7 +1792,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1827,7 +1827,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1882,7 +1882,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                       [
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -1911,7 +1911,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -2107,7 +2107,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2130,7 +2130,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -2509,7 +2509,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -2523,7 +2523,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -2538,7 +2538,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -2563,7 +2563,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                               {
                                                 "color": "#686e7d",
                                                 "flexShrink": 1,
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2604,7 +2604,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2698,7 +2698,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -2728,7 +2728,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -2758,7 +2758,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -2788,7 +2788,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -2818,7 +2818,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -2848,7 +2848,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -2966,7 +2966,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -3079,7 +3079,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -3192,7 +3192,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -3224,7 +3224,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -3390,7 +3390,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3405,7 +3405,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -3449,7 +3449,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3486,7 +3486,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -3513,7 +3513,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                                   style={
                                                     {
                                                       "color": "#4459ff",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -3556,7 +3556,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3611,7 +3611,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                       [
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -3640,7 +3640,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -3836,7 +3836,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3859,7 +3859,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -4238,7 +4238,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -4252,7 +4252,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -4267,7 +4267,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -4292,7 +4292,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               {
                                                 "color": "#686e7d",
                                                 "flexShrink": 1,
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -4333,7 +4333,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -4427,7 +4427,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -4457,7 +4457,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -4487,7 +4487,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -4517,7 +4517,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -4547,7 +4547,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -4577,7 +4577,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -4695,7 +4695,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -4808,7 +4808,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -4921,7 +4921,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -4953,7 +4953,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -5150,7 +5150,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5165,7 +5165,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -5209,7 +5209,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -5244,7 +5244,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -5299,7 +5299,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                       [
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -5328,7 +5328,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -5524,7 +5524,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -5547,7 +5547,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -5926,7 +5926,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -5940,7 +5940,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -5955,7 +5955,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -5980,7 +5980,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               {
                                                 "color": "#686e7d",
                                                 "flexShrink": 1,
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -6021,7 +6021,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6115,7 +6115,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -6145,7 +6145,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -6175,7 +6175,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -6205,7 +6205,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -6235,7 +6235,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -6265,7 +6265,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -6383,7 +6383,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -6496,7 +6496,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -6609,7 +6609,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -6641,7 +6641,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -6838,7 +6838,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6853,7 +6853,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -6897,7 +6897,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -6932,7 +6932,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -6987,7 +6987,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                       [
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -7016,7 +7016,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -7212,7 +7212,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -7235,7 +7235,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -7614,7 +7614,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -7628,7 +7628,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -7643,7 +7643,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -7668,7 +7668,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               {
                                                 "color": "#686e7d",
                                                 "flexShrink": 1,
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -7709,7 +7709,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7803,7 +7803,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -7833,7 +7833,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -7863,7 +7863,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -7893,7 +7893,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -7923,7 +7923,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -7953,7 +7953,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -8071,7 +8071,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -8184,7 +8184,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -8297,7 +8297,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -8329,7 +8329,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -8495,7 +8495,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -8510,7 +8510,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -8554,7 +8554,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -8591,7 +8591,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -8618,7 +8618,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   style={
                                                     {
                                                       "color": "#4459ff",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
@@ -8661,7 +8661,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -8716,7 +8716,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                       [
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -8745,7 +8745,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -8941,7 +8941,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -8964,7 +8964,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -9343,7 +9343,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -9357,7 +9357,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -9372,7 +9372,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -9397,7 +9397,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               {
                                                 "color": "#686e7d",
                                                 "flexShrink": 1,
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -9438,7 +9438,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -9532,7 +9532,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -9562,7 +9562,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -9592,7 +9592,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -9622,7 +9622,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -9652,7 +9652,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -9682,7 +9682,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -9800,7 +9800,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -9913,7 +9913,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -10026,7 +10026,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -10058,7 +10058,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -10255,7 +10255,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -10270,7 +10270,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -10314,7 +10314,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -10349,7 +10349,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -10404,7 +10404,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                       [
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -10433,7 +10433,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -10629,7 +10629,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -10652,7 +10652,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -11160,7 +11160,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -11183,7 +11183,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -11562,7 +11562,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -11576,7 +11576,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -11591,7 +11591,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -11616,7 +11616,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               {
                                                 "color": "#686e7d",
                                                 "flexShrink": 1,
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -11657,7 +11657,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -11751,7 +11751,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -11781,7 +11781,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -11811,7 +11811,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -11841,7 +11841,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -11871,7 +11871,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -11901,7 +11901,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -12019,7 +12019,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -12132,7 +12132,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -12245,7 +12245,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -12277,7 +12277,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -12474,7 +12474,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -12489,7 +12489,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -12533,7 +12533,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -12568,7 +12568,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -12623,7 +12623,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                       [
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -12652,7 +12652,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -12848,7 +12848,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -12871,7 +12871,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -13250,7 +13250,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -13264,7 +13264,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 24,
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
@@ -13279,7 +13279,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Regular",
+                                            "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -13304,7 +13304,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               {
                                                 "color": "#686e7d",
                                                 "flexShrink": 1,
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -13345,7 +13345,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -13439,7 +13439,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -13469,7 +13469,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -13499,7 +13499,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -13529,7 +13529,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -13559,7 +13559,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -13589,7 +13589,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 3,
                                               "lineHeight": 22,
@@ -13707,7 +13707,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -13820,7 +13820,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -13933,7 +13933,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   {
                                                     "color": "#121314",
                                                     "flexShrink": 0,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
@@ -13965,7 +13965,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -14162,7 +14162,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -14177,7 +14177,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -14221,7 +14221,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -14256,7 +14256,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -14311,7 +14311,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                       [
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -14340,7 +14340,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -14536,7 +14536,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -14559,7 +14559,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
                       "lineHeight": 22,

@@ -17,6 +17,7 @@ import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
+import { expect } from 'appwright';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -72,9 +73,17 @@ export async function dissmissPredictionsModal(device) {
     device,
     'predict-gtm-not-now-button',
   );
-  if (await notNowPredictionsModalButton.isVisible({ timeout: 5000 })) {
+  if (await notNowPredictionsModalButton.isVisible({ timeout: 10000 })) {
     await AppwrightGestures.tap(notNowPredictionsModalButton);
   }
+}
+
+export async function checkPredictionsModalIsVisible(device) {
+  const notNowPredictionsModalButton = await AppwrightSelectors.getElementByID(
+    device,
+    'predict-gtm-not-now-button',
+  );
+  await expect(notNowPredictionsModalButton).toBeVisible({ timeout: 10000 });
 }
 
 export async function importSRPFlow(device, srp, dismissModals = true) {
@@ -131,13 +140,13 @@ export async function login(device, options = {}) {
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  // Wait for app to settle after unlock
-
+  await new Promise((resolve) => setTimeout(resolve, 5000)); // workaround for notification modal to appear
   if (dismissModals) {
     await dismissMultichainAccountsIntroModal(device);
     await dissmissPredictionsModal(device);
   }
 }
+
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;
   const container = await PerpsGTMModal.container;
