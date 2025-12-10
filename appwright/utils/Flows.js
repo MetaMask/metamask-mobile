@@ -144,8 +144,8 @@ export async function login(device, options = {}) {
     await dismissMultichainAccountsIntroModal(device);
     await dissmissPredictionsModal(device);
   }
-  await device.pause();
 }
+
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;
   const container = await PerpsGTMModal.container;
