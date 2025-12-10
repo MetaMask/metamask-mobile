@@ -1,7 +1,7 @@
 import { usePna25BottomSheet } from './usePna25BottomSheet';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import Routes from '../../constants/navigation/Routes';
-import { selectShouldShowPna25Toast } from '../../selectors/legalNotices';
+import { selectShouldShowPna25Notice } from '../../selectors/legalNotices';
 import { STORE_PNA25_ACKNOWLEDGED } from '../../actions/legalNotices';
 
 // Mock the navigation
@@ -22,12 +22,12 @@ jest.mock('react-redux', () => ({
 
 // Mock the selector
 jest.mock('../../selectors/legalNotices', () => ({
-  selectShouldShowPna25Toast: jest.fn(),
+  selectShouldShowPna25Notice: jest.fn(),
 }));
 
-const mockSelectShouldShowPna25Toast =
-  selectShouldShowPna25Toast as jest.MockedFunction<
-    typeof selectShouldShowPna25Toast
+const mockselectShouldShowPna25Notice =
+  selectShouldShowPna25Notice as jest.MockedFunction<
+    typeof selectShouldShowPna25Notice
   >;
 
 describe('usePna25BottomSheet', () => {
@@ -36,7 +36,7 @@ describe('usePna25BottomSheet', () => {
   });
 
   it('navigates and dispatches acknowledgement when should show PNA25 is true', async () => {
-    mockSelectShouldShowPna25Toast.mockReturnValue(true);
+    mockselectShouldShowPna25Notice.mockReturnValue(true);
 
     renderHookWithProvider(() => usePna25BottomSheet());
 
@@ -51,7 +51,7 @@ describe('usePna25BottomSheet', () => {
   });
 
   it('does not navigate or dispatch when should show PNA25 is false', async () => {
-    mockSelectShouldShowPna25Toast.mockReturnValue(false);
+    mockselectShouldShowPna25Notice.mockReturnValue(false);
 
     renderHookWithProvider(() => usePna25BottomSheet());
 

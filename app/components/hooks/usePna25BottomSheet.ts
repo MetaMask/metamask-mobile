@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectShouldShowPna25Toast } from '../../selectors/legalNotices';
+import { selectShouldShowPna25Notice } from '../../selectors/legalNotices';
 import { storePna25Acknowledged } from '../../actions/legalNotices';
 import Routes from '../../constants/navigation/Routes';
 
@@ -19,7 +19,7 @@ const isE2ETest =
 export const usePna25BottomSheet = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const shouldShowPna25 = useSelector(selectShouldShowPna25Toast);
+  const shouldShowPna25 = useSelector(selectShouldShowPna25Notice);
 
   const checkAndShowPna25BottomSheet = useCallback(() => {
     if (shouldShowPna25 && !isE2ETest) {
