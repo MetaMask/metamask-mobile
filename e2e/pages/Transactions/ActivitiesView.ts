@@ -127,6 +127,7 @@ class ActivitiesView {
     // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
     await Gestures.swipe(this.tabsBar, 'left', {
       percentage: 0.5,
+      speed: 'slow',
       elemDescription: 'Activity View Tabs Bar',
     });
     await Gestures.waitAndTap(this.predictionsTab, {
