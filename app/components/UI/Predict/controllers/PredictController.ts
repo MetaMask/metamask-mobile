@@ -2116,7 +2116,7 @@ export class PredictController extends BaseController<
         newParams,
         networkClientId,
       );
-      updatedGas = estimateResult.gas;
+      updatedGas = estimateResult.gas as Hex;
     } catch (error) {
       // Log the error but continue - we'll use the original gas values
       DevLogger.log(
