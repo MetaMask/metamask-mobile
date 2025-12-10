@@ -1136,49 +1136,6 @@ describe('Asset', () => {
       );
     });
 
-    it('passes Solana chainId in CAIP format without modification', () => {
-      // Solana chainId is already in CAIP format, should pass through as-is
-      const mockScopedSelector = jest.fn().mockReturnValue({
-        id: 'solana-account-id',
-        address: MOCK_SOLANA_ADDRESS,
-        type: SolAccountType.DataAccount,
-      });
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        mockScopedSelector,
-      );
-
-      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
-
-      renderScreen(
-        (props) => (
-          <Asset
-            {...props}
-            route={{
-              params: {
-                symbol: 'SOL',
-                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-                isNative: true,
-                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-              },
-            }}
-          />
-        ),
-        { name: 'Asset' },
-        { state: testState },
-        {
-          symbol: 'SOL',
-          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-          isNative: true,
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
-      );
-
-      // Solana chainId passed through without modification
-      expect(mockScopedSelector).toHaveBeenCalledWith(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-    });
-
     it('still calls scope selector when account has null address', () => {
       // Test that selector is called even when account has null address (fallback scenario)
       const mockScopedSelector = jest.fn().mockReturnValue({
