@@ -1354,7 +1354,6 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),
   storePrivacyPolicyClickedOrClosed: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  storePna25Acknowledged: () => dispatch(storePna25AcknowledgedAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
