@@ -8,36 +8,33 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
       {
         "display": "flex",
         "overflow": "hidden",
-        "paddingLeft": 16,
-        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
     ]
   }
 >
-  <View
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexDirection": "row",
+        "gap": 24,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
+    }
+    horizontal={true}
+    onContentSizeChange={[Function]}
+    scrollEnabled={false}
+    scrollsToTop={false}
+    showsHorizontalScrollIndicator={false}
     style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 24,
-          "position": "relative",
-        },
-        undefined,
-      ]
+      {
+        "flexGrow": 0,
+      }
     }
   >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
+    <View>
       <View
         accessibilityState={
           {
@@ -72,6 +69,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -131,16 +129,25 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
         >
           Tab 1
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 1,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -175,6 +182,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -234,16 +242,25 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
         >
           Tab 2
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -278,6 +295,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -337,9 +355,27 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
         >
           Tab 3
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
     </View>
-  </View>
+  </RCTScrollView>
 </View>
 `;
 
@@ -351,36 +387,33 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
-        "paddingLeft": 16,
-        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
     ]
   }
 >
-  <View
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexDirection": "row",
+        "gap": 24,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
+    }
+    horizontal={true}
+    onContentSizeChange={[Function]}
+    scrollEnabled={false}
+    scrollsToTop={false}
+    showsHorizontalScrollIndicator={false}
     style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 24,
-          "position": "relative",
-        },
-        undefined,
-      ]
+      {
+        "flexGrow": 0,
+      }
     }
   >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
+    <View>
       <View
         accessibilityState={
           {
@@ -415,6 +448,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -474,16 +508,25 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
         >
           Tab 1
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -518,6 +561,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -577,16 +621,25 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
         >
           Tab 2
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -621,6 +674,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -680,9 +734,27 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
         >
           Tab 3
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
     </View>
-  </View>
+  </RCTScrollView>
 </View>
 `;
 
@@ -694,36 +766,33 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
-        "paddingLeft": 16,
-        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
     ]
   }
 >
-  <View
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexDirection": "row",
+        "gap": 24,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
+    }
+    horizontal={true}
+    onContentSizeChange={[Function]}
+    scrollEnabled={false}
+    scrollsToTop={false}
+    showsHorizontalScrollIndicator={false}
     style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 24,
-          "position": "relative",
-        },
-        undefined,
-      ]
+      {
+        "flexGrow": 0,
+      }
     }
   >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
+    <View>
       <View
         accessibilityState={
           {
@@ -758,6 +827,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -817,16 +887,25 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
         >
           Tab 1
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -861,6 +940,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -920,16 +1000,25 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
         >
           Tab 2
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -964,6 +1053,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -1023,9 +1113,27 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
         >
           Tab 3
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
     </View>
-  </View>
+  </RCTScrollView>
 </View>
 `;
 
@@ -1037,36 +1145,33 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
       {
         "display": "flex",
         "overflow": "hidden",
-        "paddingLeft": 16,
-        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
     ]
   }
 >
-  <View
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexDirection": "row",
+        "gap": 24,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
+    }
+    horizontal={true}
+    onContentSizeChange={[Function]}
+    scrollEnabled={false}
+    scrollsToTop={false}
+    showsHorizontalScrollIndicator={false}
     style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 24,
-          "position": "relative",
-        },
-        undefined,
-      ]
+      {
+        "flexGrow": 0,
+      }
     }
   >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
+    <View>
       <View
         accessibilityState={
           {
@@ -1101,6 +1206,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "opacity": 0.5,
             "paddingBottom": 4,
@@ -1161,16 +1267,25 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
         >
           Tab 1
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -1205,6 +1320,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "opacity": 0.5,
             "paddingBottom": 4,
@@ -1265,16 +1381,25 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
         >
           Tab 2
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -1309,6 +1434,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "opacity": 0.5,
             "paddingBottom": 4,
@@ -1369,9 +1495,27 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
         >
           Tab 3
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
     </View>
-  </View>
+  </RCTScrollView>
 </View>
 `;
 
@@ -1383,36 +1527,33 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
       {
         "display": "flex",
         "overflow": "hidden",
-        "paddingLeft": 16,
-        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
     ]
   }
 >
-  <View
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexDirection": "row",
+        "gap": 24,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
+    }
+    horizontal={true}
+    onContentSizeChange={[Function]}
+    scrollEnabled={false}
+    scrollsToTop={false}
+    showsHorizontalScrollIndicator={false}
     style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 24,
-          "position": "relative",
-        },
-        undefined,
-      ]
+      {
+        "flexGrow": 0,
+      }
     }
   >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
+    <View>
       <View
         accessibilityState={
           {
@@ -1447,6 +1588,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -1506,16 +1648,25 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
         >
           Tab 1
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 1,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -1550,6 +1701,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "opacity": 0.5,
             "paddingBottom": 4,
@@ -1610,16 +1762,25 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
         >
           Tab 2
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -1654,6 +1815,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -1713,9 +1875,27 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
         >
           Tab 3
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
     </View>
-  </View>
+  </RCTScrollView>
 </View>
 `;
 
@@ -1727,28 +1907,34 @@ exports[`TabsBar Rendering handles empty tabs array gracefully 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
-        "paddingLeft": 16,
-        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
     ]
   }
 >
-  <View
-    style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 24,
-          "position": "relative",
-        },
-        undefined,
-      ]
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexDirection": "row",
+        "gap": 24,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
     }
-  />
+    horizontal={true}
+    onContentSizeChange={[Function]}
+    scrollEnabled={false}
+    scrollsToTop={false}
+    showsHorizontalScrollIndicator={false}
+    style={
+      {
+        "flexGrow": 0,
+      }
+    }
+  >
+    <View />
+  </RCTScrollView>
 </View>
 `;
 
@@ -1760,36 +1946,33 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
-        "paddingLeft": 16,
-        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
     ]
   }
 >
-  <View
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexDirection": "row",
+        "gap": 24,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
+    }
+    horizontal={true}
+    onContentSizeChange={[Function]}
+    scrollEnabled={false}
+    scrollsToTop={false}
+    showsHorizontalScrollIndicator={false}
     style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 24,
-          "position": "relative",
-        },
-        undefined,
-      ]
+      {
+        "flexGrow": 0,
+      }
     }
   >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
+    <View>
       <View
         accessibilityState={
           {
@@ -1824,6 +2007,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -1883,16 +2067,25 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
         >
           Tab 1
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 1,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -1927,6 +2120,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -1986,16 +2180,25 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
         >
           Tab 2
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -2030,6 +2233,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -2089,9 +2293,27 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
         >
           Tab 3
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
     </View>
-  </View>
+  </RCTScrollView>
 </View>
 `;
 
@@ -2103,36 +2325,33 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
-        "paddingLeft": 16,
-        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
     ]
   }
 >
-  <View
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexDirection": "row",
+        "gap": 24,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
+    }
+    horizontal={true}
+    onContentSizeChange={[Function]}
+    scrollEnabled={false}
+    scrollsToTop={false}
+    showsHorizontalScrollIndicator={false}
     style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 24,
-          "position": "relative",
-        },
-        undefined,
-      ]
+      {
+        "flexGrow": 0,
+      }
     }
   >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
+    <View>
       <View
         accessibilityState={
           {
@@ -2167,6 +2386,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -2226,16 +2446,25 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
         >
           Tab 1
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 1,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -2270,6 +2499,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -2329,16 +2559,25 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
         >
           Tab 2
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
-    </View>
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "flexShrink": 0,
-        }
-      }
-    >
       <View
         accessibilityState={
           {
@@ -2373,6 +2612,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "flexShrink": 0,
             "justifyContent": "center",
             "paddingBottom": 4,
             "paddingLeft": 0,
@@ -2432,8 +2672,26 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
         >
           Tab 3
         </Text>
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#121314",
+              "bottom": 0,
+              "height": 2,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "transform": [
+                {
+                  "scaleX": 0,
+                },
+              ],
+            }
+          }
+        />
       </View>
     </View>
-  </View>
+  </RCTScrollView>
 </View>
 `;

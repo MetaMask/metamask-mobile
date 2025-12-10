@@ -13,7 +13,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { InteractionManager } from 'react-native';
 
-import TabsBar from '../TabsBar';
+import TabsBar, { TabsBarRef } from '../TabsBar';
 import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
@@ -32,6 +32,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
     const [loadedTabs, setLoadedTabs] = useState<Set<number>>(new Set());
     const interactionHandleRef = useRef<{ cancel: () => void } | null>(null);
+    const tabsBarRef = useRef<TabsBarRef>(null);
 
     const tabs: TabItem[] = useMemo(
       () =>
@@ -154,20 +155,20 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     const goToPreviousTab = useCallback(() => {
-      // Iterate backwards to find the next enabled tab
       for (let i = activeIndex - 1; i >= 0; i--) {
         if (!tabs[i]?.isDisabled) {
           handleTabPress(i);
+          tabsBarRef.current?.scrollToTab(i);
           return;
         }
       }
     }, [activeIndex, tabs, handleTabPress]);
 
     const goToNextTab = useCallback(() => {
-      // Iterate forwards to find the next enabled tab
       for (let i = activeIndex + 1; i < tabs.length; i++) {
         if (!tabs[i]?.isDisabled) {
           handleTabPress(i);
+          tabsBarRef.current?.scrollToTab(i);
           return;
         }
       }
@@ -219,7 +220,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
     return (
       <Box twClassName="flex-1" testID={testID} {...boxProps}>
-        <TabsBar {...tabBarPropsComputed} />
+        <TabsBar ref={tabsBarRef} {...tabBarPropsComputed} />
 
         <GestureDetector gesture={swipeGesture}>
           <Box
