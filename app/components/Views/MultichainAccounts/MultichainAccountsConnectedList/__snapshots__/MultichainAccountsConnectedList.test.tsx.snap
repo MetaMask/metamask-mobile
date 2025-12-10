@@ -93,25 +93,13 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#4459ff1a",
+                    "backgroundColor": "#3c4d9d0f",
                     "flexDirection": "row",
                     "paddingHorizontal": 16,
                     "width": "100%",
                   }
                 }
               >
-                <View
-                  style={
-                    {
-                      "backgroundColor": "#4459ff",
-                      "borderRadius": 8,
-                      "height": 56,
-                      "marginLeft": -12,
-                      "marginRight": 8,
-                      "width": 4,
-                    }
-                  }
-                />
                 <View
                   style={
                     {
