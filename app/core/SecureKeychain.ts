@@ -194,7 +194,9 @@ const SecureKeychain = {
           AUTHENTICATION_TYPE.BIOMETRIC,
       });
     } else if (type === this.TYPES.PASSCODE) {
+      console.log('=== DEBUG === setGenericPassword triggered', password, type);
       authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
+      console.log('=== DEBUG === authOptions', authOptions.accessControl);
       await metrics.addTraitsToUser({
         [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
       });

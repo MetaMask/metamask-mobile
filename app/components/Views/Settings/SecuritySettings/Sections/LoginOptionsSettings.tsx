@@ -79,6 +79,10 @@ const LoginOptionsSettings = ({
     },
     [onSignWithPasscodeOptionUpdated],
   );
+  console.log('=== DEBUG === biometryType', biometryType);
+  console.log('=== DEBUG === biometryChoice', biometryChoice);
+  console.log('=== DEBUG === passcodeChoice', passcodeChoice);
+  console.log('=== DEBUG === Condition Toggle', biometryType && !biometryChoice);
 
   return (
     <View testID={LOGIN_OPTIONS}>

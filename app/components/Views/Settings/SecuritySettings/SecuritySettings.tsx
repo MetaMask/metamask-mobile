@@ -260,11 +260,13 @@ const Settings: React.FC = () => {
   ) => {
     try {
       await Authentication.resetPassword();
-
+      console.log('=== DEBUG === reset password & password:', password);
       await Engine.context.KeyringController.exportSeedPhrase(password);
-
+      console.log('=== DEBUG === export seed phrase');
       // Mark user as existing when they set up authentication
       dispatch(setExistingUser(true));
+
+      console.log('=== DEBUG === Enabled & Auth Choice', password, authChoice);
 
       if (!enabled) {
         setLoading(false);
@@ -279,6 +281,7 @@ const Settings: React.FC = () => {
       }
 
       try {
+        
         let authType;
         if (authChoice === BIOMETRY_CHOICE_STRING) {
           authType = AUTHENTICATION_TYPE.BIOMETRIC;
@@ -299,6 +302,7 @@ const Settings: React.FC = () => {
       }
       setLoading(false);
     } catch (e) {
+      console.log('=== DEBUG === error in storeCredentials', e);
       const errorWithMessage = e as { message: string };
       if (errorWithMessage.message === 'Invalid password') {
         Alert.alert(
@@ -318,20 +322,23 @@ const Settings: React.FC = () => {
   };
 
   const setPassword = async (enabled: boolean, passwordType: string) => {
+    console.log('=== DEBUG === setPassword triggered', enabled, passwordType);
     setLoading(true);
     let credentials;
     try {
       credentials = await Authentication.getPassword();
     } catch (error) {
+      console.log('=== DEBUG === error in setPassword', error);
       Logger.error(error as unknown as Error, {});
     }
-
+    console.log('=== DEBUG === credentials', credentials);
     if (credentials && credentials.password !== '') {
       storeCredentials(credentials.password, enabled, passwordType);
     } else {
       setLoading(false);
       navigation.navigate('EnterPasswordSimple', {
         onPasswordSet: (password: string) => {
+          console.log('=== DEBUG === onPasswordSet triggered', password);
           storeCredentials(password, enabled, passwordType);
         },
       });
@@ -339,6 +346,7 @@ const Settings: React.FC = () => {
   };
 
   const onSignInWithPasscode = async (enabled: boolean) => {
+    console.log('=== DEBUG === onSignInWithPasscode triggered', enabled);
     await setPassword(enabled, PASSCODE_CHOICE_STRING);
   };
 
