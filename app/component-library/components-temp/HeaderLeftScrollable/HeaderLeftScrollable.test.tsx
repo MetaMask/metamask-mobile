@@ -7,9 +7,9 @@ import { useSharedValue } from 'react-native-reanimated';
 import { IconName } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import HeaderScrollable from './HeaderScrollable';
-import useHeaderScrollable from './useHeaderScrollable';
-import { HeaderScrollableTestIds } from './HeaderScrollable.constants';
+import HeaderLeftScrollable from './HeaderLeftScrollable';
+import useHeaderLeftScrollable from './useHeaderLeftScrollable';
+import { HeaderLeftScrollableTestIds } from './HeaderLeftScrollable.constants';
 
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
@@ -35,7 +35,7 @@ const TestWrapper: React.FC<{
   return <>{children(scrollY)}</>;
 };
 
-describe('HeaderScrollable', () => {
+describe('HeaderLeftScrollable', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -45,7 +45,7 @@ describe('HeaderScrollable', () => {
       const { getByText } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable title="Test Title" scrollY={scrollY} />
+            <HeaderLeftScrollable title="Test Title" scrollY={scrollY} />
           )}
         </TestWrapper>,
       );
@@ -58,7 +58,7 @@ describe('HeaderScrollable', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable
+            <HeaderLeftScrollable
               title="Test Title"
               scrollY={scrollY}
               leftIcon={{
@@ -70,7 +70,7 @@ describe('HeaderScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId(HeaderScrollableTestIds.LEFT_ICON)).toBeTruthy();
+      expect(getByTestId(HeaderLeftScrollableTestIds.LEFT_ICON)).toBeTruthy();
     });
 
     it('renders with right icon button', () => {
@@ -78,7 +78,7 @@ describe('HeaderScrollable', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable
+            <HeaderLeftScrollable
               title="Test Title"
               scrollY={scrollY}
               rightIcon={{
@@ -90,7 +90,7 @@ describe('HeaderScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId(HeaderScrollableTestIds.RIGHT_ICON)).toBeTruthy();
+      expect(getByTestId(HeaderLeftScrollableTestIds.RIGHT_ICON)).toBeTruthy();
     });
 
     it('renders with both icon buttons', () => {
@@ -99,7 +99,7 @@ describe('HeaderScrollable', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable
+            <HeaderLeftScrollable
               title="Test Title"
               scrollY={scrollY}
               leftIcon={{
@@ -115,21 +115,21 @@ describe('HeaderScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId(HeaderScrollableTestIds.LEFT_ICON)).toBeTruthy();
-      expect(getByTestId(HeaderScrollableTestIds.RIGHT_ICON)).toBeTruthy();
+      expect(getByTestId(HeaderLeftScrollableTestIds.LEFT_ICON)).toBeTruthy();
+      expect(getByTestId(HeaderLeftScrollableTestIds.RIGHT_ICON)).toBeTruthy();
     });
 
     it('renders without icon buttons when not provided', () => {
       const { queryByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable title="Test Title" scrollY={scrollY} />
+            <HeaderLeftScrollable title="Test Title" scrollY={scrollY} />
           )}
         </TestWrapper>,
       );
 
-      expect(queryByTestId(HeaderScrollableTestIds.LEFT_ICON)).toBeNull();
-      expect(queryByTestId(HeaderScrollableTestIds.RIGHT_ICON)).toBeNull();
+      expect(queryByTestId(HeaderLeftScrollableTestIds.LEFT_ICON)).toBeNull();
+      expect(queryByTestId(HeaderLeftScrollableTestIds.RIGHT_ICON)).toBeNull();
     });
 
     it('renders with custom testID', () => {
@@ -137,7 +137,7 @@ describe('HeaderScrollable', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable
+            <HeaderLeftScrollable
               title="Test Title"
               scrollY={scrollY}
               testID={customTestId}
@@ -153,7 +153,7 @@ describe('HeaderScrollable', () => {
       const { getByText } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable
+            <HeaderLeftScrollable
               title="Test Title"
               scrollY={scrollY}
               largeHeaderContent={<>{`Custom Content`}</>}
@@ -169,36 +169,36 @@ describe('HeaderScrollable', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable title="Test Title" scrollY={scrollY} />
+            <HeaderLeftScrollable title="Test Title" scrollY={scrollY} />
           )}
         </TestWrapper>,
       );
 
-      expect(getByTestId(HeaderScrollableTestIds.TOOLBAR)).toBeTruthy();
+      expect(getByTestId(HeaderLeftScrollableTestIds.TOOLBAR)).toBeTruthy();
     });
 
     it('renders large content section', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable title="Test Title" scrollY={scrollY} />
+            <HeaderLeftScrollable title="Test Title" scrollY={scrollY} />
           )}
         </TestWrapper>,
       );
 
-      expect(getByTestId(HeaderScrollableTestIds.LARGE_CONTENT)).toBeTruthy();
+      expect(getByTestId(HeaderLeftScrollableTestIds.LARGE_CONTENT)).toBeTruthy();
     });
 
     it('renders compact title section', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable title="Test Title" scrollY={scrollY} />
+            <HeaderLeftScrollable title="Test Title" scrollY={scrollY} />
           )}
         </TestWrapper>,
       );
 
-      expect(getByTestId(HeaderScrollableTestIds.COMPACT_TITLE)).toBeTruthy();
+      expect(getByTestId(HeaderLeftScrollableTestIds.COMPACT_TITLE)).toBeTruthy();
     });
   });
 
@@ -207,7 +207,7 @@ describe('HeaderScrollable', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable
+            <HeaderLeftScrollable
               title="Test Title"
               scrollY={scrollY}
               collapseThreshold={60}
@@ -216,7 +216,7 @@ describe('HeaderScrollable', () => {
         </TestWrapper>,
       );
 
-      expect(getByTestId(HeaderScrollableTestIds.CONTAINER)).toBeTruthy();
+      expect(getByTestId(HeaderLeftScrollableTestIds.CONTAINER)).toBeTruthy();
     });
 
     it('uses custom testID for icon buttons when provided', () => {
@@ -225,7 +225,7 @@ describe('HeaderScrollable', () => {
       const { getByTestId } = render(
         <TestWrapper>
           {(scrollY) => (
-            <HeaderScrollable
+            <HeaderLeftScrollable
               title="Test Title"
               scrollY={scrollY}
               leftIcon={{
@@ -249,40 +249,40 @@ describe('HeaderScrollable', () => {
   });
 });
 
-describe('useHeaderScrollable', () => {
+describe('useHeaderLeftScrollable', () => {
   it('returns onScroll handler', () => {
-    const result = useHeaderScrollable();
+    const result = useHeaderLeftScrollable();
 
     expect(result.onScroll).toBeDefined();
   });
 
   it('returns scrollY shared value', () => {
-    const result = useHeaderScrollable();
+    const result = useHeaderLeftScrollable();
 
     expect(result.scrollY).toBeDefined();
     expect(result.scrollY.value).toBe(0);
   });
 
   it('returns expandedHeight', () => {
-    const result = useHeaderScrollable();
+    const result = useHeaderLeftScrollable();
 
     expect(result.expandedHeight).toBe(140);
   });
 
   it('returns headerHeight', () => {
-    const result = useHeaderScrollable();
+    const result = useHeaderLeftScrollable();
 
     expect(result.headerHeight).toBeDefined();
   });
 
   it('uses custom expandedHeight when provided', () => {
-    const result = useHeaderScrollable({ expandedHeight: 200 });
+    const result = useHeaderLeftScrollable({ expandedHeight: 200 });
 
     expect(result.expandedHeight).toBe(200);
   });
 
   it('uses default values when no options provided', () => {
-    const result = useHeaderScrollable();
+    const result = useHeaderLeftScrollable();
 
     expect(result.expandedHeight).toBe(140);
   });

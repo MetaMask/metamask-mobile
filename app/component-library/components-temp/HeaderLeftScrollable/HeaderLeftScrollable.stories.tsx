@@ -13,15 +13,15 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
-import HeaderScrollable from './HeaderScrollable';
-import useHeaderScrollable from './useHeaderScrollable';
+import HeaderLeftScrollable from './HeaderLeftScrollable';
+import useHeaderLeftScrollable from './useHeaderLeftScrollable';
 
-const HeaderScrollableMeta = {
-  title: 'Components Temp / HeaderScrollable',
-  component: HeaderScrollable,
+const HeaderLeftScrollableMeta = {
+  title: 'Components Temp / HeaderLeftScrollable',
+  component: HeaderLeftScrollable,
 };
 
-export default HeaderScrollableMeta;
+export default HeaderLeftScrollableMeta;
 
 // Helper component to generate sample content
 const SampleContent = ({ itemCount = 20 }: { itemCount?: number }) => (
@@ -44,11 +44,11 @@ const BasicExample = () => {
     onScroll,
     scrollY: scrollYValue,
     expandedHeight,
-  } = useHeaderScrollable();
+  } = useHeaderLeftScrollable();
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <HeaderScrollable
+      <HeaderLeftScrollable
         title="Notes"
         leftIcon={{
           iconName: IconName.ArrowLeft,
@@ -83,11 +83,11 @@ const LeftButtonOnlyExample = () => {
     onScroll,
     scrollY: scrollYValue,
     expandedHeight,
-  } = useHeaderScrollable();
+  } = useHeaderLeftScrollable();
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <HeaderScrollable
+      <HeaderLeftScrollable
         title="Settings"
         leftIcon={{
           iconName: IconName.ArrowLeft,
@@ -118,11 +118,11 @@ const RightButtonOnlyExample = () => {
     onScroll,
     scrollY: scrollYValue,
     expandedHeight,
-  } = useHeaderScrollable();
+  } = useHeaderLeftScrollable();
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <HeaderScrollable
+      <HeaderLeftScrollable
         title="Select Token"
         rightIcon={{
           iconName: IconName.Close,
@@ -153,7 +153,7 @@ const CustomLargeHeaderExample = () => {
     onScroll,
     scrollY: scrollYValue,
     expandedHeight,
-  } = useHeaderScrollable();
+  } = useHeaderLeftScrollable();
 
   const CustomLargeContent = (
     <Box>
@@ -164,7 +164,7 @@ const CustomLargeHeaderExample = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <HeaderScrollable
+      <HeaderLeftScrollable
         title="My Wallet"
         leftIcon={{
           iconName: IconName.ArrowLeft,
@@ -200,13 +200,13 @@ const FastCollapseExample = () => {
     onScroll,
     scrollY: scrollYValue,
     expandedHeight,
-  } = useHeaderScrollable({
+  } = useHeaderLeftScrollable({
     collapseThreshold: 60,
   });
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <HeaderScrollable
+      <HeaderLeftScrollable
         title="Fast Collapse"
         leftIcon={{
           iconName: IconName.ArrowLeft,
@@ -242,11 +242,11 @@ const TitleOnlyExample = () => {
     onScroll,
     scrollY: scrollYValue,
     expandedHeight,
-  } = useHeaderScrollable();
+  } = useHeaderLeftScrollable();
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <HeaderScrollable title="Welcome" scrollY={scrollYValue} />
+      <HeaderLeftScrollable title="Welcome" scrollY={scrollYValue} />
       <ScrollView
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -270,11 +270,11 @@ const DifferentIconsExample = () => {
     onScroll,
     scrollY: scrollYValue,
     expandedHeight,
-  } = useHeaderScrollable();
+  } = useHeaderLeftScrollable();
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <HeaderScrollable
+      <HeaderLeftScrollable
         title="Search"
         leftIcon={{
           iconName: IconName.Menu,
@@ -301,3 +301,4 @@ const DifferentIconsExample = () => {
 export const DifferentIcons = {
   render: () => <DifferentIconsExample />,
 };
+

@@ -5,27 +5,27 @@ import { useSharedValue } from 'react-native-reanimated';
 
 // Internal dependencies.
 import {
-  UseHeaderScrollableOptions,
-  UseHeaderScrollableReturn,
-} from './HeaderScrollable.types';
+  UseHeaderLeftScrollableOptions,
+  UseHeaderLeftScrollableReturn,
+} from './HeaderLeftScrollable.types';
 import {
   DEFAULT_EXPANDED_HEIGHT,
   DEFAULT_COLLAPSED_HEIGHT,
-} from './HeaderScrollable.constants';
+} from './HeaderLeftScrollable.constants';
 
 /**
- * Hook for managing HeaderScrollable scroll-linked animations.
+ * Hook for managing HeaderLeftScrollable scroll-linked animations.
  *
  * @param options - Configuration options for the hook.
  * @returns Object containing scroll handler, scrollY value, and header heights.
  *
  * @example
  * ```tsx
- * const { onScroll, scrollY, expandedHeight } = useHeaderScrollable();
+ * const { onScroll, scrollY, expandedHeight } = useHeaderLeftScrollable();
  *
  * return (
  *   <View>
- *     <HeaderScrollable scrollY={scrollY} title="Notes" />
+ *     <HeaderLeftScrollable scrollY={scrollY} title="Notes" />
  *     <ScrollView
  *       onScroll={onScroll}
  *       scrollEventThrottle={16}
@@ -37,9 +37,9 @@ import {
  * );
  * ```
  */
-const useHeaderScrollable = (
-  options: UseHeaderScrollableOptions = {},
-): UseHeaderScrollableReturn => {
+const useHeaderLeftScrollable = (
+  options: UseHeaderLeftScrollableOptions = {},
+): UseHeaderLeftScrollableReturn => {
   const {
     expandedHeight = DEFAULT_EXPANDED_HEIGHT,
     collapsedHeight = DEFAULT_COLLAPSED_HEIGHT,
@@ -67,4 +67,5 @@ const useHeaderScrollable = (
   };
 };
 
-export default useHeaderScrollable;
+export default useHeaderLeftScrollable;
+

@@ -8,7 +8,7 @@ import { IconName } from '@metamask/design-system-react-native';
 /**
  * Configuration for an icon button in the header toolbar.
  */
-export interface HeaderScrollableIconConfig {
+export interface HeaderLeftScrollableIconConfig {
   /**
    * Icon name from the design system.
    */
@@ -24,9 +24,9 @@ export interface HeaderScrollableIconConfig {
 }
 
 /**
- * Props for the HeaderScrollable component.
+ * Props for the HeaderLeftScrollable component.
  */
-export interface HeaderScrollableProps {
+export interface HeaderLeftScrollableProps {
   /**
    * Title text displayed in both large and compact states.
    */
@@ -34,11 +34,11 @@ export interface HeaderScrollableProps {
   /**
    * Optional left icon button configuration (e.g., back button).
    */
-  leftIcon?: HeaderScrollableIconConfig;
+  leftIcon?: HeaderLeftScrollableIconConfig;
   /**
    * Optional right icon button configuration (e.g., close button).
    */
-  rightIcon?: HeaderScrollableIconConfig;
+  rightIcon?: HeaderLeftScrollableIconConfig;
   /**
    * Optional custom content for the large header state.
    * When provided, replaces the default large title.
@@ -51,7 +51,7 @@ export interface HeaderScrollableProps {
   collapseThreshold?: number;
   /**
    * Reanimated shared value tracking scroll position.
-   * Obtained from useHeaderScrollable hook.
+   * Obtained from useHeaderLeftScrollable hook.
    */
   scrollY: SharedValue<number>;
   /**
@@ -61,9 +61,9 @@ export interface HeaderScrollableProps {
 }
 
 /**
- * Options for the useHeaderScrollable hook.
+ * Options for the useHeaderLeftScrollable hook.
  */
-export interface UseHeaderScrollableOptions {
+export interface UseHeaderLeftScrollableOptions {
   /**
    * Height of the header in its expanded (large) state.
    * @default 140
@@ -82,9 +82,9 @@ export interface UseHeaderScrollableOptions {
 }
 
 /**
- * Return type for the useHeaderScrollable hook.
+ * Return type for the useHeaderLeftScrollable hook.
  */
-export interface UseHeaderScrollableReturn {
+export interface UseHeaderLeftScrollableReturn {
   /**
    * Scroll handler to attach to ScrollView's onScroll prop.
    */
@@ -111,3 +111,4 @@ export interface UseHeaderScrollableReturn {
    */
   collapseThreshold: number;
 }
+

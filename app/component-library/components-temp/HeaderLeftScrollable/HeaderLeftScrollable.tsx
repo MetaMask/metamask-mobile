@@ -21,13 +21,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
-import { HeaderScrollableProps } from './HeaderScrollable.types';
+import { HeaderLeftScrollableProps } from './HeaderLeftScrollable.types';
 import {
   DEFAULT_EXPANDED_HEIGHT,
   DEFAULT_COLLAPSED_HEIGHT,
   TOOLBAR_HEIGHT,
-  HeaderScrollableTestIds,
-} from './HeaderScrollable.constants';
+  HeaderLeftScrollableTestIds,
+} from './HeaderLeftScrollable.constants';
 
 const styles = StyleSheet.create({
   absoluteContainer: {
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * HeaderScrollable is a collapsing header component that transitions between
+ * HeaderLeftScrollable is a collapsing header component that transitions between
  * a large expanded state and a compact sticky state based on scroll position.
  *
  * Uses Reanimated for performant scroll-linked animations.
@@ -48,11 +48,11 @@ const styles = StyleSheet.create({
  *
  * @example
  * ```tsx
- * const { onScroll, scrollY, expandedHeight } = useHeaderScrollable();
+ * const { onScroll, scrollY, expandedHeight } = useHeaderLeftScrollable();
  *
  * return (
  *   <View style={{ flex: 1 }}>
- *     <HeaderScrollable
+ *     <HeaderLeftScrollable
  *       title="Notes"
  *       leftIcon={{ iconName: IconName.ArrowLeft, onPress: handleBack }}
  *       rightIcon={{ iconName: IconName.Close, onPress: handleClose }}
@@ -69,14 +69,14 @@ const styles = StyleSheet.create({
  * );
  * ```
  */
-const HeaderScrollable: React.FC<HeaderScrollableProps> = ({
+const HeaderLeftScrollable: React.FC<HeaderLeftScrollableProps> = ({
   title,
   leftIcon,
   rightIcon,
   largeHeaderContent,
   collapseThreshold = DEFAULT_EXPANDED_HEIGHT,
   scrollY,
-  testID = HeaderScrollableTestIds.CONTAINER,
+  testID = HeaderLeftScrollableTestIds.CONTAINER,
 }) => {
   const tw = useTailwind();
 
@@ -166,7 +166,7 @@ const HeaderScrollable: React.FC<HeaderScrollableProps> = ({
           justifyContent={BoxJustifyContent.Between}
           twClassName="px-4"
           style={{ height: TOOLBAR_HEIGHT }}
-          testID={HeaderScrollableTestIds.TOOLBAR}
+          testID={HeaderLeftScrollableTestIds.TOOLBAR}
         >
           {/* Left icon button */}
           <Box twClassName="w-10 items-start">
@@ -175,7 +175,7 @@ const HeaderScrollable: React.FC<HeaderScrollableProps> = ({
                 iconName={leftIcon.iconName}
                 size={ButtonIconSize.Md}
                 onPress={leftIcon.onPress}
-                testID={leftIcon.testID ?? HeaderScrollableTestIds.LEFT_ICON}
+                testID={leftIcon.testID ?? HeaderLeftScrollableTestIds.LEFT_ICON}
               />
             )}
           </Box>
@@ -183,7 +183,7 @@ const HeaderScrollable: React.FC<HeaderScrollableProps> = ({
           {/* Compact title (center) - fades in when collapsed */}
           <Animated.View
             style={[tw.style('flex-1 items-center'), compactTitleAnimatedStyle]}
-            testID={HeaderScrollableTestIds.COMPACT_TITLE}
+            testID={HeaderLeftScrollableTestIds.COMPACT_TITLE}
           >
             <Text variant={TextVariant.HeadingSm} numberOfLines={1}>
               {title}
@@ -197,7 +197,7 @@ const HeaderScrollable: React.FC<HeaderScrollableProps> = ({
                 iconName={rightIcon.iconName}
                 size={ButtonIconSize.Md}
                 onPress={rightIcon.onPress}
-                testID={rightIcon.testID ?? HeaderScrollableTestIds.RIGHT_ICON}
+                testID={rightIcon.testID ?? HeaderLeftScrollableTestIds.RIGHT_ICON}
               />
             )}
           </Box>
@@ -206,12 +206,12 @@ const HeaderScrollable: React.FC<HeaderScrollableProps> = ({
         {/* Large header content - fades out when collapsed */}
         <Animated.View
           style={[tw.style('px-4 flex-1'), largeContentAnimatedStyle]}
-          testID={HeaderScrollableTestIds.LARGE_CONTENT}
+          testID={HeaderLeftScrollableTestIds.LARGE_CONTENT}
         >
           {largeHeaderContent ?? (
             <Text
               variant={TextVariant.HeadingLg}
-              testID={HeaderScrollableTestIds.LARGE_TITLE}
+              testID={HeaderLeftScrollableTestIds.LARGE_TITLE}
             >
               {title}
             </Text>
@@ -222,4 +222,5 @@ const HeaderScrollable: React.FC<HeaderScrollableProps> = ({
   );
 };
 
-export default HeaderScrollable;
+export default HeaderLeftScrollable;
+
