@@ -29,8 +29,8 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # lg runner: 16 vCPUs, 48GB RAM, 200GB disk (INFRA-3174)
-    timeout-minutes: 60 # Increased from 40 to provide headroom (lg has 50% fewer vCPUs than xl)
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl # xl runner: 32 vCPUs, 96GB RAM (needed for native builds)
+    timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v2 # Increment this to bust the cache (v1, v2, v3, etc.)
