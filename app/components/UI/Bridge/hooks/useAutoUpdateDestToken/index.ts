@@ -53,7 +53,7 @@ export const useAutoUpdateDestToken = () => {
             selectedDestToken.address,
             getNativeSourceToken(EthScope.Mainnet).address,
           ) ||
-          selectedDestToken.chainId !== EthScope.Mainnet
+          formatChainIdToCaip(selectedDestToken.chainId) !== EthScope.Mainnet
         ) {
           dispatch(setDestToken(getNativeSourceToken(EthScope.Mainnet)));
         }
