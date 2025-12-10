@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Linking, ScrollView } from 'react-native';
+import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -22,6 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
+import { storePna25Acknowledged } from '../../../actions/legalNotices';
 
 export enum Pna25BottomSheetAction {
   VIEWED = 'viewed',
@@ -32,13 +34,23 @@ export enum Pna25BottomSheetAction {
 }
 
 const Pna25BottomSheet = () => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const handleTrack = useCallback(
+  const handleAction = useCallback(
     (action: Pna25BottomSheetAction) => {
+      if (action !== Pna25BottomSheetAction.VIEWED) {
+        dispatch(storePna25Acknowledged());
+      }
+
+      // Don't emit events for the default close action to avoid double tracking
+      if (action === Pna25BottomSheetAction.LEAVE) {
+        return;
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED)
           .addProperties({
@@ -48,7 +60,7 @@ const Pna25BottomSheet = () => {
           .build(),
       );
     },
-    [trackEvent, createEventBuilder],
+    [dispatch, trackEvent, createEventBuilder],
   );
 
   const handleClose = () => {
@@ -61,18 +73,18 @@ const Pna25BottomSheet = () => {
 
   // Track bottom sheet display
   useEffect(() => {
-    handleTrack(Pna25BottomSheetAction.VIEWED);
-  }, [handleTrack]);
+    handleAction(Pna25BottomSheetAction.VIEWED);
+  }, [handleAction]);
 
   return (
     <BottomSheet
       ref={sheetRef}
       shouldNavigateBack
-      onClose={() => handleTrack(Pna25BottomSheetAction.LEAVE)}
+      onClose={() => handleAction(Pna25BottomSheetAction.LEAVE)}
     >
       <BottomSheetHeader
         onClose={() => {
-          handleTrack(Pna25BottomSheetAction.CLOSED);
+          handleAction(Pna25BottomSheetAction.CLOSED);
           handleClose();
         }}
         style={tw.style('pt-0 pb-0')}
@@ -110,7 +122,7 @@ const Pna25BottomSheet = () => {
             variant: ButtonVariants.Secondary,
             label: strings('privacy_policy.pna25_open_settings_button'),
             onPress: () => {
-              handleTrack(Pna25BottomSheetAction.OPEN_SETTINGS);
+              handleAction(Pna25BottomSheetAction.OPEN_SETTINGS);
               navigation.navigate(Routes.SETTINGS_VIEW, {
                 screen: Routes.SETTINGS.SECURITY_SETTINGS,
               });
@@ -120,7 +132,7 @@ const Pna25BottomSheet = () => {
             variant: ButtonVariants.Primary,
             label: strings('privacy_policy.pna25_confirm_button'),
             onPress: () => {
-              handleTrack(Pna25BottomSheetAction.ACCEPT_AND_CLOSE);
+              handleAction(Pna25BottomSheetAction.ACCEPT_AND_CLOSE);
               handleClose();
             },
           },

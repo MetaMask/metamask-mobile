@@ -10,6 +10,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn().mockReturnThis();
 const mockBuild = jest.fn().mockReturnValue({ mockEvent: true });
@@ -29,6 +30,12 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+// Mock Redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
 
 // Mock useMetrics hook
 jest.mock('../../hooks/useMetrics', () => ({
@@ -63,7 +70,7 @@ describe('Pna25BottomSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with all main elements', () => {
+  it('renders with all main elements', () => {
     const { getByText } = renderComponent();
 
     expect(getByText(strings('privacy_policy.pna25_title'))).toBeOnTheScreen();
@@ -103,6 +110,13 @@ describe('Pna25BottomSheet', () => {
     });
     expect(mockBuild).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
+  });
+
+  it('does not dispatch acknowledgement on view', () => {
+    renderComponent();
+
+    // Dispatch should NOT be called for VIEWED action
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('navigates to security settings when open settings button is pressed', () => {
@@ -152,6 +166,17 @@ describe('Pna25BottomSheet', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
   });
 
+  it('dispatches acknowledgement when confirm button is pressed', () => {
+    const { getByText } = renderComponent();
+    const confirmButton = getByText(
+      strings('privacy_policy.pna25_confirm_button'),
+    );
+
+    fireEvent.press(confirmButton);
+
+    expect(mockDispatch).toHaveBeenCalled();
+  });
+
   it('tracks "open settings" event when open settings button is pressed', () => {
     const { getByText } = renderComponent();
     const openSettingsButton = getByText(
@@ -169,5 +194,16 @@ describe('Pna25BottomSheet', () => {
     });
     expect(mockBuild).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
+  });
+
+  it('dispatches acknowledgement when open settings button is pressed', () => {
+    const { getByText } = renderComponent();
+    const openSettingsButton = getByText(
+      strings('privacy_policy.pna25_open_settings_button'),
+    );
+
+    fireEvent.press(openSettingsButton);
+
+    expect(mockDispatch).toHaveBeenCalled();
   });
 });

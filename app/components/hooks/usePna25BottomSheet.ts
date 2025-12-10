@@ -1,8 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectShouldShowPna25Notice } from '../../selectors/legalNotices';
-import { storePna25Acknowledged } from '../../actions/legalNotices';
 import Routes from '../../constants/navigation/Routes';
 
 const isE2ETest =
@@ -18,7 +17,6 @@ const isE2ETest =
  */
 export const usePna25BottomSheet = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const shouldShowPna25 = useSelector(selectShouldShowPna25Notice);
 
   const checkAndShowPna25BottomSheet = useCallback(() => {
@@ -26,10 +24,8 @@ export const usePna25BottomSheet = () => {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET,
       });
-      // Mark as acknowledged when showing the modal
-      dispatch(storePna25Acknowledged());
     }
-  }, [shouldShowPna25, navigation, dispatch]);
+  }, [shouldShowPna25, navigation]);
 
   useEffect(() => {
     checkAndShowPna25BottomSheet();
