@@ -285,7 +285,6 @@ async function handleUniversalLink({
         PREFIXES[ACTIONS.DAPP],
       );
       handleBrowserUrl({
-        deeplinkManager: instance,
         url: deeplinkUrl,
         callback: browserCallBack,
       });

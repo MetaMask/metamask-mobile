@@ -79,7 +79,7 @@ async function parseDeeplink({
       // Specific to the browser screen
       // For ex. navigate to a specific dapp
       case PROTOCOLS.DAPP:
-        handleDappUrl({ instance, handled, urlObj, browserCallBack });
+        handleDappUrl({ handled, urlObj, browserCallBack });
         break;
       default:
         return false;

@@ -153,7 +153,6 @@ describe('parseDeeplink', () => {
     });
 
     expect(mockHandleDappProtocol).toHaveBeenCalledWith({
-      instance,
       handled: expect.any(Function),
       urlObj,
       browserCallBack: mockBrowserCallBack,

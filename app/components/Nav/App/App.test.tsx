@@ -58,8 +58,13 @@ jest.mock('expo-sensors', () => ({
 }));
 
 jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
-  init: jest.fn(),
-  parse: jest.fn(),
+  __esModule: true,
+  SharedDeeplinkManager: {
+    getInstance: jest.fn(() => ({
+      parse: jest.fn(),
+    })),
+  },
+  default: jest.fn(),
 }));
 
 const mockIsWC2Enabled = true;
