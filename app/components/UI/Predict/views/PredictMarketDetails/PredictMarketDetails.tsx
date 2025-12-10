@@ -237,6 +237,26 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refreshOnFocus: false,
   });
 
+  // Keep balance status and open positions count in refs so analytics tracking
+  // does not re-run when these values change asynchronously.
+  const balanceStatusRef = useRef<string>(PredictEventValues.BALANCE.ZERO);
+  const openPositionsCountRef = useRef<number>(activePositions.length);
+
+  useEffect(() => {
+    if (typeof balance !== 'number' || Number.isNaN(balance)) {
+      return;
+    }
+
+    balanceStatusRef.current =
+      balance > 0
+        ? PredictEventValues.BALANCE.NON_ZERO
+        : PredictEventValues.BALANCE.ZERO;
+  }, [balance]);
+
+  useEffect(() => {
+    openPositionsCountRef.current = activePositions.length;
+  }, [activePositions.length]);
+
   const { winningOutcomeToken, losingOutcomeToken, resolutionStatus } =
     useMemo(() => {
       // early return if no market or outcomes
@@ -627,12 +647,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     (tabKey: TabKey) => {
       if (!market) return;
 
-      const openPositionsCount = activePositions.length;
-      const balanceStatus =
-        typeof balance === 'number' && !Number.isNaN(balance) && balance > 0
-          ? PredictEventValues.BALANCE.NON_ZERO
-          : PredictEventValues.BALANCE.ZERO;
-
       Engine.context.PredictController.trackMarketDetailsOpened({
         marketId: market.id,
         marketTitle: market.title,
@@ -640,11 +654,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         marketDetailsViewed: tabKey,
-        balance: balanceStatus,
-        openPositionsCount,
+        balance: balanceStatusRef.current,
+        openPositionsCount: openPositionsCountRef.current,
       });
     },
-    [market, entryPoint, balance, activePositions],
+    [market, entryPoint],
   );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
