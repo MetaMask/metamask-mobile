@@ -4,10 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import AssetOptions from './AssetOptions';
 
-import {
-  createProviderConfig,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
 import { TokenI } from '../../UI/Tokens/types';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Engine from '../../../core/Engine';
@@ -30,16 +26,6 @@ jest.mock('../../../selectors/networkController', () => ({
       chainId: '0x89',
       rpcEndpoints: [{ url: 'https://polygon.example.com' }],
       defaultRpcEndpointIndex: 0,
-    },
-  })),
-  createProviderConfig: jest.fn((networkConfig, rpcEndpoint) => ({
-    chainId: networkConfig.chainId,
-    rpcUrl: rpcEndpoint.url,
-    chainName: 'Example Chain',
-    nativeCurrency: {
-      name: 'Example Token',
-      symbol: 'EXAMPLE',
-      decimals: 18,
     },
   })),
 }));
@@ -103,16 +89,20 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../components/UI/Bridge/hooks/useLegacySwapsBlockExplorer',
-  () => ({
-    useLegacySwapsBlockExplorer: jest.fn(() => ({
-      baseUrl: 'https://example-explorer.com',
-      token: (address: string) =>
-        `https://example-explorer.com/token/${address}`,
-    })),
-  }),
+const mockGetBlockExplorerName = jest.fn(() => 'example-explorer.com');
+const mockGetBlockExplorerUrl = jest.fn(
+  (address: string) => `https://example-explorer.com/address/${address}`,
 );
+
+jest.mock('../../hooks/useBlockExplorer', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    getBlockExplorerName: mockGetBlockExplorerName,
+    getBlockExplorerUrl: mockGetBlockExplorerUrl,
+    toBlockExplorer: jest.fn(),
+    getEvmBlockExplorerUrl: jest.fn(),
+  })),
+}));
 
 const mockSelectInternalAccountByScope = jest.fn();
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
@@ -170,16 +160,6 @@ jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(() => '1'),
   selectProviderConfig: jest.fn(() => ({})),
   selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
-  createProviderConfig: jest.fn(() => ({
-    chainId: '1',
-    rpcUrl: 'https://example.com',
-    chainName: 'Example Chain',
-    nativeCurrency: {
-      name: 'Example Token',
-      symbol: 'EXAMPLE',
-      decimals: 18,
-    },
-  })),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
@@ -296,6 +276,8 @@ describe('AssetOptions Component', () => {
     (InAppBrowser.isAvailable as jest.Mock).mockClear();
     (InAppBrowser.open as jest.Mock).mockClear();
     mockTrackEvent.mockClear();
+    mockGetBlockExplorerName.mockClear();
+    mockGetBlockExplorerUrl.mockClear();
     if (mockRemoveNonEvmToken) {
       mockRemoveNonEvmToken.mockClear();
       mockRemoveNonEvmToken.mockResolvedValue(undefined);
@@ -358,7 +340,7 @@ describe('AssetOptions Component', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://example-explorer.com/token/0x123',
+          url: 'https://example-explorer.com/address/0x123',
           title: 'example-explorer.com',
         },
       });
@@ -385,7 +367,7 @@ describe('AssetOptions Component', () => {
     jest.runAllTimers();
     await waitFor(() => {
       expect(InAppBrowser.open).toHaveBeenCalledWith(
-        'https://example-explorer.com/token/0x123',
+        'https://example-explorer.com/address/0x123',
       );
     });
   });
@@ -432,23 +414,8 @@ describe('AssetOptions Component', () => {
   });
 
   describe('Portfolio and Network Configuration', () => {
-    const mockNetworkConfigurations = {
-      '0x1': {
-        chainId: '0x1',
-        rpcEndpoints: [{ url: 'https://mainnet.example.com' }],
-        defaultRpcEndpointIndex: 0,
-      },
-      '0x89': {
-        chainId: '0x89',
-        rpcEndpoints: [{ url: 'https://polygon.example.com' }],
-        defaultRpcEndpointIndex: 0,
-      },
-    };
-
     beforeEach(() => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectEvmNetworkConfigurationsByChainId)
-          return mockNetworkConfigurations;
         if (selector === selectAssetsBySelectedAccountGroup) return {};
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
@@ -456,8 +423,8 @@ describe('AssetOptions Component', () => {
       });
     });
 
-    it('should use correct provider config', () => {
-      render(
+    it('should render portfolio option for EVM tokens', () => {
+      const { getByText } = render(
         <AssetOptions
           route={{
             params: {
@@ -470,10 +437,7 @@ describe('AssetOptions Component', () => {
         />,
       );
 
-      expect(createProviderConfig).toHaveBeenCalledWith(
-        mockNetworkConfigurations['0x1'],
-        mockNetworkConfigurations['0x1'].rpcEndpoints[0],
-      );
+      expect(getByText('View on Portfolio')).toBeTruthy();
     });
   });
 
@@ -503,7 +467,7 @@ describe('AssetOptions Component', () => {
       expect(queryByText('Remove token')).not.toBeOnTheScreen();
     });
 
-    it('extracts token address from CAIP format for block explorer', async () => {
+    it('calls getBlockExplorerUrl for non-EVM token', async () => {
       mockIsNonEvmChainId.mockReturnValue(true);
       (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
@@ -524,13 +488,15 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       await waitFor(() => {
-        expect(InAppBrowser.open).toHaveBeenCalledWith(
-          'https://solana-explorer.com/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        // Verify that getBlockExplorerUrl was called with the token address
+        expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
+          mockNonEvmTokenAddress,
+          mockNonEvmChainId,
         );
       });
     });
 
-    it('navigates to base URL for wrapped SOL on block explorer', async () => {
+    it('calls getBlockExplorerUrl for wrapped SOL', async () => {
       mockIsNonEvmChainId.mockReturnValue(true);
       (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
@@ -551,8 +517,10 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       await waitFor(() => {
-        expect(InAppBrowser.open).toHaveBeenCalledWith(
-          'https://solana-explorer.com',
+        // Verify that getBlockExplorerUrl was called
+        expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
+          mockWrappedSolAddress,
+          mockNonEvmChainId,
         );
       });
     });
