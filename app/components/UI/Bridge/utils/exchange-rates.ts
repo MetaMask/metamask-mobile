@@ -37,7 +37,7 @@ export interface CalcTokenFiatValueParams {
 }
 
 /**
- * Calculates the fiat value of a token amount
+ * Calculates the fiat value of a token amount in the user's current currency
  * @returns The numeric fiat value (not formatted)
  */
 export const calcTokenFiatValue = ({
@@ -85,9 +85,12 @@ export const calcTokenFiatValue = ({
     );
   }
 
-  return token?.currencyExchangeRate && amount
-    ? Number(amount) * token?.currencyExchangeRate
-    : 0;
+  const currentCurrencyValue =
+    token?.currencyExchangeRate && amount
+      ? Number(amount) * token?.currencyExchangeRate
+      : 0;
+
+  return currentCurrencyValue;
 };
 
 interface GetDisplayCurrencyValueParams extends CalcTokenFiatValueParams {
