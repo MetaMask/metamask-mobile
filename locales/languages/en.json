@@ -7208,7 +7208,7 @@
       "description": "Failed to establish connection. Please try again."
     },
     "show_rejection": {
-      "title": "Connection Rejected",
+      "title": "Approval Rejected",
       "description": "User rejected the request."
     },
     "show_return_to_app": {
