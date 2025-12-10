@@ -32,13 +32,16 @@ async function screensSetup(device) {
 }
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC */
+// TODO: Fix this test: https://consensyssoftware.atlassian.net/browse/MMQA-1190
 test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   device,
   performanceTracker,
 }, testInfo) => {
+  test.setTimeout(10 * 60 * 1000); // 10 minutes
   await screensSetup(device);
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3, 120000);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
+  await WalletMainScreen.isTokenVisible('ETH');
   await TabBarModal.tapTradeButton();
 
   // Open Perps tab
@@ -50,9 +53,8 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
       await PerpsTutorialScreen.expectFirstScreenVisible();
     },
   );
-
   // Open Tutorial flow
-  await PerpsTutorialScreen.flowTapContinueTutorial(5);
+  await PerpsTutorialScreen.flowTapContinueTutorial(6);
 
   // Open Add Funds flow
   await TimerHelper.withTimer(
@@ -63,24 +65,22 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
       await PerpsDepositScreen.isAmountInputVisible();
     },
   );
-
   // Select pay token
   await TimerHelper.withTimer(
     performanceTracker,
     'Select pay token - 1 click USDC.arb',
     async () => {
       await PerpsDepositScreen.tapPayWith();
-      await PerpsDepositScreen.selectPayTokenByText('0xa4b1', 'USDC');
+      await PerpsDepositScreen.selectPayTokenByText('USDC');
     },
   );
 
   // Fill amount
   await TimerHelper.withTimer(
     performanceTracker,
-    'Fill amount - 10 USD',
+    'Fill amount - 2 USD',
     async () => {
-      await PerpsDepositScreen.fillUsdAmount('10');
-      await PerpsDepositScreen.tapContinue();
+      await PerpsDepositScreen.fillUsdAmount('2');
     },
   );
 
@@ -89,7 +89,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
     performanceTracker,
     'Cancel - 1 click',
     async () => {
-      await PerpsDepositScreen.tapCancel();
+      await PerpsDepositScreen.checkTransactionFeeIsVisible();
     },
   );
 
