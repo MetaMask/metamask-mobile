@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { TrxScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import Logger from '../../../../util/Logger';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
 import {
   confirmTronStake,
@@ -107,8 +108,11 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
           const fee = feeResult[0];
           nextPreview = { ...(nextPreview ?? {}), fee };
         }
-      } catch {
-        // no action needed
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[Tron Stake] Failed to compute stake fee',
+        );
       }
 
       if (nextPreview) setPreview(nextPreview);

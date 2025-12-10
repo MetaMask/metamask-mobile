@@ -4,6 +4,7 @@ import { Hex } from '@metamask/utils';
 import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { TronResourceType } from '../../../../core/Multichain/constants';
+import Logger from '../../../../util/Logger';
 import { isTronChainId } from '../../../../core/Multichain/utils';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
@@ -151,8 +152,11 @@ const useTronUnstake = ({
           const fee = feeResult[0];
           nextPreview = { ...(nextPreview ?? {}), fee };
         }
-      } catch {
-        // no action needed
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[Tron Unstake] Failed to compute stake fee',
+        );
       }
 
       if (nextPreview) setPreview(nextPreview);
