@@ -653,7 +653,7 @@ describe('RegionSelectorModal', () => {
       expect(queryByTestId('region-selector-item')).toBeTruthy();
     });
 
-    it('handles region with missing areaCode when renderAreaCode is true', () => {
+    it('does not render area code when areaCode is undefined', () => {
       mockUseParams.mockReturnValue({
         regions: [
           createMockRegion({
@@ -665,15 +665,14 @@ describe('RegionSelectorModal', () => {
         renderAreaCode: true,
       });
 
-      const { getByText, getByTestId } = render(
+      const { getByText, queryByTestId } = render(
         <Provider store={store}>
           <RegionSelectorModal />
         </Provider>,
       );
 
       expect(getByText('Test Country')).toBeTruthy();
-      // When areaCode is undefined, it still renders but displays undefined
-      expect(getByTestId('region-selector-item-area-code')).toBeTruthy();
+      expect(queryByTestId('region-selector-item-area-code')).toBeNull();
     });
   });
 

@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
@@ -66,6 +72,12 @@ function RegionSelectorModal() {
   const selectedCountry = useSelector(selectSelectedCountry);
   const [currentData, setCurrentData] = useState<Region[]>(regions || []);
   const { height: screenHeight } = useWindowDimensions();
+
+  // Sync currentData when regions param changes
+  useEffect(() => {
+    setCurrentData(regions || []);
+  }, [regions]);
+
   const listStyle = useMemo(
     () => ({ maxHeight: screenHeight * 0.65 }),
     [screenHeight],
@@ -146,7 +158,7 @@ function RegionSelectorModal() {
               <Box testID="region-selector-item-name">
                 <Text variant={TextVariant.BodyLg}>{region.name}</Text>
               </Box>
-              {renderAreaCode && (
+              {renderAreaCode && region.areaCode && (
                 <Box testID="region-selector-item-area-code">
                   <Text variant={TextVariant.BodyLg}>(+{region.areaCode})</Text>
                 </Box>

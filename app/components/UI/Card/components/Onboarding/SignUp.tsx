@@ -170,11 +170,19 @@ const SignUp = () => {
       return;
     }
 
-    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+    const isCurrentEmailValid = validateEmail(email);
+    const isCurrentPasswordValid = validatePassword(password);
+    const isCurrentConfirmPasswordValid = confirmPassword === password;
+
+    if (
+      !isCurrentEmailValid ||
+      !isCurrentPasswordValid ||
+      !isCurrentConfirmPasswordValid
+    ) {
       // Set error states
-      setIsEmailError(!isEmailValid);
-      setIsPasswordError(!isPasswordValid);
-      setIsConfirmPasswordError(!isConfirmPasswordValid);
+      setIsEmailError(!isCurrentEmailValid);
+      setIsPasswordError(!isCurrentPasswordValid);
+      setIsConfirmPasswordError(!isCurrentConfirmPasswordValid);
       return;
     }
 
@@ -207,9 +215,6 @@ const SignUp = () => {
     password,
     confirmPassword,
     selectedCountry,
-    isEmailValid,
-    isPasswordValid,
-    isConfirmPasswordValid,
     trackEvent,
     createEventBuilder,
     sendEmailVerification,
