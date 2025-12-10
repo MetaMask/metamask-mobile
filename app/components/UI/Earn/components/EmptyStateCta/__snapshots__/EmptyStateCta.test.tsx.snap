@@ -8,7 +8,6 @@ exports[`EmptyStateCta renders correctly 1`] = `
       "alignItems": "center",
       "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
-      "marginTop": 8,
       "padding": 16,
     }
   }

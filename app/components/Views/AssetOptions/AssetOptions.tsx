@@ -12,7 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { useLegacySwapsBlockExplorer } from '../../../components/UI/Bridge/hooks/useLegacySwapsBlockExplorer';
+import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import {
   createProviderConfig,
   selectEvmChainId,
@@ -30,8 +30,9 @@ import {
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
+import { RootState } from '../../../reducers';
 import { CaipAssetType, Hex } from '@metamask/utils';
-import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
+import { appendURLParams } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
@@ -108,11 +109,13 @@ const AssetOptions = (props: Props) => {
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
+  );
   // Get the selected account for the current network (works for all non-EVM chains)
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
-  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
 
   // Check if token exists in state
@@ -159,11 +162,11 @@ const AssetOptions = (props: Props) => {
     };
   }, [networkId, networkConfigurations]);
 
-  const explorer = useLegacySwapsBlockExplorer(
+  const explorer = useBlockExplorer(
     networkConfigurations,
     providerConfigTokenExplorer,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
@@ -193,7 +196,7 @@ const AssetOptions = (props: Props) => {
           `${solanaExplorer}/token/${tokenAddress}`,
         account: (accountAddress: string) =>
           `${solanaExplorer}/account/${accountAddress}`,
-        tx: (hash: string | undefined) => `${solanaExplorer}/tx/${hash}`,
+        tx: (hash: string) => `${solanaExplorer}/tx/${hash}`,
         name: 'Block Explorer',
         value: null,
         isValid: true,
@@ -245,9 +248,13 @@ const AssetOptions = (props: Props) => {
     if (existingPortfolioTab) {
       existingTabId = existingPortfolioTab.id;
     } else {
-      const portfolioUrl = buildPortfolioUrlWithMetrics(
-        AppConstants.PORTFOLIO.URL,
-      );
+      const analyticsEnabled = isEnabled();
+
+      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
+        metamaskEntry: 'mobile',
+        metricsEnabled: analyticsEnabled,
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      });
 
       newTabUrl = portfolioUrl.href;
     }

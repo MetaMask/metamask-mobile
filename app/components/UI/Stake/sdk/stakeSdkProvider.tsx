@@ -24,7 +24,6 @@ import { getProviderByChainId } from '../../../../util/notifications';
 export const earnApiService = new EarnApiService();
 export const stakingApiService = earnApiService.pooledStaking;
 export const lendingApiService = earnApiService.lending;
-export const tronStakingApiService = earnApiService.tronStaking;
 
 export interface Stake {
   stakingContract?: PooledStakingContract | null;

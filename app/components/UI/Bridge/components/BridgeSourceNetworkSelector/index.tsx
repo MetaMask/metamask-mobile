@@ -33,7 +33,6 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -236,9 +235,7 @@ export const BridgeSourceNetworkSelector: React.FC<
               />
               <NetworkRow
                 chainId={chain.chainId}
-                chainName={
-                  NETWORK_TO_SHORT_NETWORK_NAME_MAP[chain.chainId] ?? chain.name
-                }
+                chainName={chain.name}
                 showNoNetworkFeeLabel={isGasFeesSponsoredNetworkEnabled(
                   chain.chainId as Hex,
                 )}

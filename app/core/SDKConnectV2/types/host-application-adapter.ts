@@ -26,11 +26,6 @@ export interface IHostApplicationAdapter {
   showConnectionError(conninfo?: ConnectionInfo): void;
 
   /**
-   * Displays a global, non-interactive confirmation rejection modal.
-   */
-  showConfirmationRejectionError(conninfo?: ConnectionInfo): void;
-
-  /**
    * Displays a "Return to App" toast notification for successful requests.
    */
   showReturnToApp(conninfo: ConnectionInfo): void;

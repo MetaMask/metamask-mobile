@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Image } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -15,20 +14,10 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
-import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
-import {
-  Box,
-  FontFamily,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const Complete = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const tw = useTailwind();
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -68,35 +57,12 @@ const Complete = () => {
     }
   };
 
-  const renderFormFields = () => (
-    <>
-      <Box twClassName="flex flex-1 items-center justify-center">
-        <Image
-          source={MM_CARD_ONBOARDING_SUCCESS}
-          resizeMode="contain"
-          style={tw.style('w-full h-full')}
-        />
-      </Box>
-      <Text
-        fontFamily={FontFamily.Accent}
-        fontWeight={FontWeight.Regular}
-        twClassName="text-[36px] text-center leading-1"
-      >
-        {strings('card.card_onboarding.complete.title')}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-center text-text-alternative px-4"
-      >
-        {strings('card.card_onboarding.complete.description')}
-      </Text>
-    </>
-  );
+  const renderFormFields = () => null;
 
   const renderActions = () => (
     <Button
       variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.complete.confirm_button')}
+      label={strings('card.card_onboarding.confirm_button')}
       size={ButtonSize.Lg}
       onPress={handleContinue}
       disabled={isLoading}
@@ -108,8 +74,8 @@ const Complete = () => {
 
   return (
     <OnboardingStep
-      title=""
-      description=""
+      title={strings('card.card_onboarding.complete.title')}
+      description={strings('card.card_onboarding.complete.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
     />

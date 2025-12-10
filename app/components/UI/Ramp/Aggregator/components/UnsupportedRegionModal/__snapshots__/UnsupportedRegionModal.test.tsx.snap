@@ -413,6 +413,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -999,6 +1000,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,

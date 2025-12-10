@@ -44,8 +44,32 @@ export const headerStyle = StyleSheet.create({
   title: { alignSelf: 'center' },
 });
 
-// Default navigation has only back button on the left
 export const cardDefaultNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => <View />,
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'card-view-title'}
+    >
+      {strings('card.card')}
+    </Text>
+  ),
+  headerRight: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.Close}
+      onPress={() => navigation.goBack()}
+    />
+  ),
+});
+
+export const cardAuthenticationNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
@@ -58,7 +82,15 @@ export const cardDefaultNavigationOptions = ({
       onPress={() => navigation.goBack()}
     />
   ),
-  headerTitle: () => <View />,
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'card-view-title'}
+    >
+      {strings('card.card')}
+    </Text>
+  ),
   headerRight: () => <View />,
 });
 
@@ -117,12 +149,12 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.WELCOME}
         component={CardWelcome}
-        options={{ headerShown: false }}
+        options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.SPENDING_LIMIT}
@@ -137,7 +169,7 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.VERIFYING_REGISTRATION}
         component={VerifyingRegistration}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
     </Stack.Navigator>
   );

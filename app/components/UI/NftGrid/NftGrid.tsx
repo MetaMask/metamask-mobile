@@ -49,39 +49,32 @@ interface NftGridProps {
   isFullView?: boolean;
 }
 
-const NftGridContent = ({
-  allFilteredCollectibles,
-  nftRowList,
-  goToAddCollectible,
-  isAddNFTEnabled,
+const NftRow = ({
+  items,
+  onLongPress,
+  source,
 }: {
-  allFilteredCollectibles: Nft[];
-  nftRowList: React.ReactNode;
-  goToAddCollectible: () => void;
-  isAddNFTEnabled: boolean;
-}) => {
-  const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
-
-  if (allFilteredCollectibles.length > 0) {
-    return <>{nftRowList}</>;
-  }
-
-  if (isNftFetchingProgress) {
-    return <NftGridSkeleton />;
-  }
-
-  return (
-    <CollectiblesEmptyState
-      onAction={goToAddCollectible}
-      actionButtonProps={{
-        testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
-        isDisabled: !isAddNFTEnabled,
-      }}
-      twClassName="mx-auto mt-4"
-      testID="collectibles-empty-state"
-    />
-  );
-};
+  items: Nft[];
+  onLongPress: (nft: Nft) => void;
+  source?: 'mobile-nft-list' | 'mobile-nft-list-page';
+}) => (
+  <Box twClassName="flex-row gap-3 mb-3">
+    {items.map((item, index) => {
+      // Create a truly unique key combining multiple identifiers
+      const uniqueKey = `${item.address}-${item.tokenId}-${item.chainId}-${index}`;
+      return (
+        <Box key={uniqueKey} twClassName="flex-1">
+          <NftGridItem item={item} onLongPress={onLongPress} source={source} />
+        </Box>
+      );
+    })}
+    {/* Fill remaining slots if less than 3 items */}
+    {items.length < 3 &&
+      Array.from({ length: 3 - items.length }).map((_, index) => (
+        <Box key={`empty-${index}`} twClassName="flex-1" />
+      ))}
+  </Box>
+);
 
 const NftGrid = ({ isFullView = false }: NftGridProps) => {
   const navigation =
@@ -92,6 +85,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     useState<Nft | null>(null);
   const tw = useTailwind();
 
+  const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
@@ -121,12 +115,16 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     return isHomepageRedesignV1Enabled ? 18 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  const collectiblesToRender: Nft[] = useMemo(() => {
+  const groupedCollectibles: Nft[][] = useMemo(() => {
+    const groups: Nft[][] = [];
     const itemsToProcess = maxItems
       ? allFilteredCollectibles.slice(0, maxItems)
       : allFilteredCollectibles;
 
-    return itemsToProcess;
+    for (let i = 0; i < itemsToProcess.length; i += 3) {
+      groups.push(itemsToProcess.slice(i, i + 3));
+    }
+    return groups;
   }, [allFilteredCollectibles, maxItems]);
 
   useEffect(() => {
@@ -144,10 +142,6 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     setIsAddNFTEnabled(true);
   }, [navigation, trackEvent, createEventBuilder]);
 
-  const handleLongPress = useCallback((nft: Nft) => {
-    setLongPressedCollectible(nft);
-  }, []);
-
   const handleViewAllNfts = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.VIEW_ALL_ASSETS_CLICKED)
@@ -157,38 +151,61 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
   }, [navigation, trackEvent, createEventBuilder]);
 
-  const nftRowList = useMemo(
-    () => (
-      <FlashList
-        ListHeaderComponent={<NftGridHeader />}
-        data={collectiblesToRender}
-        renderItem={({ item, index }) => (
-          <Box twClassName={['pr-2', 'px-1', 'pl-2'][index % 3]}>
-            <NftGridItem
-              item={item}
-              onLongPress={handleLongPress}
+  const nftRowList =
+    !isFullView && isHomepageRedesignV1Enabled ? (
+      <Box>
+        <NftGridHeader />
+        <Box twClassName="gap-3">
+          {groupedCollectibles.map((items, index) => (
+            <NftRow
+              key={`nft-row-${index}`}
+              items={items}
+              onLongPress={setLongPressedCollectible}
               source={nftSource}
             />
-          </Box>
+          ))}
+        </Box>
+      </Box>
+    ) : (
+      <FlashList
+        ListHeaderComponent={<NftGridHeader />}
+        data={groupedCollectibles}
+        renderItem={({ item }) => (
+          <NftRow
+            items={item}
+            onLongPress={setLongPressedCollectible}
+            source={nftSource}
+          />
         )}
         keyExtractor={(_, index) => `nft-row-${index}`}
         testID={RefreshTestId}
         decelerationRate="fast"
         refreshControl={<NftGridRefreshControl />}
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
-        scrollEnabled={isFullView || !isHomepageRedesignV1Enabled}
-        numColumns={3}
       />
-    ),
-    [
-      collectiblesToRender,
-      isFullView,
-      isHomepageRedesignV1Enabled,
-      handleLongPress,
-      nftSource,
-      tw,
-    ],
-  );
+    );
+
+  const renderNftContent = () => {
+    if (isNftFetchingProgress) {
+      return <NftGridSkeleton />;
+    }
+
+    if (allFilteredCollectibles.length > 0) {
+      return nftRowList;
+    }
+
+    return (
+      <CollectiblesEmptyState
+        onAction={goToAddCollectible}
+        actionButtonProps={{
+          testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+          isDisabled: !isAddNFTEnabled,
+        }}
+        twClassName="mx-auto mt-4"
+        testID="collectibles-empty-state"
+      />
+    );
+  };
 
   return (
     <>
@@ -207,12 +224,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         hideSort
         style={isFullView ? tw`px-4 pb-4` : tw`pb-3`}
       />
-      <NftGridContent
-        allFilteredCollectibles={allFilteredCollectibles}
-        nftRowList={nftRowList}
-        goToAddCollectible={goToAddCollectible}
-        isAddNFTEnabled={isAddNFTEnabled}
-      />
+      {renderNftContent()}
       {/* View all NFTs button - shown when there are more items than maxItems */}
       {maxItems && allFilteredCollectibles.length > maxItems && (
         <Box twClassName="pt-3 pb-9">

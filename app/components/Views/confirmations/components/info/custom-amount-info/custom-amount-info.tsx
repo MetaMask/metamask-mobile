@@ -59,22 +59,10 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
-  /**
-   * Optional render function that overrides the default content.
-   * When set, automatically hides PayTokenAmount, PayWithRow, and children.
-   */
-  overrideContent?: (amountHuman: string) => ReactNode;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({
-    children,
-    currency,
-    disablePay,
-    hasMax,
-    preferredToken,
-    overrideContent,
-  }) => {
+  ({ children, currency, disablePay, hasMax, preferredToken }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
       disable: disablePay,
@@ -128,20 +116,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {overrideContent ? (
-            overrideContent(amountHuman)
-          ) : (
-            <>
-              {disablePay !== true && (
-                <PayTokenAmount
-                  amountHuman={amountHuman}
-                  disabled={!hasTokens}
-                />
-              )}
-              {children}
-              {disablePay !== true && hasTokens && <PayWithRow />}
-            </>
+          {disablePay !== true && (
+            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
+          {children}
+          {disablePay !== true && hasTokens && <PayWithRow />}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
@@ -298,7 +277,7 @@ function useButtonLabel() {
   }
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.convert_to_musd');
+    return strings('earn.musd_conversion.confirmation_button');
   }
 
   return strings('confirm.deposit_edit_amount_done');

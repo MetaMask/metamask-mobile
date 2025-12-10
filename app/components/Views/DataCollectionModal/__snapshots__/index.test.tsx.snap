@@ -171,6 +171,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
         <View
           style={
             {
+              "backgroundColor": "#ffffff",
               "flexDirection": "row",
               "paddingHorizontal": 8,
               "paddingVertical": 4,

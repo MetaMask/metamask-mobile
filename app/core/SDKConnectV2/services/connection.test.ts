@@ -13,7 +13,6 @@ import { KVStore } from '../store/kv-store';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
 import { HostApplicationAdapter } from '../adapters/host-application-adapter';
-import { errorCodes } from '@metamask/rpc-errors';
 
 jest.mock('@metamask/mobile-wallet-protocol-wallet-client');
 jest.mock('@metamask/mobile-wallet-protocol-core', () => ({
@@ -61,7 +60,6 @@ const mockHostApp: jest.Mocked<HostApplicationAdapter> = {
   showConnectionLoading: jest.fn(),
   hideConnectionLoading: jest.fn(),
   showConnectionError: jest.fn(),
-  showConfirmationRejectionError: jest.fn(),
   showReturnToApp: jest.fn(),
   syncConnectionList: jest.fn(),
   revokePermissions: jest.fn(),
@@ -367,45 +365,6 @@ describe('Connection', () => {
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
         errorResponsePayload,
-      );
-    });
-
-    it('shows confirmation rejection error toast when bridge response includes user rejected request error', async () => {
-      await Connection.create(
-        mockConnectionInfo,
-        mockKeyManager,
-        RELAY_URL,
-        mockHostApp,
-      );
-
-      const userRejectedErrorResponsePayload = {
-        data: {
-          id: 1,
-          jsonrpc: '2.0',
-          error: {
-            code: errorCodes.provider.userRejectedRequest,
-            message: 'User rejected the request',
-          },
-        },
-      };
-
-      // Simulate the RPCBridgeAdapter emitting a user rejected error response
-      onBridgeResponseCallback(userRejectedErrorResponsePayload);
-
-      // Should show confirmation rejection error toast, not generic error toast
-      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledWith(
-        mockConnectionInfo,
-      );
-      expect(mockHostApp.showConnectionError).not.toHaveBeenCalled();
-      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
-
-      // And still send the error response to the client
-      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
-      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
-        userRejectedErrorResponsePayload,
       );
     });
 

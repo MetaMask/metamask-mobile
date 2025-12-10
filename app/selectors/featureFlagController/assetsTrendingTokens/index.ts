@@ -93,16 +93,8 @@ export const selectAssetsTrendingTokensEnabled = createSelector(
     const envOverride =
       process.env.OVERRIDE_REMOTE_FEATURE_FLAGS &&
       process.env.ASSETS_TRENDING_TOKENS_ENABLED;
-
-    const value =
-      assetsTrendingTokensEnabled &&
-      typeof assetsTrendingTokensEnabled === 'object' &&
-      'value' in assetsTrendingTokensEnabled
-        ? assetsTrendingTokensEnabled.value
-        : assetsTrendingTokensEnabled;
-
     return isAssetsTrendingTokensFeatureEnabled(
-      value,
+      assetsTrendingTokensEnabled,
       envOverride || undefined,
     );
   },

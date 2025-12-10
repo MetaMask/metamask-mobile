@@ -316,6 +316,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                       style={
                         [
                           {
+                            "backgroundColor": "#ffffff",
                             "flexDirection": "row",
                             "gap": 16,
                             "padding": 16,

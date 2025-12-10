@@ -40,15 +40,6 @@ const styleSheet = (params: { theme: Theme }) => {
     headerUnitButtonActive: {
       backgroundColor: colors.primary.default,
     },
-    controlsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-    },
     scrollView: {
       flex: 1,
     },
@@ -72,7 +63,7 @@ const styleSheet = (params: { theme: Theme }) => {
       right: 0,
       paddingHorizontal: 16,
       paddingTop: 12,
-      // paddingBottom is calculated dynamically in component with safe area insets
+      paddingBottom: 24,
       backgroundColor: colors.background.default,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,

@@ -239,15 +239,21 @@ function extractTemplateTypeFromBody(body: string): TemplateType {
 function extractRegressionStageFromBugReportIssueBody(
   body: string,
 ): RegressionStage | undefined {
-  const detectionStageRegex = /### Where was this bug found\?\s*\n\s*(.*)/i;
+  const detectionStageRegex = /### Detection stage\s*\n\s*(.*)/i;
   const match = body.match(detectionStageRegex);
   const extractedAnswer = match ? match[1].trim() : undefined;
 
   switch (extractedAnswer) {
-    case 'Live version (from official store)':
-      return RegressionStage.Production;
-    case 'Internal release testing':
+    case 'On a feature branch':
+      return RegressionStage.DevelopmentFeature;
+    case 'On main branch':
+      return RegressionStage.DevelopmentMain;
+    case 'During release testing':
       return RegressionStage.Testing;
+    case 'In public beta':
+      return RegressionStage.Beta;
+    case 'In production (default)':
+      return RegressionStage.Production;
     default:
       return undefined;
   }

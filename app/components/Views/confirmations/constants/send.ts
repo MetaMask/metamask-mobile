@@ -6,5 +6,4 @@ export const InitSendLocation = {
   CollectibleView: 'collectible_view',
   NftDetails: 'nft_details',
   WalletActions: 'wallet_actions',
-  QRScanner: 'qr_scanner',
 };

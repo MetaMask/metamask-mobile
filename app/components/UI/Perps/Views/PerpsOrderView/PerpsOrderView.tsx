@@ -102,7 +102,6 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
@@ -222,9 +221,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
-  // Save pending trade config when user navigates away
-  usePerpsSavePendingConfig(orderForm);
-
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
    *
@@ -262,10 +258,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
 
   // A/B Testing: Button color test (TAT-1937)
-  const {
-    variantName: buttonColorVariant,
-    isEnabled: isButtonColorTestEnabled,
-  } = usePerpsABTest({
+  const { variantName: buttonColorVariant } = usePerpsABTest({
     test: BUTTON_COLOR_TEST,
     featureFlagSelector: selectPerpsButtonColorTestVariant,
   });
@@ -310,9 +303,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         orderForm.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
-      ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      }),
     },
   });
 
@@ -716,20 +706,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
     orderStartTimeRef.current = Date.now();
 
-    // Track Place Order button press with A/B test context
-    if (isButtonColorTestEnabled) {
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: orderForm.asset,
-        [PerpsEventProperties.DIRECTION]:
-          orderForm.direction === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      });
-    }
-
     try {
       // Validation errors are shown in the UI
       if (!orderValidation.isValid) {
@@ -891,8 +867,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
-    isButtonColorTestEnabled,
-    buttonColorVariant,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -1329,7 +1303,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           {buttonColorVariant === 'monochrome' ? (
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               label={placeOrderLabel}
