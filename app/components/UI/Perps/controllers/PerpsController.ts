@@ -679,6 +679,14 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
+  /**
+   * Version counter for blocked region list.
+   * Used to prevent race conditions where stale eligibility checks
+   * (started with fallback config) overwrite results from newer checks
+   * (started with remote config).
+   */
+  private blockedRegionListVersion = 0;
+
   // Store HIP-3 configuration (mutable for runtime updates from remote flags)
   private hip3Enabled: boolean;
   private hip3AllowlistMarkets: string[];
@@ -781,6 +789,7 @@ export class PerpsController extends BaseController<
           newSource: 'remote' | 'fallback',
         ) => {
           this.blockedRegionList = { list: newList, source: newSource };
+          this.blockedRegionListVersion += 1;
         },
         refreshEligibility: () => this.refreshEligibility(),
       }),
@@ -807,6 +816,7 @@ export class PerpsController extends BaseController<
             source: 'remote' | 'fallback',
           ) => {
             this.blockedRegionList = { list, source };
+            this.blockedRegionListVersion += 1;
           },
           refreshEligibility: () => this.refreshEligibility(),
           getHip3Config: () => ({
@@ -2172,25 +2182,55 @@ export class PerpsController extends BaseController<
    * Refresh eligibility status
    */
   async refreshEligibility(): Promise<void> {
+    // Capture the current version before starting the async operation.
+    // This prevents race conditions where stale eligibility checks
+    // (started with fallback config) overwrite results from newer checks
+    // (started with remote config after it was fetched).
+    const versionAtStart = this.blockedRegionListVersion;
+
     try {
-      DevLogger.log('PerpsController: Refreshing eligibility');
+      console.log('PerpsController: Refreshing eligibility', {
+        version: versionAtStart,
+        source: this.blockedRegionList.source,
+      });
 
       const isEligible = await EligibilityService.checkEligibility(
         this.blockedRegionList.list,
       );
 
+      // Only update state if the blocked region list hasn't changed while we were awaiting.
+      // This prevents stale fallback-based eligibility checks from overwriting
+      // results from remote-based checks.
+      if (this.blockedRegionListVersion !== versionAtStart) {
+        console.log('PerpsController: Skipping stale eligibility update', {
+          versionAtStart,
+          currentVersion: this.blockedRegionListVersion,
+          wouldHaveSet: isEligible,
+        });
+        return;
+      }
+
+      console.log('PerpsController: Updating eligibility', {
+        isEligible,
+        version: versionAtStart,
+      });
+
       this.update((state) => {
         state.isEligible = isEligible;
       });
     } catch (error) {
-      Logger.error(
+      console.error(
         ensureError(error),
         this.getErrorContext('refreshEligibility'),
       );
-      // Default to eligible on error
-      this.update((state) => {
-        state.isEligible = true;
-      });
+
+      // Only update on error if version is still current
+      if (this.blockedRegionListVersion === versionAtStart) {
+        // Default to eligible on error
+        this.update((state) => {
+          state.isEligible = true;
+        });
+      }
     }
   }
 
