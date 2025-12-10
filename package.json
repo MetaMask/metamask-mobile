@@ -214,7 +214,7 @@
     "@metamask/earn-controller": "^10.0.0",
     "@metamask/eip-5792-middleware": "^2.0.0",
     "@metamask/eip1193-permission-middleware": "^1.0.2",
-    "@metamask/ens-resolver-snap": "^1.0.0",
+    "@metamask/ens-resolver-snap": "^1.1.0",
     "@metamask/error-reporting-service": "^3.0.0",
     "@metamask/eth-hd-keyring": "^13.0.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
