@@ -86,6 +86,7 @@ class TestSnaps {
   get snapUIRendererScrollView(): Promise<Detox.NativeMatcher> {
     return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
