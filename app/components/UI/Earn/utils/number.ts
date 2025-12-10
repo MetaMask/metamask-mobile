@@ -90,7 +90,8 @@ export const parseFloatSafe = (input: string): number => {
  * @returns The truncated number
  */
 export const truncateNumber = (number: string | number): string => {
-  const rate = Number(number);
-  const truncated = Math.trunc(rate * 100) / 100;
-  return truncated.toFixed(2).replace(/\.?0+$/, '');
+  const value = Number(number);
+  const truncatedToTwoDecimals = Math.trunc(value * 100) / 100;
+  // String() omits trailing zeros
+  return String(truncatedToTwoDecimals);
 };
