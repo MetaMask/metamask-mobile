@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -37,16 +37,19 @@ const Pna25BottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const handleTrack = (action: Pna25BottomSheetAction) => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED)
-        .addProperties({
-          name: 'pna25',
-          action,
-        })
-        .build(),
-    );
-  };
+  const handleTrack = useCallback(
+    (action: Pna25BottomSheetAction) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED)
+          .addProperties({
+            name: 'pna25',
+            action,
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder],
+  );
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -58,15 +61,8 @@ const Pna25BottomSheet = () => {
 
   // Track bottom sheet display
   useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED)
-        .addProperties({
-          name: 'pna25',
-          action: Pna25BottomSheetAction.VIEWED,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
+    handleTrack(Pna25BottomSheetAction.VIEWED);
+  }, [handleTrack]);
 
   return (
     <BottomSheet

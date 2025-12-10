@@ -117,7 +117,7 @@ describe('Pna25BottomSheet', () => {
     fireEvent.press(learnMoreLink);
 
     expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://metamask.io/blog/pna25/',
+      'http://metamask.io/news/updating-metamask-analytics',
     );
   });
 });
