@@ -49,7 +49,7 @@ const createStyles = (colors: any) =>
       paddingRight: 20,
       color: colors.icon.alternative,
     },
-    hideButtonClose: {
+    hideComponent: {
       opacity: 0,
     },
     input: {
@@ -135,7 +135,7 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, allTokens }: Props) => {
       <View
         style={[
           styles.iconClose,
-          !searchString ? styles.hideButtonClose : undefined,
+          !searchString ? styles.hideComponent : undefined,
         ]}
       >
         <ButtonIcon
