@@ -5,7 +5,6 @@ exports[`HeaderBase should render snapshot correctly with Compact variant 1`] = 
   style={
     [
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "gap": 16,
       },
@@ -47,7 +46,6 @@ exports[`HeaderBase variant functionality renders snapshot correctly with Compac
   style={
     [
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "gap": 16,
       },
@@ -89,7 +87,6 @@ exports[`HeaderBase variant functionality renders snapshot correctly with Displa
   style={
     [
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "gap": 16,
       },

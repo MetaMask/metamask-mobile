@@ -230,7 +230,7 @@ describe('SitesFullView', () => {
       const { getAllByTestId } = render(<SitesFullView />);
 
       const skeletons = getAllByTestId('site-skeleton');
-      expect(skeletons.length).toBe(10);
+      expect(skeletons.length).toBe(15);
     });
 
     it('renders RefreshControl', () => {

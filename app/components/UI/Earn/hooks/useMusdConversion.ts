@@ -66,7 +66,7 @@ export const useMusdConversion = () => {
 
   const selectedAddress = selectedAccount?.address;
 
-  const hasSeenMusdEducationScreen = useSelector(
+  const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
   );
 
@@ -102,6 +102,13 @@ export const useMusdConversion = () => {
         if (!outputChainId || !preferredPaymentToken) {
           throw new Error(
             'Output chain ID and preferred payment token are required',
+          );
+        }
+
+        // TEMP: Until we enforce same-chain conversions.
+        if (outputChainId !== preferredPaymentToken.chainId) {
+          console.warn(
+            '[mUSD Conversion] Output chain ID and preferred payment token chain ID do not match',
           );
         }
 
@@ -206,7 +213,7 @@ export const useMusdConversion = () => {
 
   return {
     initiateConversion,
-    hasSeenMusdEducationScreen,
+    hasSeenConversionEducationScreen,
     error,
   };
 };

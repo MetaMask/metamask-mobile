@@ -433,7 +433,6 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1390,7 +1389,6 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -2547,7 +2545,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,

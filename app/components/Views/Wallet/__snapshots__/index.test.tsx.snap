@@ -40,7 +40,6 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -1216,7 +1215,6 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -2392,7 +2390,6 @@ exports[`Wallet should render correctly 1`] = `
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -3568,7 +3565,6 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -4744,7 +4740,6 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,

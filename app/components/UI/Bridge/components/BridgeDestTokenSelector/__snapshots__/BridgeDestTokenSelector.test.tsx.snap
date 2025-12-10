@@ -434,7 +434,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -720,6 +719,60 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       }
                                     >
                                       Solana
+                                    </Text>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "flex-start",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 10,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 40,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    gap={8}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 8,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Tron
                                     </Text>
                                   </View>
                                 </TouchableOpacity>

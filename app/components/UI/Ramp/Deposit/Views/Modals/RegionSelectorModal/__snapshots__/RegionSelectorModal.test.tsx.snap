@@ -433,7 +433,6 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1143,7 +1142,6 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -2049,7 +2047,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -3199,7 +3196,6 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -3950,7 +3946,6 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -4789,7 +4784,6 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -5939,7 +5933,6 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -7089,7 +7082,6 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,

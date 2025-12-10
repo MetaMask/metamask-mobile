@@ -218,8 +218,11 @@ export function setMultichainAccountsIntroModalSeen(
 /**
  * Action to set mUSD conversion education as seen
  */
-export function setMusdConversionEducationSeen(): SetMusdConversionEducationSeenAction {
+export function setMusdConversionEducationSeen(
+  seen: boolean,
+): SetMusdConversionEducationSeenAction {
   return {
     type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
+    payload: { seen },
   };
 }

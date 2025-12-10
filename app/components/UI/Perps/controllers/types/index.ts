@@ -688,8 +688,10 @@ export interface SubscribeOrderBookParams {
   symbol: string;
   /** Number of levels to return per side (default: 10) */
   levels?: number;
-  /** Price aggregation significant figures (default: 5). Higher = finer granularity */
-  nSigFigs?: number;
+  /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
+  nSigFigs?: 2 | 3 | 4 | 5;
+  /** Mantissa for aggregation when nSigFigs is 5 (2 or 5). Controls finest price increments */
+  mantissa?: 2 | 5;
   /** Callback function receiving order book updates */
   callback: (orderBook: OrderBookData) => void;
   /** Callback for errors */

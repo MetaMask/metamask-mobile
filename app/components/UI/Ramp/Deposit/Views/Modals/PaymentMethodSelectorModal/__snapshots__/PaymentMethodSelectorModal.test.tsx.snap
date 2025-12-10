@@ -433,7 +433,6 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -476,7 +475,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                 }
                                 testID="header-title"
                               >
-                                Select a Payment Method
+                                Select a payment method
                               </Text>
                             </View>
                             <View
