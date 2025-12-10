@@ -1276,7 +1276,7 @@ const Wallet = ({
   ]);
 
   const onChangeTab = useCallback(
-    async (obj: { i: number; ref: React.ReactNode }) => {
+    (obj: { i: number; ref: React.ReactNode }) => {
       const tabLabel =
         React.isValidElement(obj.ref) && obj.ref.props
           ? (obj.ref.props as { tabLabel?: string })?.tabLabel
@@ -1291,7 +1291,7 @@ const Wallet = ({
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
-        await detectNfts();
+        detectNfts();
       }
     },
     [trackEvent, createEventBuilder, detectNfts],
