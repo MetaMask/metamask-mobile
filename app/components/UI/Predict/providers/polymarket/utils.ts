@@ -29,7 +29,6 @@ import type {
 import {
   ClobAuthDomain,
   EIP712Domain,
-  FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
@@ -57,6 +56,7 @@ import {
   OrderBook,
 } from './types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PredictFeeCollection } from '../../types/flags';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -915,44 +915,57 @@ export function encodeClaim(
   });
 }
 
-async function waiveFees({ marketId }: { marketId: string }) {
+async function waiveFees({
+  marketId,
+  waiveList,
+}: {
+  marketId: string;
+  waiveList: string[];
+}) {
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
-  return tags?.map((t) => t.slug).includes('middle-east') ?? false;
+  const slugs = tags.map((t) => t.slug);
+  return slugs.some((slug) => waiveList.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
+  feeCollection,
   marketId,
   userBetAmount,
 }: {
+  feeCollection?: PredictFeeCollection;
   marketId: string;
   userBetAmount: number;
 }): Promise<PredictFees> {
-  if (await waiveFees({ marketId })) {
+  if (
+    !feeCollection ||
+    (await waiveFees({ marketId, waiveList: feeCollection.waiveList }))
+  ) {
     return {
       metamaskFee: 0,
       providerFee: 0,
       totalFee: 0,
       totalFeePercentage: 0,
+      collector: '0x0',
     };
   }
 
-  let totalFee = 0;
+  const totalFeePercentage =
+    (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
 
-  totalFee = (userBetAmount * FEE_PERCENTAGE) / 100;
+  const metamaskFee = userBetAmount * feeCollection.metamaskFee;
+  const providerFee = userBetAmount * feeCollection.providerFee;
+  let totalFee = metamaskFee + providerFee;
 
   // Round to 4 decimals
   totalFee = Math.round(totalFee * 10000) / 10000;
-
-  // split total 50/50 between metamask and provider
-  const metamaskFee = totalFee / 2;
-  const providerFee = totalFee - metamaskFee;
 
   return {
     metamaskFee,
     providerFee,
     totalFee,
-    totalFeePercentage: FEE_PERCENTAGE,
+    totalFeePercentage,
+    collector: feeCollection.collector,
   };
 }
 
@@ -1300,9 +1313,12 @@ export const roundOrderAmount = ({
 };
 
 export const previewOrder = async (
-  params: Omit<PreviewOrderParams, 'providerId'>,
+  params: Omit<PreviewOrderParams, 'providerId'> & {
+    feeCollection?: PredictFeeCollection;
+  },
 ): Promise<OrderPreview> => {
-  const { marketId, outcomeId, outcomeTokenId, side, size } = params;
+  const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
+    params;
   const book = await getOrderBook({ tokenId: outcomeTokenId });
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
@@ -1337,6 +1353,7 @@ export const previewOrder = async (
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       fees: await calculateFees({
+        feeCollection,
         marketId,
         userBetAmount: size,
       }),
