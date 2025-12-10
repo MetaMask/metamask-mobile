@@ -89,7 +89,7 @@ export function useMultichainTransactionDisplay(
       'transactions.tx_review_staking_deposit',
     ),
     [TransactionType.StakeWithdraw]: strings(
-      'transactions.tx_review_staking_withdrawal',
+      'transactions.tx_review_staking_unstake',
     ),
     [TransactionType.Unknown]: strings('transactions.interaction'),
   };
