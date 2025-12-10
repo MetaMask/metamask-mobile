@@ -7,7 +7,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import type { QuickAmount } from '../types';
+import { QuickAmount } from '../types';
 
 const INSET = 16;
 const createStyles = (colors: Colors) =>
