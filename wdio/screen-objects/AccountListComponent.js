@@ -75,6 +75,14 @@ class AccountListComponent {
     await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
     await AppwrightGestures.tap(account); // Tap after scrolling into view
   }
+
+  async waitForSyncingToComplete() {
+    const syncingElement = await AppwrightSelectors.getElementByText(this.device, 'Syncing');
+    await AppwrightSelectors.waitForElementToDisappear(syncingElement, 'Syncing element', 30000);
+    
+    const discoveringAccountsElement = await AppwrightSelectors.getElementByText(this.device, 'Discovering accounts');
+    await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts element', 30000);
+  }
 }
 
 export default new AccountListComponent();

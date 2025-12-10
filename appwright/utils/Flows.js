@@ -72,7 +72,7 @@ export async function dissmissPredictionsModal(device) {
     device,
     'predict-gtm-not-now-button',
   );
-  if (await notNowPredictionsModalButton.isVisible({ timeout: 5000 })) {
+  if (await notNowPredictionsModalButton.isVisible({ timeout: 10000 })) {
     await AppwrightGestures.tap(notNowPredictionsModalButton);
   }
 }
@@ -139,8 +139,7 @@ export async function login(device, options = {}) {
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  // Wait for app to settle after unlock
-
+  await new Promise((resolve) => setTimeout(resolve, 5000)); // workaround for notification modal to appear
   if (dismissModals) {
     await dismissMultichainAccountsIntroModal(device);
     await dissmissPredictionsModal(device);

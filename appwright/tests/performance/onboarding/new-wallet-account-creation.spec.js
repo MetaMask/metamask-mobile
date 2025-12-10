@@ -80,7 +80,7 @@ test('Account creation after fresh install', async ({
   screen1Timer.start();
   await AccountListComponent.isComponentDisplayed();
   screen1Timer.stop();
-
+  await AccountListComponent.waitForSyncingToComplete();
   await AccountListComponent.tapCreateAccountButton();
   screen2Timer.start();
   await AccountListComponent.isAccountDisplayed('Account 2', 30000);
