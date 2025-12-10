@@ -21,17 +21,10 @@ import {
   TabsList,
   TabsListRef,
 } from '../../../component-library/components-temp/Tabs';
-import {
-  CONSENSYS_PRIVACY_POLICY,
-  HOWTO_MANAGE_METAMETRICS,
-} from '../../../constants/urls';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
+import { shouldShowNewPrivacyToastSelector } from '../../../selectors/legalNotices';
 import {
-  shouldShowNewPrivacyToastSelector,
-  selectShouldShowPna25Toast,
-} from '../../../selectors/legalNotices';
-import {
-  storePna25Acknowledged as storePna25AcknowledgedAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../actions/legalNotices';
@@ -182,7 +175,7 @@ import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModa
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
-import { ButtonIconVariant } from '../../../component-library/components/Toast/Toast.types';
+import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -218,8 +211,6 @@ interface WalletProps {
   navigation: NavigationProp<ParamListBase>;
   storePrivacyPolicyShownDate: () => void;
   shouldShowNewPrivacyToast: boolean;
-  shouldShowPna25Toast: boolean;
-  storePna25Acknowledged: () => void;
   currentRouteName: string;
   storePrivacyPolicyClickedOrClosed: () => void;
 }
@@ -501,14 +492,11 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
-  shouldShowPna25Toast,
-  storePna25Acknowledged,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
   const { navigate } = useNavigation();
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
-  const pna25ToastShownRef = useRef(false);
   const theme = useTheme();
 
   const isPerpsFlagEnabled = useFeatureFlag(
@@ -920,61 +908,6 @@ const Wallet = ({
     currentToast,
   ]);
 
-  useEffect(() => {
-    if (!shouldShowPna25Toast || pna25ToastShownRef.current) return;
-
-    currentToast?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Info,
-      labelOptions: [
-        {
-          label: strings(`privacy_policy.pna25_toast_message`),
-          isBold: false,
-        },
-      ],
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: () => {
-          storePna25Acknowledged();
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.TOAST_DISPLAYED)
-              .addProperties({
-                toast_name: 'pna25',
-                closed: true,
-              })
-              .build(),
-          );
-          currentToast?.closeToast();
-        },
-      },
-      linkButtonOptions: {
-        label: strings(`privacy_policy.gather_basic_usage_learn_more`),
-        onPress: () => {
-          Linking.openURL(HOWTO_MANAGE_METAMETRICS);
-        },
-      },
-      hasNoTimeout: true,
-    });
-
-    pna25ToastShownRef.current = true;
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOAST_DISPLAYED)
-        .addProperties({
-          toast_name: 'pna25',
-          closed: false,
-        })
-        .build(),
-    );
-  }, [
-    shouldShowPna25Toast,
-    storePna25Acknowledged,
-    currentToast,
-    trackEvent,
-    createEventBuilder,
-  ]);
-
   /**
    * Network onboarding state
    */
@@ -1037,6 +970,11 @@ const Wallet = ({
    * Show rewards intro modal if ff is enabled and never showed before
    */
   useRewardsIntroModal();
+
+  /**
+   * Show PNA25 bottom sheet if remote feature flag is enabled and never showed before
+   */
+  usePna25BottomSheet();
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -1407,7 +1345,6 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
-  shouldShowPna25Toast: selectShouldShowPna25Toast(state),
 });
 
 // TODO: Replace "any" with type
@@ -1417,7 +1354,6 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),
   storePrivacyPolicyClickedOrClosed: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  storePna25Acknowledged: () => dispatch(storePna25AcknowledgedAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
