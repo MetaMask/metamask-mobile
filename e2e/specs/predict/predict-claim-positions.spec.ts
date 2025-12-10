@@ -151,7 +151,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
   it('claim winnings via market details', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withPolygon().build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
       },
