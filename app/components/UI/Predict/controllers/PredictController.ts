@@ -80,8 +80,6 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
-import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
-import { PredictFeeCollection } from '../types/flags';
 
 /**
  * State shape for PredictController
@@ -1267,16 +1265,9 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { RemoteFeatureFlagController } = Engine.context;
-      const feeCollection =
-        (RemoteFeatureFlagController.state.remoteFeatureFlags
-          .predictFeeCollection as unknown as
-          | PredictFeeCollection
-          | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
-
       const signer = this.getSigner();
 
-      return provider.previewOrder({ ...params, signer, feeCollection });
+      return provider.previewOrder({ ...params, signer });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(

@@ -9,13 +9,6 @@ jest.mock('../../hooks/useUserRegistrationStatus', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'CARD_VIEWED',
-  },
-}));
-
 jest.mock('./OnboardingStep', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -64,36 +57,21 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(Text, props, children),
-    Icon: ({ name, testID }: { name: string; testID?: string }) =>
-      React.createElement(View, { testID: testID || `icon-${name}` }),
-    IconName: {
-      Speed: 'Speed',
-      SecuritySearch: 'SecuritySearch',
-    },
-    IconSize: {
-      Lg: 'Lg',
-    },
-    IconColor: {
-      IconAlternative: 'IconAlternative',
-    },
-    TextVariant: {
-      BodyMd: 'BodyMd',
-    },
   };
 });
 
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+jest.mock('../../../Button', () => {
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
   const MockButton = ({
-    label,
+    children,
     onPress,
     disabled,
     testID,
     ...props
   }: {
-    label: string;
+    children: React.ReactNode;
     onPress: () => void;
     disabled?: boolean;
     testID?: string;
@@ -102,27 +80,15 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     React.createElement(
       TouchableOpacity,
       {
-        testID: testID || 'button',
+        testID: testID || 'validating-kyc-continue-button',
         onPress,
         disabled,
         ...props,
       },
-      React.createElement(Text, {}, label),
+      React.createElement(Text, {}, children),
     );
 
-  return {
-    __esModule: true,
-    default: MockButton,
-    ButtonVariants: {
-      Secondary: 'Secondary',
-    },
-    ButtonWidthTypes: {
-      Full: 'Full',
-    },
-    ButtonSize: {
-      Lg: 'Lg',
-    },
-  };
+  return MockButton;
 });
 
 jest.mock('react-native', () => {
@@ -131,7 +97,7 @@ jest.mock('react-native', () => {
 
   return {
     ...RN,
-    Image: ({
+    ActivityIndicator: ({
       testID,
       ...props
     }: {
@@ -139,7 +105,7 @@ jest.mock('react-native', () => {
       [key: string]: unknown;
     }) =>
       React.createElement(RN.View, {
-        testID: testID || 'image',
+        testID: testID || 'activity-indicator',
         ...props,
       }),
   };
@@ -151,56 +117,36 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.validating_kyc.title': 'Validating your identity',
       'card.card_onboarding.validating_kyc.description':
         'Please wait while we validate your identity.',
-      'card.card_onboarding.close_button': 'Close',
-      'card.card_onboarding.validating_kyc.terms_1': 'Terms 1 text',
-      'card.card_onboarding.validating_kyc.terms_2': 'Terms 2 text',
+      'card.card_onboarding.continue_button': 'Continue',
     };
     return translations[key] || key;
   }),
 }));
 
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import ValidatingKYC from './ValidatingKYC';
 import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
-import { useMetrics } from '../../../../hooks/useMetrics';
-import Routes from '../../../../../constants/navigation/Routes';
 
 describe('ValidatingKYC Component', () => {
   let mockNavigate: jest.Mock;
-  let mockReset: jest.Mock;
   let mockUseUserRegistrationStatus: jest.Mock;
   let mockStartPolling: jest.Mock;
   let mockStopPolling: jest.Mock;
-  let mockTrackEvent: jest.Mock;
-  let mockCreateEventBuilder: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate = jest.fn();
-    mockReset = jest.fn();
     mockStartPolling = jest.fn();
     mockStopPolling = jest.fn();
-    mockTrackEvent = jest.fn();
-    mockCreateEventBuilder = jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn().mockReturnValue({ event: 'test' }),
-      }),
-    });
 
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
-      reset: mockReset,
     });
 
     (useRoute as jest.Mock).mockReturnValue({
       params: { sessionUrl: 'https://example.com/session' },
-    });
-
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
     });
 
     // Default mock for useUserRegistrationStatus
@@ -222,13 +168,11 @@ describe('ValidatingKYC Component', () => {
   describe('Initial Render', () => {
     it('renders onboarding step with correct testID', () => {
       const { getByTestId } = render(<ValidatingKYC />);
-
       expect(getByTestId('onboarding-step')).toBeTruthy();
     });
 
     it('renders title with correct text', () => {
       const { getByTestId } = render(<ValidatingKYC />);
-
       const title = getByTestId('onboarding-step-title');
       expect(title).toBeTruthy();
       expect(title.props.children).toBe('Validating your identity');
@@ -236,142 +180,28 @@ describe('ValidatingKYC Component', () => {
 
     it('renders description with correct text', () => {
       const { getByTestId } = render(<ValidatingKYC />);
-
       const description = getByTestId('onboarding-step-description');
       expect(description).toBeTruthy();
     });
 
-    it('renders form fields with image and info boxes', () => {
+    it('renders activity indicator when loading', () => {
       const { getByTestId } = render(<ValidatingKYC />);
-
       const formFields = getByTestId('onboarding-step-form-fields');
+      expect(formFields.children).toHaveLength(1);
+      // ActivityIndicator is rendered in the form fields
       expect(formFields).toBeTruthy();
-      expect(formFields.children.length).toBeGreaterThan(0);
     });
 
-    it('renders close button in actions', () => {
+    it('renders no actions (null)', () => {
       const { getByTestId } = render(<ValidatingKYC />);
-
-      const closeButton = getByTestId('validating-kyc-close-button');
-      expect(closeButton).toBeTruthy();
-    });
-  });
-
-  describe('Close Button Navigation', () => {
-    it('navigates to wallet home when close button is pressed', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const closeButton = getByTestId('validating-kyc-close-button');
-      fireEvent.press(closeButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-    });
-
-    it('calls navigate exactly once per button press', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const closeButton = getByTestId('validating-kyc-close-button');
-      fireEvent.press(closeButton);
-
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls navigate multiple times for multiple button presses', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const closeButton = getByTestId('validating-kyc-close-button');
-      fireEvent.press(closeButton);
-      fireEvent.press(closeButton);
-      fireEvent.press(closeButton);
-
-      expect(mockNavigate).toHaveBeenCalledTimes(3);
-      expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.WALLET.HOME);
-      expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.WALLET.HOME);
-      expect(mockNavigate).toHaveBeenNthCalledWith(3, Routes.WALLET.HOME);
-    });
-
-    it('uses navigate (not reset) for close button', () => {
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const closeButton = getByTestId('validating-kyc-close-button');
-      fireEvent.press(closeButton);
-
-      expect(mockNavigate).toHaveBeenCalled();
-      expect(mockReset).not.toHaveBeenCalled();
-    });
-
-    it('navigates to wallet home while verification is PENDING', () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'PENDING',
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const closeButton = getByTestId('validating-kyc-close-button');
-      fireEvent.press(closeButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-    });
-
-    it('navigates to wallet home while verification is loading', () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: null,
-        userResponse: null,
-        isLoading: true,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const closeButton = getByTestId('validating-kyc-close-button');
-      fireEvent.press(closeButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-    });
-
-    it('navigates to wallet home when there is an error', () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: null,
-        userResponse: null,
-        isLoading: false,
-        isError: true,
-        error: 'Verification failed',
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { getByTestId } = render(<ValidatingKYC />);
-
-      const closeButton = getByTestId('validating-kyc-close-button');
-      fireEvent.press(closeButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-    });
-  });
-
-  describe('Metrics Tracking', () => {
-    it('tracks CARD_VIEWED event on mount', () => {
-      render(<ValidatingKYC />);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalled();
+      const actions = getByTestId('onboarding-step-actions');
+      expect(actions).toBeTruthy();
+      expect(actions.children).toHaveLength(0);
     });
   });
 
   describe('Error States', () => {
-    it('renders component when isError is true', () => {
+    it('shows error state when isError is true', () => {
       mockUseUserRegistrationStatus.mockReturnValue({
         verificationState: null,
         userResponse: null,
@@ -385,10 +215,14 @@ describe('ValidatingKYC Component', () => {
 
       const { getByTestId } = render(<ValidatingKYC />);
 
+      // Component should still render but in error state
       expect(getByTestId('onboarding-step')).toBeTruthy();
+      // No buttons are rendered in error state
+      const actions = getByTestId('onboarding-step-actions');
+      expect(actions.children).toHaveLength(0);
     });
 
-    it('renders component when error message is null', () => {
+    it('handles error state with null error message', () => {
       mockUseUserRegistrationStatus.mockReturnValue({
         verificationState: null,
         userResponse: null,
@@ -401,13 +235,12 @@ describe('ValidatingKYC Component', () => {
       });
 
       const { getByTestId } = render(<ValidatingKYC />);
-
       expect(getByTestId('onboarding-step')).toBeTruthy();
     });
   });
 
   describe('Loading States', () => {
-    it('renders component when isLoading is true', () => {
+    it('shows loading state when isLoading is true', () => {
       mockUseUserRegistrationStatus.mockReturnValue({
         verificationState: null,
         userResponse: null,
@@ -420,11 +253,13 @@ describe('ValidatingKYC Component', () => {
       });
 
       const { getByTestId } = render(<ValidatingKYC />);
-
-      expect(getByTestId('onboarding-step')).toBeTruthy();
+      const formFields = getByTestId('onboarding-step-form-fields');
+      expect(formFields.children).toHaveLength(1);
+      // ActivityIndicator is rendered in the form fields
+      expect(formFields).toBeTruthy();
     });
 
-    it('renders component when verification is pending and loading', () => {
+    it('handles loading state with verification pending', () => {
       mockUseUserRegistrationStatus.mockReturnValue({
         verificationState: 'PENDING',
         userResponse: null,
@@ -437,13 +272,15 @@ describe('ValidatingKYC Component', () => {
       });
 
       const { getByTestId } = render(<ValidatingKYC />);
-
-      expect(getByTestId('onboarding-step')).toBeTruthy();
+      const formFields = getByTestId('onboarding-step-form-fields');
+      expect(formFields.children).toHaveLength(1);
+      // ActivityIndicator is rendered in the form fields
+      expect(formFields).toBeTruthy();
     });
   });
 
   describe('User States - Verification Status Navigation', () => {
-    it('resets navigation to COMPLETE when verificationState is VERIFIED', async () => {
+    it('navigates to PERSONAL_DETAILS when verificationState is VERIFIED', async () => {
       mockUseUserRegistrationStatus.mockReturnValue({
         verificationState: 'VERIFIED',
         userResponse: { verificationState: 'VERIFIED' },
@@ -458,14 +295,13 @@ describe('ValidatingKYC Component', () => {
       render(<ValidatingKYC />);
 
       await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.COMPLETE }],
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingPersonalDetails',
+        );
       });
     });
 
-    it('resets navigation to KYC_FAILED when verificationState is REJECTED', async () => {
+    it('navigates to KYC_FAILED when verificationState is REJECTED', async () => {
       mockUseUserRegistrationStatus.mockReturnValue({
         verificationState: 'REJECTED',
         userResponse: { verificationState: 'REJECTED' },
@@ -480,10 +316,7 @@ describe('ValidatingKYC Component', () => {
       render(<ValidatingKYC />);
 
       await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
-        });
+        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingKYCFailed');
       });
     });
 
@@ -501,211 +334,28 @@ describe('ValidatingKYC Component', () => {
 
       render(<ValidatingKYC />);
 
-      await waitFor(
-        () => {
-          expect(mockReset).not.toHaveBeenCalled();
-        },
-        { timeout: 100 },
-      );
+      // Wait a bit to ensure no navigation occurs
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
+  });
 
-    it('does not navigate when verificationState is null', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: null,
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(
-        () => {
-          expect(mockReset).not.toHaveBeenCalled();
-        },
-        { timeout: 100 },
-      );
-    });
-
-    it('does not navigate when verificationState is undefined', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: undefined,
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(
-        () => {
-          expect(mockReset).not.toHaveBeenCalled();
-        },
-        { timeout: 100 },
-      );
-    });
-
-    it('uses reset (not navigate) for verification state changes', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'VERIFIED',
-        userResponse: { verificationState: 'VERIFIED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-    });
-
-    it('resets with index 0 for VERIFIED state', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'VERIFIED',
-        userResponse: { verificationState: 'VERIFIED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        const resetCall = mockReset.mock.calls[0][0];
-        expect(resetCall.index).toBe(0);
-      });
-    });
-
-    it('resets with index 0 for REJECTED state', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'REJECTED',
-        userResponse: { verificationState: 'REJECTED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        const resetCall = mockReset.mock.calls[0][0];
-        expect(resetCall.index).toBe(0);
-      });
-    });
-
-    it('resets with single route in routes array for VERIFIED', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'VERIFIED',
-        userResponse: { verificationState: 'VERIFIED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        const resetCall = mockReset.mock.calls[0][0];
-        expect(resetCall.routes).toHaveLength(1);
-      });
-    });
-
-    it('resets with single route in routes array for REJECTED', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'REJECTED',
-        userResponse: { verificationState: 'REJECTED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        const resetCall = mockReset.mock.calls[0][0];
-        expect(resetCall.routes).toHaveLength(1);
-      });
-    });
-
-    it('does not navigate for unknown verification states', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'UNKNOWN_STATE',
-        userResponse: { verificationState: 'UNKNOWN_STATE' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(
-        () => {
-          expect(mockReset).not.toHaveBeenCalled();
-        },
-        { timeout: 100 },
-      );
-    });
-
-    it('does not navigate when verificationState is empty string', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: '',
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(
-        () => {
-          expect(mockReset).not.toHaveBeenCalled();
-        },
-        { timeout: 100 },
-      );
+  describe('Button Interaction and Navigation', () => {
+    it('does not render any buttons', () => {
+      const { queryByTestId } = render(<ValidatingKYC />);
+      const button = queryByTestId('validating-kyc-continue-button');
+      expect(button).toBeNull();
     });
   });
 
   describe('Navigation Integration', () => {
     it('uses useNavigation hook', () => {
       render(<ValidatingKYC />);
-
       expect(useNavigation).toHaveBeenCalled();
     });
 
-    it('calls reset with correct route for VERIFIED state', async () => {
+    it('calls navigate with correct route for automatic navigation', async () => {
       mockUseUserRegistrationStatus.mockReturnValue({
         verificationState: 'VERIFIED',
         userResponse: { verificationState: 'VERIFIED' },
@@ -720,269 +370,10 @@ describe('ValidatingKYC Component', () => {
       render(<ValidatingKYC />);
 
       await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.COMPLETE }],
-        });
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingPersonalDetails',
+        );
       });
-    });
-
-    it('calls reset with correct route for REJECTED state', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'REJECTED',
-        userResponse: { verificationState: 'REJECTED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
-        });
-      });
-    });
-
-    it('provides both navigate and reset methods from useNavigation', () => {
-      render(<ValidatingKYC />);
-
-      expect(useNavigation).toHaveBeenCalled();
-      // Verify the navigation object has the expected methods
-      const navigationReturn = (useNavigation as jest.Mock).mock.results[0]
-        .value;
-      expect(navigationReturn.navigate).toBeDefined();
-      expect(navigationReturn.reset).toBeDefined();
-    });
-  });
-
-  describe('Navigation State Transitions', () => {
-    it('triggers navigation when verification state transitions to VERIFIED', async () => {
-      // Start with PENDING state
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'PENDING',
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { rerender } = render(<ValidatingKYC />);
-
-      // Verify no navigation yet
-      expect(mockReset).not.toHaveBeenCalled();
-
-      // Simulate state change to VERIFIED
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'VERIFIED',
-        userResponse: { verificationState: 'VERIFIED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      rerender(<ValidatingKYC />);
-
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.COMPLETE }],
-        });
-      });
-    });
-
-    it('triggers navigation when verification state transitions to REJECTED', async () => {
-      // Start with PENDING state
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'PENDING',
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { rerender } = render(<ValidatingKYC />);
-
-      // Verify no navigation yet
-      expect(mockReset).not.toHaveBeenCalled();
-
-      // Simulate state change to REJECTED
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'REJECTED',
-        userResponse: { verificationState: 'REJECTED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      rerender(<ValidatingKYC />);
-
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
-        });
-      });
-    });
-
-    it('does not navigate when state remains PENDING', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'PENDING',
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { rerender } = render(<ValidatingKYC />);
-
-      // Re-render with same state
-      rerender(<ValidatingKYC />);
-      rerender(<ValidatingKYC />);
-
-      await waitFor(
-        () => {
-          expect(mockReset).not.toHaveBeenCalled();
-        },
-        { timeout: 100 },
-      );
-    });
-
-    it('handles rapid state transitions correctly', async () => {
-      // Start with null
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: null,
-        userResponse: null,
-        isLoading: true,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { rerender } = render(<ValidatingKYC />);
-
-      // Transition to PENDING
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'PENDING',
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      rerender(<ValidatingKYC />);
-
-      // Transition to VERIFIED
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'VERIFIED',
-        userResponse: { verificationState: 'VERIFIED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      rerender(<ValidatingKYC />);
-
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.COMPLETE }],
-        });
-      });
-    });
-  });
-
-  describe('Navigation and Polling Coordination', () => {
-    it('continues polling while verification state is PENDING', () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'PENDING',
-        userResponse: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      render(<ValidatingKYC />);
-
-      expect(mockStartPolling).toHaveBeenCalled();
-      expect(mockReset).not.toHaveBeenCalled();
-    });
-
-    it('stops polling on unmount even when navigating to COMPLETE', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'VERIFIED',
-        userResponse: { verificationState: 'VERIFIED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { unmount } = render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalled();
-      });
-
-      unmount();
-
-      expect(mockStopPolling).toHaveBeenCalled();
-    });
-
-    it('stops polling on unmount even when navigating to KYC_FAILED', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'REJECTED',
-        userResponse: { verificationState: 'REJECTED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        startPolling: mockStartPolling,
-        stopPolling: mockStopPolling,
-      });
-
-      const { unmount } = render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalled();
-      });
-
-      unmount();
-
-      expect(mockStopPolling).toHaveBeenCalled();
     });
   });
 
@@ -1032,7 +423,6 @@ describe('ValidatingKYC Component', () => {
 
     it('integrates with useUserRegistrationStatus hook', () => {
       render(<ValidatingKYC />);
-
       expect(useUserRegistrationStatus).toHaveBeenCalled();
     });
   });
@@ -1040,7 +430,6 @@ describe('ValidatingKYC Component', () => {
   describe('i18n Integration', () => {
     it('uses correct i18n keys for title', () => {
       const { getByTestId } = render(<ValidatingKYC />);
-
       const title = getByTestId('onboarding-step-title');
       expect(title.props.children).toBe('Validating your identity');
     });

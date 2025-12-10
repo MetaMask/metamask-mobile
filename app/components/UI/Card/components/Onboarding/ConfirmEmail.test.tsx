@@ -306,8 +306,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
           'Resend verification code',
         'card.card_onboarding.confirm_email.resend_cooldown':
           'Resend in {seconds}s',
-        'card.card_onboarding.confirm_email.didnt_receive_code':
-          "Didn't receive a code? ",
         'card.card_onboarding.continue_button': 'Continue',
       };
 
@@ -480,7 +478,7 @@ describe('ConfirmEmail Component', () => {
   });
 
   describe('Form Fields', () => {
-    it('renders confirmation code field with correct properties', () => {
+    it('should render confirmation code field with correct properties', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -490,9 +488,13 @@ describe('ConfirmEmail Component', () => {
 
       const codeField = getByTestId('confirm-email-code-field');
       expect(codeField).toBeTruthy();
+      expect(codeField.props.keyboardType).toBe('number-pad');
+      expect(codeField.props.textContentType).toBe('oneTimeCode');
+      expect(codeField.props.autoComplete).toBe('one-time-code');
+      expect(codeField.props.maxLength).toBe(6);
     });
 
-    it('renders code field input element', () => {
+    it('should render confirmation code label', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -500,6 +502,23 @@ describe('ConfirmEmail Component', () => {
         </Provider>,
       );
 
+      const label = getByTestId('label');
+      expect(label).toBeTruthy();
+      expect(label).toHaveTextContent('Confirmation code');
+    });
+
+    it('should render code field cells', () => {
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeField = getByTestId('code-field');
+      expect(codeField).toBeTruthy();
+
+      // The code field should be present - cells are rendered internally
       const codeFieldInput = getByTestId('confirm-email-code-field');
       expect(codeFieldInput).toBeTruthy();
     });
@@ -776,11 +795,9 @@ describe('ConfirmEmail Component', () => {
     });
 
     it('calls sendEmailVerification when resend is pressed', async () => {
-      const mockSendEmailVerificationLocal = jest.fn().mockResolvedValue({
-        contactVerificationId: 'new-contact-123',
-      });
+      const mockSendEmailVerification = jest.fn().mockResolvedValue({});
       mockUseEmailVerificationSend.mockReturnValue({
-        sendEmailVerification: mockSendEmailVerificationLocal,
+        sendEmailVerification: mockSendEmailVerification,
         isLoading: false,
         isError: false,
         error: null,
@@ -788,11 +805,13 @@ describe('ConfirmEmail Component', () => {
       });
 
       const store = createTestStore();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <ConfirmEmail />
         </Provider>,
       );
+
+      const resendElement = getByTestId('confirm-email-resend-verification');
 
       // First, advance timer to end initial cooldown
       for (let i = 0; i < 60; i++) {
@@ -801,13 +820,11 @@ describe('ConfirmEmail Component', () => {
         });
       }
 
-      // Press the resend link (inner Text element with onPress)
-      const resendLink = getByText('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendLink);
+        fireEvent.press(resendElement);
       });
 
-      expect(mockSendEmailVerificationLocal).toHaveBeenCalledWith(
+      expect(mockSendEmailVerification).toHaveBeenCalledWith(
         'test@example.com',
       );
     });
@@ -838,7 +855,7 @@ describe('ConfirmEmail Component', () => {
 
       const resendElement = getByTestId('confirm-email-resend-verification');
 
-      // During cooldown, shows countdown text
+      // Should start with cooldown
       expect(resendElement).toHaveTextContent('Resend in 60s');
 
       // Advance timer by 60 seconds, one second at a time to trigger all timer callbacks
@@ -848,14 +865,12 @@ describe('ConfirmEmail Component', () => {
         });
       }
 
-      // After cooldown, shows both "Didn't receive a code?" and "Resend verification code"
-      expect(resendElement).toHaveTextContent(/receive a code/i);
-      expect(resendElement).toHaveTextContent(/Resend verification code/i);
+      expect(resendElement).toHaveTextContent('Resend verification code');
     });
 
     it('allows resend after initial cooldown expires', async () => {
       const store = createTestStore();
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <ConfirmEmail />
         </Provider>,
@@ -870,14 +885,12 @@ describe('ConfirmEmail Component', () => {
         });
       }
 
-      // After cooldown, shows both texts
-      expect(resendElement).toHaveTextContent(/receive a code/i);
-      expect(resendElement).toHaveTextContent(/Resend verification code/i);
+      // Should be able to resend now
+      expect(resendElement).toHaveTextContent('Resend verification code');
 
-      // Press the resend link (inner Text element with onPress)
-      const resendLink = getByText('Resend verification code');
+      // Press resend
       await act(async () => {
-        fireEvent.press(resendLink);
+        fireEvent.press(resendElement);
         // Allow the async sendEmailVerification to complete
         await Promise.resolve();
         // Allow one timer tick to process
@@ -896,14 +909,10 @@ describe('ConfirmEmail Component', () => {
         });
       }
 
-      // After cooldown, shows both texts again
-      expect(resendElement).toHaveTextContent(/receive a code/i);
-      expect(resendElement).toHaveTextContent(/Resend verification code/i);
-
-      // Press resend again
-      const resendLinkAgain = getByText('Resend verification code');
+      // Should be able to resend again
+      expect(resendElement).toHaveTextContent('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendLinkAgain);
+        fireEvent.press(resendElement);
         // Allow the async sendEmailVerification to complete
         await Promise.resolve();
         // Allow one timer tick to process

@@ -434,6 +434,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -745,7 +746,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                     }
                                                   }
                                                 >
-                                                  Ethereum
+                                                  Ethereum Mainnet
                                                 </Text>
                                               </View>
                                             </View>

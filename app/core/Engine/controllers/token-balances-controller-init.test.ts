@@ -40,77 +40,22 @@ function getInitRequestMock(): jest.Mocked<
 }
 
 describe('TokenBalancesControllerInit', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('initializes the controller', () => {
     const { controller } = tokenBalancesControllerInit(getInitRequestMock());
-
     expect(controller).toBeInstanceOf(TokenBalancesController);
   });
 
-  it('passes the persisted state to the controller when available', () => {
-    const mockPersistedState = {
-      tokenBalances: {
-        '0x123': {
-          '0x1': {
-            '0xtoken': '0x100' as const,
-          },
-        },
-      },
-    } as const;
-    const requestMock = getInitRequestMock();
-    requestMock.persistedState.TokenBalancesController = mockPersistedState;
-
-    tokenBalancesControllerInit(requestMock);
+  it('passes the proper arguments to the controller', () => {
+    tokenBalancesControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(TokenBalancesController);
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
-      state: mockPersistedState,
+      state: undefined,
       interval: 30_000,
       allowExternalServices: expect.any(Function),
       queryMultipleAccounts: expect.any(Boolean),
       accountsApiChainIds: expect.any(Function),
-      platform: 'mobile',
-    });
-  });
-
-  it('uses default state with empty tokenBalances when persisted state is undefined', () => {
-    const requestMock = getInitRequestMock();
-    requestMock.persistedState.TokenBalancesController = undefined;
-
-    tokenBalancesControllerInit(requestMock);
-
-    const controllerMock = jest.mocked(TokenBalancesController);
-    expect(controllerMock).toHaveBeenCalledWith({
-      messenger: expect.any(Object),
-      state: { tokenBalances: {} },
-      interval: 30_000,
-      allowExternalServices: expect.any(Function),
-      queryMultipleAccounts: expect.any(Boolean),
-      accountsApiChainIds: expect.any(Function),
-      platform: 'mobile',
-    });
-  });
-
-  it('uses default state with empty tokenBalances when persistedState is null', () => {
-    const requestMock = getInitRequestMock();
-    // @ts-expect-error: Testing null case
-    requestMock.persistedState = null;
-
-    tokenBalancesControllerInit(requestMock);
-
-    const controllerMock = jest.mocked(TokenBalancesController);
-    expect(controllerMock).toHaveBeenCalledWith({
-      messenger: expect.any(Object),
-      state: { tokenBalances: {} },
-      interval: 30_000,
-      allowExternalServices: expect.any(Function),
-      queryMultipleAccounts: expect.any(Boolean),
-      accountsApiChainIds: expect.any(Function),
-      platform: 'mobile',
     });
   });
 });

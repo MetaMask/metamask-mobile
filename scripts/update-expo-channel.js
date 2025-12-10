@@ -23,16 +23,8 @@ const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
 
 //TODO: add production channel when it's ready
 const CONFIG_MAP = {
-  exp: {
-    channel: 'exp',
-    runtimeVersion: RUNTIME_VERSION,
-    updatesEnabled: true,
-    updateUrl: UPDATE_URL,
-    checkAutomatically: 'NEVER',
-    fallbackToCacheTimeout: 0,
-  },
   rc: {
-    channel: 'rc',
+    channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: true,
     updateUrl: UPDATE_URL,
@@ -130,8 +122,9 @@ function loadCodeSigningConfiguration() {
  * Gets the configuration for a given environment
  * @returns {Object} - The configuration object with channel, runtimeVersion, and updatesEnabled
  */
-function getConfigForEnvironment(environment) {
-  return CONFIG_MAP[environment];
+function getConfigForEnvironment() {
+  // For now, all environments use RC configuration
+  return CONFIG_MAP.rc;
 }
 
 /**
@@ -467,8 +460,9 @@ function main() {
 
   console.log(`Environment: ${environment}`);
 
-  // only enable expo updates for exp and rc builds
-  if (!(environment === 'exp' || environment === 'rc')) {
+  // Skip configuration for production environment
+  if (environment === 'production' || environment === 'dev' || environment === 'e2e') {
+    console.log('ℹ️  Production/dev/e2e environment detected - skipping Expo Updates configuration');
     console.log('✓ No configuration changes made');
     return;
   }

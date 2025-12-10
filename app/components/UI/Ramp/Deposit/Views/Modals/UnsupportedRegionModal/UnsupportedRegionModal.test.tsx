@@ -93,7 +93,7 @@ describe('UnsupportedRegionModal', () => {
 
     const { getByText } = render(UnsupportedRegionModal);
 
-    const buyCryptoButton = getByText('Buy crypto');
+    const buyCryptoButton = getByText('Buy Crypto');
     fireEvent.press(buyCryptoButton);
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
