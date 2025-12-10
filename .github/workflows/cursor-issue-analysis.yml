@@ -65,7 +65,7 @@ jobs:
           ISSUE_CONTENT=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json title,body,comments,labels)
 
           # Base64 encode to safely pass through GitHub Actions outputs
-          ENCODED=$(echo "$ISSUE_CONTENT" | base64 -w 0)
+          ENCODED=$(printf '%s' "$ISSUE_CONTENT" | base64 -w 0)
           echo "content=$ENCODED" >> $GITHUB_OUTPUT
 
       - name: Run Cursor Analysis
@@ -95,7 +95,7 @@ jobs:
           ANALYSIS=$(cursor-agent -p "$FULL_PROMPT")
 
           # Base64 encode output to safely pass to next step
-          ENCODED=$(echo "$ANALYSIS" | base64 -w 0)
+          ENCODED=$(printf '%s' "$ANALYSIS" | base64 -w 0)
           echo "result=$ENCODED" >> $GITHUB_OUTPUT
 
       - name: Post analysis comment
