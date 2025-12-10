@@ -123,10 +123,7 @@ describe(SmokePredictions('Predictions'), () => {
 
         await TabBarComponent.tapWallet();
 
-        // Verify balance on iOS only. Android balances take a while to refresh.
-        if (device.getPlatform() === 'ios') {
-          await Assertions.expectTextDisplayed('$48.16');
-        }
+        await Assertions.expectTextDisplayed('$48.16');
       },
     );
   });
