@@ -10,6 +10,8 @@ import { Hex } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 // eslint-disable-next-line import/no-namespace
 import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
+// eslint-disable-next-line import/no-namespace
+import * as tokenUtils from '../../utils/tokenUtils';
 
 describe('useAutoUpdateDestToken', () => {
   const mockEthToken: BridgeToken = {
@@ -142,9 +144,18 @@ describe('useAutoUpdateDestToken', () => {
     });
   });
 
-  describe('when source chain has not changed', () => {
-    it('does not update dest token when source is on same chain as dest', () => {
+  describe('same-chain source token changes', () => {
+    it('does not update dest when current dest already matches expected dest', () => {
       const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+
+      // Dest is already the default (mUSD for Ethereum)
+      const mUsdToken: BridgeToken = {
+        address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        symbol: 'mUSD',
+        name: 'MetaMask USD',
+        decimals: 6,
+        chainId: ethChainId,
+      };
 
       const anotherEthToken: BridgeToken = {
         ...mockEthToken,
@@ -159,7 +170,7 @@ describe('useAutoUpdateDestToken', () => {
             ...initialState,
             bridge: {
               ...initialState.bridge,
-              destToken: mockEthToken,
+              destToken: mUsdToken, // Already the expected default
               isDestTokenManuallySet: false,
             },
           },
@@ -169,8 +180,104 @@ describe('useAutoUpdateDestToken', () => {
       // Change source to another token on same chain (Ethereum)
       result.current.autoUpdateDestToken(anotherEthToken);
 
-      // Dest should NOT be updated because source chain didn't change
+      // Dest should NOT be updated because it already matches expected (mUSD)
       expect(setDestTokenSpy).not.toHaveBeenCalled();
+    });
+
+    it('updates dest from native fallback to default when source no longer conflicts', () => {
+      const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+
+      // Current dest is native ETH (set as fallback because source was mUSD)
+      const nativeEthToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+        chainId: ethChainId,
+      };
+
+      // New source is a different token that doesn't conflict with default (mUSD)
+      const nonConflictingSource: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000099',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        chainId: ethChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () => useAutoUpdateDestToken(),
+        {
+          state: {
+            ...initialState,
+            bridge: {
+              ...initialState.bridge,
+              destToken: nativeEthToken, // Native fallback
+              isDestTokenManuallySet: false,
+            },
+          },
+        },
+      );
+
+      // Change source to a non-conflicting token on same chain
+      result.current.autoUpdateDestToken(nonConflictingSource);
+
+      // Dest should update to the default (mUSD) since source no longer conflicts
+      expect(setDestTokenSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'mUSD',
+          chainId: ethChainId,
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        }),
+      );
+    });
+
+    it('updates dest to native when source changes to match default dest', () => {
+      const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+
+      // Current dest is the default mUSD
+      const mUsdToken: BridgeToken = {
+        address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        symbol: 'mUSD',
+        name: 'MetaMask USD',
+        decimals: 6,
+        chainId: ethChainId,
+      };
+
+      // New source is also mUSD (conflicts with dest)
+      const mUsdSourceToken: BridgeToken = {
+        address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        symbol: 'mUSD',
+        name: 'MetaMask USD',
+        decimals: 6,
+        chainId: ethChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () => useAutoUpdateDestToken(),
+        {
+          state: {
+            ...initialState,
+            bridge: {
+              ...initialState.bridge,
+              destToken: mUsdToken,
+              isDestTokenManuallySet: false,
+            },
+          },
+        },
+      );
+
+      // Change source to mUSD (same as current dest)
+      result.current.autoUpdateDestToken(mUsdSourceToken);
+
+      // Dest should update to native ETH since source now conflicts with default
+      expect(setDestTokenSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          chainId: ethChainId,
+          address: '0x0000000000000000000000000000000000000000',
+        }),
+      );
     });
   });
 
@@ -238,6 +345,61 @@ describe('useAutoUpdateDestToken', () => {
           address: '0x0000000000000000000000000000000000000000',
         }),
       );
+    });
+  });
+
+  describe('when chain has no default dest token configured', () => {
+    it('falls back to native token when getDefaultDestToken returns undefined', () => {
+      const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+
+      // Mock getDefaultDestToken to return undefined
+      const getDefaultDestTokenSpy = jest
+        .spyOn(tokenUtils, 'getDefaultDestToken')
+        .mockReturnValue(undefined);
+
+      // Mock getNativeSourceToken to return a predictable native token
+      const mockNativeToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'NATIVE',
+        name: 'Native Token',
+        decimals: 18,
+        chainId: optimismChainId,
+      };
+      const getNativeSourceTokenSpy = jest
+        .spyOn(tokenUtils, 'getNativeSourceToken')
+        .mockReturnValue(mockNativeToken);
+
+      const mockSourceToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000001',
+        symbol: 'SOME_TOKEN',
+        name: 'Some Token',
+        decimals: 18,
+        chainId: optimismChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () => useAutoUpdateDestToken(),
+        {
+          state: {
+            ...initialState,
+            bridge: {
+              ...initialState.bridge,
+              destToken: mockEthToken, // Currently on Ethereum (different chain)
+              isDestTokenManuallySet: false,
+            },
+          },
+        },
+      );
+
+      // Change source to Optimism where default returns undefined
+      result.current.autoUpdateDestToken(mockSourceToken);
+
+      // Should fall back to native token since no default exists
+      expect(setDestTokenSpy).toHaveBeenCalledWith(mockNativeToken);
+
+      // Cleanup
+      getDefaultDestTokenSpy.mockRestore();
+      getNativeSourceTokenSpy.mockRestore();
     });
   });
 
