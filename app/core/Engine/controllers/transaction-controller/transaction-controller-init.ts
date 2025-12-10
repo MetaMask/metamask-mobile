@@ -51,6 +51,7 @@ import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/d
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -78,9 +79,17 @@ export const TransactionControllerInit: ControllerInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
-        isAutomaticGasFeeUpdateEnabled: ({ origin, type }) =>
-          REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType) &&
-          origin !== ORIGIN_METAMASK,
+        isAutomaticGasFeeUpdateEnabled: (transaction) => {
+          const { origin, type } = transaction;
+          return (
+            REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType) &&
+            !hasTransactionType(transaction, [TransactionType.relayDeposit]) &&
+            !(
+              origin === ORIGIN_METAMASK &&
+              type === TransactionType.tokenMethodApprove
+            )
+          );
+        },
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
