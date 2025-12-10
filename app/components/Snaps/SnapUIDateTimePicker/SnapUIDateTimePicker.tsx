@@ -162,14 +162,23 @@ export const SnapUIDateTimePicker: FunctionComponent<
 
   /**
    * Submits the internal value to the snap.
+   *
+   * @param date - The date to submit.
    */
-  const submitInternalValue = () => {
-    const normalizedDate = normalizeDate(internalValue, type);
+  const submitInternalValue = (date: Date) => {
+    const normalizedDate = normalizeDate(date, type);
     const isoString = DateTime.fromJSDate(normalizedDate).toISO();
 
     setValue(normalizedDate);
     handleInputChange(name, isoString, form);
     setShowDatePicker(false);
+  };
+
+  /**
+   * Handles submission for iOS picker.
+   */
+  const handleIosSubmit = () => {
+    submitInternalValue(internalValue);
   };
 
   /**
@@ -194,11 +203,8 @@ export const SnapUIDateTimePicker: FunctionComponent<
 
     // Handle the second of two-step process for datetime type. (time selection)
     if (type === 'datetime' && androidMode === 'time' && event.type === 'set') {
-      const selectedDate = new Date(internalValue);
-      selectedDate.setTime(date.getTime());
-
-      setInternalValue(selectedDate);
-      submitInternalValue();
+      setInternalValue(date);
+      submitInternalValue(date);
 
       setAndroidMode('date');
       return;
@@ -228,7 +234,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
     // Handle single step date or time selection.
     if (event.type === 'set') {
       setInternalValue(date);
-      submitInternalValue();
+      submitInternalValue(date);
     }
 
     setShowDatePicker(false);
@@ -335,7 +341,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
                 {
                   label: strings('navigation.ok'),
                   variant: ButtonVariants.Primary,
-                  onPress: submitInternalValue,
+                  onPress: handleIosSubmit,
                 },
               ]}
             />

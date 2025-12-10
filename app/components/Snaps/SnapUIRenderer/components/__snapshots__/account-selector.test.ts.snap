@@ -29,6 +29,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -150,6 +151,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>

@@ -356,6 +356,11 @@ class TestSnaps {
     await Gestures.waitAndTap(this.dateTimePickerTouchable);
 
     await Gestures.waitAndTap(this.dateTimePickerOkButton);
+
+    // Android date and time picker is a two-step process, so we need to tap OK again
+    if (device.getPlatform() === 'android') {
+      await Gestures.waitAndTap(this.dateTimePickerOkButton);
+    }
   }
 
   async selectDateInDatePicker() {

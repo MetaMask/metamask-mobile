@@ -29,6 +29,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -224,6 +225,7 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -389,6 +391,7 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -554,6 +557,7 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -719,6 +723,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>

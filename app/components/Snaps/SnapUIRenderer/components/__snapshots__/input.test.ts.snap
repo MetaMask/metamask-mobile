@@ -29,6 +29,7 @@ exports[`SnapUIInput handles disabled input 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -187,6 +188,7 @@ exports[`SnapUIInput renders with initial value 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
