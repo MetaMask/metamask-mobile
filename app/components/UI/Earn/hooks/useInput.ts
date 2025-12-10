@@ -13,7 +13,7 @@ import {
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 import { Keys } from '../../../Base/Keypad/constants';
-import type { QuickAmount } from '../../Ramp/Aggregator/types';
+import type { QuickAmount } from '../types/lending.types';
 
 export interface InputHandlerParams {
   balance: string;
