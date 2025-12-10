@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import handleRedirection from './handleRedirection';
 import getRedirectPathsAndParams from '../../utils/getRedirectPathAndParams';
 import { RampType } from '../types';
@@ -15,10 +14,7 @@ interface RampUrlOptions {
   rampType: RampType;
 }
 
-export default function handleRampUrl({
-  rampPath,
-  rampType,
-}: RampUrlOptions) {
+export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
   try {
     const [redirectPaths, pathParams] = getRedirectPathsAndParams(rampPath);
 
@@ -33,10 +29,14 @@ export default function handleRampUrl({
 
     switch (rampType) {
       case RampType.BUY:
-        NavigationService.navigation.navigate(...createBuyNavigationDetails(rampIntent));
+        NavigationService.navigation.navigate(
+          ...createBuyNavigationDetails(rampIntent),
+        );
         break;
       case RampType.SELL:
-        NavigationService.navigation.navigate(...createSellNavigationDetails(rampIntent));
+        NavigationService.navigation.navigate(
+          ...createSellNavigationDetails(rampIntent),
+        );
         break;
     }
   } catch (error) {

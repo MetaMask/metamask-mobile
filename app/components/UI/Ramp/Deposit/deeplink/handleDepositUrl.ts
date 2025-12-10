@@ -8,9 +8,7 @@ interface DepositUrlOptions {
   depositPath: string;
 }
 
-export default function handleDepositUrl({
-  depositPath,
-}: DepositUrlOptions) {
+export default function handleDepositUrl({ depositPath }: DepositUrlOptions) {
   try {
     const [, pathParams] = getRedirectPathsAndParams(depositPath);
 
@@ -18,7 +16,9 @@ export default function handleDepositUrl({
     if (pathParams) {
       depositIntent = parseRampIntent(pathParams);
     }
-    NavigationService.navigation.navigate(...createDepositNavigationDetails(depositIntent));
+    NavigationService.navigation.navigate(
+      ...createDepositNavigationDetails(depositIntent),
+    );
   } catch (error) {
     Logger.error(
       error as Error,

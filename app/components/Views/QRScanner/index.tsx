@@ -519,15 +519,16 @@ const QRScanner = ({
           return;
         }
 
-        const handledByDeeplink = await SharedDeeplinkManager.getInstance().parse(content, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          onHandled: () => {
-            const stackNavigation = navigation as {
-              pop?: (count: number) => void;
-            };
-            stackNavigation.pop?.(2);
-          },
-        });
+        const handledByDeeplink =
+          await SharedDeeplinkManager.getInstance().parse(content, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+            onHandled: () => {
+              const stackNavigation = navigation as {
+                pop?: (count: number) => void;
+              };
+              stackNavigation.pop?.(2);
+            },
+          });
 
         if (handledByDeeplink) {
           trackEvent(
