@@ -49,6 +49,9 @@ const createStyles = (colors: any) =>
       paddingRight: 20,
       color: colors.icon.alternative,
     },
+    hideButtonClose: {
+      opacity: 0,
+    },
     input: {
       width: '80%',
       paddingHorizontal: 12,
@@ -129,7 +132,12 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, allTokens }: Props) => {
         />
       </View>
 
-      <View style={styles.iconClose}>
+      <View
+        style={[
+          styles.iconClose,
+          !searchString ? styles.hideButtonClose : undefined,
+        ]}
+      >
         <ButtonIcon
           size={ButtonIconSizes.Sm}
           iconName={IconName.Close}

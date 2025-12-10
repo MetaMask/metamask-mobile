@@ -38,6 +38,7 @@ const styleSheet = (params: {
       {
         flexDirection: 'row',
         gap: 16,
+        alignItems: 'center',
       } as ViewStyle,
       style,
     ) as ViewStyle,
