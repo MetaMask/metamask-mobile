@@ -27,6 +27,7 @@ const styleSheet = (params: { theme: Theme }) => {
     infoWrapper: {
       alignItems: 'center',
       marginTop: 10,
+      paddingHorizontal: 16,
     },
     tabContainer: {
       flex: 1,
