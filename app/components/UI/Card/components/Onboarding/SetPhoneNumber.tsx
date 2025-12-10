@@ -26,6 +26,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
+import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
@@ -44,8 +45,8 @@ const SetPhoneNumber = () => {
       .filter((country) => country.canSignUp)
       .map((country) => ({
         key: country.iso3166alpha2,
-        value: country.callingCode,
-        label: `+${country.callingCode} ${country.name}`,
+        value: `${country.iso3166alpha2}-${country.callingCode}`,
+        label: `${countryCodeToFlag(country.iso3166alpha2)} +${country.callingCode}`,
       }));
   }, [registrationSettings]);
 
@@ -63,6 +64,9 @@ const SetPhoneNumber = () => {
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
     useState<string>(initialSelectedCountryAreaCode);
+  const [selectedCountryIsoCode, setSelectedCountryIsoCode] = useState<string>(
+    selectedCountry || 'US',
+  );
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const {
@@ -127,9 +131,11 @@ const SetPhoneNumber = () => {
     }
   };
 
-  const handleCountrySelect = (areaCode: string) => {
+  const handleCountrySelect = (value: string) => {
     resetPhoneVerificationSend();
+    const [key, areaCode] = value.split('-');
     setSelectedCountryAreaCode(areaCode);
+    setSelectedCountryIsoCode(key);
   };
 
   const handlePhoneNumberChange = (text: string) => {
@@ -174,16 +180,18 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="w-28 border border-solid border-border-default rounded-lg py-1">
-          <SelectComponent
-            options={selectOptions}
-            selectedValue={selectedCountryAreaCode}
-            onValueChange={handleCountrySelect}
-            label={strings(
-              'card.card_onboarding.set_phone_number.country_area_code_label',
-            )}
-            testID="set-phone-number-country-area-code-select"
-          />
+        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg">
+          <Box twClassName="w-22">
+            <SelectComponent
+              options={selectOptions}
+              selectedValue={`${selectedCountryIsoCode}-${selectedCountryAreaCode}`}
+              onValueChange={handleCountrySelect}
+              label={strings(
+                'card.card_onboarding.set_phone_number.country_area_code_label',
+              )}
+              testID="set-phone-number-country-area-code-select"
+            />
+          </Box>
         </Box>
 
         {/* Phone number input */}
@@ -191,9 +199,6 @@ const SetPhoneNumber = () => {
           <TextField
             autoCapitalize={'none'}
             onChangeText={handlePhoneNumberChange}
-            placeholder={strings(
-              'card.card_onboarding.set_phone_number.phone_number_placeholder',
-            )}
             numberOfLines={1}
             size={TextFieldSize.Lg}
             value={phoneNumber}
@@ -230,13 +235,6 @@ const SetPhoneNumber = () => {
 
   const renderActions = () => (
     <Box twClassName="flex flex-col items-center justify-center gap-2">
-      <Text
-        variant={TextVariant.BodySm}
-        testID="set-phone-number-legal-terms"
-        twClassName="text-text-default text-center"
-      >
-        {strings('card.card_onboarding.set_phone_number.legal_terms')}
-      </Text>
       <Button
         variant={ButtonVariants.Primary}
         label={strings('card.card_onboarding.continue_button')}
@@ -246,6 +244,13 @@ const SetPhoneNumber = () => {
         isDisabled={isDisabled}
         testID="set-phone-number-continue-button"
       />
+      <Text
+        variant={TextVariant.BodySm}
+        testID="set-phone-number-legal-terms"
+        twClassName="text-text-alternative text-center"
+      >
+        {strings('card.card_onboarding.set_phone_number.legal_terms')}
+      </Text>
     </Box>
   );
 
