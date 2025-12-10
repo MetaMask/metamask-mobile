@@ -3227,7 +3227,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#4459ff1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -3236,19 +3236,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         "top": 0,
                                       }
                                     }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </TouchableOpacity>
                               </View>
                               <View
