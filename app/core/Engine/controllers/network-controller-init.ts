@@ -6,7 +6,11 @@ import {
   type NetworkControllerMessenger,
 } from '@metamask/network-controller';
 import { NetworkControllerInitMessenger } from '../messengers/network-controller-messenger';
-import { ChainId, DEFAULT_MAX_RETRIES } from '@metamask/controller-utils';
+import {
+  BlockExplorerUrl,
+  ChainId,
+  DEFAULT_MAX_RETRIES,
+} from '@metamask/controller-utils';
 import { getFailoverUrlsForInfuraNetwork } from '../../../util/networks/customNetworks';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
 import { SECOND } from '../../../constants/time';
@@ -17,7 +21,7 @@ import {
 } from './network-controller/messenger-action-handlers';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
 import { MetaMetrics } from '../../Analytics';
-import { Hex, Json } from '@metamask/utils';
+import { hasProperty, Hex, Json } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -90,6 +94,21 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState.networkConfigurationsByChainId[
       ChainId['polygon-mainnet']
     ].name = 'Polygon';
+
+    // Fill in block explorer URLs for default networks
+    Object.values(
+      initialNetworkControllerState.networkConfigurationsByChainId,
+    ).forEach((network) => {
+      const networkClientId = network.rpcEndpoints[0]?.networkClientId;
+      // Process only if the default network has a corresponding networkClientId
+      // in BlockExplorerUrl.
+      if (networkClientId && hasProperty(BlockExplorerUrl, networkClientId)) {
+        network.blockExplorerUrls = [
+          BlockExplorerUrl[networkClientId] as string,
+        ];
+      }
+      network.defaultBlockExplorerUrlIndex = 0;
+    });
 
     // Remove Sei from initial state so it appears in Additional Networks section
     // Users can add it manually, and it will be available in FEATURED_RPCS
