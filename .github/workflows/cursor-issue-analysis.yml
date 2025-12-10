@@ -31,7 +31,7 @@ jobs:
             });
 
             const hasAnalysis = comments.some(comment => 
-              comment.body.includes('## Cursor Analysis')
+              comment.body?.includes('## Cursor Analysis')
             );
 
             core.setOutput('exists', hasAnalysis);
