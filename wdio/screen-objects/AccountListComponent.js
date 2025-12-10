@@ -65,9 +65,9 @@ class AccountListComponent {
     await element.waitForExist({ reverse: true });
   }
 
-  async isAccountDisplayed(name) {
+  async isAccountDisplayed(name, timeout = 10000) {
     const element = await AppwrightSelectors.getElementByCatchAll(this.device, name);
-    await expect(element).toBeVisible({ timeout: 10000 });
+    await expect(element).toBeVisible({ timeout });
   }
 
   async tapOnAccountByName(name) {
