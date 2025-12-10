@@ -67,10 +67,17 @@ jest.mock('../../util/assets', () => ({
 
 const mockAddress = '0x1234567890123456789012345678901234567890';
 
-const createMockState = (address?: string): DeepPartial<RootState> => ({
+const createMockState = (
+  address?: string,
+  isNftDetectionEnabled = true,
+): DeepPartial<RootState> => ({
   engine: {
     backgroundState: {
       ...backgroundState,
+      PreferencesController: {
+        ...backgroundState.PreferencesController,
+        useNftDetection: isNftDetectionEnabled,
+      },
       AccountsController: {
         ...backgroundState.AccountsController,
         internalAccounts: {
@@ -119,6 +126,20 @@ describe('useNftDetection', () => {
 
     const { result } = renderHookWithProvider(() => useNftDetection(), {
       state: createMockState(),
+    });
+
+    await result.current.detectNfts();
+
+    expect(mockDetectNfts).not.toHaveBeenCalled();
+    expect(mockShowLoadingIndicator).not.toHaveBeenCalled();
+  });
+
+  it('returns early without calling NftDetectionController when NFT detection is disabled', async () => {
+    const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
+    Engine.context.NftDetectionController.detectNfts = mockDetectNfts;
+
+    const { result } = renderHookWithProvider(() => useNftDetection(), {
+      state: createMockState(mockAddress, false),
     });
 
     await result.current.detectNfts();

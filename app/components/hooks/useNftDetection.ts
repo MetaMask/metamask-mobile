@@ -14,6 +14,7 @@ import {
   hideNftFetchingLoadingIndicator,
   showNftFetchingLoadingIndicator,
 } from '../../reducers/collectibles';
+import { selectUseNftDetection } from '../../selectors/preferencesController';
 
 /**
  * Hook that provides NFT detection functionality
@@ -26,6 +27,7 @@ export const useNftDetection = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const isNftDetectionEnabled = useSelector(selectUseNftDetection);
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
@@ -44,7 +46,7 @@ export const useNftDetection = () => {
   }, []);
 
   const detectNfts = useCallback(async () => {
-    if (!selectedAddress) return;
+    if (!selectedAddress || !isNftDetectionEnabled) return;
 
     const { NftDetectionController, NftController } = Engine.context;
     const formattedSelectedAddress = selectedAddress.toLowerCase();
@@ -86,6 +88,7 @@ export const useNftDetection = () => {
     });
   }, [
     selectedAddress,
+    isNftDetectionEnabled,
     chainIdsToDetectNftsFor,
     dispatch,
     trackEvent,
