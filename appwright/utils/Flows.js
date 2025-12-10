@@ -77,6 +77,14 @@ export async function dissmissPredictionsModal(device) {
   }
 }
 
+export async function isPredictionsModalVisible(device) {
+  const notNowPredictionsModalButton = await AppwrightSelectors.getElementByID(
+    device,
+    'predict-gtm-not-now-button',
+  );
+  return await notNowPredictionsModalButton.isVisible();
+}
+
 export async function importSRPFlow(device, srp, dismissModals = true) {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
