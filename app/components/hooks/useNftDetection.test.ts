@@ -365,7 +365,7 @@ describe('useNftDetection', () => {
   });
 
   describe('getNftDetectionAnalyticsParams', () => {
-    it('returns correct analytics params for valid NFT', () => {
+    it('returns correct analytics params for valid NFT', async () => {
       mockGetDecimalChainId.mockReturnValue(1);
 
       const { result } = renderHook(() => useNftDetection());
@@ -380,30 +380,25 @@ describe('useNftDetection', () => {
         standard: 'ERC721',
       } as unknown as Nft;
 
-      // Access the param builder function through prepareNftDetectionEvents call
-      let paramBuilder: (
-        nft: Nft,
-      ) => { chain_id: number; source: 'detected' } | undefined;
-
-      act(() => {
-        result.current.detectNfts();
+      await act(async () => {
+        await result.current.detectNfts();
       });
 
       // Extract the param builder from the mock call
       const prepareEventsCall = mockPrepareNftDetectionEvents.mock.calls[0];
-      if (prepareEventsCall) {
-        paramBuilder = prepareEventsCall[2];
-        const params = paramBuilder(mockNft);
+      expect(prepareEventsCall).toBeDefined();
 
-        expect(params).toEqual({
-          chain_id: 1,
-          source: 'detected',
-        });
-        expect(mockGetDecimalChainId).toHaveBeenCalledWith('0x1');
-      }
+      const paramBuilder = prepareEventsCall[2];
+      const params = paramBuilder(mockNft);
+
+      expect(params).toEqual({
+        chain_id: 1,
+        source: 'detected',
+      });
+      expect(mockGetDecimalChainId).toHaveBeenCalledWith('0x1');
     });
 
-    it('returns undefined when getDecimalChainId throws error', () => {
+    it('returns undefined when getDecimalChainId throws error', async () => {
       mockGetDecimalChainId.mockImplementation(() => {
         throw new Error('Invalid chainId');
       });
@@ -420,27 +415,22 @@ describe('useNftDetection', () => {
         standard: 'ERC721',
       } as unknown as Nft;
 
-      // Access the param builder function through prepareNftDetectionEvents call
-      let paramBuilder: (
-        nft: Nft,
-      ) => { chain_id: number; source: 'detected' } | undefined;
-
-      act(() => {
-        result.current.detectNfts();
+      await act(async () => {
+        await result.current.detectNfts();
       });
 
       // Extract the param builder from the mock call
       const prepareEventsCall = mockPrepareNftDetectionEvents.mock.calls[0];
-      if (prepareEventsCall) {
-        paramBuilder = prepareEventsCall[2];
-        const params = paramBuilder(mockNft);
+      expect(prepareEventsCall).toBeDefined();
 
-        expect(params).toBeUndefined();
-        expect(mockLoggerError).toHaveBeenCalledWith(
-          expect.any(Error),
-          'useNftDetection.getNftDetectionAnalyticsParams',
-        );
-      }
+      const paramBuilder = prepareEventsCall[2];
+      const params = paramBuilder(mockNft);
+
+      expect(params).toBeUndefined();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useNftDetection.getNftDetectionAnalyticsParams',
+      );
     });
   });
 

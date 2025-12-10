@@ -32,7 +32,7 @@ const CollectibleDetectionModal = () => {
   const { addTraitsToUser } = useMetrics();
   const { detectNfts } = useNftDetection();
 
-  const showToastAndEnableNFtDetection = useCallback(async () => {
+  const showToastAndEnableNFtDetection = useCallback(() => {
     // show toast
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
