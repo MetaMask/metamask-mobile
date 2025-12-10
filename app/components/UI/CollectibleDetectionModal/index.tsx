@@ -51,8 +51,7 @@ const CollectibleDetectionModal = () => {
       [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.ON,
     };
     addTraitsToUser(traits);
-    // Call detect nfts
-    await detectNfts();
+    detectNfts();
   }, [colors.primary.inverse, toastRef, addTraitsToUser, detectNfts]);
 
   return (

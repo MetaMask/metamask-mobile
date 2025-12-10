@@ -14,7 +14,6 @@ import {
   hideNftFetchingLoadingIndicator,
   showNftFetchingLoadingIndicator,
 } from '../../reducers/collectibles';
-import { selectUseNftDetection } from '../../selectors/preferencesController';
 
 /**
  * Hook that provides NFT detection functionality
@@ -27,7 +26,6 @@ export const useNftDetection = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const isNftDetectionEnabled = useSelector(selectUseNftDetection);
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
@@ -46,9 +44,17 @@ export const useNftDetection = () => {
   }, []);
 
   const detectNfts = useCallback(async () => {
-    if (!selectedAddress || !isNftDetectionEnabled) return;
+    if (!selectedAddress) return;
 
-    const { NftDetectionController, NftController } = Engine.context;
+    const { NftDetectionController, NftController, PreferencesController } =
+      Engine.context;
+
+    // Read fresh state from the controller to avoid stale closure values
+    const isNftDetectionCurrentlyEnabled =
+      PreferencesController.state.useNftDetection;
+
+    if (!isNftDetectionCurrentlyEnabled) return;
+
     const formattedSelectedAddress = selectedAddress.toLowerCase();
 
     const previousNfts = cloneDeep(
@@ -60,9 +66,8 @@ export const useNftDetection = () => {
       dispatch(showNftFetchingLoadingIndicator());
 
       await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
-
-      endTrace({ name: TraceName.DetectNfts });
     } finally {
+      endTrace({ name: TraceName.DetectNfts });
       dispatch(hideNftFetchingLoadingIndicator());
     }
 
@@ -88,7 +93,6 @@ export const useNftDetection = () => {
     });
   }, [
     selectedAddress,
-    isNftDetectionEnabled,
     chainIdsToDetectNftsFor,
     dispatch,
     trackEvent,
