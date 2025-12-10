@@ -6,7 +6,6 @@ import {
 } from '../../../../../constants/deeplinks';
 import AppConstants from '../../../../AppConstants';
 import SDKConnect from '../../../../SDKConnect/SDKConnect';
-import handleDeeplink from '../../../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../../DeeplinkManager';
@@ -58,13 +57,6 @@ const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
 describe('handleUniversalLink', () => {
   const mockParse = jest.fn();
   const mockNavigation = { navigate: jest.fn() };
-  const mockConnectToChannel = jest.fn();
-  const mockGetConnections = jest.fn();
-  const mockRevalidateChannel = jest.fn();
-  const mockReconnect = jest.fn();
-  const mockWC2ManagerConnect = jest.fn();
-  const mockBindAndroidSDK = jest.fn();
-  const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockHandleMetaMaskDeeplink =
     handleMetaMaskDeeplink as jest.MockedFunction<
       typeof handleMetaMaskDeeplink
@@ -103,19 +95,16 @@ describe('handleUniversalLink', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockBindAndroidSDK.mockResolvedValue(undefined);
-    mockHandleDeeplink.mockResolvedValue(undefined);
-
     mockSDKConnectGetInstance.mockImplementation(() => ({
-      getConnections: mockGetConnections,
-      connectToChannel: mockConnectToChannel,
-      revalidateChannel: mockRevalidateChannel,
-      reconnect: mockReconnect,
-      bindAndroidSDK: mockBindAndroidSDK,
+      getConnections: jest.fn(),
+      connectToChannel: jest.fn(),
+      revalidateChannel: jest.fn(),
+      reconnect: jest.fn(),
+      bindAndroidSDK: jest.fn().mockResolvedValue(undefined),
     }));
 
     mockWC2ManagerGetInstance.mockResolvedValue({
-      connect: mockWC2ManagerConnect,
+      connect: jest.fn(),
     });
 
     url = 'https://metamask.app.link';

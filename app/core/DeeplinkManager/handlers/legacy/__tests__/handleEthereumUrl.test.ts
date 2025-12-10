@@ -55,9 +55,7 @@ jest.mock('../../../../../components/Views/confirmations/utils/deeplink');
 describe('handleEthereumUrl', () => {
   const mockParse = parse as jest.Mock;
   const mockGetDecimalChainId = getDecimalChainId as jest.Mock;
-
   const mockSwitchNetwork = switchNetwork as jest.Mock;
-  const mockNavigate = jest.fn();
   const mockHandleApproveUrl = handleApproveUrl as jest.Mock;
   const mockIsDeeplinkRedesignedConfirmationCompatible = jest.mocked(
     isDeeplinkRedesignedConfirmationCompatible,
@@ -73,10 +71,6 @@ describe('handleEthereumUrl', () => {
     });
 
     mockSwitchNetwork.mockImplementation(() => {
-      // do nothing
-    });
-
-    mockNavigate.mockImplementation(() => {
       // do nothing
     });
 

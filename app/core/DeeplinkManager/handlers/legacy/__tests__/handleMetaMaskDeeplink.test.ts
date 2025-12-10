@@ -24,11 +24,6 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 
 describe('handleMetaMaskProtocol', () => {
-  const mockConnectToChannel = jest.fn();
-  const mockGetConnections = jest.fn();
-  const mockRevalidateChannel = jest.fn();
-  const mockReconnect = jest.fn();
-  const mockWC2ManagerConnect = jest.fn();
   const mockGetApprovedHosts = jest.fn();
   const mockBindAndroidSDK = jest.fn();
   const mockNavigate = jest.fn();
@@ -66,10 +61,10 @@ describe('handleMetaMaskProtocol', () => {
     mockHandleDeeplink.mockResolvedValue(undefined);
 
     mockSDKConnectGetInstance.mockImplementation(() => ({
-      getConnections: mockGetConnections,
-      connectToChannel: mockConnectToChannel,
-      revalidateChannel: mockRevalidateChannel,
-      reconnect: mockReconnect,
+      getConnections: jest.fn(),
+      connectToChannel: jest.fn(),
+      revalidateChannel: jest.fn(),
+      reconnect: jest.fn(),
       getApprovedHosts: mockGetApprovedHosts,
       bindAndroidSDK: mockBindAndroidSDK,
       state: {
@@ -80,7 +75,7 @@ describe('handleMetaMaskProtocol', () => {
     }));
 
     mockWC2ManagerGetInstance.mockResolvedValue({
-      connect: mockWC2ManagerConnect,
+      connect: jest.fn(),
     });
 
     params = {
@@ -355,11 +350,7 @@ describe('handleMetaMaskProtocol', () => {
         originatorInfo: undefined,
         rpc: undefined,
         hideReturnToApp: false,
-        sdkConnect: {
-          getConnections: mockGetConnections,
-          connectToChannel: mockConnectToChannel,
-          revalidateChannel: mockRevalidateChannel,
-          reconnect: mockReconnect,
+        sdkConnect: expect.objectContaining({
           getApprovedHosts: mockGetApprovedHosts,
           bindAndroidSDK: mockBindAndroidSDK,
           state: {
@@ -367,7 +358,7 @@ describe('handleMetaMaskProtocol', () => {
               navigate: mockNavigate,
             },
           },
-        },
+        }),
       });
     });
 
@@ -396,11 +387,7 @@ describe('handleMetaMaskProtocol', () => {
         originatorInfo: undefined,
         rpc: undefined,
         hideReturnToApp: true,
-        sdkConnect: {
-          getConnections: mockGetConnections,
-          connectToChannel: mockConnectToChannel,
-          revalidateChannel: mockRevalidateChannel,
-          reconnect: mockReconnect,
+        sdkConnect: expect.objectContaining({
           getApprovedHosts: mockGetApprovedHosts,
           bindAndroidSDK: mockBindAndroidSDK,
           state: {
@@ -408,7 +395,7 @@ describe('handleMetaMaskProtocol', () => {
               navigate: mockNavigate,
             },
           },
-        },
+        }),
       });
     });
 
@@ -437,11 +424,7 @@ describe('handleMetaMaskProtocol', () => {
         originatorInfo: undefined,
         rpc: undefined,
         hideReturnToApp: false,
-        sdkConnect: {
-          getConnections: mockGetConnections,
-          connectToChannel: mockConnectToChannel,
-          revalidateChannel: mockRevalidateChannel,
-          reconnect: mockReconnect,
+        sdkConnect: expect.objectContaining({
           getApprovedHosts: mockGetApprovedHosts,
           bindAndroidSDK: mockBindAndroidSDK,
           state: {
@@ -449,7 +432,7 @@ describe('handleMetaMaskProtocol', () => {
               navigate: mockNavigate,
             },
           },
-        },
+        }),
       });
     });
   });
