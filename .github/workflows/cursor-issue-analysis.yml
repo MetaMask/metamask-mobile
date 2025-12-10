@@ -109,14 +109,16 @@ jobs:
             const analysisB64 = process.env.ANALYSIS_B64;
             const analysis = Buffer.from(analysisB64, 'base64').toString('utf-8');
 
-            const body = `## Cursor Analysis
-
-            > ⚠️ **Note**: This is an AI-generated analysis based on user-submitted issue content. Please verify suggestions before implementing.
-
-            ${analysis}
-
-            ---
-            *Automated analysis by Cursor CLI*`;
+            const body = [
+              '## Cursor Analysis',
+              '',
+              '> ⚠️ **Note**: This is an AI-generated analysis based on user-submitted issue content. Please verify suggestions before implementing.',
+              '',
+              analysis,
+              '',
+              '---',
+              '*Automated analysis by Cursor CLI*'
+            ].join('\n');
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
