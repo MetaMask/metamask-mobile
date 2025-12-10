@@ -183,6 +183,7 @@ const SecureKeychain = {
   async setGenericPassword(password: string, type?: SecureKeychainTypes) {
     const authOptions: Keychain.SetOptions = {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+      storage: Keychain.STORAGE_TYPE.AES_GCM,
     };
 
     const metrics = MetaMetrics.getInstance();

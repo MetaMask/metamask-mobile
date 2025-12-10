@@ -612,6 +612,8 @@ class AuthenticationService {
     password: string,
     authData: AuthData,
   ): Promise<void> => {
+    console.log('userEntryAuth', password, authData);
+
     try {
       trace({
         name: TraceName.VaultCreation,
@@ -675,10 +677,12 @@ class AuthenticationService {
   ): Promise<void> => {
     const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
+    console.log('appTriggeredAuth', bioStateMachineId, disableAutoLogout);
     try {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
+      console.log('appTriggeredAuth credentials', credentials);
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
