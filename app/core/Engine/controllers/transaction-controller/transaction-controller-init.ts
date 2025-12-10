@@ -50,7 +50,7 @@ import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
-import { toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -78,8 +78,9 @@ export const TransactionControllerInit: ControllerInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
-        isAutomaticGasFeeUpdateEnabled: ({ type }) =>
-          REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType),
+        isAutomaticGasFeeUpdateEnabled: ({ origin, type }) =>
+          REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType) &&
+          origin !== ORIGIN_METAMASK,
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
