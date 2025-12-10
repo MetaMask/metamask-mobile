@@ -17,7 +17,7 @@ exports[`Tag should render correctly 1`] = `
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "Geist Medium",
+        "fontFamily": "Geist-Medium",
         "fontSize": 12,
         "letterSpacing": 0.25,
         "lineHeight": 20,

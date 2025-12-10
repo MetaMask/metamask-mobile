@@ -467,7 +467,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -561,7 +561,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -769,7 +769,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -788,7 +788,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -977,7 +977,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -996,7 +996,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1158,7 +1158,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1177,7 +1177,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1339,7 +1339,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1358,7 +1358,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1520,7 +1520,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1539,7 +1539,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1701,7 +1701,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1720,7 +1720,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1882,7 +1882,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -1901,7 +1901,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -2063,7 +2063,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
@@ -2082,7 +2082,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   [
                                                     {
                                                       "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
                                                       "letterSpacing": 0,
