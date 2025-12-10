@@ -69,6 +69,8 @@ export function getTransactionTypeValue(
       return 'perps_deposit';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
+    case TransactionType.relayDeposit:
+      return 'relay_deposit';
     case TransactionType.simpleSend:
       return 'simple_send';
     case TransactionType.stakingClaim:

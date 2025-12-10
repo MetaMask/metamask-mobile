@@ -12,7 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
+import { useLegacySwapsBlockExplorer } from '../../../components/UI/Bridge/hooks/useLegacySwapsBlockExplorer';
 import {
   createProviderConfig,
   selectEvmChainId,
@@ -159,7 +159,7 @@ const AssetOptions = (props: Props) => {
     };
   }, [networkId, networkConfigurations]);
 
-  const explorer = useBlockExplorer(
+  const explorer = useLegacySwapsBlockExplorer(
     networkConfigurations,
     providerConfigTokenExplorer,
   );
@@ -193,7 +193,7 @@ const AssetOptions = (props: Props) => {
           `${solanaExplorer}/token/${tokenAddress}`,
         account: (accountAddress: string) =>
           `${solanaExplorer}/account/${accountAddress}`,
-        tx: (hash: string) => `${solanaExplorer}/tx/${hash}`,
+        tx: (hash: string | undefined) => `${solanaExplorer}/tx/${hash}`,
         name: 'Block Explorer',
         value: null,
         isValid: true,

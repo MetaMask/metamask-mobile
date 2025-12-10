@@ -466,7 +466,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -618,7 +618,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -682,7 +682,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1175,7 +1175,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1327,7 +1327,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -1469,7 +1469,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1485,7 +1485,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1565,7 +1565,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1581,7 +1581,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2080,7 +2080,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2232,7 +2232,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -2399,7 +2399,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2415,7 +2415,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2510,7 +2510,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2526,7 +2526,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2606,7 +2606,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2622,7 +2622,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2702,7 +2702,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2718,7 +2718,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3217,7 +3217,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3369,7 +3369,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -3474,7 +3474,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -3967,7 +3967,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -4119,7 +4119,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -4290,7 +4290,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -4306,7 +4306,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -4805,7 +4805,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -4957,7 +4957,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -5124,7 +5124,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5140,7 +5140,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5235,7 +5235,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5251,7 +5251,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5331,7 +5331,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5347,7 +5347,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5427,7 +5427,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5443,7 +5443,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5942,7 +5942,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -6094,7 +6094,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -6261,7 +6261,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6277,7 +6277,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6357,7 +6357,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6373,7 +6373,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6468,7 +6468,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6484,7 +6484,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6564,7 +6564,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6580,7 +6580,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7079,7 +7079,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -7231,7 +7231,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -7398,7 +7398,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7414,7 +7414,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7509,7 +7509,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7525,7 +7525,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7605,7 +7605,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7621,7 +7621,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7701,7 +7701,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7717,7 +7717,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
