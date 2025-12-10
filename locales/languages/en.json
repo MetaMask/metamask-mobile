@@ -6709,7 +6709,8 @@
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
-      "solana_not_supported": "Enable Solana tokens on card.metamask.io"
+      "solana_not_supported": "Enable Solana tokens on card.metamask.io",
+      "select_token": "Select token"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -7188,6 +7189,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_rejection": {
+      "title": "Approval Rejected",
+      "description": "User rejected the request."
     },
     "show_return_to_app": {
       "title": "Success",
