@@ -1,17 +1,21 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import Pna25BottomSheet from './Pna25BottomSheet';
+import Pna25BottomSheet, { Pna25BottomSheetAction } from './Pna25BottomSheet';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ mockEvent: true });
 const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
+  addProperties: mockAddProperties,
+  build: mockBuild,
 }));
 
 // Mock React Navigation
@@ -21,6 +25,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
     }),
   };
 });
@@ -89,8 +94,15 @@ describe('Pna25BottomSheet', () => {
   it('tracks view event on mount', () => {
     renderComponent();
 
-    expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockCreateEventBuilder).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      name: 'pna25',
+      action: Pna25BottomSheetAction.VIEWED,
+    });
+    expect(mockBuild).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
   });
 
   it('navigates to security settings when open settings button is pressed', () => {
@@ -119,5 +131,43 @@ describe('Pna25BottomSheet', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       'http://metamask.io/news/updating-metamask-analytics',
     );
+  });
+
+  it('tracks "accept and close" event when confirm button is pressed', () => {
+    const { getByText } = renderComponent();
+    const confirmButton = getByText(
+      strings('privacy_policy.pna25_confirm_button'),
+    );
+
+    fireEvent.press(confirmButton);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      name: 'pna25',
+      action: Pna25BottomSheetAction.ACCEPT_AND_CLOSE,
+    });
+    expect(mockBuild).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
+  });
+
+  it('tracks "open settings" event when open settings button is pressed', () => {
+    const { getByText } = renderComponent();
+    const openSettingsButton = getByText(
+      strings('privacy_policy.pna25_open_settings_button'),
+    );
+
+    fireEvent.press(openSettingsButton);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      name: 'pna25',
+      action: Pna25BottomSheetAction.OPEN_SETTINGS,
+    });
+    expect(mockBuild).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
   });
 });

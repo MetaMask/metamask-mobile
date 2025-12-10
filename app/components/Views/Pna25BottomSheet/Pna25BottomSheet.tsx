@@ -23,7 +23,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 
-enum Pna25BottomSheetAction {
+export enum Pna25BottomSheetAction {
   VIEWED = 'viewed',
   CLOSED = 'closed',
   LEAVE = 'leave',
