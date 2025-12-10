@@ -129,7 +129,7 @@ describe('Pna25BottomSheet', () => {
     fireEvent.press(learnMoreLink);
 
     expect(Linking.openURL).toHaveBeenCalledWith(
-      'http://metamask.io/news/updating-metamask-analytics',
+      'https://metamask.io/news/updating-metamask-analytics',
     );
   });
 
