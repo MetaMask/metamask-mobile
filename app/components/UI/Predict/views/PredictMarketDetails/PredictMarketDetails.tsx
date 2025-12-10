@@ -1039,6 +1039,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               size={ButtonSizeHero.Lg}
               style={tw.style('w-full')}
               onPress={handleClaimPress}
+              testID={PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON}
             >
               <Text
                 variant={TextVariant.BodyMd}

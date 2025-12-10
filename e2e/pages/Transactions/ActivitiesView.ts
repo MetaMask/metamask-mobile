@@ -4,6 +4,7 @@ import {
 } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { Assertions, Utilities } from '../../framework';
 
 class ActivitiesView {
   get title(): DetoxElement {
@@ -130,15 +131,35 @@ class ActivitiesView {
       speed: 'slow',
       elemDescription: 'Activity View Tabs Bar',
     });
-    await Gestures.waitAndTap(this.predictionsTab, {
-      elemDescription: 'Predictions Tab in Activity View',
-    });
+
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.predictionsTab, {
+          delay: 2500,
+        });
+        await Assertions.expectElementToBeVisible(this.predictionsTab);
+      },
+      {
+        timeout: 10000,
+        description: 'Tap Predictions Tab on activity view',
+      },
+    );
   }
   async tapPredictPosition(positionName: string): Promise<void> {
     const el = Matchers.getElementByText(positionName);
-    await Gestures.waitAndTap(el, {
-      elemDescription: `Tapping Predict Position: ${positionName}`,
-    });
+
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(el, {
+          delay: 2500,
+        });
+        await Assertions.expectElementToBeVisible(el);
+      },
+      {
+        timeout: 10000,
+        description: `Tapping Predict Position: ${positionName}`,
+      },
+    );
   }
 }
 
