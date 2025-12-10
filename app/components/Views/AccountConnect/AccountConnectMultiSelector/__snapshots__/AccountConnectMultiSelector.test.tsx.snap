@@ -462,21 +462,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              accessibilityRole="checkbox"
-              accessible={true}
-              style={
-                {
-                  "backgroundColor": "#4459ff1a",
-                  "bottom": 0,
-                  "flexDirection": "row",
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            />
           </TouchableOpacity>
         </View>
         <View

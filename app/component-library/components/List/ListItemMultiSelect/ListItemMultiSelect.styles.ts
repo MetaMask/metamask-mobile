@@ -35,11 +35,6 @@ const styleSheet = (params: {
     listItem: {
       padding: 0,
     },
-    underlay: {
-      ...StyleSheet.absoluteFillObject,
-      flexDirection: 'row',
-      backgroundColor: colors.primary.muted,
-    },
     checkbox: {
       marginRight: 8 - Number(gap),
     },
