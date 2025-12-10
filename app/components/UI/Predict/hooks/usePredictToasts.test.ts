@@ -86,7 +86,7 @@ describe('usePredictToasts', () => {
     errorToastConfig: {
       title: 'Transaction Failed',
       description: 'Something went wrong',
-      retryLabel: 'Try again',
+      retryLabel: 'Try Again',
       onRetry: mockOnRetry,
     },
     clearTransaction: mockClearTransaction,
@@ -609,7 +609,7 @@ describe('usePredictToasts', () => {
               }),
             ]),
             linkButtonOptions: expect.objectContaining({
-              label: 'Try again',
+              label: 'Try Again',
               onPress: mockOnRetry,
             }),
           }),

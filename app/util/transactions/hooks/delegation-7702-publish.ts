@@ -39,10 +39,8 @@ import {
 } from '../transaction-relay';
 import { NetworkClientId } from '@metamask/network-controller';
 import { toHex } from '@metamask/controller-utils';
-import { isE2ETest, stripSingleLeadingZero } from '../util';
+import { stripSingleLeadingZero } from '../util';
 
-// Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
-const SEPOLIA_CHAIN_ID = '0xaa36a7';
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
 
@@ -157,7 +155,7 @@ export class Delegation7702PublishHook {
     }
 
     const delegationEnvironment = getDeleGatorEnvironment(
-      parseInt(isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId, 16),
+      parseInt(transactionMeta.chainId, 16),
     );
     const delegationManagerAddress = delegationEnvironment.DelegationManager;
     const includeTransfer =
@@ -204,24 +202,6 @@ export class Delegation7702PublishHook {
 
     log('Relay request', relayRequest);
 
-    const initialTxMeta = this.#messenger
-      .call('TransactionController:getState')
-      .transactions.find((tx) => tx.id === transactionMeta.id);
-
-    if (initialTxMeta) {
-      this.#messenger.call(
-        'TransactionController:updateTransaction',
-        {
-          ...initialTxMeta,
-          txParams: {
-            ...initialTxMeta.txParams,
-            nonce: undefined,
-          },
-        },
-        'Delegation7702PublishHook - Remove nonce from transaction before relay',
-      );
-    }
-
     const { uuid } = await submitRelayTransaction(relayRequest);
 
     const { transactionHash, status } = await waitForRelayResult({
@@ -235,22 +215,16 @@ export class Delegation7702PublishHook {
     }
 
     // Mark 7702 relay transaction as intent complete so PendingTransactionTracker
-    // skips dropped checks
-    log('Setting isIntentComplete after relay success', transactionMeta.id);
-    const finalTxMeta = this.#messenger
-      .call('TransactionController:getState')
-      .transactions.find((tx) => tx.id === transactionMeta.id);
-
-    if (finalTxMeta) {
-      this.#messenger.call(
-        'TransactionController:updateTransaction',
-        {
-          ...finalTxMeta,
-          isIntentComplete: true,
-        },
-        'Delegation7702PublishHook - Set isIntentComplete after relay confirmed',
-      );
-    }
+    // skips dropped checks, matching transaction-pay-controller
+    const updatedTransactionMeta = {
+      ...transactionMeta,
+      isIntentComplete: true,
+    };
+    await this.#messenger.call(
+      'TransactionController:updateTransaction',
+      updatedTransactionMeta,
+      'Intent complete after 7702 relay transaction success',
+    );
 
     return {
       transactionHash,
@@ -263,7 +237,6 @@ export class Delegation7702PublishHook {
     gasFeeToken: GasFeeToken | undefined,
     includeTransfer: boolean,
   ): Promise<Delegation[][]> {
-    const { chainId } = transactionMeta;
     const unsignedDelegation = this.#buildUnsignedDelegation(
       delegationEnvironment,
       transactionMeta,
@@ -276,7 +249,7 @@ export class Delegation7702PublishHook {
     const delegationSignature = (await this.#messenger.call(
       'DelegationController:signDelegation',
       {
-        chainId: isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId,
+        chainId: transactionMeta.chainId,
         delegation: unsignedDelegation,
       },
     )) as Hex;

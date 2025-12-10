@@ -1,51 +1,27 @@
-import React, { useCallback } from 'react';
-import { useParams } from '../../../../../../util/navigation/navUtils';
-import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
+import React from 'react';
+import { strings } from '../../../../../../../locales/i18n';
+import useNavbar from '../../../hooks/ui/useNavbar';
+import { CustomAmountInfo } from '../custom-amount-info';
 import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../../../UI/Earn/constants/musd';
-import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
-import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
-import { PayWithRow } from '../../rows/pay-with-row';
-import { CustomAmountInfo } from '../custom-amount-info';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
-
-interface MusdOverrideContentProps {
-  amountHuman: string;
-}
-
-const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
-  amountHuman,
-}) => {
-  const { shouldShowOutputAmountTag, outputAmount, outputSymbol } =
-    useCustomAmount({ amountHuman });
-
-  const availableTokens = useTransactionPayAvailableTokens();
-  const hasTokens = availableTokens.length > 0;
-
-  return (
-    <>
-      {shouldShowOutputAmountTag && outputAmount !== null && (
-        <OutputAmountTag
-          amount={outputAmount}
-          symbol={outputSymbol ?? undefined}
-          showBackground={false}
-        />
-      )}
-      {hasTokens && <PayWithRow />}
-    </>
-  );
-};
+import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const MusdConversionInfo = () => {
   const { outputChainId, preferredPaymentToken } =
-    useParams<MusdConversionConfig>();
+    useParams<MusdConversionConfig>({
+      outputChainId: CHAIN_IDS.MAINNET,
+    });
+
+  useNavbar(strings('earn.musd_conversion.earn_rewards_with'));
 
   const { decimals, name, symbol } = MUSD_TOKEN;
 
-  const tokenToAddAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN?.[outputChainId];
+  const tokenToAddAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId];
 
   if (!tokenToAddAddress) {
     throw new Error(
@@ -61,15 +37,5 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  const renderOverrideContent = useCallback(
-    (amountHuman: string) => <MusdOverrideContent amountHuman={amountHuman} />,
-    [],
-  );
-
-  return (
-    <CustomAmountInfo
-      preferredToken={preferredPaymentToken}
-      overrideContent={renderOverrideContent}
-    />
-  );
+  return <CustomAmountInfo preferredToken={preferredPaymentToken} />;
 };

@@ -14,11 +14,7 @@ import {
 } from '../../hooks/useCardDelegation';
 import { useCardSDK } from '../../sdk';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  BAANX_MAX_LIMIT,
-  ARBITRARY_ALLOWANCE,
-  caipChainIdToNetwork,
-} from '../../constants';
+import { BAANX_MAX_LIMIT, ARBITRARY_ALLOWANCE } from '../../constants';
 import Logger from '../../../../../util/Logger';
 import Text, {
   TextVariant,
@@ -43,6 +39,7 @@ import {
   CardTokenAllowance,
   DelegationSettingsResponse,
   CardExternalWalletDetailsResponse,
+  CardNetwork,
 } from '../../types';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
@@ -50,12 +47,19 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
+import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { clearCacheData } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
+
+const getNetworkFromCaipChainId = (caipChainId: string): CardNetwork => {
+  if (caipChainId === SolScope.Mainnet || caipChainId.startsWith('solana:')) {
+    return 'solana';
+  }
+  return 'linea';
+};
 
 const SpendingLimit = ({
   route,
@@ -277,12 +281,8 @@ const SpendingLimit = ({
         const tokenToUse = selectedToken || priorityToken;
         const currency = tokenToUse?.symbol;
         const network = tokenToUse?.caipChainId
-          ? caipChainIdToNetwork[tokenToUse.caipChainId]
-          : null;
-
-        if (!network) {
-          throw new Error('Network not found');
-        }
+          ? getNetworkFromCaipChainId(tokenToUse.caipChainId)
+          : 'linea';
 
         await submitDelegation({
           amount: delegationAmount,

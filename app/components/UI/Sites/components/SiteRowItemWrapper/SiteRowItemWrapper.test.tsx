@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import SiteRowItemWrapper from './SiteRowItemWrapper';
+import { updateLastTrendingScreen } from '../../../../Nav/Main/MainNavigator';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { SiteData } from '../SiteRowItem/SiteRowItem';
-import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock the dependencies
 jest.mock('../../../../Nav/Main/MainNavigator', () => ({
@@ -167,19 +167,6 @@ describe('SiteRowItemWrapper', () => {
     });
   });
 
-  const assertBrowserNavigation = (siteUrl?: string) => {
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.BROWSER.HOME,
-      expect.objectContaining({
-        screen: Routes.BROWSER.VIEW,
-        params: expect.objectContaining({
-          ...(siteUrl ? { newTabUrl: siteUrl } : {}),
-          fromTrending: true,
-        }),
-      }),
-    );
-  };
-
   describe('Navigation and Press Handling', () => {
     it('should call updateLastTrendingScreen when pressed', () => {
       const { getByTestId } = render(
@@ -187,6 +174,9 @@ describe('SiteRowItemWrapper', () => {
       );
 
       fireEvent.press(getByTestId('site-row-item'));
+
+      expect(updateLastTrendingScreen).toHaveBeenCalledWith('TrendingBrowser');
+      expect(updateLastTrendingScreen).toHaveBeenCalledTimes(1);
     });
 
     it('should navigate to TrendingBrowser with correct params when pressed', () => {
@@ -196,7 +186,11 @@ describe('SiteRowItemWrapper', () => {
 
       fireEvent.press(getByTestId('site-row-item'));
 
-      assertBrowserNavigation('https://example.com');
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TrendingBrowser', {
+        newTabUrl: 'https://example.com',
+        timestamp: 1234567890,
+        fromTrending: true,
+      });
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
     });
 
@@ -214,7 +208,31 @@ describe('SiteRowItemWrapper', () => {
 
       fireEvent.press(getByTestId('site-row-item'));
 
-      assertBrowserNavigation('https://custom-url.com/page');
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TrendingBrowser', {
+        newTabUrl: 'https://custom-url.com/page',
+        timestamp: 1234567890,
+        fromTrending: true,
+      });
+    });
+
+    it('should update screen before navigating', () => {
+      const { getByTestId } = render(
+        <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
+      );
+
+      const callOrder: string[] = [];
+
+      (updateLastTrendingScreen as jest.Mock).mockImplementation(() => {
+        callOrder.push('update');
+      });
+
+      (mockNavigation.navigate as jest.Mock).mockImplementation(() => {
+        callOrder.push('navigate');
+      });
+
+      fireEvent.press(getByTestId('site-row-item'));
+
+      expect(callOrder).toEqual(['update', 'navigate']);
     });
 
     it('should handle multiple presses correctly', () => {
@@ -227,6 +245,8 @@ describe('SiteRowItemWrapper', () => {
       fireEvent.press(siteRowItem);
       fireEvent.press(siteRowItem);
       fireEvent.press(siteRowItem);
+
+      expect(updateLastTrendingScreen).toHaveBeenCalledTimes(3);
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(3);
     });
 
@@ -237,7 +257,10 @@ describe('SiteRowItemWrapper', () => {
 
       fireEvent.press(getByTestId('site-row-item'));
 
-      assertBrowserNavigation();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        'TrendingBrowser',
+        expect.objectContaining({ fromTrending: true }),
+      );
     });
   });
 
@@ -259,7 +282,11 @@ describe('SiteRowItemWrapper', () => {
 
       fireEvent.press(getByTestId('site-row-item'));
 
-      assertBrowserNavigation('https://minimal.com');
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TrendingBrowser', {
+        newTabUrl: 'https://minimal.com',
+        timestamp: 1234567890,
+        fromTrending: true,
+      });
     });
   });
 });

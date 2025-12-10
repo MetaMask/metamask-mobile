@@ -3,11 +3,9 @@ import {
   CardFeatureFlag,
   SupportedToken,
 } from '../../../../selectors/featureFlagController/card';
-import {
-  BALANCE_SCANNER_ABI,
-  cardNetworkInfos,
-  SUPPORTED_ASSET_NETWORKS,
-} from '../constants';
+import { getDecimalChainId } from '../../../../util/networks';
+import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
+import { BALANCE_SCANNER_ABI, SUPPORTED_ASSET_NETWORKS } from '../constants';
 import Logger from '../../../../util/Logger';
 import {
   CardType,
@@ -49,10 +47,13 @@ import {
   DelegationSettingsNetwork,
   GetOnboardingConsentResponse,
 } from '../types';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
+import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { SolScope } from '@metamask/keyring-api';
 import { isZeroValue } from '../../../../util/number';
 
 // Default timeout for all API requests (10 seconds)
@@ -68,6 +69,7 @@ export class CardSDK {
   private cardBaanxApiBaseUrl: string;
   private cardBaanxApiKey: string | undefined;
   private userCardLocation: CardLocation;
+  lineaChainId: CaipChainId;
 
   constructor({
     cardFeatureFlag,
@@ -82,24 +84,20 @@ export class CardSDK {
     this.enableLogs = enableLogs;
     this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
     this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
+    this.lineaChainId = `eip155:${getDecimalChainId(CHAIN_IDS.LINEA_MAINNET)}`;
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
   get isCardEnabled(): boolean {
-    return (
-      this.cardFeatureFlag.chains?.[cardNetworkInfos.linea.caipChainId]
-        ?.enabled || false
-    );
+    return this.cardFeatureFlag.chains?.[this.lineaChainId]?.enabled || false;
   }
 
-  getSupportedTokensByChainId(
-    caipChainId: CaipChainId = 'eip155:59144',
-  ): SupportedToken[] {
+  getSupportedTokensByChainId(chainId: CaipChainId): SupportedToken[] {
     if (!this.isCardEnabled) {
       return [];
     }
 
-    const tokens = this.cardFeatureFlag.chains?.[caipChainId]?.tokens;
+    const tokens = this.cardFeatureFlag.chains?.[chainId]?.tokens;
 
     if (!tokens) {
       return [];
@@ -111,27 +109,34 @@ export class CardSDK {
     );
   }
 
-  private foxConnectAddresses(network: CardNetwork) {
-    const caipChainId = cardNetworkInfos[network].caipChainId;
-    return this.cardFeatureFlag.chains?.[caipChainId]?.foxConnectAddresses;
-  }
+  private get foxConnectAddresses() {
+    const foxConnect =
+      this.cardFeatureFlag.chains?.[this.lineaChainId]?.foxConnectAddresses;
 
-  private getEthersProvider(network: CardNetwork) {
-    const rpcUrl = cardNetworkInfos[network].rpcUrl;
-
-    if (!rpcUrl) {
-      throw new Error('RPC URL is not defined for the current network');
+    if (!foxConnect?.global || !foxConnect?.us) {
+      throw new Error(
+        'FoxConnect addresses are not defined for the current chain',
+      );
     }
 
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    return {
+      global: foxConnect.global || null,
+      us: foxConnect.us || null,
+    };
+  }
+
+  private getEthersProvider() {
+    // Default RPC URL for LINEA mainnet
+    const provider = new ethers.providers.JsonRpcProvider(
+      LINEA_DEFAULT_RPC_URL,
+    );
 
     return provider;
   }
 
-  private getBalanceScannerInstance(network: CardNetwork) {
-    const caipChainId = cardNetworkInfos[network].caipChainId;
+  private getBalanceScannerInstance() {
     const balanceScannerAddress =
-      this.cardFeatureFlag.chains?.[caipChainId]?.balanceScannerAddress;
+      this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress;
 
     if (!balanceScannerAddress) {
       throw new Error(
@@ -139,7 +144,7 @@ export class CardSDK {
       );
     }
 
-    const ethersProvider = this.getEthersProvider(network);
+    const ethersProvider = this.getEthersProvider();
 
     return new ethers.Contract(
       balanceScannerAddress,
@@ -302,7 +307,6 @@ export class CardSDK {
     }
   };
 
-  // Only runs on linea network
   getSupportedTokensAllowances = async (
     address: string,
   ): Promise<
@@ -316,7 +320,9 @@ export class CardSDK {
       throw new Error('Card feature is not enabled for this chain');
     }
 
-    const supportedTokensAddresses = this.getSupportedTokensByChainId()
+    const supportedTokensAddresses = this.getSupportedTokensByChainId(
+      this.lineaChainId,
+    )
       .map((token) => token.address)
       // Ensure all addresses are valid Ethereum addresses
       .filter(
@@ -327,23 +333,15 @@ export class CardSDK {
       return [];
     }
 
-    const contracts = this.foxConnectAddresses('linea');
-
-    if (!contracts?.global || !contracts?.us) {
-      throw new Error(
-        'FoxConnect contracts are not defined for the current network',
-      );
-    }
-
     const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
-      contracts;
+      this.foxConnectAddresses;
 
     const spenders: string[][] = supportedTokensAddresses.map(() => [
       foxConnectGlobalAddress,
       foxConnectUsAddress,
     ]);
 
-    const balanceScannerInstance = this.getBalanceScannerInstance('linea');
+    const balanceScannerInstance = this.getBalanceScannerInstance();
     const spendersAllowancesForTokens: [boolean, string][][] =
       await balanceScannerInstance.spendersAllowancesForTokens(
         address,
@@ -941,7 +939,7 @@ export class CardSDK {
       .map((wallet: CardWalletExternalResponse) => {
         const networkLower = wallet.network?.toLowerCase();
         if (
-          !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork) ||
+          !SUPPORTED_ASSET_NETWORKS.includes(networkLower) ||
           isNaN(parseInt(wallet.allowance)) ||
           isZeroValue(parseInt(wallet.allowance))
         ) {
@@ -969,16 +967,20 @@ export class CardSDK {
             delegationSettings,
           );
 
+        // Determine caipChainId based on network type
+        // For Solana, use the proper Solana CAIP chain ID
+        // For EVM chains, convert the decimal chainId to CAIP format
         const caipChainId = (() => {
           if (networkLower === 'solana') {
-            return cardNetworkInfos.solana.caipChainId;
+            return SolScope.Mainnet;
           }
 
+          // For EVM chains, ensure we have valid tokenDetails before formatting
           if (!tokenDetails?.decimalChainId) {
             Logger.log(
               `Missing decimalChainId for network ${wallet.network}, using network fallback`,
             );
-            return cardNetworkInfos[wallet.network].caipChainId;
+            return this.mapAPINetworkToCaipChainId(wallet.network);
           }
 
           return formatChainIdToCaip(tokenDetails.decimalChainId);
@@ -1033,7 +1035,7 @@ export class CardSDK {
     }
 
     const supportedTokens = this.getSupportedTokensByChainId(
-      cardNetworkInfos[cardWalletExternal.network].caipChainId,
+      this.mapAPINetworkToCaipChainId(cardWalletExternal.network),
     );
     const tokenDetails = this.mapSupportedTokenToCardToken(
       supportedTokens.find(
@@ -1081,7 +1083,6 @@ export class CardSDK {
     walletAddress: string,
     tokenAddress: string,
     delegationContractAddress: string,
-    cardNetwork: CardNetwork,
   ): Promise<string | null> => {
     try {
       const approvalInterface = new ethers.utils.Interface([
@@ -1099,7 +1100,7 @@ export class CardSDK {
       );
 
       const spendersDeployedBlock = 2715910; // Block where the delegation contracts were deployed
-      const ethersProvider = this.getEthersProvider(cardNetwork);
+      const ethersProvider = this.getEthersProvider();
 
       // Get all approval logs for this specific wallet + token + spender combination
       const logs = await ethersProvider.getLogs({
@@ -1303,8 +1304,11 @@ export class CardSDK {
     }
 
     // Validate network
-    if (!['linea', 'solana', 'base'].includes(params.network)) {
-      throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
+    if (!['linea', 'solana'].includes(params.network)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid network. Must be "linea" or "solana"',
+      );
     }
 
     const response = await this.makeRequest(
@@ -1419,11 +1423,11 @@ export class CardSDK {
       );
     }
 
-    const supportedNetworks = ['linea', 'linea-us', 'solana', 'base'];
+    const supportedNetworks = ['linea', 'linea-us', 'solana'];
 
     for (const network of responseData.networks) {
       if (!supportedNetworks.includes(network.network)) {
-        continue;
+        continue; // Skip unsupported networks
       }
 
       // Validate required fields
@@ -2233,8 +2237,18 @@ export class CardSDK {
     }
   };
 
+  private mapAPINetworkToCaipChainId(network: CardNetwork): CaipChainId {
+    if (network === 'solana') {
+      return SOLANA_MAINNET.chainId;
+    }
+
+    return this.lineaChainId;
+  }
+
   private getFirstSupportedTokenOrNull(): CardToken | null {
-    const lineaSupportedTokens = this.getSupportedTokensByChainId();
+    const lineaSupportedTokens = this.getSupportedTokensByChainId(
+      this.lineaChainId,
+    );
 
     return lineaSupportedTokens.length > 0
       ? this.mapSupportedTokenToCardToken(lineaSupportedTokens[0])
@@ -2242,7 +2256,7 @@ export class CardSDK {
   }
 
   private findSupportedTokenByAddress(tokenAddress: string): CardToken | null {
-    const match = this.getSupportedTokensByChainId().find(
+    const match = this.getSupportedTokensByChainId(this.lineaChainId).find(
       (supportedToken) =>
         supportedToken.address?.toLowerCase() === tokenAddress.toLowerCase(),
     );
@@ -2277,16 +2291,8 @@ export class CardSDK {
     const approvalInterface = new ethers.utils.Interface([
       'event Approval(address indexed owner,address indexed spender,uint256 value)',
     ]);
-    const contracts = this.foxConnectAddresses('linea');
-
-    if (!contracts?.global || !contracts?.us) {
-      throw new Error(
-        'FoxConnect contracts are not defined for the current network',
-      );
-    }
-
     const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
-      contracts;
+      this.foxConnectAddresses;
 
     const approvalTopic = approvalInterface.getEventTopic('Approval');
     const ownerTopic = ethers.utils.hexZeroPad(address.toLowerCase(), 32);
@@ -2295,7 +2301,7 @@ export class CardSDK {
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
     const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
-    const ethersProvider = this.getEthersProvider('linea');
+    const ethersProvider = this.getEthersProvider();
 
     const logsPerToken = await Promise.all(
       nonZeroBalanceTokensAddresses.map((tokenAddress) =>

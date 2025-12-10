@@ -70,7 +70,6 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
 }
 
 function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
-  const { styles } = useStyles(styleSheet, {});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   const position = wonPositions[0];
@@ -92,15 +91,9 @@ function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
         imageSource={{ uri: position.icon }}
         size={AvatarSize.Lg}
       />
-      <Box flexDirection={FlexDirection.Column} style={styles.textContainer}>
-        <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
-          {position.title}
-        </Text>
-        <Text
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Alternative}
-          numberOfLines={1}
-        >
+      <Box flexDirection={FlexDirection.Column}>
+        <Text variant={TextVariant.BodyMDMedium}>{position.title}</Text>
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {amountFormatted} on {position.outcome}
         </Text>
       </Box>

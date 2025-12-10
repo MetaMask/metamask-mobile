@@ -139,7 +139,7 @@ export const PrivateKeyList = () => {
           password,
           account.address,
         );
-        privateKeyMap[account.id] = pk;
+        privateKeyMap[account.address] = pk;
       }),
     );
 
@@ -188,7 +188,7 @@ export const PrivateKeyList = () => {
           ),
           callback: async () => {
             await ClipboardManager.setStringExpire(
-              privateKeys[item.account.id],
+              privateKeys[item.account.address],
             );
           },
         }}

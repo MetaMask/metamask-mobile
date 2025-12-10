@@ -100,7 +100,7 @@ MetaMetrics.getInstance().trackEvent(
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
-- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short or Place Order button (for engagement tracking)
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short button (for engagement tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 3. PERPS_TRADE_TRANSACTION
@@ -287,7 +287,7 @@ usePerpsEventTracking({
    - Required to calculate engagement rate
 
 2. **PERPS_UI_INTERACTION** (engagement):
-   - Include `ab_test_button_color` when user taps Long/Short or Place Order button
+   - Include `ab_test_button_color` when user taps Long/Short button
    - Only sent when test is enabled
    - Measures which variant drives more button presses
 

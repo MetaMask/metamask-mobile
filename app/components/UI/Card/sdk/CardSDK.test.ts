@@ -24,6 +24,7 @@ import AppConstants from '../../../../core/AppConstants';
 interface CardSDKPrivateAccess {
   userCardLocation: string;
   enableLogs: boolean;
+  mapAPINetworkToCaipChainId: (network: string) => string;
   getFirstSupportedTokenOrNull: () => CardToken | null;
   findSupportedTokenByAddress: (address: string) => CardToken | null;
   mapSupportedTokenToCardToken: (token: SupportedToken) => CardToken;
@@ -155,7 +156,7 @@ describe('CardSDK', () => {
   describe('constructor', () => {
     it('initializes with correct card feature flag and chain ID', () => {
       expect(cardSDK.isCardEnabled).toBe(true);
-      expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
+      expect(cardSDK.getSupportedTokensByChainId(cardSDK.lineaChainId)).toEqual(
         mockSupportedTokens,
       );
     });
@@ -199,7 +200,7 @@ describe('CardSDK', () => {
 
   describe('getSupportedTokensByChainId', () => {
     it('returns supported tokens when card is enabled', () => {
-      expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
+      expect(cardSDK.getSupportedTokensByChainId(cardSDK.lineaChainId)).toEqual(
         mockSupportedTokens,
       );
     });
@@ -222,7 +223,9 @@ describe('CardSDK', () => {
       });
 
       expect(
-        disabledCardholderSDK.getSupportedTokensByChainId('eip155:59144'),
+        disabledCardholderSDK.getSupportedTokensByChainId(
+          disabledCardholderSDK.lineaChainId,
+        ),
       ).toEqual([]);
     });
 
@@ -244,7 +247,9 @@ describe('CardSDK', () => {
       });
 
       expect(
-        noTokensCardSDK.getSupportedTokensByChainId('eip155:59144'),
+        noTokensCardSDK.getSupportedTokensByChainId(
+          noTokensCardSDK.lineaChainId,
+        ),
       ).toEqual([]);
     });
 
@@ -272,7 +277,9 @@ describe('CardSDK', () => {
         cardFeatureFlag: customFeatureFlag,
       });
 
-      const tokens = customSDK.getSupportedTokensByChainId('eip155:59144');
+      const tokens = customSDK.getSupportedTokensByChainId(
+        customSDK.lineaChainId,
+      );
       expect(tokens).toHaveLength(1);
       expect(tokens[0].address).toBe(mockSupportedTokens[0].address);
     });
@@ -303,7 +310,7 @@ describe('CardSDK', () => {
           '0x1234567890123456789012345678901234567890',
         ),
       ).rejects.toThrow(
-        'FoxConnect contracts are not defined for the current network',
+        'FoxConnect addresses are not defined for the current chain',
       );
     });
 
@@ -341,7 +348,9 @@ describe('CardSDK', () => {
 
   describe('supportedTokensAddresses', () => {
     it('returns valid token addresses', () => {
-      const addresses = cardSDK.getSupportedTokensByChainId('eip155:59144');
+      const addresses = cardSDK.getSupportedTokensByChainId(
+        cardSDK.lineaChainId,
+      );
       expect(addresses).toHaveLength(2);
       expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
       expect(addresses[1].address).toBe(mockSupportedTokens[1].address);
@@ -373,7 +382,9 @@ describe('CardSDK', () => {
         cardFeatureFlag: customFeatureFlag,
       });
 
-      const addresses = customSDK.getSupportedTokensByChainId('eip155:59144');
+      const addresses = customSDK.getSupportedTokensByChainId(
+        customSDK.lineaChainId,
+      );
       expect(addresses).toHaveLength(1);
       expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
     });
@@ -3019,6 +3030,22 @@ describe('CardSDK', () => {
   });
 
   describe('private helper methods', () => {
+    describe('mapAPINetworkToCaipChainId', () => {
+      it('maps linea network to correct CAIP chain ID', () => {
+        const result = (
+          cardSDK as unknown as CardSDKPrivateAccess
+        ).mapAPINetworkToCaipChainId('linea');
+        expect(result).toBe('eip155:59144');
+      });
+
+      it('maps solana network to correct CAIP chain ID', () => {
+        const result = (
+          cardSDK as unknown as CardSDKPrivateAccess
+        ).mapAPINetworkToCaipChainId('solana');
+        expect(result).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
+      });
+    });
+
     describe('getFirstSupportedTokenOrNull', () => {
       it('returns first supported token when tokens exist', () => {
         const result = (
@@ -3147,7 +3174,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(result).toBe('11806489');
@@ -3184,7 +3210,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(result).toBe('15000000');
@@ -3238,7 +3263,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(result).toBe('11806489');
@@ -3280,7 +3304,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(result).toBe('5000000'); // Returns latest log
@@ -3293,7 +3316,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(result).toBeNull();
@@ -3357,7 +3379,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       // Most recent should be block 100, logIndex 2
@@ -3401,7 +3422,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(result).toBe('0'); // Returns most recent, even if zero
@@ -3415,7 +3435,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(result).toBeNull();
@@ -3435,7 +3454,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(mockProvider.getLogs).toHaveBeenCalledWith({
@@ -3476,7 +3494,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        'linea',
       );
 
       expect(result).toBe(largeValue);

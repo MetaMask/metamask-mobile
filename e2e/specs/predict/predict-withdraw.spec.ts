@@ -39,6 +39,8 @@ describe(SmokeTrade('Predictions'), () => {
         await loginToApp();
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
+        await new Promise((resolve) => setTimeout(resolve, 9000));
+
         // TODO: Add withdraw flow
       },
     );

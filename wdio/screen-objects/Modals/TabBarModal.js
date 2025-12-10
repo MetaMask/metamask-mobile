@@ -83,7 +83,7 @@ class TabBarModal {
       await appwrightExpect(walletIcon).toBeVisible();
 
       // Use static tap method with retry logic
-      await AppwrightGestures.tap(this.walletButton);
+      await AppwrightGestures.tap(walletIcon);
     }
   }
 
@@ -91,7 +91,8 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.browserButton);
     } else {
-      await AppwrightGestures.tap(this.browserButton); // Use static tap method with retry logic
+      const browserIcon = await this.browserButton;
+      await AppwrightGestures.tap(browserIcon); // Use static tap method with retry logic
     }
   }
 
@@ -104,7 +105,7 @@ class TabBarModal {
     } else {
       const actionButton = await this.actionButton;
       await appwrightExpect(actionButton).toBeVisible();
-      await AppwrightGestures.tap(this.actionButton); // Use static tap method with retry logic
+      await AppwrightGestures.tap(actionButton); // Use static tap method with retry logic
     }
   }
 
@@ -112,7 +113,8 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.tradeButton);
     } else {
-      await AppwrightGestures.tap(this.tradeButton);
+      const tradeButton = await this.tradeButton;
+      await AppwrightGestures.tap(tradeButton);
     }
   }
 
@@ -121,7 +123,8 @@ class TabBarModal {
       await driver.pause(10000);
       await Gestures.waitAndTap(this.settingsButton);
     } else {
-      await AppwrightGestures.tap(this.settingsButton); // Use static tap method with retry logic
+      const settingsButton = await this.settingsButton;
+      await AppwrightGestures.tap(settingsButton); // Use static tap method with retry logic
     }
   }
 
@@ -129,7 +132,8 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.activityButton);
     } else {
-      await AppwrightGestures.tap(this.activityButton); // Use static tap method with retry logic
+      const activityButton = await this.activityButton;
+      await AppwrightGestures.tap(activityButton); // Use static tap method with retry logic
     }
   }
 }

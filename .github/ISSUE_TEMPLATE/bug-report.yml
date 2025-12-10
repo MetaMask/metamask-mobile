@@ -52,11 +52,14 @@ body:
  - type: dropdown
    id: stage
    attributes:
-     label: Where was this bug found?
-     description: Help us understand where this bug was encountered.
+     label: Detection stage
+     description: At what stage was the bug detected?
      options:
-       - Live version (from official store)
-       - Internal release testing
+       - In production (default)
+       - In public beta
+       - During release testing
+       - On main branch
+       - On a feature branch
    validations:
      required: true
  - type: input

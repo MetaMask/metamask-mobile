@@ -312,8 +312,8 @@ describe('SetPhoneNumber Component', () => {
       const countrySelect = getByTestId(
         'set-phone-number-country-area-code-select',
       );
-      // Should show country code - area code (initial selected country)
-      expect(countrySelect.props.selectedValue).toBe('US-1');
+      // Should show +1 for US (initial selected country)
+      expect(countrySelect.props.selectedValue).toBe('1');
     });
 
     it('updates area code when different country is selected', () => {
@@ -637,7 +637,8 @@ describe('SetPhoneNumber Component', () => {
       const countrySelect = getByTestId(
         'set-phone-number-country-area-code-select',
       );
-      expect(countrySelect.props.selectedValue).toBe('XX-1');
+      // Should default to +1
+      expect(countrySelect.props.selectedValue).toBe('1');
     });
   });
 });

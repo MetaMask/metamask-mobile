@@ -103,15 +103,11 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../components/UI/Bridge/hooks/useLegacySwapsBlockExplorer',
-  () => ({
-    useLegacySwapsBlockExplorer: jest.fn(() => ({
-      baseUrl: 'https://example-explorer.com',
-      token: (address: string) =>
-        `https://example-explorer.com/token/${address}`,
-    })),
-  }),
+jest.mock('../../../components/UI/Swaps/utils/useBlockExplorer', () =>
+  jest.fn(() => ({
+    baseUrl: 'https://example-explorer.com',
+    token: (address: string) => `https://example-explorer.com/token/${address}`,
+  })),
 );
 
 const mockSelectInternalAccountByScope = jest.fn();

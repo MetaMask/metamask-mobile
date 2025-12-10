@@ -3,7 +3,6 @@
 /app/util/blockies.js
 __snapshots__
 android
-build
 coverage
 ios
 jest.preprocessor.js

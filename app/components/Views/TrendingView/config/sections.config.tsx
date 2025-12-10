@@ -6,6 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import TrendingTokenRowItem from '../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsMarketRowItem from '../../../UI/Perps/components/PerpsMarketRowItem';
+import PerpsMarketRowSkeleton from '../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton';
 import type { PerpsMarketData } from '../../../UI/Perps/controllers/types';
 import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
@@ -23,14 +24,13 @@ import SiteRowItemWrapper from '../../../UI/Sites/components/SiteRowItemWrapper/
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-import { filterMarketsByQuery } from '../../../UI/Perps/utils/marketUtils';
-import PredictMarketRowItem from '../../../UI/Predict/components/PredictMarketRowItem';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
 interface SectionData {
   data: unknown[];
   isLoading: boolean;
+  refetch?: () => void;
 }
 
 interface SectionConfig {
@@ -42,19 +42,14 @@ interface SectionConfig {
     item: unknown;
     navigation: NavigationProp<ParamListBase>;
   }>;
-  OverrideRowItemSearch?: React.ComponentType<{
-    item: unknown;
-    navigation: NavigationProp<ParamListBase>;
-  }>;
   Skeleton: React.ComponentType;
-  Section: React.ComponentType<{
-    refreshTrigger?: number;
-    toggleSectionEmptyState?: (isEmpty: boolean) => void;
-  }>;
+  getSearchableText: (item: unknown) => string;
+  keyExtractor: (item: unknown) => string;
+  Section: React.ComponentType<{ refreshTrigger?: number }>;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
-    refetch: () => Promise<void> | void;
+    refetch: () => void;
   };
 }
 
@@ -86,15 +81,15 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <TrendingTokenRowItem token={item as TrendingAsset} />
     ),
     Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
-      <SectionCard
-        sectionId="tokens"
-        refreshTrigger={refreshTrigger}
-        toggleSectionEmptyState={toggleSectionEmptyState}
-      />
+    getSearchableText: (item) =>
+      `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
+    keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
+    Section: ({ refreshTrigger }) => (
+      <SectionCard sectionId="tokens" refreshTrigger={refreshTrigger} />
     ),
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
+
       return { data, isLoading, refetch };
     },
   },
@@ -125,28 +120,22 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         showBadge={false}
       />
     ),
-    // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
-    Skeleton: () => <TrendingTokensSkeleton />,
-    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
+    Skeleton: () => <PerpsMarketRowSkeleton />,
+    getSearchableText: (item) =>
+      `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
+    keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
+    Section: ({ refreshTrigger }) => (
       <PerpsConnectionProvider>
         <PerpsStreamProvider>
-          <SectionCard
-            sectionId="perps"
-            refreshTrigger={refreshTrigger}
-            toggleSectionEmptyState={toggleSectionEmptyState}
-          />
+          <SectionCard sectionId="perps" refreshTrigger={refreshTrigger} />
         </PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
-    useSectionData: (searchQuery) => {
+    useSectionData: () => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
-      const filteredMarkets = searchQuery
-        ? filterMarketsByQuery(markets, searchQuery)
-        : markets;
-
       return {
-        data: filteredMarkets,
+        data: markets,
         isLoading: isLoading || isRefreshing,
         refetch: refresh,
       };
@@ -166,15 +155,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         <PredictMarket market={item as PredictMarketType} isCarousel />
       </Box>
     ),
-    OverrideRowItemSearch: ({ item }) => (
-      <PredictMarketRowItem market={item as PredictMarketType} />
-    ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
-    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
+    getSearchableText: (item) =>
+      (item as PredictMarketType).title.toLowerCase(),
+    keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
+    Section: ({ refreshTrigger }) => (
       <SectionCarrousel
         sectionId="predictions"
         refreshTrigger={refreshTrigger}
-        toggleSectionEmptyState={toggleSectionEmptyState}
       />
     ),
     useSectionData: (searchQuery) => {
@@ -198,15 +186,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),
     Skeleton: () => <SiteSkeleton />,
-    Section: ({ refreshTrigger, toggleSectionEmptyState }) => (
-      <SectionCard
-        sectionId="sites"
-        refreshTrigger={refreshTrigger}
-        toggleSectionEmptyState={toggleSectionEmptyState}
-      />
+    getSearchableText: (item) =>
+      `${(item as SiteData).name} ${(item as SiteData).displayUrl}`.toLowerCase(),
+    keyExtractor: (item) => `site-${(item as SiteData).id}`,
+    Section: ({ refreshTrigger }) => (
+      <SectionCard sectionId="sites" refreshTrigger={refreshTrigger} />
     ),
-    useSectionData: (searchQuery) => {
-      const { sites, isLoading, refetch } = useSitesData(searchQuery, 100);
+    useSectionData: () => {
+      const { sites, isLoading, refetch } = useSitesData({ limit: 100 });
       return { data: sites, isLoading, refetch };
     },
   },
@@ -237,7 +224,7 @@ export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
  * @returns Data and loading state for all sections
  */
 export const useSectionsData = (
-  searchQuery: string,
+  searchQuery?: string,
 ): Record<SectionId, SectionData> => {
   const { data: trendingTokens, isLoading: isTokensLoading } =
     SECTIONS_CONFIG.tokens.useSectionData(searchQuery);
