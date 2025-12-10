@@ -34,15 +34,11 @@ module.exports = {
         'react/no-unused-prop-types': 'off',
         'react/prop-types': 'off',
         'react/self-closing-comp': 'off',
-        // This change is included in `@metamask/eslint-config-typescript@10.0.0
-        '@typescript-eslint/no-unused-vars': [
+        // Temporarily overriding this rule to postpone this breaking change: https://github.com/MetaMask/eslint-config/pull/216
+        // TODO: Remove this override and align on prefering type over interface.
+        '@typescript-eslint/consistent-type-definitions': [
           'error',
-          {
-            vars: 'all',
-            args: 'all',
-            argsIgnorePattern: '[_]+',
-            ignoreRestSiblings: true, // this line is what has changed
-          },
+          'interface',
         ],
         '@typescript-eslint/no-explicit-any': 'error',
         // Under discussion
@@ -229,7 +225,7 @@ module.exports = {
     'import/prefer-default-export': 'off',
     'no-alert': 'error',
     'no-constant-condition': [
-      2,
+      'error',
       {
         checkLoops: false,
       },
@@ -253,14 +249,14 @@ module.exports = {
     'no-throw-literal': 'error',
     'no-unmodified-loop-condition': 'error',
     'no-unneeded-ternary': [
-      2,
+      'error',
       {
         defaultAssignment: false,
       },
     ],
     'no-unsafe-negation': 'error',
     'no-unused-expressions': 'off',
-    'no-use-before-define': [2, 'nofunc'],
+    'no-use-before-define': ['error', 'nofunc'],
     'no-useless-call': 'error',
     'no-useless-computed-key': 'error',
     'no-useless-concat': 'error',
@@ -290,7 +286,7 @@ module.exports = {
     'react/no-did-update-set-state': 'error',
     'react/no-find-dom-node': 'error',
     'react/no-multi-comp': [
-      2,
+      'error',
       {
         ignoreStateless: true,
       },
