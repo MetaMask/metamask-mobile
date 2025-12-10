@@ -36,6 +36,26 @@ dependencyResolutionManagement {
   }
 }
 
+// Enable Gradle Remote Build Cache for Cirrus Runners
+// Source: https://cirrus-runners.app/setup/#__tabbed_3_2
+// This caches compiled classes, dex files, and other intermediate artifacts
+buildCache {
+    local {
+        enabled = true
+    }
+    remote(HttpBuildCache) {
+        def httpCacheHost = System.getenv('CIRRUS_HTTP_CACHE_HOST')
+        if (httpCacheHost != null) {
+            url = "http://${httpCacheHost}/"
+            enabled = true
+            // Only push to cache on main branch to prevent cache pollution
+            push = System.getenv('GITHUB_REF_NAME') == 'main'
+        } else {
+            enabled = false
+        }
+    }
+}
+
 include ':app'
 includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile())
 includeBuild('../node_modules/@react-native') {}
