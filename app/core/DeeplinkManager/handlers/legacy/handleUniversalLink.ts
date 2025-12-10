@@ -311,9 +311,16 @@ async function handleUniversalLink({
     });
   } else if (
     action === SUPPORTED_ACTIONS.PERPS ||
-    action === SUPPORTED_ACTIONS.PERPS_MARKETS
+    action === SUPPORTED_ACTIONS.PERPS_MARKETS ||
+    action === SUPPORTED_ACTIONS.PERPS_ASSET
   ) {
-    const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    let perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
+
+    // For perps-asset links (e.g. ?symbol=ETH), transform to screen=asset format
+    if (action === SUPPORTED_ACTIONS.PERPS_ASSET && perpsPath.includes('symbol=')) {
+      perpsPath = perpsPath.replace('?', '?screen=asset&');
+    }
+
     handlePerpsUrl({
       perpsPath,
     });

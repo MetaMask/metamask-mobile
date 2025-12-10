@@ -15,6 +15,7 @@ import handleUniversalLink from '../handleUniversalLink';
 import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import { handlePerpsUrl } from '../handlePerpsUrl';
 // eslint-disable-next-line import/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -504,6 +505,30 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handled).toHaveBeenCalled();
+    });
+
+    it('calls _handlePerps when action is PERPS_ASSET and transforms URL to include screen=asset', async () => {
+      const perpsAssetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=ETH`;
+      const perpsAssetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: perpsAssetUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsAssetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsAssetUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: '?screen=asset&symbol=ETH',
+      });
     });
   });
 
