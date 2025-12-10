@@ -131,6 +131,7 @@ import {
   selectTokenNetworkFilter,
 } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
+import { useNftDetection } from '../../hooks/useNftDetection';
 import { Carousel } from '../../UI/Carousel';
 import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
@@ -1015,6 +1016,8 @@ const Wallet = ({
     isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
+  const { detectNfts } = useNftDetection();
+
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -1273,7 +1276,7 @@ const Wallet = ({
   ]);
 
   const onChangeTab = useCallback(
-    (obj: { i: number; ref: React.ReactNode }) => {
+    async (obj: { i: number; ref: React.ReactNode }) => {
       const tabLabel =
         React.isValidElement(obj.ref) && obj.ref.props
           ? (obj.ref.props as { tabLabel?: string })?.tabLabel
@@ -1288,9 +1291,10 @@ const Wallet = ({
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
+        await detectNfts();
       }
     },
-    [trackEvent, createEventBuilder],
+    [trackEvent, createEventBuilder, detectNfts],
   );
 
   const turnOnBasicFunctionality = useCallback(() => {
