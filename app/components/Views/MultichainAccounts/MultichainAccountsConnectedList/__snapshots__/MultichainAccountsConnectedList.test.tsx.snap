@@ -250,13 +250,9 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#3c4d9d0f",
-                            "borderRadius": 8,
                             "display": "flex",
                             "flexDirection": "row",
-                            "height": 28,
                             "justifyContent": "center",
-                            "width": 28,
                           }
                         }
                         testID="multichain-account-cell-menu"
@@ -459,13 +455,9 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#3c4d9d0f",
-                            "borderRadius": 8,
                             "display": "flex",
                             "flexDirection": "row",
-                            "height": 28,
                             "justifyContent": "center",
-                            "width": 28,
                           }
                         }
                         testID="multichain-account-cell-menu"
