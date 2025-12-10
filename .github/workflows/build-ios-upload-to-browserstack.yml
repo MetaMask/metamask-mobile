@@ -164,6 +164,9 @@ jobs:
           echo -n "$IOS_DISTRIBUTION_CERTIFICATE_P12_B64" | base64 --decode -o "$CERTIFICATE_PATH"
           echo -n "$IOS_PROVISIONING_PROFILE_B64" | base64 --decode -o "$PP_PATH"
           
+          # Delete existing keychain if it exists (from previous runs)
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+          
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
@@ -333,6 +336,9 @@ jobs:
           # Decode certificate and provisioning profile
           echo -n "$IOS_DISTRIBUTION_CERTIFICATE_P12_B64" | base64 --decode -o "$CERTIFICATE_PATH"
           echo -n "$IOS_PROVISIONING_PROFILE_B64" | base64 --decode -o "$PP_PATH"
+          
+          # Delete existing keychain if it exists (from previous runs)
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
           
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
