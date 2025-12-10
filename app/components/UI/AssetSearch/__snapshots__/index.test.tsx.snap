@@ -69,10 +69,15 @@ exports[`AssetSearch renders correctly with allTokens 1`] = `
   </View>
   <View
     style={
-      {
-        "color": "#686e7d",
-        "paddingRight": 20,
-      }
+      [
+        {
+          "color": "#686e7d",
+          "paddingRight": 20,
+        },
+        {
+          "opacity": 0,
+        },
+      ]
     }
   >
     <TouchableOpacity

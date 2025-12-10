@@ -14,6 +14,7 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
     style={
       [
         {
+          "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
           "padding": 16,

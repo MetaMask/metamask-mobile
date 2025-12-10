@@ -434,6 +434,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
