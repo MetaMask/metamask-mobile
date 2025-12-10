@@ -320,7 +320,6 @@ import { CardError, CardErrorType } from '../../types';
 
 // Mock implementations
 const mockNavigate = jest.fn();
-const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockRegisterPersonalDetails = jest.fn();
 const mockSetUser = jest.fn();
@@ -333,7 +332,6 @@ const mockCreateEventBuilder = jest.fn(() => ({
 // Mock hooks
 (useNavigation as jest.Mock).mockReturnValue({
   navigate: mockNavigate,
-  reset: mockReset,
 });
 
 (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -797,7 +795,7 @@ describe('PersonalDetails Component', () => {
       });
 
       expect(mockSetUser).toHaveBeenCalledWith(mockUser);
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalled();
     });
 
     it('disables continue button when required fields are missing', () => {

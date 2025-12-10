@@ -3728,7 +3728,7 @@
     "show_test_networks": "Afficher les réseaux de test",
     "deprecated_goerli": "En raison des changements apportés au protocole d’Ethereum, le réseau de test Goerli pourra ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendra bientôt obsolète.",
     "network_deprecated_title": "Ce réseau est obsolète",
-    "network_deprecated_description": "Le réseau auquel vous essayez de vous connecter n’est plus pris en charge par MetaMask.",
+    "network_deprecated_description": "Le réseau auquel vous essayez de vous connecter n’est plus pris en charge par Metamask.",
     "edit_networks_title": "Modifier les réseaux"
   },
   "permissions": {

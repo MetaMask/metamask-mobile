@@ -40,7 +40,6 @@ export const ConfirmationRowComponentIDs = {
   SIWE_SIGNING_ACCOUNT_INFO: 'siwe-signing-account-info',
   STAKING_DETAILS: 'staking-details',
   TOKEN_HERO: 'token-hero',
-  PAID_BY_METAMASK: 'paid-by-metamask',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {

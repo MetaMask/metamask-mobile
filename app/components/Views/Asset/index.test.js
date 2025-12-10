@@ -1,5 +1,6 @@
 import React from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
+import { swapsUtils } from '@metamask/swaps-controller/';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
@@ -350,6 +351,7 @@ describe('Asset', () => {
   });
 
   it('should not display swaps button if the asset is not allowed', () => {
+    jest.spyOn(swapsUtils, 'fetchSwapsFeatureFlags').mockRejectedValue('error');
     const { toJSON } = renderWithProvider(
       <Asset
         navigation={{ setOptions: jest.fn() }}

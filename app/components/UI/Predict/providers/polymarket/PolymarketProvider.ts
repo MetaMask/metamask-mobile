@@ -50,6 +50,7 @@ import {
   SignWithdrawResponse,
 } from '../types';
 import {
+  FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   ORDER_RATE_LIMIT_MS,
@@ -95,7 +96,6 @@ import {
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
-import { PredictFeeCollection } from '../../types/flags';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -868,10 +868,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async previewOrder(
-    params: Omit<PreviewOrderParams, 'providerId'> & {
-      signer: Signer;
-      feeCollection?: PredictFeeCollection;
-    },
+    params: Omit<PreviewOrderParams, 'providerId'> & { signer?: Signer },
   ): Promise<OrderPreview> {
     const basePreview = await previewOrder(params);
 
@@ -1065,7 +1062,7 @@ export class PolymarketProvider implements PredictProvider {
           safeAddress,
           signer,
           amount: feeAmountInUsdc,
-          to: fees.collector,
+          to: FEE_COLLECTOR_ADDRESS,
         });
       }
 

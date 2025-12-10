@@ -231,7 +231,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Additional verification
+                  Additional Verification
                 </Text>
               </TouchableOpacity>
             </View>
@@ -592,7 +592,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              Additional verification
+                              Additional Verification
                             </Text>
                             <Text
                               accessibilityRole="text"

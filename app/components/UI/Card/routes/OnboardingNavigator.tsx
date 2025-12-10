@@ -14,7 +14,7 @@ import KYCFailed from '../components/Onboarding/KYCFailed';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import MailingAddress from '../components/Onboarding/MailingAddress';
-import { cardDefaultNavigationOptions, headerStyle } from '.';
+import { cardAuthenticationNavigationOptions, headerStyle } from '.';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
@@ -32,7 +32,6 @@ import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CardUserPhase } from '../types';
-import Complete from '../components/Onboarding/Complete';
 
 const Stack = createStackNavigator();
 
@@ -53,7 +52,7 @@ export const KYCModalNavigationOptions = ({
         {
           text: strings('card.card_onboarding.kyc_webview.close_button'),
           onPress: () =>
-            navigation.navigate(Routes.CARD.ONBOARDING.PERSONAL_DETAILS),
+            navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC),
           style: 'destructive',
         },
       ],
@@ -83,7 +82,7 @@ export const KYCModalNavigationOptions = ({
   };
 };
 
-export const PersonalDetailsNavigationOptions = ({
+const ValidatingKYCNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
@@ -99,7 +98,15 @@ export const PersonalDetailsNavigationOptions = ({
       }
     />
   ),
-  headerTitle: () => <View />,
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'card-view-title'}
+    >
+      {strings('card.card')}
+    </Text>
+  ),
   headerRight: () => <View />,
 });
 
@@ -170,8 +177,12 @@ const OnboardingNavigator: React.FC = () => {
           return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
         } else if (!user?.addressLine1) {
           return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
+        } else if (
+          user?.countryOfResidence?.toLowerCase() === 'us' &&
+          !user?.mailingAddressLine1
+        ) {
+          return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
         }
-        return Routes.CARD.ONBOARDING.COMPLETE;
       }
     }
 
@@ -192,57 +203,52 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.CONFIRM_EMAIL}
         component={ConfirmEmail}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SET_PHONE_NUMBER}
         component={SetPhoneNumber}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
         component={ConfirmPhoneNumber}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
         component={VerifyIdentity}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
         component={ValidatingKYC}
-        options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.COMPLETE}
-        component={Complete}
-        options={cardDefaultNavigationOptions}
+        options={ValidatingKYCNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
         component={PersonalDetails}
-        options={PersonalDetailsNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
         component={PhysicalAddress}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
         component={MailingAddress}
-        options={cardDefaultNavigationOptions}
+        options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.WEBVIEW}

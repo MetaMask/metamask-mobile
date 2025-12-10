@@ -51,7 +51,7 @@ const StakingCta = ({
   return (
     <View style={style}>
       <View style={styles.contentMain}>
-        <Text style={styles.text}>
+        <Text>
           <Text>{strings('stake.stake_your_eth_cta.base')} </Text>
           <Text color={TextColor.Success}>{estimatedRewardRate}</Text>
           <Text>{` ${strings('stake.stake_your_eth_cta.annually')} `}</Text>

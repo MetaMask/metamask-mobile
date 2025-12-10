@@ -38,6 +38,7 @@ export function usePredictActivity(
           setIsRefreshing(true);
         } else {
           setIsLoading(true);
+          setActivity([]);
         }
         setError(null);
 

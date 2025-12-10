@@ -106,7 +106,7 @@ Under the hood, `renderBridgeView` uses the Bridge preset:
 export const initialStateBridge = (options?: {
   deterministicFiat?: boolean;
 }) => {
-  return createStateFixture()
+  return createStateFixture({ base: 'empty' })
     .withMinimalBridgeController()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
@@ -214,27 +214,40 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<test-name>" --runInBand --s
 
 ## Enforcement (Allowed mocks only)
 
-To enforce component-view purity, we rely on a static ESLint guard:
+To enforce component-view purity, we have two layers:
 
-- ESLint override (static)
-  - Location: root `.eslintrc.js`
-  - Files: `**/*.view.test.{js,ts,tsx,jsx}`
-  - Blocks `jest.mock(...)` except a tight allowlist
+1. Runtime guard prevents unauthorized mocks in component-view tests:
 
-```js
-// .eslintrc.js
+- Location: `app/util/test/testSetupView.js`
+- Applies to files matching `*.view.test.*`
+- Only these `jest.mock(...)` calls are allowed:
+  - `'../../../core/Engine'`
+  - `'../../../core/Engine/Engine'`
+  - `'react-native-device-info'`
+
+Any other `jest.mock(...)` inside component-view tests will throw an error at runtime.
+
+2. ESLint override blocks unauthorized mocks statically:
+
+- Location: root `.eslintrc.js`
+- Override for `**/*.view.test.{js,ts,tsx,jsx}`
+- Disallows `jest.mock(...)` except for the whitelist above
+
+```json
 {
-  files: ['**/*.view.test.{js,ts,tsx,jsx}'],
-  rules: {
-    'no-restricted-syntax': [
-      'error',
-      {
-        selector:
-          "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
-        message:
-          'Only Engine and react-native-device-info can be mocked in component-view tests.',
-      },
-    ],
-  },
+  "overrides": [
+    {
+      "files": ["**/*.view.test.{ts,tsx,js,jsx}"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
+            "message": "Only Engine and react-native-device-info can be mocked in component-view tests."
+          }
+        ]
+      }
+    }
+  ]
 }
 ```
