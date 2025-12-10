@@ -708,20 +708,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, []);
 
   // Order book handler - navigates to order book view
-  const handleOrderBookPress = useCallback(() => {
-    if (!market?.symbol) return;
+  // Temporarily disabled - uncomment to re-enable order book entry point
+  // const handleOrderBookPress = useCallback(() => {
+  //   if (!market?.symbol) return;
 
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
-      [PerpsEventProperties.ASSET]: market.symbol,
-    });
+  //   track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+  //     [PerpsEventProperties.INTERACTION_TYPE]:
+  //       PerpsEventValues.INTERACTION_TYPE.TAP,
+  //     [PerpsEventProperties.ASSET]: market.symbol,
+  //   });
 
-    navigation.navigate(Routes.PERPS.ORDER_BOOK, {
-      symbol: market.symbol,
-      marketData: market,
-    });
-  }, [market, navigation, track]);
+  //   navigation.navigate(Routes.PERPS.ORDER_BOOK, {
+  //     symbol: market.symbol,
+  //     marketData: market,
+  //   });
+  // }, [market, navigation, track]);
 
   // Close position handler
   const handleClosePosition = useCallback(() => {
@@ -1040,7 +1041,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
               dexName={market?.marketSource || undefined}
-              onOrderBookPress={handleOrderBookPress}
+              // Temporarily disabled - uncomment to re-enable order book entry point
+              // onOrderBookPress={handleOrderBookPress}
             />
           </View>
 
