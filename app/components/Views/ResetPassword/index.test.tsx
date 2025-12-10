@@ -64,6 +64,9 @@ jest.mock('../../../core/Authentication', () => ({
   }),
   getPassword: jest.fn().mockResolvedValue(null),
   getBiometricPasswordIfAllowed: jest.fn().mockResolvedValue(null),
+  verifySrpExportPassword: jest
+    .fn()
+    .mockResolvedValue(new Uint8Array([1, 2, 3])),
   resetPassword: jest.fn().mockResolvedValue(undefined),
   storePassword: jest.fn().mockResolvedValue(undefined),
   newWalletAndKeychain: jest

@@ -20,7 +20,6 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
-import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -32,7 +31,6 @@ import {
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
-  BIOMETRY_CHOICE,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -639,16 +637,11 @@ class ResetPassword extends PureComponent {
     );
   };
 
-  tryExportSeedPhrase = async (password) => {
-    const { KeyringController } = Engine.context;
-    await KeyringController.exportSeedPhrase(password);
-  };
-
   tryUnlockWithPassword = async (password) => {
     this.setState({ ready: false });
     try {
       // Just try
-      await this.tryExportSeedPhrase(password);
+      await Authentication.verifySrpExportPassword(password);
       this.setState({
         password: null,
         originalPassword: password,

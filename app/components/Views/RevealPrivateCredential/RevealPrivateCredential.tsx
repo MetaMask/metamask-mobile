@@ -164,9 +164,6 @@ const RevealPrivateCredential = ({
 
   const tryUnlockWithPassword = useCallback(
     async (pswd: string, privCredentialName?: string) => {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { KeyringController } = Engine.context as any;
       const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
 
       // This will trigger after the user hold-pressed the button, we want to trace the actual
@@ -183,12 +180,15 @@ const RevealPrivateCredential = ({
       try {
         let privateCredential;
         if (!isPrivateKeyReveal) {
-          const uint8ArraySeed = await KeyringController.exportSeedPhrase(
+          const uint8ArraySeed = await Authentication.verifySrpExportPassword(
             pswd,
             keyringId,
           );
           privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
         } else {
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { KeyringController } = Engine.context as any;
           privateCredential = await KeyringController.exportAccount(
             pswd,
             selectedAddress,

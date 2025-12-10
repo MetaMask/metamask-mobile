@@ -109,6 +109,7 @@ jest.mock('../Engine', () => ({
       setLocked: jest.fn(),
       isUnlocked: jest.fn(() => true),
       removeAccount: jest.fn(),
+      exportSeedPhrase: jest.fn(),
       state: {
         keyrings: [{ metadata: { id: 'test-keyring-id' } }],
       },
@@ -3203,6 +3204,44 @@ describe('Authentication', () => {
 
       expect(SecureKeychain.getGenericPassword).toHaveBeenCalledTimes(1);
       expect(result).toBe(mockPassword);
+    });
+  });
+
+  describe('verifySrpExportPassword', () => {
+    it('calls exportSeedPhrase with password and no keyringId when none is provided', async () => {
+      const EngineMock = jest.requireMock('../Engine');
+      const exportSeedPhraseMock = EngineMock.context.KeyringController
+        .exportSeedPhrase as jest.Mock;
+      const seed = new Uint8Array([1, 2, 3]);
+      exportSeedPhraseMock.mockResolvedValueOnce(seed);
+
+      const result =
+        await Authentication.verifySrpExportPassword('test-password');
+
+      expect(exportSeedPhraseMock).toHaveBeenCalledWith(
+        'test-password',
+        undefined,
+      );
+      expect(result).toBe(seed);
+    });
+
+    it('calls exportSeedPhrase with password and provided keyringId', async () => {
+      const EngineMock = jest.requireMock('../Engine');
+      const exportSeedPhraseMock = EngineMock.context.KeyringController
+        .exportSeedPhrase as jest.Mock;
+      const seed = new Uint8Array([4, 5, 6]);
+      exportSeedPhraseMock.mockResolvedValueOnce(seed);
+
+      const result = await Authentication.verifySrpExportPassword(
+        'another-password',
+        'test-keyring-id-123',
+      );
+
+      expect(exportSeedPhraseMock).toHaveBeenCalledWith(
+        'another-password',
+        'test-keyring-id-123',
+      );
+      expect(result).toBe(seed);
     });
   });
 });

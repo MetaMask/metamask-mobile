@@ -96,6 +96,9 @@ jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({ availableBiometryType: null }),
   getPassword: jest.fn().mockResolvedValue(null),
   getBiometricPasswordIfAllowed: jest.fn().mockResolvedValue(null),
+  verifySrpExportPassword: jest
+    .fn()
+    .mockResolvedValue(new Uint8Array([1, 2, 3])),
 }));
 
 // Mock StorageWrapper - necessary for testing without real storage operations

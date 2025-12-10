@@ -1311,6 +1311,21 @@ class AuthenticationService {
     }
     return credentials?.password ?? null;
   };
+
+  /**
+   * Verifies a password by attempting to export the SRP for a given keyring.
+   * Returns the SRP bytes on success and throws on failure.
+   *
+   * @param password - Password provided by the user.
+   * @param keyringId - Optional keyring id. When not provided, the primary keyring is used.
+   */
+  verifySrpExportPassword = async (
+    password: string,
+    keyringId?: string,
+  ): Promise<Uint8Array> => {
+    const { KeyringController } = Engine.context;
+    return await KeyringController.exportSeedPhrase(password, keyringId);
+  };
 }
 
 export const Authentication = new AuthenticationService();
