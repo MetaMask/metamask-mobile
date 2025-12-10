@@ -1387,7 +1387,7 @@ describe('getStakingNavbar', () => {
 
     const expectedApr = `${parseFloat(earnToken.experience.apr).toFixed(
       1,
-    )} ${strings('earn.apr')}`;
+    )}% ${strings('earn.apr')}`;
     expect(getByText(expectedApr)).toBeTruthy();
   });
 
