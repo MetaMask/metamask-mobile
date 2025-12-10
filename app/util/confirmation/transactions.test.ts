@@ -12,7 +12,6 @@ describe('Confirmation Transactions Utils', () => {
         gasDataEIP1559: {},
         gasDataLegacy: {},
         gasEstimateType: GAS_ESTIMATE_TYPES.FEE_MARKET,
-        showCustomNonce: false,
         transaction: {
           from: ADDRESS_MOCK.toLowerCase(),
           to: ADDRESS_MOCK.toLowerCase(),
@@ -28,7 +27,6 @@ describe('Confirmation Transactions Utils', () => {
         gasDataEIP1559: {},
         gasDataLegacy: {},
         gasEstimateType: GAS_ESTIMATE_TYPES.FEE_MARKET,
-        showCustomNonce: false,
         transaction: {
           value: new BN(255),
         },
@@ -37,12 +35,11 @@ describe('Confirmation Transactions Utils', () => {
       expect(transactionParams.value).toBe('0xff');
     });
 
-    it('converts nonce to hexadecimal string if showCustomNonce is true', () => {
+    it('converts nonce to hexadecimal string', () => {
       const transactionParams = buildTransactionParams({
         gasDataEIP1559: {},
         gasDataLegacy: {},
         gasEstimateType: GAS_ESTIMATE_TYPES.FEE_MARKET,
-        showCustomNonce: true,
         transaction: {
           nonce: new BN(255),
         },
@@ -61,7 +58,6 @@ describe('Confirmation Transactions Utils', () => {
         },
         gasDataLegacy: {},
         gasEstimateType: GAS_ESTIMATE_TYPES.FEE_MARKET,
-        showCustomNonce: false,
         transaction: {
           gas: '0x1',
           gasPrice: '0x2',
@@ -90,7 +86,6 @@ describe('Confirmation Transactions Utils', () => {
           suggestedGasPriceHex: 'BB',
         },
         gasEstimateType: GAS_ESTIMATE_TYPES.FEE_MARKET,
-        showCustomNonce: false,
         transaction: {
           type: TransactionEnvelopeType.legacy,
           gas: '0x1',
@@ -117,7 +112,6 @@ describe('Confirmation Transactions Utils', () => {
           suggestedGasPriceHex: 'BB',
         },
         gasEstimateType: GAS_ESTIMATE_TYPES.LEGACY,
-        showCustomNonce: false,
         transaction: {
           gas: '0x1',
           gasPrice: '0x2',

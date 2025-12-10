@@ -231,7 +231,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Additional Verification
+                  Additional verification
                 </Text>
               </TouchableOpacity>
             </View>
@@ -558,6 +558,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -591,7 +592,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              Additional Verification
+                              Additional verification
                             </Text>
                             <Text
                               accessibilityRole="text"
@@ -631,6 +632,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {

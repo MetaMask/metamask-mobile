@@ -208,14 +208,14 @@ describe('EngineService', () => {
     jest.useRealTimers();
   });
 
-  it('should have Engine initialized', async () => {
+  it('initializes Engine context', async () => {
     engineService.start();
     await waitFor(() => {
       expect(Engine.context).toBeDefined();
     });
   });
 
-  it('should log Engine initialization with state info (existing installation)', async () => {
+  it('logs Engine initialization with state info for existing installation', async () => {
     // Mock ControllerStorage to return actual state (existing installation)
     (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
       backgroundState: {
@@ -235,7 +235,7 @@ describe('EngineService', () => {
     });
   });
 
-  it('should log Engine initialization with empty state (fresh install)', async () => {
+  it('logs Engine initialization with empty state for fresh install', async () => {
     // Mock ControllerStorage to return empty state (fresh install)
     (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
       backgroundState: {},
@@ -262,12 +262,15 @@ describe('EngineService', () => {
     });
   });
 
-  it('should have recovered vault on redux store and log initialization', async () => {
-    // Use real timers for this test to handle the Promise-based setTimeout
+  it('recovers vault on redux store and logs initialization', async () => {
+    // Arrange
     jest.useRealTimers();
 
+    // Act
     await engineService.start();
     const { success } = await engineService.initializeVaultFromBackup();
+
+    // Assert
     expect(success).toBeTruthy();
     expect(Engine.context.KeyringController.state.vault).toBeDefined();
     expect(Logger.log).toHaveBeenCalledWith(
@@ -281,7 +284,27 @@ describe('EngineService', () => {
     jest.useFakeTimers();
   });
 
-  it('should navigate to vault recovery if Engine fails to initialize', async () => {
+  it('sets up persistence subscriptions after vault recovery', async () => {
+    // Arrange
+    jest.useRealTimers();
+
+    // Act
+    await engineService.initializeVaultFromBackup();
+
+    // Assert - verify setupEnginePersistence was called during vault recovery
+    // This ensures controller state changes are persisted after recovery
+    const persistenceLogCalls = (Logger.log as jest.Mock).mock.calls.filter(
+      (call) =>
+        call[0] ===
+        'Individual controller persistence subscriptions set up successfully',
+    );
+    expect(persistenceLogCalls.length).toBeGreaterThan(0);
+
+    // Restore fake timers for other tests
+    jest.useFakeTimers();
+  });
+
+  it('navigates to vault recovery when Engine fails to initialize', async () => {
     jest.spyOn(Engine, 'init').mockImplementation(() => {
       throw new Error('Failed to initialize Engine');
     });
@@ -311,7 +334,7 @@ describe('EngineService', () => {
       };
     }
 
-    it('should batch initial state key', async () => {
+    it('batches initial state key', async () => {
       engineService.start();
 
       // Access private property with proper typing
@@ -328,7 +351,7 @@ describe('EngineService', () => {
       });
     });
 
-    it('should handle UPDATE_BG_STATE_KEY actions in updateBatcher', async () => {
+    it('handles UPDATE_BG_STATE_KEY actions in updateBatcher', async () => {
       engineService.start();
 
       const keys = [
@@ -360,7 +383,7 @@ describe('EngineService', () => {
       });
     });
 
-    it('should handle both INIT and UPDATE actions in updateBatcher', async () => {
+    it('handles both INIT and UPDATE actions in updateBatcher', async () => {
       engineService.start();
 
       // Add both INIT and UPDATE keys
@@ -400,7 +423,7 @@ describe('EngineService', () => {
       }) => void;
     }
 
-    it('should handle missing engine context gracefully', () => {
+    it('handles missing engine context without errors', () => {
       // Arrange
       const mockEngine = {
         context: null,
@@ -422,7 +445,7 @@ describe('EngineService', () => {
       );
     });
 
-    it('should handle missing vault metadata in subscribeOnceIf callback', async () => {
+    it('handles missing vault metadata in subscribeOnceIf callback without errors', async () => {
       // Types for Engine mock
       interface MockEngineType {
         controllerMessenger: {
@@ -468,7 +491,7 @@ describe('EngineService', () => {
       );
     });
 
-    it('should handle missing vault metadata in update callback', async () => {
+    it('handles missing vault metadata in update callback without errors', async () => {
       // Types for Engine mock
       interface MockEngineType {
         controllerMessenger: {
@@ -517,7 +540,7 @@ describe('EngineService', () => {
       );
     });
 
-    it('should skip CronjobController events', async () => {
+    it('skips CronjobController events', async () => {
       // Types for Engine mock
       interface MockEngineType {
         controllerMessenger: {
@@ -555,7 +578,7 @@ describe('EngineService', () => {
   });
 
   describe('start method conditions', () => {
-    it('should handle existing user with vault check', async () => {
+    it('logs vault check for existing user', async () => {
       // Arrange
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: true },
@@ -582,7 +605,7 @@ describe('EngineService', () => {
       );
     });
 
-    it('should handle existing user without vault', async () => {
+    it('logs missing vault for existing user', async () => {
       // Arrange
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: true },
@@ -609,7 +632,7 @@ describe('EngineService', () => {
       );
     });
 
-    it('should handle new user (no existing user flag)', async () => {
+    it('skips vault check for new user without existing user flag', async () => {
       // Arrange
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
@@ -677,7 +700,7 @@ describe('EngineService', () => {
       });
     });
 
-    it('should set up persistence subscriptions for controllers with persistent state', async () => {
+    it('sets up persistence subscriptions for controllers with persistent state', async () => {
       // Act
       await engineService.start();
 
@@ -703,7 +726,7 @@ describe('EngineService', () => {
       );
     });
 
-    it('should create persist controller with correct debounce time', async () => {
+    it('creates persist controller with 200ms debounce time', async () => {
       // Act
       await engineService.start();
 
@@ -711,7 +734,7 @@ describe('EngineService', () => {
       expect(mockCreatePersistController).toHaveBeenCalledWith(200);
     });
 
-    it('should skip CronjobController state change events', async () => {
+    it('skips CronjobController state change events', async () => {
       // Act
       await engineService.start();
 
@@ -732,7 +755,7 @@ describe('EngineService', () => {
       expect(mockSubscribe).toHaveBeenCalledTimes(4); // KeyringController (2x), PreferencesController, NetworkController
     });
 
-    it('should handle controller state changes correctly', async () => {
+    it('persists controller state changes to filesystem', async () => {
       // Arrange
       await engineService.start();
 
@@ -857,7 +880,7 @@ describe('EngineService', () => {
       expect(skipMessages).toHaveLength(0);
     });
 
-    it('should handle missing controllerMessenger gracefully', async () => {
+    it('handles missing controllerMessenger without errors', async () => {
       // Arrange
       Object.defineProperty(Engine, 'controllerMessenger', {
         value: null,

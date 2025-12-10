@@ -37,6 +37,7 @@ import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -83,10 +84,8 @@ import { useConnectionHandler } from '../../../util/navigation/useConnectionHand
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
-import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -98,7 +97,6 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
-import { handleShowNetworkActiveToast } from './utils';
 import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
@@ -301,10 +299,7 @@ const Main = (props) => {
           [chainId]: true,
         });
       }
-      if (
-        isRemoveGlobalNetworkSelectorEnabled() &&
-        enabledEVMNetworks.length === 0
-      ) {
+      if (enabledEVMNetworks.length === 0) {
         selectNetwork(chainId);
       }
     }
@@ -457,6 +452,7 @@ const Main = (props) => {
         <RampOrders />
         <SwapsLiveness />
         <CardVerification />
+        <EarnTransactionMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,

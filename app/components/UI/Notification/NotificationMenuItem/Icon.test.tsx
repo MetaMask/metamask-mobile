@@ -1,24 +1,10 @@
 import React from 'react';
-import { Linking } from 'react-native';
-
+import { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-
-import NotificationIcon from './Icon';
+import NotificationIcon, { TEST_IDS } from './Icon';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-
 import SVG_ETH_LOGO_PATH from '../../../../component-library/components/Icons/Icon/assets/ethereum.svg';
-import type { RootState } from '../../../../reducers';
-
-Linking.openURL = jest.fn(() => Promise.resolve('opened https://metamask.io!'));
-
-const mockInitialState = {
-  engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
-  },
-} as unknown as RootState;
+import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 
 describe('NotificationIcon', () => {
   const walletNotification = {
@@ -26,14 +12,33 @@ describe('NotificationIcon', () => {
     imageUrl: SVG_ETH_LOGO_PATH,
   };
 
-  it('matches snapshot when icon is provided', () => {
-    const { toJSON } = renderWithProvider(
-      <NotificationIcon
-        image={{ url: walletNotification.imageUrl.name }}
-        badgeIcon={walletNotification.badgeIcon}
-      />,
-      { state: mockInitialState },
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
+  const badgeTests = [
+    {
+      hasBadge: true,
+      assertion: (elem: ReactTestInstance | null) =>
+        expect(elem).toBeOnTheScreen(),
+    },
+    {
+      hasBadge: false,
+      assertion: (elem: ReactTestInstance | null) =>
+        expect(elem).not.toBeOnTheScreen(),
+    },
+  ];
+
+  it.each(badgeTests)(
+    'manages container rendering when badge is added: $hasBadge',
+    ({ hasBadge, assertion }) => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <NotificationIcon
+          isRead={false}
+          image={{ url: walletNotification.imageUrl.name }}
+          badgeIcon={hasBadge ? walletNotification.badgeIcon : undefined}
+        />,
+      );
+
+      expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(TEST_IDS.ICON)).toBeOnTheScreen();
+      assertion(queryByTestId(BADGE_WRAPPER_BADGE_TEST_ID));
+    },
+  );
 });

@@ -4,6 +4,7 @@ import {
   getConfusableCharacterInfo,
   validateHexAddress,
   validateSolanaAddress,
+  validateTronAddress,
 } from './send-address-validations';
 import { memoizedGetTokenStandardAndDetails, TokenDetailsERC20 } from './token';
 
@@ -101,6 +102,22 @@ describe('validateSolanaAddress', () => {
   it('does not returns error if address is solana address', () => {
     expect(
       validateSolanaAddress('14grJpemFaf88c8tiVb77W7TYg2W3ir6pfkKz3YjhhZ5'),
+    ).toStrictEqual({});
+  });
+});
+
+describe('validateTronAddress', () => {
+  it('returns error if address is not tron address', () => {
+    expect(
+      validateTronAddress('0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477'),
+    ).toStrictEqual({
+      error: 'Invalid address',
+    });
+  });
+
+  it('does not returns error if address is solana address', () => {
+    expect(
+      validateTronAddress('TA9vN2KmER9cuVBaHxQjzzRtXnBCdF7D4u'),
     ).toStrictEqual({});
   });
 });

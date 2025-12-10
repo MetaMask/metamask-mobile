@@ -430,11 +430,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "fontSize": 12,
-                                  "letterSpacing": 0.5,
-                                  "marginTop": 4,
-                                },
+                                [
+                                  {
+                                    "fontSize": 12,
+                                    "letterSpacing": 0.5,
+                                    "marginTop": 4,
+                                  },
+                                  undefined,
+                                ],
                               ]
                             }
                           >
@@ -1704,11 +1707,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "fontSize": 12,
-                                  "letterSpacing": 0.5,
-                                  "marginTop": 4,
-                                },
+                                [
+                                  {
+                                    "fontSize": 12,
+                                    "letterSpacing": 0.5,
+                                    "marginTop": 4,
+                                  },
+                                  undefined,
+                                ],
                               ]
                             }
                           >
@@ -2978,11 +2984,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "fontSize": 12,
-                                  "letterSpacing": 0.5,
-                                  "marginTop": 4,
-                                },
+                                [
+                                  {
+                                    "fontSize": 12,
+                                    "letterSpacing": 0.5,
+                                    "marginTop": 4,
+                                  },
+                                  undefined,
+                                ],
                               ]
                             }
                           >

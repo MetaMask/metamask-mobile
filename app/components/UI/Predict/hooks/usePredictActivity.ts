@@ -1,12 +1,10 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
-import { ensureError } from '../utils/predictErrorHandler';
 import type { PredictActivity } from '../types';
+import { ensureError } from '../utils/predictErrorHandler';
 
 interface UsePredictActivityOptions {
   providerId?: string;
@@ -32,10 +30,6 @@ export function usePredictActivity(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
-
   const loadActivity = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
       const { isRefresh = false } = loadOptions || {};
@@ -44,13 +38,11 @@ export function usePredictActivity(
           setIsRefreshing(true);
         } else {
           setIsLoading(true);
-          setActivity([]);
         }
         setError(null);
 
         const controller = Engine.context.PredictController;
         const data = await controller.getActivity({
-          address: selectedInternalAccountAddress,
           providerId,
         });
         setActivity(data ?? []);
@@ -80,7 +72,7 @@ export function usePredictActivity(
         setIsRefreshing(false);
       }
     },
-    [providerId, selectedInternalAccountAddress],
+    [providerId],
   );
 
   useEffect(() => {

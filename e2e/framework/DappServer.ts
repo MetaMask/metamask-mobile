@@ -5,6 +5,7 @@ import serveHandler from 'serve-handler';
 import { getLocalHost } from './fixtures/FixtureUtils';
 import { DappVariants } from './Constants';
 import path from 'path';
+import PortManager, { ResourceType } from './PortManager';
 
 const logger = createLogger({
   name: 'DappServer',
@@ -16,19 +17,22 @@ export default class DappServer implements Resource {
   private _server: http.Server | undefined;
   private _rootDirectory: string;
   private dappVariant: DappVariants;
+  private dappCounter: number;
 
   constructor({
-    port,
+    dappCounter,
     rootDirectory,
     dappVariant,
   }: {
-    port: number;
+    dappCounter: number;
     rootDirectory: string;
     dappVariant: DappVariants;
   }) {
     this.dappVariant = dappVariant;
     this._rootDirectory = rootDirectory;
-    this._serverPort = port;
+    this.dappCounter = dappCounter;
+    // Port will be allocated when start() is called via PortManager
+    this._serverPort = 0; // Placeholder, will be set in start()
   }
 
   async stop(): Promise<void> {
@@ -49,15 +53,24 @@ export default class DappServer implements Resource {
       });
     }
     this._serverStatus = ServerStatus.STOPPED;
+    // Release the port after server is stopped
+    if (this._serverPort > 0) {
+      const instanceId = `dapp-server-${this.dappCounter}`;
+      PortManager.getInstance().releaseMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        instanceId,
+      );
+    }
     logger.debug(
       `Dapp server ${this.dappVariant} stopped on port ${this._serverPort}`,
     );
   }
 
+  setServerPort(port: number): void {
+    this._serverPort = port;
+  }
+
   async start(): Promise<void> {
-    logger.debug(
-      `Starting dapp server ${this.dappVariant} on port ${this._serverPort}`,
-    );
     if (this._serverStatus === ServerStatus.STARTED) {
       logger.debug(
         `Dapp server ${this.dappVariant} already started on port ${this._serverPort}`,
@@ -65,7 +78,11 @@ export default class DappServer implements Resource {
       return;
     }
 
-    return new Promise((resolve, reject) => {
+    logger.debug(
+      `Starting dapp server ${this.dappVariant} on port ${this._serverPort}`,
+    );
+
+    await new Promise<void>((resolve, reject) => {
       this._server = http.createServer(
         async (
           request: http.IncomingMessage,

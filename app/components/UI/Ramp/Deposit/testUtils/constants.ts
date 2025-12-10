@@ -227,8 +227,6 @@ export const createMockSDKReturn = (overrides = {}): DepositSDK => ({
   setAuthToken: jest.fn().mockResolvedValue(true),
   logoutFromProvider: jest.fn().mockResolvedValue(undefined),
   checkExistingToken: jest.fn().mockResolvedValue(false),
-  getStarted: false,
-  setGetStarted: jest.fn(),
   selectedWalletAddress: '0x1234567890123456789012345678901234567890',
   selectedRegion: MOCK_US_REGION,
   setSelectedRegion: jest.fn(),
@@ -236,6 +234,8 @@ export const createMockSDKReturn = (overrides = {}): DepositSDK => ({
   setSelectedPaymentMethod: jest.fn(),
   selectedCryptoCurrency: MOCK_USDC_TOKEN,
   setSelectedCryptoCurrency: jest.fn(),
+  intent: undefined,
+  setIntent: jest.fn(),
   ...overrides,
 });
 

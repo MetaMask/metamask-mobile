@@ -20,9 +20,18 @@ jest.mock('../../../../../../../selectors/multichainNetworkController', () => ({
   selectNonEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
+// Mock network blacklist selector
+jest.mock(
+  '../../../../../../../selectors/featureFlagController/networkBlacklist',
+  () => ({
+    selectAdditionalNetworksBlacklistFeatureFlag: jest.fn(),
+  }),
+);
+
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/networkController';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/multichainNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../../selectors/featureFlagController/networkBlacklist';
 
 const mockSelectEvmNetworkConfigurationsByChainId =
   selectEvmNetworkConfigurationsByChainId as jest.MockedFunction<
@@ -31,6 +40,10 @@ const mockSelectEvmNetworkConfigurationsByChainId =
 const mockSelectNonEvmNetworkConfigurationsByChainId =
   selectNonEvmNetworkConfigurationsByChainId as jest.MockedFunction<
     typeof selectNonEvmNetworkConfigurationsByChainId
+  >;
+const mockSelectAdditionalNetworksBlacklistFeatureFlag =
+  selectAdditionalNetworksBlacklistFeatureFlag as jest.MockedFunction<
+    typeof selectAdditionalNetworksBlacklistFeatureFlag
   >;
 
 // Mock i18n strings
@@ -54,10 +67,6 @@ jest.mock('../../../../../../../util/networks/customNetworks', () => ({
     {
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       nickname: 'Solana Mainnet',
-    },
-    {
-      chainId: 'pacific-1',
-      nickname: 'Sei Network',
     },
   ],
 }));
@@ -94,7 +103,6 @@ describe('SwapSupportedNetworksSection', () => {
 
   const mockNonEvmNetworks: Record<string, { name: string }> = {
     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': { name: 'Solana Mainnet' },
-    'pacific-1': { name: 'Sei Network' },
   };
 
   beforeEach(() => {
@@ -107,6 +115,9 @@ describe('SwapSupportedNetworksSection', () => {
     mockSelectNonEvmNetworkConfigurationsByChainId.mockReturnValue(
       mockNonEvmNetworks as never,
     );
+    mockSelectAdditionalNetworksBlacklistFeatureFlag.mockReturnValue(
+      [] as never,
+    );
 
     // Mock useSelector to directly return the mocked data
     mockUseSelector.mockImplementation((selector) => {
@@ -115,6 +126,9 @@ describe('SwapSupportedNetworksSection', () => {
       }
       if (selector === mockSelectNonEvmNetworkConfigurationsByChainId) {
         return mockNonEvmNetworks;
+      }
+      if (selector === mockSelectAdditionalNetworksBlacklistFeatureFlag) {
+        return [];
       }
       return {};
     });
@@ -183,6 +197,9 @@ describe('SwapSupportedNetworksSection', () => {
       if (selector === mockSelectNonEvmNetworkConfigurationsByChainId) {
         return {};
       }
+      if (selector === mockSelectAdditionalNetworksBlacklistFeatureFlag) {
+        return [];
+      }
       return {};
     });
 
@@ -249,6 +266,9 @@ describe('SwapSupportedNetworksSection', () => {
         if (selector === mockSelectNonEvmNetworkConfigurationsByChainId) {
           return {};
         }
+        if (selector === mockSelectAdditionalNetworksBlacklistFeatureFlag) {
+          return [];
+        }
         return {};
       });
 
@@ -259,6 +279,60 @@ describe('SwapSupportedNetworksSection', () => {
       expect(
         getByText('Very Long Network Name That Should Be Truncated'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('additionalNetworksBlacklist behavior', () => {
+    it('excludes blacklisted networks from rendering', () => {
+      // Arrange - blacklist Linea
+      mockSelectAdditionalNetworksBlacklistFeatureFlag.mockReturnValue([
+        NETWORKS_CHAIN_ID.LINEA_MAINNET,
+      ] as never);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
+          return mockEvmNetworks;
+        }
+        if (selector === mockSelectNonEvmNetworkConfigurationsByChainId) {
+          return mockNonEvmNetworks;
+        }
+        if (selector === mockSelectAdditionalNetworksBlacklistFeatureFlag) {
+          return [NETWORKS_CHAIN_ID.LINEA_MAINNET];
+        }
+        return {};
+      });
+
+      // Act
+      const { queryByText } = render(<SwapSupportedNetworksSection />);
+
+      // Assert - Linea should be excluded and boost not shown
+      expect(queryByText('Linea Mainnet')).not.toBeOnTheScreen();
+      expect(queryByText('+100%')).not.toBeOnTheScreen();
+    });
+
+    it('does nothing when blacklist contains non-supported chain IDs', () => {
+      // Arrange - blacklist a random chainId
+      mockSelectAdditionalNetworksBlacklistFeatureFlag.mockReturnValue([
+        '0xdeadbeef',
+      ] as never);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
+          return mockEvmNetworks;
+        }
+        if (selector === mockSelectNonEvmNetworkConfigurationsByChainId) {
+          return mockNonEvmNetworks;
+        }
+        if (selector === mockSelectAdditionalNetworksBlacklistFeatureFlag) {
+          return ['0xdeadbeef'];
+        }
+        return {};
+      });
+
+      // Act
+      const { getByText } = render(<SwapSupportedNetworksSection />);
+
+      // Assert - Linea and others remain
+      expect(getByText('Linea Mainnet')).toBeOnTheScreen();
+      expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
     });
   });
 });

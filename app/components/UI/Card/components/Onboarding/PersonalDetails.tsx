@@ -172,9 +172,18 @@ const PersonalDetails = () => {
       !lastName ||
       !dateOfBirth ||
       !nationality ||
-      (!debouncedSSN && selectedCountry === 'US')
+      (!SSN && selectedCountry === 'US')
     ) {
       return;
+    }
+
+    // Validate SSN before submitting if it's a US user
+    if (selectedCountry === 'US') {
+      const isSSNValid = /^\d{9}$/.test(SSN);
+      if (!isSSNValid) {
+        setIsSSNError(true);
+        return;
+      }
     }
 
     try {
@@ -192,12 +201,15 @@ const PersonalDetails = () => {
         lastName,
         dateOfBirth: formatDateOfBirth(dateOfBirth),
         countryOfNationality: nationality,
-        ssn: debouncedSSN,
+        ssn: SSN,
       });
 
       if (user) {
         setUser(user);
-        navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
+        });
       }
     } catch (error) {
       if (
@@ -223,32 +235,35 @@ const PersonalDetails = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const isDisabled = useMemo(
-    () =>
+  const isDisabled = useMemo(() => {
+    // Check the actual SSN value, not the debounced one
+    const isSSNValid =
+      SSN && selectedCountry === 'US' ? /^\d{9}$/.test(SSN) : true;
+
+    return (
       registerLoading ||
       registerIsError ||
       !firstName ||
       !lastName ||
       !dateOfBirth ||
       !nationality ||
-      (!debouncedSSN && selectedCountry === 'US') ||
-      isSSNError ||
+      (!SSN && selectedCountry === 'US') ||
+      !isSSNValid ||
       !!dateError ||
-      !onboardingId,
-    [
-      registerLoading,
-      registerIsError,
-      firstName,
-      lastName,
-      dateOfBirth,
-      nationality,
-      debouncedSSN,
-      selectedCountry,
-      isSSNError,
-      dateError,
-      onboardingId,
-    ],
-  );
+      !onboardingId
+    );
+  }, [
+    registerLoading,
+    registerIsError,
+    firstName,
+    lastName,
+    dateOfBirth,
+    nationality,
+    SSN,
+    selectedCountry,
+    dateError,
+    onboardingId,
+  ]);
 
   const renderFormFields = () => (
     <>
@@ -260,9 +275,6 @@ const PersonalDetails = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={setFirstName}
-          placeholder={strings(
-            'card.card_onboarding.personal_details.first_name_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={firstName}
@@ -283,9 +295,6 @@ const PersonalDetails = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={setLastName}
-          placeholder={strings(
-            'card.card_onboarding.personal_details.last_name_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={lastName}
@@ -319,9 +328,6 @@ const PersonalDetails = () => {
             selectedValue={nationality}
             options={selectOptions}
             onValueChange={handleNationalitySelect}
-            defaultValue={strings(
-              'card.card_onboarding.personal_details.nationality_placeholder',
-            )}
             testID="personal-details-nationality-select"
           />
         </Box>
@@ -336,9 +342,6 @@ const PersonalDetails = () => {
           <TextField
             autoCapitalize={'none'}
             onChangeText={handleSSNChange}
-            placeholder={strings(
-              'card.card_onboarding.personal_details.ssn_placeholder',
-            )}
             numberOfLines={1}
             size={TextFieldSize.Lg}
             value={SSN}
@@ -365,16 +368,7 @@ const PersonalDetails = () => {
   );
 
   const renderActions = () => (
-    <Box>
-      <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
-        isDisabled={isDisabled}
-        testID="personal-details-continue-button"
-      />
+    <Box twClassName="flex flex-col justify-center gap-2">
       {!!registerError && (
         <Text
           variant={TextVariant.BodySm}
@@ -384,6 +378,15 @@ const PersonalDetails = () => {
           {registerError}
         </Text>
       )}
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        testID="personal-details-continue-button"
+      />
     </Box>
   );
 

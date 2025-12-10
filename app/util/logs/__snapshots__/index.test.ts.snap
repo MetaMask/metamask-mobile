@@ -306,21 +306,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
               },
             ],
           },
-          "0x531": {
-            "blockExplorerUrls": [],
-            "chainId": "0x531",
-            "defaultRpcEndpointIndex": 0,
-            "name": "Sei",
-            "nativeCurrency": "SEI",
-            "rpcEndpoints": [
-              {
-                "failoverUrls": [],
-                "networkClientId": "sei-mainnet",
-                "type": "infura",
-                "url": "https://sei-mainnet.infura.io/v3/{infuraProjectId}",
-              },
-            ],
-          },
           "0x89": {
             "blockExplorerUrls": [],
             "chainId": "0x89",
@@ -480,7 +465,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
         "depositInProgress": false,
-        "depositRequests": {},
+        "depositRequests": [],
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
@@ -501,14 +486,17 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
         "marketFilterPreferences": {},
-        "pendingOrders": [],
         "perpsBalances": {},
         "positions": [],
         "tradeConfigurations": {},
         "watchlistMarkets": [],
         "withdrawInProgress": false,
-        "withdrawalProgress": {},
-        "withdrawalRequests": {},
+        "withdrawalProgress": {
+          "activeWithdrawalId": null,
+          "lastUpdated": 0,
+          "progress": 0,
+        },
+        "withdrawalRequests": [],
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -561,6 +549,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "useSafeChainsListValidation": true,
         "useTokenDetection": true,
         "useTransactionSimulations": true,
+      },
+      "ProfileMetricsController": {
+        "initialEnqueueCompleted": false,
+        "syncQueue": {},
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -1065,21 +1057,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
               },
             ],
           },
-          "0x531": {
-            "blockExplorerUrls": [],
-            "chainId": "0x531",
-            "defaultRpcEndpointIndex": 0,
-            "name": "Sei",
-            "nativeCurrency": "SEI",
-            "rpcEndpoints": [
-              {
-                "failoverUrls": [],
-                "networkClientId": "sei-mainnet",
-                "type": "infura",
-                "url": "https://sei-mainnet.infura.io/v3/{infuraProjectId}",
-              },
-            ],
-          },
           "0x89": {
             "blockExplorerUrls": [],
             "chainId": "0x89",
@@ -1239,7 +1216,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
         "depositInProgress": false,
-        "depositRequests": {},
+        "depositRequests": [],
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
@@ -1260,14 +1237,17 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
         "marketFilterPreferences": {},
-        "pendingOrders": [],
         "perpsBalances": {},
         "positions": [],
         "tradeConfigurations": {},
         "watchlistMarkets": [],
         "withdrawInProgress": false,
-        "withdrawalProgress": {},
-        "withdrawalRequests": {},
+        "withdrawalProgress": {
+          "activeWithdrawalId": null,
+          "lastUpdated": 0,
+          "progress": 0,
+        },
+        "withdrawalRequests": [],
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -1320,6 +1300,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useSafeChainsListValidation": true,
         "useTokenDetection": true,
         "useTransactionSimulations": true,
+      },
+      "ProfileMetricsController": {
+        "initialEnqueueCompleted": false,
+        "syncQueue": {},
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,

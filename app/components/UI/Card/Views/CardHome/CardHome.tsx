@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   RefreshControl,
   ScrollView,
@@ -22,7 +23,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -38,7 +39,13 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { AllowanceState, CardStatus, CardType, CardWarning } from '../../types';
+import {
+  AllowanceState,
+  CardStatus,
+  CardType,
+  CardVerificationState,
+  CardWarning,
+} from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
@@ -52,17 +59,15 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import {
+  CARD_SUPPORT_EMAIL,
   DEPOSIT_SUPPORTED_TOKENS,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  setIsAuthenticatedCard,
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  setUserCardLocation,
   clearAllCache,
+  resetAuthenticatedData,
 } from '../../../../../core/redux/slices/card';
 import { useCardProvision } from '../../hooks/useCardProvision';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
@@ -97,8 +102,15 @@ const CardHome = () => {
   const { PreferencesController } = Engine.context;
   const [retries, setRetries] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
+  const hasTrackedCardHomeView = useRef(false);
+  const hasLoadedCardHomeView = useRef(false);
+  const hasHandledAuthErrorRef = useRef(false);
+  const isComponentUnmountedRef = useRef(false);
+  const hasShownKYCAlertRef = useRef(false);
+  const hasShownKYCErrorAlertRef = useRef(false);
   const [
     isCloseSpendingLimitWarningShown,
     setIsCloseSpendingLimitWarningShown,
@@ -129,6 +141,7 @@ const CardHome = () => {
     allTokens,
     delegationSettings,
     externalWalletDetailsData,
+    kycStatus,
   } = useLoadCardData();
 
   const assetBalancesMap = useAssetBalances(
@@ -147,7 +160,8 @@ const CardHome = () => {
 
   const { provisionCard, isLoading: isLoadingProvisionCard } =
     useCardProvision();
-  const { navigateToCardPage } = useNavigateToCardPage(navigation);
+  const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
+    useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
@@ -189,9 +203,6 @@ const CardHome = () => {
       setIsRefreshing(false);
     }
   }, [fetchAllData]);
-
-  // Track event only once after priorityToken and balances are loaded
-  const hasTrackedCardHomeView = useRef(false);
 
   useEffect(() => {
     // Early return if already tracked to prevent any possibility of duplicate tracking
@@ -359,6 +370,45 @@ const CardHome = () => {
     [priorityTokenWarning],
   );
 
+  // Determine if card can be enabled based on KYC status
+  const canEnableCard = useMemo(() => {
+    if (!isAuthenticated || !isBaanxLoginEnabled) {
+      return true; // No KYC check for unauthenticated users
+    }
+
+    if (!kycStatus || isLoading) {
+      return false; // Wait for KYC status to load
+    }
+
+    return kycStatus.verificationState === 'VERIFIED';
+  }, [isAuthenticated, isBaanxLoginEnabled, kycStatus, isLoading]);
+
+  const getKYCStatusMessage = useCallback(
+    (verificationState: CardVerificationState | null | undefined) => {
+      switch (verificationState) {
+        case 'PENDING':
+          return {
+            title: strings('card.card_home.kyc_status.pending.title'),
+            description: strings(
+              'card.card_home.kyc_status.pending.description',
+              { email: CARD_SUPPORT_EMAIL },
+            ),
+          };
+        case 'UNVERIFIED':
+          return {
+            title: strings('card.card_home.kyc_status.unverified.title'),
+            description: strings(
+              'card.card_home.kyc_status.unverified.description',
+              { email: CARD_SUPPORT_EMAIL },
+            ),
+          };
+        default:
+          return null;
+      }
+    },
+    [],
+  );
+
   const enableCardAction = useCallback(async () => {
     try {
       await provisionCard();
@@ -413,7 +463,8 @@ const CardHome = () => {
             disabled={
               isLoading ||
               isLoadingPollCardStatusUntilProvisioned ||
-              isLoadingProvisionCard
+              isLoadingProvisionCard ||
+              !canEnableCard
             }
             loading={
               isLoading ||
@@ -495,38 +546,177 @@ const CardHome = () => {
     needToEnableAssets,
     needToEnableCard,
     styles,
+    canEnableCard,
   ]);
+
+  useEffect(
+    () => () => {
+      isComponentUnmountedRef.current = true;
+    },
+    [],
+  );
 
   // Handle authentication errors (expired token, invalid credentials, etc.)
   useEffect(() => {
     const handleAuthenticationError = async () => {
-      if (!cardError) {
+      const isAuthError =
+        Boolean(cardError) &&
+        isAuthenticated &&
+        isAuthenticationError(cardError);
+
+      if (!isAuthError) {
+        hasHandledAuthErrorRef.current = false;
         return;
       }
 
-      // Check if the error is authentication-related
-      if (isAuthenticated && isAuthenticationError(cardError)) {
-        Logger.log(
-          'CardHome: Authentication error detected, clearing auth state and redirecting',
-        );
+      if (hasHandledAuthErrorRef.current) {
+        return;
+      }
 
-        // Clear authentication state
+      hasHandledAuthErrorRef.current = true;
+      setIsHandlingAuthError(true);
+
+      Logger.log(
+        'CardHome: Authentication error detected, clearing auth state and redirecting',
+      );
+
+      try {
         await removeCardBaanxToken();
-        dispatch(setIsAuthenticatedCard(false));
-        dispatch(setAuthenticatedPriorityToken(null));
-        dispatch(setAuthenticatedPriorityTokenLastFetched(null));
-        dispatch(setUserCardLocation(null));
 
-        // Clear all cached data
+        if (isComponentUnmountedRef.current) {
+          return;
+        }
+
+        dispatch(resetAuthenticatedData());
         dispatch(clearAllCache());
 
-        // Redirect to welcome screen for re-authentication
-        navigation.navigate(Routes.CARD.WELCOME);
+        navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+      } catch (error) {
+        Logger.log('CardHome: Failed to handle authentication error', error);
+
+        if (!isComponentUnmountedRef.current) {
+          navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+        }
+      } finally {
+        if (!isComponentUnmountedRef.current) {
+          setIsHandlingAuthError(false);
+        }
       }
     };
 
     handleAuthenticationError();
-  }, [cardError, isAuthenticated, dispatch, navigation]);
+  }, [cardError, dispatch, isAuthenticated, navigation]);
+
+  // Load Card Data once CardHome opens
+  useEffect(() => {
+    const loadCardData = async () => {
+      await fetchAllData();
+      hasLoadedCardHomeView.current = true;
+    };
+
+    if (!hasLoadedCardHomeView.current && isAuthenticated) {
+      loadCardData();
+    }
+  }, [fetchAllData, isAuthenticated]);
+
+  // Show KYC status alert if needed
+  useEffect(() => {
+    if (
+      !isAuthenticated ||
+      !isBaanxLoginEnabled ||
+      !needToEnableCard ||
+      !kycStatus ||
+      isLoading
+    ) {
+      return;
+    }
+
+    // Prevent showing the alert multiple times
+    if (hasShownKYCAlertRef.current) {
+      return;
+    }
+
+    const verificationState = kycStatus.verificationState;
+
+    // Handle REJECTED separately with support message
+    if (verificationState === 'REJECTED') {
+      hasShownKYCAlertRef.current = true;
+      Alert.alert(
+        strings('card.card_home.kyc_status.rejected.title'),
+        strings('card.card_home.kyc_status.rejected.support_description', {
+          email: CARD_SUPPORT_EMAIL,
+        }),
+        [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ],
+      );
+      return;
+    }
+
+    // Handle PENDING and UNVERIFIED
+    if (
+      verificationState &&
+      ['PENDING', 'UNVERIFIED'].includes(verificationState)
+    ) {
+      const message = getKYCStatusMessage(verificationState);
+      if (message) {
+        hasShownKYCAlertRef.current = true;
+        Alert.alert(message.title, message.description, [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ]);
+      }
+    }
+  }, [
+    kycStatus,
+    isAuthenticated,
+    isBaanxLoginEnabled,
+    needToEnableCard,
+    getKYCStatusMessage,
+    isLoading,
+  ]);
+
+  // Handle KYC error separately
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      isBaanxLoginEnabled &&
+      needToEnableCard &&
+      cardError &&
+      kycStatus === null &&
+      !isLoading
+    ) {
+      // Prevent showing the error alert multiple times
+      if (hasShownKYCErrorAlertRef.current) {
+        return;
+      }
+
+      // KYC status fetch failed
+      hasShownKYCErrorAlertRef.current = true;
+      Alert.alert(
+        strings('card.card_home.kyc_status.error.title'),
+        strings('card.card_home.kyc_status.error.description'),
+        [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ],
+      );
+    }
+  }, [
+    isAuthenticated,
+    isBaanxLoginEnabled,
+    needToEnableCard,
+    cardError,
+    kycStatus,
+    isLoading,
+  ]);
 
   /**
    * Check if the current token supports the spending limit progress bar feature.
@@ -565,6 +755,16 @@ const CardHome = () => {
   }, [isAuthenticated, isSpendingLimitSupported, priorityToken]);
 
   if (cardError) {
+    const isAuthError = isAuthenticated && isAuthenticationError(cardError);
+
+    if (isHandlingAuthError || isAuthError) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -735,7 +935,11 @@ const CardHome = () => {
               testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
-            <CardAssetItem asset={asset} privacyMode={privacyMode} />
+            <CardAssetItem
+              asset={asset}
+              privacyMode={privacyMode}
+              balanceFormatted={balanceFormatted}
+            />
           )}
         </View>
 
@@ -789,15 +993,35 @@ const CardHome = () => {
           onPress={navigateToCardPage}
           testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
         />
+        <ManageCardListItem
+          title={strings('card.card_home.manage_card_options.travel_title')}
+          description={strings(
+            'card.card_home.manage_card_options.travel_description',
+          )}
+          rightIcon={IconName.Export}
+          onPress={navigateToTravelPage}
+          testID={CardHomeSelectors.TRAVEL_ITEM}
+        />
       </View>
 
       {isAuthenticated && (
-        <ManageCardListItem
-          title={strings('card.card_home.logout')}
-          description={strings('card.card_home.logout_description')}
-          rightIcon={IconName.Logout}
-          onPress={logoutAction}
-        />
+        <>
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.card_tos_title')}
+            description={strings(
+              'card.card_home.manage_card_options.card_tos_description',
+            )}
+            rightIcon={IconName.Export}
+            onPress={navigateToCardTosPage}
+            testID={CardHomeSelectors.CARD_TOS_ITEM}
+          />
+          <ManageCardListItem
+            title={strings('card.card_home.logout')}
+            description={strings('card.card_home.logout_description')}
+            rightIcon={IconName.Logout}
+            onPress={logoutAction}
+          />
+        </>
       )}
     </ScrollView>
   );

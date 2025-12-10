@@ -52,30 +52,26 @@ describe('useUserRegistrationStatus', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    // Default mocks - handle multiple useSelector calls
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectOnboardingId')) {
-        return 'onboarding-123';
-      }
-      return 'US'; // Default for other selectors like selectedCountry
-    });
+    // Default mocks - always return onboarding-123 for selectOnboardingId
+    mockUseSelector.mockReturnValue('onboarding-123');
 
     // Mock useDispatch
     const mockDispatch = jest.fn();
     mockUseDispatch.mockReturnValue(mockDispatch);
 
-    // Default mock for getRegistrationStatus to handle auto-polling
+    // Default mock for getRegistrationStatus
     mockGetRegistrationStatus.mockResolvedValue({
       ...mockUserResponse,
-      verificationState: 'UNVERIFIED',
+      verificationState: 'PENDING',
     });
 
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
-      isLoading: false,
       user: null,
       setUser: jest.fn(),
+      isLoading: false,
       logoutFromProvider: jest.fn(),
+      fetchUserData: jest.fn(),
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
@@ -85,23 +81,11 @@ describe('useUserRegistrationStatus', () => {
   });
 
   describe('Initial State', () => {
-    it('initializes with correct default state', async () => {
-      // Given: Mock API response with PENDING verification state for initial auto-polling
-      const pendingUserResponse: UserResponse = {
-        ...mockUserResponse,
-        verificationState: 'PENDING' as CardVerificationState,
-      };
-      mockGetRegistrationStatus.mockResolvedValue(pendingUserResponse);
+    it('initializes with correct default state', () => {
+      // When: Hook is rendered without user data
+      const { result } = renderHook(() => useUserRegistrationStatus());
 
-      // When: Hook is rendered
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useUserRegistrationStatus(),
-      );
-
-      // Wait for the initial auto-polling to complete
-      await waitForNextUpdate();
-
-      // Then: Initial state should have PENDING verification state and not be loading after initial fetch
+      // Then: Initial state defaults to PENDING and polling is not started
       expect(result.current.verificationState).toBe('PENDING');
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isError).toBe(false);
@@ -117,12 +101,17 @@ describe('useUserRegistrationStatus', () => {
       // Given: Mock response
       mockGetRegistrationStatus.mockResolvedValue(mockUserResponse);
 
-      const { result } = renderHook(() => useUserRegistrationStatus());
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useUserRegistrationStatus(),
+      );
 
       // When: startPolling is called (which triggers fetchRegistrationStatus internally)
-      await act(async () => {
+      act(() => {
         result.current.startPolling();
       });
+
+      // Wait for the async operation to complete and state to update
+      await waitForNextUpdate();
 
       // Then: Should have completed the fetch
       expect(result.current.verificationState).toBe('VERIFIED');
@@ -132,11 +121,8 @@ describe('useUserRegistrationStatus', () => {
     it('handles SDK not initialized error', async () => {
       // Given: SDK is not available
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       // When: Hook attempts to fetch
@@ -181,11 +167,8 @@ describe('useUserRegistrationStatus', () => {
     it('clears error state', async () => {
       // Given: Hook is in error state
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useUserRegistrationStatus());
@@ -214,16 +197,17 @@ describe('useUserRegistrationStatus', () => {
       mockGetRegistrationStatus.mockResolvedValue(mockUserResponse);
 
       // When: startPolling is called
-      const { result } = renderHook(() => useUserRegistrationStatus());
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useUserRegistrationStatus(),
+      );
 
-      // Clear the initial auto-polling call
-      mockGetRegistrationStatus.mockClear();
-
-      await act(async () => {
+      act(() => {
         result.current.startPolling();
       });
 
-      // Then: Should fetch immediately
+      await waitForNextUpdate();
+
+      // Then: Fetches immediately
       expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(1);
       expect(result.current.verificationState).toBe('VERIFIED');
     });
@@ -319,8 +303,8 @@ describe('useUserRegistrationStatus', () => {
     });
   });
 
-  describe('Auto-polling based on verification state', () => {
-    it('starts polling when verification state is PENDING', async () => {
+  describe('Auto-stop polling based on verification state', () => {
+    it('continues polling when verification state is PENDING', async () => {
       // Given: Response with PENDING verification state
       const pendingResponse: UserResponse = {
         ...mockUserResponse,
@@ -328,7 +312,7 @@ describe('useUserRegistrationStatus', () => {
       };
       mockGetRegistrationStatus.mockResolvedValue(pendingResponse);
 
-      // When: Hook is rendered and fetches data
+      // When: Polling is manually started
       const { result } = renderHook(() => useUserRegistrationStatus());
 
       await act(async () => {
@@ -337,7 +321,7 @@ describe('useUserRegistrationStatus', () => {
 
       expect(result.current.verificationState).toBe('PENDING');
 
-      // Clear the initial calls
+      // Clear the initial call
       mockGetRegistrationStatus.mockClear();
 
       // When: Time advances
@@ -349,49 +333,71 @@ describe('useUserRegistrationStatus', () => {
       expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(1);
     });
 
-    it('starts polling when verification state is UNVERIFIED', async () => {
-      // Given: Response with UNVERIFIED verification state
-      const unverifiedResponse: UserResponse = {
-        ...mockUserResponse,
-        verificationState: 'UNVERIFIED',
-      };
-      mockGetRegistrationStatus.mockResolvedValue(unverifiedResponse);
-
-      // When: Hook is rendered and fetches data
-      const { result } = renderHook(() => useUserRegistrationStatus());
-
-      await act(async () => {
-        result.current.startPolling();
-      });
-
-      expect(result.current.verificationState).toBe('UNVERIFIED');
-
-      // Clear the initial calls
-      mockGetRegistrationStatus.mockClear();
-
-      // When: Time advances
-      await act(async () => {
-        jest.advanceTimersByTime(5000);
-      });
-
-      // Then: Should continue polling
-      expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(1);
-    });
-
-    it('stops polling when verification state changes from PENDING to VERIFIED', async () => {
-      // Given: Initial PENDING response for both auto-polling and manual startPolling
+    it('automatically stops polling when verification state is UNVERIFIED', async () => {
+      // Given: Initial PENDING response
       const pendingResponse: UserResponse = {
         ...mockUserResponse,
         verificationState: 'PENDING',
       };
-      // Use mockResolvedValue instead of mockResolvedValueOnce to handle multiple calls
-      mockGetRegistrationStatus.mockResolvedValue(pendingResponse);
+      mockGetRegistrationStatus.mockResolvedValueOnce(pendingResponse);
 
-      const { result } = renderHook(() => useUserRegistrationStatus());
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useUserRegistrationStatus(),
+      );
 
-      await act(async () => {
+      act(() => {
         result.current.startPolling();
       });
+
+      await waitForNextUpdate();
+
+      expect(result.current.verificationState).toBe('PENDING');
+
+      // When: Next poll returns UNVERIFIED
+      const unverifiedResponse: UserResponse = {
+        ...mockUserResponse,
+        verificationState: 'UNVERIFIED',
+      };
+      mockGetRegistrationStatus.mockResolvedValueOnce(unverifiedResponse);
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      await waitForNextUpdate();
+
+      // Then: Verification state updates and polling auto-stops
+      expect(result.current.verificationState).toBe('UNVERIFIED');
+
+      // Clear previous calls
+      mockGetRegistrationStatus.mockClear();
+
+      // When: More time passes
+      await act(async () => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      // Then: Polling has stopped automatically (no more fetches)
+      expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
+    });
+
+    it('automatically stops polling when verification state changes from PENDING to VERIFIED', async () => {
+      // Given: Initial PENDING response
+      const pendingResponse: UserResponse = {
+        ...mockUserResponse,
+        verificationState: 'PENDING',
+      };
+      mockGetRegistrationStatus.mockResolvedValueOnce(pendingResponse);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useUserRegistrationStatus(),
+      );
+
+      act(() => {
+        result.current.startPolling();
+      });
+
+      await waitForNextUpdate();
 
       expect(result.current.verificationState).toBe('PENDING');
 
@@ -402,11 +408,13 @@ describe('useUserRegistrationStatus', () => {
       };
       mockGetRegistrationStatus.mockResolvedValueOnce(verifiedResponse);
 
-      await act(async () => {
+      act(() => {
         jest.advanceTimersByTime(5000);
       });
 
-      // Then: Should update state and stop polling
+      await waitForNextUpdate();
+
+      // Then: Verification state updates and polling auto-stops
       expect(result.current.verificationState).toBe('VERIFIED');
 
       // Clear previous calls
@@ -417,28 +425,47 @@ describe('useUserRegistrationStatus', () => {
         jest.advanceTimersByTime(10000);
       });
 
-      // Then: Should not fetch again (polling stopped)
+      // Then: Polling has stopped automatically (no more fetches)
       expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
     });
 
-    it('stops polling when verification state changes to REJECTED', async () => {
-      // Given: Response with REJECTED verification state
+    it('automatically stops polling when verification state changes to REJECTED', async () => {
+      // Given: Initial PENDING response
+      const pendingResponse: UserResponse = {
+        ...mockUserResponse,
+        verificationState: 'PENDING',
+      };
+      mockGetRegistrationStatus.mockResolvedValueOnce(pendingResponse);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useUserRegistrationStatus(),
+      );
+
+      act(() => {
+        result.current.startPolling();
+      });
+
+      await waitForNextUpdate();
+
+      expect(result.current.verificationState).toBe('PENDING');
+
+      // When: Next poll returns REJECTED
       const rejectedResponse: UserResponse = {
         ...mockUserResponse,
         verificationState: 'REJECTED',
       };
-      mockGetRegistrationStatus.mockResolvedValue(rejectedResponse);
+      mockGetRegistrationStatus.mockResolvedValueOnce(rejectedResponse);
 
-      // When: Hook fetches REJECTED state
-      const { result } = renderHook(() => useUserRegistrationStatus());
-
-      await act(async () => {
-        result.current.startPolling();
+      act(() => {
+        jest.advanceTimersByTime(5000);
       });
 
+      await waitForNextUpdate();
+
+      // Then: Verification state updates and polling auto-stops
       expect(result.current.verificationState).toBe('REJECTED');
 
-      // Clear the initial call
+      // Clear the initial calls
       mockGetRegistrationStatus.mockClear();
 
       // When: Time advances
@@ -446,7 +473,7 @@ describe('useUserRegistrationStatus', () => {
         jest.advanceTimersByTime(10000);
       });
 
-      // Then: Should not continue polling
+      // Then: Polling has stopped automatically (no more fetches)
       expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
     });
   });
@@ -465,7 +492,6 @@ describe('useUserRegistrationStatus', () => {
         result.current.startPolling();
       });
 
-      // Clear initial calls
       mockGetRegistrationStatus.mockClear();
 
       // When: Component unmounts
@@ -476,7 +502,7 @@ describe('useUserRegistrationStatus', () => {
         jest.advanceTimersByTime(10000);
       });
 
-      // Then: Should not continue polling
+      // Then: Polling stops (cleanup on unmount)
       expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
     });
   });
@@ -495,11 +521,15 @@ describe('useUserRegistrationStatus', () => {
       );
 
       // When: Hook fetches data
-      const { result } = renderHook(() => useUserRegistrationStatus());
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useUserRegistrationStatus(),
+      );
 
-      await act(async () => {
+      act(() => {
         result.current.startPolling();
       });
+
+      await waitForNextUpdate();
 
       // Then: Should handle gracefully - verificationState should be 'PENDING' (default fallback)
       expect(result.current.verificationState).toBe('PENDING');
@@ -516,9 +546,6 @@ describe('useUserRegistrationStatus', () => {
 
       const { result } = renderHook(() => useUserRegistrationStatus());
 
-      // Clear the initial auto-polling call
-      mockGetRegistrationStatus.mockClear();
-
       // When: Multiple rapid startPolling calls
       await act(async () => {
         result.current.startPolling();
@@ -532,7 +559,7 @@ describe('useUserRegistrationStatus', () => {
         result.current.startPolling();
       });
 
-      // Then: Should handle gracefully (each call triggers a fetch, but auto-polling is prevented)
+      // Then: Each call triggers a fetch, clearing previous interval
       expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(3);
 
       // Clear previous calls
@@ -543,7 +570,7 @@ describe('useUserRegistrationStatus', () => {
         jest.advanceTimersByTime(5000);
       });
 
-      // Then: Should only poll once (single active interval)
+      // Then: Only one active interval remains (last startPolling call)
       expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(1);
     });
 

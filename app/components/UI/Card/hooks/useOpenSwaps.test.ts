@@ -3,7 +3,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useOpenSwaps } from './useOpenSwaps';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
-import { setDestToken } from '../../../../core/redux/slices/bridge';
+import {
+  setDestToken,
+  selectSelectedSourceChainIds,
+} from '../../../../core/redux/slices/bridge';
 import { SwapBridgeNavigationLocation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import { CardTokenAllowance } from '../types';
 import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
@@ -33,6 +36,7 @@ jest.mock('../util/getHighestFiatToken', () => ({
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
   setDestToken: jest.fn(),
+  selectSelectedSourceChainIds: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/multichain', () => ({
@@ -60,6 +64,8 @@ describe('useOpenSwaps', () => {
   const mockGoToSwaps = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
+
+  const mockChainIds = ['0xe708'];
 
   const mockTokensWithBalance = [
     {
@@ -115,6 +121,9 @@ describe('useOpenSwaps', () => {
     (
       selectAllPopularNetworkConfigurations as unknown as jest.Mock
     ).mockReturnValue(mockPopularNetworks);
+    (selectSelectedSourceChainIds as unknown as jest.Mock).mockReturnValue(
+      mockChainIds,
+    );
     (useTokensWithBalance as jest.Mock).mockReturnValue(mockTokensWithBalance);
 
     (useSelector as jest.Mock).mockImplementation((selector) => selector());
@@ -310,5 +319,13 @@ describe('useOpenSwaps', () => {
     // The hook should use useTokensWithBalance hook
     expect(result.current).toBeDefined();
     expect(typeof result.current.openSwaps).toBe('function');
+  });
+
+  it('calls useTokensWithBalance with chain IDs from selector', () => {
+    renderHook(() => useOpenSwaps());
+
+    expect(useTokensWithBalance).toHaveBeenCalledWith({
+      chainIds: mockChainIds,
+    });
   });
 });

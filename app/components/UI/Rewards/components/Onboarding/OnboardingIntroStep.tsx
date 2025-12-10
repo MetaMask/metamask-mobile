@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -42,6 +48,7 @@ import Device from '../../../../../util/device';
 import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import storageWrapper from '../../../../../store/storage-wrapper';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
+import OnboardingNoActiveSeasonStep from './OnboardingNoActiveSeasonStep';
 
 /**
  * OnboardingIntroStep Component
@@ -59,6 +66,7 @@ const OnboardingIntroStep: React.FC<{
   const dispatch = useDispatch();
   const tw = useTailwind();
   const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
+  const [hasActiveSeason, setHasActiveSeason] = useState<boolean | null>(null);
 
   const setHasSeenRewardsIntroModal = useCallback(async () => {
     await storageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true');
@@ -79,6 +87,21 @@ const OnboardingIntroStep: React.FC<{
   const optinAllowedForGeoError = useSelector(selectOptinAllowedForGeoError);
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+
+  const fetchHasActiveSeason = useCallback(async () => {
+    try {
+      const result = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
+      );
+      setHasActiveSeason(result);
+    } catch {
+      setHasActiveSeason(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHasActiveSeason();
+  }, [fetchHasActiveSeason]);
 
   // Computed state
   const candidateSubscriptionIdLoading =
@@ -144,10 +167,7 @@ const OnboardingIntroStep: React.FC<{
     [navigation],
   );
 
-  /**
-   * Handles the confirm/continue button press
-   */
-  const handleNext = useCallback(async () => {
+  const canContinue = useCallback(() => {
     // Show geo error modal if geo check failed
     if (
       optinAllowedForGeoError &&
@@ -160,16 +180,16 @@ const OnboardingIntroStep: React.FC<{
         'rewards.onboarding.geo_check_fail_description',
         fetchGeoRewardsMetadata,
       );
-      return;
+      return false;
     }
 
-    // Check for geo restrictions
-    if (!optinAllowedForGeo) {
+    // Check for geo restrictions - only if geo metadata has been fetched
+    if (optinAllowedForGeo !== null && !optinAllowedForGeo) {
       showErrorModal(
         'rewards.onboarding.not_supported_region_title',
         'rewards.onboarding.not_supported_region_description',
       );
-      return;
+      return false;
     }
 
     // Check for hardware account restrictions for default account associated with group.
@@ -182,7 +202,7 @@ const OnboardingIntroStep: React.FC<{
         'rewards.onboarding.not_supported_hardware_account_title',
         'rewards.onboarding.not_supported_hardware_account_description',
       );
-      return;
+      return false;
     }
 
     // Check if any account in the active account group is supported for opt-in
@@ -202,24 +222,34 @@ const OnboardingIntroStep: React.FC<{
         'rewards.onboarding.not_supported_account_type_title',
         'rewards.onboarding.not_supported_account_type_description',
       );
+      return false;
+    }
+
+    return true;
+  }, [
+    optinAllowedForGeoError,
+    optinAllowedForGeo,
+    optinAllowedForGeoLoading,
+    subscriptionId,
+    accountGroupAccounts,
+    showRetryErrorModal,
+    fetchGeoRewardsMetadata,
+    showErrorModal,
+  ]);
+
+  /**
+   * Handles the confirm/continue button press
+   */
+  const handleNext = useCallback(async () => {
+    // Show geo error modal if geo check failed
+    if (!canContinue()) {
       return;
     }
 
     // Proceed to next onboarding step
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_2));
     navigation.navigate(Routes.REWARDS_ONBOARDING_1);
-  }, [
-    dispatch,
-    navigation,
-    optinAllowedForGeo,
-    optinAllowedForGeoError,
-    optinAllowedForGeoLoading,
-    subscriptionId,
-    showErrorModal,
-    showRetryErrorModal,
-    fetchGeoRewardsMetadata,
-    accountGroupAccounts,
-  ]);
+  }, [dispatch, navigation, canContinue]);
 
   /**
    * Handles the skip button press
@@ -355,29 +385,40 @@ const OnboardingIntroStep: React.FC<{
     </Box>
   );
 
-  if (candidateSubscriptionIdLoading || !!subscriptionId) {
+  if (
+    candidateSubscriptionIdLoading ||
+    !!subscriptionId ||
+    hasActiveSeason === null
+  ) {
     return <Skeleton width="100%" height="100%" />;
   }
 
   return (
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
-      <ImageBackground
-        source={introBg}
-        style={tw.style(`flex-1 px-4 pt-8 ${isLargeDevice ? 'pb-8' : ''}`)}
-        resizeMode="cover"
-      >
-        {/* Spacer */}
-        {isLargeDevice && <Box twClassName="flex-basis-[10%]" />}
+      {hasActiveSeason ? (
+        <ImageBackground
+          source={introBg}
+          style={tw.style(`flex-1 px-4 pt-8 ${isLargeDevice ? 'pb-8' : ''}`)}
+          resizeMode="cover"
+        >
+          {/* Spacer */}
+          {isLargeDevice && <Box twClassName="flex-basis-[10%]" />}
 
-        {/* Title Section */}
-        {renderTitle()}
+          {/* Title Section */}
+          {renderTitle()}
 
-        {/* Image Section */}
-        {renderImage()}
+          {/* Image Section */}
+          {renderImage()}
 
-        {/* Actions Section */}
-        {renderActions()}
-      </ImageBackground>
+          {/* Actions Section */}
+          {renderActions()}
+        </ImageBackground>
+      ) : (
+        <OnboardingNoActiveSeasonStep
+          canContinue={canContinue}
+          geoLoading={optinAllowedForGeoLoading}
+        />
+      )}
     </Box>
   );
 };

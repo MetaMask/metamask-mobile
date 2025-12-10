@@ -38,10 +38,12 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
 describe('useRegisterUserConsent', () => {
   const mockCreateOnboardingConsent = jest.fn();
   const mockLinkUserToConsent = jest.fn();
+  const mockGetConsentSetByOnboardingId = jest.fn();
 
   const mockSDK = {
     createOnboardingConsent: mockCreateOnboardingConsent,
     linkUserToConsent: mockLinkUserToConsent,
+    getConsentSetByOnboardingId: mockGetConsentSetByOnboardingId,
   } as unknown as CardSDK;
 
   const mockConsentResponse = {
@@ -56,11 +58,8 @@ describe('useRegisterUserConsent', () => {
 
     // Default mocks
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
     });
 
     mockUseSelector.mockReturnValue('US'); // selectedCountry
@@ -81,8 +80,91 @@ describe('useRegisterUserConsent', () => {
       expect(result.current.consentSetId).toBe(null);
       expect(typeof result.current.createOnboardingConsent).toBe('function');
       expect(typeof result.current.linkUserToConsent).toBe('function');
+      expect(typeof result.current.getOnboardingConsentSetByOnboardingId).toBe(
+        'function',
+      );
       expect(typeof result.current.clearError).toBe('function');
       expect(typeof result.current.reset).toBe('function');
+    });
+  });
+
+  describe('getOnboardingConsentSetByOnboardingId function', () => {
+    it('returns consent set when it exists', async () => {
+      const mockConsentSet = {
+        consentSetId: 'existing-consent-123',
+        userId: 'user-id',
+        completedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      mockGetConsentSetByOnboardingId.mockResolvedValue({
+        consentSets: [mockConsentSet],
+      });
+
+      const { result } = renderHook(() => useRegisterUserConsent());
+
+      let retrievedConsentSet;
+      await act(async () => {
+        retrievedConsentSet =
+          await result.current.getOnboardingConsentSetByOnboardingId(
+            testOnboardingId,
+          );
+      });
+
+      expect(mockGetConsentSetByOnboardingId).toHaveBeenCalledWith(
+        testOnboardingId,
+      );
+      expect(retrievedConsentSet).toEqual(mockConsentSet);
+    });
+
+    it('returns null when no consent exists', async () => {
+      mockGetConsentSetByOnboardingId.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useRegisterUserConsent());
+
+      let retrievedConsentSet;
+      await act(async () => {
+        retrievedConsentSet =
+          await result.current.getOnboardingConsentSetByOnboardingId(
+            testOnboardingId,
+          );
+      });
+
+      expect(retrievedConsentSet).toBeNull();
+    });
+
+    it('throws error when SDK is not available', async () => {
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: null,
+      });
+
+      const { result } = renderHook(() => useRegisterUserConsent());
+
+      await expect(
+        act(async () => {
+          await result.current.getOnboardingConsentSetByOnboardingId(
+            testOnboardingId,
+          );
+        }),
+      ).rejects.toThrow('Card SDK not initialized');
+    });
+
+    it('throws error when SDK call fails', async () => {
+      const testError = new CardError(
+        CardErrorType.NETWORK_ERROR,
+        'Network failed',
+      );
+      mockGetConsentSetByOnboardingId.mockRejectedValue(testError);
+
+      const { result } = renderHook(() => useRegisterUserConsent());
+
+      await expect(
+        act(async () => {
+          await result.current.getOnboardingConsentSetByOnboardingId(
+            testOnboardingId,
+          );
+        }),
+      ).rejects.toThrow(testError);
     });
   });
 
@@ -99,7 +181,7 @@ describe('useRegisterUserConsent', () => {
         });
 
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith({
-          policyType: 'US',
+          policyType: 'us',
           onboardingId: testOnboardingId,
           consents: [
             {
@@ -248,11 +330,8 @@ describe('useRegisterUserConsent', () => {
     describe('error handling', () => {
       it('throws error when SDK is not available', async () => {
         mockUseCardSDK.mockReturnValue({
+          ...jest.requireMock('../sdk'),
           sdk: null,
-          isLoading: false,
-          user: null,
-          setUser: jest.fn(),
-          logoutFromProvider: jest.fn(),
         });
 
         const { result } = renderHook(() => useRegisterUserConsent());
@@ -394,11 +473,8 @@ describe('useRegisterUserConsent', () => {
     describe('error handling', () => {
       it('throws error when SDK is not available', async () => {
         mockUseCardSDK.mockReturnValue({
+          ...jest.requireMock('../sdk'),
           sdk: null,
-          isLoading: false,
-          user: null,
-          setUser: jest.fn(),
-          logoutFromProvider: jest.fn(),
         });
 
         const { result } = renderHook(() => useRegisterUserConsent());
@@ -641,7 +717,7 @@ describe('useRegisterUserConsent', () => {
     const countryTestCases = [
       {
         country: 'US',
-        expectedPolicy: 'US',
+        expectedPolicy: 'us',
         description: 'US users',
       },
       {
@@ -687,14 +763,12 @@ describe('useRegisterUserConsent', () => {
           .fn()
           .mockResolvedValue(mockConsentResponse),
         linkUserToConsent: jest.fn().mockResolvedValue(undefined),
+        getConsentSetByOnboardingId: jest.fn().mockResolvedValue(null),
       } as unknown as CardSDK;
 
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: customSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -712,14 +786,12 @@ describe('useRegisterUserConsent', () => {
           .fn()
           .mockResolvedValue(mockConsentResponse),
         linkUserToConsent: jest.fn().mockResolvedValue(undefined),
+        getConsentSetByOnboardingId: jest.fn().mockResolvedValue(null),
       } as unknown as CardSDK;
 
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: customSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -731,13 +803,42 @@ describe('useRegisterUserConsent', () => {
       expect(customSDK.linkUserToConsent).toHaveBeenCalled();
     });
 
+    it('uses SDK from useCardSDK hook for getting consent set', async () => {
+      const mockConsentSet = {
+        consentSetId: 'test-consent',
+        userId: 'test-user',
+        completedAt: '2024-01-01T00:00:00.000Z',
+      };
+      const customSDK = {
+        createOnboardingConsent: jest
+          .fn()
+          .mockResolvedValue(mockConsentResponse),
+        linkUserToConsent: jest.fn().mockResolvedValue(undefined),
+        getConsentSetByOnboardingId: jest.fn().mockResolvedValue({
+          consentSets: [mockConsentSet],
+        }),
+      } as unknown as CardSDK;
+
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: customSDK,
+      });
+
+      const { result } = renderHook(() => useRegisterUserConsent());
+
+      await act(async () => {
+        await result.current.getOnboardingConsentSetByOnboardingId(
+          testOnboardingId,
+        );
+      });
+
+      expect(customSDK.getConsentSetByOnboardingId).toHaveBeenCalled();
+    });
+
     it('handles SDK loading state', () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: mockSDK,
-        isLoading: true,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -746,17 +847,17 @@ describe('useRegisterUserConsent', () => {
       expect(result.current.isLoading).toBe(false);
       expect(typeof result.current.createOnboardingConsent).toBe('function');
       expect(typeof result.current.linkUserToConsent).toBe('function');
+      expect(typeof result.current.getOnboardingConsentSetByOnboardingId).toBe(
+        'function',
+      );
     });
   });
 
   describe('edge cases', () => {
     it('handles undefined SDK gracefully for createOnboardingConsent', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -770,11 +871,8 @@ describe('useRegisterUserConsent', () => {
 
     it('handles undefined SDK gracefully for linkUserToConsent', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -832,6 +930,8 @@ describe('useRegisterUserConsent', () => {
       const initialFunctions = {
         createOnboardingConsent: result.current.createOnboardingConsent,
         linkUserToConsent: result.current.linkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          result.current.getOnboardingConsentSetByOnboardingId,
         clearError: result.current.clearError,
         reset: result.current.reset,
       };
@@ -844,6 +944,9 @@ describe('useRegisterUserConsent', () => {
       expect(result.current.linkUserToConsent).toBe(
         initialFunctions.linkUserToConsent,
       );
+      expect(result.current.getOnboardingConsentSetByOnboardingId).toBe(
+        initialFunctions.getOnboardingConsentSetByOnboardingId,
+      );
       expect(result.current.clearError).toBe(initialFunctions.clearError);
       expect(result.current.reset).toBe(initialFunctions.reset);
     });
@@ -855,14 +958,11 @@ describe('useRegisterUserConsent', () => {
 
       // Change SDK dependency
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: {
           createOnboardingConsent: jest.fn(),
           linkUserToConsent: jest.fn(),
         } as unknown as CardSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       rerender();
@@ -880,20 +980,42 @@ describe('useRegisterUserConsent', () => {
 
       // Change SDK dependency
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: {
           createOnboardingConsent: jest.fn(),
           linkUserToConsent: jest.fn(),
+          getConsentSetByOnboardingId: jest.fn(),
         } as unknown as CardSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       rerender();
 
       // Function is different due to SDK dependency change
       expect(result.current.linkUserToConsent).not.toBe(initialLinkFunction);
+    });
+
+    it('updates getOnboardingConsentSetByOnboardingId when SDK dependency changes', () => {
+      const { result, rerender } = renderHook(() => useRegisterUserConsent());
+
+      const initialGetFunction =
+        result.current.getOnboardingConsentSetByOnboardingId;
+
+      // Change SDK dependency
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: {
+          createOnboardingConsent: jest.fn(),
+          linkUserToConsent: jest.fn(),
+          getConsentSetByOnboardingId: jest.fn(),
+        } as unknown as CardSDK,
+      });
+
+      rerender();
+
+      // Function is different due to SDK dependency change
+      expect(result.current.getOnboardingConsentSetByOnboardingId).not.toBe(
+        initialGetFunction,
+      );
     });
   });
 });

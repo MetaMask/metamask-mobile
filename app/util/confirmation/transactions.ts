@@ -14,13 +14,11 @@ export function buildTransactionParams({
   gasDataEIP1559,
   gasDataLegacy,
   gasEstimateType,
-  showCustomNonce,
   transaction,
 }: {
   gasDataEIP1559: any;
   gasDataLegacy: any;
   gasEstimateType: GasEstimateType;
-  showCustomNonce: boolean;
   transaction: any;
 }): TransactionParams {
   const transactionParams: TransactionParams = { ...transaction };
@@ -28,7 +26,7 @@ export function buildTransactionParams({
   const { type } = transactionParams;
 
   transactionParams.from = safeToChecksumAddress(transaction.from) as string;
-  transactionParams.nonce = showCustomNonce ? safeBNToHex(nonce) : undefined;
+  transactionParams.nonce = safeBNToHex(nonce);
   transactionParams.to = safeToChecksumAddress(transaction.to);
   transactionParams.value = safeBNToHex(value);
 

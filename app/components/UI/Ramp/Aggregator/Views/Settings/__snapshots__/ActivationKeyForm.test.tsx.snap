@@ -464,6 +464,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -582,6 +583,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
+                                        "fontWeight": "400",
                                         "height": 38,
                                         "letterSpacing": 0,
                                         "lineHeight": 20,
@@ -695,6 +697,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
+                                        "fontWeight": "400",
                                         "height": 38,
                                         "letterSpacing": 0,
                                         "lineHeight": 20,

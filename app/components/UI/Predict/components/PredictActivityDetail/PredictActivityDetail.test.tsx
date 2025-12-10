@@ -32,71 +32,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: (..._args: unknown[]) => ({}),
-  }),
-}));
-
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'Box',
-  BoxFlexDirection: { Row: 'row' },
-  BoxAlignItems: { Center: 'center' },
-  BoxJustifyContent: { Between: 'between' },
-}));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text: RNText } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: (props: React.ComponentProps<typeof RNText>) =>
-      ReactActual.createElement(RNText, props, props.children),
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      HeadingLG: 'HeadingLG',
-      BodyMD: 'BodyMD',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Success: 'Success',
-      Error: 'Error',
-    },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text: RNText } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ name }: { name: string }) =>
-      ReactActual.createElement(RNText, null, `Icon:${name}`),
-    IconName: { ArrowLeft: 'ArrowLeft' },
-    IconSize: { Md: 'Md' },
-  };
-});
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ colors: { icon: { default: '#000' } } }),
-}));
-
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: (
-      props: React.ComponentProps<typeof View> & { children?: React.ReactNode },
-    ) => ReactActual.createElement(View, props, props.children),
-    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-  };
-});
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
-
 const mockUseRoute = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -116,39 +54,29 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const baseBuyActivity: PredictActivityItem = {
-  id: '1',
-  type: PredictActivityType.BUY,
-  marketTitle: 'Market X',
-  detail: '',
-  amountUsd: 123.45,
-  outcome: 'Yes',
-  entry: {
-    type: 'buy',
+const createActivityItem = (
+  overrides?: Partial<PredictActivityItem>,
+): PredictActivityItem => {
+  const baseEntry = {
+    type: 'buy' as const,
     timestamp: 0,
     marketId: 'm',
     outcomeId: 'o',
     outcomeTokenId: 0,
     amount: 123.45,
     price: 0.34,
-  },
-};
-
-const renderWithActivity = (overrides?: Partial<PredictActivityItem>) => {
-  const activity: PredictActivityItem = {
-    ...baseBuyActivity,
-    ...overrides,
-    entry: {
-      ...baseBuyActivity.entry,
-      ...(overrides?.entry ?? {}),
-    } as PredictActivityItem['entry'],
   };
 
-  mockUseRoute.mockReturnValue({ params: { activity } });
-
-  render(<PredictActivityDetail />);
-
-  return activity;
+  return {
+    id: '1',
+    type: PredictActivityType.BUY,
+    marketTitle: 'Market X',
+    detail: '',
+    amountUsd: 123.45,
+    outcome: 'Yes',
+    entry: baseEntry,
+    ...overrides,
+  };
 };
 
 describe('PredictActivityDetail', () => {
@@ -156,127 +84,308 @@ describe('PredictActivityDetail', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  describe('BUY activity', () => {
+    it('displays buy title and market information', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.BUY,
+        priceImpactPercentage: 1.5,
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.getByText('Buy')).toBeOnTheScreen();
+      expect(screen.getByText('Date')).toBeOnTheScreen();
+      expect(screen.getByText('Not available')).toBeOnTheScreen();
+      expect(screen.getByText('Market')).toBeOnTheScreen();
+      expect(screen.getByText('Market X')).toBeOnTheScreen();
+      expect(screen.getByText('Outcome')).toBeOnTheScreen();
+      expect(screen.getByText('Yes')).toBeOnTheScreen();
+    });
+
+    it('displays predicted amount with formatted value', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.BUY,
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+      const buyEntry = activity.entry as Extract<
+        PredictActivityItem['entry'],
+        { type: 'buy' }
+      >;
+      const expectedAmount = formatCurrencyValue(buyEntry.amount, {
+        showSign: false,
+      }) as string;
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.getByText('Predicted amount')).toBeOnTheScreen();
+      expect(screen.getByText(expectedAmount)).toBeOnTheScreen();
+    });
+
+    it('displays shares bought with calculated value', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.BUY,
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+      const buyEntry = activity.entry as Extract<
+        PredictActivityItem['entry'],
+        { type: 'buy' }
+      >;
+      const expectedShares = formatPositionSize(
+        buyEntry.amount / buyEntry.price,
+      );
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.getByText('Shares bought')).toBeOnTheScreen();
+      expect(screen.getByText(expectedShares)).toBeOnTheScreen();
+    });
+
+    it('displays price per share with formatted value', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.BUY,
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+      const buyEntry = activity.entry as Extract<
+        PredictActivityItem['entry'],
+        { type: 'buy' }
+      >;
+      const expectedPrice = formatPrice(buyEntry.price, {
+        minimumDecimals: buyEntry.price >= 1 ? 2 : 4,
+        maximumDecimals: buyEntry.price >= 1 ? 2 : 4,
+      });
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.getByText('Price per share')).toBeOnTheScreen();
+      expect(screen.getByText(expectedPrice)).toBeOnTheScreen();
+    });
+
+    it('displays price impact when provided', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.BUY,
+        priceImpactPercentage: 1.5,
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.getByText('Price impact')).toBeOnTheScreen();
+      expect(screen.getByText('1.5%')).toBeOnTheScreen();
+    });
+
+    it('hides USDC badge for buy activities', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.BUY,
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.queryByLabelText('USDC')).toBeNull();
+    });
   });
 
-  it('renders BUY details: header, market info, predicted amount, shares, price and price impact; no amount badge', () => {
-    const activity = renderWithActivity({
-      type: PredictActivityType.BUY,
-      priceImpactPercentage: 1.5,
+  describe('SELL activity', () => {
+    it('displays sell title with USDC badge and amount', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.SELL,
+        amountUsd: 50,
+        netPnlUsd: -10,
+        entry: {
+          type: 'sell',
+          timestamp: 0,
+          marketId: 'm',
+          outcomeId: 'o',
+          outcomeTokenId: 0,
+          amount: 50,
+          price: 0.5,
+        },
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+      const expectedAmount = formatCurrencyValue(activity.amountUsd) as string;
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.getByText('Sell')).toBeOnTheScreen();
+      expect(screen.getByLabelText('USDC')).toBeOnTheScreen();
+      expect(screen.getByText(expectedAmount)).toBeOnTheScreen();
     });
 
-    expect(screen.getByText('Buy')).toBeOnTheScreen();
+    it('displays shares sold with price per share', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.SELL,
+        amountUsd: 50,
+        netPnlUsd: -10,
+        entry: {
+          type: 'sell',
+          timestamp: 0,
+          marketId: 'm',
+          outcomeId: 'o',
+          outcomeTokenId: 0,
+          amount: 50,
+          price: 0.5,
+        },
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+      const sellEntry = activity.entry as Extract<
+        PredictActivityItem['entry'],
+        { type: 'sell' }
+      >;
+      const expectedShares = formatPositionSize(
+        sellEntry.amount / sellEntry.price,
+      );
+      const expectedPrice = formatPrice(sellEntry.price, {
+        minimumDecimals: 4,
+        maximumDecimals: 4,
+      });
 
-    expect(screen.getByText('Date')).toBeOnTheScreen();
-    expect(screen.getByText('Not available')).toBeOnTheScreen();
-    expect(screen.getByText('Market')).toBeOnTheScreen();
-    expect(screen.getByText(activity.marketTitle)).toBeOnTheScreen();
-    expect(screen.getByText('Outcome')).toBeOnTheScreen();
-    const outcomeBuy = activity.outcome as string;
-    expect(screen.getByText(outcomeBuy)).toBeOnTheScreen();
+      render(<PredictActivityDetail />);
 
-    const buyEntry = activity.entry as Extract<
-      PredictActivityItem['entry'],
-      { type: 'buy' }
-    >;
-    const expectedPredictedAmount = formatCurrencyValue(buyEntry.amount, {
-      showSign: false,
-    }) as string;
-    const expectedShares = formatPositionSize(buyEntry.amount / buyEntry.price);
-    const expectedPricePerShare = formatPrice(buyEntry.price, {
-      minimumDecimals: buyEntry.price >= 1 ? 2 : 4,
-      maximumDecimals: buyEntry.price >= 1 ? 2 : 4,
+      expect(screen.getByText('Shares sold')).toBeOnTheScreen();
+      expect(screen.getByText(expectedShares)).toBeOnTheScreen();
+      expect(screen.getByText('Price per share')).toBeOnTheScreen();
+      expect(screen.getByText(expectedPrice)).toBeOnTheScreen();
     });
 
-    expect(screen.getByText('Predicted amount')).toBeOnTheScreen();
-    expect(screen.getByText(expectedPredictedAmount)).toBeOnTheScreen();
+    it('displays net PnL for sell activity', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.SELL,
+        amountUsd: 50,
+        netPnlUsd: -10,
+        entry: {
+          type: 'sell',
+          timestamp: 0,
+          marketId: 'm',
+          outcomeId: 'o',
+          outcomeTokenId: 0,
+          amount: 50,
+          price: 0.5,
+        },
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
 
-    expect(screen.getByText('Shares bought')).toBeOnTheScreen();
-    expect(screen.getByText(expectedShares)).toBeOnTheScreen();
+      render(<PredictActivityDetail />);
 
-    expect(screen.getByText('Price per share')).toBeOnTheScreen();
-    expect(screen.getByText(expectedPricePerShare)).toBeOnTheScreen();
+      expect(screen.getByText('Net PnL')).toBeOnTheScreen();
+      expect(screen.getByText('-$10.00')).toBeOnTheScreen();
+    });
 
-    expect(screen.getByText('Price impact')).toBeOnTheScreen();
-    expect(screen.getByText('+1.50%')).toBeOnTheScreen();
+    it('hides predicted amount and price impact for sell activities', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.SELL,
+        amountUsd: 50,
+        entry: {
+          type: 'sell',
+          timestamp: 0,
+          marketId: 'm',
+          outcomeId: 'o',
+          outcomeTokenId: 0,
+          amount: 50,
+          price: 0.5,
+        },
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
 
-    expect(screen.queryByLabelText('USDC')).toBeNull();
+      render(<PredictActivityDetail />);
+
+      expect(screen.queryByText('Predicted amount')).toBeNull();
+      expect(screen.queryByText('Price impact')).toBeNull();
+    });
   });
 
-  it('renders SELL details with amount badge, shares sold, price per share and net pnl; excludes predicted amount and price impact', () => {
-    const activity = renderWithActivity({
-      type: PredictActivityType.SELL,
-      amountUsd: 50,
-      netPnlUsd: -10,
-      entry: {
-        type: 'sell',
-        timestamp: 0,
-        marketId: 'm',
-        outcomeId: 'o',
-        outcomeTokenId: 0,
-        amount: 50,
-        price: 0.5,
-      },
+  describe('CLAIM activity', () => {
+    it('displays claim title with USDC badge and amount', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.CLAIM,
+        amountUsd: 200,
+        totalNetPnlUsd: 150,
+        netPnlUsd: 120,
+        entry: {
+          type: 'claimWinnings',
+          timestamp: 0,
+          amount: 200,
+        },
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.getByText('Claim')).toBeOnTheScreen();
+      expect(screen.getByLabelText('USDC')).toBeOnTheScreen();
+      expect(screen.getByText('$200.00')).toBeOnTheScreen();
     });
 
-    expect(screen.getByText('Sell')).toBeOnTheScreen();
-    expect(screen.getByLabelText('USDC')).toBeOnTheScreen();
-    const amountSellText = formatCurrencyValue(activity.amountUsd) as string;
-    expect(screen.getByText(amountSellText)).toBeOnTheScreen();
-    const sellEntry = activity.entry as Extract<
-      PredictActivityItem['entry'],
-      { type: 'sell' }
-    >;
-    const expectedShares = formatPositionSize(
-      sellEntry.amount / sellEntry.price,
-    );
-    const expectedPricePerShare = formatPrice(sellEntry.price, {
-      minimumDecimals: 4,
-      maximumDecimals: 4,
+    it('displays total net PnL with market-specific PnL', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.CLAIM,
+        amountUsd: 200,
+        totalNetPnlUsd: 150,
+        netPnlUsd: 120,
+        entry: {
+          type: 'claimWinnings',
+          timestamp: 0,
+          amount: 200,
+        },
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.getByText('Total net PnL')).toBeOnTheScreen();
+      expect(screen.getByText('+$150.00')).toBeOnTheScreen();
+      expect(screen.getByText('Market X')).toBeOnTheScreen();
+      expect(screen.getByText('+$120.00')).toBeOnTheScreen();
     });
-    expect(screen.getByText('Shares sold')).toBeOnTheScreen();
-    expect(screen.getByText(expectedShares)).toBeOnTheScreen();
-    expect(screen.getByText('Price per share')).toBeOnTheScreen();
-    expect(screen.getByText(expectedPricePerShare)).toBeOnTheScreen();
-    expect(screen.getByText('Net PnL')).toBeOnTheScreen();
-    expect(screen.getByText('-$10.00')).toBeOnTheScreen();
-    expect(screen.queryByText('Predicted amount')).toBeNull();
-    expect(screen.queryByText('Price impact')).toBeNull();
+
+    it('hides market and outcome labels for claim activities', () => {
+      const activity = createActivityItem({
+        type: PredictActivityType.CLAIM,
+        amountUsd: 200,
+        entry: {
+          type: 'claimWinnings',
+          timestamp: 0,
+          amount: 200,
+        },
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.queryByText('Market')).toBeNull();
+      expect(screen.queryByText('Outcome')).toBeNull();
+    });
   });
 
-  it('renders CLAIM details: amount badge and pnl rows; omits market/outcome rows', () => {
-    renderWithActivity({
-      type: PredictActivityType.CLAIM,
-      amountUsd: 200,
-      totalNetPnlUsd: 150,
-      netPnlUsd: 120,
-      entry: {
-        type: 'claimWinnings',
-        timestamp: 0,
-        amount: 200,
-      },
+  describe('navigation', () => {
+    it('calls goBack when back button is pressed and navigation can go back', () => {
+      const activity = createActivityItem();
+      mockUseRoute.mockReturnValue({ params: { activity } });
+      mockCanGoBack.mockReturnValue(true);
+
+      render(<PredictActivityDetail />);
+      const backButton = screen.getByTestId(
+        'predict-activity-details-back-button',
+      );
+
+      fireEvent.press(backButton);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.getByText('Claim')).toBeOnTheScreen();
-    expect(screen.getByLabelText('USDC')).toBeOnTheScreen();
-    expect(screen.getByText('$200.00')).toBeOnTheScreen();
-    expect(screen.getByText('Total net PnL')).toBeOnTheScreen();
-    expect(screen.getByText('+$150.00')).toBeOnTheScreen();
-    expect(screen.getByText('Market X')).toBeOnTheScreen();
-    expect(screen.getByText('+$120.00')).toBeOnTheScreen();
-    expect(screen.queryByText('Market')).toBeNull();
-    expect(screen.queryByText('Outcome')).toBeNull();
-  });
+    it('navigates to root when back button is pressed and cannot go back', () => {
+      const activity = createActivityItem();
+      mockUseRoute.mockReturnValue({ params: { activity } });
+      mockCanGoBack.mockReturnValue(false);
 
-  it('navigates back via goBack when possible, otherwise navigates to ROOT', () => {
-    renderWithActivity();
+      render(<PredictActivityDetail />);
+      const backButton = screen.getByTestId(
+        'predict-activity-details-back-button',
+      );
 
-    mockCanGoBack.mockReturnValueOnce(true);
-    fireEvent.press(screen.getByText('Icon:ArrowLeft'));
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    mockCanGoBack.mockReturnValueOnce(false);
-    fireEvent.press(screen.getByText('Icon:ArrowLeft'));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT);
+      fireEvent.press(backButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT);
+    });
   });
 });

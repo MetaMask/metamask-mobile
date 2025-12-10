@@ -6,7 +6,6 @@ const mockSetParams = jest.fn();
 const mockSubmitDelegation = jest.fn();
 const mockShowToast = jest.fn();
 const mockDispatch = jest.fn();
-const mockUpdateTokenPriority = jest.fn();
 const mockUseFocusEffect = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -86,12 +85,6 @@ jest.mock('../../hooks/useCardDelegation', () => ({
     isLoading: false,
   })),
   UserCancelledError: MockUserCancelledError,
-}));
-
-jest.mock('../../hooks/useUpdateTokenPriority', () => ({
-  useUpdateTokenPriority: jest.fn(() => ({
-    updateTokenPriority: mockUpdateTokenPriority,
-  })),
 }));
 
 jest.mock('../../sdk', () => ({
@@ -245,7 +238,6 @@ describe('SpendingLimit Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmitDelegation.mockResolvedValue(undefined);
-    mockUpdateTokenPriority.mockResolvedValue(true);
 
     // Mock addListener to return an unsubscribe function
     mockAddListener.mockReturnValue(jest.fn());
@@ -740,20 +732,24 @@ describe('SpendingLimit Component', () => {
       });
     });
 
-    it('clears cache after successful delegation', async () => {
+    it('clears cache after successful delegation with delay', async () => {
       render();
 
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            type: expect.stringContaining('clearCacheData'),
-            payload: 'card-external-wallet-details',
-          }),
-        );
-      });
+      // Wait for the full async flow including the 3-second delay and cache clear
+      await waitFor(
+        () => {
+          expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: expect.stringContaining('clearCacheData'),
+              payload: 'card-external-wallet-details',
+            }),
+          );
+        },
+        { timeout: 5000 },
+      );
     });
 
     it('shows success toast when delegation succeeds', async () => {
@@ -762,14 +758,18 @@ describe('SpendingLimit Component', () => {
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
-      await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: [{ label: 'Spending limit updated' }],
-            iconName: IconName.Confirmation,
-          }),
-        );
-      });
+      // Wait for the toast to be shown after the async flow completes
+      await waitFor(
+        () => {
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              labelOptions: [{ label: 'Spending limit updated' }],
+              iconName: IconName.Confirmation,
+            }),
+          );
+        },
+        { timeout: 5000 },
+      );
     });
 
     it('navigates back after successful delegation', async () => {
@@ -778,9 +778,13 @@ describe('SpendingLimit Component', () => {
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
-      });
+      // Wait for navigation to be called after the async flow completes
+      await waitFor(
+        () => {
+          expect(mockGoBack).toHaveBeenCalled();
+        },
+        { timeout: 5000 },
+      );
     });
 
     it('keeps options view visible after pressing set limit button', () => {
@@ -805,222 +809,35 @@ describe('SpendingLimit Component', () => {
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
-      await waitFor(() => {
-        expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
-      });
+      // Wait for the component to navigate away (options view disappears)
+      await waitFor(
+        () => {
+          expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
+        },
+        { timeout: 5000 },
+      );
     });
   });
 
-  describe('Token Priority Update', () => {
-    it('calls updateTokenPriority after successful delegation with external wallet details', async () => {
-      const mockExternalWalletDetails = {
-        walletDetails: [
-          {
-            id: 1,
-            walletAddress: '0xwallet123',
-            currency: 'USDC',
-            balance: '1000',
-            allowance: '1000000',
-            priority: 1,
-            tokenDetails: {
-              address: '0x123',
-              symbol: 'USDC',
-              name: 'USD Coin',
-              decimals: 6,
-            },
-            caipChainId: 'eip155:59144' as `${string}:${string}`,
-            network: 'linea' as const,
-          },
-        ] as unknown as CardExternalWalletDetailsResponse,
-        mappedWalletDetails: [mockPriorityToken],
-        priorityWalletDetail: mockPriorityToken,
-      };
-
-      const routeWithWalletDetails: MockRoute = {
-        params: {
-          ...mockRoute.params,
-          externalWalletDetailsData: mockExternalWalletDetails,
-        },
-      };
-
-      render(routeWithWalletDetails);
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
-          expect.objectContaining({
-            address: mockPriorityToken.address,
-            symbol: mockPriorityToken.symbol,
-            caipChainId: mockPriorityToken.caipChainId,
-          }),
-          mockExternalWalletDetails.walletDetails,
-        );
-      });
-    });
-
-    it('does not call updateTokenPriority when external wallet details are not available', async () => {
+  describe('Cache Management', () => {
+    it('clears cache after successful delegation with 3-second delay', async () => {
       render();
 
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
-      await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalled();
-      });
-
-      expect(mockUpdateTokenPriority).not.toHaveBeenCalled();
-    });
-
-    it('clears cache when external wallet details are not available', async () => {
-      render();
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            type: expect.stringContaining('clearCacheData'),
-            payload: 'card-external-wallet-details',
-          }),
-        );
-      });
-    });
-
-    it('does not call updateTokenPriority when wallet details array is empty', async () => {
-      const emptyWalletDetails = {
-        walletDetails: [],
-        mappedWalletDetails: [],
-        priorityWalletDetail: null,
-      };
-
-      const routeWithEmptyDetails: MockRoute = {
-        params: {
-          ...mockRoute.params,
-          externalWalletDetailsData: emptyWalletDetails,
+      // Wait for the cache to be cleared after the 3-second delay
+      await waitFor(
+        () => {
+          expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: expect.stringContaining('clearCacheData'),
+              payload: 'card-external-wallet-details',
+            }),
+          );
         },
-      };
-
-      render(routeWithEmptyDetails);
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalled();
-      });
-
-      expect(mockUpdateTokenPriority).not.toHaveBeenCalled();
-    });
-
-    it('calls updateTokenPriority with selected token when available', async () => {
-      const mockExternalWalletDetails = {
-        walletDetails: [
-          {
-            id: 1,
-            walletAddress: '0xwallet123',
-            currency: 'mUSD',
-            balance: '2000',
-            allowance: '2000000',
-            priority: 2,
-            tokenDetails: {
-              address: '0xmusd',
-              symbol: 'mUSD',
-              name: 'Meta USD',
-              decimals: 18,
-            },
-            caipChainId: 'eip155:59144' as `${string}:${string}`,
-            network: 'linea' as const,
-          },
-        ] as unknown as CardExternalWalletDetailsResponse,
-        mappedWalletDetails: [mockMUSDToken],
-        priorityWalletDetail: undefined,
-      };
-
-      const routeWithSelectedToken: MockRoute = {
-        params: {
-          flow: 'enable' as const,
-          selectedToken: mockMUSDToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockPriorityToken, mockMUSDToken],
-          delegationSettings: null,
-          externalWalletDetailsData: mockExternalWalletDetails,
-        },
-      };
-
-      render(routeWithSelectedToken);
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
-          expect.objectContaining({
-            address: mockMUSDToken.address,
-            symbol: mockMUSDToken.symbol,
-            caipChainId: mockMUSDToken.caipChainId,
-          }),
-          mockExternalWalletDetails.walletDetails,
-        );
-      });
-    });
-
-    it('updates priority after delegation in restricted mode', async () => {
-      const mockExternalWalletDetails = {
-        walletDetails: [
-          {
-            id: 1,
-            walletAddress: '0xwallet123',
-            currency: 'USDC',
-            balance: '1000',
-            allowance: '500',
-            priority: 1,
-            tokenDetails: {
-              address: '0x123',
-              symbol: 'USDC',
-              name: 'USD Coin',
-              decimals: 6,
-            },
-            caipChainId: 'eip155:59144' as `${string}:${string}`,
-            network: 'linea' as const,
-          },
-        ] as unknown as CardExternalWalletDetailsResponse,
-        mappedWalletDetails: [mockPriorityToken],
-        priorityWalletDetail: mockPriorityToken,
-      };
-
-      const routeWithWalletDetails: MockRoute = {
-        params: {
-          ...mockRoute.params,
-          externalWalletDetailsData: mockExternalWalletDetails,
-        },
-      };
-
-      render(routeWithWalletDetails);
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, '5000');
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
-          expect.objectContaining({
-            address: mockPriorityToken.address,
-            symbol: mockPriorityToken.symbol,
-          }),
-          mockExternalWalletDetails.walletDetails,
-        );
-      });
+        { timeout: 5000 },
+      );
     });
   });
 

@@ -267,31 +267,8 @@ export function adaptAccountStateFromSDK(
       ? ((weightedReturnOnEquity / totalMarginUsed) * 100).toFixed(1)
       : '0.0';
 
-  // TODO: BALANCE DISPLAY DECISION NEEDED
-  //
-  // We need to decide what balance information to show to users:
-  //
-  // OPTIONS:
-  // 1. Perps-only balance (current): Only show Perps account value
-  //    - totalBalance: perpsState.crossMarginSummary.accountValue (~$31.13)
-  //    - Pros: Focused on trading balance, matches other perps platforms
-  //    - Cons: Doesn't show user's full HyperLiquid account value
-  //
-  // 2. Combined balance: Show Spot + Perps total account value
-  //    - totalBalance: spotBalance + perpsBalance (~$81.39)
-  //    - Pros: Shows complete account picture, matches HyperLiquid UI
-  //    - Cons: May confuse users about available trading capital
-  //
-  // 3. Separate fields: Show both balances distinctly
-  //    - spotBalance: $50.26, perpsBalance: $31.13, totalBalance: $81.39
-  //    - Pros: Maximum clarity and transparency
-  //    - Cons: More complex UI, need to update AccountState interface
-  //
-  // CURRENT IMPLEMENTATION: Option 2 (Combined balance)
-  // This matches the HyperLiquid web UI behavior but should be reviewed
-
-  // Get Perps balance
-  const perpsBalance = parseFloat(perpsState.crossMarginSummary.accountValue);
+  // marginSummary.accountValue includes both cross and isolated margin positions
+  const perpsBalance = parseFloat(perpsState.marginSummary.accountValue);
 
   // Get Spot balance (if available)
   let spotBalance = 0;
@@ -307,9 +284,9 @@ export function adaptAccountStateFromSDK(
   const totalBalance = (spotBalance + perpsBalance).toString();
 
   const accountState: AccountState = {
-    availableBalance: perpsState.withdrawable || '0', // Always Perps withdrawable
-    totalBalance: totalBalance || '0', // Combined or Perps-only? See TODO above
-    marginUsed: perpsState.marginSummary.totalMarginUsed || '0', // margin used including cross margin
+    availableBalance: perpsState.withdrawable || '0',
+    totalBalance: totalBalance || '0',
+    marginUsed: perpsState.marginSummary.totalMarginUsed || '0',
     unrealizedPnl: totalUnrealizedPnl.toString() || '0',
     returnOnEquity: totalReturnOnEquityPercentage || '0',
   };
@@ -430,7 +407,16 @@ export function formatHyperLiquidSize(params: {
   if (isNaN(num)) return '0';
 
   // Use asset-specific decimal precision and remove trailing zeros
-  return num.toFixed(szDecimals).replace(/\.?0+$/, '');
+  const formatted = num.toFixed(szDecimals);
+
+  // Only strip trailing zeros after decimal point, not from integers
+  // e.g., "10.000" → "10", "10.5000" → "10.5", but "10" stays "10"
+  if (!formatted.includes('.')) {
+    return formatted; // Integer, keep as-is
+  }
+
+  // Has decimal, strip trailing zeros and decimal if needed
+  return formatted.replace(/\.?0+$/, '');
 }
 
 /**
@@ -519,7 +505,7 @@ export interface RawHyperLiquidLedgerUpdate {
 
 /**
  * Transform raw HyperLiquid ledger updates to UserHistoryItem format
- * Filters for deposits and withdrawals only, extracting amount and asset information
+ * Filters for deposits, withdrawals, and internal transfers only, extracting amount and asset information
  * @param rawLedgerUpdates - Array of raw ledger updates from HyperLiquid SDK
  * @returns Array of UserHistoryItem objects
  */
@@ -527,10 +513,18 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
   rawLedgerUpdates: RawHyperLiquidLedgerUpdate[],
 ): UserHistoryItem[] {
   return (rawLedgerUpdates || [])
-    .filter(
-      (update) =>
-        // Only include deposits and withdrawals, skip other types
-        update.delta.type === 'deposit' || update.delta.type === 'withdraw',
+    .filter((update) =>
+      // Only include deposits, withdrawals, and positive internal transfers, skip other types
+      {
+        if (update.delta.type === 'deposit') return true;
+        if (update.delta.type === 'withdraw') return true;
+        if (update.delta.type === 'internalTransfer') {
+          const usdc = Number.parseFloat(update.delta.usdc ?? '0');
+          if (Number.isNaN(usdc)) return false;
+          return usdc > 0;
+        }
+        return false;
+      },
     )
     .map((update) => {
       // Extract amount and asset based on delta type

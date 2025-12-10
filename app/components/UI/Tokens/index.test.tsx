@@ -8,6 +8,7 @@ import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -22,6 +23,18 @@ const selectedAddress = '0x123';
 jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
+
+jest.mock('../Earn/components/Musd/MusdConversionAssetListCta', () => {
+  const { View } = jest.requireActual('react-native');
+  const MusdConversionAssetListCta = () => (
+    <View testID="musd-conversion-cta" />
+  );
+
+  return {
+    __esModule: true,
+    default: MusdConversionAssetListCta,
+  };
+});
 
 // We don't need to mock TokenList - the actual implementation is fine for testing
 
@@ -74,13 +87,16 @@ jest.mock('@metamask/react-native-actionsheet', () => {
   );
 });
 
-const mockIsNonEvmChainId = jest.fn();
 const mockSelectInternalAccountByScope = jest.fn();
 
 jest.mock('../../../core/Multichain/utils', () => ({
   ...jest.requireActual('../../../core/Multichain/utils'),
-  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+  isNonEvmChainId: jest.fn(),
 }));
+
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
 
 jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
@@ -117,7 +133,7 @@ jest.mock('../../../core/Engine', () => ({
       stopPollingByPollingToken: jest.fn(),
     },
     TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },

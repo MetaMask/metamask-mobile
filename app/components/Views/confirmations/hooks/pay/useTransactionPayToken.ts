@@ -5,6 +5,8 @@ import { RootState } from '../../../../../reducers';
 import Engine from '../../../../../core/Engine';
 import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
 import { Hex } from '@metamask/utils';
+import { noop } from 'lodash';
+import EngineService from '../../../../../core/EngineService';
 
 export function useTransactionPayToken() {
   const { id: transactionId } = useTransactionMetadataRequest() || { id: '' };
@@ -14,7 +16,7 @@ export function useTransactionPayToken() {
   );
 
   const setPayToken = useCallback(
-    async (newPayToken: { address: Hex; chainId: Hex }) => {
+    (newPayToken: { address: Hex; chainId: Hex }) => {
       const { GasFeeController, NetworkController, TransactionPayController } =
         Engine.context;
 
@@ -22,9 +24,9 @@ export function useTransactionPayToken() {
         newPayToken.chainId,
       );
 
-      await GasFeeController.fetchGasFeeEstimates({
+      GasFeeController.fetchGasFeeEstimates({
         networkClientId,
-      });
+      }).catch(noop);
 
       try {
         TransactionPayController.updatePaymentToken({
@@ -32,6 +34,8 @@ export function useTransactionPayToken() {
           tokenAddress: newPayToken.address,
           chainId: newPayToken.chainId,
         });
+
+        EngineService.flushState();
       } catch (e) {
         console.error('Error updating payment token', e);
       }

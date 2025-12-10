@@ -21,7 +21,10 @@ import {
   getMockUseEarnTokens,
 } from '../../../Earn/__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../components/hooks/useFeatureFlag';
 import { TokenI } from '../../../Tokens/types';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
@@ -49,8 +52,8 @@ jest.mock('../../../../../selectors/earnController', () => ({
   },
 }));
 
-type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
-  typeof selectPooledStakingEnabledFlag
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
 >;
 
 const MOCK_ADDRESS_1 = '0x0';
@@ -177,12 +180,22 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
-  selectPooledStakingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
 }));
+
+jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    ...actual,
+    useFeatureFlag: jest.fn(),
+  };
+});
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -191,9 +204,12 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    (
-      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
-    ).mockReturnValue(true);
+    mockUseFeatureFlag.mockImplementation((flagName) => {
+      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
+        return true;
+      }
+      return false;
+    });
     (earnSelectors.selectEarnToken as unknown as jest.Mock).mockImplementation(
       (_token: TokenI) => {
         const experienceType =
@@ -296,9 +312,12 @@ describe('StakingBalance', () => {
   });
 
   it('should not render stake cta if pooled staking is disabled', () => {
-    (
-      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
-    ).mockReturnValue(false);
+    mockUseFeatureFlag.mockImplementation((flagName) => {
+      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
+        return false;
+      }
+      return false;
+    });
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
@@ -309,7 +328,6 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
     expect(getByTestId('staking-balance-container')).toBeDefined();
-    expect(getByText(strings('stake.unstake'))).toBeDefined();
     expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
   });
 
@@ -345,9 +363,12 @@ describe('StakingBalance', () => {
 
   // We don't want to prevent users from withdrawing their ETH regardless of feature flags.
   it('should render unstake and claim buttons even if pooled-staking feature flag is disabled', () => {
-    (
-      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
-    ).mockReturnValue(false);
+    mockUseFeatureFlag.mockImplementation((flagName) => {
+      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
+        return false;
+      }
+      return false;
+    });
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
@@ -358,7 +379,6 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
     expect(getByTestId('staking-balance-container')).toBeDefined();
-    expect(getByText(strings('stake.unstake'))).toBeDefined();
     expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
   });
 });

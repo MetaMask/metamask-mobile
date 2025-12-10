@@ -71,6 +71,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
               style={
                 {
                   "color": "black",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "marginBottom": 15,
                 }
@@ -90,7 +91,6 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
                   "borderRadius": 5,
                   "borderWidth": 2,
                   "color": "black",
-                  "fontFamily": "Geist Regular",
                   "padding": 10,
                 }
               }

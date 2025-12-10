@@ -2,7 +2,7 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import handleRedirection from './handleRedirection';
 import getRedirectPathsAndParams from '../../utils/getRedirectPathAndParams';
 import { RampType } from '../types';
-import parseRampIntent from '../utils/parseRampIntent';
+import parseRampIntent from '../../utils/parseRampIntent';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,

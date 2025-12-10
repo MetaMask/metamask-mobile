@@ -13,6 +13,7 @@ import type {
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
+import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
 
 // Mock HyperLiquid SDK types
 interface MockSubscription {
@@ -259,7 +260,26 @@ describe('HyperLiquidSubscriptionService', () => {
         }, 0);
         return Promise.resolve(mockSubscription);
       }),
-      l2Book: jest.fn().mockResolvedValue(mockSubscription),
+      l2Book: jest.fn((_params: any, callback: any) => {
+        // Simulate l2Book data
+        setTimeout(() => {
+          callback({
+            coin: _params.coin,
+            levels: { bids: [], asks: [] },
+          });
+        }, 0);
+        return Promise.resolve(mockSubscription);
+      }),
+      activeAsset: jest.fn((params: any, callback: any) => {
+        // Simulate activeAsset data (similar to activeAssetCtx)
+        setTimeout(() => {
+          callback({
+            coin: params.coin,
+            data: 'test',
+          });
+        }, 0);
+        return Promise.resolve(mockSubscription);
+      }),
       clearinghouseState: jest.fn(() => Promise.resolve(mockSubscription)),
       assetCtxs: jest.fn(() => Promise.resolve(mockSubscription)),
     };
@@ -528,17 +548,20 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockCallback).toHaveBeenCalledWith([
-        expect.objectContaining({
-          orderId: '12345',
-          symbol: 'BTC',
-          side: 'B',
-          size: '0.1',
-          price: '50000',
-          fee: '5',
-          timestamp: expect.any(Number),
-        }),
-      ]);
+      expect(mockCallback).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            side: 'B',
+            size: '0.1',
+            price: '50000',
+            fee: '5',
+            timestamp: expect.any(Number),
+          }),
+        ],
+        undefined, // isSnapshot is undefined for mock data without it
+      );
 
       unsubscribe();
     });
@@ -601,17 +624,62 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockCallback).toHaveBeenCalledWith([
-        expect.objectContaining({
-          orderId: '12345',
-          symbol: 'BTC',
-          liquidation: {
-            liquidatedUser: '0x123',
-            markPx: '44900',
-            method: 'market',
-          },
-        }),
-      ]);
+      expect(mockCallback).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            liquidation: {
+              liquidatedUser: '0x123',
+              markPx: '44900',
+              method: 'market',
+            },
+          }),
+        ],
+        undefined, // isSnapshot is undefined for mock data without it
+      );
+
+      unsubscribe();
+    });
+
+    it('should pass isSnapshot flag to callback', async () => {
+      const mockCallback = jest.fn();
+
+      // Update mock data to include isSnapshot: true (snapshot message)
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              fills: [
+                {
+                  oid: BigInt(12345),
+                  coin: 'BTC',
+                  side: 'B',
+                  sz: '0.1',
+                  px: '50000',
+                  fee: '5',
+                  time: Date.now(),
+                },
+              ],
+              isSnapshot: true, // This is a snapshot message
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToOrderFills({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.any(Array),
+        true, // isSnapshot should be passed through
+      );
 
       unsubscribe();
     });
@@ -2246,14 +2314,14 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     it('returns only main DEX when equity is disabled', () => {
-      const service = new HyperLiquidSubscriptionService(
+      const subscriptionService = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
         false, // hip3Enabled
         [],
       );
 
-      expect(service).toBeDefined();
+      expect(subscriptionService).toBeDefined();
     });
 
     it('updates feature flags and establishes new DEX subscriptions', async () => {
@@ -2391,39 +2459,25 @@ describe('HyperLiquidSubscriptionService', () => {
   });
 
   describe('Market Data Cache Initialization', () => {
-    it('caches funding rates from initial market data', async () => {
+    it('uses setDexMetaCache to pre-populate meta cache instead of API call', async () => {
+      // Test that setDexMetaCache can be used to pre-populate the cache
+      // This is how Provider shares cached meta with SubscriptionService
+      const mockMeta = {
+        universe: [
+          { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+          { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          { name: 'SOL', szDecimals: 2, maxLeverage: 20 },
+        ],
+      };
+
+      // Pre-populate cache via setDexMetaCache (simulating what Provider does)
+      service.setDexMetaCache('', mockMeta);
+
       const mockCallback = jest.fn();
       const mockInfoClient = {
-        meta: jest.fn().mockResolvedValue({
-          universe: [{ name: 'BTC' }, { name: 'ETH' }, { name: 'SOL' }],
-        }),
-        metaAndAssetCtxs: jest.fn().mockResolvedValue([
-          {}, // meta object (first element)
-          [
-            // assetCtxs array (second element)
-            {
-              funding: '0.0001',
-              prevDayPx: '49000',
-              openInterest: '1000000',
-              dayNtlVlm: '50000000',
-              oraclePx: '50100',
-            },
-            {
-              funding: '0.0002',
-              prevDayPx: '2900',
-              openInterest: '500000',
-              dayNtlVlm: '10000000',
-              oraclePx: '3010',
-            },
-            {
-              funding: '0.00015',
-              prevDayPx: '95',
-              openInterest: '200000',
-              dayNtlVlm: '5000000',
-              oraclePx: '98',
-            },
-          ],
-        ]),
+        // These should NOT be called since cache is populated
+        meta: jest.fn().mockResolvedValue(mockMeta),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([mockMeta, []]),
       };
 
       mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
@@ -2436,9 +2490,10 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 20));
 
-      // Verify meta was called to cache funding rates
-      expect(mockInfoClient.meta).toHaveBeenCalled();
-      expect(mockInfoClient.metaAndAssetCtxs).toHaveBeenCalled();
+      // Verify that metaAndAssetCtxs was NOT called (cache was used)
+      // Note: meta() may still be called by createAssetCtxsSubscription fallback if cache miss,
+      // but with proper cache population, it should hit the cache
+      expect(mockInfoClient.metaAndAssetCtxs).not.toHaveBeenCalled();
 
       unsubscribe();
     });
@@ -2736,6 +2791,608 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe1();
       unsubscribe2();
+    });
+  });
+
+  describe('aggregateAccountStates - returnOnEquity calculation', () => {
+    it('calculates positive ROE when unrealizedPnl is positive', async () => {
+      // Override the adapter mock
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '100',
+        totalBalance: '1100',
+        marginUsed: '1000',
+        unrealizedPnl: '100',
+        returnOnEquity: '10.0',
+      }));
+
+      const mockCallback = jest.fn();
+
+      // Mock webData3
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          const mockData = {
+            perpDexStates: [
+              {
+                clearinghouseState: { assetPositions: [] },
+                openOrders: [],
+                perpsAtOpenInterestCap: [],
+              },
+            ],
+          };
+
+          setTimeout(() => callback(mockData), 10);
+          return { unsubscribe: jest.fn() };
+        },
+      );
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockCallback).toHaveBeenCalled();
+      const accountState = mockCallback.mock.calls[0][0];
+      expect(accountState.marginUsed).toBe('1000');
+      expect(accountState.unrealizedPnl).toBe('100');
+      expect(accountState.returnOnEquity).toBe('10.0');
+
+      unsubscribe();
+    });
+
+    it('calculates negative ROE when unrealizedPnl is negative', async () => {
+      // Override the adapter mock
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '0',
+        totalBalance: '950',
+        marginUsed: '1000',
+        unrealizedPnl: '-50',
+        returnOnEquity: '-5.0',
+      }));
+
+      const mockCallback = jest.fn();
+
+      // Mock webData3
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          const mockData = {
+            perpDexStates: [
+              {
+                clearinghouseState: { assetPositions: [] },
+                openOrders: [],
+                perpsAtOpenInterestCap: [],
+              },
+            ],
+          };
+
+          setTimeout(() => callback(mockData), 10);
+          return { unsubscribe: jest.fn() };
+        },
+      );
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockCallback).toHaveBeenCalled();
+      const accountState = mockCallback.mock.calls[0][0];
+      expect(accountState.marginUsed).toBe('1000');
+      expect(accountState.unrealizedPnl).toBe('-50');
+      expect(accountState.returnOnEquity).toBe('-5.0');
+
+      unsubscribe();
+    });
+
+    it('returns zero ROE when marginUsed is zero', async () => {
+      // Override the adapter mock
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '1000',
+        totalBalance: '1000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      }));
+
+      const mockCallback = jest.fn();
+
+      // Mock webData3
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          const mockData = {
+            perpDexStates: [
+              {
+                clearinghouseState: { assetPositions: [] },
+                openOrders: [],
+                perpsAtOpenInterestCap: [],
+              },
+            ],
+          };
+
+          setTimeout(() => callback(mockData), 10);
+          return { unsubscribe: jest.fn() };
+        },
+      );
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockCallback).toHaveBeenCalled();
+      const accountState = mockCallback.mock.calls[0][0];
+      expect(accountState.marginUsed).toBe('0');
+      expect(accountState.unrealizedPnl).toBe('0');
+      expect(accountState.returnOnEquity).toBe('0');
+
+      unsubscribe();
+    });
+
+    it('calculates correct ROE with mixed profit and loss positions', async () => {
+      // Override the adapter mock
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '75',
+        totalBalance: '1575',
+        marginUsed: '1500',
+        unrealizedPnl: '75',
+        returnOnEquity: '5.0',
+      }));
+
+      const mockCallback = jest.fn();
+
+      // Mock webData3 - simulates account with multiple positions
+      // marginUsed=1500, unrealizedPnl=75 → ROE=5.0%
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          const mockData = {
+            perpDexStates: [
+              {
+                clearinghouseState: { assetPositions: [] },
+                openOrders: [],
+                perpsAtOpenInterestCap: [],
+              },
+            ],
+          };
+
+          setTimeout(() => callback(mockData), 10);
+          return { unsubscribe: jest.fn() };
+        },
+      );
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockCallback).toHaveBeenCalled();
+      const accountState = mockCallback.mock.calls[0][0];
+      expect(accountState.marginUsed).toBe('1500');
+      expect(accountState.unrealizedPnl).toBe('75');
+      expect(accountState.returnOnEquity).toBe('5.0');
+
+      unsubscribe();
+    });
+
+    it('calculates high ROE with large percentage gains', async () => {
+      // Override the adapter mock
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '200',
+        totalBalance: '300',
+        marginUsed: '100',
+        unrealizedPnl: '200',
+        returnOnEquity: '200.0',
+      }));
+
+      const mockCallback = jest.fn();
+
+      // Mock webData3
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          const mockData = {
+            perpDexStates: [
+              {
+                clearinghouseState: { assetPositions: [] },
+                openOrders: [],
+                perpsAtOpenInterestCap: [],
+              },
+            ],
+          };
+
+          setTimeout(() => callback(mockData), 10);
+          return { unsubscribe: jest.fn() };
+        },
+      );
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockCallback).toHaveBeenCalled();
+      const accountState = mockCallback.mock.calls[0][0];
+      expect(accountState.marginUsed).toBe('100');
+      expect(accountState.unrealizedPnl).toBe('200');
+      expect(accountState.returnOnEquity).toBe('200.0');
+
+      unsubscribe();
+    });
+
+    it('rounds ROE to one decimal place', async () => {
+      // Override the adapter mock
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '100',
+        totalBalance: '433',
+        marginUsed: '333',
+        unrealizedPnl: '100',
+        returnOnEquity: '30.0',
+      }));
+
+      const mockCallback = jest.fn();
+
+      // Mock webData3
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          const mockData = {
+            perpDexStates: [
+              {
+                clearinghouseState: { assetPositions: [] },
+                openOrders: [],
+                perpsAtOpenInterestCap: [],
+              },
+            ],
+          };
+
+          setTimeout(() => callback(mockData), 10);
+          return { unsubscribe: jest.fn() };
+        },
+      );
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockCallback).toHaveBeenCalled();
+      const accountState = mockCallback.mock.calls[0][0];
+      expect(accountState.marginUsed).toBe('333');
+      expect(accountState.unrealizedPnl).toBe('100');
+      expect(accountState.returnOnEquity).toBe('30.0');
+
+      unsubscribe();
+    });
+  });
+
+  describe('restoreSubscriptions', () => {
+    it('restores allMids subscription when price subscribers exist', async () => {
+      const callback = jest.fn();
+      const mockUnsubscribe = jest.fn();
+      const mockSubscription = { unsubscribe: mockUnsubscribe };
+
+      // Subscribe to prices first
+      mockSubscriptionClient.allMids.mockImplementation((cb: any) => {
+        setTimeout(() => {
+          cb({ mids: { BTC: '50000' } });
+        }, 10);
+        return Promise.resolve(mockSubscription);
+      });
+
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Clear the subscription reference to simulate reconnection
+      (service as any).globalAllMidsSubscription = undefined;
+      (service as any).globalAllMidsPromise = undefined;
+
+      // Restore subscriptions
+      await service.restoreSubscriptions();
+
+      // Verify allMids subscription was re-established
+      expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(2);
+
+      unsubscribe();
+    });
+
+    it('does not restore allMids subscription when no price subscribers exist', async () => {
+      // No subscriptions created
+
+      await service.restoreSubscriptions();
+
+      // Verify allMids was not called
+      expect(mockSubscriptionClient.allMids).not.toHaveBeenCalled();
+    });
+
+    it('restores webData3 subscription when user data subscribers exist', async () => {
+      const positionCallback = jest.fn();
+      const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
+
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              perpDexStates: [
+                {
+                  clearinghouseState: { assetPositions: [] },
+                  openOrders: [],
+                  perpDexStates: [],
+                },
+              ],
+            });
+          }, 10);
+          return Promise.resolve({ unsubscribe: mockUnsubscribe });
+        },
+      );
+
+      const unsubscribe = await service.subscribeToPositions({
+        callback: positionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Clear subscription references to simulate reconnection
+      (service as any).webData3Subscriptions.clear();
+      (service as any).webData3SubscriptionPromise = undefined;
+
+      // Restore subscriptions
+      await service.restoreSubscriptions();
+
+      // Verify webData3 subscription was re-established
+      expect(mockSubscriptionClient.webData3).toHaveBeenCalledTimes(2);
+
+      // Cleanup
+      unsubscribe();
+    });
+
+    it('restores activeAsset subscriptions for all market data subscribers', async () => {
+      const marketDataCallback = jest.fn();
+      const mockUnsubscribe = jest.fn();
+      const mockSubscription = { unsubscribe: mockUnsubscribe };
+
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: '49000',
+                funding: '0.01',
+                openInterest: '1000000',
+                dayNtlVlm: '50000000',
+                oraclePx: '50100',
+                midPx: '50000',
+              },
+            });
+          }, 10);
+          return Promise.resolve(mockSubscription);
+        },
+      );
+
+      // Subscribe to market data for multiple symbols
+      const unsubscribe1 = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: marketDataCallback,
+        includeMarketData: true,
+      });
+      const unsubscribe2 = await service.subscribeToPrices({
+        symbols: ['ETH'],
+        callback: marketDataCallback,
+        includeMarketData: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Clear subscriptions to simulate reconnection
+      (service as any).globalActiveAssetSubscriptions.clear();
+
+      // Restore subscriptions
+      await service.restoreSubscriptions();
+
+      // Verify activeAssetCtx was called for each symbol (2 initial + 2 restored)
+      expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledTimes(4);
+
+      unsubscribe1();
+      unsubscribe2();
+    });
+
+    it('clears L2Book subscriptions during restoration', async () => {
+      const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
+      const mockSubscription = { unsubscribe: mockUnsubscribe };
+      let subscriptionCallCount = 0;
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, l2BookCallback: any) => {
+          subscriptionCallCount++;
+          setTimeout(() => {
+            l2BookCallback({
+              coin: _params.coin,
+              levels: { bids: [], asks: [] },
+            });
+          }, 10);
+          return Promise.resolve(mockSubscription);
+        },
+      );
+
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeOrderBook: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Verify initial subscription was created
+      expect((service as any).globalL2BookSubscriptions.size).toBe(1);
+      const initialCallCount = subscriptionCallCount;
+
+      // Set up a different subscription reference to verify it's cleared
+      const oldSubscription = { unsubscribe: jest.fn() };
+      (service as any).globalL2BookSubscriptions.set('BTC', oldSubscription);
+
+      // Restore subscriptions
+      await service.restoreSubscriptions();
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Verify old subscription was cleared and new one was re-established
+      // The map should have the new subscription, not the old one
+      const currentSubscription = (
+        service as any
+      ).globalL2BookSubscriptions.get('BTC');
+      expect(currentSubscription).toBeDefined();
+      expect(currentSubscription).not.toBe(oldSubscription);
+      // Verify l2Book was called again to re-establish the subscription
+      expect(subscriptionCallCount).toBeGreaterThan(initialCallCount);
+
+      unsubscribe();
+    });
+
+    it('handles errors during assetCtxs subscription restoration', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const { parseAssetName } = require('../utils/hyperLiquidAdapter');
+      jest.mocked(parseAssetName).mockImplementation((symbol: string) => {
+        if (symbol === 'BTC:UNISWAP') {
+          return { symbol, dex: 'UNISWAP' };
+        }
+        return { symbol, dex: null };
+      });
+
+      const mockUnsubscribe = jest.fn();
+      const mockSubscription = { unsubscribe: mockUnsubscribe };
+
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: '49000',
+                funding: '0.01',
+                openInterest: '1000000',
+                dayNtlVlm: '50000000',
+                oraclePx: '50100',
+                midPx: '50000',
+              },
+            });
+          }, 10);
+          return Promise.resolve(mockSubscription);
+        },
+      );
+
+      // Make assetCtxs fail
+      mockSubscriptionClient.assetCtxs.mockRejectedValueOnce(
+        new Error('Subscription failed'),
+      );
+
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Clear subscriptions to simulate reconnection
+      (service as any).assetCtxsSubscriptions.clear();
+      (service as any).assetCtxsSubscriptionPromises.clear();
+
+      // Restore subscriptions should not throw
+      await expect(service.restoreSubscriptions()).resolves.not.toThrow();
+
+      unsubscribe();
+    });
+
+    it('restores all subscription types when multiple subscriber types exist', async () => {
+      const priceCallback = jest.fn();
+      const positionCallback = jest.fn();
+      const allTypesMarketDataCallback = jest.fn();
+      const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
+      const mockSubscription = { unsubscribe: mockUnsubscribe };
+
+      mockSubscriptionClient.allMids.mockImplementation((cb: any) => {
+        setTimeout(() => {
+          cb({ mids: { BTC: '50000' } });
+        }, 10);
+        return Promise.resolve(mockSubscription);
+      });
+
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              perpDexStates: [
+                {
+                  clearinghouseState: { assetPositions: [] },
+                  openOrders: [],
+                  perpDexStates: [],
+                },
+              ],
+            });
+          }, 10);
+          return Promise.resolve(mockSubscription);
+        },
+      );
+
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: '49000',
+                funding: '0.01',
+                openInterest: '1000000',
+                dayNtlVlm: '50000000',
+                oraclePx: '50100',
+                midPx: '50000',
+              },
+            });
+          }, 10);
+          return Promise.resolve(mockSubscription);
+        },
+      );
+
+      // Create subscriptions for all types
+      const unsubscribe1 = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: priceCallback,
+      });
+      const unsubscribe2 = await service.subscribeToPositions({
+        callback: positionCallback,
+      });
+      const unsubscribe3 = await service.subscribeToPrices({
+        symbols: ['ETH'],
+        callback: allTypesMarketDataCallback,
+        includeMarketData: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Clear all subscription references
+      (service as any).globalAllMidsSubscription = undefined;
+      (service as any).globalAllMidsPromise = undefined;
+      (service as any).webData3Subscriptions.clear();
+      (service as any).webData3SubscriptionPromise = undefined;
+      (service as any).globalActiveAssetSubscriptions.clear();
+
+      // Restore all subscriptions
+      await service.restoreSubscriptions();
+
+      // Verify all subscription types were restored
+      expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(2);
+      expect(mockSubscriptionClient.webData3).toHaveBeenCalledTimes(2);
+      expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledTimes(2);
+
+      unsubscribe1();
+      unsubscribe2();
+      unsubscribe3();
     });
   });
 });
