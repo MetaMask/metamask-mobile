@@ -38,6 +38,7 @@ import {
   Side,
 } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import { OrderPreview, PlaceOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import {
@@ -741,6 +742,7 @@ describe('PolymarketProvider', () => {
         providerFee: 0.02,
         totalFee: 0.04,
         totalFeePercentage: 0.04,
+        collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
       },
       ...overrides,
     };
@@ -1212,6 +1214,11 @@ describe('PolymarketProvider', () => {
   describe('previewOrder', () => {
     it('calls previewOrder utility function with correct parameters', async () => {
       const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
       const mockParams = {
         marketId: 'market-123',
         outcomeId: 'outcome-456',
@@ -1219,6 +1226,7 @@ describe('PolymarketProvider', () => {
         side: Side.BUY,
         amount: 100,
         size: 100,
+        signer: mockSigner,
       };
 
       await provider.previewOrder(mockParams);
@@ -1364,6 +1372,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1385,6 +1394,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1411,6 +1421,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1437,6 +1448,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1464,7 +1476,7 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('uses FEE_COLLECTOR_ADDRESS as recipient', async () => {
+    it('uses collector from fees as recipient', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
         side: Side.BUY,
@@ -1473,6 +1485,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0.02,
           totalFee: 0.04,
           totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
         },
       });
       const orderParams: PlaceOrderParams = {
@@ -1503,6 +1516,7 @@ describe('PolymarketProvider', () => {
           providerFee: 0,
           totalFee: 0,
           totalFeePercentage: 0,
+          collector: '0x0',
         },
       });
 
@@ -3459,6 +3473,8 @@ describe('PolymarketProvider', () => {
             metamaskFee: 0.5,
             providerFee: 0.5,
             totalFee: 1,
+            totalFeePercentage: 1,
+            collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
           },
         });
       };
@@ -3485,21 +3501,6 @@ describe('PolymarketProvider', () => {
         });
 
         expect(sellPreview.rateLimited).toBe(true);
-      });
-
-      it('does not set rateLimited when signer is not provided', async () => {
-        setupPreviewOrderMock();
-        const { provider } = setupPlaceOrderTest();
-
-        const preview = await provider.previewOrder({
-          marketId: 'market-1',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: '0',
-          side: Side.BUY,
-          size: 10,
-        });
-
-        expect(preview.rateLimited).toBeUndefined();
       });
 
       it('does not set rateLimited when address has never placed an order', async () => {

@@ -229,7 +229,7 @@ module.exports = {
     'import/prefer-default-export': 'off',
     'no-alert': 'error',
     'no-constant-condition': [
-      2,
+      'error',
       {
         checkLoops: false,
       },
@@ -253,14 +253,14 @@ module.exports = {
     'no-throw-literal': 'error',
     'no-unmodified-loop-condition': 'error',
     'no-unneeded-ternary': [
-      2,
+      'error',
       {
         defaultAssignment: false,
       },
     ],
     'no-unsafe-negation': 'error',
     'no-unused-expressions': 'off',
-    'no-use-before-define': [2, 'nofunc'],
+    'no-use-before-define': ['error', 'nofunc'],
     'no-useless-call': 'error',
     'no-useless-computed-key': 'error',
     'no-useless-concat': 'error',
@@ -290,7 +290,7 @@ module.exports = {
     'react/no-did-update-set-state': 'error',
     'react/no-find-dom-node': 'error',
     'react/no-multi-comp': [
-      2,
+      'error',
       {
         ignoreStateless: true,
       },
