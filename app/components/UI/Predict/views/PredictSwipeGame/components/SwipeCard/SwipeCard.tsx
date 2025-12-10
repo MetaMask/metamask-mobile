@@ -176,7 +176,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           {/* Primary Outcome Label */}
           {card.isMultiOutcome && (
             <Text variant={TextVariant.BodyMd} twClassName="text-alternative mb-4">
-              Betting on: {card.primaryOutcome.title}
+              {card.primaryOutcome.title}
             </Text>
           )}
 
@@ -387,6 +387,7 @@ const styles = StyleSheet.create({
   },
   alternativeTitle: {
     minHeight: 32,
+    color: '#777',
   },
   yesText: {
     color: '#16A34A',
@@ -395,16 +396,18 @@ const styles = StyleSheet.create({
     color: '#DC2626',
   },
   yesTextSmall: {
-    fontSize: 12,
-    color: '#16A34A',
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(22, 163, 74, 0.7)',
   },
   noTextSmall: {
-    fontSize: 12,
-    color: '#DC2626',
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(220, 38, 38, 0.7)',
   },
   slashText: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: 11,
+    color: '#bbb',
     marginHorizontal: 2,
   },
   moreCard: {

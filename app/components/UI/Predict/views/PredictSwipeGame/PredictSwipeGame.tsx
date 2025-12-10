@@ -6,6 +6,7 @@ import {
   Pressable,
   Dimensions,
   Image,
+  ScrollView,
 } from 'react-native';
 import {
   SafeAreaView,
@@ -94,6 +95,7 @@ const PredictSwipeGame: React.FC = () => {
     handleUndo,
     setBetAmount,
     clearOrderError,
+    selectOutcome,
   } = useSwipeGame();
 
   // Haptic feedback
@@ -364,93 +366,103 @@ const PredictSwipeGame: React.FC = () => {
         testID={SWIPE_GAME_TEST_IDS.CONTAINER}
         edges={['top']}
       >
-        {/* ===== MINIMAL HEADER ===== */}
-        <Box twClassName="flex-row items-center justify-between px-4 py-3">
-          {/* Back button */}
-          <Pressable
-            onPress={handleGoBack}
-            hitSlop={20}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          >
-            <Icon
-              name={IconName.ArrowLeft}
-              color={IconColor.Default}
-              size={IconSize.Md}
-            />
-          </Pressable>
+        {/* ===== HEADER ===== */}
+        <View style={styles.header}>
+          {/* Left: Back button */}
+          <View style={styles.headerLeft}>
+            <Pressable
+              onPress={handleGoBack}
+              hitSlop={20}
+              style={({ pressed }) => [
+                styles.backButton,
+                pressed && styles.backButtonPressed,
+              ]}
+            >
+              <Icon
+                name={IconName.ArrowLeft}
+                color={IconColor.Default}
+                size={IconSize.Sm}
+              />
+            </Pressable>
+          </View>
 
-          {/* Bet amount chip */}
+          {/* Center: Bet amount pill */}
           <Pressable
             onPress={() => setShowBetSelector(!showBetSelector)}
             testID={SWIPE_GAME_TEST_IDS.BET_AMOUNT_SELECTOR}
             style={({ pressed }) => [
-              styles.betChip,
-              {
-                backgroundColor: colors.background.alternative,
-                opacity: pressed ? 0.8 : 1,
-              },
+              styles.betCard,
+              pressed && styles.betCardPressed,
             ]}
           >
-            <Text variant={TextVariant.BodyMdBold}>${betAmount}</Text>
-            <Icon
-              name={IconName.ArrowDown}
-              color={IconColor.Default}
-              size={IconSize.Xs}
-            />
+            <Text style={styles.betCardLabel}>Bet</Text>
+            <Text style={styles.betCardValue}>${betAmount}</Text>
+            <View style={styles.betCardArrow}>
+              <Icon
+                name={showBetSelector ? IconName.ArrowUp : IconName.ArrowDown}
+                color={IconColor.Primary}
+                size={IconSize.Xs}
+              />
+            </View>
           </Pressable>
 
-          {/* Balance indicator */}
-          <Box twClassName="flex-row items-center">
-            <Text variant={TextVariant.BodySm} twClassName="text-muted">
-              💰 ${balance.toFixed(0)}
-            </Text>
-          </Box>
-        </Box>
+          {/* Right: Balance pill */}
+          <View style={styles.headerRight}>
+            <View style={styles.balancePill}>
+              <Icon
+                name={IconName.Wallet}
+                color={IconColor.Alternative}
+                size={IconSize.Xs}
+              />
+              <Text style={styles.balanceText}>${balance.toFixed(0)}</Text>
+            </View>
+          </View>
+        </View>
 
-        {/* ===== BET AMOUNT QUICK SELECTOR ===== */}
+        {/* ===== BET SELECTOR ===== */}
         {showBetSelector && (
-          <Box twClassName="px-4 pb-3">
-            <Box twClassName="flex-row justify-center gap-2 flex-wrap">
-              {BET_AMOUNTS.map((amount) => {
-                const isSelected = amount === betAmount;
-                const isDisabled = amount > balance;
-                return (
-                  <Pressable
-                    key={amount}
-                    onPress={() => {
-                      if (!isDisabled) {
-                        setBetAmount(amount);
-                        setShowBetSelector(false);
-                      }
-                    }}
-                    disabled={isDisabled}
-                    style={[
-                      styles.betPreset,
-                      isSelected && { backgroundColor: colors.primary.default },
-                      !isSelected && {
-                        backgroundColor: colors.background.alternative,
-                      },
-                      isDisabled && { opacity: 0.4 },
-                    ]}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={
-                        isSelected ? FontWeight.Bold : FontWeight.Medium
-                      }
-                      style={
-                        isSelected
-                          ? { color: colors.primary.inverse }
-                          : undefined
-                      }
+          <View style={styles.betSelectorContainer}>
+            <View style={styles.betSelectorInner}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.betSelectorContent}
+              >
+                {BET_AMOUNTS.map((amount) => {
+                  const isSelected = amount === betAmount;
+                  const isDisabled = amount > balance;
+                  return (
+                    <Pressable
+                      key={amount}
+                      onPress={() => {
+                        if (!isDisabled) {
+                          setBetAmount(amount);
+                          setShowBetSelector(false);
+                        }
+                      }}
+                      disabled={isDisabled}
+                      style={({ pressed }) => [
+                        styles.betOption,
+                        isSelected && styles.betOptionSelected,
+                        isDisabled && styles.betOptionDisabled,
+                        pressed && !isDisabled && styles.betOptionPressed,
+                      ]}
                     >
-                      ${amount}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </Box>
-          </Box>
+                      <Text
+                        style={[
+                          styles.betOptionValue,
+                          isSelected && styles.betOptionValueSelected,
+                          isDisabled && styles.betOptionValueDisabled,
+                        ]}
+                      >
+                        ${amount}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </View>
         )}
 
         {/* ===== MAIN CARD AREA ===== */}
@@ -506,6 +518,7 @@ const PredictSwipeGame: React.FC = () => {
                     preview={currentPreview}
                     betAmount={betAmount}
                     isActive
+                    onOutcomeChange={selectOutcome}
                     overlay={
                       <>
                         {/* YES Overlay (swiping right) */}
@@ -678,18 +691,149 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  betChip: {
+  // ===== HEADER =====
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  betPreset: {
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingTop: 6,
+  },
+  headerLeft: {
+    width: 80,
+    alignItems: 'flex-start',
+  },
+  headerRight: {
+    width: 80,
+    alignItems: 'flex-end',
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  backButtonPressed: {
+    transform: [{ scale: 0.95 }],
+    backgroundColor: 'rgba(255,255,255,1)',
+  },
+  // Center: Bet card (same height as balance pill)
+  betCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
     borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    gap: 6,
+    shadowColor: '#F6851B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(246, 133, 27, 0.12)',
+  },
+  betCardPressed: {
+    transform: [{ scale: 0.97 }],
+    shadowOpacity: 0.18,
+  },
+  betCardLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#F6851B',
+    letterSpacing: 0.3,
+  },
+  betCardValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  betCardArrow: {
+    marginLeft: 1,
+  },
+  // Right: Balance pill
+  balancePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  balanceText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#444',
+  },
+  // ===== BET SELECTOR =====
+  betSelectorContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  betSelectorInner: {
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 14,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  betSelectorContent: {
+    paddingHorizontal: 8,
+    gap: 6,
+  },
+  betOption: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  betOptionSelected: {
+    backgroundColor: '#F6851B',
+    borderColor: '#F6851B',
+    shadowColor: '#F6851B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  betOptionPressed: {
+    transform: [{ scale: 0.95 }],
+  },
+  betOptionDisabled: {
+    opacity: 0.3,
+  },
+  betOptionValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#333',
+  },
+  betOptionValueSelected: {
+    color: '#fff',
+  },
+  betOptionValueDisabled: {
+    color: '#aaa',
   },
   cardStack: {
     flex: 1,

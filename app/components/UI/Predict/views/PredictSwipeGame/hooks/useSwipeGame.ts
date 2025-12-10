@@ -428,7 +428,8 @@ export function useSwipeGame({
               ...card,
               primaryOutcome: {
                 outcomeId: selectedOutcome.outcomeId,
-                title: selectedOutcome.title,
+                // Use fullTitle when becoming primary for complete display
+                title: selectedOutcome.fullTitle || selectedOutcome.title,
                 yesToken: selectedOutcome.yesToken,
                 noToken: selectedOutcome.noToken,
                 negRisk: selectedOutcome.negRisk,
@@ -437,7 +438,8 @@ export function useSwipeGame({
               alternativeOutcomes: [
                 {
                   outcomeId: oldPrimary.outcomeId,
-                  title: oldPrimary.title,
+                  title: oldPrimary.title, // Will be shown in alternatives list
+                  fullTitle: oldPrimary.title, // Full title for if selected again
                   volume: 0, // We don't have volume for the old primary
                   yesToken: oldPrimary.yesToken,
                   noToken: oldPrimary.noToken,

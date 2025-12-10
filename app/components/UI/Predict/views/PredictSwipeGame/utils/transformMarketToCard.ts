@@ -102,6 +102,8 @@ function outcomeToAlternativeOutcome(
     outcomeId: outcome.id,
     // Prefer groupItemTitle (shorter) like in the feed, fallback to title
     title: outcome.groupItemTitle || outcome.title,
+    // Full title for when this outcome becomes primary
+    fullTitle: outcome.title || outcome.groupItemTitle,
     volume: outcome.volume,
     yesToken,
     noToken,

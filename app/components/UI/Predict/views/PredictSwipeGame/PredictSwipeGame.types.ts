@@ -30,7 +30,8 @@ export interface SwipePrimaryOutcome {
  */
 export interface SwipeAlternativeOutcome {
   outcomeId: string;
-  title: string;
+  title: string; // Short title for display in alternatives list
+  fullTitle: string; // Full title for when selected as primary
   volume: number;
   yesToken: SwipeOutcomeToken;
   noToken: SwipeOutcomeToken;
