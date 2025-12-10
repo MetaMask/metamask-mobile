@@ -97,7 +97,7 @@ describe('handleMetaMaskProtocol', () => {
     url = '';
   });
 
-  it('should call handled', () => {
+  it('calls handled', () => {
     handleMetaMaskDeeplink({
       handled,
       params,
@@ -114,7 +114,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`;
     });
 
-    it('should call bindAndroidSDK', () => {
+    it('calls bindAndroidSDK', () => {
       handleMetaMaskDeeplink({
         handled,
         params,
@@ -137,7 +137,7 @@ describe('handleMetaMaskProtocol', () => {
       params.request = 'test-request';
     });
 
-    it('should throw an error if params.scheme is not defined', () => {
+    it('throws an error if params.scheme is not defined', () => {
       params.scheme = undefined;
 
       expect(() => {
@@ -151,7 +151,7 @@ describe('handleMetaMaskProtocol', () => {
       }).toThrow('DeepLinkManager failed to connect - Invalid scheme');
     });
 
-    it('should call handleConnection if params.scheme is defined', () => {
+    it('calls handleConnection if params.scheme is defined', () => {
       const mockHandleConnection = jest.fn();
       mockSDKConnectGetInstance.mockImplementation(() => ({
         state: {
@@ -190,7 +190,7 @@ describe('handleMetaMaskProtocol', () => {
       params.account = 'test-account';
     });
 
-    it('should throw an error if params.message is not defined', () => {
+    it('throws an error if params.message is not defined', () => {
       params.message = undefined;
 
       expect(() => {
@@ -206,7 +206,7 @@ describe('handleMetaMaskProtocol', () => {
       );
     });
 
-    it('should throw an error if params.scheme is not defined', () => {
+    it('throws an error if params.scheme is not defined', () => {
       params.message = 'test-message';
       params.scheme = undefined;
 
@@ -223,7 +223,7 @@ describe('handleMetaMaskProtocol', () => {
       );
     });
 
-    it('should call handleMessage if params.message and params.scheme are defined', () => {
+    it('calls handleMessage if params.message and params.scheme are defined', () => {
       const mockHandleMessage = jest.fn();
       mockSDKConnectGetInstance.mockImplementation(() => ({
         state: {
@@ -260,7 +260,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
     });
 
-    it('should displays RETURN_TO_DAPP_NOTIFICATION', () => {
+    it('displays RETURN_TO_DAPP_NOTIFICATION', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -283,7 +283,7 @@ describe('handleMetaMaskProtocol', () => {
       });
     });
 
-    it('should displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to true', () => {
+    it('displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to true', () => {
       params.redirect = 'true';
       params.hr = true;
       // Mock Device.isIos() to return true
@@ -307,7 +307,7 @@ describe('handleMetaMaskProtocol', () => {
       });
     });
 
-    it('should displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to false', () => {
+    it('displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to false', () => {
       params.redirect = 'true';
       params.hr = false;
       // Mock Device.isIos() to return true
@@ -331,7 +331,7 @@ describe('handleMetaMaskProtocol', () => {
       });
     });
 
-    it('should call handleDeeplink when channel exists and params.redirect is falsy', () => {
+    it('calls handleDeeplink when channel exists and params.redirect is falsy', () => {
       origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       params.channelId = 'ABC';
       params.redirect = '';
@@ -371,7 +371,7 @@ describe('handleMetaMaskProtocol', () => {
       });
     });
 
-    it('should call handleDeeplink with hideReturnToApp set to true', () => {
+    it('calls handleDeeplink with hideReturnToApp set to true', () => {
       origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       params.channelId = 'ABC';
       params.redirect = '';
@@ -412,7 +412,7 @@ describe('handleMetaMaskProtocol', () => {
       });
     });
 
-    it('should call handleDeeplink with hideReturnToApp set to false', () => {
+    it('calls handleDeeplink with hideReturnToApp set to false', () => {
       origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       params.channelId = 'ABC';
       params.redirect = '';
@@ -466,7 +466,7 @@ describe('handleMetaMaskProtocol', () => {
       url = urls[randomIndex];
     });
 
-    it('should call WC2Manager.getInstance().connect', () => {
+    it('calls WC2Manager.getInstance().connect', () => {
       handleMetaMaskDeeplink({
         handled,
         params,

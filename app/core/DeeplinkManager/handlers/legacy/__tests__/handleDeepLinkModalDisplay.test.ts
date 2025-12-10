@@ -41,7 +41,7 @@ describe('handleDeepLinkModalDisplay', () => {
     ${'invalid'} | ${true}                 | ${true}
     ${'invalid'} | ${false}                | ${true}
   `(
-    'should redirect be $shouldRedirect when linkType is $linkType & isDeepLinkModalDisabled is $isDeepLinkModalDisabled',
+    'redirects to $shouldRedirect when linkType is $linkType & isDeepLinkModalDisabled is $isDeepLinkModalDisabled',
     async ({ linkType, isDeepLinkModalDisabled, shouldRedirect }) => {
       const mockedState = {
         settings: { deepLinkModalDisabled: isDeepLinkModalDisabled },

@@ -16,7 +16,7 @@ describe('handleDappProtocol', () => {
     jest.clearAllMocks();
   });
 
-  it('should enforce https protocol and call browser callback with the correct URL', () => {
+  it('enforces https protocol and calls browser callback with the correct URL', () => {
     // Arrange
     const handledMock = jest.fn();
     const browserCallBackMock = jest.fn();
@@ -42,7 +42,7 @@ describe('handleDappProtocol', () => {
     });
   });
 
-  it('should correctly process a URL from extractURLParams and enforce HTTPS', () => {
+  it('correctly processes a URL from extractURLParams and enforces HTTPS', () => {
     const handledMock = jest.fn();
     const browserCallBackMock = jest.fn();
     const testUrl = 'dapp/http://example.com';
@@ -72,7 +72,7 @@ describe('handleDappProtocol', () => {
     });
   });
 
-  it('should convert non-http protocols to https as well', () => {
+  it('converts non-http protocols to https as well', () => {
     const handledMock = jest.fn();
     const browserCallBackMock = jest.fn();
     const testUrl = 'dapp/ftp://example.com';

@@ -38,7 +38,7 @@ describe('handleDeeplink', () => {
     jest.clearAllMocks();
   });
 
-  it('should process valid URI and dispatch checkForDeeplink', () => {
+  it('processes valid URI and dispatch checkForDeeplink', () => {
     const testUri = 'metamask://test-deeplink';
 
     handleDeeplink({ uri: testUri });
@@ -49,7 +49,7 @@ describe('handleDeeplink', () => {
     expect(mockLoggerError).not.toHaveBeenCalled();
   });
 
-  it('should handle undefined URI without processing', () => {
+  it('handles undefined URI without processing', () => {
     handleDeeplink({ uri: undefined });
 
     expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();
@@ -57,7 +57,7 @@ describe('handleDeeplink', () => {
     expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
-  it('should handle empty string URI without processing', () => {
+  it('handles empty string URI without processing', () => {
     handleDeeplink({ uri: '' });
 
     expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();
@@ -65,7 +65,7 @@ describe('handleDeeplink', () => {
     expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
-  it('should handle non-string URI without processing', () => {
+  it('handles non-string URI without processing', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Testing runtime behavior with invalid type
     handleDeeplink({ uri: 123 });
@@ -75,7 +75,7 @@ describe('handleDeeplink', () => {
     expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
 
-  it('should handle complex URI schemes', () => {
+  it('handles complex URI schemes', () => {
     const complexUri =
       'metamask://dapp/connect?url=https://example.com&chainId=1';
 
@@ -85,7 +85,7 @@ describe('handleDeeplink', () => {
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
   });
 
-  it('should handle errors gracefully and log them', () => {
+  it('handles errors gracefully and log them', () => {
     const testUri = 'metamask://test';
     const mockError = new Error('Test error');
 
@@ -101,7 +101,7 @@ describe('handleDeeplink', () => {
     );
   });
 
-  it('should handle dispatch errors gracefully', () => {
+  it('handles dispatch errors gracefully', () => {
     const testUri = 'metamask://test';
     const mockError = new Error('Dispatch error');
 
@@ -118,7 +118,7 @@ describe('handleDeeplink', () => {
     );
   });
 
-  it('should handle options object without uri parameter', () => {
+  it('handles options object without uri parameter', () => {
     handleDeeplink({});
 
     expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();

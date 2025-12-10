@@ -43,7 +43,7 @@ describe('handlePerpsUrl', () => {
   });
 
   describe('handlePerpsUrl', () => {
-    it('should navigate to tutorial for first-time users', async () => {
+    it('navigates to tutorial for first-time users', async () => {
       // Mock first-time user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -55,7 +55,7 @@ describe('handlePerpsUrl', () => {
       expect(mockSetParams).not.toHaveBeenCalled();
     });
 
-    it('should navigate to wallet home with Perps tab for returning users', async () => {
+    it('navigates to wallet home with Perps tab for returning users', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -72,7 +72,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle first-time user on testnet', async () => {
+    it('navigates to tutorial for first-time user on testnet', async () => {
       // Mock first-time user on testnet
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -83,7 +83,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should default to tutorial when state is undefined', async () => {
+    it('defaults to tutorial when state is undefined', async () => {
       // Mock undefined state returning true (default)
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -94,7 +94,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should fallback to markets list on error', async () => {
+    it('falls back to markets list on error', async () => {
       // Mock selector to return false (returning user)
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -113,7 +113,7 @@ describe('handlePerpsUrl', () => {
   });
 
   describe('handlePerpsUrl - asset deeplinks', () => {
-    it('should navigate to market details with valid symbol', async () => {
+    it('navigates to market details with valid symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -138,7 +138,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle asset screen with ETH symbol', async () => {
+    it('navigates to market details for ETH symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=ETH' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -152,7 +152,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should convert symbol to uppercase', async () => {
+    it('converts symbol to uppercase', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=btc' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -166,7 +166,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should navigate to markets list when no symbol provided', async () => {
+    it('navigates to markets list when no symbol provided', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -174,7 +174,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should navigate to markets list with empty symbol', async () => {
+    it('navigates to markets list with empty symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -182,7 +182,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should fallback to markets list on error', async () => {
+    it('falls back to markets list on error', async () => {
       // Mock error in navigation
       mockNavigate.mockImplementationOnce(() => {
         throw new Error('Navigation error');
@@ -196,7 +196,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle malformed URL parameters gracefully', async () => {
+    it('navigates to markets list for malformed URL parameters', async () => {
       await handlePerpsUrl({
         perpsPath: 'perps?screen=asset&invalid&params&here',
       });
@@ -206,7 +206,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should log debug messages during processing', async () => {
+    it('logs debug messages during processing', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=SOL' });
 
       expect(DevLogger.log).toHaveBeenCalledWith(
@@ -223,7 +223,7 @@ describe('handlePerpsUrl', () => {
       );
     });
 
-    it('should navigate to tutorial for first-time users regardless of parameters', async () => {
+    it('navigates to tutorial for first-time users regardless of parameters', async () => {
       // Mock first-time user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -238,7 +238,7 @@ describe('handlePerpsUrl', () => {
       expect(mockSetParams).not.toHaveBeenCalled();
     });
 
-    it('should navigate directly to markets for returning users with screen=markets parameter', async () => {
+    it('navigates directly to markets for returning users with screen=markets parameter', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -253,7 +253,7 @@ describe('handlePerpsUrl', () => {
       expect(mockSetParams).not.toHaveBeenCalled();
     });
 
-    it('should navigate to wallet tab for returning users with regular perps URL', async () => {
+    it('navigates to wallet tab for returning users with regular perps URL', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -272,7 +272,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle screen=markets parameter with additional query params', async () => {
+    it('navigates to markets for screen=markets parameter with additional query params', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -287,7 +287,7 @@ describe('handlePerpsUrl', () => {
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
     });
 
-    it('should navigate to wallet tab when screen=tabs specified', async () => {
+    it('navigates to wallet tab when screen=tabs specified', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -304,7 +304,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle tab parameter for future extensibility', async () => {
+    it('passes tab parameter for future extensibility', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -322,7 +322,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should log correct debug messages for parameter-based routing', async () => {
+    it('logs correct debug messages for parameter-based routing', async () => {
       // Test first-time user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -337,7 +337,7 @@ describe('handlePerpsUrl', () => {
       );
     });
 
-    it('should log correct debug messages for returning user markets navigation', async () => {
+    it('logs correct debug messages for returning user markets navigation', async () => {
       // Test returning user with screen=markets parameter
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 

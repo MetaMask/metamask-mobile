@@ -57,7 +57,7 @@ describe('DeeplinkManager', () => {
     deeplinkManager = new DeeplinkManager();
   });
 
-  it('should set, get, and expire a deeplink correctly', () => {
+  it('sets, gets, and expires a deeplink correctly', () => {
     const testUrl = 'https://example.com';
     deeplinkManager.setDeeplink(testUrl);
     expect(deeplinkManager.getPendingDeeplink()).toBe(testUrl);
@@ -66,7 +66,7 @@ describe('DeeplinkManager', () => {
     expect(deeplinkManager.getPendingDeeplink()).toBeNull();
   });
 
-  it('should handle network switch correctly', () => {
+  it('handles network switch correctly', () => {
     const chainId = '1';
     switchNetwork({ switchToChainId: chainId });
     expect(switchNetwork).toHaveBeenCalledWith({
@@ -74,7 +74,7 @@ describe('DeeplinkManager', () => {
     });
   });
 
-  it('should handle transaction approval correctly', async () => {
+  it('handles transaction approval correctly', async () => {
     const ethUrl = {
       parameters: {},
       target_address: '0x...',
@@ -93,7 +93,7 @@ describe('DeeplinkManager', () => {
     });
   });
 
-  it('should parse deeplinks correctly', () => {
+  it('parses deeplinks correctly', () => {
     const url = 'http://example.com';
     const browserCallBack = jest.fn();
     const origin = 'testOrigin';

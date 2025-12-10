@@ -1490,7 +1490,7 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('should skip handling deeplinks without pathname and query params', () => {
+  describe('skips handling deeplinks without pathname and query params', () => {
     // Link cases to test for skipping handling
     const testLinkCases = [
       {
@@ -1524,7 +1524,7 @@ describe('handleUniversalLink', () => {
     ];
 
     testLinkCases.forEach((testCase) => {
-      it(`should ${testCase.shouldSkip ? 'skip' : 'NOT skip'} handling ${testCase.link}`, async () => {
+      it(`${testCase.shouldSkip ? 'skips' : 'does NOT skip'} handling ${testCase.link}`, async () => {
         const hasSignatureSpy = jest.spyOn(signatureUtils, 'hasSignature');
 
         const mappedUrl = testCase.link.replace(

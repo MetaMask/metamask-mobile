@@ -17,7 +17,7 @@ describe('handleBrowserUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('should call runAfterInteractions', () => {
+  it('calls runAfterInteractions', () => {
     const callback = jest.fn();
     const testUrl = 'https://test.com';
 

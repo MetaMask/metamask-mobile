@@ -104,7 +104,7 @@ describe('handleApproveUrl', () => {
     spyFindNetworkClientIdByChainId.mockReturnValue('mockNetworkClientId');
   });
 
-  it('should call setProviderType with the correct network type', async () => {
+  it('calls setProviderType with the correct network type', async () => {
     const fakeNetworkType = 'fakeNetworkType';
 
     spyGetNetworkTypeById.mockReturnValue(fakeNetworkType);
@@ -137,7 +137,7 @@ describe('handleApproveUrl', () => {
     });
   });
 
-  it('should call addTransaction with the correct parameters', async () => {
+  it('calls addTransaction with the correct parameters', async () => {
     await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -161,7 +161,7 @@ describe('handleApproveUrl', () => {
     );
   });
 
-  it('should call getAddress with the correct parameters', async () => {
+  it('calls getAddress with the correct parameters', async () => {
     await handleApproveUrl({
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -175,7 +175,7 @@ describe('handleApproveUrl', () => {
     );
   });
 
-  it('should call showSimpleNotification with the correct parameters if the spender address is invalid', async () => {
+  it('calls showSimpleNotification with the correct parameters if the spender address is invalid', async () => {
     spyGetAddress.mockResolvedValue('');
 
     await handleApproveUrl({
@@ -193,7 +193,7 @@ describe('handleApproveUrl', () => {
     });
   });
 
-  it('should call navigate with the correct parameters if the spender address is invalid', async () => {
+  it('calls navigate with the correct parameters if the spender address is invalid', async () => {
     spyGetAddress.mockResolvedValue('');
 
     await handleApproveUrl({
@@ -208,7 +208,7 @@ describe('handleApproveUrl', () => {
     );
   });
 
-  it('should not call showSimpleNotification if the spender address is valid', async () => {
+  it('does not call showSimpleNotification if the spender address is valid', async () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
     await handleApproveUrl({
@@ -221,7 +221,7 @@ describe('handleApproveUrl', () => {
     expect(spyShowSimpleNotification).not.toHaveBeenCalled();
   });
 
-  it('should not call navigate if the spender address is valid', async () => {
+  it('does not call navigate if the spender address is valid', async () => {
     spyGetAddress.mockResolvedValue('0xMockAddress');
 
     await handleApproveUrl({
@@ -234,7 +234,7 @@ describe('handleApproveUrl', () => {
     expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('should throw an error if the uint256 parameter is not a number', async () => {
+  it('throws an error if the uint256 parameter is not a number', async () => {
     const mockEthUrlWithInvalidUint256 = {
       ...mockEthUrl,
       parameters: { uint256: 'invalidUint256', address: '0xMockAddress' },
@@ -250,7 +250,7 @@ describe('handleApproveUrl', () => {
     ).rejects.toThrow('The parameter uint256 should be a number');
   });
 
-  it('should throw an error if the uint256 parameter is not an integer', async () => {
+  it('throws an error if the uint256 parameter is not an integer', async () => {
     const mockEthUrlWithInvalidUint256 = {
       ...mockEthUrl,
       parameters: { uint256: '1.23', address: '0xMockAddress' },
@@ -266,7 +266,7 @@ describe('handleApproveUrl', () => {
     ).rejects.toThrow('The parameter uint256 should be an integer');
   });
 
-  it('should spySetProviderType with the correct network type', async () => {
+  it('calls spySetProviderType with the correct network type', async () => {
     const mockEthUrlWithInvalidChainId = {
       ...mockEthUrl,
       chain_id: 'invalidChainId',

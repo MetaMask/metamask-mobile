@@ -53,7 +53,7 @@ describe('parseDeeplink', () => {
     mockHandleEthereumUrl.mockResolvedValue(undefined);
   });
 
-  it('should call handleUniversalLinks for HTTP protocol', async () => {
+  it('calls handleUniversalLinks for HTTP protocol', async () => {
     const url = 'http://example.com/';
     const browserCallBackMock = jest.fn();
     const onHandledMock = jest.fn();
@@ -78,7 +78,7 @@ describe('parseDeeplink', () => {
     });
   });
 
-  it('should call handleUniversalLinks for HTTP and HTTPS protocols', async () => {
+  it('calls handleUniversalLinks for HTTP and HTTPS protocols', async () => {
     const url = 'https://example.com/';
     const browserCallBackMock = jest.fn();
     const onHandledMock = jest.fn();
@@ -103,7 +103,7 @@ describe('parseDeeplink', () => {
     });
   });
 
-  it('should call handleWCProtocol for WC protocol', async () => {
+  it('calls handleWCProtocol for WC protocol', async () => {
     const url = 'wc://example.com';
     const { params } = extractURLParams(url);
 
@@ -123,7 +123,7 @@ describe('parseDeeplink', () => {
     });
   });
 
-  it('should handle Ethereum URL', async () => {
+  it('handles Ethereum URL', async () => {
     const url = 'ethereum://example.com';
 
     await parseDeeplink({
@@ -140,7 +140,7 @@ describe('parseDeeplink', () => {
     });
   });
 
-  it('should call handleDappProtocol for DAPP protocol', async () => {
+  it('calls handleDappProtocol for DAPP protocol', async () => {
     const url = 'dapp://example.com';
     const { urlObj } = extractURLParams(url);
 
@@ -159,7 +159,7 @@ describe('parseDeeplink', () => {
     });
   });
 
-  it('should call handleUniversalLinks for METAMASK protocol', async () => {
+  it('calls handleUniversalLinks for METAMASK protocol', async () => {
     const url = 'metamask://example.com';
     const expectedMappedUrl = 'https://link.metamask.io/example.com';
     const { urlObj } = extractURLParams(expectedMappedUrl);
@@ -182,7 +182,7 @@ describe('parseDeeplink', () => {
     });
   });
 
-  it('should return false if the protocol is not supported', async () => {
+  it('returns false when protocol is not supported', async () => {
     const url = 'unsupported://example.com';
 
     const result = await parseDeeplink({
@@ -196,7 +196,7 @@ describe('parseDeeplink', () => {
     expect(result).toBe(false);
   });
 
-  it('should return true if the protocol is supported', async () => {
+  it('returns true when protocol is supported', async () => {
     const url = 'http://example.com';
 
     const result = await parseDeeplink({
@@ -211,7 +211,7 @@ describe('parseDeeplink', () => {
   });
 
   invalidUrls.forEach((url) => {
-    it(`should log an error and alert the user when an invalid URL is passed => url=${url}`, async () => {
+    it(`logs an error and alerts the user when an invalid URL is passed => url=${url}`, async () => {
       const result = await parseDeeplink({
         deeplinkManager: instance,
         url,
