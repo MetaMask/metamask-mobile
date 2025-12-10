@@ -100,7 +100,8 @@ function outcomeToAlternativeOutcome(
 
   return {
     outcomeId: outcome.id,
-    title: outcome.title || outcome.groupItemTitle,
+    // Prefer groupItemTitle (shorter) like in the feed, fallback to title
+    title: outcome.groupItemTitle || outcome.title,
     volume: outcome.volume,
     yesToken,
     noToken,
@@ -113,7 +114,7 @@ function outcomeToAlternativeOutcome(
  * Transform a PredictMarket to a SwipeGameCard
  *
  * For markets with multiple outcomes:
- * - Sort by volume (highest first)
+ * - Keep the default order from the API (same as feed/market detail)
  * - First outcome becomes the primary bet
  * - Rest become alternative outcomes
  */
@@ -134,21 +135,16 @@ export function transformMarketToCard(
     return null;
   }
 
-  // Sort outcomes by volume (highest first)
-  const sortedOutcomes = [...validOutcomes].sort(
-    (a, b) => (b.volume || 0) - (a.volume || 0),
-  );
-
-  // First outcome is primary
-  const primaryOutcomeRaw = sortedOutcomes[0];
+  // First outcome is primary (keep original API order)
+  const primaryOutcomeRaw = validOutcomes[0];
   const primaryOutcome = outcomeToPrimaryOutcome(primaryOutcomeRaw);
 
   if (!primaryOutcome) {
     return null;
   }
 
-  // Rest are alternatives
-  const alternativeOutcomes = sortedOutcomes
+  // Rest are alternatives (keep original API order)
+  const alternativeOutcomes = validOutcomes
     .slice(1)
     .map(outcomeToAlternativeOutcome)
     .filter((o): o is SwipeAlternativeOutcome => o !== null);

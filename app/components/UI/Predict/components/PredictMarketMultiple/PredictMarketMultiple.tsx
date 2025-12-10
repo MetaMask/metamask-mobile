@@ -195,7 +195,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 )}
                 numberOfLines={isCarousel ? 2 : undefined}
               >
-                {market.title}
+                {market.title}sadad
               </Text>
             </Box>
           </Box>
@@ -217,7 +217,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                       isCarousel ? 'leading-[16px]' : 'leading-[18px]',
                     )}
                   >
-                    {outcome.groupItemTitle}
+                    {outcome.groupItemTitle}asda
                   </Text>
                 </Box>
 
@@ -247,7 +247,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         numberOfLines={1}
                         ellipsizeMode="clip"
                       >
-                        {truncateLabel(outcomeLabels[0])}
+                        {truncateLabel(outcomeLabels[0])}asda
                       </Text>
                     }
                     onPress={() => handleBuy(outcome, outcome.tokens[0])}
@@ -267,7 +267,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         numberOfLines={1}
                         ellipsizeMode="clip"
                       >
-                        {truncateLabel(outcomeLabels[1])}
+                        {truncateLabel(outcomeLabels[1])}asdasd
                       </Text>
                     }
                     onPress={() => handleBuy(outcome, outcome.tokens[1])}

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Image, StyleSheet, View, Dimensions } from 'react-native';
+import { Image, StyleSheet, View, Dimensions, Pressable, ScrollView } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -175,7 +175,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         <Box twClassName="p-5">
           {/* Primary Outcome Label */}
           {card.isMultiOutcome && (
-            <Text variant={TextVariant.BodyMd} twClassName="text-muted mb-4">
+            <Text variant={TextVariant.BodyMd} twClassName="text-alternative mb-4">
               Betting on: {card.primaryOutcome.title}
             </Text>
           )}
@@ -232,7 +232,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           </Box>
 
           {/* ===== METADATA ===== */}
-          <Box twClassName="flex-row items-center justify-center gap-2 mt-4 pt-3" style={styles.metadataSection}>
+          <Box twClassName="flex-row items-center justify-center gap-2 mt-4">
             <Text variant={TextVariant.BodySm} twClassName="text-muted">
               Vol: $
               {card.totalVolume >= 1000000
@@ -253,13 +253,53 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
             )}
           </Box>
 
-          {/* Multi-outcome indicator */}
+          {/* Alternative outcomes - selectable squares */}
           {card.isMultiOutcome && card.alternativeOutcomes.length > 0 && (
-            <Box twClassName="mt-3 items-center">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium} twClassName="text-primary">
-                {card.alternativeOutcomes.length} more options available →
-              </Text>
-            </Box>
+            <>
+              <Box twClassName="mt-3 mb-1" style={styles.metadataSection} />
+              <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.alternativesScroll}
+              contentContainerStyle={styles.alternativesContainer}
+            >
+              {card.alternativeOutcomes.slice(0, 4).map((outcome) => (
+                <Pressable
+                  key={outcome.outcomeId}
+                  onPress={() => onOutcomeChange?.(outcome.outcomeId)}
+                  style={({ pressed }) => [
+                    styles.alternativeCard,
+                    pressed && styles.alternativeCardPressed,
+                  ]}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    numberOfLines={2}
+                    style={styles.alternativeTitle}
+                  >
+                    {outcome.title}
+                  </Text>
+                  <Box twClassName="flex-row items-center mt-2">
+                    <Text style={styles.yesTextSmall}>
+                      {formatPercentage(outcome.yesToken.price)}
+                    </Text>
+                    <Text style={styles.slashText}>/</Text>
+                    <Text style={styles.noTextSmall}>
+                      {formatPercentage(outcome.noToken.price)}
+                    </Text>
+                  </Box>
+                </Pressable>
+              ))}
+              {card.alternativeOutcomes.length > 4 && (
+                <Box style={styles.moreCard}>
+                  <Text variant={TextVariant.BodyMd} twClassName="text-muted">
+                    +{card.alternativeOutcomes.length - 4}
+                  </Text>
+                </Box>
+              )}
+            </ScrollView>
+            </>
           )}
         </Box>
 
@@ -326,6 +366,51 @@ const styles = StyleSheet.create({
   metadataSection: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.06)',
+  },
+  alternativesScroll: {
+    marginTop: 12,
+  },
+  alternativesContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  alternativeCard: {
+    width: 100,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+  },
+  alternativeCardPressed: {
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  alternativeTitle: {
+    minHeight: 32,
+  },
+  yesText: {
+    color: '#16A34A',
+  },
+  noText: {
+    color: '#DC2626',
+  },
+  yesTextSmall: {
+    fontSize: 12,
+    color: '#16A34A',
+  },
+  noTextSmall: {
+    fontSize: 12,
+    color: '#DC2626',
+  },
+  slashText: {
+    fontSize: 12,
+    color: '#999',
+    marginHorizontal: 2,
+  },
+  moreCard: {
+    width: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
