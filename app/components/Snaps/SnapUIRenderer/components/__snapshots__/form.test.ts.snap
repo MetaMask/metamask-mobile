@@ -29,6 +29,7 @@ exports[`SnapUIForm will render 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -229,6 +230,7 @@ exports[`SnapUIForm will render with fields 1`] = `
           "marginBottom": 0,
         }
       }
+      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
