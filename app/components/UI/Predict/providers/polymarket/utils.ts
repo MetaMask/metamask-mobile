@@ -953,12 +953,15 @@ export async function calculateFees({
   const totalFeePercentage =
     (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
 
-  const metamaskFee = userBetAmount * feeCollection.metamaskFee;
-  const providerFee = userBetAmount * feeCollection.providerFee;
-  let totalFee = metamaskFee + providerFee;
+  let metamaskFee = userBetAmount * feeCollection.metamaskFee;
+  let providerFee = userBetAmount * feeCollection.providerFee;
 
-  // Round to 4 decimals
-  totalFee = Math.round(totalFee * 10000) / 10000;
+  // Round to 3 decimals
+  metamaskFee = Math.round(metamaskFee * 1000) / 1000;
+  providerFee = Math.round(providerFee * 1000) / 1000;
+
+  // Rounded to 4 decimals
+  const totalFee = metamaskFee + providerFee;
 
   return {
     metamaskFee,
