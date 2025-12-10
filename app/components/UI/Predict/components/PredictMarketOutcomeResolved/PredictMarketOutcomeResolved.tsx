@@ -10,6 +10,7 @@ import {
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -51,6 +52,7 @@ const PredictMarketOutcomeResolved: React.FC<
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
+            twClassName="font-medium"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -81,7 +83,7 @@ const PredictMarketOutcomeResolved: React.FC<
             <Icon
               name={IconName.Confirmation}
               size={IconSize.Md}
-              color={TextColor.SuccessDefault}
+              color={IconColor.Success}
             />
           )}
         </Box>

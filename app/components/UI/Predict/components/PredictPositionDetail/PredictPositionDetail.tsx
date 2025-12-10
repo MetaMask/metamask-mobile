@@ -145,11 +145,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
     if (percentPnl > 0) {
       return (
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.SuccessDefault}
-          style={tw.style('font-medium')}
-        >
+        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
           {strings('predict.market_details.won')}{' '}
           {formatPrice(currentValue, { maximumDecimals: 2 })}
         </Text>
@@ -157,11 +153,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     }
 
     return (
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.ErrorDefault}
-        style={tw.style('font-medium')}
-      >
+      <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
         {strings('predict.market_details.lost')}{' '}
         {formatPrice(initialValue, { maximumDecimals: 2 })}
       </Text>

@@ -20,6 +20,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -314,13 +315,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 <Icon
                   name={IconName.Refresh}
                   size={IconSize.Md}
-                  color={TextColor.TextAlternative}
+                  color={IconColor.Alternative}
                   style={tw.style('mr-1')}
                 />
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="font-medium"
                 >
                   {strings(
                     `predict.recurrence.${market.recurrence.toLowerCase()}`,
