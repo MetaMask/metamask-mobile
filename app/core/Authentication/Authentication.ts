@@ -6,6 +6,7 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -16,6 +17,7 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
+import { setCompletedOnboarding } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
@@ -1300,13 +1302,17 @@ class AuthenticationService {
   /**
    * Deletes the wallet by resetting wallet state and deleting user data.
    * This is the main public method for wallet deletion/reset flows.
-   * It calls resetWalletState() followed by deleteUser().
+   * It calls resetWalletState() followed by deleteUser(), and also clears
+   * metrics opt-in UI state and resets onboarding completion status.
    *
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
     await this.resetWalletState();
     await this.deleteUser();
+    // Clear metrics opt-in UI state and reset onboarding completion
+    await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
+    ReduxService.store.dispatch(setCompletedOnboarding(false));
   };
 
   /**

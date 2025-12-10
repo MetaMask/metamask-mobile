@@ -4,6 +4,7 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SOLANA_DISCOVERY_PENDING,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -36,6 +37,7 @@ import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import { SolScope } from '@metamask/keyring-api';
 import { logOut, setExistingUser, logIn } from '../../actions/user';
+import { setCompletedOnboarding } from '../../actions/onboarding';
 import { RootState } from '../../reducers';
 import {
   SeedlessOnboardingControllerError,
@@ -1373,12 +1375,10 @@ describe('Authentication', () => {
 
     let Engine: typeof import('../Engine').default;
     let OAuthService: typeof import('../OAuthService/OAuthService').default;
-    let Logger: jest.Mocked<typeof import('../../util/Logger').default>;
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
       OAuthService = jest.requireMock('../OAuthService/OAuthService');
-      Logger = jest.requireMock('../../util/Logger');
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
@@ -3265,6 +3265,7 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController,
         'clearState',
       );
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
 
       // Act
       await Authentication.deleteWallet();
@@ -3276,6 +3277,8 @@ describe('Authentication', () => {
       expect(
         mockMetaMetricsInstance.createDataDeletionTask,
       ).toHaveBeenCalledTimes(1);
+      expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
+      expect(mockDispatch).toHaveBeenCalledWith(setCompletedOnboarding(false));
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });

@@ -6,11 +6,8 @@ import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { SuccessErrorSheetParams } from '../../Views/SuccessErrorSheet/interface';
-import storageWrapper from '../../../store/storage-wrapper';
-import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import { clearHistory } from '../../../actions/browser';
 import { strings } from '../../../../locales/i18n';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { Authentication } from '../../../core';
 import Logger from '../../../util/Logger';
 
@@ -58,8 +55,6 @@ const usePromptSeedlessRelogin = () => {
     );
     signOut();
     await Authentication.deleteWallet();
-    await storageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-    dispatch(setCompletedOnboarding(false));
     navigateOnboardingRoot();
     setIsDeletingInProgress(false);
   }, [
