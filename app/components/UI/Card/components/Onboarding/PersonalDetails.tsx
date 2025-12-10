@@ -206,7 +206,10 @@ const PersonalDetails = () => {
 
       if (user) {
         setUser(user);
-        navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS }],
+        });
       }
     } catch (error) {
       if (
@@ -272,9 +275,6 @@ const PersonalDetails = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={setFirstName}
-          placeholder={strings(
-            'card.card_onboarding.personal_details.first_name_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={firstName}
@@ -295,9 +295,6 @@ const PersonalDetails = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={setLastName}
-          placeholder={strings(
-            'card.card_onboarding.personal_details.last_name_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={lastName}
@@ -331,9 +328,6 @@ const PersonalDetails = () => {
             selectedValue={nationality}
             options={selectOptions}
             onValueChange={handleNationalitySelect}
-            defaultValue={strings(
-              'card.card_onboarding.personal_details.nationality_placeholder',
-            )}
             testID="personal-details-nationality-select"
           />
         </Box>
@@ -348,9 +342,6 @@ const PersonalDetails = () => {
           <TextField
             autoCapitalize={'none'}
             onChangeText={handleSSNChange}
-            placeholder={strings(
-              'card.card_onboarding.personal_details.ssn_placeholder',
-            )}
             numberOfLines={1}
             size={TextFieldSize.Lg}
             value={SSN}
@@ -377,16 +368,7 @@ const PersonalDetails = () => {
   );
 
   const renderActions = () => (
-    <Box>
-      <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
-        isDisabled={isDisabled}
-        testID="personal-details-continue-button"
-      />
+    <Box twClassName="flex flex-col justify-center gap-2">
       {!!registerError && (
         <Text
           variant={TextVariant.BodySm}
@@ -396,6 +378,15 @@ const PersonalDetails = () => {
           {registerError}
         </Text>
       )}
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        testID="personal-details-continue-button"
+      />
     </Box>
   );
 
