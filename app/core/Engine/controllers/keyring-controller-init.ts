@@ -2,6 +2,7 @@ import { ControllerInitFunction } from '../types';
 import {
   KeyringController,
   KeyringControllerMessenger,
+  KeyringControllerOptions,
 } from '@metamask/keyring-controller';
 import { QrKeyring } from '@metamask/eth-qr-keyring';
 import {
@@ -11,6 +12,11 @@ import {
 } from '@metamask/eth-ledger-bridge-keyring';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../../Encryptor';
+import {
+  EncryptionKey,
+  EncryptionResult,
+  KeyDerivationOptions,
+} from 'app/core/Encryptor/types';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -34,7 +40,7 @@ export const keyringControllerInit: ControllerInitFunction<
   qrKeyringScanner,
   getController,
 }) => {
-  const additionalKeyrings = [];
+  const additionalKeyrings: KeyringControllerOptions['keyringBuilders'] = [];
 
   const qrKeyringBuilder = () => {
     const keyring = new QrKeyring({ bridge: qrKeyringScanner });
@@ -64,21 +70,19 @@ export const keyringControllerInit: ControllerInitFunction<
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringBuilder = getController('SnapKeyringBuilder');
+  // @ts-expect-error SnapKeyring is missing the `addAccounts` method
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
 
-  const preferencesController = getController('PreferencesController');
-
-  const controller = new KeyringController({
-    removeIdentity: (address: string) =>
-      preferencesController.removeIdentity(address),
+  const controller = new KeyringController<
+    EncryptionKey,
+    KeyDerivationOptions,
+    EncryptionResult
+  >({
     encryptor,
     messenger: controllerMessenger,
     state: initialKeyringState || persistedState.KeyringController,
-    // @ts-expect-error: TODO: Update the type of QRHardwareKeyring to
-    // `Keyring<Json>`.
     keyringBuilders: additionalKeyrings,
-    cacheEncryptionKey: true,
   });
 
   return {
