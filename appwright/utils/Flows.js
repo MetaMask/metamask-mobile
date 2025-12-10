@@ -82,7 +82,7 @@ export async function isPredictionsModalVisible(device) {
     device,
     'predict-gtm-not-now-button',
   );
-  return await notNowPredictionsModalButton.isVisible();
+  await notNowPredictionsModalButton.isVisible();
 }
 
 export async function importSRPFlow(device, srp, dismissModals = true) {
@@ -144,6 +144,7 @@ export async function login(device, options = {}) {
     await dismissMultichainAccountsIntroModal(device);
     await dissmissPredictionsModal(device);
   }
+  await device.pause();
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;

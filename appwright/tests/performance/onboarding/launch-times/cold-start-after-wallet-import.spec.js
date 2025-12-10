@@ -59,7 +59,6 @@ test('Cold Start after importing a wallet', async ({
     dismissModals: false,
   }); // Skip intro screens on second login
 
-  1;
   const timer1 = await WalletMainScreen.isMenuButtonVisible();
   timer1.changeName(
     'Time since the user clicks on unlock button, until the app unlocks',
