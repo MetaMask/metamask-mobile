@@ -22,16 +22,13 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import { getAnalyticsId } from '../../util/analytics/analyticsId';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
-import storageWrapper from '../../store/storage-wrapper';
-import { ANALYTICS_ID } from '../../constants/storage';
-import { v4 } from 'uuid';
 
 export class EngineService {
   private engineInitialized = false;
@@ -158,17 +155,12 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      // get analytics id from storage
-      // if none, it means that we are on a new install, so we generate a new UUIDv4
-      // otherwise we have it migrated from the old METAMETRICS_ID key
-      // see app/store/migrations/109.ts
-      let analyticsId = await storageWrapper.getItem(ANALYTICS_ID);
-      if (!analyticsId) {
-        analyticsId = v4();
-        await storageWrapper.setItem(ANALYTICS_ID, analyticsId);
-      }
-
-      Engine.init(state, null, analyticsId);
+      // Note on why Engine.init() requires analyticsId:
+      // `analyticsId` is not persisted in state to prevent losing it in case of corruption.
+      // It is also used as a random source for other controllers like RemoteFeatureFlagController.
+      // Passing it to engine ensures all controllers are initialized with the same analyticsId.
+      const analyticsId = await getAnalyticsId();
+      Engine.init(analyticsId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.initializeControllers(Engine as unknown as TypedEngine);
     } catch (error) {
@@ -300,8 +292,8 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      const instance = Engine.init(state, newKeyringState, metaMetricsId);
+      const analyticsId = await getAnalyticsId();
+      const instance = Engine.init(analyticsId, state, newKeyringState);
       if (instance) {
         this.initializeControllers(instance);
         // this is a hack to give the engine time to reinitialize

@@ -9,7 +9,6 @@ import {
   METRICS_OPT_IN,
   MIXPANEL_METAMETRICS_ID,
   ANALYTICS_ID,
-  ANALYTICS_OPTED_IN,
 } from '../../constants/storage';
 
 jest.mock('@sentry/react-native', () => ({
@@ -115,7 +114,7 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('migrates opt-in from METRICS_OPT_IN AGREED to new MMKV key as true', async () => {
+  it('migrates opt-in from METRICS_OPT_IN AGREED to AnalyticsController state', async () => {
     const state = createValidState();
     const analyticsId = createValidUUIDv4();
     mockedEnsureValidState.mockReturnValue(true);
@@ -126,22 +125,31 @@ describe(`migration #${migrationVersion}`, () => {
       if (key === METRICS_OPT_IN) {
         return Promise.resolve(AGREED);
       }
-      if (key === ANALYTICS_ID || key === ANALYTICS_OPTED_IN) {
+      if (key === ANALYTICS_ID) {
         return Promise.resolve(null);
       }
       return Promise.resolve(null);
     });
 
-    await migrate(state);
+    const migratedState = (await migrate(state)) as {
+      engine: {
+        backgroundState: {
+          AnalyticsController?: { optedIn: boolean };
+        };
+      };
+    };
 
-    expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
-      ANALYTICS_OPTED_IN,
-      'true',
-      { emitEvent: false },
+    expect(migratedState.engine.backgroundState.AnalyticsController).toEqual({
+      optedIn: true,
+    });
+    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
+      expect.stringContaining('OptedIn'),
+      expect.any(String),
+      expect.any(Object),
     );
   });
 
-  it('migrates opt-in from METRICS_OPT_IN DENIED to new MMKV key as false', async () => {
+  it('migrates opt-in from METRICS_OPT_IN DENIED to AnalyticsController state', async () => {
     const state = createValidState();
     const analyticsId = createValidUUIDv4();
     mockedEnsureValidState.mockReturnValue(true);
@@ -152,18 +160,27 @@ describe(`migration #${migrationVersion}`, () => {
       if (key === METRICS_OPT_IN) {
         return Promise.resolve(DENIED);
       }
-      if (key === ANALYTICS_ID || key === ANALYTICS_OPTED_IN) {
+      if (key === ANALYTICS_ID) {
         return Promise.resolve(null);
       }
       return Promise.resolve(null);
     });
 
-    await migrate(state);
+    const migratedState = (await migrate(state)) as {
+      engine: {
+        backgroundState: {
+          AnalyticsController?: { optedIn: boolean };
+        };
+      };
+    };
 
-    expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
-      ANALYTICS_OPTED_IN,
-      'false',
-      { emitEvent: false },
+    expect(migratedState.engine.backgroundState.AnalyticsController).toEqual({
+      optedIn: false,
+    });
+    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
+      expect.stringContaining('OptedIn'),
+      expect.any(String),
+      expect.any(Object),
     );
   });
 
@@ -193,8 +210,16 @@ describe(`migration #${migrationVersion}`, () => {
     );
   });
 
-  it('does not overwrite existing new MMKV keys', async () => {
-    const state = createValidState();
+  it('does not overwrite existing AnalyticsController state', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AnalyticsController: {
+            optedIn: true,
+          },
+        },
+      },
+    };
     const legacyId = createValidUUIDv4();
     const existingId = 'a1b2c3d4-e5f6-4789-a012-3456789abcde';
     mockedEnsureValidState.mockReturnValue(true);
@@ -205,22 +230,21 @@ describe(`migration #${migrationVersion}`, () => {
       if (key === ANALYTICS_ID) {
         return Promise.resolve(existingId); // New key already has value
       }
-      if (key === ANALYTICS_OPTED_IN) {
-        return Promise.resolve('true'); // New key already has value
+      if (key === METRICS_OPT_IN) {
+        return Promise.resolve(DENIED); // Would migrate to false, but should not overwrite
       }
       return Promise.resolve(null);
     });
 
-    await migrate(state);
+    const migratedState = (await migrate(state)) as typeof state;
 
-    // setItem should not be called for keys that already exist
+    // optedIn should remain true (not overwritten)
+    expect(
+      migratedState.engine.backgroundState.AnalyticsController.optedIn,
+    ).toBe(true);
+    // setItem should not be called for analytics ID that already exists
     expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
       ANALYTICS_ID,
-      expect.any(String),
-      expect.any(Object),
-    );
-    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
-      ANALYTICS_OPTED_IN,
       expect.any(String),
       expect.any(Object),
     );
@@ -259,13 +283,18 @@ describe(`migration #${migrationVersion}`, () => {
       return Promise.resolve(null);
     });
 
-    await migrate(state);
+    const migratedState = (await migrate(state)) as {
+      engine: {
+        backgroundState: {
+          AnalyticsController?: { optedIn: boolean };
+        };
+      };
+    };
 
-    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
-      ANALYTICS_OPTED_IN,
-      expect.any(String),
-      expect.any(Object),
-    );
+    // AnalyticsController should not be created for invalid opt-in values
+    expect(
+      migratedState.engine.backgroundState.AnalyticsController,
+    ).toBeUndefined();
   });
 
   it('cleans up legacy storage keys after migration', async () => {

@@ -7080,14 +7080,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/analytics-controller@file:../core/packages/analytics-controller::locator=metamask%40workspace%3A.":
-  version: 0.0.0
-  resolution: "@metamask/analytics-controller@file:../core/packages/analytics-controller#../core/packages/analytics-controller::hash=527ff7&locator=metamask%40workspace%3A."
+"@metamask/analytics-controller@npm:@metamask-previews/analytics-controller@0.0.0-preview-1dd40c75":
+  version: 0.0.0-preview-1dd40c75
+  resolution: "@metamask-previews/analytics-controller@npm:0.0.0-preview-1dd40c75"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
-  checksum: 10/9f8171a7f184479e39ad0adfd603de6025091b7f53dabaaa076d58bdc0996ecf67ce5d25caadeaed21eea28f012352db6616000d41fecf856e79bfcc826cb6ba
+  checksum: 10/1f864ae7c44723598275e1482b996ae6bfde815e6473a3376eeabda47ee5dee436f23720fcd9aa6d29361fe4a0fe00775b3ebd6b28364fa59585900da042edd0
   languageName: node
   linkType: hard
 

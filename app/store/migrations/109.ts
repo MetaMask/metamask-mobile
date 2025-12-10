@@ -1,5 +1,6 @@
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
+import { hasProperty, isObject } from '@metamask/utils';
 import StorageWrapper from '../storage-wrapper';
 import { validate as uuidValidate, version as uuidVersion } from 'uuid';
 import {
@@ -9,7 +10,6 @@ import {
   METRICS_OPT_IN,
   MIXPANEL_METAMETRICS_ID,
   ANALYTICS_ID,
-  ANALYTICS_OPTED_IN,
 } from '../../constants/storage';
 
 /**
@@ -23,21 +23,21 @@ const isValidUUIDv4 = (id: string | null): id is string => {
 };
 
 /**
- * Migration 109: Migrate legacy analytics MMKV storage values to new MMKV keys
+ * Migration 109: Migrate legacy analytics storage values
  *
  * This migration:
  * - Reads legacy storage values (METAMETRICS_ID, METRICS_OPT_IN)
- * - Writes them to new MMKV keys (ANALYTICS_ID, ANALYTICS_OPTED_IN)
+ * - Migrates analytics ID to new MMKV key (ANALYTICS_ID) - not stored in state to prevent corruption
+ * - Migrates opt-in preference to AnalyticsController state (optedIn)
  * - Validates UUIDv4 format for analytics ID
- * - Does NOT modify controller state (no state changes)
  * - Cleans up legacy storage keys after successful migration
- *
- * The controller will read from MMKV on initialization via generateDefaults().
  */
 const migration = async (state: unknown): Promise<unknown> => {
   if (!ensureValidState(state, 109)) {
     return state;
   }
+
+  const { backgroundState } = state.engine;
 
   // Read legacy storage values
   let legacyMetametricsId: string | null = null;
@@ -49,7 +49,7 @@ const migration = async (state: unknown): Promise<unknown> => {
       (await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID));
     legacyMetricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
   } catch (error) {
-    // If we can't read storage, skip migration - generateDefaults() will handle defaults
+    // If we can't read storage, skip migration - defaults will be used
     captureException(
       new Error(
         `Migration 109: Failed to read legacy storage values: ${error}`,
@@ -59,7 +59,8 @@ const migration = async (state: unknown): Promise<unknown> => {
   }
 
   try {
-    // Migrate analytics ID to new MMKV key via StorageWrapper
+    // Migrate analytics ID to new key
+    // analyticsId is not stored in state to prevent corruption risk
     if (isValidUUIDv4(legacyMetametricsId)) {
       const existingId = await StorageWrapper.getItem(ANALYTICS_ID);
       if (!existingId) {
@@ -70,16 +71,22 @@ const migration = async (state: unknown): Promise<unknown> => {
       }
     }
 
-    // Migrate opt-in to new MMKV key via StorageWrapper
+    // Migrate opt-in to AnalyticsController state
     if (legacyMetricsOptIn === AGREED || legacyMetricsOptIn === DENIED) {
-      const existingOptedIn = await StorageWrapper.getItem(ANALYTICS_OPTED_IN);
-      if (existingOptedIn === null || existingOptedIn === undefined) {
-        // Only write if new key doesn't exist
-        await StorageWrapper.setItem(
-          ANALYTICS_OPTED_IN,
-          legacyMetricsOptIn === AGREED ? 'true' : 'false',
-          { emitEvent: false },
-        );
+      // Ensure AnalyticsController exists in backgroundState
+      if (
+        !hasProperty(backgroundState, 'AnalyticsController') ||
+        !isObject(backgroundState.AnalyticsController)
+      ) {
+        backgroundState.AnalyticsController = {};
+      }
+
+      const analyticsControllerState =
+        backgroundState.AnalyticsController as Record<string, unknown>;
+
+      // Only set optedIn if it doesn't already exist (don't overwrite existing state)
+      if (!hasProperty(analyticsControllerState, 'optedIn')) {
+        analyticsControllerState.optedIn = legacyMetricsOptIn === AGREED;
       }
     }
 
@@ -92,15 +99,14 @@ const migration = async (state: unknown): Promise<unknown> => {
     ]);
   } catch (error) {
     // Migration failures should not break the app
-    // Log error but continue - generateDefaults() will handle defaults
+    // Log error but continue - defaults will be used
     captureException(
       new Error(
-        `Migration 109: Failed to migrate legacy analytics storage to MMKV: ${error}`,
+        `Migration 109: Failed to migrate legacy analytics storage: ${error}`,
       ),
     );
   }
 
-  // Return state unchanged (no state migration)
   return state;
 };
 

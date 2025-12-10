@@ -12,17 +12,21 @@ import { createPlatformAdapter } from './platform-adapter';
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
- * @param request.metaMetricsId - The MetaMetrics ID to use as the analytics ID.
+ * @param request.analyticsId - The analytics ID to use.
+ * @param request.persistedState - The persisted state for all controllers.
  * @returns The initialized controller.
  */
 export const analyticsControllerInit: ControllerInitFunction<
   AnalyticsController,
   AnalyticsControllerMessenger
-> = ({ controllerMessenger, metaMetricsId }) => {
+> = ({ controllerMessenger, analyticsId, persistedState }) => {
+  // Get persisted state for AnalyticsController, or use defaults
+  const persistedAnalyticsState = persistedState.AnalyticsController;
   const defaultState = getDefaultAnalyticsControllerState();
+
   const state: AnalyticsControllerState = {
-    ...defaultState,
-    analyticsId: metaMetricsId,
+    optedIn: persistedAnalyticsState?.optedIn ?? defaultState.optedIn,
+    analyticsId,
   };
 
   const platformAdapter = createPlatformAdapter();
@@ -32,6 +36,8 @@ export const analyticsControllerInit: ControllerInitFunction<
     state,
     platformAdapter,
   });
+
+  controller.init();
 
   return {
     controller,

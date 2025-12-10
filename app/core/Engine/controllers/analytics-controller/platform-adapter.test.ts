@@ -1,7 +1,6 @@
 import { createPlatformAdapter } from './platform-adapter';
 import type { SegmentClient } from '@segment/analytics-react-native';
 import MetaMetricsPrivacySegmentPlugin from '../../../Analytics/MetaMetricsPrivacySegmentPlugin';
-import StorageWrapper from '../../../../store/storage-wrapper';
 
 // Mock Logger (not in global setup)
 jest.mock('../../../../util/Logger', () => ({
@@ -29,20 +28,6 @@ jest.mock('../../../Analytics/SegmentPersistor', () => ({
   segmentPersistor: {
     get: jest.fn(),
     set: jest.fn(),
-  },
-}));
-
-// Mock StorageWrapper for onSetupCompleted
-jest.mock('../../../../store/storage-wrapper', () => ({
-  __esModule: true,
-  default: {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
-    removeItem: jest.fn(),
-    clearAll: jest.fn(),
-    getAllKeys: jest.fn(),
-    multiGet: jest.fn(),
-    onKeyChange: jest.fn(),
   },
 }));
 
@@ -139,34 +124,13 @@ describe('createPlatformAdapter', () => {
       jest.clearAllMocks();
     });
 
-    it('adds MetaMetricsPrivacySegmentPlugin to Segment client with analyticsId and reads opt-in value from MMKV', async () => {
+    it('adds MetaMetricsPrivacySegmentPlugin to Segment client with analyticsId', () => {
       const adapter = createPlatformAdapter();
       const { segmentMockClient } =
         global as unknown as GlobalWithSegmentClient;
       const analyticsId = '6ba7b810-9dad-42d1-80b4-00c04fd430c8';
 
-      StorageWrapper.getItem = jest.fn().mockResolvedValueOnce('true'); // optedIn
-
-      await adapter.onSetupCompleted(analyticsId);
-
-      expect(mockMetaMetricsPrivacySegmentPlugin).toHaveBeenCalledWith(
-        analyticsId,
-      );
-      expect(segmentMockClient.add).toHaveBeenCalledWith({
-        plugin: expect.any(Object),
-      });
-      expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles missing opt-in value gracefully', async () => {
-      const adapter = createPlatformAdapter();
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-      const analyticsId = '6ba7b810-9dad-42d1-80b4-00c04fd430c8';
-
-      StorageWrapper.getItem = jest.fn().mockResolvedValueOnce(null); // optedIn
-
-      await adapter.onSetupCompleted(analyticsId);
+      adapter.onSetupCompleted(analyticsId);
 
       expect(mockMetaMetricsPrivacySegmentPlugin).toHaveBeenCalledWith(
         analyticsId,

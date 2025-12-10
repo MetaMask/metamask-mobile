@@ -10,29 +10,29 @@ export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
+// Legacy MetaMetrics and new AnalyticsController related keys
+export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
+export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
+export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
+export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 /**
- * @deprecated, use {@link ANALYTICS_OPTED_IN} instead
+ * @deprecated, use AnalyticsController state (optedIn) instead
  * Keeping METRICS_OPT_IN for backward compatibility
  * Migration done in {@link migration109}
  */
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
 /**
- * @deprecated, use {@link ANALYTICS_OPTED_IN} only
+ * @deprecated, use AnalyticsController state (optedIn) instead
  * Keeping METRICS_OPT_IN_SOCIAL_LOGIN for backward compatibility
  * Migration done in {@link migration108}
  */
 export const METRICS_OPT_IN_SOCIAL_LOGIN = `${prefix}metricsOptInSocialLogin`;
-export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
-export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
-export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
-export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 /**
  * @deprecated, use {@link ANALYTICS_ID} instead
  * Keeping METAMETRICS_ID for backward compatibility
  * Migration done in {@link migration109}
  */
 export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
-
 /**
  * @deprecated, use {@link METAMETRICS_ID} instead
  * Keeping MIXPANEL_METAMETRICS_ID for backward compatibility
@@ -42,10 +42,7 @@ export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
  * @see https://github.com/MetaMask/metamask-mobile/issues/8833
  */
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
-
-// New keys for analytics controller (separate from legacy keys)
 export const ANALYTICS_ID = `${prefix}AnalyticsId`;
-export const ANALYTICS_OPTED_IN = `${prefix}AnalyticsOptedIn`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;

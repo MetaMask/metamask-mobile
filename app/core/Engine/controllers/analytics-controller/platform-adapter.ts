@@ -13,8 +13,6 @@ import {
 import { segmentPersistor } from '../../../Analytics/SegmentPersistor';
 import Logger from '../../../../util/Logger';
 import MetaMetricsPrivacySegmentPlugin from '../../../Analytics/MetaMetricsPrivacySegmentPlugin';
-import StorageWrapper from '../../../../store/storage-wrapper';
-import { ANALYTICS_OPTED_IN } from '../../../../constants/storage';
 
 const getSegmentClient = (): SegmentClient => {
   const config: Config = {
@@ -76,18 +74,13 @@ export const createPlatformAdapter = (): AnalyticsPlatformAdapter => {
       }
     },
 
-    async onSetupCompleted(analyticsId: string): Promise<void> {
-      // Read opt-in value from MMKV asynchronously
-      const optedIn =
-        (await StorageWrapper.getItem(ANALYTICS_OPTED_IN)) === 'true';
-
+    onSetupCompleted(analyticsId: string): void {
       // Add privacy plugin with analytics ID after controller is initialized
       client.add({
         plugin: new MetaMetricsPrivacySegmentPlugin(analyticsId),
       });
       Logger.log('Analytics Adapter: Privacy plugin added to Segment client', {
         analyticsId,
-        optedIn,
       });
     },
   };

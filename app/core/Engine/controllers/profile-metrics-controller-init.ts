@@ -22,7 +22,7 @@ export const profileMetricsControllerInit: ControllerInitFunction<
   controllerMessenger,
   persistedState,
   getController,
-  metaMetricsId,
+  analyticsId,
   getState,
 }) => {
   const remoteFeatureFlagController = getController(
@@ -38,7 +38,7 @@ export const profileMetricsControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: persistedState.ProfileMetricsController,
     assertUserOptedIn,
-    getMetaMetricsId: () => metaMetricsId,
+    getMetaMetricsId: () => analyticsId,
   });
 
   return {

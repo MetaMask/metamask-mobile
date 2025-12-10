@@ -260,13 +260,13 @@ export class Engine {
   /**
    * Creates a CoreController instance
    */
-  // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
+    analyticsId: string,
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
-    metaMetricsId?: string,
   ) {
-    logEngineCreation(initialState, initialKeyringState);
+    const keyringState = initialKeyringState ?? null;
+    logEngineCreation(initialState, keyringState);
 
     this.controllerMessenger = getRootExtendedMessenger();
 
@@ -278,12 +278,11 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
-      metaMetricsId,
-      initialKeyringState,
+      analyticsId,
+      initialKeyringState: keyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
     };
-    // @ts-expect-error - metametrics id is required, this will be addressed on a follow up PR
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         ErrorReportingService: errorReportingServiceInit,
@@ -373,6 +372,7 @@ export class Engine {
       ...initRequest,
     });
 
+    const analyticsController = controllersByName.AnalyticsController;
     const loggingController = controllersByName.LoggingController;
     const remoteFeatureFlagController =
       controllersByName.RemoteFeatureFlagController;
@@ -479,6 +479,7 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.context = {
+      AnalyticsController: analyticsController,
       KeyringController: this.keyringController,
       AccountTreeController: accountTreeController,
       AccountTrackerController: accountTrackerController,
@@ -1431,12 +1432,11 @@ export default {
   },
 
   init(
-    state: Partial<EngineState> | undefined,
-    keyringState: KeyringControllerState | null = null,
-    metaMetricsId?: string,
+    analyticsId: string,
+    state: Partial<EngineState> | undefined = {},
+    keyringState?: KeyringControllerState | null,
   ) {
-    instance =
-      Engine.instance || new Engine(state, keyringState, metaMetricsId);
+    instance = Engine.instance || new Engine(analyticsId, state, keyringState);
     Object.freeze(instance);
     return instance;
   },
