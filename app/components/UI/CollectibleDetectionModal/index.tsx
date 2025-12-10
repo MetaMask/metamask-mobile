@@ -15,14 +15,9 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
-import {
-  hideNftFetchingLoadingIndicator,
-  showNftFetchingLoadingIndicator,
-} from '../../../reducers/collectibles';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useMetrics } from '../../hooks/useMetrics';
-import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
-import { endTrace, trace, TraceName } from '../../../util/trace';
+import { useNftDetection } from '../../hooks/useNftDetection';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -35,7 +30,7 @@ const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { addTraitsToUser } = useMetrics();
-  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
+  const { detectNfts } = useNftDetection();
 
   const showToastAndEnableNFtDetection = useCallback(async () => {
     // show toast
@@ -48,7 +43,7 @@ const CollectibleDetectionModal = () => {
       hasNoTimeout: false,
     });
     // set nft autodetection
-    const { PreferencesController, NftDetectionController } = Engine.context;
+    const { PreferencesController } = Engine.context;
     PreferencesController.setDisplayNftMedia(true);
     PreferencesController.setUseNftDetection(true);
     const traits = {
@@ -57,20 +52,8 @@ const CollectibleDetectionModal = () => {
     };
     addTraitsToUser(traits);
     // Call detect nfts
-    showNftFetchingLoadingIndicator();
-    try {
-      trace({ name: TraceName.DetectNfts });
-      await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
-      endTrace({ name: TraceName.DetectNfts });
-    } finally {
-      hideNftFetchingLoadingIndicator();
-    }
-  }, [
-    colors.primary.inverse,
-    toastRef,
-    addTraitsToUser,
-    chainIdsToDetectNftsFor,
-  ]);
+    await detectNfts();
+  }, [colors.primary.inverse, toastRef, addTraitsToUser, detectNfts]);
 
   return (
     <View style={styles.alertBar}>

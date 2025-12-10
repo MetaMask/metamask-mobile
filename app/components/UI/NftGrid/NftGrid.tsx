@@ -20,7 +20,7 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
@@ -39,6 +39,7 @@ import ButtonIcon, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import { useNftDetection } from '../../hooks/useNftDetection';
 
 interface NFTNavigationParamList {
   AddAsset: { assetType: string };
@@ -104,6 +105,8 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     multichainCollectiblesByEnabledNetworksSelector,
   );
 
+  const { detectNfts, chainIdsToDetectNftsFor } = useNftDetection();
+
   const allFilteredCollectibles: Nft[] = useMemo(() => {
     trace({ name: TraceName.LoadCollectibles });
 
@@ -128,6 +131,20 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
 
     return itemsToProcess;
   }, [allFilteredCollectibles, maxItems]);
+
+  // Trigger NFT detection when enabled networks change (including initial mount)
+  useEffect(() => {
+    detectNfts();
+  }, [chainIdsToDetectNftsFor, detectNfts]);
+
+  // Trigger NFT detection when the full view is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (isFullView) {
+        detectNfts();
+      }
+    }, [isFullView, detectNfts]),
+  );
 
   useEffect(() => {
     if (longPressedCollectible) {
