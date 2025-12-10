@@ -48,7 +48,7 @@ export const useUnifiedSwapBridgeContext = () => {
 
   const usdAmountSource = usdConversionRate
     ? tokenFiatValue / usdConversionRate
-    : undefined;
+    : 0;
 
   return useMemo(
     () => ({

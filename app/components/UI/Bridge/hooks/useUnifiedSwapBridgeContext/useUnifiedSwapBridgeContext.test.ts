@@ -179,7 +179,7 @@ describe('useUnifiedSwapBridgeContext', () => {
     expect(typeof result.current.usd_amount_source).toBe('number');
   });
 
-  it('returns undefined usd_amount_source when usd conversion rate is missing', () => {
+  it('returns 0 usd_amount_source when usd conversion rate is missing', () => {
     const mockToken = {
       symbol: 'ETH',
       address: '0x0000000000000000000000000000000000000000',
@@ -199,6 +199,6 @@ describe('useUnifiedSwapBridgeContext', () => {
       },
     );
 
-    expect(result.current.usd_amount_source).toBeUndefined();
+    expect(result.current.usd_amount_source).toBe(0);
   });
 });
