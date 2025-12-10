@@ -1,18 +1,16 @@
 # GitHub Actions-specific Gradle settings
-# Optimized for E2E builds on lg runner (16 vCPUs, 48GB RAM, 200GB disk) - INFRA-3174
-# Source: https://cirrus-runners.app/setup/#__tabbed_3_2
+# Optimized for E2E builds on GitHub Actions runners
 
-# JVM configuration - 16GB heap is comfortable within 48GB runner
-# Memory budget: Gradle 16GB + Node.js 8GB = 24GB, leaving 24GB for OS/SDK tools
+# JVM configuration - balanced settings to avoid OOM while maintaining performance
+# Using 16GB heap to leave room for parallel workers and native memory
 org.gradle.jvmargs=-Xmx16g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
 
-# Enable performance optimizations with parallelism tuned for 16 vCPUs
-# 12 workers allows good parallelism while leaving CPU headroom for Node.js bundling
+# Enable performance optimizations but limit parallelism to prevent OOM
 org.gradle.parallel=true
 org.gradle.configureondemand=true
 org.gradle.caching=true
 org.gradle.daemon=true
-org.gradle.workers.max=12
+org.gradle.workers.max=6
 org.gradle.vfs.watch=false
 
 # CI-specific optimizations - enabled for GitHub Actions
@@ -56,4 +54,4 @@ hermesEnabled=true
 android.disableResourceValidation=true
 
 # Use legacy packaging to compress native libraries in the resulting APK.
-expo.useLegacyPackaging=false
+expo.useLegacyPackaging=false 
