@@ -98,6 +98,11 @@ describe(FlaskBuildTests('Interactive UI Snap Tests'), () => {
         await Assertions.checkIfDisabled(
           Matchers.getElementByID('snap-ui-renderer__selector'),
         );
+
+        await Assertions.checkIfDisabled(TestSnaps.dateTimePickerTouchable);
+        await Assertions.checkIfDisabled(TestSnaps.datePickerTouchable);
+        await Assertions.checkIfDisabled(TestSnaps.timePickerTouchable);
+
         await Assertions.checkIfDisabled(Matchers.getElementByText('Submit'));
 
         await TestSnaps.tapCancelButton();
