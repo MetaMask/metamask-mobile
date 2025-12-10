@@ -404,7 +404,9 @@ describe('formatCurrency', () => {
 describe('formatMinimumReceived', () => {
   const mockFormat = jest.fn();
   const mockGetIntlNumberFormatter =
-    getIntlNumberFormatter as jest.MockedFunction<typeof getIntlNumberFormatter>;
+    getIntlNumberFormatter as jest.MockedFunction<
+      typeof getIntlNumberFormatter
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
