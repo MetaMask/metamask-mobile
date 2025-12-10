@@ -48,6 +48,11 @@ export class HyperLiquidClientService {
   private connectionState: WebSocketConnectionState =
     WebSocketConnectionState.DISCONNECTED;
   private disconnectionPromise: Promise<void> | null = null;
+  // Health check monitoring
+  private healthCheckInterval?: ReturnType<typeof setInterval>;
+  private healthCheckTimeout?: ReturnType<typeof setTimeout>;
+  private isHealthCheckRunning = false;
+  private onReconnectCallback?: () => Promise<void>;
 
   constructor(options: { isTestnet?: boolean } = {}) {
     this.isTestnet = options.isTestnet || false;
@@ -104,6 +109,9 @@ export class HyperLiquidClientService {
         connectionState: this.connectionState,
         note: 'Using HTTP for InfoClient/ExchangeClient, WebSocket for SubscriptionClient',
       });
+
+      // Start health check monitoring after successful initialization
+      this.startHealthCheckMonitoring();
     } catch (error) {
       const errorInstance = ensureError(error);
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
@@ -594,6 +602,12 @@ export class HyperLiquidClientService {
         connectionState: this.connectionState,
       });
 
+      // Stop health check monitoring
+      this.stopHealthCheckMonitoring();
+
+      // Clear reconnection callback
+      this.onReconnectCallback = undefined;
+
       // Close WebSocket transport only (HTTP is stateless)
       if (this.wsTransport) {
         try {
@@ -642,5 +656,138 @@ export class HyperLiquidClientService {
    */
   public isDisconnected(): boolean {
     return this.connectionState === WebSocketConnectionState.DISCONNECTED;
+  }
+
+  /**
+   * Set callback to be invoked when reconnection is needed
+   * This allows the service to notify external components (like PerpsConnectionManager)
+   * when a connection drop is detected
+   */
+  public setOnReconnectCallback(callback: () => Promise<void>): void {
+    this.onReconnectCallback = callback;
+  }
+
+  /**
+   * Start periodic health check monitoring
+   * Checks WebSocket connection health every 5 seconds
+   */
+  private startHealthCheckMonitoring(): void {
+    // Clear any existing interval
+    this.stopHealthCheckMonitoring();
+
+    // Health check interval: 5 seconds for faster detection of connection drops
+    const HEALTH_CHECK_INTERVAL_MS = 5_000;
+
+    this.healthCheckInterval = setInterval(() => {
+      this.performHealthCheck().catch(() => {
+        // Ignore errors during health check
+      });
+    }, HEALTH_CHECK_INTERVAL_MS);
+  }
+
+  /**
+   * Stop health check monitoring
+   */
+  private stopHealthCheckMonitoring(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = undefined;
+    }
+    if (this.healthCheckTimeout) {
+      clearTimeout(this.healthCheckTimeout);
+      this.healthCheckTimeout = undefined;
+    }
+    this.isHealthCheckRunning = false;
+  }
+
+  /**
+   * Perform a single health check to verify WebSocket connection is alive
+   * Uses the subscription client's transport.ready() method
+   */
+  private async performHealthCheck(): Promise<void> {
+    // Skip if already running or disconnected
+    if (
+      this.isHealthCheckRunning ||
+      this.connectionState !== WebSocketConnectionState.CONNECTED ||
+      !this.subscriptionClient
+    ) {
+      return;
+    }
+
+    this.isHealthCheckRunning = true;
+
+    try {
+      const controller = new AbortController();
+
+      // Health check timeout: 5 seconds
+      const HEALTH_CHECK_TIMEOUT_MS = 5_000;
+
+      this.healthCheckTimeout = setTimeout(() => {
+        controller.abort();
+      }, HEALTH_CHECK_TIMEOUT_MS);
+
+      try {
+        // Use transport.ready() to check if WebSocket is actually connected
+        await this.subscriptionClient.transport.ready(controller.signal);
+      } catch {
+        // Connection appears to be dead - trigger reconnection
+        await this.handleConnectionDrop();
+      } finally {
+        if (this.healthCheckTimeout) {
+          clearTimeout(this.healthCheckTimeout);
+          this.healthCheckTimeout = undefined;
+        }
+      }
+    } finally {
+      this.isHealthCheckRunning = false;
+    }
+  }
+
+  /**
+   * Handle detected connection drop
+   * Recreates WebSocket transport and notifies callback to restore subscriptions
+   */
+  private async handleConnectionDrop(): Promise<void> {
+    // Prevent multiple simultaneous reconnection attempts
+    if (this.connectionState === WebSocketConnectionState.CONNECTING) {
+      return;
+    }
+
+    try {
+      this.connectionState = WebSocketConnectionState.CONNECTING;
+
+      // Close existing WebSocket transport
+      if (this.wsTransport) {
+        try {
+          await this.wsTransport.close();
+        } catch {
+          // Ignore errors during close - transport may already be dead
+        }
+      }
+
+      // Recreate WebSocket transport
+      this.createTransports();
+
+      if (!this.wsTransport) {
+        throw new Error('Failed to recreate WebSocket transport');
+      }
+
+      // Recreate SubscriptionClient with new transport
+      this.subscriptionClient = new SubscriptionClient({
+        transport: this.wsTransport,
+      });
+
+      this.connectionState = WebSocketConnectionState.CONNECTED;
+
+      // Notify callback to restore subscriptions
+      if (this.onReconnectCallback) {
+        await this.onReconnectCallback();
+      }
+    } catch {
+      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+
+      // Stop health checks if reconnection failed
+      this.stopHealthCheckMonitoring();
+    }
   }
 }

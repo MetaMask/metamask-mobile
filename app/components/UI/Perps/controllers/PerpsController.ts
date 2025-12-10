@@ -42,7 +42,7 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import type { ServiceContext } from './services/ServiceContext';
 import {
   getStreamManagerInstance,
-  type PerpsStreamManager,
+  type PerpsStreamChannelKey,
 } from '../providers/PerpsStreamManager';
 import type {
   AccountState,
@@ -801,10 +801,10 @@ export class PerpsController extends BaseController<
    */
   private async withStreamPause<T>(
     operation: () => Promise<T>,
-    channels: (keyof PerpsStreamManager)[],
+    channels: PerpsStreamChannelKey[],
   ): Promise<T> {
     const streamManager = getStreamManagerInstance();
-    const pausedChannels: (keyof PerpsStreamManager)[] = [];
+    const pausedChannels: PerpsStreamChannelKey[] = [];
 
     // Pause emission on specified channels (WebSocket stays connected)
     // Track which channels successfully paused to ensure proper cleanup
@@ -1167,10 +1167,7 @@ export class PerpsController extends BaseController<
         getOpenOrders: () => this.getOpenOrders(),
       }),
       withStreamPause: <T>(operation: () => Promise<T>, channels: string[]) =>
-        this.withStreamPause(
-          operation,
-          channels as (keyof PerpsStreamManager)[],
-        ),
+        this.withStreamPause(operation, channels as PerpsStreamChannelKey[]),
     });
   }
 
