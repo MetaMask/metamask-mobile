@@ -45,4 +45,5 @@ export interface PredictNavigationParamList extends ParamListBase {
   PredictActivityDetail: {
     activity: PredictActivityItem;
   };
+  PredictSwipeGame: undefined;
 }

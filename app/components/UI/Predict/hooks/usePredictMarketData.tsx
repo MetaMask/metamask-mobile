@@ -98,7 +98,7 @@ export const usePredictMarketData = (
               limit: pageSize,
               offset,
             });
-            DevLogger.log('Market data received:', markets);
+            //DevLogger.log('Market data received:', markets);
 
             if (!markets || !Array.isArray(markets)) {
               if (isLoadMore) {

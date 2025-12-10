@@ -752,7 +752,7 @@ export const getParsedMarketsFromPolymarketApi = async (
   }
   const data = await response.json();
 
-  DevLogger.log('Polymarket response data:', data);
+  //DevLogger.log('Polymarket response data:', data);
 
   // Handle different response structures
   const events = q ? data?.events : data?.data;

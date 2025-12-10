@@ -12,6 +12,7 @@ import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 import PredictFeed from '../views/PredictFeed/PredictFeed';
 import PredictGTMModal from '../components/PredictGTMModal';
+import { PredictSwipeGame } from '../views/PredictSwipeGame';
 import { Dimensions } from 'react-native';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
@@ -171,6 +172,28 @@ const PredictScreenStack = () => (
                 translateX: current.progress.interpolate({
                   inputRange: [0, 1],
                   outputRange: [Dimensions.get('window').width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.PREDICT.SWIPE_GAME}
+      component={PredictSwipeGame}
+      options={{
+        headerShown: false,
+        gestureEnabled: false, // Disable back swipe to prevent conflicts with game gestures
+        // Slide up animation for game-like feel
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateY: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [Dimensions.get('window').height, 0],
                 }),
               },
             ],
