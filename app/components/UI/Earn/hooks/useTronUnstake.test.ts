@@ -176,7 +176,7 @@ describe('useTronUnstake', () => {
 
       let validation: TronUnstakeResult | null = null;
       await act(async () => {
-        validation = await result.current.validate('10');
+        validation = await result.current.validateUnstakeAmount('10');
       });
 
       expect(validation).toBeNull();
@@ -203,7 +203,7 @@ describe('useTronUnstake', () => {
 
       let validation: TronUnstakeResult | null = null;
       await act(async () => {
-        validation = await result.current.validate('5');
+        validation = await result.current.validateUnstakeAmount('5');
       });
 
       expect(mockValidateTronUnstakeAmount).toHaveBeenCalledWith(mockAccount, {
