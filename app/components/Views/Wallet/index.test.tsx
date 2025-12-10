@@ -278,6 +278,14 @@ const mockInitialState = {
   multichain: {
     dismissedBanners: [], // Added missing property
   },
+  onboarding: {
+    completedOnboarding: true,
+  },
+  legalNotices: {
+    isPna25Acknowledged: false,
+    newPrivacyPolicyToastShownDate: null,
+    newPrivacyPolicyToastClickedOrClosed: false,
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
