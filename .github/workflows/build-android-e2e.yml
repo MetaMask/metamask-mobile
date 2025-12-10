@@ -32,7 +32,8 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # Bumped from lg to xl to prevent Daemon disappearance issue (Daemon OOM issue in CI)
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    timeout-minutes: 60
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
