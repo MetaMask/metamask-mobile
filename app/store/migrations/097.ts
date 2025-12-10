@@ -78,11 +78,6 @@ export default function migrate(state: unknown): unknown {
     }
 
     if (Object.keys(tokenNetworkFilter).length === 0) {
-      captureException(
-        new Error(
-          `Migration ${migrationVersion}: tokenNetworkFilter is empty, expected at least one network configuration.`,
-        ),
-      );
       return state;
     }
 

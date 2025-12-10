@@ -167,7 +167,7 @@ describe('Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap', () =>
     );
   });
 
-  it('logs error and returns original state when tokenNetworkFilter is empty', () => {
+  it('returns original state without logging error when tokenNetworkFilter is empty', () => {
     // Arrange
     const state = {
       engine: {
@@ -189,13 +189,7 @@ describe('Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap', () =>
 
     // Assert
     expect(migratedState).toStrictEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining(
-          'Migration 97: tokenNetworkFilter is empty, expected at least one network configuration.',
-        ),
-      }),
-    );
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
   it('logs error and returns original state when MultichainNetworkController is missing', () => {
