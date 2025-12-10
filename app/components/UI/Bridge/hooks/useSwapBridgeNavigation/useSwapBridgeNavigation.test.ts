@@ -38,12 +38,20 @@ jest.mock('../../../../hooks/useMetrics', () => {
 });
 
 const mockGetIsBridgeEnabledSource = jest.fn(() => true);
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
-  selectIsBridgeEnabledSourceFactory: jest.fn(
-    () => mockGetIsBridgeEnabledSource,
-  ),
-}));
+const mockSetIsDestTokenManuallySet = jest.fn();
+jest.mock('../../../../../core/redux/slices/bridge', () => {
+  const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
+  return {
+    ...actual,
+    selectIsBridgeEnabledSourceFactory: jest.fn(
+      () => mockGetIsBridgeEnabledSource,
+    ),
+    setIsDestTokenManuallySet: (...args: unknown[]) => {
+      mockSetIsDestTokenManuallySet(...args);
+      return actual.setIsDestTokenManuallySet(...args);
+    },
+  };
+});
 
 const mockGoToPortfolioBridge = jest.fn();
 jest.mock('../useGoToPortfolioBridge', () => ({
@@ -146,6 +154,9 @@ describe('useSwapBridgeNavigation', () => {
 
     // Reset bridge enabled mock to default (enabled)
     mockGetIsBridgeEnabledSource.mockReturnValue(true);
+
+    // Reset setIsDestTokenManuallySet mock
+    mockSetIsDestTokenManuallySet.mockClear();
   });
 
   it('uses native token when no token is provided', () => {
@@ -315,6 +326,21 @@ describe('useSwapBridgeNavigation', () => {
         bridgeViewMode: BridgeViewMode.Unified,
       },
     });
+  });
+
+  it('resets isDestTokenManuallySet flag when navigating to swaps', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps();
+
+    expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(false);
   });
 
   it('uses home page filter network when no token is provided', () => {
