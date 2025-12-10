@@ -16,10 +16,15 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolate,
+  useSharedValue,
+  withTiming,
+  Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 import {
   GestureDetector,
   GestureHandlerRootView,
+  Gesture,
 } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -47,11 +52,99 @@ import {
   BET_AMOUNTS,
   DEFAULT_GESTURE_CONFIG,
 } from './PredictSwipeGame.constants';
+import type { SwipeGameCard, CardPreview } from './PredictSwipeGame.types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Pastel orange background for the game
 const PASTEL_ORANGE_BG = '#FFF5EB';
+
+// Animation timing for stack transitions
+const STACK_TIMING = {
+  duration: 250,
+  easing: Easing.out(Easing.cubic),
+};
+
+// Empty gesture for non-active cards (keeps same component structure)
+const emptyGesture = Gesture.Manual();
+
+/**
+ * Unified stack card that handles both active and background states
+ * Uses same component structure to prevent unmount/remount when transitioning
+ */
+interface UnifiedStackCardProps {
+  card: SwipeGameCard;
+  stackIndex: number;
+  isActive: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  gesture: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cardAnimatedStyle: any;
+  betAmount: number;
+  preview: CardPreview | null;
+  onOutcomeChange?: (outcomeId: string) => void;
+  overlay?: React.ReactNode;
+}
+
+const UnifiedStackCard: React.FC<UnifiedStackCardProps> = React.memo(({
+  card,
+  stackIndex,
+  isActive,
+  gesture,
+  cardAnimatedStyle,
+  betAmount,
+  preview,
+  onOutcomeChange,
+  overlay,
+}) => {
+  // Animated values for smooth transitions
+  const animatedScale = useSharedValue(
+    isActive ? 1 : 1 - stackIndex * CARD_ANIMATION.STACK_SCALE_DECREASE
+  );
+  const animatedTranslateY = useSharedValue(
+    isActive ? 0 : stackIndex * CARD_ANIMATION.STACK_OFFSET_Y
+  );
+
+  // Animate when stack position changes
+  React.useEffect(() => {
+    const targetScale = isActive ? 1 : 1 - stackIndex * CARD_ANIMATION.STACK_SCALE_DECREASE;
+    const targetTranslateY = isActive ? 0 : stackIndex * CARD_ANIMATION.STACK_OFFSET_Y;
+
+    animatedScale.value = withTiming(targetScale, STACK_TIMING);
+    animatedTranslateY.value = withTiming(targetTranslateY, STACK_TIMING);
+  }, [stackIndex, isActive, animatedScale, animatedTranslateY]);
+
+  // Stack position animation for background cards
+  const stackStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: animatedScale.value },
+      { translateY: animatedTranslateY.value },
+    ],
+  }));
+
+  const zIndex = VISIBLE_STACK_COUNT + 1 - stackIndex;
+
+  return (
+    <GestureDetector gesture={isActive ? gesture : emptyGesture}>
+      <Animated.View
+        style={[
+          styles.activeCard,
+          isActive ? cardAnimatedStyle : stackStyle,
+          { zIndex },
+        ]}
+      >
+        <SwipeCard
+          card={card}
+          preview={isActive ? preview : null}
+          betAmount={betAmount}
+          isActive={isActive}
+          onOutcomeChange={isActive ? onOutcomeChange : undefined}
+          overlay={isActive ? overlay : undefined}
+        />
+      </Animated.View>
+    </GestureDetector>
+  );
+});
 
 /**
  * PredictSwipeGame - Tinder-style betting game for prediction markets
@@ -272,7 +365,7 @@ const PredictSwipeGame: React.FC = () => {
         <Box twClassName="flex-1 items-center justify-center p-6">
           <Icon
             name={IconName.Warning}
-            color={IconColor.Error}
+            color={IconColor.ErrorDefault}
             size={IconSize.Xl}
           />
           <Text variant={TextVariant.HeadingMd} twClassName="mt-4 text-center">
@@ -380,7 +473,6 @@ const PredictSwipeGame: React.FC = () => {
             >
               <Icon
                 name={IconName.ArrowLeft}
-                color={IconColor.Default}
                 size={IconSize.Sm}
               />
             </Pressable>
@@ -400,7 +492,6 @@ const PredictSwipeGame: React.FC = () => {
             <View style={styles.betCardArrow}>
               <Icon
                 name={showBetSelector ? IconName.ArrowUp : IconName.ArrowDown}
-                color={IconColor.Primary}
                 size={IconSize.Xs}
               />
             </View>
@@ -411,7 +502,6 @@ const PredictSwipeGame: React.FC = () => {
             <View style={styles.balancePill}>
               <Icon
                 name={IconName.Wallet}
-                color={IconColor.Alternative}
                 size={IconSize.Xs}
               />
               <Text style={styles.balanceText}>${balance.toFixed(0)}</Text>
@@ -468,142 +558,112 @@ const PredictSwipeGame: React.FC = () => {
         {/* ===== MAIN CARD AREA ===== */}
         <Box twClassName="flex-1 px-4 justify-center">
           <View style={styles.cardStack}>
-            {/* Background cards (stacked) */}
-            {visibleCards
-              .slice(1)
-              .reverse()
-              .map((card, reversedIndex) => {
-                const stackIndex = visibleCards.length - 1 - reversedIndex;
-                const scale =
-                  1 - stackIndex * CARD_ANIMATION.STACK_SCALE_DECREASE;
-                const offsetY = stackIndex * CARD_ANIMATION.STACK_OFFSET_Y;
-                const cardOpacity =
-                  1 - stackIndex * CARD_ANIMATION.STACK_OPACITY_DECREASE;
+            {/* 
+              UNIFIED CARD RENDERING
+              All cards use same component structure (GestureDetector + Animated.View)
+              to prevent unmount/remount when transitioning from background to active.
+            */}
+            {visibleCards.map((card, index) => {
+              const isActive = index === 0;
 
-                return (
-                  <View
-                    key={card.marketId}
+              // Build overlays for active card only
+              const activeOverlay = isActive ? (
+                <>
+                  {/* YES Overlay (swiping right) */}
+                  <Animated.View
                     style={[
-                      styles.stackedCard,
-                      {
-                        transform: [{ scale }, { translateY: offsetY }],
-                        opacity: cardOpacity,
-                        zIndex: VISIBLE_STACK_COUNT - stackIndex,
-                      },
+                      styles.swipeOverlay,
+                      styles.yesOverlayBg,
+                      yesOverlayStyle,
                     ]}
                   >
-                    <SwipeCard
-                      card={card}
-                      preview={null}
-                      betAmount={betAmount}
-                      isActive={false}
-                    />
-                  </View>
-                );
-              })}
+                    <Text
+                      variant={TextVariant.HeadingLg}
+                      style={styles.overlayText}
+                    >
+                      YES
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyLg}
+                      style={styles.overlayText}
+                    >
+                      Bet ${betAmount} → Win ${yesPotentialWin}
+                    </Text>
+                  </Animated.View>
 
-            {/* Active card (swipeable) */}
-            {currentCard && (
-              <GestureDetector gesture={gesture}>
-                <Animated.View
-                  key={currentCard.marketId}
-                  style={[
-                    styles.activeCard,
-                    cardAnimatedStyle,
-                    { zIndex: VISIBLE_STACK_COUNT + 1 },
-                  ]}
-                >
-                  <SwipeCard
-                    card={currentCard}
-                    preview={currentPreview}
-                    betAmount={betAmount}
-                    isActive
-                    onOutcomeChange={selectOutcome}
-                    overlay={
-                      <>
-                        {/* YES Overlay (swiping right) */}
-                        <Animated.View
-                          style={[
-                            styles.swipeOverlay,
-                            styles.yesOverlayBg,
-                            yesOverlayStyle,
-                          ]}
-                        >
-                          <Text
-                            variant={TextVariant.HeadingLg}
-                            style={styles.overlayText}
-                          >
-                            YES
-                          </Text>
-                          <Text
-                            variant={TextVariant.BodyLg}
-                            style={styles.overlayText}
-                          >
-                            Bet ${betAmount} → Win ${yesPotentialWin}
-                          </Text>
-                        </Animated.View>
+                  {/* NO Overlay (swiping left) */}
+                  <Animated.View
+                    style={[
+                      styles.swipeOverlay,
+                      styles.noOverlayBg,
+                      noOverlayStyle,
+                    ]}
+                  >
+                    <Text
+                      variant={TextVariant.HeadingLg}
+                      style={styles.overlayText}
+                    >
+                      NO
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyLg}
+                      style={styles.overlayText}
+                    >
+                      Bet ${betAmount} → Win ${noPotentialWin}
+                    </Text>
+                  </Animated.View>
 
-                        {/* NO Overlay (swiping left) */}
-                        <Animated.View
-                          style={[
-                            styles.swipeOverlay,
-                            styles.noOverlayBg,
-                            noOverlayStyle,
-                          ]}
-                        >
-                          <Text
-                            variant={TextVariant.HeadingLg}
-                            style={styles.overlayText}
-                          >
-                            NO
-                          </Text>
-                          <Text
-                            variant={TextVariant.BodyLg}
-                            style={styles.overlayText}
-                          >
-                            Bet ${betAmount} → Win ${noPotentialWin}
-                          </Text>
-                        </Animated.View>
+                  {/* SKIP Overlay (swiping up/down) */}
+                  <Animated.View
+                    style={[
+                      styles.swipeOverlay,
+                      styles.skipOverlayBg,
+                      skipOverlayStyle,
+                    ]}
+                  >
+                    <Text
+                      variant={TextVariant.HeadingLg}
+                      style={styles.overlayText}
+                    >
+                      SKIP
+                    </Text>
+                  </Animated.View>
 
-                        {/* SKIP Overlay (swiping up/down) */}
-                        <Animated.View
-                          style={[
-                            styles.swipeOverlay,
-                            styles.skipOverlayBg,
-                            skipOverlayStyle,
-                          ]}
-                        >
-                          <Text
-                            variant={TextVariant.HeadingLg}
-                            style={styles.overlayText}
-                          >
-                            SKIP
-                          </Text>
-                        </Animated.View>
+                  {/* Order pending overlay */}
+                  {isPendingOrder && (
+                    <View
+                      style={[styles.swipeOverlay, styles.pendingOverlay]}
+                    >
+                      <ActivityIndicator
+                        size="large"
+                        color={colors.primary.default}
+                      />
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        twClassName="mt-3"
+                      >
+                        Placing bet...
+                      </Text>
+                    </View>
+                  )}
+                </>
+              ) : undefined;
 
-                        {/* Order pending overlay */}
-                        {isPendingOrder && (
-                          <View
-                            style={[styles.swipeOverlay, styles.pendingOverlay]}
-                          >
-                            <ActivityIndicator
-                              size="large"
-                              color={colors.primary.default}
-                            />
-                            <Text
-                              variant={TextVariant.BodyMd}
-                              twClassName="mt-3"
-                            >
-                              Placing bet...
-                            </Text>
-                          </View>
-                        )}
-                      </>
-                    }
-                  />
-                </Animated.View>
-              </GestureDetector>
-            )}
+              return (
+                <UnifiedStackCard
+                  key={card.marketId}
+                  card={card}
+                  stackIndex={index}
+                  isActive={isActive}
+                  gesture={gesture}
+                  cardAnimatedStyle={cardAnimatedStyle}
+                  betAmount={betAmount}
+                  preview={currentPreview}
+                  onOutcomeChange={selectOutcome}
+                  overlay={activeOverlay}
+                />
+              );
+            })}
           </View>
         </Box>
 
@@ -652,7 +712,7 @@ const PredictSwipeGame: React.FC = () => {
             <Box twClassName="bg-error-muted rounded-2xl px-4 py-3 flex-row items-center mx-4">
               <Icon
                 name={IconName.Warning}
-                color={IconColor.Error}
+                color={IconColor.ErrorDefault}
                 size={IconSize.Sm}
               />
               <Text

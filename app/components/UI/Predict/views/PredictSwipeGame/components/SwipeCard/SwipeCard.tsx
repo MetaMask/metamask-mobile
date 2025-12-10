@@ -185,20 +185,20 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
             {/* NO Pill */}
             <View style={styles.oddsPillNo}>
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Bold}
                 style={{ color: colors.error.default }}
               >
                 NO
               </Text>
               <Text
-                variant={TextVariant.HeadingLg}
+                variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
               >
                 {formatPercentage(noPrice)}
               </Text>
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 style={{ color: colors.success.default }}
               >
@@ -209,20 +209,20 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
             {/* YES Pill */}
             <View style={styles.oddsPillYes}>
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Bold}
                 style={{ color: colors.success.default }}
               >
                 YES
               </Text>
               <Text
-                variant={TextVariant.HeadingLg}
+                variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
               >
                 {formatPercentage(yesPrice)}
               </Text>
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 style={{ color: colors.success.default }}
               >
@@ -273,7 +273,6 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
                   ]}
                 >
                   <Text
-                    variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
                     numberOfLines={2}
                     style={styles.alternativeTitle}
@@ -327,7 +326,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 220,
+    height: 200,
     position: 'relative',
   },
   image: {
@@ -339,15 +338,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 120,
+    height: 100,
   },
   oddsPillNo: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 14,
     backgroundColor: 'rgba(215, 58, 73, 0.08)',
     borderWidth: 2,
     borderColor: 'rgba(215, 58, 73, 0.15)',
@@ -356,9 +355,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 14,
     backgroundColor: 'rgba(40, 167, 69, 0.08)',
     borderWidth: 2,
     borderColor: 'rgba(40, 167, 69, 0.15)',
@@ -386,7 +385,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.08)',
   },
   alternativeTitle: {
-    minHeight: 32,
+    minHeight: 28,
+    fontSize: 13,
+    lineHeight: 14,
     color: '#777',
   },
   yesText: {

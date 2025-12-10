@@ -6,6 +6,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
   useRoute,
   RouteProp,
@@ -140,9 +141,39 @@ const PredictFeed = () => {
           />
         </View>
         {!isSearchVisible && (
-          <Animated.View style={balanceCardAnimatedStyle}>
-            <PredictBalance onLayout={handleBalanceCardLayout} />
-          </Animated.View>
+          <>
+            {/* MetaSwipe Banner */}
+            <Pressable
+              onPress={handleOpenSwipeGame}
+              style={({ pressed }) => [
+                styles.metaSwipeBanner,
+                {
+                  backgroundColor: '#F6851B',
+                  opacity: pressed ? 0.9 : 1,
+                },
+              ]}
+              testID="predict-metaswipe-banner"
+            >
+              <Box twClassName="flex-row items-center justify-between">
+                <Box twClassName="flex-row items-center">
+                  <Box style={styles.metaSwipeIconContainer}>
+                    <MaterialIcons name="swipe" size={24} color="#fff" />
+                  </Box>
+                  <Box>
+                    <Text style={styles.metaSwipeTitle}>MetaSwipe</Text>
+                    <Text style={styles.metaSwipeSubtitle}>
+                      Swipe right to bet YES or left for NO
+                    </Text>
+                  </Box>
+                </Box>
+                <Text style={styles.metaSwipeArrow}>→</Text>
+              </Box>
+            </Pressable>
+
+            <Animated.View style={balanceCardAnimatedStyle}>
+              <PredictBalance onLayout={handleBalanceCardLayout} />
+            </Animated.View>
+          </>
         )}
         <PredictMarketList
           isSearchVisible={isSearchVisible}
@@ -150,56 +181,49 @@ const PredictFeed = () => {
           scrollCoordinator={scrollCoordinator}
           onTabChange={handleTabChange}
         />
-
-        {/* Quick Bet FAB - Navigate to Swipe Game */}
-        {!isSearchVisible && (
-          <Pressable
-            onPress={handleOpenSwipeGame}
-            style={({ pressed }) => [
-              styles.fab,
-              {
-                backgroundColor: colors.primary.default,
-                opacity: pressed ? 0.8 : 1,
-                bottom: insets.bottom + 16,
-              },
-            ]}
-            testID="predict-swipe-game-fab"
-          >
-            <Box twClassName="flex-row items-center">
-              <Text
-                style={tw.style('text-base font-bold mr-1', {
-                  color: colors.primary.inverse,
-                })}
-              >
-                🎯
-              </Text>
-              <Text
-                style={tw.style('text-base font-bold', {
-                  color: colors.primary.inverse,
-                })}
-              >
-                Quick Bet
-              </Text>
-            </Box>
-          </Pressable>
-        )}
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  fab: {
-    position: 'absolute',
-    right: 16,
-    paddingHorizontal: 20,
+  metaSwipeBanner: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 12,
+    paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 28,
-    shadowColor: '#000',
+    borderRadius: 16,
+    shadowColor: '#F6851B',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 4,
+  },
+  metaSwipeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  metaSwipeTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  metaSwipeSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 2,
+  },
+  metaSwipeArrow: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#fff',
   },
 });
 

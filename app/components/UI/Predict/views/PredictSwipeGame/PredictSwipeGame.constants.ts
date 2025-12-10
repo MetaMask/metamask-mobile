@@ -69,8 +69,8 @@ export const CARD_ANIMATION = {
   LEVITATE_DURATION: 2000, // ms per half-cycle (slower)
 
   // Stack offset per card - cards peek from BELOW
-  STACK_OFFSET_Y: 12, // pixels (positive = peek below the active card)
-  STACK_SCALE_DECREASE: 0.04, // 4% smaller per card (subtle)
+  STACK_OFFSET_Y: 14, // pixels (positive = peek below the active card)
+  STACK_SCALE_DECREASE: 0.03,
   STACK_OPACITY_DECREASE: 0, // No opacity - fully visible cards
 
   // Rotation during swipe
