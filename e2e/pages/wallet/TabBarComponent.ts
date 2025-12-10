@@ -100,7 +100,7 @@ class TabBarComponent {
           delay: 3500,
         });
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          elemDescription: 'Activity View Title',
+          description: 'Activity View Title',
         });
       },
       {
