@@ -53,8 +53,7 @@ const Pna25BottomSheet = () => {
   };
 
   const handleLearnMore = () => {
-    // TODO: add the actual URL when we have it
-    Linking.openURL('https://metamask.io/blog/pna25/');
+    Linking.openURL('http://metamask.io/news/updating-metamask-analytics');
   };
 
   // Track bottom sheet display
