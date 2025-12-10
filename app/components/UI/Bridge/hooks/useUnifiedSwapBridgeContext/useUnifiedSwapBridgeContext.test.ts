@@ -93,7 +93,7 @@ describe('useUnifiedSwapBridgeContext', () => {
       token_symbol_destination: 'USDC',
       security_warnings: [],
       warnings: [],
-      usd_amount_source: undefined,
+      usd_amount_source: 0,
     });
   });
 
@@ -122,7 +122,7 @@ describe('useUnifiedSwapBridgeContext', () => {
       token_symbol_destination: '',
       security_warnings: [],
       warnings: [],
-      usd_amount_source: undefined,
+      usd_amount_source: 0,
     });
   });
 
