@@ -24,9 +24,7 @@ interface UseUndoToastReturn {
  * - Auto-dismisses after UNDO_WINDOW_MS (5 seconds)
  * - Provides undo callback that goes back to previous card
  */
-export function useUndoToast(
-  onUndoAction: () => void,
-): UseUndoToastReturn {
+export function useUndoToast(onUndoAction: () => void): UseUndoToastReturn {
   const [toastState, setToastState] = useState<UndoToastState>({
     isVisible: false,
     betType: 'yes',
@@ -38,33 +36,28 @@ export function useUndoToast(
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Clear timeout on unmount
-  useEffect(() => {
-    return () => {
+  useEffect(() => () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-    };
+    }, []);
+
+  const showToast = useCallback((params: Omit<UndoToastState, 'isVisible'>) => {
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    setToastState({
+      ...params,
+      isVisible: true,
+    });
+
+    // Auto-dismiss after countdown
+    timeoutRef.current = setTimeout(() => {
+      setToastState((prev) => ({ ...prev, isVisible: false }));
+    }, UNDO_WINDOW_MS);
   }, []);
-
-  const showToast = useCallback(
-    (params: Omit<UndoToastState, 'isVisible'>) => {
-      // Clear any existing timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      setToastState({
-        ...params,
-        isVisible: true,
-      });
-
-      // Auto-dismiss after countdown
-      timeoutRef.current = setTimeout(() => {
-        setToastState((prev) => ({ ...prev, isVisible: false }));
-      }, UNDO_WINDOW_MS);
-    },
-    [],
-  );
 
   const hideToast = useCallback(() => {
     if (timeoutRef.current) {
@@ -87,4 +80,3 @@ export function useUndoToast(
 }
 
 export default useUndoToast;
-

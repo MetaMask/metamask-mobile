@@ -1,12 +1,25 @@
 import React, { useCallback, useMemo, useEffect, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator, Pressable, Dimensions, Image } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  StyleSheet,
+  View,
+  ActivityIndicator,
+  Pressable,
+  Dimensions,
+  Image,
+} from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
-import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import {
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -84,7 +97,12 @@ const PredictSwipeGame: React.FC = () => {
   const { triggerHaptic } = useSwipeFeedback();
 
   // Undo toast management
-  const { toastState, showToast, hideToast, handleUndo: handleToastUndo } = useUndoToast(handleUndo);
+  const {
+    toastState,
+    showToast,
+    hideToast,
+    handleUndo: handleToastUndo,
+  } = useUndoToast(handleUndo);
 
   // Show toast when bet is placed
   useEffect(() => {
@@ -121,19 +139,14 @@ const PredictSwipeGame: React.FC = () => {
     handleSwipeDown();
   }, [handleSwipeDown, triggerHaptic]);
 
-  const {
-    gesture,
-    cardAnimatedStyle,
-    translateX,
-    translateY,
-    swipeProgress,
-  } = useSwipeGesture({
-    onSwipeRight: handleSwipeRightWithHaptic,
-    onSwipeLeft: handleSwipeLeftWithHaptic,
-    onSwipeDown: handleSwipeDownWithHaptic,
-    enabled: hasMoreCards && !isLoading && !isPendingOrder,
-    cardKey: currentCard?.marketId,
-  });
+  const { gesture, cardAnimatedStyle, translateX, translateY, swipeProgress } =
+    useSwipeGesture({
+      onSwipeRight: handleSwipeRightWithHaptic,
+      onSwipeLeft: handleSwipeLeftWithHaptic,
+      onSwipeDown: handleSwipeDownWithHaptic,
+      enabled: hasMoreCards && !isLoading && !isPendingOrder,
+      cardKey: currentCard?.marketId,
+    });
 
   // Go back
   const handleGoBack = useCallback(() => {
@@ -141,16 +154,17 @@ const PredictSwipeGame: React.FC = () => {
   }, [navigation]);
 
   // Get visible cards for the stack
-  const visibleCards = useMemo(() => {
-    return cards.slice(currentIndex, currentIndex + VISIBLE_STACK_COUNT + 1);
-  }, [cards, currentIndex]);
+  const visibleCards = useMemo(() => cards.slice(currentIndex, currentIndex + VISIBLE_STACK_COUNT + 1), [cards, currentIndex]);
 
   // Prefetch images for visible and upcoming cards to prevent reload flash
   useEffect(() => {
     // Prefetch visible cards + a few ahead
     const prefetchCount = VISIBLE_STACK_COUNT + 3;
-    const cardsToPrefetch = cards.slice(currentIndex, currentIndex + prefetchCount);
-    
+    const cardsToPrefetch = cards.slice(
+      currentIndex,
+      currentIndex + prefetchCount,
+    );
+
     cardsToPrefetch.forEach((card) => {
       if (card.image) {
         Image.prefetch(card.image).catch(() => {
@@ -206,7 +220,12 @@ const PredictSwipeGame: React.FC = () => {
   // Render loading state
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.default }]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: colors.background.default },
+        ]}
+      >
         <Box twClassName="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={colors.primary.default} />
           <Text variant={TextVariant.BodyMd} twClassName="mt-4 text-muted">
@@ -220,13 +239,25 @@ const PredictSwipeGame: React.FC = () => {
   // Render error state
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.default }]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: colors.background.default },
+        ]}
+      >
         <Box twClassName="flex-1 items-center justify-center p-6">
-          <Icon name={IconName.Warning} color={IconColor.Error} size={IconSize.Xl} />
+          <Icon
+            name={IconName.Warning}
+            color={IconColor.Error}
+            size={IconSize.Xl}
+          />
           <Text variant={TextVariant.HeadingMd} twClassName="mt-4 text-center">
             Something went wrong
           </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="mt-2 text-muted text-center">
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="mt-2 text-muted text-center"
+          >
             {error}
           </Text>
         </Box>
@@ -237,13 +268,21 @@ const PredictSwipeGame: React.FC = () => {
   // Render empty state
   if (!hasMoreCards) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.default }]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: colors.background.default },
+        ]}
+      >
         <Box twClassName="flex-1 items-center justify-center p-6">
           <Text style={{ fontSize: 64 }}>🎉</Text>
           <Text variant={TextVariant.HeadingLg} twClassName="mt-4 text-center">
             All caught up!
           </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="mt-2 text-muted text-center">
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="mt-2 text-muted text-center"
+          >
             You've seen all trending markets.
           </Text>
           <Box twClassName="mt-8 bg-muted rounded-2xl p-4">
@@ -252,16 +291,28 @@ const PredictSwipeGame: React.FC = () => {
             </Text>
             <Box twClassName="flex-row justify-around mt-3 gap-6">
               <Box twClassName="items-center">
-                <Text variant={TextVariant.HeadingMd}>{sessionStats.betsPlaced}</Text>
-                <Text variant={TextVariant.BodySm} twClassName="text-muted">Bets</Text>
+                <Text variant={TextVariant.HeadingMd}>
+                  {sessionStats.betsPlaced}
+                </Text>
+                <Text variant={TextVariant.BodySm} twClassName="text-muted">
+                  Bets
+                </Text>
               </Box>
               <Box twClassName="items-center">
-                <Text variant={TextVariant.HeadingMd}>${sessionStats.totalWagered.toFixed(0)}</Text>
-                <Text variant={TextVariant.BodySm} twClassName="text-muted">Wagered</Text>
+                <Text variant={TextVariant.HeadingMd}>
+                  ${sessionStats.totalWagered.toFixed(0)}
+                </Text>
+                <Text variant={TextVariant.BodySm} twClassName="text-muted">
+                  Wagered
+                </Text>
               </Box>
               <Box twClassName="items-center">
-                <Text variant={TextVariant.HeadingMd}>{sessionStats.skipped}</Text>
-                <Text variant={TextVariant.BodySm} twClassName="text-muted">Skipped</Text>
+                <Text variant={TextVariant.HeadingMd}>
+                  {sessionStats.skipped}
+                </Text>
+                <Text variant={TextVariant.BodySm} twClassName="text-muted">
+                  Skipped
+                </Text>
               </Box>
             </Box>
           </Box>
@@ -269,10 +320,16 @@ const PredictSwipeGame: React.FC = () => {
             onPress={handleGoBack}
             style={({ pressed }) => [
               styles.doneButton,
-              { backgroundColor: colors.primary.default, opacity: pressed ? 0.8 : 1 },
+              {
+                backgroundColor: colors.primary.default,
+                opacity: pressed ? 0.8 : 1,
+              },
             ]}
           >
-            <Text variant={TextVariant.BodyLg} style={{ color: colors.primary.inverse }}>
+            <Text
+              variant={TextVariant.BodyLg}
+              style={{ color: colors.primary.inverse }}
+            >
               Done
             </Text>
           </Pressable>
@@ -284,7 +341,10 @@ const PredictSwipeGame: React.FC = () => {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background.default }]}
+        style={[
+          styles.container,
+          { backgroundColor: colors.background.default },
+        ]}
         testID={SWIPE_GAME_TEST_IDS.CONTAINER}
         edges={['top']}
       >
@@ -296,7 +356,11 @@ const PredictSwipeGame: React.FC = () => {
             hitSlop={20}
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
-            <Icon name={IconName.ArrowLeft} color={IconColor.Default} size={IconSize.Md} />
+            <Icon
+              name={IconName.ArrowLeft}
+              color={IconColor.Default}
+              size={IconSize.Md}
+            />
           </Pressable>
 
           {/* Bet amount chip */}
@@ -305,11 +369,18 @@ const PredictSwipeGame: React.FC = () => {
             testID={SWIPE_GAME_TEST_IDS.BET_AMOUNT_SELECTOR}
             style={({ pressed }) => [
               styles.betChip,
-              { backgroundColor: colors.background.alternative, opacity: pressed ? 0.8 : 1 },
+              {
+                backgroundColor: colors.background.alternative,
+                opacity: pressed ? 0.8 : 1,
+              },
             ]}
           >
             <Text variant={TextVariant.BodyMdBold}>${betAmount}</Text>
-            <Icon name={IconName.ArrowDown} color={IconColor.Default} size={IconSize.Xs} />
+            <Icon
+              name={IconName.ArrowDown}
+              color={IconColor.Default}
+              size={IconSize.Xs}
+            />
           </Pressable>
 
           {/* Balance indicator */}
@@ -340,14 +411,22 @@ const PredictSwipeGame: React.FC = () => {
                     style={[
                       styles.betPreset,
                       isSelected && { backgroundColor: colors.primary.default },
-                      !isSelected && { backgroundColor: colors.background.alternative },
+                      !isSelected && {
+                        backgroundColor: colors.background.alternative,
+                      },
                       isDisabled && { opacity: 0.4 },
                     ]}
                   >
                     <Text
                       variant={TextVariant.BodyMd}
-                      fontWeight={isSelected ? FontWeight.Bold : FontWeight.Medium}
-                      style={isSelected ? { color: colors.primary.inverse } : undefined}
+                      fontWeight={
+                        isSelected ? FontWeight.Bold : FontWeight.Medium
+                      }
+                      style={
+                        isSelected
+                          ? { color: colors.primary.inverse }
+                          : undefined
+                      }
                     >
                       ${amount}
                     </Text>
@@ -362,33 +441,38 @@ const PredictSwipeGame: React.FC = () => {
         <Box twClassName="flex-1 px-4 justify-center">
           <View style={styles.cardStack}>
             {/* Background cards (stacked) */}
-            {visibleCards.slice(1).reverse().map((card, reversedIndex) => {
-              const stackIndex = visibleCards.length - 1 - reversedIndex;
-              const scale = 1 - stackIndex * CARD_ANIMATION.STACK_SCALE_DECREASE;
-              const offsetY = stackIndex * CARD_ANIMATION.STACK_OFFSET_Y;
-              const cardOpacity = 1 - stackIndex * CARD_ANIMATION.STACK_OPACITY_DECREASE;
+            {visibleCards
+              .slice(1)
+              .reverse()
+              .map((card, reversedIndex) => {
+                const stackIndex = visibleCards.length - 1 - reversedIndex;
+                const scale =
+                  1 - stackIndex * CARD_ANIMATION.STACK_SCALE_DECREASE;
+                const offsetY = stackIndex * CARD_ANIMATION.STACK_OFFSET_Y;
+                const cardOpacity =
+                  1 - stackIndex * CARD_ANIMATION.STACK_OPACITY_DECREASE;
 
-              return (
-                <View
-                  key={card.marketId}
-                  style={[
-                    styles.stackedCard,
-                    {
-                      transform: [{ scale }, { translateY: offsetY }],
-                      opacity: cardOpacity,
-                      zIndex: VISIBLE_STACK_COUNT - stackIndex,
-                    },
-                  ]}
-                >
-                  <SwipeCard
-                    card={card}
-                    preview={null}
-                    betAmount={betAmount}
-                    isActive={false}
-                  />
-                </View>
-              );
-            })}
+                return (
+                  <View
+                    key={card.marketId}
+                    style={[
+                      styles.stackedCard,
+                      {
+                        transform: [{ scale }, { translateY: offsetY }],
+                        opacity: cardOpacity,
+                        zIndex: VISIBLE_STACK_COUNT - stackIndex,
+                      },
+                    ]}
+                  >
+                    <SwipeCard
+                      card={card}
+                      preview={null}
+                      betAmount={betAmount}
+                      isActive={false}
+                    />
+                  </View>
+                );
+              })}
 
             {/* Active card (swipeable) */}
             {currentCard && (
@@ -405,7 +489,7 @@ const PredictSwipeGame: React.FC = () => {
                     card={currentCard}
                     preview={currentPreview}
                     betAmount={betAmount}
-                    isActive={true}
+                    isActive
                   />
 
                   {/* ===== SWIPE OVERLAYS ===== */}
@@ -416,10 +500,16 @@ const PredictSwipeGame: React.FC = () => {
                       style={{ backgroundColor: 'rgba(40, 167, 69, 0.9)' }}
                     >
                       <Text style={styles.overlayIcon}>✓</Text>
-                      <Text variant={TextVariant.HeadingLg} style={styles.overlayText}>
+                      <Text
+                        variant={TextVariant.HeadingLg}
+                        style={styles.overlayText}
+                      >
                         YES
                       </Text>
-                      <Text variant={TextVariant.BodyLg} style={styles.overlayText}>
+                      <Text
+                        variant={TextVariant.BodyLg}
+                        style={styles.overlayText}
+                      >
                         Bet ${betAmount} → Win ${yesPotentialWin}
                       </Text>
                     </Box>
@@ -432,23 +522,34 @@ const PredictSwipeGame: React.FC = () => {
                       style={{ backgroundColor: 'rgba(215, 58, 73, 0.9)' }}
                     >
                       <Text style={styles.overlayIcon}>✗</Text>
-                      <Text variant={TextVariant.HeadingLg} style={styles.overlayText}>
+                      <Text
+                        variant={TextVariant.HeadingLg}
+                        style={styles.overlayText}
+                      >
                         NO
                       </Text>
-                      <Text variant={TextVariant.BodyLg} style={styles.overlayText}>
+                      <Text
+                        variant={TextVariant.BodyLg}
+                        style={styles.overlayText}
+                      >
                         Bet ${betAmount} → Win ${noPotentialWin}
                       </Text>
                     </Box>
                   </Animated.View>
 
                   {/* SKIP Overlay (swiping up/down) */}
-                  <Animated.View style={[styles.swipeOverlay, skipOverlayStyle]}>
+                  <Animated.View
+                    style={[styles.swipeOverlay, skipOverlayStyle]}
+                  >
                     <Box
                       twClassName="flex-1 items-center justify-center rounded-3xl"
                       style={{ backgroundColor: 'rgba(100, 100, 100, 0.85)' }}
                     >
                       <Text style={styles.overlayIcon}>↕</Text>
-                      <Text variant={TextVariant.HeadingLg} style={styles.overlayText}>
+                      <Text
+                        variant={TextVariant.HeadingLg}
+                        style={styles.overlayText}
+                      >
                         SKIP
                       </Text>
                     </Box>
@@ -460,7 +561,10 @@ const PredictSwipeGame: React.FC = () => {
                       twClassName="absolute inset-0 items-center justify-center rounded-3xl"
                       style={{ backgroundColor: 'rgba(255,255,255,0.8)' }}
                     >
-                      <ActivityIndicator size="large" color={colors.primary.default} />
+                      <ActivityIndicator
+                        size="large"
+                        color={colors.primary.default}
+                      />
                       <Text variant={TextVariant.BodyMd} twClassName="mt-3">
                         Placing bet...
                       </Text>
@@ -473,9 +577,15 @@ const PredictSwipeGame: React.FC = () => {
         </Box>
 
         {/* ===== BOTTOM AREA ===== */}
-        <Box twClassName="items-center pb-2" style={{ paddingBottom: insets.bottom + 8 }}>
+        <Box
+          twClassName="items-center pb-2"
+          style={{ paddingBottom: insets.bottom + 8 }}
+        >
           {/* Skip hint */}
-          <Text variant={TextVariant.BodySm} twClassName="text-muted opacity-60 mb-2">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-muted opacity-60 mb-2"
+          >
             ↕ Swipe up or down to skip
           </Text>
 
@@ -508,10 +618,12 @@ const PredictSwipeGame: React.FC = () => {
         {/* ===== ORDER ERROR BANNER ===== */}
         {orderError && (
           <Pressable onPress={clearOrderError} style={styles.errorBanner}>
-            <Box
-              twClassName="bg-error-muted rounded-2xl px-4 py-3 flex-row items-center mx-4"
-            >
-              <Icon name={IconName.Warning} color={IconColor.Error} size={IconSize.Sm} />
+            <Box twClassName="bg-error-muted rounded-2xl px-4 py-3 flex-row items-center mx-4">
+              <Icon
+                name={IconName.Warning}
+                color={IconColor.Error}
+                size={IconSize.Sm}
+              />
               <Text
                 variant={TextVariant.BodyMd}
                 twClassName="ml-2 flex-1"
@@ -519,7 +631,9 @@ const PredictSwipeGame: React.FC = () => {
               >
                 {orderError}
               </Text>
-              <Text variant={TextVariant.BodySm} twClassName="text-muted">✕</Text>
+              <Text variant={TextVariant.BodySm} twClassName="text-muted">
+                ✕
+              </Text>
             </Box>
           </Pressable>
         )}

@@ -3,20 +3,21 @@
 ## Overview
 
 A Tinder-style swipe game for prediction markets where users can quickly bet on trending markets:
+
 - **Swipe Right** → Bet on "Yes" ✅ (positive action = right)
 - **Swipe Left** → Bet on "No" ❌ (negative action = left)
 - **Swipe Down** → Skip to next card ⏭️
 
 ## Key Decisions (Resolved)
 
-| Question | Decision |
-|----------|----------|
-| Swipe direction | Right = Yes, Left = No (intuitive mapping) |
-| Confirmation before bet | No - instant bet, but with 5s undo window |
-| Undo feature | Yes - 5 second undo button (uses existing rate limit) |
-| Multi-outcome markets | Show highest volume as primary, others selectable inside card |
-| Onboarding | Not needed for MVP |
-| Sound/Haptics | Yes - sound effects + vibration feedback |
+| Question                | Decision                                                      |
+| ----------------------- | ------------------------------------------------------------- |
+| Swipe direction         | Right = Yes, Left = No (intuitive mapping)                    |
+| Confirmation before bet | No - instant bet, but with 5s undo window                     |
+| Undo feature            | Yes - 5 second undo button (uses existing rate limit)         |
+| Multi-outcome markets   | Show highest volume as primary, others selectable inside card |
+| Onboarding              | Not needed for MVP                                            |
+| Sound/Haptics           | Yes - sound effects + vibration feedback                      |
 
 ## Table of Contents
 
@@ -157,21 +158,21 @@ interface SwipeGameCard {
   // Market identification
   marketId: string;
   providerId: string;
-  
+
   // Display info
   title: string;
   description: string;
   image: string;
   endDate?: string;
-  
+
   // Primary bet (highest volume outcome for multi-outcome markets)
   primaryOutcome: {
     outcomeId: string;
-    yesToken: OutcomeToken;  // Token for "Yes" bet
-    noToken: OutcomeToken;   // Token for "No" bet
-    title: string;           // e.g., "Will Bitcoin hit $100k?"
+    yesToken: OutcomeToken; // Token for "Yes" bet
+    noToken: OutcomeToken; // Token for "No" bet
+    title: string; // e.g., "Will Bitcoin hit $100k?"
   };
-  
+
   // Alternative outcomes (for multi-outcome markets, sorted by volume)
   alternativeOutcomes: Array<{
     outcomeId: string;
@@ -180,7 +181,7 @@ interface SwipeGameCard {
     yesToken: OutcomeToken;
     noToken: OutcomeToken;
   }>;
-  
+
   // Metadata
   totalVolume: number;
   liquidity: number;
@@ -188,9 +189,9 @@ interface SwipeGameCard {
 }
 
 interface OutcomeToken {
-  id: string;       // CLOB token ID needed for trading
-  title: string;    // "Yes" or "No"
-  price: number;    // Current price (0-1)
+  id: string; // CLOB token ID needed for trading
+  title: string; // "Yes" or "No"
+  price: number; // Current price (0-1)
 }
 ```
 
@@ -202,22 +203,22 @@ For markets with multiple outcomes, sort by volume and select primary:
 function transformMarketToCard(market: PredictMarket): SwipeGameCard {
   // Sort outcomes by volume (highest first)
   const sortedOutcomes = [...market.outcomes].sort(
-    (a, b) => b.volume - a.volume
+    (a, b) => b.volume - a.volume,
   );
-  
+
   const primaryOutcome = sortedOutcomes[0];
   const alternativeOutcomes = sortedOutcomes.slice(1);
-  
+
   // Find Yes and No tokens for each outcome
   // In Polymarket: tokens[0] = Yes, tokens[1] = No (typically)
-  const yesToken = primaryOutcome.tokens.find(t => 
-    t.title.toLowerCase() === 'yes'
-  ) || primaryOutcome.tokens[0];
-  
-  const noToken = primaryOutcome.tokens.find(t => 
-    t.title.toLowerCase() === 'no'
-  ) || primaryOutcome.tokens[1];
-  
+  const yesToken =
+    primaryOutcome.tokens.find((t) => t.title.toLowerCase() === 'yes') ||
+    primaryOutcome.tokens[0];
+
+  const noToken =
+    primaryOutcome.tokens.find((t) => t.title.toLowerCase() === 'no') ||
+    primaryOutcome.tokens[1];
+
   return {
     marketId: market.id,
     providerId: market.providerId,
@@ -227,11 +228,15 @@ function transformMarketToCard(market: PredictMarket): SwipeGameCard {
     endDate: market.endDate,
     primaryOutcome: {
       outcomeId: primaryOutcome.id,
-      yesToken: { id: yesToken.id, title: yesToken.title, price: yesToken.price },
+      yesToken: {
+        id: yesToken.id,
+        title: yesToken.title,
+        price: yesToken.price,
+      },
       noToken: { id: noToken.id, title: noToken.title, price: noToken.price },
       title: primaryOutcome.title,
     },
-    alternativeOutcomes: alternativeOutcomes.map(outcome => ({
+    alternativeOutcomes: alternativeOutcomes.map((outcome) => ({
       outcomeId: outcome.id,
       title: outcome.title,
       volume: outcome.volume,
@@ -253,15 +258,15 @@ For smooth UX, prefetch order previews for visible cards:
 interface CardPreview {
   cardId: string;
   betAmount: number;
-  
+
   // Yes bet preview
   yesPreview: {
     sharePrice: number;
     estimatedShares: number;
-    potentialWin: number;  // If outcome is Yes
-    odds: string;          // e.g., "2.5x"
+    potentialWin: number; // If outcome is Yes
+    odds: string; // e.g., "2.5x"
   } | null;
-  
+
   // No bet preview
   noPreview: {
     sharePrice: number;
@@ -269,13 +274,14 @@ interface CardPreview {
     potentialWin: number;
     odds: string;
   } | null;
-  
+
   isLoading: boolean;
   error: string | null;
 }
 ```
 
 **Prefetch Strategy**:
+
 - Always have preview for current card
 - Prefetch next 2 cards in background
 - Re-fetch when bet amount changes
@@ -285,14 +291,14 @@ interface CardPreview {
 function useCardPreviews(
   cards: SwipeGameCard[],
   currentIndex: number,
-  betAmount: number
+  betAmount: number,
 ) {
   const [previews, setPreviews] = useState<Map<string, CardPreview>>();
-  
+
   useEffect(() => {
     // Fetch previews for current + next 2 cards
     const cardsToPreview = cards.slice(currentIndex, currentIndex + 3);
-    
+
     cardsToPreview.forEach(async (card) => {
       // Fetch YES preview
       const yesPreview = await previewOrder({
@@ -303,7 +309,7 @@ function useCardPreviews(
         side: Side.BUY,
         size: betAmount,
       });
-      
+
       // Fetch NO preview
       const noPreview = await previewOrder({
         providerId: card.providerId,
@@ -313,29 +319,31 @@ function useCardPreviews(
         side: Side.BUY,
         size: betAmount,
       });
-      
+
       // Calculate potential winnings
       // Win = shares received (each share pays $1 if correct)
       // So potential win = minAmountReceived - betAmount
-      setPreviews(prev => prev.set(card.marketId, {
-        yesPreview: {
-          sharePrice: yesPreview.sharePrice,
-          estimatedShares: yesPreview.minAmountReceived,
-          potentialWin: yesPreview.minAmountReceived - betAmount,
-          odds: `${(1 / yesPreview.sharePrice).toFixed(1)}x`,
-        },
-        noPreview: {
-          sharePrice: noPreview.sharePrice,
-          estimatedShares: noPreview.minAmountReceived,
-          potentialWin: noPreview.minAmountReceived - betAmount,
-          odds: `${(1 / noPreview.sharePrice).toFixed(1)}x`,
-        },
-        isLoading: false,
-        error: null,
-      }));
+      setPreviews((prev) =>
+        prev.set(card.marketId, {
+          yesPreview: {
+            sharePrice: yesPreview.sharePrice,
+            estimatedShares: yesPreview.minAmountReceived,
+            potentialWin: yesPreview.minAmountReceived - betAmount,
+            odds: `${(1 / yesPreview.sharePrice).toFixed(1)}x`,
+          },
+          noPreview: {
+            sharePrice: noPreview.sharePrice,
+            estimatedShares: noPreview.minAmountReceived,
+            potentialWin: noPreview.minAmountReceived - betAmount,
+            odds: `${(1 / noPreview.sharePrice).toFixed(1)}x`,
+          },
+          isLoading: false,
+          error: null,
+        }),
+      );
     });
   }, [cards, currentIndex, betAmount]);
-  
+
   return previews;
 }
 ```
@@ -347,6 +355,7 @@ function useCardPreviews(
 ### 3.1 Main Layout
 
 **Normal State** (swiping cards):
+
 ```
 ┌────────────────────────────────────┐
 │  ┌──────────────────────────────┐  │  ← Header with back button
@@ -375,6 +384,7 @@ function useCardPreviews(
 ```
 
 **After Bet** (undo toast appears for 5 seconds):
+
 ```
 ┌────────────────────────────────────┐
 │  💰 $5.00  ▼                       │
@@ -406,6 +416,7 @@ function useCardPreviews(
 ### 3.2 SwipeCard Component
 
 **Design Requirements**:
+
 - Rounded corners with shadow
 - Market image as background or header
 - Title prominently displayed
@@ -431,10 +442,10 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
   style,
 }) => {
   const tw = useTailwind();
-  
+
   // Levitating animation
   const translateY = useSharedValue(0);
-  
+
   useEffect(() => {
     if (isActive) {
       translateY.value = withRepeat(
@@ -447,21 +458,21 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
       );
     }
   }, [isActive]);
-  
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
   }));
-  
+
   return (
     <Animated.View style={[style, animatedStyle]}>
       <Box twClassName="bg-default rounded-3xl overflow-hidden shadow-lg">
         {/* Card Image */}
         <Image source={{ uri: card.image }} twClassName="w-full h-40" />
-        
+
         {/* Card Content */}
         <Box twClassName="p-4">
           <Text variant={TextVariant.HeadingMd}>{card.title}</Text>
-          
+
           {card.isMultiOutcome && (
             <OutcomeSelector
               outcomes={[card.primaryOutcome, ...card.alternativeOutcomes]}
@@ -469,7 +480,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
               onSelect={onOutcomeChange}
             />
           )}
-          
+
           <Text variant={TextVariant.BodySm} twClassName="text-muted mt-2">
             {card.endDate ? `Ends ${formatDate(card.endDate)}` : ''}
           </Text>
@@ -499,34 +510,34 @@ const SwipeIndicator: React.FC<SwipeIndicatorProps> = ({
   isHighlighted,
 }) => {
   const tw = useTailwind();
-  
+
   const getConfig = () => {
     switch (side) {
       case 'yes':
-        return { 
-          label: 'YES', 
+        return {
+          label: 'YES',
           color: 'bg-success-default',
           icon: IconName.CheckCircle,
         };
       case 'no':
-        return { 
-          label: 'NO', 
+        return {
+          label: 'NO',
           color: 'bg-error-default',
           icon: IconName.CloseCircle,
         };
       case 'skip':
-        return { 
-          label: 'SKIP', 
+        return {
+          label: 'SKIP',
           color: 'bg-muted',
           icon: IconName.ArrowDown,
         };
     }
   };
-  
+
   const config = getConfig();
   const odds = `${Math.round(price * 100)}¢`;
   const winFormatted = formatPrice(potentialWin, { prefix: '+$' });
-  
+
   return (
     <Animated.View
       style={[
@@ -572,7 +583,7 @@ const BetAmountSelector: React.FC<BetAmountSelectorProps> = ({
   maxBalance,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   return (
     <Box twClassName="flex-row items-center justify-center py-4">
       <Pressable
@@ -588,7 +599,7 @@ const BetAmountSelector: React.FC<BetAmountSelectorProps> = ({
         </Text>
         <Icon name={IconName.ChevronDown} size={20} twClassName="ml-1" />
       </Pressable>
-      
+
       {/* Bottom sheet for amount selection */}
       <BottomSheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <Box twClassName="p-4">
@@ -606,7 +617,7 @@ const BetAmountSelector: React.FC<BetAmountSelectorProps> = ({
               </Pressable>
             ))}
           </Box>
-          
+
           {/* Custom amount input */}
           <TextInput
             label="Custom amount"
@@ -641,10 +652,10 @@ const OutcomeSelector: React.FC<OutcomeSelectorProps> = ({
   onSelect,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const selectedOutcome = outcomes.find(o => o.outcomeId === selectedOutcomeId);
   const otherOutcomes = outcomes.filter(o => o.outcomeId !== selectedOutcomeId);
-  
+
   return (
     <Box twClassName="mt-3">
       {/* Selected outcome display */}
@@ -660,14 +671,14 @@ const OutcomeSelector: React.FC<OutcomeSelectorProps> = ({
             <Text variant={TextVariant.BodySm} twClassName="text-muted mr-1">
               {otherOutcomes.length} more
             </Text>
-            <Icon 
-              name={isExpanded ? IconName.ChevronUp : IconName.ChevronDown} 
-              size={16} 
+            <Icon
+              name={isExpanded ? IconName.ChevronUp : IconName.ChevronDown}
+              size={16}
             />
           </Box>
         )}
       </Pressable>
-      
+
       {/* Expandable list of other outcomes */}
       {isExpanded && (
         <Box twClassName="mt-2 gap-2">
@@ -703,10 +714,10 @@ Using `react-native-gesture-handler` and `react-native-reanimated`:
 
 ```typescript
 interface SwipeGestureConfig {
-  horizontalThreshold: number;  // Min X distance to trigger action (e.g., 100)
-  verticalThreshold: number;    // Min Y distance for skip (e.g., 80)
-  snapBackDuration: number;     // Animation duration for snap back (ms)
-  exitDuration: number;         // Animation duration for exit (ms)
+  horizontalThreshold: number; // Min X distance to trigger action (e.g., 100)
+  verticalThreshold: number; // Min Y distance for skip (e.g., 80)
+  snapBackDuration: number; // Animation duration for snap back (ms)
+  exitDuration: number; // Animation duration for exit (ms)
 }
 
 const DEFAULT_CONFIG: SwipeGestureConfig = {
@@ -727,35 +738,29 @@ function useSwipeGesture(
   const rotation = useSharedValue(0);
   const opacity = useSharedValue(1);
   const scale = useSharedValue(1);
-  
+
   // Derived values for indicator highlighting
-  const isSwipingLeft = useDerivedValue(() => 
-    translateX.value < -30
+  const isSwipingLeft = useDerivedValue(() => translateX.value < -30);
+  const isSwipingRight = useDerivedValue(() => translateX.value > 30);
+  const isSwipingDown = useDerivedValue(
+    () => translateY.value > 30 && Math.abs(translateX.value) < 30,
   );
-  const isSwipingRight = useDerivedValue(() => 
-    translateX.value > 30
-  );
-  const isSwipingDown = useDerivedValue(() => 
-    translateY.value > 30 && Math.abs(translateX.value) < 30
-  );
-  
+
   const gesture = Gesture.Pan()
     .onUpdate((event) => {
       translateX.value = event.translationX;
       translateY.value = Math.max(0, event.translationY); // Only allow down
-      
+
       // Rotate slightly based on horizontal movement
       rotation.value = (event.translationX / SCREEN_WIDTH) * 15; // Max 15 degrees
-      
+
       // Scale down slightly when swiping
-      scale.value = 1 - Math.min(
-        Math.abs(event.translationX) / SCREEN_WIDTH,
-        0.1
-      );
+      scale.value =
+        1 - Math.min(Math.abs(event.translationX) / SCREEN_WIDTH, 0.1);
     })
     .onEnd((event) => {
       const { translationX, translationY, velocityX, velocityY } = event;
-      
+
       // Check for swipe RIGHT (YES bet) ✅
       if (translationX > config.horizontalThreshold || velocityX > 500) {
         // Animate out to right
@@ -766,7 +771,7 @@ function useSwipeGesture(
         runOnJS(onSwipeRight)(); // YES bet
         return;
       }
-      
+
       // Check for swipe LEFT (NO bet) ❌
       if (translationX < -config.horizontalThreshold || velocityX < -500) {
         // Animate out to left
@@ -777,10 +782,10 @@ function useSwipeGesture(
         runOnJS(onSwipeLeft)(); // NO bet
         return;
       }
-      
+
       // Check for swipe down (Skip) ⏭️
       if (
-        translationY > config.verticalThreshold && 
+        translationY > config.verticalThreshold &&
         Math.abs(translationX) < 50
       ) {
         // Animate out to bottom
@@ -791,14 +796,14 @@ function useSwipeGesture(
         runOnJS(onSwipeDown)();
         return;
       }
-      
+
       // Snap back to center
       translateX.value = withSpring(0, { damping: 15 });
       translateY.value = withSpring(0, { damping: 15 });
       rotation.value = withSpring(0, { damping: 15 });
       scale.value = withSpring(1, { damping: 15 });
     });
-  
+
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
@@ -808,7 +813,7 @@ function useSwipeGesture(
     ],
     opacity: opacity.value,
   }));
-  
+
   const resetCard = () => {
     translateX.value = withSpring(0);
     translateY.value = withSpring(0);
@@ -816,7 +821,7 @@ function useSwipeGesture(
     scale.value = withSpring(1);
     opacity.value = 1;
   };
-  
+
   return {
     gesture,
     cardStyle,
@@ -840,17 +845,17 @@ function CardStack({
 }: CardStackProps) {
   // Show current card + 2 behind it
   const visibleCards = cards.slice(currentIndex, currentIndex + 3);
-  
+
   return (
     <Box twClassName="flex-1 items-center justify-center">
       {visibleCards.map((card, stackIndex) => {
         const isActive = stackIndex === 0;
-        
+
         // Cards behind are smaller and offset
         const scale = 1 - (stackIndex * 0.05);
         const translateY = stackIndex * 10;
         const zIndex = 3 - stackIndex;
-        
+
         return (
           <SwipeCard
             key={card.marketId}
@@ -884,25 +889,25 @@ const SwipeOverlay: React.FC<{
   isSwipingRight: SharedValue<boolean>;
   isSwipingDown: SharedValue<boolean>;
 }> = ({ isSwipingLeft, isSwipingRight, isSwipingDown }) => {
-  
+
   const yesOverlayStyle = useAnimatedStyle(() => ({
     opacity: withTiming(isSwipingLeft.value ? 0.9 : 0, { duration: 150 }),
     transform: [{ scale: withSpring(isSwipingLeft.value ? 1 : 0.8) }],
   }));
-  
+
   const noOverlayStyle = useAnimatedStyle(() => ({
     opacity: withTiming(isSwipingRight.value ? 0.9 : 0, { duration: 150 }),
     transform: [{ scale: withSpring(isSwipingRight.value ? 1 : 0.8) }],
   }));
-  
+
   const skipOverlayStyle = useAnimatedStyle(() => ({
     opacity: withTiming(isSwipingDown.value ? 0.9 : 0, { duration: 150 }),
   }));
-  
+
   return (
     <>
       {/* YES overlay (left swipe) */}
-      <Animated.View 
+      <Animated.View
         style={[styles.overlay, styles.leftOverlay, yesOverlayStyle]}
         pointerEvents="none"
       >
@@ -912,9 +917,9 @@ const SwipeOverlay: React.FC<{
           </Text>
         </Box>
       </Animated.View>
-      
+
       {/* NO overlay (right swipe) */}
-      <Animated.View 
+      <Animated.View
         style={[styles.overlay, styles.rightOverlay, noOverlayStyle]}
         pointerEvents="none"
       >
@@ -924,9 +929,9 @@ const SwipeOverlay: React.FC<{
           </Text>
         </Box>
       </Animated.View>
-      
+
       {/* SKIP overlay (down swipe) */}
-      <Animated.View 
+      <Animated.View
         style={[styles.overlay, styles.bottomOverlay, skipOverlayStyle]}
         pointerEvents="none"
       >
@@ -956,10 +961,9 @@ async function placeBetOnSwipe(
   side: 'yes' | 'no',
   betAmount: number,
 ): Promise<BetResult> {
-  const token = side === 'yes' 
-    ? card.primaryOutcome.yesToken 
-    : card.primaryOutcome.noToken;
-  
+  const token =
+    side === 'yes' ? card.primaryOutcome.yesToken : card.primaryOutcome.noToken;
+
   try {
     const result = await placeOrder({
       providerId: card.providerId,
@@ -977,7 +981,7 @@ async function placeBetOnSwipe(
         transactionType: 'buy',
       },
     });
-    
+
     return {
       success: true,
       orderId: result.response?.id,
@@ -1034,44 +1038,44 @@ const UndoToast: React.FC<UndoToastProps> = ({
   const tw = useTailwind();
   const progress = useSharedValue(1);  // 1 = full, 0 = empty
   const opacity = useSharedValue(0);
-  
+
   // Animate in
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 200 });
-    
+
     // Countdown animation (1 → 0 over duration)
     progress.value = withTiming(0, {
       duration,
       easing: Easing.linear,
     });
-    
+
     // Auto-dismiss after duration
     const timer = setTimeout(() => {
       opacity.value = withTiming(0, { duration: 200 });
       setTimeout(onDismiss, 200);
     }, duration);
-    
+
     return () => clearTimeout(timer);
   }, [duration]);
-  
+
   const containerStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [
       { translateY: interpolate(opacity.value, [0, 1], [50, 0]) },
     ],
   }));
-  
+
   const handleUndo = () => {
     triggerHaptic('undo');
     swipeGameAudio.playSound('undo');
     onUndo();
   };
-  
+
   const isYes = betType === 'yes';
   const bgColor = isYes ? 'bg-success-muted' : 'bg-error-muted';
   const iconColor = isYes ? IconColor.Success : IconColor.Error;
   const icon = isYes ? IconName.CheckCircle : IconName.CloseCircle;
-  
+
   return (
     <Animated.View style={[styles.toastContainer, containerStyle]}>
       <Box twClassName={`${bgColor} rounded-2xl p-4 mx-4 shadow-lg`}>
@@ -1092,7 +1096,7 @@ const UndoToast: React.FC<UndoToastProps> = ({
               </Text>
             </Box>
           </Box>
-          
+
           {/* Right: Undo Button with Circular Progress */}
           <Pressable
             onPress={handleUndo}
@@ -1149,11 +1153,11 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  
+
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: circumference * (1 - progress.value),
   }));
-  
+
   return (
     <Box style={{ width: size, height: size }}>
       <Svg width={size} height={size}>
@@ -1194,24 +1198,27 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 ```typescript
 function useUndoToast(onUndo: () => void) {
   const [toastState, setToastState] = useState<UndoToastState | null>(null);
-  
-  const showUndoToast = useCallback((params: Omit<UndoToastState, 'isVisible' | 'startTime'>) => {
-    setToastState({
-      ...params,
-      isVisible: true,
-      startTime: Date.now(),
-    });
-  }, []);
-  
+
+  const showUndoToast = useCallback(
+    (params: Omit<UndoToastState, 'isVisible' | 'startTime'>) => {
+      setToastState({
+        ...params,
+        isVisible: true,
+        startTime: Date.now(),
+      });
+    },
+    [],
+  );
+
   const hideUndoToast = useCallback(() => {
     setToastState(null);
   }, []);
-  
+
   const handleUndo = useCallback(() => {
     hideUndoToast();
     onUndo();
   }, [hideUndoToast, onUndo]);
-  
+
   return {
     toastState,
     showUndoToast,
@@ -1228,17 +1235,17 @@ const handleSwipeRight = async () => {
   // YES bet
   triggerHaptic('success');
   swipeGameAudio.playSound('swipeYes');
-  
+
   const card = state.cards[state.currentIndex];
   const preview = previews.get(card.marketId);
-  
-  setState(s => ({ ...s, isPendingOrder: true }));
-  
+
+  setState((s) => ({ ...s, isPendingOrder: true }));
+
   const result = await placeBetOnSwipe(card, preview, 'yes', state.betAmount);
-  
+
   if (result.success) {
     // Advance to next card
-    setState(s => ({
+    setState((s) => ({
       ...s,
       currentIndex: s.currentIndex + 1,
       isPendingOrder: false,
@@ -1248,7 +1255,7 @@ const handleSwipeRight = async () => {
         totalWagered: s.sessionStats.totalWagered + s.betAmount,
       },
     }));
-    
+
     // Show undo toast
     showUndoToast({
       betType: 'yes',
@@ -1257,18 +1264,18 @@ const handleSwipeRight = async () => {
       potentialWin: preview.yesPreview?.potentialWin ?? 0,
     });
   } else {
-    setState(s => ({ ...s, isPendingOrder: false }));
+    setState((s) => ({ ...s, isPendingOrder: false }));
     showErrorToast(result.error);
   }
 };
 
 const handleUndo = useCallback(() => {
   if (state.currentIndex > 0) {
-    setState(s => ({
+    setState((s) => ({
       ...s,
       currentIndex: s.currentIndex - 1,
     }));
-    
+
     // Note: The bet still stands - we're just going back to review the card
     // Could show a subtle toast: "Going back. Previous bet is still active."
   }
@@ -1276,6 +1283,7 @@ const handleUndo = useCallback(() => {
 ```
 
 **Undo Behavior**:
+
 - Toast appears immediately after successful bet
 - Shows bet details (YES/NO, market title, amount, potential win)
 - Circular progress ring counts down from full to empty over 5 seconds
@@ -1287,12 +1295,24 @@ const handleUndo = useCallback(() => {
 
 ```typescript
 // sounds.ts
-import { Audio } from 'expo-av';  // or react-native-sound
+import { Audio } from 'expo-av'; // or react-native-sound
 import { Vibration, Platform } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
-type SoundType = 'swipeYes' | 'swipeNo' | 'skip' | 'undo' | 'error' | 'cardAppear';
-type HapticType = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
+type SoundType =
+  | 'swipeYes'
+  | 'swipeNo'
+  | 'skip'
+  | 'undo'
+  | 'error'
+  | 'cardAppear';
+type HapticType =
+  | 'light'
+  | 'medium'
+  | 'heavy'
+  | 'success'
+  | 'warning'
+  | 'error';
 
 const SOUND_FILES: Record<SoundType, any> = {
   swipeYes: require('../assets/sounds/swipe-yes.mp3'),
@@ -1315,24 +1335,24 @@ const HAPTIC_MAP: Record<HapticType, string> = {
 class SwipeGameAudio {
   private sounds: Map<SoundType, Audio.Sound> = new Map();
   private isEnabled: boolean = true;
-  
+
   async preloadSounds() {
     for (const [type, file] of Object.entries(SOUND_FILES)) {
       const { sound } = await Audio.Sound.createAsync(file);
       this.sounds.set(type as SoundType, sound);
     }
   }
-  
+
   async playSound(type: SoundType) {
     if (!this.isEnabled) return;
-    
+
     const sound = this.sounds.get(type);
     if (sound) {
       await sound.setPositionAsync(0);
       await sound.playAsync();
     }
   }
-  
+
   setEnabled(enabled: boolean) {
     this.isEnabled = enabled;
   }
@@ -1342,7 +1362,7 @@ export const swipeGameAudio = new SwipeGameAudio();
 
 export function triggerHaptic(type: HapticType) {
   const hapticType = HAPTIC_MAP[type];
-  
+
   if (Platform.OS === 'ios') {
     ReactNativeHapticFeedback.trigger(hapticType, {
       enableVibrateFallback: true,
@@ -1370,8 +1390,8 @@ const handleSwipeRight = async () => {
   // YES bet
   triggerHaptic('success');
   swipeGameAudio.playSound('swipeYes');
-  
-  setState(s => ({ ...s, isPendingOrder: true }));
+
+  setState((s) => ({ ...s, isPendingOrder: true }));
   // ... rest of order logic
 };
 
@@ -1379,7 +1399,7 @@ const handleSwipeLeft = async () => {
   // NO bet
   triggerHaptic('medium');
   swipeGameAudio.playSound('swipeNo');
-  
+
   // ... order logic
 };
 
@@ -1387,7 +1407,7 @@ const handleSwipeDown = () => {
   // Skip
   triggerHaptic('light');
   swipeGameAudio.playSound('skip');
-  
+
   // ... skip logic
 };
 
@@ -1403,35 +1423,36 @@ const handleOrderError = () => {
 function useSwipeFeedback() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [hapticEnabled, setHapticEnabled] = useState(true);
-  
+
   useEffect(() => {
     // Preload sounds on mount
     swipeGameAudio.preloadSounds();
   }, []);
-  
-  const playFeedback = useCallback((
-    action: 'yes' | 'no' | 'skip' | 'undo' | 'error',
-  ) => {
-    // Map action to sound and haptic type
-    const feedbackMap = {
-      yes: { sound: 'swipeYes', haptic: 'success' },
-      no: { sound: 'swipeNo', haptic: 'medium' },
-      skip: { sound: 'skip', haptic: 'light' },
-      undo: { sound: 'undo', haptic: 'warning' },
-      error: { sound: 'error', haptic: 'error' },
-    } as const;
-    
-    const config = feedbackMap[action];
-    
-    if (soundEnabled) {
-      swipeGameAudio.playSound(config.sound);
-    }
-    
-    if (hapticEnabled) {
-      triggerHaptic(config.haptic);
-    }
-  }, [soundEnabled, hapticEnabled]);
-  
+
+  const playFeedback = useCallback(
+    (action: 'yes' | 'no' | 'skip' | 'undo' | 'error') => {
+      // Map action to sound and haptic type
+      const feedbackMap = {
+        yes: { sound: 'swipeYes', haptic: 'success' },
+        no: { sound: 'swipeNo', haptic: 'medium' },
+        skip: { sound: 'skip', haptic: 'light' },
+        undo: { sound: 'undo', haptic: 'warning' },
+        error: { sound: 'error', haptic: 'error' },
+      } as const;
+
+      const config = feedbackMap[action];
+
+      if (soundEnabled) {
+        swipeGameAudio.playSound(config.sound);
+      }
+
+      if (hapticEnabled) {
+        triggerHaptic(config.haptic);
+      }
+    },
+    [soundEnabled, hapticEnabled],
+  );
+
   return {
     playFeedback,
     soundEnabled,
@@ -1463,39 +1484,39 @@ function useSwipeGame() {
   const [state, setState] = useState<SwipeGameState>({
     cards: [],
     currentIndex: 0,
-    betAmount: 5,  // Default $5
+    betAmount: 5, // Default $5
     isLoading: true,
     isPendingOrder: false,
     balance: 0,
     sessionStats: { betsPlaced: 0, totalWagered: 0, skipped: 0 },
   });
-  
+
   const { markets, fetchMore } = usePredictMarketData({ category: 'trending' });
   const { getBalance } = usePredictTrading();
   const { placeOrder } = usePredictPlaceOrder();
-  
+
   // Transform markets to cards
   useEffect(() => {
     const cards = markets.map(transformMarketToCard);
-    setState(s => ({ ...s, cards, isLoading: false }));
+    setState((s) => ({ ...s, cards, isLoading: false }));
   }, [markets]);
-  
+
   // Prefetch more cards when running low
   useEffect(() => {
     if (state.cards.length - state.currentIndex < 5) {
       fetchMore();
     }
   }, [state.currentIndex, state.cards.length]);
-  
+
   const handleSwipeLeft = async () => {
     // YES bet
-    setState(s => ({ ...s, isPendingOrder: true }));
-    
+    setState((s) => ({ ...s, isPendingOrder: true }));
+
     const card = state.cards[state.currentIndex];
     const result = await placeBetOnSwipe(card, preview, 'yes', state.betAmount);
-    
+
     if (result.success) {
-      setState(s => ({
+      setState((s) => ({
         ...s,
         currentIndex: s.currentIndex + 1,
         isPendingOrder: false,
@@ -1507,18 +1528,18 @@ function useSwipeGame() {
       }));
     } else {
       // Show error, don't advance
-      setState(s => ({ ...s, isPendingOrder: false }));
+      setState((s) => ({ ...s, isPendingOrder: false }));
       showErrorToast(result.error);
     }
   };
-  
+
   const handleSwipeRight = async () => {
     // NO bet - similar to above
   };
-  
+
   const handleSwipeDown = () => {
     // Skip - just advance
-    setState(s => ({
+    setState((s) => ({
       ...s,
       currentIndex: s.currentIndex + 1,
       sessionStats: {
@@ -1527,11 +1548,11 @@ function useSwipeGame() {
       },
     }));
   };
-  
+
   const setBetAmount = (amount: number) => {
-    setState(s => ({ ...s, betAmount: amount }));
+    setState((s) => ({ ...s, betAmount: amount }));
   };
-  
+
   return {
     ...state,
     currentCard: state.cards[state.currentIndex],
@@ -1553,14 +1574,16 @@ function useSwipeGameEligibility(betAmount: number) {
   const { isEligible, isLoading: eligibilityLoading } = usePredictEligibility();
   const { balance, isLoading: balanceLoading } = usePredictBalance();
   const { accountState } = usePredictAccountState();
-  
+
   const canBet = useMemo(() => {
     if (!isEligible) return { allowed: false, reason: 'geo_blocked' };
-    if (balance < betAmount) return { allowed: false, reason: 'insufficient_balance' };
-    if (!accountState?.isDeployed) return { allowed: false, reason: 'account_not_setup' };
+    if (balance < betAmount)
+      return { allowed: false, reason: 'insufficient_balance' };
+    if (!accountState?.isDeployed)
+      return { allowed: false, reason: 'account_not_setup' };
     return { allowed: true, reason: null };
   }, [isEligible, balance, betAmount, accountState]);
-  
+
   return {
     canBet,
     balance,
@@ -1651,7 +1674,7 @@ Add a button to enter the game from the main Predict view:
 // In PredictTabView or PredictFeedHeader
 const SwipeGameButton: React.FC = () => {
   const navigation = useNavigation<PredictNavigationProp>();
-  
+
   return (
     <Pressable
       onPress={() => navigation.navigate('PredictSwipeGame')}
@@ -1713,7 +1736,7 @@ function useSwipeAnalytics() {
     startTime: Date.now(),
     cardStartTime: Date.now(),
   });
-  
+
   const trackGameStart = useCallback((entryPoint: string) => {
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
@@ -1726,7 +1749,7 @@ function useSwipeAnalytics() {
       .build()
     );
   }, []);
-  
+
   const trackSwipeAction = useCallback((
     action: 'yes' | 'no' | 'skip',
     market: SwipeGameCard,
@@ -1735,7 +1758,7 @@ function useSwipeAnalytics() {
   ) => {
     const timeOnCard = (Date.now() - sessionRef.current.cardStartTime) / 1000;
     sessionRef.current.cardStartTime = Date.now();
-    
+
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
         SwipeGameAnalyticsEvents.SWIPE_ACTION
@@ -1754,9 +1777,9 @@ function useSwipeAnalytics() {
       .build()
     );
   }, []);
-  
+
   // ... more tracking methods
-  
+
   return { trackGameStart, trackSwipeAction, ... };
 }
 ```
@@ -1823,14 +1846,14 @@ const SwipeGameError: React.FC<{
   onExit: () => void;
 }> = ({ error, onRetry, onSkip, onExit }) => {
   const recovery = ERROR_RECOVERY[error];
-  
+
   return (
     <Box twClassName="absolute inset-0 bg-default/90 items-center justify-center p-6">
       <Icon name={IconName.Warning} size={48} color={IconColor.Error} />
       <Text variant={TextVariant.HeadingMd} twClassName="mt-4 text-center">
         {recovery.message}
       </Text>
-      
+
       <Box twClassName="flex-row gap-4 mt-6">
         {recovery.showRetry && (
           <Button label="Retry" onPress={onRetry} variant="primary" />
@@ -1907,13 +1930,13 @@ describe('Predict Swipe Game', () => {
     await loginWithTestAccount();
     await navigateToPredictSwipeGame();
   });
-  
+
   it('places a Yes bet via swipe left', async () => {
     await expect(element(by.id('swipe-card'))).toBeVisible();
     await element(by.id('swipe-card')).swipe('left', 'fast');
     await expect(element(by.text('Prediction placed'))).toBeVisible();
   });
-  
+
   it('skips market via swipe down', async () => {
     const firstCardTitle = await element(by.id('card-title')).getAttributes();
     await element(by.id('swipe-card')).swipe('down', 'fast');
@@ -1932,6 +1955,7 @@ describe('Predict Swipe Game', () => {
 **Goal**: Basic swipeable card with data layer
 
 **Tasks**:
+
 1. [ ] Create file structure
 2. [ ] Implement `transformMarketToCard` utility
 3. [ ] Create `useSwipeGame` hook (without betting)
@@ -1946,6 +1970,7 @@ describe('Predict Swipe Game', () => {
 **Goal**: Connect swipe actions to actual orders
 
 **Tasks**:
+
 1. [ ] Implement `useCardPreviews` for price fetching
 2. [ ] Add order placement on swipe
 3. [ ] Handle success/failure states
@@ -1959,6 +1984,7 @@ describe('Predict Swipe Game', () => {
 **Goal**: Beautiful, polished UI with sound and haptics
 
 **Tasks**:
+
 1. [ ] Implement levitating animation for active card
 2. [ ] Build `SwipeIndicator` components (Yes/No/Skip)
 3. [ ] Create `SwipeOverlay` feedback during swipe
@@ -1978,6 +2004,7 @@ describe('Predict Swipe Game', () => {
 **Goal**: Robust error handling
 
 **Tasks**:
+
 1. [ ] Implement all error states
 2. [ ] Add retry mechanisms
 3. [ ] Handle geo-blocking
@@ -1991,6 +2018,7 @@ describe('Predict Swipe Game', () => {
 **Goal**: Full test coverage and analytics
 
 **Tasks**:
+
 1. [ ] Implement analytics events
 2. [ ] Write unit tests
 3. [ ] Write integration tests
@@ -2004,6 +2032,7 @@ describe('Predict Swipe Game', () => {
 **Goal**: Integration into app
 
 **Tasks**:
+
 1. [ ] Add navigation routes
 2. [ ] Create entry point button
 3. [ ] Feature flag integration
@@ -2018,14 +2047,14 @@ describe('Predict Swipe Game', () => {
 
 ### ✅ Resolved Questions
 
-| # | Question | Decision |
-|---|----------|----------|
-| 1 | Swipe Direction Mapping | ✅ **Right = Yes**, **Left = No** (intuitive mapping) |
-| 4 | Confirmation before bet? | ✅ **No confirmation** - use undo feature instead |
-| 5 | Undo feature? | ✅ **Yes** - 5-second undo window (uses existing rate limit) |
-| 8 | Multi-outcome markets | ✅ **Show highest volume as primary**, others selectable inside card |
-| 13 | Onboarding flow | ✅ **Not needed** for MVP |
-| 17 | Sound effects | ✅ **Yes** - sound effects + haptic/vibration feedback |
+| #   | Question                 | Decision                                                             |
+| --- | ------------------------ | -------------------------------------------------------------------- |
+| 1   | Swipe Direction Mapping  | ✅ **Right = Yes**, **Left = No** (intuitive mapping)                |
+| 4   | Confirmation before bet? | ✅ **No confirmation** - use undo feature instead                    |
+| 5   | Undo feature?            | ✅ **Yes** - 5-second undo window (uses existing rate limit)         |
+| 8   | Multi-outcome markets    | ✅ **Show highest volume as primary**, others selectable inside card |
+| 13  | Onboarding flow          | ✅ **Not needed** for MVP                                            |
+| 17  | Sound effects            | ✅ **Yes** - sound effects + haptic/vibration feedback               |
 
 ### 🟡 Remaining Questions (Lower Priority - Can Decide During Implementation)
 
@@ -2035,31 +2064,31 @@ describe('Predict Swipe Game', () => {
 3. **Should we show historical performance?**
    - 💡 **Suggested**: Save for v2 (e.g., "You're 3/5 on Yes bets today")
 
-6. **Order preview timing**
+4. **Order preview timing**
    - 💡 **Suggested**: Auto-refresh previews every 10s, show "updating..." badge if stale
 
-7. **Rate limiting UX**
+5. **Rate limiting UX**
    - 💡 **Suggested**: Disable swipe during 5s rate limit, show countdown timer in undo button
 
-9. **Card preloading strategy**
+6. **Card preloading strategy**
    - 💡 **Suggested**: Preload next 3 cards, prefetch previews for current + next 2
 
-10. **Minimum/Maximum bet amount?**
-    - 💡 **Suggested**: Min $1, Max $100 (or based on available liquidity)
+7. **Minimum/Maximum bet amount?**
+   - 💡 **Suggested**: Min $1, Max $100 (or based on available liquidity)
 
-11. **Fee display**
-    - 💡 **Suggested**: Show net "potential win" amounts, fees visible in expandable section
+8. **Fee display**
+   - 💡 **Suggested**: Show net "potential win" amounts, fees visible in expandable section
 
-12. **Balance visibility**
-    - 💡 **Suggested**: Show balance in header, highlight when running low
+9. **Balance visibility**
+   - 💡 **Suggested**: Show balance in header, highlight when running low
 
-14. **Card content depth**
+10. **Card content depth**
     - 💡 **Suggested**: Title, image, end date, volume badge. Keep it minimal and scannable.
 
-15. **Indicator positioning**
+11. **Indicator positioning**
     - 💡 **Suggested**: Fixed position, scale up when swiping toward them
 
-16. **Theme**
+12. **Theme**
     - 💡 **Suggested**: Match existing Predict theme for visual consistency
 
 ---
@@ -2089,11 +2118,13 @@ describe('Predict Swipe Game', () => {
 **May need to add**: react-native-haptic-feedback (check if already present)
 
 **For sounds**: Can use either:
+
 - `expo-av` (if using Expo)
 - `react-native-sound` (bare RN)
 - Or simple `Audio` from React Native
 
 **Sound files needed** (can source from freesound.org or similar):
+
 - `swipe-yes.mp3` - Positive confirmation sound (~0.3s)
 - `swipe-no.mp3` - Neutral/different confirmation (~0.3s)
 - `skip.mp3` - Quick whoosh sound (~0.2s)
@@ -2108,4 +2139,3 @@ describe('Predict Swipe Game', () => {
 - `app/components/UI/Predict/hooks/usePredictPlaceOrder.ts`
 - `app/components/UI/Predict/controllers/PredictController.ts`
 - `app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts`
-

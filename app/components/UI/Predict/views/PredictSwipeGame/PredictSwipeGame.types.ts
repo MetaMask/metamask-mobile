@@ -1,4 +1,8 @@
-import type { PredictMarket, PredictOutcome, PredictOutcomeToken } from '../../types';
+import type {
+  PredictMarket,
+  PredictOutcome,
+  PredictOutcomeToken,
+} from '../../types';
 
 /**
  * Token information for betting (Yes or No)
@@ -164,4 +168,3 @@ export interface SwipeGestureConfig {
  * Re-export relevant types from parent
  */
 export type { PredictMarket, PredictOutcome, PredictOutcomeToken };
-

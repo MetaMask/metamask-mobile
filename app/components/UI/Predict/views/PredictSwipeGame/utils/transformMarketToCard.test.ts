@@ -1,4 +1,7 @@
-import { transformMarketToCard, transformMarketsToCards } from './transformMarketToCard';
+import {
+  transformMarketToCard,
+  transformMarketsToCards,
+} from './transformMarketToCard';
 import type { PredictMarket, PredictOutcome } from '../PredictSwipeGame.types';
 import { Recurrence } from '../../../types';
 
@@ -49,8 +52,15 @@ const createMockMarket = (
 
 describe('transformMarketToCard', () => {
   it('should transform a simple Yes/No market correctly', () => {
-    const outcome = createMockOutcome('outcome-1', 'Will BTC hit $100k?', 50000, 0.65);
-    const market = createMockMarket('market-1', 'Bitcoin Price Prediction', [outcome]);
+    const outcome = createMockOutcome(
+      'outcome-1',
+      'Will BTC hit $100k?',
+      50000,
+      0.65,
+    );
+    const market = createMockMarket('market-1', 'Bitcoin Price Prediction', [
+      outcome,
+    ]);
 
     const card = transformMarketToCard(market);
 
@@ -68,7 +78,11 @@ describe('transformMarketToCard', () => {
     const outcome1 = createMockOutcome('outcome-1', 'Team A wins', 10000, 0.3);
     const outcome2 = createMockOutcome('outcome-2', 'Team B wins', 50000, 0.5); // Highest volume
     const outcome3 = createMockOutcome('outcome-3', 'Draw', 20000, 0.2);
-    const market = createMockMarket('market-1', 'Sports Match', [outcome1, outcome2, outcome3]);
+    const market = createMockMarket('market-1', 'Sports Match', [
+      outcome1,
+      outcome2,
+      outcome3,
+    ]);
 
     const card = transformMarketToCard(market);
 
@@ -96,7 +110,10 @@ describe('transformMarketToCard', () => {
       ...createMockOutcome('outcome-2', 'Invalid', 10000, 0.3),
       tokens: [{ id: 'single-token', title: 'Yes', price: 0.5 }], // Only 1 token
     };
-    const market = createMockMarket('market-1', 'Mixed Market', [validOutcome, invalidOutcome]);
+    const market = createMockMarket('market-1', 'Mixed Market', [
+      validOutcome,
+      invalidOutcome,
+    ]);
 
     const card = transformMarketToCard(market);
 
@@ -134,7 +151,11 @@ describe('transformMarketsToCards', () => {
       createMockOutcome('o2', 'Outcome 2', 20000, 0.7),
     ]);
 
-    const cards = transformMarketsToCards([validMarket1, invalidMarket, validMarket2]);
+    const cards = transformMarketsToCards([
+      validMarket1,
+      invalidMarket,
+      validMarket2,
+    ]);
 
     expect(cards).toHaveLength(2);
     expect(cards[0].marketId).toBe('market-1');
@@ -147,4 +168,3 @@ describe('transformMarketsToCards', () => {
     expect(cards).toHaveLength(0);
   });
 });
-

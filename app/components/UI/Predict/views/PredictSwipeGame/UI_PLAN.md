@@ -4,15 +4,15 @@
 
 Based on the screenshot, the current UI has critical issues:
 
-| Problem | Impact |
-|---------|--------|
-| Bet Amount section is massive | Steals focus from the card |
-| Card is cramped and small | Should be the hero element |
-| YES/NO indicators are too large and amateur | Distracting, unprofessional |
-| Too much visual noise | Hard to focus on what matters |
-| Poor contrast and hierarchy | Everything competes for attention |
-| Preset buttons take too much space | Not the primary action |
-| Text-heavy indicators | Should use visual language |
+| Problem                                     | Impact                            |
+| ------------------------------------------- | --------------------------------- |
+| Bet Amount section is massive               | Steals focus from the card        |
+| Card is cramped and small                   | Should be the hero element        |
+| YES/NO indicators are too large and amateur | Distracting, unprofessional       |
+| Too much visual noise                       | Hard to focus on what matters     |
+| Poor contrast and hierarchy                 | Everything competes for attention |
+| Preset buttons take too much space          | Not the primary action            |
+| Text-heavy indicators                       | Should use visual language        |
 
 ---
 
@@ -83,12 +83,12 @@ Based on the screenshot, the current UI has critical issues:
 
 ### Height Distribution
 
-| Element | Height | Purpose |
-|---------|--------|---------|
-| Header | 48-56px | Back button + bet amount chip |
-| Card Area | ~65% | The main event |
-| Bottom Area | ~15% | Skip hint + progress |
-| Safe Areas | Variable | iOS/Android padding |
+| Element     | Height   | Purpose                       |
+| ----------- | -------- | ----------------------------- |
+| Header      | 48-56px  | Back button + bet amount chip |
+| Card Area   | ~65%     | The main event                |
+| Bottom Area | ~15%     | Skip hint + progress          |
+| Safe Areas  | Variable | iOS/Android padding           |
 
 ---
 
@@ -110,6 +110,7 @@ Based on the screenshot, the current UI has critical issues:
 ```
 
 **Bet Amount Chip Specs:**
+
 - Small pill shape: `px-3 py-1.5`
 - Background: `bg-muted` (subtle)
 - Font: `BodyMdBold`
@@ -117,6 +118,7 @@ Based on the screenshot, the current UI has critical issues:
 - On tap → Opens bottom sheet
 
 **Bottom Sheet for Bet Amount:**
+
 - Slides up from bottom
 - Preset buttons in 2 rows
 - Custom input option
@@ -126,6 +128,7 @@ Based on the screenshot, the current UI has critical issues:
 ### 2. The Card (Hero Element)
 
 **Design Goals:**
+
 - Maximum visual impact
 - Clean, magazine-style layout
 - Information hierarchy: Image → Title → Odds
@@ -155,16 +158,16 @@ Based on the screenshot, the current UI has critical issues:
 
 **Card Specifications:**
 
-| Element | Style |
-|---------|-------|
-| Container | `rounded-3xl`, `shadow-2xl`, full width minus 32px margin |
-| Image | 50% of card height, `cover`, `rounded-t-3xl` |
-| Gradient | Black gradient from bottom, 30% height |
-| Date badge | Floating top-right, `bg-black/60`, `rounded-full` |
-| Content area | `p-5`, `bg-default` |
-| Title | `HeadingLg`, max 3 lines |
-| Odds pills | Side by side, colored backgrounds |
-| Metadata | `BodySm`, `text-muted` |
+| Element      | Style                                                     |
+| ------------ | --------------------------------------------------------- |
+| Container    | `rounded-3xl`, `shadow-2xl`, full width minus 32px margin |
+| Image        | 50% of card height, `cover`, `rounded-t-3xl`              |
+| Gradient     | Black gradient from bottom, 30% height                    |
+| Date badge   | Floating top-right, `bg-black/60`, `rounded-full`         |
+| Content area | `p-5`, `bg-default`                                       |
+| Title        | `HeadingLg`, max 3 lines                                  |
+| Odds pills   | Side by side, colored backgrounds                         |
+| Metadata     | `BodySm`, `text-muted`                                    |
 
 **Odds Pills Design:**
 
@@ -182,6 +185,7 @@ Based on the screenshot, the current UI has critical issues:
 ```
 
 **Pill Specs:**
+
 - NO: `bg-error-muted`, border: `border-error-default/20`
 - YES: `bg-success-muted`, border: `border-success-default/20`
 - Size: 45% width each, centered with gap
@@ -193,6 +197,7 @@ Based on the screenshot, the current UI has critical issues:
 **During Swipe**: Overlay appears on card
 
 **Swiping Right (YES):**
+
 ```
 ┌────────────────────────────────────────┐
 │  ┌──────────────────────────────────┐  │
@@ -209,6 +214,7 @@ Based on the screenshot, the current UI has critical issues:
 ```
 
 **Swipe Overlay Specs:**
+
 - Appears at 20% swipe threshold
 - Opacity increases with swipe distance (0 → 0.85)
 - YES: Green gradient `success-default/80`
@@ -216,6 +222,7 @@ Based on the screenshot, the current UI has critical issues:
 - SKIP: Gray gradient `muted/80`
 
 **Overlay Content:**
+
 - Large checkmark (YES) or X (NO) or arrow (SKIP)
 - "Bet $X to win $Y" text
 - All text white/inverse
@@ -276,63 +283,69 @@ Based on the screenshot, the current UI has critical issues:
 
 ### Light Mode
 
-| Element | Color Token | Hex |
-|---------|-------------|-----|
-| YES background | `success-muted` | #E6F9ED |
-| YES text | `success-default` | #28A745 |
-| YES accent | `success-default` | #28A745 |
-| NO background | `error-muted` | #FDECEA |
-| NO text | `error-default` | #D73A49 |
-| NO accent | `error-default` | #D73A49 |
-| Skip background | `muted` | #F2F4F6 |
-| Card background | `default` | #FFFFFF |
-| Card shadow | black/15 | - |
+| Element         | Color Token       | Hex     |
+| --------------- | ----------------- | ------- |
+| YES background  | `success-muted`   | #E6F9ED |
+| YES text        | `success-default` | #28A745 |
+| YES accent      | `success-default` | #28A745 |
+| NO background   | `error-muted`     | #FDECEA |
+| NO text         | `error-default`   | #D73A49 |
+| NO accent       | `error-default`   | #D73A49 |
+| Skip background | `muted`           | #F2F4F6 |
+| Card background | `default`         | #FFFFFF |
+| Card shadow     | black/15          | -       |
 
 ### Swipe Overlay Colors
 
-| Direction | Gradient |
-|-----------|----------|
+| Direction   | Gradient                           |
+| ----------- | ---------------------------------- |
 | YES (Right) | Linear gradient, green 80% opacity |
-| NO (Left) | Linear gradient, red 80% opacity |
-| SKIP (Down) | Linear gradient, gray 70% opacity |
+| NO (Left)   | Linear gradient, red 80% opacity   |
+| SKIP (Down) | Linear gradient, gray 70% opacity  |
 
 ---
 
 ## Animation Specifications
 
 ### 1. Card Entry
+
 - **Trigger**: New card appears
 - **Animation**: Scale from 0.9 → 1.0, opacity 0 → 1
 - **Duration**: 250ms
 - **Easing**: `easeOutBack`
 
 ### 2. Levitate (Idle)
+
 - **Trigger**: Card is active
 - **Animation**: translateY oscillates ±4px (reduced from 8px)
 - **Duration**: 2000ms per cycle
 - **Easing**: `easeInOut`
 
 ### 3. Swipe
+
 - **Trigger**: User drags
-- **Animation**: 
+- **Animation**:
   - Card follows finger
   - Rotation: max ±12° based on X position
   - Overlay opacity increases
 - **Physics**: Spring damping 15, stiffness 150
 
 ### 4. Swipe Complete
+
 - **Trigger**: Threshold crossed
 - **Animation**: Card flies off screen
 - **Duration**: 200ms
 - **Easing**: `easeIn`
 
 ### 5. Snap Back
+
 - **Trigger**: Swipe not completed
 - **Animation**: Card returns to center
 - **Duration**: 300ms
 - **Easing**: Spring with overshoot
 
 ### 6. Stack Cards
+
 - **Background cards**:
   - Scale: 0.95 per level
   - TranslateY: +8px per level
@@ -343,12 +356,14 @@ Based on the screenshot, the current UI has critical issues:
 ## Responsive Considerations
 
 ### Small Phones (iPhone SE, etc.)
+
 - Reduce image height to 40%
 - Smaller title font
 - Compact odds pills
 - Hide skip hint after first use
 
 ### Large Phones / Tablets
+
 - Max card width: 400px
 - Center card horizontally
 - More generous padding
@@ -359,6 +374,7 @@ Based on the screenshot, the current UI has critical issues:
 ## Interaction States
 
 ### Card States
+
 1. **Idle**: Slight levitate, full opacity
 2. **Dragging**: Follows touch, rotates, shows overlay
 3. **Threshold Reached**: Haptic, overlay fully visible
@@ -366,6 +382,7 @@ Based on the screenshot, the current UI has critical issues:
 5. **Releasing (above threshold)**: Fly away, trigger action
 
 ### Bet Chip States
+
 1. **Default**: Muted background
 2. **Pressed**: Scale 0.95, darker background
 3. **Disabled**: 50% opacity (during order)
@@ -375,6 +392,7 @@ Based on the screenshot, the current UI has critical issues:
 ## Implementation Checklist
 
 ### Phase 1: Layout Restructure
+
 - [ ] Redesign header to minimal chip
 - [ ] Remove inline bet presets
 - [ ] Expand card to fill available space
@@ -382,6 +400,7 @@ Based on the screenshot, the current UI has critical issues:
 - [ ] Add subtle skip hint at bottom
 
 ### Phase 2: Card Redesign
+
 - [ ] Increase image height (50% of card)
 - [ ] Add gradient overlay on image
 - [ ] Redesign odds pills (inside card)
@@ -389,6 +408,7 @@ Based on the screenshot, the current UI has critical issues:
 - [ ] Improve typography hierarchy
 
 ### Phase 3: Swipe Feedback
+
 - [ ] Remove permanent side indicators
 - [ ] Add card overlay during swipe
 - [ ] Implement color tint based on direction
@@ -396,6 +416,7 @@ Based on the screenshot, the current UI has critical issues:
 - [ ] Add checkmark/X/arrow icons
 
 ### Phase 4: Bottom Sheet
+
 - [ ] Create bet amount bottom sheet
 - [ ] Add preset buttons (2 rows)
 - [ ] Add custom input
@@ -403,6 +424,7 @@ Based on the screenshot, the current UI has critical issues:
 - [ ] Animate open/close
 
 ### Phase 5: Polish
+
 - [ ] Refine all animations
 - [ ] Add haptic feedback refinements
 - [ ] Tune spring physics
@@ -414,6 +436,7 @@ Based on the screenshot, the current UI has critical issues:
 ## Visual Mockup (ASCII)
 
 ### Before (Current)
+
 ```
 ┌────────────────────────────────────────┐
 │ ←              Bet Amount              │
@@ -431,6 +454,7 @@ Based on the screenshot, the current UI has critical issues:
 ```
 
 ### After (Redesigned)
+
 ```
 ┌────────────────────────────────────────┐
 │ ←                            [$5 ▼] 💰 │  ← Minimal
@@ -480,6 +504,7 @@ After redesign, the UI should:
 ## Additional Requirements (User Feedback)
 
 ### 1. Card Stack Visibility
+
 - Show 2-3 cards behind the active card
 - Each subsequent card should be:
   - Scaled down (0.92 per level)
@@ -488,6 +513,7 @@ After redesign, the UI should:
 - Creates depth and indicates more cards
 
 ### 2. Prominent Swipe Feedback
+
 - When dragging LEFT/RIGHT, the corresponding option becomes VERY prominent
 - The selected direction's pill/overlay should:
   - Scale up (1.1x)
@@ -497,12 +523,14 @@ After redesign, the UI should:
 - The opposite direction fades out
 
 ### 3. Skip with UP or DOWN
+
 - Swipe DOWN → Skip (existing)
 - Swipe UP → Skip (new, same action)
 - Both directions work for skipping
 - Makes it more intuitive for users
 
 ### 4. Bug Fix: Skip Stops Game
+
 - **Issue**: After skipping, card animated values don't reset
 - **Fix**: Reset translateX/Y/opacity/rotation after skip animation
 - Ensure next card starts fresh at center
@@ -520,4 +548,3 @@ After redesign, the UI should:
 7. **Polish and test** (Phase 5)
 
 Estimated time: 2-3 days of focused work
-

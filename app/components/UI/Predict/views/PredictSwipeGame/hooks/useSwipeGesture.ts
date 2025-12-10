@@ -1,6 +1,5 @@
 import { useCallback, useLayoutEffect, useRef } from 'react';
-import { runOnJS } from 'react-native-reanimated';
-import {
+import { runOnJS ,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -15,7 +14,10 @@ import {
   DIMENSIONS,
   CARD_ANIMATION,
 } from '../PredictSwipeGame.constants';
-import type { SwipeGestureConfig, SwipeDirection } from '../PredictSwipeGame.types';
+import type {
+  SwipeGestureConfig,
+  SwipeDirection,
+} from '../PredictSwipeGame.types';
 
 const { SCREEN_WIDTH, SCREEN_HEIGHT } = DIMENSIONS;
 const { MAX_ROTATION_DEGREES, MIN_SCALE } = CARD_ANIMATION;
@@ -94,20 +96,30 @@ export function useSwipeGesture({
   const highlightThreshold = 30;
 
   // Derived values for indicator highlighting
-  const isSwipingRight = useDerivedValue(() => translateX.value > highlightThreshold);
-  const isSwipingLeft = useDerivedValue(() => translateX.value < -highlightThreshold);
+  const isSwipingRight = useDerivedValue(
+    () => translateX.value > highlightThreshold,
+  );
+  const isSwipingLeft = useDerivedValue(
+    () => translateX.value < -highlightThreshold,
+  );
   const isSwipingDown = useDerivedValue(
-    () => translateY.value > highlightThreshold && Math.abs(translateX.value) < 50,
+    () =>
+      translateY.value > highlightThreshold && Math.abs(translateX.value) < 50,
   );
   const isSwipingUp = useDerivedValue(
-    () => translateY.value < -highlightThreshold && Math.abs(translateX.value) < 50,
+    () =>
+      translateY.value < -highlightThreshold && Math.abs(translateX.value) < 50,
   );
-  const isSkipping = useDerivedValue(() => isSwipingDown.value || isSwipingUp.value);
+  const isSkipping = useDerivedValue(
+    () => isSwipingDown.value || isSwipingUp.value,
+  );
 
   // Swipe progress (0-1) for visual feedback
   const swipeProgress = useDerivedValue(() => {
-    const horizontalProgress = Math.abs(translateX.value) / config.horizontalThreshold;
-    const verticalProgress = Math.abs(translateY.value) / config.verticalThreshold;
+    const horizontalProgress =
+      Math.abs(translateX.value) / config.horizontalThreshold;
+    const verticalProgress =
+      Math.abs(translateY.value) / config.verticalThreshold;
     return Math.min(1, Math.max(horizontalProgress, verticalProgress));
   });
 
@@ -154,10 +166,14 @@ export function useSwipeGesture({
       translateY.value = event.translationY;
 
       // Rotate slightly based on horizontal movement
-      rotation.value = (event.translationX / SCREEN_WIDTH) * MAX_ROTATION_DEGREES;
+      rotation.value =
+        (event.translationX / SCREEN_WIDTH) * MAX_ROTATION_DEGREES;
 
       // Scale down slightly when swiping horizontally
-      const scaleDecrease = Math.min(Math.abs(event.translationX) / SCREEN_WIDTH, 1 - MIN_SCALE);
+      const scaleDecrease = Math.min(
+        Math.abs(event.translationX) / SCREEN_WIDTH,
+        1 - MIN_SCALE,
+      );
       scale.value = 1 - scaleDecrease;
     })
     .onEnd((event) => {
@@ -175,13 +191,17 @@ export function useSwipeGesture({
         rotation.value = withTiming(MAX_ROTATION_DEGREES, {
           duration: config.exitDuration,
         });
-        opacity.value = withTiming(0, { duration: config.exitDuration }, (finished) => {
-          'worklet';
-          if (finished) {
-            // Just call the callback - useLayoutEffect will reset values on card change
-            runOnJS(onSwipeRight)();
-          }
-        });
+        opacity.value = withTiming(
+          0,
+          { duration: config.exitDuration },
+          (finished) => {
+            'worklet';
+            if (finished) {
+              // Just call the callback - useLayoutEffect will reset values on card change
+              runOnJS(onSwipeRight)();
+            }
+          },
+        );
         return;
       }
 
@@ -196,12 +216,16 @@ export function useSwipeGesture({
         rotation.value = withTiming(-MAX_ROTATION_DEGREES, {
           duration: config.exitDuration,
         });
-        opacity.value = withTiming(0, { duration: config.exitDuration }, (finished) => {
-          'worklet';
-          if (finished) {
-            runOnJS(onSwipeLeft)();
-          }
-        });
+        opacity.value = withTiming(
+          0,
+          { duration: config.exitDuration },
+          (finished) => {
+            'worklet';
+            if (finished) {
+              runOnJS(onSwipeLeft)();
+            }
+          },
+        );
         return;
       }
 
@@ -213,12 +237,16 @@ export function useSwipeGesture({
         translateY.value = withTiming(SCREEN_HEIGHT, {
           duration: config.exitDuration,
         });
-        opacity.value = withTiming(0, { duration: config.exitDuration }, (finished) => {
-          'worklet';
-          if (finished) {
-            runOnJS(onSwipeDown)();
-          }
-        });
+        opacity.value = withTiming(
+          0,
+          { duration: config.exitDuration },
+          (finished) => {
+            'worklet';
+            if (finished) {
+              runOnJS(onSwipeDown)();
+            }
+          },
+        );
         return;
       }
 
@@ -230,12 +258,16 @@ export function useSwipeGesture({
         translateY.value = withTiming(-SCREEN_HEIGHT, {
           duration: config.exitDuration,
         });
-        opacity.value = withTiming(0, { duration: config.exitDuration }, (finished) => {
-          'worklet';
-          if (finished) {
-            runOnJS(onSwipeDown)();
-          }
-        });
+        opacity.value = withTiming(
+          0,
+          { duration: config.exitDuration },
+          (finished) => {
+            'worklet';
+            if (finished) {
+              runOnJS(onSwipeDown)();
+            }
+          },
+        );
         return;
       }
 
@@ -270,4 +302,3 @@ export function useSwipeGesture({
     swipeProgress,
   };
 }
-

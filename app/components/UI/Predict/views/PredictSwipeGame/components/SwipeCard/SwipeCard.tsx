@@ -9,10 +9,18 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import { Box, Text, TextVariant, FontWeight } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../../util/theme';
-import { CARD_ANIMATION, SWIPE_GAME_TEST_IDS } from '../../PredictSwipeGame.constants';
+import {
+  CARD_ANIMATION,
+  SWIPE_GAME_TEST_IDS,
+} from '../../PredictSwipeGame.constants';
 import type { SwipeCardProps } from '../../PredictSwipeGame.types';
 import { formatPercentage } from '../../../../utils/format';
 
@@ -81,7 +89,10 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
       if (diffDays === 0) return 'Ends today';
       if (diffDays === 1) return 'Tomorrow';
       if (diffDays <= 7) return `${diffDays} days`;
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
     } catch {
       return null;
     }
@@ -90,15 +101,20 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   const endDateText = formatEndDate(card.endDate);
 
   // Get prices
-  const yesPrice = preview?.yesPreview?.sharePrice ?? card.primaryOutcome.yesToken.price;
-  const noPrice = preview?.noPreview?.sharePrice ?? card.primaryOutcome.noToken.price;
+  const yesPrice =
+    preview?.yesPreview?.sharePrice ?? card.primaryOutcome.yesToken.price;
+  const noPrice =
+    preview?.noPreview?.sharePrice ?? card.primaryOutcome.noToken.price;
 
   // Calculate potential wins
   const yesPotentialReturn = betAmount / yesPrice;
   const noPotentialReturn = betAmount / noPrice;
 
   return (
-    <Animated.View key={card.marketId} style={[styles.cardContainer, levitateStyle]}>
+    <Animated.View
+      key={card.marketId}
+      style={[styles.cardContainer, levitateStyle]}
+    >
       <Box
         twClassName="bg-default rounded-3xl overflow-hidden"
         style={styles.cardShadow}
@@ -182,7 +198,10 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
               <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Bold}>
                 {formatPercentage(noPrice)}
               </Text>
-              <Text variant={TextVariant.BodySm} twClassName="text-success-default mt-1">
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-success-default mt-1"
+              >
                 +${(noPotentialReturn - betAmount).toFixed(2)}
               </Text>
             </Box>
@@ -206,7 +225,10 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
               <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Bold}>
                 {formatPercentage(yesPrice)}
               </Text>
-              <Text variant={TextVariant.BodySm} twClassName="text-success-default mt-1">
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-success-default mt-1"
+              >
                 +${(yesPotentialReturn - betAmount).toFixed(2)}
               </Text>
             </Box>
@@ -215,7 +237,8 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           {/* ===== METADATA ===== */}
           <Box twClassName="flex-row items-center justify-center gap-2 mt-3">
             <Text variant={TextVariant.BodySm} twClassName="text-muted">
-              Vol: ${card.totalVolume >= 1000000
+              Vol: $
+              {card.totalVolume >= 1000000
                 ? `${(card.totalVolume / 1000000).toFixed(1)}M`
                 : card.totalVolume >= 1000
                   ? `${(card.totalVolume / 1000).toFixed(0)}k`
@@ -223,7 +246,9 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
             </Text>
             {card.tags.length > 0 && (
               <>
-                <Text variant={TextVariant.BodySm} twClassName="text-muted">•</Text>
+                <Text variant={TextVariant.BodySm} twClassName="text-muted">
+                  •
+                </Text>
                 <Text variant={TextVariant.BodySm} twClassName="text-muted">
                   {card.tags[0]}
                 </Text>

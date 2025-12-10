@@ -1,2 +1,4 @@
-export { transformMarketToCard, transformMarketsToCards } from './transformMarketToCard';
-
+export {
+  transformMarketToCard,
+  transformMarketsToCards,
+} from './transformMarketToCard';

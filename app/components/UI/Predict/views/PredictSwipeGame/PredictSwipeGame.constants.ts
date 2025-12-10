@@ -117,4 +117,3 @@ export const SWIPE_GAME_TEST_IDS = {
   UNDO_BUTTON: 'undo-button',
   PROGRESS_INDICATOR: 'progress-indicator',
 } as const;
-

@@ -41,15 +41,18 @@ export function useSwipeFeedback(): UseSwipeFeedbackReturn {
         break;
       case 'undo':
         // Soft notification for undo
-        hapticType = Platform.OS === 'ios' ? 'notificationWarning' : 'effectDoubleClick';
+        hapticType =
+          Platform.OS === 'ios' ? 'notificationWarning' : 'effectDoubleClick';
         break;
       case 'error':
         // Heavy impact for error
-        hapticType = Platform.OS === 'ios' ? 'notificationError' : 'effectHeavyClick';
+        hapticType =
+          Platform.OS === 'ios' ? 'notificationError' : 'effectHeavyClick';
         break;
       case 'success':
         // Selection for success
-        hapticType = Platform.OS === 'ios' ? 'notificationSuccess' : 'effectClick';
+        hapticType =
+          Platform.OS === 'ios' ? 'notificationSuccess' : 'effectClick';
         break;
       default:
         hapticType = Platform.OS === 'ios' ? 'impactLight' : 'effectTick';
@@ -82,4 +85,3 @@ export function useSwipeFeedback(): UseSwipeFeedbackReturn {
 }
 
 export default useSwipeFeedback;
-

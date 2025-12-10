@@ -276,7 +276,15 @@ export function useSwipeGame({
       console.error('[SwipeGame] Failed to place YES bet:', err);
       // Error is already handled by usePredictPlaceOrder's onError callback
     }
-  }, [currentCard, currentPreview, isPlacingOrder, hasInsufficientBalance, isBelowMinimum, state.betAmount, placeOrder]);
+  }, [
+    currentCard,
+    currentPreview,
+    isPlacingOrder,
+    hasInsufficientBalance,
+    isBelowMinimum,
+    state.betAmount,
+    placeOrder,
+  ]);
 
   // Handle swipe LEFT (NO bet)
   const handleSwipeLeft = useCallback(async () => {
@@ -345,7 +353,15 @@ export function useSwipeGame({
       console.error('[SwipeGame] Failed to place NO bet:', err);
       // Error is already handled by usePredictPlaceOrder's onError callback
     }
-  }, [currentCard, currentPreview, isPlacingOrder, hasInsufficientBalance, isBelowMinimum, state.betAmount, placeOrder]);
+  }, [
+    currentCard,
+    currentPreview,
+    isPlacingOrder,
+    hasInsufficientBalance,
+    isBelowMinimum,
+    state.betAmount,
+    placeOrder,
+  ]);
 
   // Handle swipe DOWN (Skip)
   const handleSwipeDown = useCallback(() => {
@@ -476,8 +492,7 @@ export function useSwipeGame({
   const isBelowMinimum = state.betAmount < BET_LIMITS.MIN;
 
   // Can place bet check
-  const canPlaceBet = useMemo(() => {
-    return (
+  const canPlaceBet = useMemo(() => (
       !hasInsufficientBalance &&
       !isBelowMinimum &&
       !isBalanceLoading &&
@@ -485,8 +500,7 @@ export function useSwipeGame({
       currentPreview !== null &&
       !currentPreview.isLoading &&
       currentPreview.error === null
-    );
-  }, [
+    ), [
     hasInsufficientBalance,
     isBelowMinimum,
     isBalanceLoading,
@@ -537,4 +551,3 @@ export function useSwipeGame({
     clearOrderError,
   };
 }
-

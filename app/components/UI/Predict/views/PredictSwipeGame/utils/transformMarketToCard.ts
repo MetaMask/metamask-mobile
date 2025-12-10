@@ -44,8 +44,7 @@ function findNoToken(tokens: PredictOutcomeToken[]): SwipeOutcomeToken | null {
 
   // Try to find by title first
   const noByTitle = tokens.find(
-    (t) =>
-      t.title.toLowerCase() === 'no' || t.title.toLowerCase() === 'false',
+    (t) => t.title.toLowerCase() === 'no' || t.title.toLowerCase() === 'false',
   );
   if (noByTitle) {
     return {
@@ -181,4 +180,3 @@ export function transformMarketsToCards(
     .map(transformMarketToCard)
     .filter((card): card is SwipeGameCard => card !== null);
 }
-

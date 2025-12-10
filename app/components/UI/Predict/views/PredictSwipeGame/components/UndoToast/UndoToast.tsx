@@ -18,7 +18,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../../util/theme';
-import { UNDO_WINDOW_MS, SWIPE_GAME_TEST_IDS } from '../../PredictSwipeGame.constants';
+import {
+  UNDO_WINDOW_MS,
+  SWIPE_GAME_TEST_IDS,
+} from '../../PredictSwipeGame.constants';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -68,18 +71,25 @@ export const UndoToast: React.FC<UndoToastProps> = ({
     if (isVisible) {
       // Show toast
       opacity.value = withTiming(1, { duration: 200 });
-      translateY.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.back(1.5)) });
+      translateY.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.out(Easing.back(1.5)),
+      });
 
       // Start countdown
       progress.value = 0;
-      progress.value = withTiming(1, {
-        duration: UNDO_WINDOW_MS,
-        easing: Easing.linear,
-      }, (finished) => {
-        if (finished) {
-          runOnJS(onDismiss)();
-        }
-      });
+      progress.value = withTiming(
+        1,
+        {
+          duration: UNDO_WINDOW_MS,
+          easing: Easing.linear,
+        },
+        (finished) => {
+          if (finished) {
+            runOnJS(onDismiss)();
+          }
+        },
+      );
     } else {
       // Hide toast
       opacity.value = withTiming(0, { duration: 200 });
@@ -113,7 +123,8 @@ export const UndoToast: React.FC<UndoToastProps> = ({
     return null;
   }
 
-  const betColor = betType === 'yes' ? colors.success.default : colors.error.default;
+  const betColor =
+    betType === 'yes' ? colors.success.default : colors.error.default;
   const betLabel = betType === 'yes' ? 'YES' : 'NO';
 
   return (
@@ -161,10 +172,7 @@ export const UndoToast: React.FC<UndoToastProps> = ({
         {/* Bet info */}
         <Box twClassName="flex-1">
           <Box twClassName="flex-row items-center gap-1">
-            <Text
-              variant={TextVariant.BodyMdBold}
-              style={{ color: betColor }}
-            >
+            <Text variant={TextVariant.BodyMdBold} style={{ color: betColor }}>
               {betLabel}
             </Text>
             <Text variant={TextVariant.BodyMd}>bet placed</Text>
@@ -215,4 +223,3 @@ const styles = StyleSheet.create({
 });
 
 export default UndoToast;
-

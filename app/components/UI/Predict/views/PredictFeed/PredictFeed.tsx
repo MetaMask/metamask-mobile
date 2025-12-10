@@ -166,10 +166,18 @@ const PredictFeed = () => {
             testID="predict-swipe-game-fab"
           >
             <Box twClassName="flex-row items-center">
-              <Text style={tw.style('text-base font-bold mr-1', { color: colors.primary.inverse })}>
+              <Text
+                style={tw.style('text-base font-bold mr-1', {
+                  color: colors.primary.inverse,
+                })}
+              >
                 🎯
               </Text>
-              <Text style={tw.style('text-base font-bold', { color: colors.primary.inverse })}>
+              <Text
+                style={tw.style('text-base font-bold', {
+                  color: colors.primary.inverse,
+                })}
+              >
                 Quick Bet
               </Text>
             </Box>
