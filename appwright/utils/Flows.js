@@ -17,6 +17,7 @@ import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
+import { expect } from 'appwright';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -77,12 +78,12 @@ export async function dissmissPredictionsModal(device) {
   }
 }
 
-export async function isPredictionsModalVisible(device) {
+export async function checkPredictionsModalIsVisible(device) {
   const notNowPredictionsModalButton = await AppwrightSelectors.getElementByID(
     device,
     'predict-gtm-not-now-button',
   );
-  await notNowPredictionsModalButton.isVisible();
+  await expect(notNowPredictionsModalButton).toBeVisible({ timeout: 10000 });
 }
 
 export async function importSRPFlow(device, srp, dismissModals = true) {
