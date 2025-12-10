@@ -59,11 +59,20 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true); // Include winnings for claim flow
 };
 
-/*
-  Verify that all resolved positions (lost positions + winning positions) are removed after claiming
-  Resolved positions include both:
-    1. Lost positions (from POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE)
-    2. Winning positions (from POLYMARKET_WINNING_POSITIONS_RESPONSE)
+/**
+ * Mocks to updates balance, removes claimed positions, and adds them to activity
+ */
+const postClaimMocks = async (mockServer: Mockttp) => {
+  await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim');
+  await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
+  await POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS(mockServer);
+};
+
+/**
+ * Verify that all resolved positions (lost positions + winning positions) are removed after claiming
+ * Resolved positions include both:
+ * 1. Lost positions (from POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE)
+ * 2. Winning positions (from POLYMARKET_WINNING_POSITIONS_RESPONSE)
  */
 const verifyResolvedPositionsRemoved = async () => {
   const allResolvedPositions = [
@@ -77,6 +86,7 @@ const verifyResolvedPositionsRemoved = async () => {
     });
   }
 };
+
 const positions = {
   Open: 'Spurs vs. Pelicans',
   Lost: 'Commanders vs. Cowboys',
@@ -109,9 +119,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
 
         await PredictClaimPage.tapClaimConfirmButton();
 
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim');
-        await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
-        await POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS(mockServer);
+        await postClaimMocks(mockServer);
 
         await Assertions.expectElementToBeVisible(WalletView.container);
         await device.enableSynchronization();
@@ -190,9 +198,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
 
         await PredictClaimPage.tapClaimConfirmButton();
 
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim');
-        await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
-        await POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS(mockServer);
+        await postClaimMocks(mockServer);
         await device.enableSynchronization();
 
         await Utilities.executeWithRetry(
