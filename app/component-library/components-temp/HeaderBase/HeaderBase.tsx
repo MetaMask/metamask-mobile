@@ -46,6 +46,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   startAccessoryWrapperProps,
   endAccessoryWrapperProps,
   testID = HeaderBaseTestIds.CONTAINER,
+  twClassName,
 }) => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
@@ -108,19 +109,27 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
     return null;
   };
 
+  // Merge default styles with passed-in twClassName
+  const resolvedTwClassName = twClassName
+    ? `h-12 px-2 ${twClassName}`
+    : 'h-12 px-2';
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={4}
       style={includesTopInset ? { marginTop: insets.top } : undefined}
+      twClassName={resolvedTwClassName}
       testID={testID}
     >
       {/* Start accessory wrapper */}
       {hasAnyAccessory && (
         <View
           style={
-            accessoryWrapperWidth ? { width: accessoryWrapperWidth } : undefined
+            accessoryWrapperWidth
+              ? tw.style('items-start', { width: accessoryWrapperWidth })
+              : undefined
           }
           testID={HeaderBaseTestIds.START_ACCESSORY}
           {...startAccessoryWrapperProps}
@@ -150,7 +159,9 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
       {hasAnyAccessory && (
         <View
           style={
-            accessoryWrapperWidth ? { width: accessoryWrapperWidth } : undefined
+            accessoryWrapperWidth
+              ? tw.style('items-end', { width: accessoryWrapperWidth })
+              : undefined
           }
           testID={HeaderBaseTestIds.END_ACCESSORY}
           {...endAccessoryWrapperProps}

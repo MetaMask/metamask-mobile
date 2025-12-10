@@ -27,7 +27,7 @@ const BasicExample = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('p-4 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <HeaderCenter title="Page Title" />
     </View>
   );
@@ -42,7 +42,7 @@ const WithOnCloseExample = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('p-4 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <HeaderCenter
         title="Modal Title"
         onClose={() => console.log('Close pressed')}
@@ -60,7 +60,7 @@ const WithCloseButtonPropsExample = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('p-4 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <HeaderCenter
         title="Modal Title"
         closeButtonProps={{
@@ -80,7 +80,7 @@ const WithDisabledCloseExample = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('p-4 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <HeaderCenter
         title="Cannot Close"
         closeButtonProps={{
@@ -101,7 +101,7 @@ const WithStartButtonAndCloseExample = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('p-4 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <HeaderCenter
         title="Settings"
         startButtonIconProps={{
@@ -123,7 +123,7 @@ const WithMultipleEndButtonsExample = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('p-4 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <HeaderCenter
         title="Search"
         startButtonIconProps={{
@@ -138,9 +138,6 @@ const WithMultipleEndButtonsExample = () => {
         ]}
         onClose={() => console.log('Close pressed')}
       />
-      <Text variant={TextVariant.BodySm} style={tw.style('mt-2 text-muted')}>
-        Close button is added after other endButtonIconProps
-      </Text>
     </View>
   );
 };
@@ -154,7 +151,7 @@ const WithCustomChildrenExample = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('p-4 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <HeaderCenter
         title="This will be ignored"
         onClose={() => console.log('Close pressed')}
@@ -180,7 +177,7 @@ const NoCloseButtonExample = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('p-4 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <HeaderCenter
         title="Simple Header"
         startButtonIconProps={{

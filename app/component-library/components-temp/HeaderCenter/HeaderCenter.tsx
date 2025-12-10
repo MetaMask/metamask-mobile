@@ -46,11 +46,6 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
   const resolvedEndButtonIconProps = useMemo(() => {
     const props: ButtonIconProps[] = [];
 
-    // Add existing endButtonIconProps first
-    if (endButtonIconProps) {
-      props.push(...endButtonIconProps);
-    }
-
     // Add close button if onClose or closeButtonProps is provided
     if (onClose || closeButtonProps) {
       const closeProps: ButtonIconProps = {
@@ -62,6 +57,10 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
       props.push(closeProps);
     }
 
+    // Add existing endButtonIconProps last
+    if (endButtonIconProps) {
+      props.push(...endButtonIconProps);
+    }
     return props.length > 0 ? props : undefined;
   }, [endButtonIconProps, onClose, closeButtonProps]);
 
@@ -74,7 +73,7 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
       return (
         <Text
           variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
+          fontWeight={FontWeight.Bold}
           testID={HeaderCenterTestIds.TITLE}
         >
           {title}

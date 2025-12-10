@@ -1,0 +1,94 @@
+// Third party dependencies.
+import React, { useMemo } from 'react';
+
+// External dependencies.
+import {
+  Box,
+  IconName,
+  ButtonIconProps,
+} from '@metamask/design-system-react-native';
+
+// Internal dependencies.
+import HeaderBase from '../HeaderBase';
+import TitleLeft from '../TitleLeft';
+import { HeaderWithTitleLeftProps } from './HeaderWithTitleLeft.types';
+import { HeaderWithTitleLeftTestIds } from './HeaderWithTitleLeft.constants';
+
+/**
+ * HeaderWithTitleLeft is a header component that combines HeaderBase (with back button)
+ * on top and a TitleLeft section below it.
+ *
+ * @example
+ * ```tsx
+ * <HeaderWithTitleLeft
+ *   onBack={handleBack}
+ *   titleLeftProps={{
+ *     topLabel: "Send",
+ *     title: "$4.42",
+ *     endAccessory: <NFTImage />
+ *   }}
+ * />
+ * ```
+ */
+const HeaderWithTitleLeft: React.FC<HeaderWithTitleLeftProps> = ({
+  onBack,
+  backButtonProps,
+  titleLeft,
+  titleLeftProps,
+  startButtonIconProps,
+  testID = HeaderWithTitleLeftTestIds.CONTAINER,
+  ...headerBaseProps
+}) => {
+  // Build startButtonIconProps with back button if onBack or backButtonProps is provided
+  const resolvedStartButtonIconProps = useMemo(() => {
+    if (startButtonIconProps) {
+      // If startButtonIconProps is explicitly provided, use it as-is
+      return startButtonIconProps;
+    }
+
+    if (onBack || backButtonProps) {
+      const backProps: ButtonIconProps = {
+        iconName: IconName.ArrowLeft,
+        testID: HeaderWithTitleLeftTestIds.BACK_BUTTON,
+        ...(backButtonProps || {}),
+        onPress: backButtonProps?.onPress ?? onBack,
+      };
+      return backProps;
+    }
+
+    return undefined;
+  }, [startButtonIconProps, onBack, backButtonProps]);
+
+  // Render title section content
+  const renderTitleSection = () => {
+    if (titleLeft) {
+      return titleLeft;
+    }
+    if (titleLeftProps) {
+      return <TitleLeft {...titleLeftProps} />;
+    }
+    return null;
+  };
+
+  const hasTitleSection = titleLeft || titleLeftProps;
+
+  return (
+    <Box testID={testID}>
+      {/* HeaderBase section */}
+      <HeaderBase
+        testID={HeaderWithTitleLeftTestIds.HEADER_BASE}
+        startButtonIconProps={resolvedStartButtonIconProps}
+        {...headerBaseProps}
+      />
+
+      {/* TitleLeft section */}
+      {hasTitleSection && (
+        <Box testID={HeaderWithTitleLeftTestIds.TITLE_SECTION}>
+          {renderTitleSection()}
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+export default HeaderWithTitleLeft;

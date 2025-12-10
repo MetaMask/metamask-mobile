@@ -77,7 +77,7 @@ const TitleLeft: React.FC<TitleLeftProps> = ({
   const hasBottomContent = bottomAccessory || bottomLabel;
 
   return (
-    <Box twClassName="px-4" testID={testID}>
+    <Box twClassName="px-4 pt-1 pb-3" testID={testID}>
       {/* Top row */}
       {hasTopContent && (
         <Box testID={TitleLeftTestIds.TOP_ROW}>{renderTopContent()}</Box>

@@ -54,4 +54,8 @@ export interface HeaderBaseProps {
    * Optional test ID for the header container.
    */
   testID?: string;
+  /**
+   * Optional Tailwind class names for the header container.
+   */
+  twClassName?: string;
 }
