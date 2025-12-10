@@ -28,9 +28,12 @@ class PerpsMarketListView {
   async tapBackButtonMarketList() {
     await AppwrightGestures.tap(this.backButtonMarketList); // Use static tap method with retry logic
   }
+
+  async selectMarket(symbol) {
+    // ID format from Perps.selectors.ts: `perps-market-row-item-${symbol}`
+    const marketRow = await AppwrightSelectors.getElementByID(this._device, `perps-market-row-item-${symbol}`);
+    await AppwrightGestures.tap(marketRow);
+  }
 }
 
 export default new PerpsMarketListView();
-
-
-

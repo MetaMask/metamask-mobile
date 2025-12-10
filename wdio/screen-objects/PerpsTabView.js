@@ -13,7 +13,7 @@ class PerpsTabView {
   }
 
   get perpsTabButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'wallet-perps-action');
+    return AppwrightSelectors.getElementByID(this._device, 'undefined-tab-1');
   }
 
   get addFundsButton() {
@@ -24,8 +24,16 @@ class PerpsTabView {
     return AppwrightSelectors.getElementByID(this._device, 'perps-start-trading-button');
   }
 
+  get startTradingButton() {
+    return AppwrightSelectors.getElementByText(this._device, 'Start trading');
+  }
+
   async tapPerpsTab() {
     await AppwrightGestures.tap(this.perpsTabButton); // Use static tap method with retry logic
+  }
+
+  async tapStartTradingButton() {
+    await AppwrightGestures.tap(this.startTradingButton); // Use static tap method with retry logic
   }
 
   async tapAddFunds() {

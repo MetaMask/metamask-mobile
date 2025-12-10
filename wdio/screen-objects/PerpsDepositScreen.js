@@ -26,11 +26,23 @@ class PerpsDepositScreen {
     return AppwrightSelectors.getElementByID(this._device, 'custom-amount-input');
   }
 
+  get backButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'Add funds-navbar-back-button');
+  }
+
   get payWithButton() {
     return AppwrightSelectors.getElementByCatchAll(
       this._device,
       'Pay with',
     );
+  }
+
+  get addFundsButton() {
+    return AppwrightSelectors.getElementByText(this._device, 'Add funds');
+  }
+
+  get totalText() {
+    return AppwrightSelectors.getElementByText(this._device, 'Total');
   }
 
   async isAmountInputVisible() {
@@ -49,6 +61,11 @@ class PerpsDepositScreen {
     await AmountScreen.tapOnNextButton();
   }
 
+  async tapBackspace() {
+    AmountScreen.device = this._device;
+    await AmountScreen.tapBackspace();
+  }
+
   async tapPayWith() {
     await AppwrightGestures.tap(this.payWithButton); // Use static tap method with retry logic
   }
@@ -61,9 +78,23 @@ class PerpsDepositScreen {
     await AppwrightGestures.tap(this.cancelButton); // Use static tap method with retry logic
   }
 
+  async tapBackButton() {
+    await AppwrightGestures.tap(this.backButton); // Use static tap method with retry logic
+  }
+
   async checkTransactionFeeIsVisible() {
     const transactionFee = await AppwrightSelectors.getElementByID(this._device, 'bridge-fee-row');
     await expect(transactionFee).toBeVisible();
+  }
+
+  async isAddFundsVisible(options = { timeout: 15000 }) {
+    const addFunds = await this.addFundsButton;
+    return await addFunds.isVisible(options);
+  }
+
+  async isTotalVisible() {
+    const total = await AppwrightSelectors.getElementByText(this._device, 'Total');
+    expect(total).toBeVisible();
   }
 }
 
