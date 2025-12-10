@@ -924,8 +924,8 @@ async function waiveFees({
 }) {
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
-  const slugs = tags.map((t) => t.slug);
-  return slugs.some((slug) => waiveList.includes(slug)) ?? false;
+  const slugs = tags?.map((t) => t.slug);
+  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
@@ -938,7 +938,7 @@ export async function calculateFees({
   userBetAmount: number;
 }): Promise<PredictFees> {
   if (
-    !feeCollection ||
+    !feeCollection?.enabled ||
     (await waiveFees({ marketId, waiveList: feeCollection.waiveList }))
   ) {
     return {
