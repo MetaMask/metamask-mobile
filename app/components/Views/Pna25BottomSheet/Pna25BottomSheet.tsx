@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Linking } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -77,31 +77,33 @@ const Pna25BottomSheet = () => {
         }}
         style={tw.style('pt-0 pb-0')}
       />
-      <Box twClassName="flex flex-col items-center gap-4 mb-6">
-        <Icon name={IconName.ShieldLock} size={IconSize.Xl} />
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('privacy_policy.pna25_title')}
-        </Text>
-      </Box>
-      <Box twClassName="px-6 pb-8 gap-6">
-        <Text variant={TextVariant.BodyMd}>
-          {strings('privacy_policy.pna25_description')}
-        </Text>
-        <Text variant={TextVariant.BodyMd}>
-          {strings('privacy_policy.pna25_description_2')}
-        </Text>
-        <Text variant={TextVariant.BodyMd}>
-          {strings('privacy_policy.pna25_description_3') + ' '}
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="underline"
-            onPress={handleLearnMore}
-          >
-            {strings('privacy_policy.pna25_blog_post_link')}
+      <ScrollView>
+        <Box twClassName="flex flex-col items-center gap-4 mb-6">
+          <Icon name={IconName.ShieldLock} size={IconSize.Xl} />
+          <Text variant={TextVariant.HeadingSm}>
+            {strings('privacy_policy.pna25_title')}
           </Text>
-          {'.'}
-        </Text>
-      </Box>
+        </Box>
+        <Box twClassName="px-6 pb-8 gap-6">
+          <Text variant={TextVariant.BodyMd}>
+            {strings('privacy_policy.pna25_description')}
+          </Text>
+          <Text variant={TextVariant.BodyMd}>
+            {strings('privacy_policy.pna25_description_2')}
+          </Text>
+          <Text variant={TextVariant.BodyMd}>
+            {strings('privacy_policy.pna25_description_3') + ' '}
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="underline"
+              onPress={handleLearnMore}
+            >
+              {strings('privacy_policy.pna25_blog_post_link')}
+            </Text>
+            {'.'}
+          </Text>
+        </Box>
+      </ScrollView>
       <BottomSheetFooter
         buttonPropsArray={[
           {
