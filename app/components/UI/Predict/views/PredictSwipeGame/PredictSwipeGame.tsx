@@ -672,12 +672,12 @@ const PredictSwipeGame: React.FC = () => {
           twClassName="items-center pb-2"
           style={{ paddingBottom: insets.bottom + 8 }}
         >
-          {/* Skip hint */}
+          {/* Swipe instructions */}
           <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-muted opacity-60 mb-2"
+            variant={TextVariant.BodyXs}
+            twClassName="text-muted opacity-70 mb-2"
           >
-            ↕ Swipe up or down to skip
+            Swipe → for YES, ← for NO, or ↑↓ to skip
           </Text>
 
           {/* Progress dots */}

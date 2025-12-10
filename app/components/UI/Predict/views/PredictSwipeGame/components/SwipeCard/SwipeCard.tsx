@@ -195,7 +195,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
                 variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
               >
-                {formatPercentage(noPrice)}
+                {formatPercentage(noPrice * 100)}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
@@ -219,7 +219,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
                 variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
               >
-                {formatPercentage(yesPrice)}
+                {formatPercentage(yesPrice * 100)}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
@@ -281,11 +281,11 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
                   </Text>
                   <Box twClassName="flex-row items-center mt-2">
                     <Text style={styles.yesTextSmall}>
-                      {formatPercentage(outcome.yesToken.price)}
+                      {formatPercentage(outcome.yesToken.price * 100)}
                     </Text>
                     <Text style={styles.slashText}>/</Text>
                     <Text style={styles.noTextSmall}>
-                      {formatPercentage(outcome.noToken.price)}
+                      {formatPercentage(outcome.noToken.price * 100)}
                     </Text>
                   </Box>
                 </Pressable>
