@@ -1,13 +1,13 @@
-import { test } from '../../../fixtures/performance-test.js';
+import { test } from '../../../../fixtures/performance-test.js';
 
-import TimerHelper from '../../../utils/TimersHelper.js';
-import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
-import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
-import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
-import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import PredictMarketListScreen from '../../../../wdio/screen-objects/PredictMarketListScreen.js';
-import PredictDetailsScreen from '../../../../wdio/screen-objects/PredictDetailsScreen.js';
-import { login } from '../../../utils/Flows.js';
+import TimerHelper from '../../../../utils/TimersHelper.js';
+import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
+import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
+import TabBarModal from '../../../../../wdio/screen-objects/Modals/TabBarModal.js';
+import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
+import PredictMarketListScreen from '../../../../../wdio/screen-objects/PredictMarketListScreen.js';
+import PredictDetailsScreen from '../../../../../wdio/screen-objects/PredictDetailsScreen.js';
+import { login } from '../../../../utils/Flows.js';
 
 /*
  * Scenario: Predict Market Details Performance Test
