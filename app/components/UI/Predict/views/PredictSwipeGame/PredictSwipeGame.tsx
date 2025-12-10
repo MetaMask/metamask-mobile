@@ -169,7 +169,6 @@ const PredictSwipeGame: React.FC = () => {
     currentIndex,
     betAmount,
     isLoading,
-    isPendingOrder,
     error,
     orderError,
     sessionStats,
@@ -242,7 +241,7 @@ const PredictSwipeGame: React.FC = () => {
       onSwipeRight: handleSwipeRightWithHaptic,
       onSwipeLeft: handleSwipeLeftWithHaptic,
       onSwipeDown: handleSwipeDownWithHaptic,
-      enabled: hasMoreCards && !isLoading && !isPendingOrder,
+      enabled: hasMoreCards && !isLoading,
       cardKey: currentCard?.marketId,
     });
 
@@ -628,24 +627,6 @@ const PredictSwipeGame: React.FC = () => {
                       SKIP
                     </Text>
                   </Animated.View>
-
-                  {/* Order pending overlay */}
-                  {isPendingOrder && (
-                    <View
-                      style={[styles.swipeOverlay, styles.pendingOverlay]}
-                    >
-                      <ActivityIndicator
-                        size="large"
-                        color={colors.primary.default}
-                      />
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        twClassName="mt-3"
-                      >
-                        Placing bet...
-                      </Text>
-                    </View>
-                  )}
                 </>
               ) : undefined;
 
