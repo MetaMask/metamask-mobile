@@ -7673,45 +7673,43 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@metamask/design-system-react-native@npm:0.4.0"
+"@metamask/design-system-react-native@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@metamask/design-system-react-native@npm:0.5.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.1.0"
+    "@metamask/design-system-shared": "npm:^0.1.1"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
-    "@metamask/design-system-twrnc-preset": ^0.2.0
+    "@metamask/design-system-twrnc-preset": ^0.3.0
     "@metamask/design-tokens": ^8.1.0
-    "@metamask/utils": ^11.7.0
-    "@solana/addresses": ^2.0.0
-    bitcoin-address-validation: ">=2.0.0"
+    "@metamask/utils": ^11.8.1
     react: ">=18.2.0"
     react-native: ">=0.72.0"
     react-native-gesture-handler: ">=1.10.3"
     react-native-reanimated: ">=3.3.0"
-  checksum: 10/874b51d8a2aef10919a3b95a2a40a37ab768fa577bb8cd2e5a02d6589c5747f05e038a51555847cd5ec1b9c9f755cc67d1329225d20982306e434ed882bc97c2
+  checksum: 10/619900bed1732279fe260e9d4b1f6a33f766d617ab2658ea540bbb5d64a5a4f380bb67a5505e7a45c48004c3fb49345c5db1aea7e8fcc7db399682bf1f66d4b0
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@metamask/design-system-shared@npm:0.1.0"
+"@metamask/design-system-shared@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@metamask/design-system-shared@npm:0.1.1"
   dependencies:
-    "@metamask/utils": "npm:^11.7.0"
-  checksum: 10/871fb9fd9ce536c841c9f5611fc3bd57faed1215f9d17eeb839074b3b1cc8da75b7257e40e203de28c6fa3f98d3f877ca78a7873c068b69f8a33d4507471c6be
+    "@metamask/utils": "npm:^11.8.0"
+  checksum: 10/8e8dab9ca59f83da76078a9f644d73d90cdb309ce5549acb915fbe2fdfb03803b3d73533e3d64a1bdca4ac2a19514d6885fe5c727832353a5691d310f06735d9
   languageName: node
   linkType: hard
 
-"@metamask/design-system-twrnc-preset@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "@metamask/design-system-twrnc-preset@npm:0.2.1"
+"@metamask/design-system-twrnc-preset@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/design-system-twrnc-preset@npm:0.3.0"
   dependencies:
     twrnc: "npm:^4.5.1"
   peerDependencies:
     "@metamask/design-tokens": ^8.0.0
     react: ^18.2.0
-  checksum: 10/26998c882c7b4ba8b48267647150d73948a23e410ada65bf8d06059f7212c67835bfe25864a7a60d8a5abb826360b5e0d884ac6477d12d99de82145c07f52a71
+  checksum: 10/85b972aaca81e6e021c07dc7a790f4de89b42125893ceca1e89fde814c17d214446e28383895a47411b72d09ecf8abff03eec538e7927030f9110ed2e518b90a
   languageName: node
   linkType: hard
 
@@ -9810,7 +9808,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.5.0, @metamask/utils@npm:^11.7.0, @metamask/utils@npm:^11.8.1":
+"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.5.0, @metamask/utils@npm:^11.8.0, @metamask/utils@npm:^11.8.1":
   version: 11.8.1
   resolution: "@metamask/utils@npm:11.8.1"
   dependencies:
@@ -27954,14 +27952,14 @@ __metadata:
   linkType: hard
 
 "expo-build-properties@npm:^0.13.1, expo-build-properties@npm:~0.13.2":
-  version: 0.13.2
-  resolution: "expo-build-properties@npm:0.13.2"
+  version: 0.13.3
+  resolution: "expo-build-properties@npm:0.13.3"
   dependencies:
     ajv: "npm:^8.11.0"
     semver: "npm:^7.6.0"
   peerDependencies:
     expo: "*"
-  checksum: 10/88a2b0f491112398314502cc51172d4695d62ed9998fa96d8630450a5451f5f9779e0737c997175502ab16a3eb0194efb1cac44be44d5bfa2025054e4e4ce1c7
+  checksum: 10/c452af66ec2f7b9e31099652451f9caca48812ec1932b2c7c48f5ae57f11b6bee957cbca25e5dd4e08a5dc157ebf4ed1ea36fd298090a7792ae769e3e65f63e5
   languageName: node
   linkType: hard
 
@@ -34328,8 +34326,8 @@ __metadata:
     "@metamask/core-backend": "npm:^4.1.0"
     "@metamask/delegation-controller": "npm:^1.0.0"
     "@metamask/delegation-deployments": "npm:^0.15.0"
-    "@metamask/design-system-react-native": "npm:^0.4.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.2.1"
+    "@metamask/design-system-react-native": "npm:^0.5.0"
+    "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
     "@metamask/design-tokens": "npm:^8.1.1"
     "@metamask/earn-controller": "npm:^10.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
@@ -34576,6 +34574,7 @@ __metadata:
     expo-build-properties: "npm:~0.13.2"
     expo-dev-client: "npm:~5.0.18"
     expo-file-system: "npm:~18.0.7"
+    expo-font: "npm:~13.0.4"
     expo-haptics: "npm:~14.0.1"
     expo-image: "npm:~2.0.7"
     expo-screen-orientation: "npm:~8.0.4"
