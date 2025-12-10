@@ -74,11 +74,10 @@ jest.mock('../../../util/identity/hooks/useAuthentication', () => ({
   }),
 }));
 
-jest.mock('../../hooks/DeleteWallet', () => ({
-  useDeleteWallet: () => [
-    jest.fn(() => Promise.resolve()),
-    jest.fn(() => Promise.resolve()),
-  ],
+jest.mock('../../../core/Authentication/Authentication', () => ({
+  Authentication: {
+    deleteWallet: jest.fn(() => Promise.resolve()),
+  },
 }));
 
 const Stack = createStackNavigator();

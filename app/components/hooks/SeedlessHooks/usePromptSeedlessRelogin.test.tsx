@@ -14,7 +14,11 @@ import { setCompletedOnboarding } from '../../../actions/onboarding';
 // Mock dependencies
 jest.mock('../useMetrics');
 jest.mock('../../../util/identity/hooks/useAuthentication');
-jest.mock('../DeleteWallet');
+jest.mock('../../../core/Authentication/Authentication', () => ({
+  Authentication: {
+    deleteWallet: jest.fn(),
+  },
+}));
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
@@ -38,25 +42,23 @@ jest.mock('@react-navigation/native', () => ({
 // Mock imports
 import { useMetrics } from '../useMetrics';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
-import { useDeleteWallet } from '../DeleteWallet';
+import { Authentication } from '../../../core/Authentication/Authentication';
 
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 const mockUseSignOut = useSignOut as jest.MockedFunction<typeof useSignOut>;
-const mockUseDeleteWallet = useDeleteWallet as jest.MockedFunction<
-  typeof useDeleteWallet
->;
 const mockStorageWrapper = storageWrapper as jest.Mocked<typeof storageWrapper>;
 const mockClearHistory = clearHistory as jest.MockedFunction<
   typeof clearHistory
 >;
 const mockSetCompletedOnboarding =
   setCompletedOnboarding as jest.MockedFunction<typeof setCompletedOnboarding>;
+const mockDeleteWallet = Authentication.deleteWallet as jest.MockedFunction<
+  typeof Authentication.deleteWallet
+>;
 
 describe('usePromptSeedlessRelogin', () => {
   const mockStore = configureMockStore([thunk]);
   const mockSignOut = jest.fn();
-  const mockResetWalletState = jest.fn();
-  const mockDeleteUser = jest.fn();
   const mockMetrics = {
     isEnabled: jest.fn().mockReturnValue(true),
     trackEvent: jest.fn(),
@@ -94,7 +96,7 @@ describe('usePromptSeedlessRelogin', () => {
     // Setup mocks
     mockUseMetrics.mockReturnValue(mockMetrics);
     mockUseSignOut.mockReturnValue({ signOut: mockSignOut });
-    mockUseDeleteWallet.mockReturnValue([mockResetWalletState, mockDeleteUser]);
+    mockDeleteWallet.mockResolvedValue(undefined);
     (mockStorageWrapper.removeItem as jest.Mock).mockResolvedValue(undefined);
     mockClearHistory.mockReturnValue({
       type: 'CLEAR_BROWSER_HISTORY',
@@ -213,8 +215,7 @@ describe('usePromptSeedlessRelogin', () => {
       // Assert
       expect(mockClearHistory).toHaveBeenCalledWith(true, true);
       expect(mockSignOut).toHaveBeenCalledTimes(1);
-      expect(mockResetWalletState).toHaveBeenCalledTimes(1);
-      expect(mockDeleteUser).toHaveBeenCalledTimes(1);
+      expect(mockDeleteWallet).toHaveBeenCalledTimes(1);
       expect(mockStorageWrapper.removeItem).toHaveBeenCalledWith(
         OPTIN_META_METRICS_UI_SEEN,
       );
@@ -327,12 +328,12 @@ describe('usePromptSeedlessRelogin', () => {
         usePromptSeedlessRelogin(),
       );
 
-      // Make resetWalletState async to test loading state
-      let resolveResetWallet: () => void;
-      const resetWalletPromise = new Promise<void>((resolve) => {
-        resolveResetWallet = resolve;
+      // Make deleteWallet async to test loading state
+      let resolveDeleteWallet: () => void;
+      const deleteWalletPromise = new Promise<void>((resolve) => {
+        resolveDeleteWallet = resolve;
       });
-      mockResetWalletState.mockReturnValue(resetWalletPromise);
+      mockDeleteWallet.mockReturnValueOnce(deleteWalletPromise);
 
       act(() => {
         result.current.promptSeedlessRelogin();
@@ -350,9 +351,9 @@ describe('usePromptSeedlessRelogin', () => {
       // Assert - check loading state is true during deletion
       expect(result.current.isDeletingInProgress).toBe(true);
 
-      // Complete the reset wallet operation
+      // Complete the delete wallet operation
       act(() => {
-        resolveResetWallet();
+        resolveDeleteWallet();
       });
 
       // Wait for completion
@@ -393,7 +394,7 @@ describe('usePromptSeedlessRelogin', () => {
       const { result } = renderHookWithProvider(() =>
         usePromptSeedlessRelogin(),
       );
-      mockResetWalletState.mockRejectedValueOnce(new Error('Reset failed'));
+      mockDeleteWallet.mockRejectedValueOnce(new Error('Reset failed'));
 
       act(() => {
         result.current.promptSeedlessRelogin();
@@ -446,7 +447,7 @@ describe('usePromptSeedlessRelogin', () => {
       );
       // Assert other operations were still attempted
       expect(mockSignOut).toHaveBeenCalledTimes(1);
-      expect(mockResetWalletState).toHaveBeenCalledTimes(1);
+      expect(mockDeleteWallet).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -7,7 +7,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { createStyles } from './styles';
-import { useDeleteWallet } from '../../hooks/DeleteWallet';
+import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -62,7 +62,6 @@ const DeleteWalletModal: React.FC = () => {
 
   const [isResetWallet, setIsResetWallet] = useState<boolean>(false);
 
-  const [resetWalletState, deleteUser] = useDeleteWallet();
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -115,8 +114,7 @@ const DeleteWalletModal: React.FC = () => {
       dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
       signOut();
       await CookieManager.clearAll(true);
-      await resetWalletState();
-      await deleteUser();
+      await Authentication.deleteWallet();
       await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
       dispatch(setCompletedOnboarding(false));
       // Track analytics for successful deletion

@@ -73,6 +73,8 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import MetaMetrics from '../Analytics/MetaMetrics';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1294,6 +1296,74 @@ class AuthenticationService {
       keyringEncryptionKey,
     );
   };
+
+  /**
+   * Deletes the wallet by resetting wallet state and deleting user data.
+   * This is the main public method for wallet deletion/reset flows.
+   * It calls resetWalletState() followed by deleteUser().
+   *
+   * @returns {Promise<void>}
+   */
+  deleteWallet = async (): Promise<void> => {
+    await this.resetWalletState();
+    await this.deleteUser();
+  };
+
+  /**
+   * Resets the wallet state by creating a new wallet and clearing all related state.
+   * This is used during wallet deletion/reset flows.
+   * Protected method - use deleteWallet() instead for complete wallet deletion.
+   *
+   * @returns {Promise<void>}
+   */
+  protected async resetWalletState(): Promise<void> {
+    try {
+      // Clear vault backups BEFORE creating temporary wallet
+      await clearAllVaultBackups();
+
+      // CRITICAL: Disable automatic vault backups during wallet RESET
+      // This prevents the temporary wallet (created during reset) from being backed up
+      EngineClass.disableAutomaticVaultBackup = true;
+
+      try {
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+
+        Engine.context.SeedlessOnboardingController.clearState();
+
+        await depositResetProviderToken();
+
+        await Engine.controllerMessenger.call('RewardsController:resetAll');
+
+        // Lock the app and navigate to onboarding
+        await this.lockApp({ navigateToLogin: false });
+      } finally {
+        // ALWAYS re-enable automatic vault backups, even if error occurs
+        EngineClass.disableAutomaticVaultBackup = false;
+      }
+    } catch (error) {
+      const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
+      Logger.log(error, errorMsg);
+    }
+  }
+
+  /**
+   * Deletes user data by setting existing user state to false and creating a data deletion task.
+   * This is used during wallet deletion flows.
+   * Protected method - use deleteWallet() instead for complete wallet deletion.
+   *
+   * @returns {Promise<void>}
+   */
+  protected async deleteUser(): Promise<void> {
+    try {
+      ReduxService.store.dispatch(setExistingUser(false));
+      await MetaMetrics.getInstance().createDataDeletionTask();
+    } catch (error) {
+      const errorMsg = `Failed to reset existingUser state in Redux`;
+      Logger.log(error, errorMsg);
+    }
+  }
 }
 
 export const Authentication = new AuthenticationService();
