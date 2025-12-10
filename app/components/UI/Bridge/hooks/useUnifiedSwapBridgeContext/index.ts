@@ -9,9 +9,7 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { calcTokenFiatValue } from '../../utils/exchange-rates';
 
 export const useUnifiedSwapBridgeContext = () => {
@@ -25,10 +23,7 @@ export const useUnifiedSwapBridgeContext = () => {
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
   );
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
   const usdConversionRate = evmMultiChainCurrencyRates?.usd?.conversionRate;
   const tokenFiatValue = useMemo(
