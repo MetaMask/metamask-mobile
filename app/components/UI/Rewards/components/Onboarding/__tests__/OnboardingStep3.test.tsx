@@ -2,6 +2,7 @@ import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import { renderWithProviders } from '../testUtils';
 import OnboardingStep3 from '../OnboardingStep3';
+import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -167,14 +168,18 @@ describe('OnboardingStep3', () => {
       it('should render skip button when onSkip is provided', () => {
         renderWithProviders(<OnboardingStep3 />);
 
-        const skipButton = screen.getByTestId('skip-button');
+        const skipButton = screen.getByTestId(
+          REWARDS_VIEW_SELECTORS.SKIP_BUTTON,
+        );
         expect(skipButton).toBeDefined();
       });
 
       it('should navigate to step 4 and update redux state when skip button is pressed', () => {
         renderWithProviders(<OnboardingStep3 />);
 
-        const skipButton = screen.getByTestId('skip-button');
+        const skipButton = screen.getByTestId(
+          REWARDS_VIEW_SELECTORS.SKIP_BUTTON,
+        );
         fireEvent.press(skipButton);
 
         expect(mockDispatch).toHaveBeenCalledWith({

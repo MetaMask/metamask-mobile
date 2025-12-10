@@ -16,6 +16,13 @@ global.base64ToArrayBuffer = base64js.toByteArray;
 // Mock the redux-devtools-expo-dev-plugin module
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
 
+// Mock Expo's fetch implementation
+jest.mock('expo/fetch', () => {
+  return {
+    fetch: fetch,
+  };
+});
+
 jest.mock('react-native-quick-crypto', () => ({
   getRandomValues: jest.fn((array) => {
     for (let i = 0; i < array.length; i++) {
@@ -63,8 +70,6 @@ jest.mock('react-native-quick-crypto', () => ({
   ),
 }));
 
-jest.mock('react-native-blob-jsi-helper', () => ({}));
-
 // Create a persistent mock function that survives Jest teardown
 const mockBatchedUpdates = jest.fn((fn) => {
   if (typeof fn === 'function') {
@@ -78,6 +83,16 @@ jest.mock('react-native', () => {
 
   // Set the Platform.OS property to the desired value
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
+
+  // Mock deprecated prop types for third-party packages that haven't been updated
+  originalModule.Text.propTypes = {
+    allowFontScaling: true,
+    style: true,
+  };
+
+  originalModule.ViewPropTypes = {
+    style: true,
+  };
 
   // Mock unstable_batchedUpdates directly in the react-native module
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
@@ -201,6 +216,9 @@ jest.mock('../../store', () => ({
     getState: jest.fn().mockImplementation(() => mockState),
     dispatch: jest.fn(),
   },
+  runSaga: jest
+    .fn()
+    .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
   _updateMockState: (state) => {
     mockState = state;
   },
@@ -594,6 +612,11 @@ jest.mock('@sentry/react-native', () => ({
 
   // User feedback
   lastEventId: jest.fn(),
+
+  // Global scope
+  getGlobalScope: jest.fn(() => ({
+    setTag: jest.fn(),
+  })),
 }));
 
 jest.mock('@react-native-firebase/messaging', () => {

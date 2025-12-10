@@ -1,7 +1,7 @@
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useCallback } from 'react';
+import { Alert, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -13,6 +13,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
+import { useBuildPortfolioUrl } from '../../../../hooks/useBuildPortfolioUrl';
 import {
   selectEvmChainId,
   selectNetworkConfigurationByChainId,
@@ -23,9 +24,13 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
-  selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
+  selectIsMusdConversionFlowEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../components/hooks/useFeatureFlag';
 import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
@@ -34,27 +39,46 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
+import { earnSelectors } from '../../../../../selectors/earnController/earn';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
+///: END:ONLY_INCLUDE_IF
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import Logger from '../../../../../util/Logger';
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
 interface StakeButtonProps {
   asset: TokenI;
 }
 
+// TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingEnabled = useFeatureFlag(
+    FeatureFlagNames.earnPooledStakingEnabled,
+  );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
+  );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
+  const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
+  ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -62,10 +86,49 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { getEarnToken } = useEarnTokens();
   const earnToken = getEarnToken(asset);
 
+  const primaryExperienceType = useSelector((state: RootState) =>
+    earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
+  );
+
+  const { initiateConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
+  const { isConversionToken, isMusdSupportedOnChain } =
+    useMusdConversionTokens();
+
+  const isConvertibleStablecoin =
+    isMusdConversionFlowEnabled && isConversionToken(asset);
+
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const handleStakeRedirect = async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTronNative && isTrxStakingEnabled) {
+      trace({ name: TraceName.EarnDepositScreen });
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: asset,
+        },
+      });
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
+          .addProperties({
+            chain_id: getDecimalChainId(asset.chainId as Hex),
+            location: EVENT_LOCATIONS.HOME_SCREEN,
+            action_type: 'deposit',
+            text: 'Earn',
+            token: asset.symbol,
+            network: network?.name,
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+          })
+          .build(),
+      );
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     if (!isStakingSupportedChain) {
       await Engine.context.MultichainNetworkController.setActiveNetwork(
         'mainnet',
@@ -88,7 +151,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+        const stakeUrl = buildPortfolioUrlWithMetrics(AppConstants.STAKE.URL);
+        newTabUrl = stakeUrl.href;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),
@@ -155,25 +219,103 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     });
   };
 
+  const handleConvertToMUSD = useCallback(async () => {
+    try {
+      if (!asset?.address || !asset?.chainId) {
+        throw new Error('Asset address or chain ID is not set');
+      }
+
+      const assetChainId = toHex(asset.chainId);
+
+      const isSupportedChain = isMusdSupportedOnChain(assetChainId);
+
+      if (!isSupportedChain) {
+        throw new Error('Chain is not supported for mUSD conversion');
+      }
+
+      const config = {
+        outputChainId: assetChainId,
+        preferredPaymentToken: {
+          address: toHex(asset.address),
+          chainId: assetChainId,
+        },
+        navigationStack: Routes.EARN.ROOT,
+      };
+
+      if (!hasSeenConversionEducationScreen) {
+        navigation.navigate(config.navigationStack, {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken: config.preferredPaymentToken,
+            outputChainId: config.outputChainId,
+          },
+        });
+        return;
+      }
+
+      await initiateConversion(config);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[mUSD Conversion] Failed to initiate conversion',
+      );
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      Alert.alert(
+        'Conversion Failed',
+        `Unable to start mUSD conversion: ${errorMessage}`,
+        [{ text: 'OK' }],
+      );
+    }
+  }, [
+    asset.address,
+    asset.chainId,
+    hasSeenConversionEducationScreen,
+    initiateConversion,
+    isMusdSupportedOnChain,
+    navigation,
+  ]);
+
   const onEarnButtonPress = async () => {
-    if (earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (isConvertibleStablecoin) {
+      return handleConvertToMUSD();
+    }
+
+    if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
-    if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (primaryExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
   };
 
   if (
     areEarnExperiencesDisabled ||
-    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0') ||
+    (!isConvertibleStablecoin && // Show for convertible stablecoins even with 0 balance
+      primaryExperienceType !== EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      !earnToken?.isETH &&
+      earnToken?.balanceMinimalUnit === '0') ||
     (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
 
+  const renderEarnButtonText = () => {
+    if (isConvertibleStablecoin) {
+      return strings('asset_overview.convert_to_musd');
+    }
+
+    const aprNumber = Number(earnToken?.experience?.apr);
+    const aprText =
+      Number.isFinite(aprNumber) && aprNumber > 0
+        ? ` ${aprNumber.toFixed(1)}%`
+        : '';
+    return `${strings('stake.earn')}${aprText}`;
+  };
+
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onEarnButtonPress}
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
@@ -182,10 +324,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         {' • '}
       </Text>
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
-        {`${strings('stake.earn')}`}{' '}
-        {parseFloat(earnToken?.experience?.apr || '').toFixed(1)}%
+        {renderEarnButtonText()}
       </Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 

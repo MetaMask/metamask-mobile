@@ -19,19 +19,17 @@ The check can be bypassed when necessary, either by setting the changelog entry 
 
 Any label can be manually added on demand depending on the PR's content. For instance, the label **QA passed** will indicate that a thorough manual testing has been performed and the PR is ready to be merged. In addition, following labels have some specific use cases.
 
-### Run iOS E2E tests
-
-Android E2E smoke tests run on every PR automatically, but running iOS E2E smoke tests are optional based on the following label:
-
-- **run-ios-e2e-smoke**: The iOS E2E smoke tests jobs will run in the pipeline.
-- **run-android-flask-e2e-smoke**: The Android Flask E2E smoke tests jobs will run in the pipeline.
-
 ### Bypass Quality Gates
 
 Using any of these labels should be exceptional in case of CI friction and urgencies. Please use them reasonably and verify new changes and regressions manually.
 
 - **skip-sonar-cloud**: The PR will be merged without running SonarCloud checks.
 - **skip-e2e**: The PR will be merged without running E2E tests.
+- **skip-e2e-quality-gate**: This label will disable the default test retries for E2E test files modified in a PR. Useful when making large refactors or when changes don't pose flakiness risk.
+
+### Skip Smart E2E Selection
+
+- **skip-smart-e2e-selection**: This label is used to bypass the Smart E2E Selection (select E2E tests to run depending on the PR changes). Useful when we do want all E2E tests to run for a given PR.
 
 ### Block merge if any is present
 

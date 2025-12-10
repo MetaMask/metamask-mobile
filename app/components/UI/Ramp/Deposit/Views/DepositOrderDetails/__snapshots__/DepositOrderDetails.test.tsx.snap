@@ -68,6 +68,7 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
               [
                 {
                   "padding": 15,
+                  "paddingHorizontal": 16,
                 },
                 undefined,
                 {
@@ -242,6 +243,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
               [
                 {
                   "padding": 15,
+                  "paddingHorizontal": 16,
                 },
                 undefined,
                 undefined,
@@ -761,6 +763,7 @@ exports[`DepositOrderDetails Component renders loading state correctly 1`] = `
           [
             {
               "padding": 15,
+              "paddingHorizontal": 16,
             },
             undefined,
             undefined,
@@ -867,6 +870,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
               [
                 {
                   "padding": 15,
+                  "paddingHorizontal": 16,
                 },
                 undefined,
                 undefined,
@@ -1411,6 +1415,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
               [
                 {
                   "padding": 15,
+                  "paddingHorizontal": 16,
                 },
                 undefined,
                 undefined,

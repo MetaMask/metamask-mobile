@@ -189,7 +189,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
       }
       getItem={[Function]}
       getItemCount={[Function]}
-      handlerTag={1}
+      handlerTag={-1}
       handlerType="NativeViewGestureHandler"
       initialNumToRender={999}
       keyExtractor={[Function]}
@@ -257,7 +257,6 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                   >
                     <TouchableOpacity
                       disabled={false}
-                      onPressIn={[Function]}
                       style={
                         {
                           "alignItems": "center",
@@ -288,7 +287,6 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                           fill="currentColor"
                           height={20}
                           name="CheckBold"
-                          onPressIn={[Function]}
                           style={
                             {
                               "height": 20,
@@ -434,7 +432,6 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                   >
                     <TouchableOpacity
                       disabled={false}
-                      onPressIn={[Function]}
                       style={
                         {
                           "alignItems": "center",

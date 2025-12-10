@@ -1,6 +1,6 @@
-![MetaMask logo](logo.png?raw=true)
+<img alt="MetaMask logo" src="logo.png?raw=true" width="50" />
 
-# MetaMask
+# MetaMask Mobile
 
 [![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
 
@@ -28,6 +28,26 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Reassure Performance Testing (pilot)](./docs/readme/reassure.md)
 
 ## Getting started
+
+### Infura Project Setup
+
+MetaMask Mobile requires an Infura project ID to connect to blockchain networks.
+
+#### Internal Contributors
+
+1. Grab the `.js.env` file from 1Password, ask around for the correct vault. This file contains the `MM_INFURA_PROJECT_ID`.
+
+#### External Contributors
+
+1. Go to [https://developer.metamask.io](https://developer.metamask.io) and create an account
+2. Generate an API key
+3. Add API key to `MM_INFURA_PROJECT_ID` in `.js.env.example`
+4. Rename `.js.env.example` to `.js.env`
+5. Rebuild the app
+
+[!CAUTION]
+
+> Without an Infura project ID, the app cannot connect to blockchain networks.
 
 ### Using Expo (recommended)
 

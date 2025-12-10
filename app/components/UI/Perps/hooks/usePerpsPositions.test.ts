@@ -100,6 +100,8 @@ describe('usePerpsPositions', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
       calculateFees: jest.fn(),
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
@@ -390,7 +392,7 @@ describe('usePerpsPositions', () => {
       expect(result.current.isRefreshing).toBe(true);
       expect(result.current.isLoading).toBe(false);
 
-      act(() => {
+      await act(async () => {
         resolvePromise(mockPositions);
       });
 
@@ -549,7 +551,7 @@ describe('usePerpsPositions', () => {
       expect(result.current.isRefreshing).toBe(true);
       expect(result.current.isLoading).toBe(false);
 
-      act(() => {
+      await act(async () => {
         resolvePromise(mockPositions);
       });
 

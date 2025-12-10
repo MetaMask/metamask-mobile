@@ -11,7 +11,7 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
-import type { CandleData } from '../../types';
+import type { CandleData } from '../../types/perps-types';
 import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
@@ -19,6 +19,11 @@ import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
+import { strings } from '../../../../../../locales/i18n';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -28,11 +33,23 @@ export interface TPSLLines {
 }
 
 export type { TimeDuration } from '../../constants/chartConfig';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+
+export interface OhlcData {
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume?: string;
+  time: number;
+}
 
 export interface TradingViewChartRef {
   resetToDefault: () => void;
   zoomToLatestCandle: (candleCount?: number) => void;
   clearTPSLLines: () => void;
+  toggleVolumeVisibility: (visible: boolean) => void;
+  toggleOverlayVisibility: (visible: boolean) => void;
 }
 
 interface TradingViewChartProps {
@@ -40,7 +57,13 @@ interface TradingViewChartProps {
   height?: number;
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
+  onNeedMoreHistory?: () => void; // Callback when user scrolls to left edge and needs more historical data
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
+  showVolume?: boolean; // Control volume bars visibility
+  showOverlay?: boolean; // Control chart overlay visibility (OHLC legend)
+  coloredVolume?: boolean; // Control volume bar coloring (true = green/red by direction, false = single color)
+  onOhlcDataChange?: (data: OhlcData | null) => void; // Callback when OHLC data changes
+  symbol?: string; // Expected symbol for validation (prevents stale data from previous market)
   testID?: string;
 }
 
@@ -57,7 +80,13 @@ const TradingViewChart = React.forwardRef<
       height = 350,
       tpslLines,
       onChartReady,
-      visibleCandleCount = 45, // Default to 45 visible candles
+      onNeedMoreHistory,
+      visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
+      showVolume = true, // Default to showing volume
+      showOverlay = false, // Default to hiding overlay
+      coloredVolume = true, // Default to colored volume bars
+      onOhlcDataChange,
+      symbol,
       testID,
     },
     ref,
@@ -66,13 +95,36 @@ const TradingViewChart = React.forwardRef<
     const webViewRef = useRef<WebView>(null);
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
-    const [ohlcData, setOhlcData] = useState<{
-      open: string;
-      high: string;
-      low: string;
-      close: string;
-      time: number;
+    const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
+    // Buffer for candle data that arrives before WebView is ready (Android fix)
+    const pendingCandleDataRef = useRef<{
+      data: CandleData;
+      timestamp: number;
     } | null>(null);
+
+    // Format OHLC values using the same formatting as the header
+    const formattedOhlcData = useMemo(() => {
+      if (!ohlcData) return null;
+
+      try {
+        return {
+          open: formatPerpsFiat(parseFloat(ohlcData.open), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+          high: formatPerpsFiat(parseFloat(ohlcData.high), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+          low: formatPerpsFiat(parseFloat(ohlcData.low), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+          close: formatPerpsFiat(parseFloat(ohlcData.close), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+        };
+      } catch {
+        return null;
+      }
+    }, [ohlcData]);
 
     // Platform-specific WebView props
     const platformSpecificProps = useMemo(() => {
@@ -114,9 +166,15 @@ const TradingViewChart = React.forwardRef<
       }
     }, []);
 
+    // Force WebView HTML regeneration when template changes (cache bust)
     const htmlContent = useMemo(
-      () => createTradingViewChartTemplate(theme, LIGHTWEIGHT_CHARTS_LIBRARY),
-      [theme],
+      () =>
+        createTradingViewChartTemplate(
+          theme,
+          LIGHTWEIGHT_CHARTS_LIBRARY,
+          coloredVolume,
+        ),
+      [theme, coloredVolume],
     );
 
     // Send message to WebView - simplified to avoid loops
@@ -129,7 +187,7 @@ const TradingViewChart = React.forwardRef<
       [isChartReady],
     );
 
-    // Reset chart to default state (45 candles, most recent data)
+    // Reset chart to default state (30 candles, most recent data)
     const resetToDefault = useCallback(() => {
       if (webViewRef.current && isChartReady) {
         const message = {
@@ -163,6 +221,27 @@ const TradingViewChart = React.forwardRef<
       }
     }, [isChartReady]);
 
+    // Toggle volume visibility
+    const toggleVolumeVisibility = useCallback(
+      (visible: boolean) => {
+        if (webViewRef.current && isChartReady) {
+          const message = {
+            type: 'TOGGLE_VOLUME_VISIBILITY',
+            visible,
+          };
+          webViewRef.current.postMessage(JSON.stringify(message));
+        }
+      },
+      [isChartReady],
+    );
+
+    // Toggle overlay visibility (not used internally, but exposed via ref for parent control)
+    const toggleOverlayVisibility = useCallback((_visible: boolean) => {
+      // Note: Overlay visibility is controlled by the parent component via the showOverlay prop
+      // This method is kept for API consistency but doesn't need to do anything
+      // The parent component controls overlay visibility by setting showOverlay prop
+    }, []);
+
     // Handle messages from WebView
     const handleWebViewMessage = useCallback(
       (event: WebViewMessageEvent) => {
@@ -194,6 +273,17 @@ const TradingViewChart = React.forwardRef<
               }
               setOhlcData(message.data);
               break;
+            case 'NEED_MORE_HISTORY':
+              // User scrolled to left edge - request more historical data
+              DevLogger.log(
+                'TradingViewChart: Received NEED_MORE_HISTORY from WebView',
+                {
+                  currentDataLength: message.currentDataLength,
+                  visibleRange: message.visibleRange,
+                },
+              );
+              onNeedMoreHistory?.();
+              break;
             default:
               break;
           }
@@ -204,7 +294,7 @@ const TradingViewChart = React.forwardRef<
           );
         }
       },
-      [onChartReady, ohlcData],
+      [onChartReady, onNeedMoreHistory, ohlcData],
     );
 
     // Convert CandleData to format expected by TradingView Lightweight Charts
@@ -223,6 +313,7 @@ const TradingViewChart = React.forwardRef<
             high: parseFloat(candle.high),
             low: parseFloat(candle.low),
             close: parseFloat(candle.close),
+            volume: candle.volume, // Include volume for histogram series
           };
 
           // Validate all values are valid numbers
@@ -271,14 +362,56 @@ const TradingViewChart = React.forwardRef<
 
     // Send real candle data to chart
     useEffect(() => {
-      if (!isChartReady || !webViewRef.current) return;
+      // If chart is not ready, buffer the data for later
+      if (!isChartReady) {
+        if (candleData?.candles && candleData.candles.length > 0) {
+          // Validate before buffering
+          if (!symbol || candleData.coin === symbol) {
+            pendingCandleDataRef.current = {
+              data: candleData,
+              timestamp: Date.now(),
+            };
+          }
+        }
+        return;
+      }
+
+      // Chart is ready - send data
+      if (!webViewRef.current) return;
 
       let dataToSend = null;
       let dataSource = 'none';
+      let dataToUse: CandleData | null = null;
 
-      // Prioritize real data over sample data
-      if (candleData?.candles && candleData.candles.length > 0) {
-        dataToSend = formatCandleData(candleData);
+      // Check for pending buffered data first (Android case)
+      if (pendingCandleDataRef.current) {
+        dataToUse = pendingCandleDataRef.current.data;
+        pendingCandleDataRef.current = null; // Clear buffer
+      } else if (candleData?.candles && candleData.candles.length > 0) {
+        dataToUse = candleData;
+      }
+
+      // If no data available, clear the chart to prevent stale data display
+      if (!dataToUse?.candles?.length) {
+        webViewRef.current.postMessage(
+          JSON.stringify({
+            type: 'CLEAR_DATA',
+          }),
+        );
+        return;
+      }
+
+      if (dataToUse?.candles && dataToUse.candles.length > 0) {
+        // DEFENSIVE: Validate candle data matches expected symbol
+        if (symbol && dataToUse.coin !== symbol) {
+          DevLogger.log(
+            'TradingViewChart: Ignoring mismatched candleData',
+            `Expected: ${symbol}, Got: ${dataToUse.coin}`,
+          );
+          return;
+        }
+
+        dataToSend = formatCandleData(dataToUse);
         dataSource = 'real';
       }
 
@@ -288,6 +421,7 @@ const TradingViewChart = React.forwardRef<
           data: dataToSend,
           source: dataSource,
           visibleCandleCount,
+          interval: dataToUse?.interval, // Pass interval for zoom reset on change
         };
         webViewRef.current.postMessage(JSON.stringify(message));
       }
@@ -297,6 +431,7 @@ const TradingViewChart = React.forwardRef<
       formatCandleData,
       candleData,
       visibleCandleCount,
+      symbol,
     ]);
 
     // Update auxiliary lines when they change
@@ -317,15 +452,40 @@ const TradingViewChart = React.forwardRef<
       }
     }, [tpslLines, isChartReady, sendMessage]);
 
-    // Expose reset function via ref
+    // Sync volume visibility with chart
+    useEffect(() => {
+      if (isChartReady) {
+        sendMessage({
+          type: 'TOGGLE_VOLUME_VISIBILITY',
+          visible: showVolume,
+        });
+      }
+    }, [showVolume, isChartReady, sendMessage]);
+
+    // Notify parent component when OHLC data changes
+    useEffect(() => {
+      if (onOhlcDataChange) {
+        onOhlcDataChange(ohlcData);
+      }
+    }, [ohlcData, onOhlcDataChange]);
+
+    // Expose ref methods for parent components
     React.useImperativeHandle(
       ref,
       () => ({
         resetToDefault,
         zoomToLatestCandle,
         clearTPSLLines,
+        toggleVolumeVisibility,
+        toggleOverlayVisibility,
       }),
-      [resetToDefault, zoomToLatestCandle, clearTPSLLines],
+      [
+        resetToDefault,
+        zoomToLatestCandle,
+        clearTPSLLines,
+        toggleVolumeVisibility,
+        toggleOverlayVisibility,
+      ],
     );
 
     // Handle WebView errors
@@ -353,6 +513,17 @@ const TradingViewChart = React.forwardRef<
 
     const webViewElement = (
       <WebView
+        // WebView cache versioning strategy:
+        // Increment this version number to force WebView remount and HTML reload
+        // when making incompatible changes to TradingViewChartTemplate.tsx
+        //
+        // Current version: v21 (fixed y-axis spacing and debug borders)
+        //
+        // Future improvement: Consider using a content hash of the template
+        // for automatic cache busting: key={`chart-webview-${templateHash}`}
+        //
+        // Note: HTML content is already memoized and regenerates on theme/coloredVolume changes
+        key="chart-webview-v21"
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
@@ -378,7 +549,7 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
-          {/* Show skeleton while chart is loading */}
+          {/* Show skeleton when chart WebView is still loading */}
           {!isChartReady && (
             <Skeleton
               height={height}
@@ -403,16 +574,28 @@ const TradingViewChart = React.forwardRef<
           )}
         </Box>
 
-        {/* OHLC Legend */}
-        {ohlcData && (
+        {/* OHLC Legend Overlay (conditionally rendered based on showOverlay prop) */}
+        {showOverlay && formattedOhlcData && (
           <Box style={styles.ohlcLegend}>
             <Box style={styles.ohlcRow}>
-              <Text variant={TextVariant.BodyXs}>O: {ohlcData.open}</Text>
-              <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
+              <Text variant={TextVariant.BodyXs}>
+                {strings('perps.chart.ohlc.open').charAt(0)}:{' '}
+                {formattedOhlcData.open}
+              </Text>
+              <Text variant={TextVariant.BodyXs}>
+                {strings('perps.chart.ohlc.close').charAt(0)}:{' '}
+                {formattedOhlcData.close}
+              </Text>
             </Box>
             <Box style={styles.ohlcRow}>
-              <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
-              <Text variant={TextVariant.BodyXs}>L: {ohlcData.low}</Text>
+              <Text variant={TextVariant.BodyXs}>
+                {strings('perps.chart.ohlc.high').charAt(0)}:{' '}
+                {formattedOhlcData.high}
+              </Text>
+              <Text variant={TextVariant.BodyXs}>
+                {strings('perps.chart.ohlc.low').charAt(0)}:{' '}
+                {formattedOhlcData.low}
+              </Text>
             </Box>
           </Box>
         )}

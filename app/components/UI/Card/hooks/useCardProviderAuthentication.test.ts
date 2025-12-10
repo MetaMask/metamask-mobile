@@ -12,12 +12,24 @@ import {
 } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
 import { strings } from '../../../../../locales/i18n';
+import { useDispatch } from 'react-redux';
+import {
+  setIsAuthenticatedCard,
+  setUserCardLocation,
+} from '../../../../core/redux/slices/card';
 
 jest.mock('@sentry/core');
 jest.mock('../sdk');
 jest.mock('../util/cardTokenVault');
 jest.mock('../util/pkceHelpers');
 jest.mock('../../../../../locales/i18n');
+jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(),
+}));
+jest.mock('../../../../core/redux/slices/card', () => ({
+  setIsAuthenticatedCard: jest.fn(),
+  setUserCardLocation: jest.fn(),
+}));
 
 const mockUuid4 = uuid4 as jest.MockedFunction<typeof uuid4>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
@@ -31,12 +43,15 @@ const mockGenerateState = generateState as jest.MockedFunction<
   typeof generateState
 >;
 const mockStrings = strings as jest.MockedFunction<typeof strings>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
+const mockSetIsAuthenticatedCard =
+  setIsAuthenticatedCard as jest.MockedFunction<typeof setIsAuthenticatedCard>;
+const mockSetUserCardLocation = setUserCardLocation as jest.MockedFunction<
+  typeof setUserCardLocation
+>;
 
 describe('useCardProviderAuthentication', () => {
   const mockSdk = {
-    get isBaanxLoginEnabled() {
-      return true;
-    },
     get isCardEnabled() {
       return true;
     },
@@ -52,8 +67,9 @@ describe('useCardProviderAuthentication', () => {
     authorize: jest.fn(),
     exchangeToken: jest.fn(),
     refreshLocalToken: jest.fn(),
+    sendOtpLogin: jest.fn(),
   };
-  const mockSetIsAuthenticated = jest.fn();
+  const mockDispatch = jest.fn();
   const mockStateUuid = 'mock-state-uuid';
   const mockCodeVerifier = 'mock-code-verifier';
   const mockCodeChallenge = 'mock-code-challenge';
@@ -67,14 +83,19 @@ describe('useCardProviderAuthentication', () => {
     });
     mockGenerateState.mockReturnValue(mockStateUuid);
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSdk as unknown as CardSDK,
-      isAuthenticated: false,
-      setIsAuthenticated: mockSetIsAuthenticated,
-      isLoading: false,
-      logoutFromProvider: jest.fn(),
-      userCardLocation: 'international',
     });
     mockStrings.mockImplementation((key: string) => `mocked_${key}`);
+    mockUseDispatch.mockReturnValue(mockDispatch);
+    mockSetIsAuthenticatedCard.mockReturnValue({
+      type: 'card/setIsAuthenticatedCard',
+      payload: true,
+    } as ReturnType<typeof setIsAuthenticatedCard>);
+    mockSetUserCardLocation.mockReturnValue({
+      type: 'card/setUserCardLocation',
+      payload: 'us',
+    } as ReturnType<typeof setUserCardLocation>);
   });
 
   describe('initial state', () => {
@@ -83,8 +104,12 @@ describe('useCardProviderAuthentication', () => {
 
       expect(result.current.error).toBeNull();
       expect(result.current.loading).toBe(false);
+      expect(result.current.otpError).toBeNull();
+      expect(result.current.otpLoading).toBe(false);
       expect(typeof result.current.login).toBe('function');
       expect(typeof result.current.clearError).toBe('function');
+      expect(typeof result.current.sendOtpLogin).toBe('function');
+      expect(typeof result.current.clearOtpError).toBe('function');
     });
   });
 
@@ -134,33 +159,38 @@ describe('useCardProviderAuthentication', () => {
       });
 
       expect(mockSdk.initiateCardProviderAuthentication).toHaveBeenCalledWith({
-        location: loginParams.location,
         state: mockStateUuid,
         codeChallenge: mockCodeChallenge,
+        location: loginParams.location,
       });
       expect(mockSdk.login).toHaveBeenCalledWith({
-        location: loginParams.location,
         email: loginParams.email,
         password: loginParams.password,
+        location: loginParams.location,
       });
       expect(mockSdk.authorize).toHaveBeenCalledWith({
-        location: loginParams.location,
         initiateAccessToken: mockInitiateResponse.token,
         loginAccessToken: mockLoginResponse.accessToken,
+        location: loginParams.location,
       });
       expect(mockSdk.exchangeToken).toHaveBeenCalledWith({
-        location: loginParams.location,
         code: mockAuthorizeResponse.code,
         codeVerifier: mockCodeVerifier,
         grantType: 'authorization_code',
+        location: loginParams.location,
       });
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: mockExchangeTokenResponse.accessToken,
         refreshToken: mockExchangeTokenResponse.refreshToken,
-        expiresAt: expect.any(Number),
+        accessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
+        refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
         location: loginParams.location,
       });
-      expect(mockSetIsAuthenticated).toHaveBeenCalledWith(true);
+      expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
+      expect(mockSetUserCardLocation).toHaveBeenCalledWith(
+        loginParams.location,
+      );
+      expect(mockDispatch).toHaveBeenCalledTimes(2);
       expect(result.current.error).toBeNull();
       expect(result.current.loading).toBe(false);
     });
@@ -326,6 +356,37 @@ describe('useCardProviderAuthentication', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    it('handles ACCOUNT_DISABLED error with custom message from error', async () => {
+      const loginParams = {
+        location: 'us' as CardLocation,
+        email: 'test@example.com',
+        password: 'password123',
+      };
+
+      const accountDisabledMessage =
+        'Your account has been disabled. Please contact support.';
+      const accountDisabledError = new CardError(
+        CardErrorType.ACCOUNT_DISABLED,
+        accountDisabledMessage,
+      );
+      mockSdk.initiateCardProviderAuthentication.mockRejectedValue(
+        accountDisabledError,
+      );
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      await act(async () => {
+        try {
+          await result.current.login(loginParams);
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe(accountDisabledMessage);
+      expect(result.current.loading).toBe(false);
+    });
+
     it('handles non-CardError instances with unknown error message', async () => {
       const loginParams = {
         location: 'us' as CardLocation,
@@ -359,12 +420,8 @@ describe('useCardProviderAuthentication', () => {
 
     it('throws error when SDK is not initialized', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isAuthenticated: false,
-        setIsAuthenticated: mockSetIsAuthenticated,
-        isLoading: false,
-        logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
 
       const loginParams = {
@@ -456,6 +513,289 @@ describe('useCardProviderAuthentication', () => {
       });
 
       expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('OTP login flow', () => {
+    it('returns login response when OTP is required', async () => {
+      const loginParams = {
+        location: 'us' as CardLocation,
+        email: 'test@example.com',
+        password: 'password123',
+      };
+
+      const mockInitiateResponse = { token: 'initiate-token', url: 'mock-url' };
+      const mockLoginResponse = {
+        phase: null,
+        userId: 'user-123',
+        isOtpRequired: true,
+        phoneNumber: '+1234567890',
+        accessToken: null,
+        verificationState: 'pending',
+        isLinked: false,
+      };
+
+      mockSdk.initiateCardProviderAuthentication.mockResolvedValue(
+        mockInitiateResponse,
+      );
+      mockSdk.login.mockResolvedValue(mockLoginResponse);
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      let loginResult;
+      await act(async () => {
+        loginResult = await result.current.login(loginParams);
+      });
+
+      expect(mockSdk.initiateCardProviderAuthentication).toHaveBeenCalledWith({
+        location: loginParams.location,
+        state: mockStateUuid,
+        codeChallenge: mockCodeChallenge,
+      });
+      expect(mockSdk.login).toHaveBeenCalledWith({
+        location: loginParams.location,
+        email: loginParams.email,
+        password: loginParams.password,
+      });
+      expect(mockSdk.authorize).not.toHaveBeenCalled();
+      expect(mockSdk.exchangeToken).not.toHaveBeenCalled();
+      expect(mockStoreCardBaanxToken).not.toHaveBeenCalled();
+      expect(loginResult).toEqual(mockLoginResponse);
+      expect(result.current.error).toBeNull();
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('completes authentication flow when OTP code is provided', async () => {
+      const loginParams = {
+        location: 'us' as CardLocation,
+        email: 'test@example.com',
+        password: 'password123',
+        otpCode: '123456',
+      };
+
+      const mockInitiateResponse = { token: 'initiate-token', url: 'mock-url' };
+      const mockLoginResponse = {
+        phase: null,
+        userId: 'user-123',
+        isOtpRequired: false,
+        phoneNumber: '+1234567890',
+        accessToken: 'login-access-token',
+        verificationState: 'verified',
+        isLinked: true,
+      };
+      const mockAuthorizeResponse = {
+        state: mockStateUuid,
+        url: 'authorize-url',
+        code: 'auth-code',
+      };
+      const mockExchangeTokenResponse = {
+        accessToken: 'final-access-token',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+        refreshToken: 'refresh-token',
+        refreshTokenExpiresIn: 86400,
+      };
+
+      mockSdk.initiateCardProviderAuthentication.mockResolvedValue(
+        mockInitiateResponse,
+      );
+      mockSdk.login.mockResolvedValue(mockLoginResponse);
+      mockSdk.authorize.mockResolvedValue(mockAuthorizeResponse);
+      mockSdk.exchangeToken.mockResolvedValue(mockExchangeTokenResponse);
+      mockStoreCardBaanxToken.mockResolvedValue({ success: true });
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      await act(async () => {
+        await result.current.login(loginParams);
+      });
+
+      expect(mockSdk.login).toHaveBeenCalledWith({
+        location: loginParams.location,
+        email: loginParams.email,
+        password: loginParams.password,
+        otpCode: loginParams.otpCode,
+      });
+      expect(mockSdk.authorize).toHaveBeenCalledWith({
+        location: loginParams.location,
+        initiateAccessToken: mockInitiateResponse.token,
+        loginAccessToken: mockLoginResponse.accessToken,
+      });
+      expect(mockSdk.exchangeToken).toHaveBeenCalledWith({
+        location: loginParams.location,
+        code: mockAuthorizeResponse.code,
+        codeVerifier: mockCodeVerifier,
+        grantType: 'authorization_code',
+      });
+      expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
+        accessToken: mockExchangeTokenResponse.accessToken,
+        refreshToken: mockExchangeTokenResponse.refreshToken,
+        accessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
+        refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
+        location: loginParams.location,
+      });
+      expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'card/setIsAuthenticatedCard',
+        payload: true,
+      });
+      expect(result.current.error).toBeNull();
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  describe('sendOtpLogin', () => {
+    it('sends OTP login request', async () => {
+      const otpParams = {
+        userId: 'user-123',
+        location: 'us' as CardLocation,
+      };
+
+      mockSdk.sendOtpLogin.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      await act(async () => {
+        await result.current.sendOtpLogin(otpParams);
+      });
+
+      expect(mockSdk.sendOtpLogin).toHaveBeenCalledWith({
+        userId: otpParams.userId,
+        location: otpParams.location,
+      });
+      expect(result.current.otpError).toBeNull();
+      expect(result.current.otpLoading).toBe(false);
+    });
+
+    it('sets otpLoading to true during OTP request', async () => {
+      const otpParams = {
+        userId: 'user-123',
+        location: 'us' as CardLocation,
+      };
+
+      let resolveSendOtp: (() => void) | undefined;
+      const sendOtpPromise = new Promise<void>((resolve) => {
+        resolveSendOtp = resolve;
+      });
+
+      mockSdk.sendOtpLogin.mockReturnValue(sendOtpPromise);
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      let sendOtpPromiseResult: Promise<void>;
+      await act(async () => {
+        sendOtpPromiseResult = result.current.sendOtpLogin(otpParams);
+        await Promise.resolve();
+      });
+
+      expect(result.current.otpLoading).toBe(true);
+
+      await act(async () => {
+        resolveSendOtp?.();
+        await sendOtpPromiseResult;
+      });
+
+      expect(result.current.otpLoading).toBe(false);
+    });
+
+    it('handles error when sending OTP fails', async () => {
+      const otpParams = {
+        userId: 'user-123',
+        location: 'us' as CardLocation,
+      };
+
+      const cardError = new CardError(
+        CardErrorType.NETWORK_ERROR,
+        'Network failed',
+      );
+      mockSdk.sendOtpLogin.mockRejectedValue(cardError);
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      await act(async () => {
+        await result.current.sendOtpLogin(otpParams);
+      });
+
+      expect(mockStrings).toHaveBeenCalledWith(
+        'card.card_authentication.errors.network_error',
+      );
+      expect(result.current.otpError).toBe(
+        'mocked_card.card_authentication.errors.network_error',
+      );
+      expect(result.current.otpLoading).toBe(false);
+    });
+
+    it('handles ACCOUNT_DISABLED error when sending OTP', async () => {
+      const otpParams = {
+        userId: 'user-123',
+        location: 'us' as CardLocation,
+      };
+
+      const accountDisabledMessage =
+        'Your account has been disabled. Please contact support.';
+      const accountDisabledError = new CardError(
+        CardErrorType.ACCOUNT_DISABLED,
+        accountDisabledMessage,
+      );
+      mockSdk.sendOtpLogin.mockRejectedValue(accountDisabledError);
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      await act(async () => {
+        await result.current.sendOtpLogin(otpParams);
+      });
+
+      expect(result.current.otpError).toBe(accountDisabledMessage);
+      expect(result.current.otpLoading).toBe(false);
+    });
+
+    it('throws error when SDK is not initialized', async () => {
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: null,
+      });
+
+      const otpParams = {
+        userId: 'user-123',
+        location: 'us' as CardLocation,
+      };
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      await act(async () => {
+        await expect(result.current.sendOtpLogin(otpParams)).rejects.toThrow(
+          'Card SDK not initialized',
+        );
+      });
+    });
+  });
+
+  describe('clearOtpError functionality', () => {
+    it('clears OTP error when clearOtpError is called', async () => {
+      const otpParams = {
+        userId: 'user-123',
+        location: 'us' as CardLocation,
+      };
+
+      const cardError = new CardError(
+        CardErrorType.NETWORK_ERROR,
+        'Network failed',
+      );
+      mockSdk.sendOtpLogin.mockRejectedValue(cardError);
+
+      const { result } = renderHook(() => useCardProviderAuthentication());
+
+      await act(async () => {
+        await result.current.sendOtpLogin(otpParams);
+      });
+
+      expect(result.current.otpError).not.toBeNull();
+
+      act(() => {
+        result.current.clearOtpError();
+      });
+
+      expect(result.current.otpError).toBeNull();
     });
   });
 });

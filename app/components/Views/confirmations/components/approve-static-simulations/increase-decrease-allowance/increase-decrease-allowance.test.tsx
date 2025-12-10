@@ -87,7 +87,9 @@ describe('IncreaseDecreaseAllowance', () => {
       tokenStandard: TokenStandard.ERC20,
       rawAmount: undefined,
       spender: '0x123456789',
-    } as ReturnType<typeof useApproveTransactionDataModule.useApproveTransactionData>);
+    } as ReturnType<
+      typeof useApproveTransactionDataModule.useApproveTransactionData
+    >);
     const { getByText } = renderWithProvider(<IncreaseDecreaseAllowance />, {
       state: increaseAllowanceERC20TransactionStateMock,
     });

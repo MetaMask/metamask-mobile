@@ -107,6 +107,7 @@ import {
   selectBalancePercentChangeByAccountGroup,
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
+  selectAccountGroupBalanceForEmptyState,
 } from './balances';
 
 // Enhanced state factory with realistic data
@@ -173,6 +174,11 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
           },
         },
       },
+      MultichainAssetsController: {
+        accountsAssets: {},
+        assetsMetadata: {},
+        allIgnoredAssets: {},
+      },
       TokensController: {
         allTokens: {
           '0x1': {
@@ -228,6 +234,11 @@ describe('assets balance and balance change selectors (mobile)', () => {
             TokenRatesController: { marketData: {} },
             MultichainAssetsRatesController: { conversionRates: {} },
             MultichainBalancesController: { balances: {} },
+            MultichainAssetsController: {
+              accountsAssets: {},
+              assetsMetadata: {},
+              allIgnoredAssets: {},
+            },
             TokensController: {
               allTokens: {},
               allIgnoredTokens: {},
@@ -482,6 +493,118 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
       const selector = selectBalanceChangeBySelectedAccountGroup('1d');
       expect(selector(state)).toBeNull();
+    });
+  });
+
+  describe('selectAccountGroupBalanceForEmptyState', () => {
+    it('excludes testnet chains and includes only mainnet chains in balance calculation', () => {
+      const mockCalculateBalanceForAllWallets = jest.requireMock(
+        '@metamask/assets-controllers',
+      ).calculateBalanceForAllWallets;
+
+      const state = makeState({
+        engine: {
+          backgroundState: {
+            ...makeState().engine.backgroundState,
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                // Mainnet networks - should be included
+                '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+                '0x89': { chainId: '0x89', name: 'Polygon Mainnet' },
+                // Testnet networks - should be excluded
+                '0xaa36a7': { chainId: '0xaa36a7', name: 'Sepolia' },
+                '0x5': { chainId: '0x5', name: 'Goerli' },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {
+                // Mainnet networks - should be included
+                'eip155:1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+                'eip155:137': { chainId: '0x89', name: 'Polygon Mainnet' },
+                // Testnet networks - should be excluded
+                'eip155:11155111': { chainId: '0xaa36a7', name: 'Sepolia' },
+                'eip155:5': { chainId: '0x5', name: 'Goerli' },
+                // Non-EVM testnet - should be excluded
+                'solana:103': { chainId: 'solana:103', name: 'Solana Testnet' },
+              },
+            },
+          },
+        },
+      }) as unknown as RootState;
+
+      // Clear previous calls
+      mockCalculateBalanceForAllWallets.mockClear();
+
+      selectAccountGroupBalanceForEmptyState(state);
+
+      // Verify calculateBalanceForAllWallets was called with proper enabledNetworkMap
+      expect(mockCalculateBalanceForAllWallets).toHaveBeenCalledTimes(1);
+      const enabledNetworkMap =
+        mockCalculateBalanceForAllWallets.mock.calls[0][9];
+
+      // Should include mainnet networks only
+      expect(enabledNetworkMap).toEqual({
+        eip155: {
+          '0x1': true, // Ethereum mainnet
+          '0x89': true, // Polygon mainnet
+        },
+        // No testnet networks should be present
+      });
+    });
+
+    it('returns null when no account group is selected', () => {
+      const state = makeState({
+        engine: {
+          backgroundState: {
+            ...makeState().engine.backgroundState,
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {
+                'eip155:1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+              },
+            },
+          },
+        },
+      }) as unknown as RootState;
+      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+        '';
+
+      const result = selectAccountGroupBalanceForEmptyState(state);
+      expect(result).toBeNull();
+    });
+
+    it('returns zeroed fallback when selected group does not exist', () => {
+      const state = makeState({
+        engine: {
+          backgroundState: {
+            ...makeState().engine.backgroundState,
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {
+                'eip155:1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+              },
+            },
+          },
+        },
+      }) as unknown as RootState;
+      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+        'keyring:wallet-1/group-999';
+
+      const result = selectAccountGroupBalanceForEmptyState(state);
+      expect(result).toEqual({
+        walletId: 'keyring:wallet-1',
+        groupId: 'keyring:wallet-1/group-999',
+        totalBalanceInUserCurrency: 0,
+        userCurrency: 'usd',
+      });
     });
   });
 });

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 import styleSheet from './BuildQuote.styles';
@@ -47,6 +47,7 @@ import { useRegions } from '../../hooks/useRegions';
 import { usePaymentMethods } from '../../hooks/usePaymentMethods';
 import SdkErrorAlert from '../../components/SdkErrorAlert/SdkErrorAlert';
 import TruncatedError from '../../components/TruncatedError/TruncatedError';
+import { useDepositCryptoCurrencyNetworkName } from '../../hooks/useDepositCryptoCurrencyNetworkName';
 
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
@@ -62,13 +63,14 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MUSD_PLACEHOLDER } from '../../constants/constants';
+import { useDepositUser } from '../../hooks/useDepositUser';
+import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -83,13 +85,26 @@ const BuildQuote = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
+  const depositOrders = useSelector(getAllDepositOrders);
 
   const {
     regions,
     isFetching: isFetchingRegions,
     error: regionsError,
     retryFetchRegions,
+    userRegionLocked,
   } = useRegions();
+
+  const {
+    userDetails,
+    isFetching: isFetchingUserDetails,
+    error: userDetailsError,
+    fetchUserDetails,
+  } = useDepositUser({
+    screenLocation: 'BuildQuote Screen',
+    shouldTrackFetch: true,
+    fetchOnMount: true,
+  });
 
   const {
     cryptoCurrencies,
@@ -116,14 +131,12 @@ const BuildQuote = () => {
 
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const [error, setError] = useState<string | null>();
+  const [quoteError, setError] = useState<string | null>();
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
 
-  const networkConfigurationsByCaipChainId = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
+  const getNetworkName = useDepositCryptoCurrencyNetworkName();
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -175,14 +188,14 @@ const BuildQuote = () => {
   }, []);
 
   const handleRegionPress = useCallback(() => {
-    if (regionsError || !regions || regions.length === 0) {
+    if (regionsError || !regions || regions.length === 0 || userRegionLocked) {
       return;
     }
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({ regions }),
     );
-  }, [navigation, regions, regionsError]);
+  }, [navigation, regions, regionsError, userRegionLocked]);
 
   useFocusEffect(
     useCallback(() => {
@@ -244,8 +257,13 @@ const BuildQuote = () => {
         region: selectedRegion?.isoCode || '',
         chain_id: selectedCryptoCurrency?.chainId || '',
         currency_destination: selectedCryptoCurrency?.assetId || '',
+        currency_destination_symbol: selectedCryptoCurrency?.symbol,
+        currency_destination_network: getNetworkName(
+          selectedCryptoCurrency?.chainId,
+        ),
         currency_source: selectedRegion?.currency || '',
         is_authenticated: isAuthenticated,
+        first_time_order: depositOrders.length === 0,
       });
 
       quote = await getQuote();
@@ -279,6 +297,10 @@ const BuildQuote = () => {
         region: selectedRegion?.isoCode || '',
         chain_id: selectedCryptoCurrency?.chainId || '',
         currency_destination: selectedCryptoCurrency?.assetId || '',
+        currency_destination_symbol: selectedCryptoCurrency?.symbol,
+        currency_destination_network: getNetworkName(
+          selectedCryptoCurrency?.chainId,
+        ),
         currency_source: selectedRegion?.currency || '',
         error_message: 'BuildQuote - Error fetching quote',
         is_authenticated: isAuthenticated,
@@ -317,6 +339,10 @@ const BuildQuote = () => {
         region: selectedRegion?.isoCode || '',
         chain_id: selectedCryptoCurrency?.chainId || '',
         currency_destination: selectedCryptoCurrency?.assetId || '',
+        currency_destination_symbol: selectedCryptoCurrency?.symbol,
+        currency_destination_network: getNetworkName(
+          selectedCryptoCurrency?.chainId,
+        ),
         currency_source: selectedRegion?.currency || '',
       });
 
@@ -335,6 +361,10 @@ const BuildQuote = () => {
         region: selectedRegion?.isoCode || '',
         chain_id: selectedCryptoCurrency?.chainId || '',
         currency_destination: selectedCryptoCurrency?.assetId || '',
+        currency_destination_symbol: selectedCryptoCurrency?.symbol,
+        currency_destination_network: getNetworkName(
+          selectedCryptoCurrency?.chainId,
+        ),
         currency_source: selectedRegion?.currency || '',
         error_message: 'BuildQuote - Error handling authentication',
         is_authenticated: isAuthenticated,
@@ -350,6 +380,7 @@ const BuildQuote = () => {
       setIsLoading(false);
     }
   }, [
+    getNetworkName,
     handleNavigateToIncompatibleAccountTokenModal,
     trackEvent,
     amountAsNumber,
@@ -364,6 +395,7 @@ const BuildQuote = () => {
     navigateToVerifyIdentity,
     shouldRouteImmediately,
     selectedWalletAddress,
+    depositOrders.length,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -387,11 +419,37 @@ const BuildQuote = () => {
       return;
     }
 
+    const networkName = selectedCryptoCurrency
+      ? getNetworkName(selectedCryptoCurrency.chainId)
+      : undefined;
+
+    trackEvent('RAMPS_TOKEN_SELECTOR_CLICKED', {
+      ramp_type: 'DEPOSIT',
+      region: selectedRegion?.isoCode,
+      location: 'build_quote',
+      chain_id: selectedCryptoCurrency?.chainId,
+      currency_destination: selectedCryptoCurrency?.assetId,
+      currency_destination_symbol: selectedCryptoCurrency?.symbol,
+      currency_destination_network: networkName,
+      currency_source: selectedRegion?.currency,
+      is_authenticated: isAuthenticated,
+    });
+
     setError(null);
     navigation.navigate(
       ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
     );
-  }, [navigation, cryptoCurrencies, cryptosError]);
+  }, [
+    navigation,
+    cryptoCurrencies,
+    cryptosError,
+    trackEvent,
+    selectedRegion?.isoCode,
+    selectedRegion?.currency,
+    getNetworkName,
+    isAuthenticated,
+    selectedCryptoCurrency,
+  ]);
 
   const handlePaymentMethodPress = useCallback(() => {
     if (paymentMethodsError || !paymentMethods || paymentMethods.length === 0) {
@@ -407,7 +465,7 @@ const BuildQuote = () => {
   }, [navigation, paymentMethods, paymentMethodsError]);
 
   const networkName = selectedCryptoCurrency
-    ? networkConfigurationsByCaipChainId[selectedCryptoCurrency.chainId]?.name
+    ? getNetworkName(selectedCryptoCurrency.chainId)
     : undefined;
 
   const networkImageSource = selectedCryptoCurrency?.chainId
@@ -418,12 +476,35 @@ const BuildQuote = () => {
 
   useEffect(() => {
     if (shouldRouteImmediately) {
+      if (isAuthenticated && (isFetchingUserDetails || !userDetails)) {
+        return;
+      }
+
       navigation.setParams({
         shouldRouteImmediately: false,
       });
+
+      if (
+        userDetails?.address?.countryCode &&
+        selectedRegion?.isoCode?.toLowerCase() !==
+          userDetails?.address?.countryCode?.toLowerCase()
+      ) {
+        setIsLoading(false);
+        return;
+      }
+
       handleOnPressContinue();
     }
-  }, [shouldRouteImmediately, handleOnPressContinue, navigation]);
+  }, [
+    shouldRouteImmediately,
+    handleOnPressContinue,
+    navigation,
+    selectedRegion?.isoCode,
+    userDetails?.address?.countryCode,
+    isAuthenticated,
+    isFetchingUserDetails,
+    userDetails,
+  ]);
 
   return (
     <ScreenLayout>
@@ -479,7 +560,7 @@ const BuildQuote = () => {
                 )}
               </Text>
 
-              {!error && (
+              {!quoteError && (
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
@@ -574,9 +655,15 @@ const BuildQuote = () => {
               isRetrying={isFetchingPaymentMethods}
               errorType="paymentMethods"
             />
-            {error && (
+            <SdkErrorAlert
+              error={userDetailsError}
+              onRetry={fetchUserDetails}
+              isRetrying={isFetchingUserDetails}
+              errorType="userDetails"
+            />
+            {quoteError && (
               <View style={styles.errorContainer}>
-                <TruncatedError error={error} />
+                <TruncatedError error={quoteError} />
               </View>
             )}
           </View>
@@ -625,15 +712,7 @@ const BuildQuote = () => {
             </ListItem>
           </TouchableOpacity>
 
-          <Keypad
-            value={amount}
-            onChange={handleKeypadChange}
-            currency={selectedRegion?.currency}
-            decimals={0}
-            periodButtonProps={{
-              isDisabled: true,
-            }}
-          />
+          <Keypad value={amount} onChange={handleKeypadChange} />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
@@ -650,6 +729,7 @@ const BuildQuote = () => {
               !!regionsError ||
               !!cryptosError ||
               !!paymentMethodsError ||
+              !!userDetailsError ||
               !selectedRegion ||
               !selectedCryptoCurrency ||
               !selectedPaymentMethod

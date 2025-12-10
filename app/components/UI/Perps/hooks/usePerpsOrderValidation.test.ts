@@ -1,14 +1,18 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
-import type { OrderFormState } from '../types';
+import type { OrderFormState } from '../types/perps-types';
 import { usePerpsOrderValidation } from './usePerpsOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsNetwork } from './usePerpsNetwork';
 
 // Configure waitFor with a shorter timeout for all tests
 const fastWaitFor = (callback: () => void, options = {}) =>
   waitFor(callback, { timeout: 1000, ...options });
 
 jest.mock('./usePerpsTrading');
+jest.mock('./usePerpsNetwork', () => ({
+  usePerpsNetwork: jest.fn(),
+}));
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   __esModule: true,
   default: {
@@ -30,6 +34,9 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 describe('usePerpsOrderValidation', () => {
   const mockValidateOrder = jest.fn();
+  const mockUsePerpsNetwork = usePerpsNetwork as jest.MockedFunction<
+    typeof usePerpsNetwork
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -39,6 +46,8 @@ describe('usePerpsOrderValidation', () => {
     (usePerpsTrading as jest.Mock).mockReturnValue({
       validateOrder: mockValidateOrder,
     });
+    // Default to mainnet for tests
+    mockUsePerpsNetwork.mockReturnValue('mainnet');
   });
 
   afterEach(() => {
@@ -224,11 +233,11 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('limit order validation', () => {
-    it('should require limit price for limit orders', async () => {
-      // Protocol validation should catch missing limit price
+    it('should not validate limit price requirement (removed for better UX)', async () => {
+      // Protocol validation no longer checks for missing limit price
+      // The flow automatically switches to market orders if limit price isn't set
       mockValidateOrder.mockResolvedValue({
-        isValid: false,
-        error: 'Limit price required',
+        isValid: true,
       });
 
       const { result } = renderHook(() =>
@@ -251,8 +260,8 @@ describe('usePerpsOrderValidation', () => {
         expect(result.current.isValidating).toBe(false);
       });
 
-      expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toContain('Limit price required');
+      expect(result.current.isValid).toBe(true);
+      expect(result.current.errors).toEqual([]);
     });
 
     it('should pass with limit price for limit orders', async () => {

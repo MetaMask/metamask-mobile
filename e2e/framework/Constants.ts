@@ -3,11 +3,14 @@ import path from 'path';
 import { GanacheHardfork } from './types';
 
 // Port Constants
-export const DEFAULT_FIXTURE_SERVER_PORT = 12345;
-
-export const DEFAULT_MOCKSERVER_PORT = 8000;
-
-export const DEFAULT_DAPP_SERVER_PORT = 8085;
+// Fallback ports - used in fixture data (app's persisted state)
+// Android: These ports are mapped to actual PortManager-allocated ports via adb reverse
+// iOS: These ports are overridden by LaunchArgs at runtime with actual allocated ports
+export const FALLBACK_FIXTURE_SERVER_PORT = 12345;
+export const FALLBACK_COMMAND_QUEUE_SERVER_PORT = 2446;
+export const FALLBACK_MOCKSERVER_PORT = 8000;
+export const FALLBACK_GANACHE_PORT = 8546;
+export const FALLBACK_DAPP_SERVER_PORT = 8085;
 
 // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
 export const defaultGanacheOptions = {
@@ -50,6 +53,18 @@ export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
   'test-dapp-solana',
   'dist',
 );
+
+/**
+ * The schemes for the E2E deep links.
+ * @enum {string}
+ * @example
+ * {
+ *  E2EDeeplinkSchemes.PERPS,
+ * }
+ */
+export enum E2EDeeplinkSchemes {
+  PERPS = 'e2e://perps/',
+}
 
 /**
  * The variants of the dapp to load for test.

@@ -8,6 +8,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictPosition.styles';
+import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -18,49 +22,67 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
   onPress,
 }: PredictPositionProps) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  const currentPosition = usePredictOptimisticPositionRefresh({
+    position,
+  });
+
   const {
     icon,
     title,
     initialValue,
     percentPnl,
     outcome,
-    avgPrice,
     currentValue,
-  } = position;
-  const { styles } = useStyles(styleSheet, {});
+    size,
+    optimistic,
+  } = currentPosition;
 
   return (
     <TouchableOpacity
+      testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
       style={styles.positionContainer}
-      onPress={() => onPress?.(position)}
+      onPress={() => onPress?.(currentPosition)}
     >
-      <View style={styles.positionImage}>
+      <View style={styles.positionImageContainer}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
       <View style={styles.positionDetails}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Default}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {title}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          ${initialValue.toFixed(2)} on {outcome} •{' '}
-          {(avgPrice * 100).toFixed(0)}¢
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+          {strings('predict.position_info', {
+            initialValue: formatPrice(initialValue, {
+              maximumDecimals: 2,
+            }),
+            outcome,
+            shares: formatPrice(size, {
+              maximumDecimals: 2,
+            }),
+          })}
         </Text>
       </View>
       <View style={styles.positionPnl}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-          {formatPrice(currentValue, { maximumDecimals: 2 })}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-        >
-          {formatPercentage(percentPnl)}
-        </Text>
+        {optimistic ? (
+          <>
+            <Skeleton width={60} height={20} style={styles.skeletonSpacing} />
+            <Skeleton width={50} height={16} />
+          </>
+        ) : (
+          <>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {formatPrice(currentValue, { maximumDecimals: 2 })}
+            </Text>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+            >
+              {formatPercentage(percentPnl)}
+            </Text>
+          </>
+        )}
       </View>
     </TouchableOpacity>
   );

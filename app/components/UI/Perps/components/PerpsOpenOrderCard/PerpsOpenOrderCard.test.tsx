@@ -88,8 +88,8 @@ describe('PerpsOpenOrderCard', () => {
         render(<PerpsOpenOrderCard order={mockOrder} />);
 
         expect(screen.getByText('Limit Order')).toBeOnTheScreen();
-        // Text shows as "2.50\n\nETH" so we need to match the pattern
-        expect(screen.getByText(/2\.50\s+ETH/)).toBeOnTheScreen();
+        // Text shows as "2.5\n\nETH" (trailing zero removed) so we need to match the pattern
+        expect(screen.getByText(/2\.5\s+ETH/)).toBeOnTheScreen();
       });
 
       it('renders with icon when showIcon is true', () => {
@@ -125,8 +125,9 @@ describe('PerpsOpenOrderCard', () => {
         render(<PerpsOpenOrderCard order={mockOrder} expanded />);
 
         // Should show Take Profit and Stop Loss sections for non-trigger orders
-        expect(screen.getByText('$2,200.00')).toBeOnTheScreen();
-        expect(screen.getByText('$1,800.00')).toBeOnTheScreen();
+        // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 1 decimal for $1k-$10k range, trailing zeros removed
+        expect(screen.getByText('$2,200')).toBeOnTheScreen();
+        expect(screen.getByText('$1,800')).toBeOnTheScreen();
       });
 
       it('renders trigger price for trigger orders', () => {
@@ -139,8 +140,8 @@ describe('PerpsOpenOrderCard', () => {
         render(<PerpsOpenOrderCard order={triggerOrder} expanded />);
 
         // Trigger orders should not show TP/SL sections
-        expect(screen.queryByText(/$2,200.00/)).not.toBeOnTheScreen();
-        expect(screen.queryByText(/$1,800.00/)).not.toBeOnTheScreen();
+        expect(screen.queryByText('$2,200')).not.toBeOnTheScreen();
+        expect(screen.queryByText('$1,800')).not.toBeOnTheScreen();
       });
 
       it('renders reduce only status for trigger orders', () => {
@@ -397,8 +398,50 @@ describe('PerpsOpenOrderCard', () => {
 
       render(<PerpsOpenOrderCard order={btcOrder} />);
 
-      // Text shows as "0.1000\n\nBTC" so we need to match the pattern
-      expect(screen.getByText(/0\.1000\s+BTC/)).toBeOnTheScreen();
+      // Text shows as "0.1\n\nBTC" (trailing zeros removed) so we need to match the pattern
+      expect(screen.getByText(/0\.1\s+BTC/)).toBeOnTheScreen();
+    });
+
+    it('strips hip3 prefix from asset symbol', () => {
+      const hip3Order = {
+        ...mockOrder,
+        symbol: 'hip3:BTC',
+        size: '1.5',
+        originalSize: '1.5',
+      };
+
+      render(<PerpsOpenOrderCard order={hip3Order} />);
+
+      // Should display "BTC" without the hip3 prefix
+      expect(screen.getByText(/1\.5\s+BTC/)).toBeOnTheScreen();
+    });
+
+    it('strips DEX prefix from asset symbol', () => {
+      const dexOrder = {
+        ...mockOrder,
+        symbol: 'xyz:TSLA',
+        size: '100',
+        originalSize: '100',
+      };
+
+      render(<PerpsOpenOrderCard order={dexOrder} />);
+
+      // Should display "TSLA" without the xyz prefix
+      expect(screen.getByText(/100\s+TSLA/)).toBeOnTheScreen();
+    });
+
+    it('keeps regular asset symbols unchanged', () => {
+      const solOrder = {
+        ...mockOrder,
+        symbol: 'SOL',
+        size: '50',
+        originalSize: '50',
+      };
+
+      render(<PerpsOpenOrderCard order={solOrder} />);
+
+      // Should display "SOL" as is
+      expect(screen.getByText(/50\s+SOL/)).toBeOnTheScreen();
     });
 
     it('handles market orders', () => {

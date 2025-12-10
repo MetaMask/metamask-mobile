@@ -14,45 +14,29 @@ on:
         required: true
 jobs:
   generate-build-version:
-    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.3.0
     permissions:
       id-token: write
 
   create-release-pr:
+    name: Create release pull request
+    runs-on: ubuntu-latest
     needs: generate-build-version
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@fc6fe1a3fb591f6afa61f0dbbe7698bd50fab9c7
-    with:
-      platform: mobile
-      base-branch: ${{ inputs.base-branch }}
-      semver-version: ${{ inputs.semver-version }}
-      previous-version-tag: ${{ inputs.previous-version-tag }}
-      mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-      github-tools-version: fc6fe1a3fb591f6afa61f0dbbe7698bd50fab9c7
-
-    secrets:
-      # This token needs read permissions to metamask-planning & write permissions to metamask-mobile
-      github-token: ${{ secrets.PR_TOKEN }}
-      google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
     permissions:
       contents: write
       pull-requests: write
-
-  add-e2e-label:
-    needs: create-release-pr
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
-      - name: Add Run Smoke E2E label to release PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Find the release PR that was just created
-          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --head "release/${{ inputs.semver-version }}" --json number --jq '.[0].number')
-          if [ -n "$PR_NUMBER" ]; then
-            gh pr edit "$PR_NUMBER" --repo ${{ github.repository }} --add-label "Run Smoke E2E"
-            echo "Added 'Run Smoke E2E' label to PR #$PR_NUMBER"
-          else
-            echo "Could not find release PR for release/${{ inputs.semver-version }}"
-            exit 1
-          fi
+      - name: Create Release pull request
+        uses: MetaMask/github-tools/.github/actions/create-release-pr@v1
+        with:
+          platform: mobile
+          checkout-base-branch: ${{ inputs.base-branch }}
+          release-pr-base-branch: ${{ inputs.base-branch }}
+          semver-version: ${{ inputs.semver-version }}
+          previous-version-ref: ${{ inputs.previous-version-tag }}
+          mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
+          google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
+          # This token needs read permissions to metamask-planning & write
+          # permissions to metamask-mobile.
+          github-token: ${{ secrets.PR_TOKEN }}
+

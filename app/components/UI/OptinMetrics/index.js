@@ -48,6 +48,7 @@ import {
 import { setupSentry } from '../../../util/sentry/utils';
 import Device from '../../../util/device';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
+import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -111,6 +112,7 @@ const createStyles = ({ colors }) =>
     },
     title: {
       fontWeight: '700',
+      marginTop: 8,
     },
     sectionContainer: {
       backgroundColor: colors.background.section,
@@ -168,6 +170,10 @@ class OptinMetrics extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * PNA25 feature flag from LaunchDarkly
+     */
+    isPna25FlagEnabled: PropTypes.bool,
   };
 
   state = {
@@ -488,8 +494,12 @@ class OptinMetrics extends PureComponent {
                   color={TextColor.Alternative}
                   style={styles.descriptionText}
                 >
-                  {strings('privacy_policy.gather_basic_usage_description') +
-                    ' '}
+                  {this.props.isPna25FlagEnabled
+                    ? strings(
+                        'privacy_policy.gather_basic_usage_description_updated',
+                      ) + ' '
+                    : strings('privacy_policy.gather_basic_usage_description') +
+                      ' '}
                   <Text
                     color={TextColor.Primary}
                     variant={TextVariant.BodySM}
@@ -560,6 +570,7 @@ OptinMetrics.navigationOptions = {
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
+  isPna25FlagEnabled: selectIsPna25FlagEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

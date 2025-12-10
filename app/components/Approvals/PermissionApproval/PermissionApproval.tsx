@@ -47,6 +47,11 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
       metadata: { id },
     } = requestData;
 
+    if (requestData?.diff?.permissionDiffMap?.[Caip25EndowmentPermissionName]) {
+      // Use the SwitchChainApproval component to handle this request instead
+      return;
+    }
+
     if (isProcessing.current) return;
 
     isProcessing.current = true;

@@ -10,6 +10,7 @@ import {
   upgradeAccountConfirmation,
 } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import useBalanceChanges from '../../../../../UI/SimulationDetails/useBalanceChanges';
 // eslint-disable-next-line import/no-namespace
 import * as EditNonceHook from '../../../../../../components/hooks/useEditNonce';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
@@ -23,12 +24,20 @@ jest.mock('../../rows/account-network-info-row', () => ({
   default: () => null,
 }));
 
-jest.mock('../../../hooks/gas/useGasFeeToken');
+jest.mock('../../../hooks/gas/useIsGaslessSupported', () => ({
+  useIsGaslessSupported: jest.fn().mockReturnValue({
+    isSupported: false,
+    isSmartTransaction: false,
+  }),
+}));
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
+
+jest.mock('../../../hooks/useAutomaticGasFeeTokenSelect');
 
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
   useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
 }));
+jest.mock('../../../../../UI/SimulationDetails/useBalanceChanges');
 
 jest.mock('../../../hooks/7702/use7702TransactionType', () => ({
   use7702TransactionType: jest
@@ -104,6 +113,7 @@ describe('ContractInteraction', () => {
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
+  const mockUseBalanceChanges = jest.mocked(useBalanceChanges);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -115,6 +125,10 @@ describe('ContractInteraction', () => {
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackPageViewedEvent: mockTrackPageViewedEvent,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
+    mockUseBalanceChanges.mockReturnValue({
+      pending: false,
+      value: [],
+    });
 
     const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
     jest
@@ -155,7 +169,7 @@ describe('ContractInteraction', () => {
       state: generateContractInteractionState,
     });
     expect(getByText('Estimated changes')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
   });
 
   it('tracks mockTrackPageViewedEvent metrics event', () => {

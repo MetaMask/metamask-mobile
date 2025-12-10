@@ -14,6 +14,7 @@ import { RootState } from '../../../../../reducers';
 import { decGWEIToHexWEI } from '../../../../../util/conversions';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,

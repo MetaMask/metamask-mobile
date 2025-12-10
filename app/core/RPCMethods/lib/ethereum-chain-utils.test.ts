@@ -39,14 +39,14 @@ describe('switchToNetwork', () => {
       build: jest.fn().mockReturnValue(mockMetricsBuilderBuild),
     });
 
+    const fromChainId = '0x89';
     const mockHooks = {
       getCaveat: jest
         .fn()
         .mockReturnValue({ value: getDefaultCaip25CaveatValue() }),
       requestPermittedChainsPermissionIncrementalForOrigin: jest.fn(),
       hasApprovalRequestsForOrigin: jest.fn(),
-      toNetworkConfiguration: jest.fn(),
-      fromNetworkConfiguration: jest.fn(),
+      fromNetworkConfiguration: { chainId: fromChainId },
     };
 
     const chainId = '0x1';
@@ -60,7 +60,6 @@ describe('switchToNetwork', () => {
       ticker: 'ETH',
     });
 
-    const requestUserApproval = jest.fn();
     const analytics = {
       test: 'test',
     };
@@ -68,9 +67,10 @@ describe('switchToNetwork', () => {
     const autoApprove = false;
 
     await switchToNetwork({
-      network: [networkClientId, network],
+      networkClientId,
+      nativeCurrency: network.nativeCurrency,
+      rpcUrl: network.rpcEndpoints[0].url,
       chainId,
-      requestUserApproval,
       analytics,
       origin,
       autoApprove,
@@ -84,6 +84,9 @@ describe('switchToNetwork', () => {
       chain_id: '1',
       source: 'Custom Network API',
       symbol: 'ETH',
+      from_network: fromChainId,
+      to_network: chainId,
+      custom_network: false,
       test: 'test',
     });
     expect(mockTrackEvent).toHaveBeenCalledWith(mockMetricsBuilderBuild);

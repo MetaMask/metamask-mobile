@@ -5,29 +5,56 @@ import NetworkEducationModal from './pages/Network/NetworkEducationModal';
 import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
-import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/Onboarding/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/Onboarding/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
-import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
+import ManualBackupStep1View from './pages/Onboarding/ManualBackupStep1View';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
-import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
-import { getGanachePort } from './framework/fixtures/FixtureUtils';
+import {
+  getGanachePortForFixture,
+  getAnvilPortForFixture,
+} from './framework/fixtures/FixtureUtils';
 import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
-import Matchers from './utils/Matchers';
+import Matchers from './framework/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
 import { createLogger } from './framework/logger';
 import Utilities, { sleep } from './framework/Utilities';
+import { PortManager, ResourceType } from './framework';
 
-const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
+/**
+ * Gets the localhost URL for Ganache/Anvil network connection.
+ * Must be called at runtime (not at module load time) to ensure port is allocated.
+ */
+const getLocalhostUrl = () => {
+  // Check which local node is running
+  const anvilPort = PortManager.getInstance().getPort(ResourceType.ANVIL);
+  const ganachePort = PortManager.getInstance().getPort(ResourceType.GANACHE);
+
+  let port: number;
+
+  if (device.getPlatform() === 'android') {
+    // Android: Must use fallback port (adb reverse maps fallback→actual)
+    // Example: adb reverse tcp:8545 tcp:45466 means device connects to 8545, reaches host's 45466
+    port = anvilPort
+      ? getAnvilPortForFixture()
+      : ganachePort
+        ? getGanachePortForFixture()
+        : getAnvilPortForFixture();
+  } else {
+    // iOS: Use actual allocated port directly (no port forwarding needed)
+    port = anvilPort || ganachePort || getAnvilPortForFixture();
+  }
+
+  return `http://localhost:${port}/`;
+};
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
@@ -235,18 +262,11 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  // Check that we are on the Secure your wallet screen
-  await Assertions.expectElementToBeVisible(ProtectYourWalletView.container, {
-    description: 'Protect Your Wallet View should be visible',
+  // Check that we are on the Manual Backup Step 1 screen
+  await Assertions.expectElementToBeVisible(ManualBackupStep1View.container, {
+    description: 'Manual Backup Step 1 View should be visible',
   });
-  await ProtectYourWalletView.tapOnRemindMeLaterButton();
-
-  // This should be removed once we implement mockAll
-  await device.disableSynchronization();
-  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-  await SkipAccountSecurityModal.tapSkipButton();
-  // This should be removed once we implement mockAll
-  await device.enableSynchronization();
+  await ManualBackupStep1View.tapOnRemindMeLaterButton();
 
   await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In should be visible',
@@ -276,8 +296,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
  * @returns {Promise<void>} Resolves when the Localhost network is added to the user's network list.
  */
 export const addLocalhostNetwork = async () => {
-  await TabBarComponent.tapSettings();
-  await SettingsView.tapNetworks();
+  // Access network list from wallet view (network switcher)
+  await WalletView.tapNetworksButtonOnNavBar();
+
   await Assertions.expectElementToBeVisible(NetworkView.networkContainer, {
     description: 'Network Container should be visible',
   });
@@ -286,7 +307,7 @@ export const addLocalhostNetwork = async () => {
   await NetworkView.switchToCustomNetworks();
 
   await NetworkView.typeInNetworkName('Localhost');
-  await NetworkView.typeInRpcUrl(LOCALHOST_URL);
+  await NetworkView.typeInRpcUrl(getLocalhostUrl());
   await NetworkView.typeInChainId('1337');
   await NetworkView.typeInNetworkSymbol('ETH\n');
 

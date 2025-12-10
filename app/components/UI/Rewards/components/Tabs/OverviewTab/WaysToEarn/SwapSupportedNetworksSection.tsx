@@ -18,6 +18,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../../se
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/multichainNetworkController';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PopularList } from '../../../../../../../util/networks/customNetworks';
+import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../../selectors/featureFlagController/networkBlacklist';
 
 interface NetworkConfig {
   chainId: string;
@@ -76,7 +77,7 @@ const SWAP_SUPPORTED_CHAIN_IDS = [
   SolScope.Mainnet,
   NETWORKS_CHAIN_ID.AVAXCCHAIN,
   NETWORKS_CHAIN_ID.ZKSYNC_ERA,
-  NETWORKS_CHAIN_ID.SEI,
+  NETWORKS_CHAIN_ID.MONAD,
 ];
 
 export const SwapSupportedNetworksSection = () => {
@@ -85,6 +86,9 @@ export const SwapSupportedNetworksSection = () => {
   );
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
+  );
+  const additionalNetworksBlacklist = useSelector(
+    selectAdditionalNetworksBlacklistFeatureFlag,
   );
 
   const supportedNetworks = useMemo(() => {
@@ -96,29 +100,40 @@ export const SwapSupportedNetworksSection = () => {
       ...nonEvmNetworkConfigurations,
     };
 
-    return SWAP_SUPPORTED_CHAIN_IDS.map((chainId) => {
-      const networkConfig = allNetworkConfigurations[chainId];
-      let name = networkConfig?.name;
+    // Exclude any chain IDs present in the remote/local blacklist
+    const allowedChainIds = SWAP_SUPPORTED_CHAIN_IDS.filter(
+      (chainId) => !additionalNetworksBlacklist?.includes(chainId),
+    );
 
-      // If we don't have the network config, check if it's in PopularList and use that name
-      if (!name) {
-        const popularNetwork = PopularList.find(
-          (network) => network.chainId === chainId,
-        );
-        name = popularNetwork?.nickname || 'Unknown Network';
-      }
+    return allowedChainIds
+      .map((chainId) => {
+        const networkConfig = allNetworkConfigurations[chainId];
+        let name = networkConfig?.name;
 
-      // Add boost for Linea
-      const boost =
-        chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET ? '+100%' : undefined;
+        // If we don't have the network config, check if it's in PopularList and use that name
+        if (!name) {
+          const popularNetwork = PopularList.find(
+            (network) => network.chainId === chainId,
+          );
+          name = popularNetwork?.nickname || 'Unknown Network';
+        }
 
-      return {
-        chainId,
-        name,
-        ...(boost && { boost }),
-      };
-    }).filter((network) => network.name !== 'Unknown Network'); // Only include networks we have names for
-  }, [evmNetworkConfigurations, nonEvmNetworkConfigurations]);
+        // Add boost for Linea
+        const boost =
+          chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET ? '+100%' : undefined;
+
+        return {
+          chainId,
+          name,
+          ...(boost && { boost }),
+        };
+      })
+      .filter((network) => network.name !== 'Unknown Network'); // Only include networks we have names for
+  }, [
+    evmNetworkConfigurations,
+    nonEvmNetworkConfigurations,
+    additionalNetworksBlacklist,
+  ]);
 
   return (
     <Box twClassName="w-full bg-muted p-4 rounded-md">
@@ -130,8 +145,8 @@ export const SwapSupportedNetworksSection = () => {
           flexDirection={BoxFlexDirection.Row}
           twClassName="flex-wrap -mx-2 -my-1"
         >
-          {supportedNetworks.map((network, index) => (
-            <Box key={index} twClassName="basis-1/2 px-2 py-1">
+          {supportedNetworks.map((network) => (
+            <Box key={network.chainId} twClassName="basis-1/2 px-2 py-1">
               <SwapSupportedNetworkItem network={network} />
             </Box>
           ))}

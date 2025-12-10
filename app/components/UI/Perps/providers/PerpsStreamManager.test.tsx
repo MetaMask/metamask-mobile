@@ -9,13 +9,18 @@ import {
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import type { PriceUpdate, PerpsMarketData } from '../controllers/types';
+import type { PriceUpdate, PerpsMarketData, Order } from '../controllers/types';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 jest.mock('../services/PerpsConnectionManager');
+jest.mock('../utils/accountUtils', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
+    address: '0x123456789',
+  }),
+}));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -1411,6 +1416,734 @@ describe('PerpsStreamManager', () => {
       // Assert - the new code includes both race condition prevention and error logging
       expect(mockPerpsConnectionManager.isCurrentlyConnecting).toBeDefined();
       expect(mockLogger.error).toBeDefined();
+    });
+  });
+
+  describe('OICapStreamChannel', () => {
+    let mockSubscribeToOICaps: jest.Mock;
+    let mockUnsubscribeFromOICaps: jest.Mock;
+
+    beforeEach(() => {
+      mockSubscribeToOICaps = jest.fn();
+      mockUnsubscribeFromOICaps = jest.fn();
+
+      mockEngine.context.PerpsController.subscribeToOICaps =
+        mockSubscribeToOICaps;
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValue(false);
+    });
+
+    it('subscribes to OI caps and receives updates', async () => {
+      let oiCapCallback: ((caps: string[]) => void) | null = null;
+      mockSubscribeToOICaps.mockImplementation(
+        (params: { callback: (caps: string[]) => void }) => {
+          oiCapCallback = params.callback;
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.oiCaps.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToOICaps).toHaveBeenCalled();
+      });
+
+      // Send OI cap update
+      act(() => {
+        oiCapCallback?.(['BTC', 'ETH']);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(['BTC', 'ETH']);
+      });
+
+      unsubscribe();
+    });
+
+    it('notifies subscribers when markets reach OI cap', async () => {
+      let oiCapCallback: ((caps: string[]) => void) | null = null;
+      mockSubscribeToOICaps.mockImplementation(
+        (params: { callback: (caps: string[]) => void }) => {
+          oiCapCallback = params.callback;
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.oiCaps.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToOICaps).toHaveBeenCalled();
+      });
+
+      // First update - empty caps
+      act(() => {
+        oiCapCallback?.([]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([]);
+      });
+
+      // Second update - BTC at cap
+      act(() => {
+        oiCapCallback?.(['BTC']);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(['BTC']);
+      });
+
+      // Third update - multiple markets at cap
+      act(() => {
+        oiCapCallback?.(['BTC', 'ETH', 'SOL']);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(['BTC', 'ETH', 'SOL']);
+      });
+
+      unsubscribe();
+    });
+
+    it('clears cache and notifies with empty array', async () => {
+      let oiCapCallback: ((caps: string[]) => void) | null = null;
+      mockSubscribeToOICaps.mockImplementation(
+        (params: { callback: (caps: string[]) => void }) => {
+          oiCapCallback = params.callback;
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.oiCaps.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToOICaps).toHaveBeenCalled();
+      });
+
+      // Send initial data
+      act(() => {
+        oiCapCallback?.(['BTC', 'ETH']);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(['BTC', 'ETH']);
+      });
+
+      callback.mockClear();
+
+      // Clear cache
+      act(() => {
+        testStreamManager.oiCaps.clearCache();
+      });
+
+      // Should disconnect and notify with empty array
+      expect(mockUnsubscribeFromOICaps).toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledWith([]);
+
+      unsubscribe();
+    });
+
+    it('prewarm creates persistent subscription', () => {
+      mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+
+      const cleanup = testStreamManager.oiCaps.prewarm();
+
+      expect(mockSubscribeToOICaps).toHaveBeenCalled();
+      expect(typeof cleanup).toBe('function');
+
+      cleanup();
+    });
+
+    it('cleanup prewarm removes subscription', () => {
+      mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+
+      const cleanup = testStreamManager.oiCaps.prewarm();
+
+      expect(mockSubscribeToOICaps).toHaveBeenCalled();
+
+      // Call cleanup
+      cleanup();
+
+      // Verify cleanup was called
+      expect(mockUnsubscribeFromOICaps).toHaveBeenCalled();
+    });
+
+    it('validates account context on updates', async () => {
+      let oiCapCallback: ((caps: string[]) => void) | null = null;
+      mockSubscribeToOICaps.mockImplementation(
+        (params: { callback: (caps: string[]) => void }) => {
+          oiCapCallback = params.callback;
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+
+      // Mock getEvmAccountFromSelectedAccountGroup
+      const mockGetEvmAccount = jest.fn().mockReturnValue({
+        address: '0x123',
+      });
+      jest.mock('../utils/accountUtils', () => ({
+        getEvmAccountFromSelectedAccountGroup: mockGetEvmAccount,
+      }));
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.oiCaps.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToOICaps).toHaveBeenCalled();
+      });
+
+      // Send update with matching account
+      act(() => {
+        oiCapCallback?.(['BTC']);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(['BTC']);
+      });
+
+      unsubscribe();
+    });
+
+    it('retries connection when controller is reinitializing', async () => {
+      // Mock controller as reinitializing
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+
+      mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.oiCaps.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Should not subscribe immediately
+      expect(mockSubscribeToOICaps).not.toHaveBeenCalled();
+
+      // Fast-forward time to trigger retry
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Should subscribe after retry
+      await waitFor(() => {
+        expect(mockSubscribeToOICaps).toHaveBeenCalled();
+      });
+
+      unsubscribe();
+    });
+
+    it('returns null for cached data when cache is empty', () => {
+      const callback = jest.fn();
+
+      mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+
+      const unsubscribe = testStreamManager.oiCaps.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Should not have cached data initially (will be called with null/empty from connect)
+      unsubscribe();
+    });
+
+    it('provides cached data to new subscribers', async () => {
+      let oiCapCallback: ((caps: string[]) => void) | null = null;
+      mockSubscribeToOICaps.mockImplementation(
+        (params: { callback: (caps: string[]) => void }) => {
+          oiCapCallback = params.callback;
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      // First subscriber
+      const unsubscribe1 = testStreamManager.oiCaps.subscribe({
+        callback: callback1,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToOICaps).toHaveBeenCalled();
+      });
+
+      // Send data
+      act(() => {
+        oiCapCallback?.(['BTC', 'ETH']);
+      });
+
+      await waitFor(() => {
+        expect(callback1).toHaveBeenCalledWith(['BTC', 'ETH']);
+      });
+
+      // Second subscriber should get cached data
+      const unsubscribe2 = testStreamManager.oiCaps.subscribe({
+        callback: callback2,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(callback2).toHaveBeenCalledWith(['BTC', 'ETH']);
+      });
+
+      unsubscribe1();
+      unsubscribe2();
+    });
+  });
+
+  describe('StreamChannel pause/resume', () => {
+    let mockOrdersSubscribe: jest.Mock;
+    let mockOrdersUnsubscribe: jest.Mock;
+
+    beforeEach(() => {
+      mockOrdersUnsubscribe = jest.fn();
+      mockOrdersSubscribe = jest.fn().mockReturnValue(mockOrdersUnsubscribe);
+      mockEngine.context.PerpsController.subscribeToOrders =
+        mockOrdersSubscribe;
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValue(false);
+    });
+
+    it('pause blocks emission while keeping WebSocket alive', async () => {
+      let orderCallback: ((orders: Order[]) => void) | null = null;
+      mockOrdersSubscribe.mockImplementation(
+        (params: { callback: (orders: Order[]) => void }) => {
+          orderCallback = params.callback;
+          return mockOrdersUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial order
+      act(() => {
+        orderCallback?.([
+          {
+            orderId: '1',
+            symbol: 'BTC',
+            side: 'buy',
+            orderType: 'limit',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '50000',
+            filledSize: '0',
+            remainingSize: '1.0',
+            status: 'open',
+            timestamp: Date.now(),
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+          },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+      });
+
+      callback.mockClear();
+
+      // Pause channel
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+
+      // Send update while paused
+      act(() => {
+        orderCallback?.([
+          {
+            orderId: '2',
+            symbol: 'ETH',
+            side: 'sell',
+            orderType: 'limit',
+            size: '5.0',
+            originalSize: '5.0',
+            price: '3000',
+            filledSize: '0',
+            remainingSize: '5.0',
+            status: 'open',
+            timestamp: Date.now(),
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+          },
+        ]);
+      });
+
+      // Should not receive update while paused
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+
+      // WebSocket should still be active (subscription not disconnected)
+      expect(mockOrdersUnsubscribe).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('resume allows emission to continue', async () => {
+      let orderCallback: ((orders: Order[]) => void) | null = null;
+      mockOrdersSubscribe.mockImplementation(
+        (params: { callback: (orders: Order[]) => void }) => {
+          orderCallback = params.callback;
+          return mockOrdersUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial order
+      act(() => {
+        orderCallback?.([
+          {
+            orderId: '1',
+            symbol: 'BTC',
+            side: 'buy',
+            orderType: 'limit',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '50000',
+            filledSize: '0',
+            remainingSize: '1.0',
+            status: 'open',
+            timestamp: Date.now(),
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+          },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+      });
+
+      // Pause channel
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+
+      callback.mockClear();
+
+      // Send update while paused (should be blocked)
+      act(() => {
+        orderCallback?.([
+          {
+            orderId: '2',
+            symbol: 'ETH',
+            side: 'sell',
+            orderType: 'limit',
+            size: '5.0',
+            originalSize: '5.0',
+            price: '3000',
+            filledSize: '0',
+            remainingSize: '5.0',
+            status: 'open',
+            timestamp: Date.now(),
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+          },
+        ]);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+
+      // Resume channel
+      act(() => {
+        testStreamManager.orders.resume();
+      });
+
+      // Send another update (should be received)
+      act(() => {
+        orderCallback?.([
+          {
+            orderId: '3',
+            symbol: 'SOL',
+            side: 'buy',
+            orderType: 'limit',
+            size: '10.0',
+            originalSize: '10.0',
+            price: '100',
+            filledSize: '0',
+            remainingSize: '10.0',
+            status: 'open',
+            timestamp: Date.now(),
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+          },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledWith([
+          expect.objectContaining({
+            orderId: '3',
+            symbol: 'SOL',
+          }),
+        ]);
+      });
+
+      unsubscribe();
+    });
+  });
+
+  describe('TopOfBookStreamChannel', () => {
+    it('subscribes to top of book with includeOrderBook flag', () => {
+      const callback = jest.fn();
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['BTC'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
+    });
+
+    it('provides top of book data for subscribed symbol', () => {
+      const callback = jest.fn();
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([
+        { coin: 'BTC', bestBid: '50000', bestAsk: '50001' },
+        { coin: 'ETH', bestBid: '3000', bestAsk: '3001' },
+      ]);
+
+      expect(callback).toHaveBeenCalledWith({
+        bestBid: '50000',
+        bestAsk: '50001',
+        spread: undefined,
+      });
+    });
+
+    it('does not subscribe when symbol is empty', () => {
+      const callback = jest.fn();
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: '',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+
+    it('clears top of book cache when clearCache called', () => {
+      const callback = jest.fn();
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([{ coin: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
+
+      testStreamManager.topOfBook.clearCache();
+
+      expect(callback).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('clearAllChannels', () => {
+    it('disconnects all channels when called', () => {
+      // Arrange - spy on disconnect methods
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+      const ordersDisconnect = jest.spyOn(
+        testStreamManager.orders,
+        'disconnect',
+      );
+      const positionsDisconnect = jest.spyOn(
+        testStreamManager.positions,
+        'disconnect',
+      );
+      const fillsDisconnect = jest.spyOn(testStreamManager.fills, 'disconnect');
+      const accountDisconnect = jest.spyOn(
+        testStreamManager.account,
+        'disconnect',
+      );
+      const marketDataDisconnect = jest.spyOn(
+        testStreamManager.marketData,
+        'disconnect',
+      );
+      const oiCapsDisconnect = jest.spyOn(
+        testStreamManager.oiCaps,
+        'disconnect',
+      );
+      const topOfBookDisconnect = jest.spyOn(
+        testStreamManager.topOfBook,
+        'disconnect',
+      );
+      const candlesDisconnect = jest.spyOn(
+        testStreamManager.candles,
+        'disconnect',
+      );
+
+      // Act
+      testStreamManager.clearAllChannels();
+
+      // Assert - all channels should be disconnected
+      expect(pricesDisconnect).toHaveBeenCalledTimes(1);
+      expect(ordersDisconnect).toHaveBeenCalledTimes(1);
+      expect(positionsDisconnect).toHaveBeenCalledTimes(1);
+      expect(fillsDisconnect).toHaveBeenCalledTimes(1);
+      expect(accountDisconnect).toHaveBeenCalledTimes(1);
+      expect(marketDataDisconnect).toHaveBeenCalledTimes(1);
+      expect(oiCapsDisconnect).toHaveBeenCalledTimes(1);
+      expect(topOfBookDisconnect).toHaveBeenCalledTimes(1);
+      expect(candlesDisconnect).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      pricesDisconnect.mockRestore();
+      ordersDisconnect.mockRestore();
+      positionsDisconnect.mockRestore();
+      fillsDisconnect.mockRestore();
+      accountDisconnect.mockRestore();
+      marketDataDisconnect.mockRestore();
+      oiCapsDisconnect.mockRestore();
+      topOfBookDisconnect.mockRestore();
+      candlesDisconnect.mockRestore();
+    });
+
+    it('clears WebSocket subscriptions from all channels', () => {
+      // Arrange - set up subscriptions on multiple channels
+      const priceCallback = jest.fn();
+      const orderCallback = jest.fn();
+      const positionCallback = jest.fn();
+
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+      const ordersDisconnect = jest.spyOn(
+        testStreamManager.orders,
+        'disconnect',
+      );
+      const positionsDisconnect = jest.spyOn(
+        testStreamManager.positions,
+        'disconnect',
+      );
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: priceCallback,
+      });
+
+      testStreamManager.orders.subscribe({
+        callback: orderCallback,
+      });
+
+      testStreamManager.positions.subscribe({
+        callback: positionCallback,
+      });
+
+      // Verify subscriptions are active
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+      expect(mockSubscribeToOrders).toHaveBeenCalled();
+      expect(mockSubscribeToPositions).toHaveBeenCalled();
+
+      // Act - reconnect all channels
+      testStreamManager.clearAllChannels();
+
+      // Assert - disconnect was called on all channels
+      expect(pricesDisconnect).toHaveBeenCalled();
+      expect(ordersDisconnect).toHaveBeenCalled();
+      expect(positionsDisconnect).toHaveBeenCalled();
+
+      // Cleanup
+      pricesDisconnect.mockRestore();
+      ordersDisconnect.mockRestore();
+      positionsDisconnect.mockRestore();
+    });
+
+    it('allows channels to reconnect when subscribers are still active', () => {
+      // Arrange - clear any previous calls
+      jest.clearAllMocks();
+
+      // Set up a subscription
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+
+      // Act - reconnect all channels
+      testStreamManager.clearAllChannels();
+
+      expect(pricesDisconnect).toHaveBeenCalled();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      unsubscribe();
+      pricesDisconnect.mockRestore();
     });
   });
 });

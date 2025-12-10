@@ -11,6 +11,7 @@
  */
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 
 interface ValidationParams {
   currentPrice: number;
@@ -255,7 +256,7 @@ export const calculatePriceForRoE = (
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
   const basePrice = entryPrice || currentPrice;
-  if (!basePrice || basePrice <= 0) {
+  if (!basePrice || basePrice <= 0 || !direction) {
     return '';
   }
 
@@ -320,7 +321,7 @@ export const calculatePriceForRoE = (
   if (calculatedPrice < 0.01) {
     precision = 8; // For prices less than $0.01, use 8 decimal places
   } else if (calculatedPrice < 1) {
-    precision = 6; // For prices less than $1, use 6 decimal places
+    precision = DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS; // For prices less than $1, use MAX_PRICE_DECIMALS decimal places
   } else if (calculatedPrice < 100) {
     precision = 4; // For prices less than $100, use 4 decimal places
   }
@@ -365,7 +366,7 @@ export const calculateRoEForPrice = (
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
   const basePrice = entryPrice || currentPrice;
-  if (!basePrice || basePrice <= 0 || !price) {
+  if (!basePrice || basePrice <= 0 || !price || !direction) {
     return '';
   }
 
@@ -383,12 +384,11 @@ export const calculateRoEForPrice = (
     roePercentage = -roePercentage;
   }
 
-  if (!isForPositionBoundTpsl) {
-    if (isProfit && roePercentage < 0) {
-      roePercentage = 0;
-    } else if (!isProfit && roePercentage > 0) {
-      roePercentage = 0;
-    }
+  if (
+    !isForPositionBoundTpsl &&
+    ((isProfit && roePercentage < 0) || (!isProfit && roePercentage > 0))
+  ) {
+    roePercentage = 0;
   }
 
   return roePercentage.toFixed(2);
@@ -516,7 +516,7 @@ export const sanitizePercentageInput = (
     const hasMinus = finalValue.includes('-');
     if (hasPlus && hasMinus) {
       // Mixed signs - keep only the first sign
-      const firstSignMatch = finalValue.match(/[+-]/);
+      const firstSignMatch = /[+-]/.exec(finalValue);
       if (firstSignMatch) {
         const sign = firstSignMatch[0];
         const restOfString = finalValue.substring(1);

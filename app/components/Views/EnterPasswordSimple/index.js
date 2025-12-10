@@ -12,7 +12,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../../UI/StyledButton';
 
-import { baseStyles } from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -42,6 +42,7 @@ const createStyles = (colors) =>
       color: colors.text.default,
       fontSize: 16,
       marginBottom: 15,
+      ...fontStyles.normal,
     },
   });
 

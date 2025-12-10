@@ -1,21 +1,21 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import validUrl from 'valid-url';
-import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
+import { isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
-  isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getPermittedEthChainIds,
-  setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../Engine';
+import { isSnapId } from '@metamask/snaps-utils';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -206,8 +206,9 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  *
  * @param response - The JSON RPC request's response object.
  * @param end - The JSON RPC request's end callback.
- * @param {object} params.network - Network configuration of the chain being switched to.
- * @param {string} params.chainId - The network client being switched to.
+ * @param {string} params.networkClientId - NetworkClientId of the chain being switched to.
+ * @param {string} params.nativeCurrency - Native currency of the chain being switched to.
+ * @param {string} params.chainId - The chainId being switched to.
  * @param {Function} params.requestUserApproval - The callback to trigger user approval flow.
  * @param {object} params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
  * @param {string} params.origin - The origin sending this request.
@@ -216,30 +217,22 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  * @returns a null response on success or an error if user rejects an approval when autoApprove is false or on unexpected errors.
  */
 export async function switchToNetwork({
-  network,
+  networkClientId,
+  nativeCurrency,
+  rpcUrl,
   chainId,
-  requestUserApproval,
   analytics,
   origin,
   autoApprove = false,
   hooks,
-  dappUrl = origin,
 }) {
   const {
     getCaveat,
     requestPermittedChainsPermissionIncrementalForOrigin,
     hasApprovalRequestsForOrigin,
-    toNetworkConfiguration,
-    fromNetworkConfiguration,
     rejectApprovalRequestsForOrigin,
   } = hooks;
-  const {
-    MultichainNetworkController,
-    PermissionController,
-    SelectedNetworkController,
-  } = Engine.context;
-
-  const [networkConfigurationId, networkConfiguration] = network;
+  const { SelectedNetworkController } = Engine.context;
 
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
@@ -248,97 +241,52 @@ export async function switchToNetwork({
 
   let ethChainIds;
 
+  // TODO: DRY this when aligning with extension and drying into core
+  // I know this can be rewritten to be more DRY now, but I want to keep the shape
+  // similar to what is in extension so it's easier for the future dev to
+  // reconcile the last bit of differences first.
   if (caip25Caveat) {
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
-  } else {
-    await requestPermittedChainsPermissionIncrementalForOrigin({
-      origin,
-      chainId,
-      autoApprove,
-    });
-  }
 
-  const shouldGrantPermissions = !ethChainIds?.includes(chainId);
-
-  const requestModalType = autoApprove ? 'new' : 'switch';
-
-  const shouldShowRequestModal = !autoApprove && shouldGrantPermissions;
-
-  const requestData = {
-    rpcUrl:
-      networkConfiguration.rpcEndpoints[
-        networkConfiguration.defaultRpcEndpointIndex
-      ],
-    chainId,
-    chainName:
-      networkConfiguration.name ||
-      networkConfiguration.chainName ||
-      networkConfiguration.nickname ||
-      networkConfiguration.shortName,
-    ticker: networkConfiguration.ticker || 'ETH',
-    chainColor: networkConfiguration.color,
-    pageMeta: {
-      url: dappUrl ?? origin,
-    },
-  };
-
-  if (shouldShowRequestModal) {
-    await requestUserApproval({
-      type: 'SWITCH_ETHEREUM_CHAIN',
-      requestData: { ...requestData, type: requestModalType },
-    });
-
-    if (caip25Caveat) {
-      await PermissionController.grantPermissionsIncremental({
-        subject: { origin },
-        approvedPermissions: {
-          [Caip25EndowmentPermissionName]: {
-            caveats: [
-              {
-                type: Caip25CaveatType,
-                value: setPermittedEthChainIds(caip25Caveat.value, [chainId]),
-              },
-            ],
-          },
+    if (!ethChainIds?.includes(chainId)) {
+      await requestPermittedChainsPermissionIncrementalForOrigin({
+        chainId,
+        autoApprove,
+        metadata: {
+          rpcUrl,
         },
       });
+    } else if (hasApprovalRequestsForOrigin?.() && !autoApprove) {
+      // We do not handle this case for now.
+      // Mobile doesn't really support simultaneous approvals in the first place.
     }
-  }
-
-  if (!shouldShowRequestModal && !ethChainIds?.includes(chainId)) {
+  } else {
     await requestPermittedChainsPermissionIncrementalForOrigin({
-      origin,
       chainId,
       autoApprove,
-    });
-  } else if (hasApprovalRequestsForOrigin?.() && !autoApprove) {
-    await requestUserApproval({
-      origin,
-      type: ApprovalType.SwitchEthereumChain,
-      requestData: {
-        toNetworkConfiguration,
-        fromNetworkConfiguration,
+      metadata: {
+        rpcUrl,
       },
     });
   }
 
-  rejectApprovalRequestsForOrigin?.();
-
-  if (isPerDappSelectedNetworkEnabled()) {
-    SelectedNetworkController.setNetworkClientIdForDomain(
-      origin,
-      networkConfigurationId || networkConfiguration.networkType,
-    );
-  } else {
-    await MultichainNetworkController.setActiveNetwork(
-      networkConfigurationId || networkConfiguration.networkType,
-    );
+  if (!isSnapId(origin)) {
+    rejectApprovalRequestsForOrigin?.();
   }
 
+  SelectedNetworkController.setNetworkClientIdForDomain(
+    origin,
+    networkClientId,
+  );
+
+  const fromChainId = hooks.fromNetworkConfiguration?.chainId;
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),
     source: 'Custom Network API',
-    symbol: networkConfiguration?.ticker || 'ETH',
+    symbol: nativeCurrency || 'ETH',
+    from_network: fromChainId,
+    to_network: chainId,
+    custom_network: !POPULAR_NETWORK_CHAIN_IDS.has(chainId),
     ...analytics,
   };
 

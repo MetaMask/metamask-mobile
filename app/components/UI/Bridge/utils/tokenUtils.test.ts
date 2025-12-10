@@ -46,7 +46,7 @@ describe('tokenUtils', () => {
         symbol: 'ETH',
         image: '',
         decimals: 18,
-        chainId: 'eip155:1',
+        chainId: '0x1',
       });
     });
 
@@ -85,7 +85,7 @@ describe('tokenUtils', () => {
         symbol: 'ETH',
         image: 'https://example.com/eth-icon.png',
         decimals: 18,
-        chainId: 'eip155:1',
+        chainId: '0x1',
       });
     });
 
@@ -104,9 +104,9 @@ describe('tokenUtils', () => {
         address: constants.AddressZero,
         name: '',
         symbol: 'ETH',
-        image: undefined,
+        image: '',
         decimals: 18,
-        chainId: 'eip155:1',
+        chainId: '0x1',
       });
     });
   });

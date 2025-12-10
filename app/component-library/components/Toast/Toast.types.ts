@@ -4,6 +4,7 @@ import { ImageSourcePropType } from 'react-native';
 // External Dependencies.
 import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 import { ButtonProps } from '../Buttons/Button/Button.types';
+import { ButtonIconProps } from '../Buttons/ButtonIcon/ButtonIcon.types';
 import { IconName } from '../Icons/Icon';
 import { ReactElement } from 'react';
 
@@ -27,6 +28,13 @@ export type ToastLabelOptions = {
 }[];
 
 /**
+ * Options for the description text in the toast.
+ */
+export interface ToastDescriptionOptions {
+  description: string;
+}
+
+/**
  * Options for displaying a Link in the toast.
  */
 export interface ToastLinkButtonOptions {
@@ -40,10 +48,19 @@ export interface ToastLinkButtonOptions {
 interface BaseToastVariants {
   hasNoTimeout: boolean;
   labelOptions: ToastLabelOptions;
+  descriptionOptions?: ToastDescriptionOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
-  closeButtonOptions?: ButtonProps;
+  closeButtonOptions?: ToastCloseButtonOptions;
   startAccessory?: ReactElement;
   customBottomOffset?: number;
+}
+
+export type ToastCloseButtonOptions =
+  | ButtonProps
+  | (ButtonIconProps & { variant: ButtonIconVariant });
+
+export enum ButtonIconVariant {
+  Icon = 'Icon',
 }
 
 /**

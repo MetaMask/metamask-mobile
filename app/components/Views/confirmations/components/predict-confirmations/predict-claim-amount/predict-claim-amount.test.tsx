@@ -19,12 +19,18 @@ function render() {
 
 describe('PredictClaimAmount', () => {
   it('renders formatted winnings', () => {
+    // Given a won position with currentValue of 229.09
     const { getByText } = render();
-    expect(getByText('$229.09')).toBeDefined();
+
+    // Then the formatted winnings amount is displayed
+    expect(getByText('$2,250')).toBeDefined();
   });
 
   it('renders formatted change and percentage', () => {
+    // Given a won position with cashPnl of 46.35 and currentValue of 229.09
     const { getByText } = render();
-    expect(getByText('+$46.35 (20.23%)')).toBeDefined();
+
+    // Then the formatted change and percentage is displayed
+    expect(getByText('+$750 (33.33%)')).toBeDefined();
   });
 });

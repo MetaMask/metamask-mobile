@@ -10,6 +10,8 @@ import {
   SolAccountType,
   SolScope,
   BtcScope,
+  TrxMethod,
+  TrxAccountType,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
@@ -323,6 +325,16 @@ describe('selectCanSignTransactions', () => {
     methods: [EthMethod.SignTransaction],
   };
 
+  const trxAccountWithSignMessage = {
+    ...createMockInternalAccount(
+      'T123',
+      'TRX Account with SignMessage',
+      KeyringTypes.snap,
+      TrxAccountType.Eoa,
+    ),
+    methods: [TrxMethod.SignMessage],
+  };
+
   const solAccountWithSignTransaction = {
     ...createMockInternalAccount(
       '0x456',
@@ -385,6 +397,12 @@ describe('selectCanSignTransactions', () => {
 
   it('returns true for ETH account with SignTransaction method', () => {
     const state = getStateWithAccount(ethAccountWithSignTransaction);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for TRX account with SignMessage method', () => {
+    const state = getStateWithAccount(trxAccountWithSignMessage);
+
     expect(selectCanSignTransactions(state)).toBe(true);
   });
 

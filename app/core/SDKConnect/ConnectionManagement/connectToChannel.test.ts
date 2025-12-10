@@ -165,7 +165,7 @@ describe('connectToChannel', () => {
             setParams: jest.fn(),
             setOptions: jest.fn(),
           } as unknown as NavigationContainerRef,
-        } as unknown as Connection),
+        }) as unknown as Connection,
     );
   });
 

@@ -48,9 +48,8 @@ export default function useInAppBrowser() {
       }
 
       const deeplinkRedirectUrl = `${callbackBaseDeeplink}on-ramp${provider.id}`;
-      const { url, orderId: customOrderId } = await buyAction.createWidget(
-        deeplinkRedirectUrl,
-      );
+      const { url, orderId: customOrderId } =
+        await buyAction.createWidget(deeplinkRedirectUrl);
 
       let customIdData;
 

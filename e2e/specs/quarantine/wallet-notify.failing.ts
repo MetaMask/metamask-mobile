@@ -65,9 +65,8 @@ describe(SmokeMultiChainAPI('wallet_notify'), () => {
           await MultichainTestDApp.isNotificationContainerEmpty();
 
         // Subscribe to events
-        const subscribed = await MultichainTestDApp.subscribeToChainEvents(
-          chainId,
-        );
+        const subscribed =
+          await MultichainTestDApp.subscribeToChainEvents(chainId);
 
         // Verify subscription was successful
         await Assertions.checkIfTextMatches(

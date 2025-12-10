@@ -1,12 +1,12 @@
 import {
-  getGanachePort,
-  getSecondTestDappLocalUrl,
-  getTestDappLocalUrl,
-  getMockServerPort,
-  getTestDappLocalUrlByDappCounter,
+  getGanachePortForFixture,
+  getAnvilPortForFixture,
+  getMockServerPortForFixture,
+  getDappUrl,
+  getDappUrlForFixture,
 } from './FixtureUtils';
 import { merge } from 'lodash';
-import { encryptVault } from './FixtureHelper';
+import { encryptVault } from './helpers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import {
@@ -172,8 +172,7 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withTestNetworksOff() {
-    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks =
-      false;
+    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks = false;
     return this;
   }
 
@@ -185,6 +184,7 @@ class FixtureBuilder {
     this.fixture = {
       state: {
         legalNotices: {
+          isPna25Acknowledged: true,
           newPrivacyPolicyToastClickedOrClosed: true,
           newPrivacyPolicyToastShownDate: Date.now(),
         },
@@ -311,7 +311,7 @@ class FixtureBuilder {
                   rpcEndpoints: [
                     {
                       networkClientId: 'networkId1',
-                      url: `http://localhost:${getGanachePort()}`,
+                      url: `http://localhost:${getGanachePortForFixture()}`,
                       type: 'custom',
                       name: 'Local RPC',
                     },
@@ -593,7 +593,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: `http://localhost:${getMockServerPort()}/health-check`,
+              url: `http://localhost:${getMockServerPortForFixture()}/health-check`,
               id: 1692550481062,
             },
           ],
@@ -814,6 +814,7 @@ class FixtureBuilder {
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
         '@MetaMask:solanaFeatureModalShownV2': 'true',
+        '@MetaMask:predictGTMModalShown': 'true',
       },
     };
     return this;
@@ -883,7 +884,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
-    dappUrl = getTestDappLocalUrl(),
+    dappUrl = getDappUrlForFixture(0),
   ) {
     const permission = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -957,7 +958,7 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        getSecondTestDappLocalUrl(),
+        getDappUrlForFixture(1),
       );
     }
     this.withPermissionController(
@@ -1244,9 +1245,8 @@ class FixtureBuilder {
           const balanceInWei = (
             finalBalance * Math.pow(10, token.decimals)
           ).toString(16);
-          tokenBalances[accountAddress][chainId][
-            token.address
-          ] = `0x${balanceInWei}`;
+          tokenBalances[accountAddress][chainId][token.address] =
+            `0x${balanceInWei}`;
         });
       });
     });
@@ -1269,7 +1269,13 @@ class FixtureBuilder {
     return this;
   }
 
-  withGanacheNetwork(chainId = '0x539') {
+  /**
+   * @deprecated Use withNetworkController instead
+   * @param chainId
+   * @param port
+   * @returns
+   */
+  withGanacheNetwork(chainId = '0x539', port = getAnvilPortForFixture()) {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
@@ -1284,7 +1290,7 @@ class FixtureBuilder {
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
-          url: `http://localhost:${getGanachePort()}`,
+          url: `http://localhost:${port}`,
           type: 'custom',
           name: 'Localhost',
         },
@@ -1345,6 +1351,46 @@ class FixtureBuilder {
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
     // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
+  }
+
+  /**
+   * Configure Polygon network to route through mock server proxy
+   * This allows RPC calls to be intercepted by the mock server
+   * Uses Infura URL format to match app code expectations
+   */
+  withPolygon(chainId = CHAIN_IDS.POLYGON) {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+
+    const infuraProjectId =
+      process.env.MM_INFURA_PROJECT_ID || 'test-project-id';
+    const polygonNetworkConfig = {
+      chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: `http://localhost:${getMockServerPortForFixture()}/proxy?url=https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
+          type: 'custom',
+          name: 'Polygon Localhost',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      blockExplorerUrls: ['https://polygonscan.com'],
+      name: 'Polygon Localhost',
+      nativeCurrency: 'MATIC',
+    };
+
+    fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
+      polygonNetworkConfig;
+
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
     return this.ensureSolanaModalSuppressed();
   }
 
@@ -1815,7 +1861,7 @@ class FixtureBuilder {
     // We start at 1 to easily identify the tab across all tests
     for (let i = 1; i <= extraTabs; i++) {
       this.fixture.state.browser.tabs.push({
-        url: getTestDappLocalUrlByDappCounter(i),
+        url: getDappUrl(i),
         id: DEFAULT_TAB_ID + i,
         isArchived: false,
       });
@@ -2133,6 +2179,89 @@ class FixtureBuilder {
     });
 
     return this;
+  }
+
+  withSnapController(data: Record<string, unknown> = {}) {
+    merge(this.fixture.state.engine.backgroundState.SnapController, data);
+    return this;
+  }
+
+  withSnapControllerOnStartLifecycleSnap() {
+    return this.withPermissionController({
+      subjects: {
+        'npm:@metamask/lifecycle-hooks-example-snap': {
+          origin: 'npm:@metamask/lifecycle-hooks-example-snap',
+          permissions: {
+            'endowment:lifecycle-hooks': {
+              caveats: null,
+              date: 1750244440562,
+              id: '0eKn8SjGEH6o_6Mhcq3Lw',
+              invoker: 'npm:@metamask/lifecycle-hooks-example-snap',
+              parentCapability: 'endowment:lifecycle-hooks',
+            },
+            snap_dialog: {
+              caveats: null,
+              date: 1750244440562,
+              id: 'Fbme_UWcuSK92JqfrT4G2',
+              invoker: 'npm:@metamask/lifecycle-hooks-example-snap',
+              parentCapability: 'snap_dialog',
+            },
+          },
+        },
+      },
+    }).withSnapController({
+      snaps: {
+        'npm:@metamask/lifecycle-hooks-example-snap': {
+          auxiliaryFiles: [],
+          blocked: false,
+          enabled: true,
+          id: 'npm:@metamask/lifecycle-hooks-example-snap',
+          initialPermissions: {
+            'endowment:lifecycle-hooks': {},
+            snap_dialog: {},
+          },
+          localizationFiles: [],
+          manifest: {
+            description:
+              'MetaMask example snap demonstrating the use of the `onStart`, `onInstall`, and `onUpdate` lifecycle hooks.',
+            initialPermissions: {
+              'endowment:lifecycle-hooks': {},
+              snap_dialog: {},
+            },
+            manifestVersion: '0.1',
+            platformVersion: '8.1.0',
+            proposedName: 'Lifecycle Hooks Example Snap',
+            repository: {
+              type: 'git',
+              url: 'https://github.com/MetaMask/snaps.git',
+            },
+            source: {
+              location: {
+                npm: {
+                  filePath: 'dist/bundle.js',
+                  packageName: '@metamask/lifecycle-hooks-example-snap',
+                  registry: 'https://registry.npmjs.org',
+                },
+              },
+              shasum: '5tlM5E71Fbeid7I3F0oQURWL7/+0620wplybtklBCHQ=',
+            },
+            version: '2.2.0',
+          },
+          sourceCode:
+            // eslint-disable-next-line no-template-curly-in-string
+            '(()=>{var e={d:(n,t)=>{for(var a in t)e.o(t,a)&&!e.o(n,a)&&Object.defineProperty(n,a,{enumerable:!0,get:t[a]})},o:(e,n)=>Object.prototype.hasOwnProperty.call(e,n),r:e=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})}},n={};(()=>{"use strict";function t(e,n,t){if("string"==typeof e)throw new Error(`An HTML element ("${String(e)}") was used in a Snap component, which is not supported by Snaps UI. Please use one of the supported Snap components.`);if(!e)throw new Error("A JSX fragment was used in a Snap component, which is not supported by Snaps UI. Please use one of the supported Snap components.");return e({...n,key:t})}function a(e){return Object.fromEntries(Object.entries(e).filter((([,e])=>void 0!==e)))}function r(e){return n=>{const{key:t=null,...r}=n;return{type:e,props:a(r),key:t}}}e.r(n),e.d(n,{onInstall:()=>p,onStart:()=>l,onUpdate:()=>d});const o=r("Box"),s=r("Text"),l=async()=>await snap.request({method:"snap_dialog",params:{type:"alert",content:t(o,{children:t(s,{children:\'The client was started successfully, and the "onStart" handler was called.\'})})}}),p=async()=>await snap.request({method:"snap_dialog",params:{type:"alert",content:t(o,{children:t(s,{children:\'The Snap was installed successfully, and the "onInstall" handler was called.\'})})}}),d=async()=>await snap.request({method:"snap_dialog",params:{type:"alert",content:t(o,{children:t(s,{children:\'The Snap was updated successfully, and the "onUpdate" handler was called.\'})})}})})(),module.exports=n})();',
+          status: 'stopped',
+          version: '2.2.0',
+          versionHistory: [
+            {
+              date: 1750244439310,
+              origin: 'https://metamask.github.io',
+              version: '2.2.0',
+            },
+          ],
+        },
+      },
+    });
   }
 
   /**

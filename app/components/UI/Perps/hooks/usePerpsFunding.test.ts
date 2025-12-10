@@ -383,7 +383,7 @@ describe('usePerpsFunding', () => {
       jest.clearAllMocks();
 
       // Act - advance time
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(120000); // 2 minutes
       });
 
@@ -406,7 +406,7 @@ describe('usePerpsFunding', () => {
       jest.clearAllMocks();
 
       // Act - advance time by polling interval
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(pollingInterval);
       });
 
@@ -416,7 +416,7 @@ describe('usePerpsFunding', () => {
       });
 
       // Act - advance time again
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(pollingInterval);
       });
 
@@ -442,7 +442,7 @@ describe('usePerpsFunding', () => {
       jest.clearAllMocks();
 
       // Act - advance time less than interval
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(customInterval - 1000);
       });
 
@@ -450,7 +450,7 @@ describe('usePerpsFunding', () => {
       expect(mockPerpsController.getFunding).not.toHaveBeenCalled();
 
       // Act - advance time to complete interval
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(1000);
       });
 
@@ -476,7 +476,7 @@ describe('usePerpsFunding', () => {
       unmount();
 
       // Advance time
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(pollingInterval * 3);
       });
 

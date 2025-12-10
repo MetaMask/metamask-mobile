@@ -122,13 +122,6 @@ export interface PolymarketOffchainTradeParams {
   feeAuthorization?: SafeFeeAuthorization;
 }
 
-export interface OrderArtifactsParams {
-  outcomeTokenId: string;
-  outcomeId: string;
-  side: Side;
-  size: number;
-}
-
 // Polymarket API response types
 export interface PolymarketApiMarket {
   conditionId: string;
@@ -137,8 +130,11 @@ export interface PolymarketApiMarket {
   icon: string;
   image: string;
   groupItemTitle: string;
+  groupItemThreshold?: number;
+  sportsMarketType?: string;
   status: 'open' | 'closed' | 'resolved';
   volumeNum: number;
+  liquidity: number;
   negRisk: boolean;
   clobTokenIds: string;
   outcomes: string;
@@ -148,13 +144,15 @@ export interface PolymarketApiMarket {
   resolvedBy: string;
   orderPriceMinTickSize: number;
   events?: PolymarketApiEvent[];
+  umaResolutionStatus: string;
+  line?: number;
 }
 
 export interface PolymarketApiSeries {
   recurrence: string;
 }
 
-export interface PolymarketTag {
+export interface PolymarketApiTag {
   id: string;
   label: string;
   slug: string;
@@ -177,6 +175,24 @@ export interface PolymarketApiEvent {
   closed: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
+  tags: PolymarketApiTag[];
+  liquidity: number;
+  volume: number;
+  sortBy?: 'price' | 'ascending' | 'descending';
+}
+
+export interface PolymarketApiActivity {
+  type: 'TRADE' | 'REDEEM';
+  side: 'BUY' | 'SELL' | '';
+  price: number;
+  usdcSize: number;
+  timestamp: number;
+  transactionHash: string;
+  conditionId: string;
+  outcomeIndex: number;
+  title: string;
+  outcome?: 'Yes' | 'No' | '';
+  icon: string;
 }
 
 export interface PolymarketApiEventsResponse {
@@ -291,13 +307,13 @@ export interface L2HeaderArgs {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OrderResponse = {
-  errorMsg: string;
-  makingAmount: string;
-  orderID: string;
-  status: string;
+  errorMsg?: string;
+  makingAmount?: string;
+  orderID?: string;
+  status?: string;
   success: boolean;
-  takingAmount: string;
-  transactionsHashes: string[];
+  takingAmount?: string;
+  transactionsHashes?: string[];
 };
 
 export interface TickSizeResponse {
@@ -313,4 +329,16 @@ export interface ClobOrderParams {
 export interface OrderSummary {
   price: string;
   size: string;
+}
+
+export interface OrderBook {
+  market: string;
+  asset_id: string;
+  hash: string;
+  timestamp: string;
+  asks: OrderSummary[]; // descending by price
+  bids: OrderSummary[]; // ascending by price
+  min_order_size: string;
+  tick_size: string;
+  neg_risk: boolean;
 }

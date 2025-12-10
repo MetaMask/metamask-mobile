@@ -98,8 +98,11 @@ const mockSingleMarket: PredictMarketType = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [mockSingleOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockMultipleMarket: PredictMarketType = {
@@ -111,8 +114,11 @@ const mockMultipleMarket: PredictMarketType = {
   image: 'https://example.com/crypto.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [mockMultipleOutcome1, mockMultipleOutcome2],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {

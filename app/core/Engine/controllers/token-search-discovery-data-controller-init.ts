@@ -1,7 +1,9 @@
 import { ControllerInitFunction } from '../types';
-import { TokenSearchDiscoveryDataController } from '@metamask/assets-controllers';
+import {
+  TokenSearchDiscoveryDataController,
+  type TokenSearchDiscoveryDataControllerMessenger,
+} from '@metamask/assets-controllers';
 import AppConstants from '../../AppConstants';
-import { TokenSearchDiscoveryDataControllerMessenger } from '../messengers/token-search-discovery-data-controller-messenger';
 import { swapsSupportedChainIds } from '../constants';
 import { swapsUtils } from '@metamask/swaps-controller';
 

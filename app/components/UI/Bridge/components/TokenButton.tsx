@@ -17,7 +17,7 @@ import BadgeWrapper, {
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
-import TokenIcon from '../../Swaps/components/TokenIcon';
+import TokenIcon from '../../../Base/TokenIcon';
 
 interface TokenProps {
   symbol?: string;
@@ -51,7 +51,8 @@ const createStyles = (params: StylesParams) => {
     },
     tokenSymbol: {
       color: theme.colors.text.default,
-      fontSize: 24,
+      fontSize: theme.typography.sHeadingLG.fontSize,
+      fontWeight: 500,
     },
   });
 };
@@ -87,7 +88,7 @@ export const TokenButton: React.FC<TokenProps> = ({
           <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
         </BadgeWrapper>
 
-        <Text style={styles.tokenSymbol} variant={TextVariant.BodyMDMedium}>
+        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
           {symbol}
         </Text>
       </Box>

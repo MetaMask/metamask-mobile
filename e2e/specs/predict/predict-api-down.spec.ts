@@ -1,12 +1,12 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokeTrade } from '../../tags';
+import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../pages/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
-import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket-mocks';
+import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
@@ -20,7 +20,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-describe(SmokeTrade('Prediction Markets'), () => {
+describe(SmokePredictions('Prediction Markets'), () => {
   it('should verify feed is empty when API is down', async () => {
     await withFixtures(
       {

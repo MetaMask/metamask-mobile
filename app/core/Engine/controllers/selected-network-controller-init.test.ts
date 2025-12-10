@@ -1,20 +1,23 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import {
-  getSelectedNetworkControllerMessenger,
-  type SelectedNetworkControllerMessenger,
-} from '../messengers/selected-network-controller-messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getSelectedNetworkControllerMessenger } from '../messengers/selected-network-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { selectedNetworkControllerInit } from './selected-network-controller-init';
-import { SelectedNetworkController } from '@metamask/selected-network-controller';
+import {
+  SelectedNetworkController,
+  SelectedNetworkControllerMessenger,
+} from '@metamask/selected-network-controller';
 import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/selected-network-controller');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<SelectedNetworkControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

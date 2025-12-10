@@ -3,6 +3,7 @@
 /app/util/blockies.js
 __snapshots__
 android
+build
 coverage
 ios
 jest.preprocessor.js
@@ -10,9 +11,6 @@ node_modules
 CHANGELOG.md
 wdio
 /app/util/test/testSetup.js
-/app/lib/ppom/ppom.html.js
-/app/lib/ppom/blockaid-version.js
-/ppom
 junitProperties.js
 /e2e/scripts/ai-e2e-tags-selector.ts
 scripts/aggregate-performance-reports.mjs

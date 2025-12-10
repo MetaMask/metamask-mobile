@@ -12,12 +12,12 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 // Mock the dependent hooks
-jest.mock('./usePerpsPositionData');
+jest.mock('./stream/usePerpsLiveCandles');
 
 import Engine from '../../../../core/Engine';
-import { usePerpsPositionData } from './usePerpsPositionData';
+import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 
-const mockedUsePerpsPositionData = jest.mocked(usePerpsPositionData);
+const mockedUsePerpsLiveCandles = jest.mocked(usePerpsLiveCandles);
 const mockSubscribeToPrices = Engine.context.PerpsController
   .subscribeToPrices as jest.Mock;
 
@@ -75,11 +75,13 @@ describe('usePerpsMarketStats', () => {
       callback([mockPriceData.BTC]);
       return jest.fn();
     });
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
-      priceData: null,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook with a symbol
@@ -87,8 +89,9 @@ describe('usePerpsMarketStats', () => {
 
     // Assert: All market statistics are correctly formatted
     expect(result.current.currentPrice).toBe(45000);
-    expect(result.current.high24h).toBe('$46,000.00');
-    expect(result.current.low24h).toBe('$43,500.00');
+    // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k, trailing zeros removed
+    expect(result.current.high24h).toBe('$46,000');
+    expect(result.current.low24h).toBe('$43,500');
     expect(result.current.volume24h).toBe('$1.23B');
     expect(result.current.openInterest).toBe('$990.00M');
     expect(result.current.fundingRate).toBe('1.0000%');
@@ -98,11 +101,13 @@ describe('usePerpsMarketStats', () => {
   it('indicates loading state when candle data is not yet available', () => {
     // Arrange: Set up state with no candle data
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: null,
-      priceData: null,
-      isLoadingHistory: true,
-      refreshCandleData: jest.fn(),
+      isLoading: true,
+      isLoadingMore: false,
+      hasHistoricalData: false,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook
@@ -116,11 +121,13 @@ describe('usePerpsMarketStats', () => {
   it('displays default values when no market data is available', () => {
     // Arrange: Set up empty market data state
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: null,
-      priceData: null,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: false,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook
@@ -128,10 +135,11 @@ describe('usePerpsMarketStats', () => {
 
     // Assert: All values show appropriate defaults
     expect(result.current.currentPrice).toBe(0);
-    expect(result.current.high24h).toBe('$0.00');
-    expect(result.current.low24h).toBe('$0.00');
-    expect(result.current.volume24h).toBe('$0.00');
-    expect(result.current.openInterest).toBe('$0.00');
+    // PRICE_RANGES_UNIVERSAL: trailing zeros removed, so $0.00 → $0
+    expect(result.current.high24h).toBe('$0');
+    expect(result.current.low24h).toBe('$0');
+    expect(result.current.volume24h).toBe('$0.00'); // formatVolume keeps .00 for zero
+    expect(result.current.openInterest).toBe('$0.00'); // formatLargeNumber keeps .00 for zero
     expect(result.current.fundingRate).toBe('0.0000%');
   });
 
@@ -151,11 +159,13 @@ describe('usePerpsMarketStats', () => {
       return jest.fn();
     });
 
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
-      priceData: null,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -178,11 +188,13 @@ describe('usePerpsMarketStats', () => {
       return jest.fn();
     });
 
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
-      priceData: null,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));

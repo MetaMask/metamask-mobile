@@ -1,12 +1,16 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { renderWithProviders, createMockDispatch } from '../testUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../../constants/storage';
+import Engine from '../../../../../../core/Engine';
 // Mock tailwind preset to provide ThemeProvider and Theme.Light used by ButtonHero
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const ReactActual = jest.requireActual('react');
   return {
     useTailwind: () => ({
       // Return a minimal style function used in components
-      style: (..._args: unknown[]) => ({} as Record<string, unknown>),
+      style: (..._args: unknown[]) => ({}) as Record<string, unknown>,
     }),
     ThemeProvider: ({ children }: { children: React.ReactNode }) =>
       ReactActual.createElement(ReactActual.Fragment, null, children),
@@ -69,8 +73,6 @@ jest.mock('../OnboardingIntroStep', () => {
     });
   return { __esModule: true, default: Wrapper };
 });
-import { renderWithProviders, createMockDispatch } from '../testUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
 // Use the mocked component with no required props to avoid TS errors
 const OnboardingIntroStep = jest.requireMock('../OnboardingIntroStep')
   .default as unknown as React.ComponentType<Record<string, never>>;
@@ -121,6 +123,7 @@ const defaultAccountGroupAccounts = createMockAccountGroupAccounts([
 
 // Import the actual selectors to identify them in mocks
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import storageWrapper from '../../../../../../store/storage-wrapper';
 
 // Mock redux
 const mockDispatch = createMockDispatch();
@@ -164,10 +167,12 @@ jest.mock('../../../hooks/useGeoRewardsMetadata', () => ({
 // Tailwind mock is handled in test-utils.ts
 
 // Mock Engine controllerMessenger
-const mockControllerMessengerCall = jest.fn();
-jest.mock('../../../../../../core/Engine/Engine', () => ({
-  controllerMessenger: {
-    call: mockControllerMessengerCall,
+jest.mock('../../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: {
+      call: jest.fn(),
+    },
   },
 }));
 
@@ -194,9 +199,26 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => `mocked_${key}`,
 }));
 
+// Mock storage wrapper
+jest.mock('../../../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+}));
+
 describe('OnboardingIntroStep', () => {
+  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
+    typeof Engine.controllerMessenger.call
+  >;
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset storage mock to default (resolved promise)
+    (storageWrapper.setItem as jest.Mock).mockResolvedValue(undefined);
 
     // Reset hardware account mock to default (false)
     const mockIsHardwareAccount = jest.requireMock(
@@ -204,10 +226,14 @@ describe('OnboardingIntroStep', () => {
     ).isHardwareAccount as jest.Mock;
     mockIsHardwareAccount.mockReturnValue(false);
 
-    // Reset controller messenger mock to default (returns true for isOptInSupported)
-    mockControllerMessengerCall.mockImplementation((method) => {
+    // Reset controller messenger mock to default (returns true for isOptInSupported and hasActiveSeason)
+    mockEngineCall.mockImplementation((...args: unknown[]) => {
+      const method = args[0] as string;
       if (method === 'RewardsController:isOptInSupported') {
         return true; // Default to true for supported account types
+      }
+      if (method === 'RewardsController:hasActiveSeason') {
+        return Promise.resolve(true); // Return Promise for async call
       }
       return undefined;
     });
@@ -226,6 +252,7 @@ describe('OnboardingIntroStep', () => {
         rewards: {
           optinAllowedForGeo: true,
           optinAllowedForGeoLoading: false,
+          optinAllowedForGeoError: false,
           onboardingActiveStep: 'intro',
           candidateSubscriptionId: null,
           rewardsControllerState: {
@@ -263,58 +290,104 @@ describe('OnboardingIntroStep', () => {
   });
 
   describe('rendering', () => {
-    it('should render without crashing', () => {
+    it('should render without crashing', async () => {
       renderWithProviders(<OnboardingIntroStep />);
-      expect(screen.getByTestId('onboarding-intro-container')).toBeDefined();
+
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-intro-container')).toBeDefined();
+      });
     });
 
-    it('should render intro title and description', () => {
+    it('should render intro title and description', async () => {
+      // Ensure the mock returns Promise for hasActiveSeason
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:hasActiveSeason') {
+          return Promise.resolve(true);
+        }
+        return undefined;
+      });
+
       renderWithProviders(<OnboardingIntroStep />);
 
-      expect(
-        screen.getByText('mocked_rewards.onboarding.intro_title'),
-      ).toBeDefined();
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      await waitFor(() => {
+        expect(
+          screen.getByText('mocked_rewards.onboarding.intro_title'),
+        ).toBeDefined();
+      });
+
       expect(
         screen.getByText('mocked_rewards.onboarding.intro_description'),
       ).toBeDefined();
     });
 
-    it('should render confirm and skip buttons', () => {
+    it('should render confirm and skip buttons', async () => {
       renderWithProviders(<OnboardingIntroStep />);
 
-      expect(
-        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
-      ).toBeDefined();
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      await waitFor(() => {
+        expect(
+          screen.getByText('mocked_rewards.onboarding.intro_confirm'),
+        ).toBeDefined();
+      });
+
       expect(
         screen.getByText('mocked_rewards.onboarding.intro_skip'),
       ).toBeDefined();
     });
 
-    it('should render intro image', () => {
+    it('should render intro image', async () => {
       renderWithProviders(<OnboardingIntroStep />);
 
-      const introImage = screen.getByTestId('intro-image');
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const introImage = await waitFor(() => screen.getByTestId('intro-image'));
       expect(introImage).toBeDefined();
     });
   });
 
-  describe('user interactions', () => {
-    it('should handle skip button press', () => {
+  describe('storage behavior', () => {
+    it('should set REWARDS_GTM_MODAL_SHOWN flag in storage when component mounts', async () => {
+      // Arrange - storageWrapper.setItem is already configured in beforeEach
+
+      // Act
       renderWithProviders(<OnboardingIntroStep />);
 
-      const skipButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_skip',
+      // Assert
+      // Wait for the async storage operation to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(storageWrapper.setItem).toHaveBeenCalledWith(
+        REWARDS_GTM_MODAL_SHOWN,
+        'true',
+      );
+      expect(storageWrapper.setItem).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('user interactions', () => {
+    it('should handle skip button press', async () => {
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const skipButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_skip'),
       );
       fireEvent.press(skipButton);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle next button press when geo is allowed and account is valid', () => {
+    it('should handle next button press when geo is allowed and account is valid', async () => {
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -324,7 +397,7 @@ describe('OnboardingIntroStep', () => {
   });
 
   describe('loading states', () => {
-    it('should show loading state when checking geo permissions', () => {
+    it('should show loading state when checking geo permissions', async () => {
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
       mockUseSelector.mockImplementation((selector) => {
@@ -373,15 +446,16 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm_geo_loading',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm_geo_loading'),
       );
       expect(confirmButton).toBeDefined();
     });
   });
 
   describe('account validation', () => {
-    it('should show error modal for Solana accounts', () => {
+    it('should show error modal for Solana accounts', async () => {
       // Note: Solana accounts are now filtered out before reaching OnboardingIntroStep
       // by the account group selector. This test verifies behavior if a Solana account
       // somehow exists in the group (which shouldn't happen in practice).
@@ -444,8 +518,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -453,7 +528,7 @@ describe('OnboardingIntroStep', () => {
       expect(mockNavigate).toHaveBeenCalled();
     });
 
-    it('should show error modal for geo-restricted regions', () => {
+    it('should show error modal for geo-restricted regions', async () => {
       // Ensure hardware account check returns false so geo check is reached
       const mockIsHardwareAccount = jest.requireMock(
         '../../../../../../util/address',
@@ -468,6 +543,7 @@ describe('OnboardingIntroStep', () => {
           rewards: {
             optinAllowedForGeo: false,
             optinAllowedForGeoLoading: false,
+            optinAllowedForGeoError: false,
             onboardingActiveStep: 'intro',
             candidateSubscriptionId: null,
             rewardsControllerState: {
@@ -509,8 +585,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -530,7 +607,192 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should show error modal when account group contains hardware wallet', () => {
+    it('should show retry error modal when geo check fails with error', async () => {
+      // Mock fetchGeoRewardsMetadata function
+      const mockFetchGeoRewardsMetadata = jest.fn();
+      const mockUseGeoRewardsMetadata = jest.requireMock(
+        '../../../hooks/useGeoRewardsMetadata',
+      ).useGeoRewardsMetadata as jest.Mock;
+      mockUseGeoRewardsMetadata.mockReturnValue({
+        fetchGeoRewardsMetadata: mockFetchGeoRewardsMetadata,
+      });
+
+      // Ensure hardware account check returns false so geo check is reached
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
+      const mockSelectorWithGeoError = jest.fn((selector) => {
+        if (selector === selectSelectedAccountGroupInternalAccounts) {
+          return defaultAccountGroupAccounts;
+        }
+        const state = {
+          rewards: {
+            optinAllowedForGeo: false, // Geo not allowed
+            optinAllowedForGeoLoading: false, // Not loading
+            optinAllowedForGeoError: true, // Error occurred
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null, // No subscription
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorGeoError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorGeoError.mockImplementation(mockSelectorWithGeoError);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
+      );
+      fireEvent.press(confirmButton);
+
+      // Should show retry error modal for geo check failure
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        {
+          title: 'mocked_rewards.onboarding.geo_check_fail_title',
+          description: 'mocked_rewards.onboarding.geo_check_fail_description',
+          confirmAction: {
+            label: 'mocked_rewards.onboarding.not_supported_confirm_retry',
+            onPress: expect.any(Function),
+            variant: 'Primary',
+          },
+          onCancel: expect.any(Function),
+          cancelLabel:
+            'mocked_rewards.onboarding.not_supported_confirm_go_back',
+        },
+      );
+
+      // Verify that the retry function calls fetchGeoRewardsMetadata
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const retryFunction = navCall[1].confirmAction.onPress;
+      retryFunction();
+
+      // Should call fetchGeoRewardsMetadata when retry is pressed
+      expect(mockFetchGeoRewardsMetadata).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not show geo error modal when geo is loading even if error occurred', async () => {
+      // Mock fetchGeoRewardsMetadata function
+      const mockFetchGeoRewardsMetadata = jest.fn();
+      const mockUseGeoRewardsMetadata = jest.requireMock(
+        '../../../hooks/useGeoRewardsMetadata',
+      ).useGeoRewardsMetadata as jest.Mock;
+      mockUseGeoRewardsMetadata.mockReturnValue({
+        fetchGeoRewardsMetadata: mockFetchGeoRewardsMetadata,
+      });
+
+      // Ensure hardware account check returns false so geo check is reached
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
+      const mockSelectorWithGeoErrorAndLoading = jest.fn((selector) => {
+        if (selector === selectSelectedAccountGroupInternalAccounts) {
+          return defaultAccountGroupAccounts;
+        }
+        const state = {
+          rewards: {
+            optinAllowedForGeo: false, // Geo not allowed
+            optinAllowedForGeoLoading: true, // Still loading
+            optinAllowedForGeoError: true, // Error occurred
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null, // No subscription
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorGeoErrorAndLoading = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorGeoErrorAndLoading.mockImplementation(
+        mockSelectorWithGeoErrorAndLoading,
+      );
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      // When optinAllowedForGeoLoading is true, the button shows loading text
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm_geo_loading'),
+      );
+      fireEvent.press(confirmButton);
+
+      // Should NOT show geo error modal when still loading
+      // The button should be disabled or show loading state instead
+      const geoErrorModalCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL &&
+          call[1]?.title === 'mocked_rewards.onboarding.geo_check_fail_title',
+      );
+      expect(geoErrorModalCall).toBeUndefined();
+    });
+
+    it('should show error modal when account group contains hardware wallet', async () => {
       // Create account group with hardware wallet account
       const hardwareAccountGroup = createMockAccountGroupAccounts([
         { id: 'test-hardware-account', address: '0x123', type: 'eip155:eoa' },
@@ -591,8 +853,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -613,7 +876,7 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should proceed to onboarding when account group has no hardware wallet', () => {
+    it('should proceed to onboarding when account group has no hardware wallet', async () => {
       // Reset all mocks
       jest.clearAllMocks();
 
@@ -628,10 +891,14 @@ describe('OnboardingIntroStep', () => {
       ).isHardwareAccount as jest.Mock;
       mockIsHardwareAccount.mockReturnValue(false);
 
-      // Mock controller messenger to return true for isOptInSupported
-      mockControllerMessengerCall.mockImplementation((method) => {
+      // Mock controller messenger to return true for isOptInSupported and hasActiveSeason
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
         if (method === 'RewardsController:isOptInSupported') {
           return true;
+        }
+        if (method === 'RewardsController:hasActiveSeason') {
+          return Promise.resolve(true);
         }
         return undefined;
       });
@@ -685,8 +952,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -694,7 +962,7 @@ describe('OnboardingIntroStep', () => {
       expect(mockNavigate).toHaveBeenCalled();
     });
 
-    it('should show error modal when no account in group is supported for opt-in', () => {
+    it('should show error modal when no account in group is supported for opt-in', async () => {
       // Create account group with unsupported account type
       const unsupportedAccountGroup = createMockAccountGroupAccounts([
         {
@@ -705,12 +973,17 @@ describe('OnboardingIntroStep', () => {
       ]);
 
       // Mock isOptInSupported to return false for all accounts in this group
-      mockControllerMessengerCall.mockImplementation((method, account) => {
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
+        const account = args[1] as { type?: string } | undefined;
         if (
           method === 'RewardsController:isOptInSupported' &&
           account?.type === 'unsupported:type'
         ) {
           return false;
+        }
+        if (method === 'RewardsController:hasActiveSeason') {
+          return Promise.resolve(true);
         }
         return true;
       });
@@ -770,8 +1043,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -791,7 +1065,7 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should proceed to onboarding when account group has at least one supported account', () => {
+    it('should proceed to onboarding when account group has at least one supported account', async () => {
       // Reset all mocks
       jest.clearAllMocks();
 
@@ -806,10 +1080,14 @@ describe('OnboardingIntroStep', () => {
       ).isHardwareAccount as jest.Mock;
       mockIsHardwareAccount.mockReturnValue(false);
 
-      // Mock isOptInSupported to return true
-      mockControllerMessengerCall.mockImplementation((method) => {
+      // Mock isOptInSupported and hasActiveSeason to return true
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
         if (method === 'RewardsController:isOptInSupported') {
           return true;
+        }
+        if (method === 'RewardsController:hasActiveSeason') {
+          return Promise.resolve(true);
         }
         return undefined;
       });
@@ -866,9 +1144,10 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
+      // Wait for the async state update from fetchHasActiveSeason to complete
       // Verify the button is rendered
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
 
       // Press the button

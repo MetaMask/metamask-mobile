@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.muted,
       borderRadius: 16,
       padding: 16,
-      marginVertical: 8,
+      marginBottom: 16,
     },
     marketHeader: {
       flexDirection: 'row',

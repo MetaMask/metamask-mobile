@@ -48,7 +48,9 @@ const KycProcessing = () => {
   const { quote } = useParams<KycProcessingParams>();
   const trackEvent = useAnalytics();
 
-  const { routeAfterAuthentication } = useDepositRouting();
+  const { routeAfterAuthentication } = useDepositRouting({
+    screenLocation: 'KycProcessing Screen',
+  });
 
   const [{ data: kycForms, error: kycFormsError }] = useDepositSdkMethod(
     {

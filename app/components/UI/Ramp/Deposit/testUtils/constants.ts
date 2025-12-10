@@ -4,11 +4,21 @@ import {
   BuyQuote,
   DepositOrder,
   type DepositRegion,
-  type DepositCryptoCurrency,
   type DepositPaymentMethod,
   DepositPaymentMethodDuration,
+  NativeTransakUserDetails,
+  NativeTransakUserDetailsKycDetails,
 } from '@consensys/native-ramps-sdk';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import type { DepositSDK } from '../sdk';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_USDT_TOKEN,
+  MOCK_BTC_TOKEN,
+  MOCK_ETH_TOKEN,
+  MOCK_USDC_SOLANA_TOKEN,
+  MOCK_CRYPTOCURRENCIES,
+} from '../constants/mockCryptoCurrencies';
 
 export const MOCK_US_REGION: DepositRegion = {
   isoCode: 'US',
@@ -85,64 +95,15 @@ export const MOCK_REGIONS_EXTENDED: DepositRegion[] = [
 ];
 
 // ====== CRYPTOCURRENCIES ======
-
-export const MOCK_USDC_TOKEN: DepositCryptoCurrency = {
-  assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  chainId: 'eip155:1',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-};
-
-export const MOCK_USDT_TOKEN: DepositCryptoCurrency = {
-  assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-  chainId: 'eip155:1',
-  name: 'Tether USD',
-  symbol: 'USDT',
-  decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
-};
-
-export const MOCK_BTC_TOKEN: DepositCryptoCurrency = {
-  assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
-  chainId: 'bip122:000000000019d6689c085ae165831e93',
-  name: 'Bitcoin',
-  symbol: 'BTC',
-  decimals: 8,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
-};
-
-export const MOCK_ETH_TOKEN: DepositCryptoCurrency = {
-  assetId: 'eip155:1/slip44:60',
-  chainId: 'eip155:1',
-  name: 'Ethereum',
-  symbol: 'ETH',
-  decimals: 18,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-};
-
-export const MOCK_USDC_SOLANA_TOKEN: DepositCryptoCurrency = {
-  assetId: 'solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
-};
-
-export const MOCK_CRYPTOCURRENCIES: DepositCryptoCurrency[] = [
+// Re-exported from constants/mockCryptoCurrencies.ts
+export {
   MOCK_USDC_TOKEN,
   MOCK_USDT_TOKEN,
   MOCK_BTC_TOKEN,
   MOCK_ETH_TOKEN,
   MOCK_USDC_SOLANA_TOKEN,
-];
+  MOCK_CRYPTOCURRENCIES,
+};
 
 export const MOCK_CREDIT_DEBIT_CARD: DepositPaymentMethod = {
   id: 'credit_debit_card',
@@ -257,8 +218,15 @@ export const MOCK_BANK_DETAILS_ORDER = {
   },
 };
 
-export const createMockSDKReturn = (overrides = {}) => ({
+export const createMockSDKReturn = (overrides = {}): DepositSDK => ({
+  sdk: undefined,
+  sdkError: undefined,
+  providerApiKey: null,
   isAuthenticated: false,
+  authToken: undefined,
+  setAuthToken: jest.fn().mockResolvedValue(true),
+  logoutFromProvider: jest.fn().mockResolvedValue(undefined),
+  checkExistingToken: jest.fn().mockResolvedValue(false),
   selectedWalletAddress: '0x1234567890123456789012345678901234567890',
   selectedRegion: MOCK_US_REGION,
   setSelectedRegion: jest.fn(),
@@ -266,10 +234,13 @@ export const createMockSDKReturn = (overrides = {}) => ({
   setSelectedPaymentMethod: jest.fn(),
   selectedCryptoCurrency: MOCK_USDC_TOKEN,
   setSelectedCryptoCurrency: jest.fn(),
+  intent: undefined,
+  setIntent: jest.fn(),
   ...overrides,
 });
 
 export const MOCK_USE_REGIONS_RETURN = {
+  userRegionLocked: false,
   regions: MOCK_REGIONS,
   error: null,
   isFetching: false,
@@ -345,6 +316,7 @@ export const TEST_ORDER_ID = 'test-order-id';
 export const TEST_PROVIDER = 'test-provider';
 
 export const MOCK_USE_REGIONS_ERROR = {
+  userRegionLocked: false,
   regions: null,
   error: 'Failed to fetch regions',
   isFetching: false,
@@ -366,6 +338,7 @@ export const MOCK_USE_PAYMENT_METHODS_ERROR = {
 };
 
 export const MOCK_USE_REGIONS_LOADING = {
+  userRegionLocked: false,
   regions: null,
   error: null,
   isFetching: true,
@@ -387,6 +360,7 @@ export const MOCK_USE_PAYMENT_METHODS_LOADING = {
 };
 
 export const MOCK_USE_REGIONS_EMPTY = {
+  userRegionLocked: false,
   regions: [],
   error: null,
   isFetching: false,
@@ -405,4 +379,66 @@ export const MOCK_USE_PAYMENT_METHODS_EMPTY = {
   error: null,
   isFetching: false,
   retryFetchPaymentMethods: jest.fn(),
+};
+
+export const MOCK_USER_DETAILS_DEFAULT = {
+  id: 'user-id',
+  firstName: 'Test',
+  lastName: 'User',
+  email: 'test@example.com',
+  mobileNumber: '1234567890',
+  status: 'active',
+  dob: '1990-01-01',
+  kyc: {
+    l1: {
+      status: 'APPROVED',
+      type: 'BASIC',
+      updatedAt: '2023-01-01',
+      kycSubmittedAt: '2023-01-01',
+    },
+  } as unknown as NativeTransakUserDetailsKycDetails,
+  createdAt: '2023-01-01',
+  isKycApproved: jest.fn().mockReturnValue(true),
+};
+
+export const MOCK_USER_DETAILS_US = {
+  ...MOCK_USER_DETAILS_DEFAULT,
+  id: 'user-id-us',
+  address: {
+    addressLine1: '123 Main St',
+    addressLine2: '',
+    state: 'CA',
+    city: 'San Francisco',
+    postCode: '94101',
+    country: 'United States',
+    countryCode: 'US',
+  },
+} as NativeTransakUserDetails;
+
+export const MOCK_USER_DETAILS_FR = {
+  ...MOCK_USER_DETAILS_DEFAULT,
+  id: 'user-id-fr',
+  address: {
+    addressLine1: '123 Rue de la Paix',
+    addressLine2: '',
+    state: 'Île-de-France',
+    city: 'Paris',
+    postCode: '75001',
+    country: 'France',
+    countryCode: 'FR',
+  },
+} as NativeTransakUserDetails;
+
+export const MOCK_USE_DEPOSIT_USER_RETURN = {
+  userDetails: null,
+  error: null,
+  isFetching: false,
+  fetchUserDetails: jest.fn(),
+};
+
+export const MOCK_USE_DEPOSIT_USER_ERROR = {
+  userDetails: null,
+  error: 'Failed to fetch user details',
+  isFetching: false,
+  fetchUserDetails: jest.fn(),
 };

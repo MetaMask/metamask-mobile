@@ -37,7 +37,7 @@ const ChartArea: React.FC<ChartAreaProps> = ({
         <LinearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
           <Stop offset="0%" stopColor={color} stopOpacity={opacity} />
           <Stop offset="45%" stopColor={color} stopOpacity={opacity * 0.4} />
-          <Stop offset="100%" stopColor={color} stopOpacity="0" />
+          <Stop offset="95%" stopColor={color} stopOpacity="0" />
         </LinearGradient>
       </Defs>
       <Path d={areaPath} fill="url(#gradient)" />

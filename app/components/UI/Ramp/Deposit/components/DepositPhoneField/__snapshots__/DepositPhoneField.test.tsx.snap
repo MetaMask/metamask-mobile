@@ -152,6 +152,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -318,6 +319,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -484,6 +486,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -650,6 +653,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -816,6 +820,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -997,6 +1002,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -1115,7 +1121,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             }
           }
         >
-          🇩🇪
+          🇺🇸
         </Text>
         <Text
           accessibilityRole="text"
@@ -1130,7 +1136,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             }
           }
         >
-          +49
+          +1
         </Text>
       </TouchableOpacity>
     </View>
@@ -1151,7 +1157,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[MockFunction]}
-        placeholder="30 12345678"
+        placeholder="(555) 123-4567"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -1164,6 +1170,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -1330,6 +1337,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -1496,6 +1504,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -1662,6 +1671,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",
@@ -1670,6 +1680,173 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         testID="deposit-phone-field-test-id"
         textContentType="telephoneNumber"
         value="5551234567"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DepositPhoneField updates phone region when region is selected from modal 1`] = `
+<View
+  style={
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 6,
+      }
+    }
+    testID="label"
+  >
+    Phone Number
+  </Text>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+    testID="textfield"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+      testID="textfield-startacccessory"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          🇩🇪
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#b7bbc8",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +49
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <TextInput
+        autoComplete="tel"
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="30 12345678"
+        placeholderTextColor="#b7bbc8"
+        style={
+          {
+            "backgroundColor": "inherit",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 46,
+            "letterSpacing": 0,
+            "lineHeight": 20,
+            "opacity": 1,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value=""
       />
     </View>
   </View>

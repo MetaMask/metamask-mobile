@@ -11,9 +11,17 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
+import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
+import { TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT } from '../../../../../component-library/components/Form/TextField/TextField.constants';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useSendContext } from '../../context/send-context/send-context';
+
+const INPUT_STYLE_OVERRIDE = {
+  height: undefined,
+  lineHeight: undefined,
+  paddingVertical: 0,
+};
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
@@ -97,19 +105,31 @@ export const RecipientInput = ({
   return (
     <Box twClassName="w-full px-4 py-2">
       <TextField
-        autoCorrect={false}
-        ref={inputRef}
-        value={to}
-        onChangeText={handleTextChange}
-        spellCheck={false}
-        autoComplete="off"
-        autoCapitalize="none"
-        placeholder={strings('send.enter_address_to_send_to')}
         size={TextFieldSize.Lg}
         endAccessory={renderEndAccessory}
         startAccessory={defaultStartAccessory}
-        autoFocus={false}
-        testID="recipient-address-input"
+        inputElement={
+          <Input
+            textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
+            ref={inputRef}
+            value={to}
+            onChangeText={handleTextChange}
+            autoCorrect={false}
+            multiline={false}
+            numberOfLines={1}
+            scrollEnabled={false}
+            textAlignVertical="center"
+            textBreakStrategy="simple"
+            spellCheck={false}
+            autoComplete="off"
+            autoCapitalize="none"
+            placeholder={strings('send.enter_address_to_send_to')}
+            autoFocus={false}
+            testID="recipient-address-input"
+            isStateStylesDisabled
+            style={INPUT_STYLE_OVERRIDE}
+          />
+        }
       />
     </Box>
   );

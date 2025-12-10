@@ -4,10 +4,10 @@
 import React, { useCallback, useState } from 'react';
 import {
   StyleProp,
-  ViewStyle,
   TextInput,
   NativeSyntheticEvent,
   TextInputFocusEventData,
+  TextStyle,
 } from 'react-native';
 
 // External dependencies.
@@ -22,7 +22,7 @@ import { INPUT_TEST_ID } from '../../../../component-library/components/Form/Tex
 const Input = React.forwardRef<
   TextInput,
   InputProps & {
-    inputStyle?: StyleProp<ViewStyle>;
+    inputStyle?: StyleProp<TextStyle>;
   }
 >(
   (

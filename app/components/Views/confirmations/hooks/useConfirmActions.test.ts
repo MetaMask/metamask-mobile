@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import Engine from '../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -11,14 +12,8 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
 // eslint-disable-next-line import/no-namespace
 import * as LedgerContext from '../context/ledger-context/ledger-context';
-// eslint-disable-next-line import/no-namespace
-import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
-import { useConfirmActions } from './useConfirmActions';
-// eslint-disable-next-line import/no-namespace
-import * as TransactionController from '../../../../util/transaction-controller';
-// eslint-disable-next-line import/no-namespace
-import * as GasFeeTokenHook from './gas/useGasFeeToken';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+import { useConfirmActions } from './useConfirmActions';
 
 jest.mock('./transactions/useTransactionConfirm');
 
@@ -212,44 +207,120 @@ describe('useConfirmAction', () => {
     expect(goBackSpy).not.toHaveBeenCalled();
   });
 
-  it('calls updateTransaction with batchTransactions and gas properties when smart transactions are enabled', async () => {
-    jest
-      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
-      .mockReturnValue(true);
+  it('sets waitForResult to false when approvalType is TransactionBatch', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
 
-    const mockGasFeeToken = {
-      transferTransaction: { id: 'mock-tx' },
-      gas: '0x5208',
-      maxFeePerGas: '0x10',
-      maxPriorityFeePerGas: '0x5',
-    } as unknown as ReturnType<typeof GasFeeTokenHook.useSelectedGasFeeToken>;
-    jest
-      .spyOn(GasFeeTokenHook, 'useSelectedGasFeeToken')
-      .mockReturnValue(mockGasFeeToken);
-
-    const updateTransactionSpy = jest.spyOn(
-      TransactionController,
-      'updateTransaction',
-    );
+    const transactionBatchState = {
+      engine: {
+        backgroundState: {
+          ...stakingDepositConfirmationState.engine.backgroundState,
+          ApprovalController: {
+            pendingApprovals: {
+              'batch-approval-id': {
+                id: 'batch-approval-id',
+                origin: 'metamask',
+                type: 'transaction_batch',
+                time: 1738825814816,
+                requestData: { batchId: '0x123456789abcdef' },
+                requestState: null,
+                expectsResult: false,
+              },
+            },
+            pendingApprovalCount: 1,
+            approvalFlows: [],
+          },
+        },
+      },
+    };
 
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: stakingDepositConfirmationState,
+      state: transactionBatchState,
     });
 
-    await result.current.onConfirm();
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    const callArgs = (Engine.acceptPendingApproval as jest.Mock).mock.calls[0];
+    expect(callArgs[0]).toBe('batch-approval-id');
+    expect(callArgs[2]).toEqual({
+      waitForResult: false,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+    await flushPromises();
+  });
+
+  it('sets waitForResult to true when approvalType is not TransactionBatch', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    const callArgs = (Engine.acceptPendingApproval as jest.Mock).mock.calls[0];
+    expect(callArgs[0]).toBe('76b33b40-7b5c-11ef-bc0a-25bce29dbc09');
+    expect(callArgs[2]).toEqual({
+      waitForResult: true,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+    await flushPromises();
+  });
+
+  it('navigates to transactions view when confirming batch transaction', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
+    const lendingBatchId = 'lending-batch-id';
+    const lendingDepositBatchState = {
+      engine: {
+        backgroundState: {
+          ...stakingDepositConfirmationState.engine.backgroundState,
+          ApprovalController: {
+            pendingApprovals: {
+              [lendingBatchId]: {
+                id: lendingBatchId,
+                origin: 'metamask',
+                type: 'transaction_batch',
+                time: 1738825814816,
+                requestData: {},
+                requestState: null,
+                expectsResult: false,
+              },
+            },
+            pendingApprovalCount: 1,
+            approvalFlows: [],
+          },
+          TransactionController: {
+            transactions: [],
+            transactionBatches: [
+              {
+                id: lendingBatchId,
+                chainId: '0x1' as `0x${string}`,
+                origin: 'metamask',
+                from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+                transactions: [
+                  { type: TransactionType.contractInteraction },
+                  { type: TransactionType.lendingDeposit },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: lendingDepositBatchState,
+    });
+
+    result?.current?.onConfirm();
     await flushPromises();
 
-    expect(updateTransactionSpy).toHaveBeenCalledTimes(1);
-    expect(updateTransactionSpy.mock.calls[0][0]).toMatchObject({
-      batchTransactions: [mockGasFeeToken?.transferTransaction],
-      txParams: {
-        gas: mockGasFeeToken?.gas,
-        maxFeePerGas: mockGasFeeToken?.maxFeePerGas,
-        maxPriorityFeePerGas: mockGasFeeToken?.maxPriorityFeePerGas,
-      },
-    });
-    expect(updateTransactionSpy.mock.calls[0][1]).toContain(
-      'Mobile:UseConfirmActions - batchTransactions and gas properties updated',
-    );
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith('TransactionsView');
   });
 });

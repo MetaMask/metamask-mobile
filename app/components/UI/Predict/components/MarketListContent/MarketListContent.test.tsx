@@ -1,9 +1,12 @@
 import React from 'react';
+import { act } from '@testing-library/react-native';
 import MarketListContent from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PredictCategory, PredictMarket, Recurrence } from '../../types';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { strings } from '../../../../../../locales/i18n';
+import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 // Mock animations to prevent act() warnings
 jest.mock('react-native/Libraries/Animated/Animated', () => {
@@ -36,6 +39,22 @@ jest.mock('../PredictMarket', () => {
   ));
 });
 
+jest.mock('../PredictOffline', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return jest.fn(({ onRetry }) => (
+    <View testID="predict-error-state">
+      <Text>Unable to connect to predictions</Text>
+      <Text>
+        Prediction markets are temporarily offline. Please check you have a
+        stable connection and try again.
+      </Text>
+      <TouchableOpacity testID="retry-button" onPress={onRetry}>
+        <Text>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  ));
+});
+
 // Simple FlashList mock
 jest.mock('@shopify/flash-list', () => {
   const { FlatList } = jest.requireActual('react-native');
@@ -53,7 +72,8 @@ const mockPredictMarket: PredictMarket = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto', 'trending'],
+  category: 'crypto',
+  tags: ['trending'],
   outcomes: [
     {
       id: 'outcome-1',
@@ -74,6 +94,8 @@ const mockPredictMarket: PredictMarket = {
       groupItemTitle: 'Bitcoin Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockPredictMarketMultiple: PredictMarket = {
@@ -85,7 +107,8 @@ const mockPredictMarketMultiple: PredictMarket = {
   image: 'https://example.com/crypto.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto', 'trending'],
+  category: 'crypto',
+  tags: ['trending'],
   outcomes: [
     {
       id: 'outcome-3',
@@ -124,6 +147,8 @@ const mockPredictMarketMultiple: PredictMarket = {
       groupItemTitle: 'Ethereum Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockRefetch = jest.fn();
@@ -149,13 +174,14 @@ const initialState = {
 function setupMarketListContentTest(
   marketDataOverrides = {},
   category: PredictCategory = 'trending',
+  q?: string,
 ) {
   jest.clearAllMocks();
   mockUsePredictMarketData.mockReturnValue({
     ...defaultMockReturn,
     ...marketDataOverrides,
   });
-  return renderWithProvider(<MarketListContent category={category} />, {
+  return renderWithProvider(<MarketListContent category={category} q={q} />, {
     state: initialState,
   });
 }
@@ -186,11 +212,31 @@ describe('MarketListContent', () => {
 
   describe('Error States', () => {
     it('renders error state when there is an error', () => {
-      const { getByText } = setupMarketListContentTest({
+      const { getByText, getByTestId } = setupMarketListContentTest({
         error: 'Failed to fetch markets',
       });
 
-      expect(getByText('Error: Failed to fetch markets')).toBeOnTheScreen();
+      expect(getByTestId('predict-error-state')).toBeOnTheScreen();
+      expect(getByText('Unable to connect to predictions')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Prediction markets are temporarily offline. Please check you have a stable connection and try again.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls refetch when retry button is pressed', async () => {
+      const { getByTestId } = setupMarketListContentTest({
+        error: 'Failed to fetch markets',
+      });
+
+      const retryButton = getByTestId('retry-button');
+
+      await act(async () => {
+        await retryButton.props.onPress();
+      });
+
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -211,6 +257,26 @@ describe('MarketListContent', () => {
       );
 
       expect(getByText('No crypto markets available')).toBeOnTheScreen();
+    });
+
+    it('renders search empty state when query has no matching markets', () => {
+      const searchTerm = 'bitcoin';
+      const expectedEmptySearchText = strings(
+        'predict.search_no_markets_found',
+        { q: searchTerm },
+      );
+
+      const { getByText, getByTestId } = setupMarketListContentTest(
+        { marketData: [] },
+        'crypto',
+        searchTerm,
+      );
+
+      expect(
+        getByTestId(getPredictMarketListSelector.emptyState()),
+      ).toBeOnTheScreen();
+      expect(getByTestId('icon')).toBeOnTheScreen();
+      expect(getByText(expectedEmptySearchText)).toBeOnTheScreen();
     });
   });
 

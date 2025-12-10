@@ -1,6 +1,7 @@
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Network } from '../../components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   BtcScope,
@@ -24,6 +25,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
   'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
   'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
+  'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -88,6 +90,19 @@ export const PopularList = [
     },
   },
   {
+    chainId: toHex('999'),
+    nickname: 'HyperEVM',
+    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
+    failoverRpcUrls: [],
+    ticker: 'HYPE',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://hyperevmscan.io/',
+      imageUrl: 'HYPE',
+      imageSource: require('../../images/hyperevm.png'),
+    },
+  },
+  {
     chainId: toHex('10'),
     nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -105,7 +120,7 @@ export const PopularList = [
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'PALM',
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.palm.io',
+      blockExplorerUrl: 'https://palm.chainlens.com',
       imageUrl: 'PALM',
       imageSource: require('../../images/palm.png'),
     },
@@ -138,7 +153,7 @@ export const PopularList = [
     chainId: toHex('1329'),
     nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
@@ -147,7 +162,52 @@ export const PopularList = [
       imageSource: require('../../images/sei.png'),
     },
   },
+  {
+    chainId: toHex('143'),
+    nickname: 'Monad',
+    rpcUrl: `https://monad-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
+    ticker: 'MON',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://monadscan.com/',
+      imageUrl: 'MON',
+      imageSource: require('../../images/monad-mainnet-logo.png'),
+    },
+  },
+  {
+    chainId: toHex('4326'),
+    nickname: 'MegaEth',
+    rpcUrl: `https://mainnet.megaeth.com/rpc`,
+    failoverRpcUrls: [],
+    ticker: 'ETH',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.megaeth.com',
+      imageUrl: 'MEGAETH',
+      imageSource: require('../../images/megaeth-mainnet-logo.png'),
+    },
+  },
 ];
+
+/**
+ * Filters the PopularList to exclude networks with blacklisted chain IDs.
+ * Allows to remove a network from the additional network selection.
+ * @param blacklistedChainIds - Array of chain IDs to exclude from the list
+ * @returns Filtered array of network configurations
+ */
+export const getFilteredPopularNetworks = (
+  blacklistedChainIds: string[],
+  baseNetworkList: Network[] = PopularList,
+) => {
+  if (!Array.isArray(blacklistedChainIds) || blacklistedChainIds.length === 0) {
+    return baseNetworkList;
+  }
+
+  return baseNetworkList.filter(
+    (network) => !blacklistedChainIds.includes(network.chainId),
+  );
+};
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
   switch (chainId) {
@@ -295,6 +355,7 @@ export const NETWORK_CHAIN_ID: {
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
   readonly XRPLEVM_TESTNET: '0x161c28';
   readonly SEI_MAINNET: '0x531';
+  readonly MONAD_MAINNET: '0x8f';
   readonly MATCHAIN_MAINNET: '0x2ba';
   readonly FLOW_MAINNET: '0x2eb';
   readonly LENS: '0xe8';
@@ -306,12 +367,18 @@ export const NETWORK_CHAIN_ID: {
   readonly BERACHAIN: '0x138de';
   readonly EDU: '0xa3c3';
   readonly ABSTRACT: '0xab5';
-  readonly OMNI: '0xa6';
+  readonly NOMINA: '0xa6';
   readonly XRPLEVM: '0x15f900';
   readonly FRAXTAL: '0xfc';
   readonly XDC: '0x32';
   readonly MEGAETH_MAINNET: '0x10e6';
   readonly HEMI: '0xa867';
+  readonly LUKSO: '0x2a';
+  readonly INJECTIVE: '0x6f0';
+  readonly PLASMA: '0x2611';
+  readonly CRONOS: '0x19';
+  readonly HYPE: '0x3e7';
+  readonly X_LAYER: '0xc4';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -324,6 +391,7 @@ export const NETWORK_CHAIN_ID: {
   SONEIUM_MINATO_TESTNET: '0x79a',
   XRPLEVM_TESTNET: '0x161c28',
   SEI_MAINNET: '0x531',
+  MONAD_MAINNET: '0x8f',
   MATCHAIN_MAINNET: '0x2ba',
   FLOW_MAINNET: '0x2eb',
   LENS: '0xe8',
@@ -335,12 +403,18 @@ export const NETWORK_CHAIN_ID: {
   BERACHAIN: '0x138de',
   EDU: '0xa3c3',
   ABSTRACT: '0xab5',
-  OMNI: '0xa6',
+  NOMINA: '0xa6',
   XRPLEVM: '0x15f900',
   FRAXTAL: '0xfc',
   XDC: '0x32',
   MEGAETH_MAINNET: '0x10e6',
   HEMI: '0xa867',
+  LUKSO: '0x2a',
+  INJECTIVE: '0x6f0',
+  PLASMA: '0x2611',
+  CRONOS: '0x19',
+  HYPE: '0x3e7',
+  X_LAYER: '0xc4',
   ...CHAIN_IDS,
 };
 
@@ -358,6 +432,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.SEI_MAINNET]: require('../../images/sei.png'),
+  [NETWORK_CHAIN_ID.MONAD_MAINNET]: require('../../images/monad-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.MATCHAIN_MAINNET]: require('../../images/matchain.png'),
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
   [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
@@ -369,11 +444,17 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
   [NETWORK_CHAIN_ID.EDU]: require('../../images/edu.png'),
   [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
-  [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
+  [NETWORK_CHAIN_ID.NOMINA]: require('../../images/nomina.png'),
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: require('../../images/megaeth-testnet-logo.png'),
   [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
+  [NETWORK_CHAIN_ID.LUKSO]: require('../../images/lukso.png'),
+  [NETWORK_CHAIN_ID.INJECTIVE]: require('../../images/injective.png'),
+  [NETWORK_CHAIN_ID.PLASMA]: require('../../images/plasma.png'),
+  [NETWORK_CHAIN_ID.CRONOS]: require('../../images/cronos.png'),
+  [NETWORK_CHAIN_ID.HYPE]: require('../../images/hyperevm.png'),
+  [NETWORK_CHAIN_ID.X_LAYER]: require('../../images/x-layer.png'),
 };

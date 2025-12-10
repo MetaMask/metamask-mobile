@@ -1,5 +1,11 @@
-import React, { useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, {
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
@@ -23,6 +29,8 @@ import {
   selectActiveTab,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
+  selectSeasonId,
+  selectSeasonEndDate,
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -40,6 +48,7 @@ import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
 
 const RewardsDashboard: React.FC = () => {
   const navigation = useNavigation();
@@ -54,6 +63,8 @@ const RewardsDashboard: React.FC = () => {
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );
+  const seasonId = useSelector(selectSeasonId);
+  const seasonEndDate = useSelector(selectSeasonEndDate);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -179,56 +190,85 @@ const RewardsDashboard: React.FC = () => {
     [getActiveIndex, handleTabChange],
   );
 
+  const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
+    boolean | null
+  >(null);
+
+  // Evaluate showPreviousSeasonSummary when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const shouldShow = Boolean(
+        seasonId &&
+          seasonEndDate &&
+          new Date(seasonEndDate).getTime() < Date.now(),
+      );
+      setShowPreviousSeasonSummary(shouldShow);
+    }, [seasonId, seasonEndDate]),
+  );
+
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
-  useEffect(() => {
-    if (
-      (totalOptedInAccountsSelectedGroup === 0 ||
-        currentAccountGroupPartiallySupported === false) &&
-      !hideCurrentAccountNotOptedInBanner &&
-      selectedAccountGroup?.id
-    ) {
-      if (currentAccountGroupPartiallySupported === false) {
-        // Account group entirely not not supported (e.g. hardware wallet account group)
-        if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
-          showNotSupportedModal();
-        }
-      } else if (!hasShownModal('not-opted-in' as RewardsDashboardModalType)) {
-        // Account can be opted in but hasn't been yet
-        showNotOptedInModal();
-      }
-      return; // Don't check for unlinked accounts if current account has issues
-    }
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !seasonId ||
+        showPreviousSeasonSummary === null ||
+        showPreviousSeasonSummary
+      )
+        return;
 
-    // Priority 2: Check for unlinked accounts (only if current account is good)
-    if (
-      subscriptionId &&
-      (currentAccountGroupOptedInStatus === 'fullyOptedIn' ||
-        currentAccountGroupOptedInStatus === 'partiallyOptedIn' ||
-        hideCurrentAccountNotOptedInBanner) &&
-      totalAccountGroupsWithOptedOutAccounts > 0 &&
-      !hideUnlinkedAccountsBanner
-    ) {
-      // User has other accounts that could be earning rewards
-      if (!hasShownModal('unlinked-accounts' as RewardsDashboardModalType)) {
-        showUnlinkedAccountsModal();
+      if (
+        (totalOptedInAccountsSelectedGroup === 0 ||
+          currentAccountGroupPartiallySupported === false) &&
+        !hideCurrentAccountNotOptedInBanner &&
+        selectedAccountGroup?.id
+      ) {
+        if (currentAccountGroupPartiallySupported === false) {
+          // Account group entirely not not supported (e.g. hardware wallet account group)
+          if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
+            showNotSupportedModal();
+          }
+        } else if (
+          !hasShownModal('not-opted-in' as RewardsDashboardModalType)
+        ) {
+          // Account can be opted in but hasn't been yet
+          showNotOptedInModal();
+        }
+        return; // Don't check for unlinked accounts if current account has issues
       }
-    }
-  }, [
-    currentAccountGroupOptedInStatus,
-    currentAccountGroupPartiallySupported,
-    hideCurrentAccountNotOptedInBanner,
-    selectedAccountGroup?.id,
-    subscriptionId,
-    totalAccountGroupsWithOptedOutAccounts,
-    totalOptedInAccountsSelectedGroup,
-    hideUnlinkedAccountsBanner,
-    showNotOptedInModal,
-    showUnlinkedAccountsModal,
-    showNotSupportedModal,
-    hasShownModal,
-  ]);
+
+      // Priority 2: Check for unlinked accounts (only if current account is good)
+      if (
+        subscriptionId &&
+        (currentAccountGroupOptedInStatus === 'fullyOptedIn' ||
+          currentAccountGroupOptedInStatus === 'partiallyOptedIn' ||
+          hideCurrentAccountNotOptedInBanner) &&
+        totalAccountGroupsWithOptedOutAccounts > 0 &&
+        !hideUnlinkedAccountsBanner
+      ) {
+        // User has other accounts that could be earning rewards
+        if (!hasShownModal('unlinked-accounts' as RewardsDashboardModalType)) {
+          showUnlinkedAccountsModal();
+        }
+      }
+    }, [
+      seasonId,
+      showPreviousSeasonSummary,
+      totalOptedInAccountsSelectedGroup,
+      currentAccountGroupPartiallySupported,
+      hideCurrentAccountNotOptedInBanner,
+      selectedAccountGroup?.id,
+      subscriptionId,
+      currentAccountGroupOptedInStatus,
+      totalAccountGroupsWithOptedOutAccounts,
+      hideUnlinkedAccountsBanner,
+      hasShownModal,
+      showNotSupportedModal,
+      showNotOptedInModal,
+      showUnlinkedAccountsModal,
+    ]),
+  );
 
   useEffect(() => {
     if (!hasTrackedDashboardViewed.current) {
@@ -260,15 +300,17 @@ const RewardsDashboard: React.FC = () => {
           </Text>
 
           <Box flexDirection={BoxFlexDirection.Row}>
-            <ButtonIcon
-              iconName={IconNameDS.UserCircleAdd}
-              size={ButtonIconSize.Lg}
-              disabled={!subscriptionId}
-              testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-              onPress={() => {
-                navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
-              }}
-            />
+            {showPreviousSeasonSummary === false && (
+              <ButtonIcon
+                iconName={IconNameDS.UserCircleAdd}
+                size={ButtonIconSize.Lg}
+                disabled={!subscriptionId}
+                testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
+                onPress={() => {
+                  navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
+                }}
+              />
+            )}
 
             <ButtonIcon
               iconName={IconNameDS.Setting}
@@ -282,23 +324,29 @@ const RewardsDashboard: React.FC = () => {
           </Box>
         </Box>
 
-        <SeasonStatus />
+        {showPreviousSeasonSummary ? (
+          <PreviousSeasonSummary />
+        ) : (
+          <>
+            <SeasonStatus />
 
-        {/* Tab View */}
-        <TabsList {...tabsListProps}>
-          <RewardsOverview
-            key="overview"
-            tabLabel={strings('rewards.tab_overview_title')}
-          />
-          <RewardsLevels
-            key="levels"
-            tabLabel={strings('rewards.tab_levels_title')}
-          />
-          <RewardsActivity
-            key="activity"
-            tabLabel={strings('rewards.tab_activity_title')}
-          />
-        </TabsList>
+            {/* Tab View */}
+            <TabsList {...tabsListProps}>
+              <RewardsOverview
+                key="overview"
+                tabLabel={strings('rewards.tab_overview_title')}
+              />
+              <RewardsLevels
+                key="levels"
+                tabLabel={strings('rewards.tab_levels_title')}
+              />
+              <RewardsActivity
+                key="activity"
+                tabLabel={strings('rewards.tab_activity_title')}
+              />
+            </TabsList>
+          </>
+        )}
       </Box>
       <Toast ref={toastRef} />
     </ErrorBoundary>

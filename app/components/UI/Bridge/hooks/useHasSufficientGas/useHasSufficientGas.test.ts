@@ -17,10 +17,51 @@ describe('useHasSufficientGas', () => {
   });
 
   describe('when gas is included in the quote', () => {
-    it('should return true when gasIncluded is true', () => {
+    it('returns true when gasIncluded is true', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
         quote: {
           gasIncluded: true,
+          gasIncluded7702: false,
+          srcChainId: '0x1',
+        },
+        gasFee: {
+          effective: { amount: '0.001' },
+        },
+      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+
+      const { result } = renderHookWithProvider(
+        () => useHasSufficientGas({ quote: mockQuote }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(true);
+    });
+
+    it('returns true when gasIncluded7702 is true', () => {
+      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        quote: {
+          gasIncluded: false,
+          gasIncluded7702: true,
+          srcChainId: '0x1',
+        },
+        gasFee: {
+          effective: { amount: '0.001' },
+        },
+      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+
+      const { result } = renderHookWithProvider(
+        () => useHasSufficientGas({ quote: mockQuote }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(true);
+    });
+
+    it('returns true when both gasIncluded and gasIncluded7702 are true', () => {
+      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        quote: {
+          gasIncluded: true,
+          gasIncluded7702: true,
           srcChainId: '0x1',
         },
         gasFee: {
@@ -44,6 +85,7 @@ describe('useHasSufficientGas', () => {
           {
             quote: {
               gasIncluded: false,
+              gasIncluded7702: false,
               srcChainId: '0x1',
             },
             gasFee: {
@@ -70,6 +112,7 @@ describe('useHasSufficientGas', () => {
           {
             quote: {
               gasIncluded: false,
+              gasIncluded7702: false,
               srcChainId: '0x1',
             },
             gasFee: {
@@ -96,6 +139,7 @@ describe('useHasSufficientGas', () => {
           {
             quote: {
               gasIncluded: false,
+              gasIncluded7702: false,
               srcChainId: '0x1',
             },
             gasFee: {
@@ -123,6 +167,7 @@ describe('useHasSufficientGas', () => {
           {
             quote: {
               gasIncluded: false,
+              gasIncluded7702: false,
               srcChainId: '0x1',
             },
             gasFee: {
@@ -145,6 +190,7 @@ describe('useHasSufficientGas', () => {
           {
             quote: {
               gasIncluded: false,
+              gasIncluded7702: false,
               srcChainId: '0x1',
             },
             gasFee: {
@@ -170,6 +216,7 @@ describe('useHasSufficientGas', () => {
           {
             quote: {
               gasIncluded: false,
+              gasIncluded7702: false,
               srcChainId: '0x1',
             },
             gasFee: {
@@ -197,6 +244,7 @@ describe('useHasSufficientGas', () => {
           {
             quote: {
               gasIncluded: false,
+              gasIncluded7702: false,
               srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
             gasFee: {
@@ -223,6 +271,7 @@ describe('useHasSufficientGas', () => {
           {
             quote: {
               gasIncluded: false,
+              gasIncluded7702: false,
               srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
             gasFee: {

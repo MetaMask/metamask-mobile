@@ -1,4 +1,8 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionParams,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -93,7 +97,10 @@ describe('ERC20 token transactions', () => {
     '0x6B175474E89094C44Da98b954EedeAC495271d0F';
   const updateEditableParamsMock = jest.mocked(updateEditableParams);
 
-  const createERC20State = (contractExchangeRate = 1.5) =>
+  const createERC20State = (
+    contractExchangeRate = 1.5,
+    transactionMeta?: Partial<TransactionMeta>,
+  ) =>
     merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
@@ -115,6 +122,7 @@ describe('ERC20 token transactions', () => {
                   data: mockData,
                   from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
                 },
+                ...transactionMeta,
               },
             ],
           },
@@ -285,6 +293,37 @@ describe('ERC20 token transactions', () => {
 
     await waitFor(() => {
       expect(result.current.amountNative).toBe('0.15');
+    });
+  });
+
+  it('returns amount from nested token transfer', async () => {
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: createERC20State(undefined, {
+        nestedTransactions: [
+          {
+            to: erc20TokenAddress,
+            data: mockData,
+          },
+        ],
+        txParams: {
+          to: '0x123',
+          data: '0x456',
+        } as TransactionParams,
+      }),
+    });
+
+    await waitFor(() => {
+      expect(result.current).toStrictEqual({
+        amount: '0.1',
+        amountNative: '0.15',
+        amountPrecise: '0.1',
+        amountUnformatted: '0.1',
+        fiat: '$539.44',
+        fiatUnformatted: '539.4375',
+        isNative: false,
+        updateTokenAmount: expect.any(Function),
+        usdValue: '539.44',
+      });
     });
   });
 });

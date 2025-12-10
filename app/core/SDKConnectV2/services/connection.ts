@@ -13,6 +13,7 @@ import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
+import { errorCodes } from '@metamask/rpc-errors';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -46,7 +47,22 @@ export class Connection {
 
       // If the payload includes an id, its a JSON-RPC response, otherwise its a notification
       if ('data' in payload && 'id' in payload.data) {
-        this.hostApp.showReturnToApp(this.info);
+        const responseData = payload.data;
+        // Check if the response is an error (JSON-RPC error responses have an 'error' property)
+        const isError =
+          'error' in responseData && responseData.error !== undefined;
+
+        if (isError) {
+          if (
+            responseData.error.code === errorCodes.provider.userRejectedRequest
+          ) {
+            this.hostApp.showConfirmationRejectionError(this.info);
+          } else {
+            this.hostApp.showConnectionError(this.info);
+          }
+        } else {
+          this.hostApp.showReturnToApp(this.info);
+        }
       }
 
       this.client.sendResponse(payload);

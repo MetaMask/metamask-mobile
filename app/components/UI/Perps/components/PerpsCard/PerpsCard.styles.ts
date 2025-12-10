@@ -1,11 +1,12 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (_params: { theme: Theme }) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme; vars: { iconSize: number } }) => {
+  const { iconSize } = params.vars;
+
+  return StyleSheet.create({
     card: {
-      paddingVertical: 12,
-      marginVertical: 2,
+      paddingVertical: 6,
     },
     cardContent: {
       flexDirection: 'row',
@@ -18,9 +19,9 @@ const styleSheet = (_params: { theme: Theme }) =>
       flex: 1,
     },
     assetIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: iconSize,
+      height: iconSize,
+      borderRadius: iconSize / 2,
       marginRight: 12,
     },
     cardInfo: {
@@ -30,5 +31,6 @@ const styleSheet = (_params: { theme: Theme }) =>
       alignItems: 'flex-end',
     },
   });
+};
 
 export default styleSheet;

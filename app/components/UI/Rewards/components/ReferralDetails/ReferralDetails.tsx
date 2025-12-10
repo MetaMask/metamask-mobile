@@ -13,7 +13,6 @@ import {
   selectReferralCount,
   selectReferralDetailsError,
   selectReferralDetailsLoading,
-  selectSeasonStatusLoading,
   selectSeasonStatusError,
   selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
@@ -22,11 +21,16 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../utils';
 
-const ReferralDetails: React.FC = () => {
+interface ReferralDetailsProps {
+  showInfoSection?: boolean;
+}
+
+const ReferralDetails: React.FC<ReferralDetailsProps> = ({
+  showInfoSection = true,
+}) => {
   const referralCode = useSelector(selectReferralCode);
   const refereeCount = useSelector(selectReferralCount);
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
-  const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
   const seasonStatusError = useSelector(selectSeasonStatusError);
   const seasonStartDate = useSelector(selectSeasonStartDate);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
@@ -89,7 +93,7 @@ const ReferralDetails: React.FC = () => {
 
   return (
     <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
-      <ReferralInfoSection />
+      {showInfoSection && <ReferralInfoSection />}
 
       {!referralDetailsLoading && referralDetailsError && !referralCode ? (
         <RewardsErrorBanner
@@ -107,7 +111,7 @@ const ReferralDetails: React.FC = () => {
           <ReferralStatsSection
             earnedPointsFromReferees={balanceRefereePortion}
             refereeCount={refereeCount}
-            earnedPointsFromRefereesLoading={seasonStatusLoading}
+            earnedPointsFromRefereesLoading={referralDetailsLoading}
             refereeCountLoading={referralDetailsLoading}
             refereeCountError={referralDetailsError}
           />

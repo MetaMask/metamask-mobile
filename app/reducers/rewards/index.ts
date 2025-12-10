@@ -6,6 +6,7 @@ import {
   PointsBoostDto,
   RewardDto,
   PointsEventDto,
+  SeasonActivityTypeDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -26,6 +27,8 @@ export interface RewardsState {
   seasonStartDate: Date | null;
   seasonEndDate: Date | null;
   seasonTiers: SeasonTierDto[];
+  seasonActivityTypes: SeasonActivityTypeDto[];
+  seasonShouldInstallNewVersion: string | null;
 
   // Subscription Referral state
   referralDetailsLoading: boolean;
@@ -45,6 +48,7 @@ export interface RewardsState {
 
   // Onboarding state
   onboardingActiveStep: OnboardingStep;
+  onboardingReferralCode: string | null;
 
   // Candidate subscription state
   candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
@@ -83,6 +87,7 @@ export const initialState: RewardsState = {
   seasonStartDate: null,
   seasonEndDate: null,
   seasonTiers: [],
+  seasonActivityTypes: [],
 
   referralDetailsLoading: false,
   referralDetailsError: false,
@@ -97,7 +102,11 @@ export const initialState: RewardsState = {
   balanceRefereePortion: 0,
   balanceUpdatedAt: null,
 
+  // Should install new version state
+  seasonShouldInstallNewVersion: null,
+
   onboardingActiveStep: OnboardingStep.INTRO,
+  onboardingReferralCode: null,
   candidateSubscriptionId: 'pending',
   geoLocation: null,
   optinAllowedForGeo: null,
@@ -151,17 +160,15 @@ const rewardsSlice = createSlice({
         ? new Date(action.payload.season.endDate)
         : null;
       state.seasonTiers = action.payload?.season.tiers || [];
+      state.seasonActivityTypes = action.payload?.season.activityTypes || [];
+      state.seasonShouldInstallNewVersion =
+        action.payload?.season?.shouldInstallNewVersion || null;
 
       // Season Balance state
       state.balanceTotal =
         action.payload?.balance &&
         typeof action.payload.balance.total === 'number'
           ? action.payload.balance.total
-          : null;
-      state.balanceRefereePortion =
-        action.payload?.balance &&
-        typeof action.payload.balance.refereePortion === 'number'
-          ? action.payload.balance.refereePortion
           : null;
       state.balanceUpdatedAt = action.payload?.balance?.updatedAt
         ? new Date(action.payload.balance.updatedAt)
@@ -179,6 +186,7 @@ const rewardsSlice = createSlice({
       action: PayloadAction<{
         referralCode?: string;
         refereeCount?: number;
+        referralPoints?: number;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -186,6 +194,9 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.refereeCount !== undefined) {
         state.refereeCount = action.payload.refereeCount;
+      }
+      if (action.payload.referralPoints !== undefined) {
+        state.balanceRefereePortion = action.payload.referralPoints;
       }
       state.referralDetailsLoading = false;
     },
@@ -222,6 +233,14 @@ const rewardsSlice = createSlice({
 
     resetOnboarding: (state) => {
       state.onboardingActiveStep = OnboardingStep.INTRO;
+      state.onboardingReferralCode = null;
+    },
+
+    setOnboardingReferralCode: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.onboardingReferralCode = action.payload;
     },
 
     setCandidateSubscriptionId: (
@@ -248,6 +267,7 @@ const rewardsSlice = createSlice({
         state.seasonStartDate = initialState.seasonStartDate;
         state.seasonEndDate = initialState.seasonEndDate;
         state.seasonTiers = initialState.seasonTiers;
+        state.seasonActivityTypes = initialState.seasonActivityTypes;
         state.referralCode = initialState.referralCode;
         state.refereeCount = initialState.refereeCount;
         state.currentTier = initialState.currentTier;
@@ -256,6 +276,8 @@ const rewardsSlice = createSlice({
         state.balanceTotal = initialState.balanceTotal;
         state.balanceRefereePortion = initialState.balanceRefereePortion;
         state.balanceUpdatedAt = initialState.balanceUpdatedAt;
+        state.seasonShouldInstallNewVersion =
+          initialState.seasonShouldInstallNewVersion;
         state.activeBoosts = initialState.activeBoosts;
         state.pointsEvents = initialState.pointsEvents;
         state.unlockedRewards = initialState.unlockedRewards;
@@ -361,6 +383,9 @@ const rewardsSlice = createSlice({
           seasonStartDate: action.payload.rewards.seasonStartDate,
           seasonEndDate: action.payload.rewards.seasonEndDate,
           seasonTiers: action.payload.rewards.seasonTiers,
+          seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
+          seasonShouldInstallNewVersion:
+            action.payload.rewards.seasonShouldInstallNewVersion,
           referralCode: action.payload.rewards.referralCode,
           refereeCount: action.payload.rewards.refereeCount,
           currentTier: action.payload.rewards.currentTier,
@@ -394,6 +419,7 @@ export const {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
+  setOnboardingReferralCode,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,

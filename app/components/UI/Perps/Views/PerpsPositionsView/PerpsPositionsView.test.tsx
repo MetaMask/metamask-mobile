@@ -32,6 +32,7 @@ jest.mock('@react-navigation/native', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(),
+  usePerpsLivePrices: jest.fn(),
 }));
 
 jest.mock('../../hooks', () => ({
@@ -55,6 +56,7 @@ jest.mock('../../hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
+  usePerpsLivePrices: jest.fn(),
 }));
 
 // Mock the selector module
@@ -179,6 +181,14 @@ describe('PerpsPositionsView', () => {
       // Do nothing - prevent automatic callback execution
     });
 
+    // Mock usePerpsLivePrices from hooks (re-exported from stream)
+    const { usePerpsLivePrices: usePerpsLivePricesHook } =
+      jest.requireMock('../../hooks');
+    (usePerpsLivePricesHook as jest.Mock).mockReturnValue({
+      ETH: '2100',
+      BTC: '49500',
+    });
+
     // Mock usePerpsPositions hook
     (usePerpsLivePositions as jest.Mock).mockReturnValue({
       positions: mockPositions,
@@ -216,16 +226,17 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Account Summary')).toBeOnTheScreen();
-        expect(screen.getByText('Total Balance')).toBeOnTheScreen();
-        expect(screen.getByText('Available Balance')).toBeOnTheScreen();
-        expect(screen.getByText('Margin Used')).toBeOnTheScreen();
+        expect(screen.getByText('Account summary')).toBeOnTheScreen();
+        expect(screen.getByText('Total balance')).toBeOnTheScreen();
+        expect(screen.getByText('Available balance')).toBeOnTheScreen();
+        expect(screen.getByText('Margin used')).toBeOnTheScreen();
         expect(screen.getByText('Total Unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
-        expect(screen.getByText('$10,000.00')).toBeOnTheScreen(); // totalBalance
-        expect(screen.getByText('$4,700.00')).toBeOnTheScreen(); // availableBalance
-        expect(screen.getByText('$5,300.00')).toBeOnTheScreen(); // marginUsed
+        // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
+        expect(screen.getByText('$10,000')).toBeOnTheScreen(); // totalBalance
+        expect(screen.getByText('$4,700')).toBeOnTheScreen(); // availableBalance
+        expect(screen.getByText('$5,300')).toBeOnTheScreen(); // marginUsed
         expect(screen.getByText('+$75.50')).toBeOnTheScreen(); // total PnL
       });
     });
@@ -237,12 +248,10 @@ describe('PerpsPositionsView', () => {
       // Assert
       await waitFor(() => {
         const section = screen.getByTestId('perps-positions-section');
-        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('Open positions')).toBeOnTheScreen();
         expect(within(section).getByText('2 positions')).toBeOnTheScreen();
-        expect(within(section).getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
-        expect(
-          within(section).getByText(/0\.5000[\s\S]*BTC/),
-        ).toBeOnTheScreen();
+        expect(within(section).getByText(/1\.5[\s\S]*ETH/)).toBeOnTheScreen();
+        expect(within(section).getByText(/0\.5[\s\S]*BTC/)).toBeOnTheScreen();
       });
     });
 
@@ -300,7 +309,7 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('No Open Positions')).toBeOnTheScreen();
+        expect(screen.getByText('No open positions')).toBeOnTheScreen();
         expect(
           screen.getByText(/You don't have any open positions yet/),
         ).toBeOnTheScreen();
@@ -322,7 +331,7 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('No Open Positions')).toBeOnTheScreen();
+        expect(screen.getByText('No open positions')).toBeOnTheScreen();
       });
     });
   });
@@ -334,7 +343,7 @@ describe('PerpsPositionsView', () => {
 
       // Wait for component to load - look for ETH position text
       await waitFor(() => {
-        expect(screen.getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
+        expect(screen.getByText(/1\.5[\s\S]*ETH/)).toBeOnTheScreen();
       });
 
       fireEvent.press(screen.getByTestId('back-button'));
@@ -352,7 +361,7 @@ describe('PerpsPositionsView', () => {
       // Assert
       await waitFor(() => {
         const section = screen.getByTestId('perps-positions-section');
-        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('Open positions')).toBeOnTheScreen();
       });
     });
 
@@ -363,7 +372,7 @@ describe('PerpsPositionsView', () => {
       // Assert
       await waitFor(() => {
         const section = screen.getByTestId('perps-positions-section');
-        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('Open positions')).toBeOnTheScreen();
       });
     });
   });
@@ -412,10 +421,10 @@ describe('PerpsPositionsView', () => {
       // Assert
       await waitFor(() => {
         // Use flexible regex patterns that account for whitespace and line breaks
-        const ethPositions = screen.getAllByText(/1\.50[\s\S]*ETH/);
+        const ethPositions = screen.getAllByText(/1\.5[\s\S]*ETH/);
         expect(ethPositions).toHaveLength(1);
 
-        const btcPositions = screen.getAllByText(/0\.5000[\s\S]*BTC/);
+        const btcPositions = screen.getAllByText(/0\.5[\s\S]*BTC/);
         expect(btcPositions).toHaveLength(1);
 
         expect(screen.getByText(/-\$75\.25/)).toBeOnTheScreen();
@@ -438,8 +447,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        // Look for the position size text that contains "1.50 ETH"
-        const ethPositions = screen.getAllByText(/1\.50\s+ETH/);
+        // Look for the position size text that contains "1.5 ETH" (trailing zero removed)
+        const ethPositions = screen.getAllByText(/1\.5\s+ETH/);
         expect(ethPositions).toHaveLength(2);
       });
     });

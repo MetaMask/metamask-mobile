@@ -1,0 +1,166 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PredictMarketSkeleton matches snapshot 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#f3f5f9",
+        "borderRadius": 12,
+        "display": "flex",
+        "marginBottom": 8,
+        "marginTop": 8,
+        "paddingBottom": 16,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+        "paddingTop": 16,
+      },
+      undefined,
+    ]
+  }
+  testID="predict-market-skeleton"
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": 16,
+          "marginBottom": 16,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "borderRadius": 9999,
+          "height": 40,
+          "overflow": "hidden",
+          "width": 40,
+        }
+      }
+      testID="predict-market-skeleton-avatar"
+    >
+      <View
+        collapsable={false}
+        pointerEvents="none"
+        style={
+          {
+            "backgroundColor": "#686e7d",
+            "borderRadius": 4,
+            "bottom": 0,
+            "left": 0,
+            "opacity": 0.2,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "borderRadius": 6,
+            "height": 20,
+            "overflow": "hidden",
+            "width": "100%",
+          }
+        }
+        testID="predict-market-skeleton-title"
+      >
+        <View
+          collapsable={false}
+          pointerEvents="none"
+          style={
+            {
+              "backgroundColor": "#686e7d",
+              "borderRadius": 4,
+              "bottom": 0,
+              "left": 0,
+              "opacity": 0.2,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "borderRadius": 12,
+        "height": 150,
+        "marginBottom": 16,
+        "overflow": "hidden",
+        "width": "100%",
+      }
+    }
+    testID="predict-market-skeleton-chart"
+  >
+    <View
+      collapsable={false}
+      pointerEvents="none"
+      style={
+        {
+          "backgroundColor": "#686e7d",
+          "borderRadius": 4,
+          "bottom": 0,
+          "left": 0,
+          "opacity": 0.2,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "borderRadius": 6,
+        "height": 40,
+        "overflow": "hidden",
+        "width": "75%",
+      }
+    }
+    testID="predict-market-skeleton-footer"
+  >
+    <View
+      collapsable={false}
+      pointerEvents="none"
+      style={
+        {
+          "backgroundColor": "#686e7d",
+          "borderRadius": 4,
+          "bottom": 0,
+          "left": 0,
+          "opacity": 0.2,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    />
+  </View>
+</View>
+`;

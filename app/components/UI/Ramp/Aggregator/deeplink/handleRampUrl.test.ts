@@ -60,9 +60,9 @@ describe('handleRampUrl', () => {
     });
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.BUY, {
-      screen: Routes.RAMP.GET_STARTED,
+      screen: Routes.RAMP.ID,
       params: {
-        screen: Routes.RAMP.GET_STARTED,
+        screen: Routes.RAMP.BUILD_QUOTE,
         params: {
           assetId: 'eip155:1/erc20:0x123456',
         },
@@ -78,9 +78,9 @@ describe('handleRampUrl', () => {
     });
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.SELL, {
-      screen: Routes.RAMP.GET_STARTED,
+      screen: Routes.RAMP.ID,
       params: {
-        screen: Routes.RAMP.GET_STARTED,
+        screen: Routes.RAMP.BUILD_QUOTE,
         params: {
           assetId: 'eip155:1/erc20:0x123456',
         },

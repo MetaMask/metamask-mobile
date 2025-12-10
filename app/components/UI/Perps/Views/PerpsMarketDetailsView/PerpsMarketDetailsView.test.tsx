@@ -19,6 +19,25 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn(() => Promise.resolve(null)),
 }));
 
+jest.mock('react-native-modal', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  return ({
+    isVisible,
+    children,
+    ...props
+  }: {
+    isVisible: boolean;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) =>
+    isVisible ? (
+      <View testID="modal-container" {...props}>
+        {children}
+      </View>
+    ) : null;
+});
+
 // Mock @consensys/native-ramps-sdk to provide missing enum
 jest.mock('@consensys/native-ramps-sdk', () => ({
   ...jest.requireActual('@consensys/native-ramps-sdk'),
@@ -37,7 +56,41 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 // Mock PerpsStreamManager
-jest.mock('../../providers/PerpsStreamManager');
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    prices: {
+      subscribeToSymbols: jest.fn(() => jest.fn()),
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    positions: { subscribe: jest.fn(() => jest.fn()) },
+    orders: { subscribe: jest.fn(() => jest.fn()) },
+    fills: { subscribe: jest.fn(() => jest.fn()) },
+    account: { subscribe: jest.fn(() => jest.fn()) },
+    marketData: { subscribe: jest.fn(() => jest.fn()), getMarkets: jest.fn() },
+    oiCaps: { subscribe: jest.fn(() => jest.fn()) },
+  })),
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+// Mock Redux selectors for chart preferences
+jest.mock('../../selectors/chartPreferences', () => ({
+  selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
+}));
+
+// Mock Logger
+const mockLoggerError = jest.fn();
+const mockLoggerLog = jest.fn();
+const mockLoggerWarn = jest.fn();
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: (...args: unknown[]) => mockLoggerError(...args),
+    log: (...args: unknown[]) => mockLoggerLog(...args),
+    warn: (...args: unknown[]) => mockLoggerWarn(...args),
+  },
+}));
 
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
@@ -53,6 +106,13 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+
+// usePerpsNavigation mock functions
+const mockNavigateToHome = jest.fn();
+const mockNavigateToActivity = jest.fn();
+const mockNavigateToOrder = jest.fn();
+const mockNavigateToTutorial = jest.fn();
+const mockNavigateBack = jest.fn();
 
 // Mock notification feature flag
 const mockIsNotificationsFeatureEnabled = jest.fn();
@@ -113,6 +173,7 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
 // Mock the selector module first
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
+  createSelectIsWatchlistMarket: jest.fn(() => jest.fn(() => false)),
 }));
 
 // Mock react-redux
@@ -121,43 +182,81 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Mock usePerpsConnection hook directly to ensure all hooks that import it get the mock
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: () => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
+  }),
+}));
+
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   usePerpsConnection: () => ({
     isConnected: true,
     isConnecting: false,
+    isInitialized: true,
     error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
   }),
 }));
 
 const mockRefreshOrders = jest.fn();
+const mockUsePerpsOpenOrdersImpl = jest.fn(() => ({
+  orders: [
+    {
+      id: 'order1',
+      orderId: 'order1',
+      symbol: 'BTC',
+      side: 'buy',
+      size: '0.1',
+      originalSize: '0.1',
+      price: '45000',
+      status: 'open',
+      timestamp: Date.now(),
+      lastUpdated: Date.now(),
+      orderType: 'limit',
+      filledSize: '0',
+      remainingSize: '0.1',
+      detailedOrderType: 'Limit Order',
+      isTrigger: false,
+      reduceOnly: false,
+    },
+  ],
+  refresh: mockRefreshOrders,
+  isLoading: false,
+  error: null,
+}));
+
 jest.mock('../../hooks/usePerpsOpenOrders', () => ({
-  usePerpsOpenOrders: () => ({
-    orders: [
-      {
-        id: 'order1',
-        orderId: 'order1',
-        symbol: 'BTC',
-        side: 'buy',
-        size: '0.1',
-        originalSize: '0.1',
-        price: '45000',
-        status: 'open',
-        timestamp: Date.now(), // Add proper timestamp
-        lastUpdated: Date.now(),
-        orderType: 'limit',
-        filledSize: '0',
-        remainingSize: '0.1',
-        detailedOrderType: 'Limit Order',
-        isTrigger: false,
-        reduceOnly: false,
-      },
-    ],
-    refresh: mockRefreshOrders,
-    isLoading: false,
-    error: null,
-  }),
+  usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
+}));
+
+const mockUsePerpsOrderFillsImpl = jest.fn<
+  ReturnType<
+    typeof import('../../hooks/usePerpsOrderFills').usePerpsOrderFills
+  >,
+  []
+>(() => ({
+  orderFills: [],
+  isLoading: false,
+  error: null,
+  refresh: jest.fn(),
+  isRefreshing: false,
+}));
+
+jest.mock('../../hooks/usePerpsOrderFills', () => ({
+  usePerpsOrderFills: () => mockUsePerpsOrderFillsImpl(),
 }));
 
 const mockRefreshMarketStats = jest.fn();
@@ -175,22 +274,25 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
   }),
 }));
 
-const mockRefreshCandleData = jest.fn();
-jest.mock('../../hooks/usePerpsPositionData', () => ({
-  usePerpsPositionData: () => ({
-    candleData: [
-      {
-        time: 1234567890,
-        open: 45000,
-        high: 45500,
-        low: 44500,
-        close: 45200,
-        volume: 1000,
-      },
-    ],
-    isLoadingHistory: false,
+jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
+  usePerpsLiveCandles: () => ({
+    candleData: {
+      coin: 'BTC',
+      interval: '1h',
+      candles: [
+        {
+          time: 1234567890,
+          open: '45000',
+          high: '45500',
+          low: '44500',
+          close: '45200',
+          volume: '1000',
+        },
+      ],
+    },
+    isLoading: false,
+    hasHistoricalData: true,
     error: null,
-    refreshCandleData: mockRefreshCandleData,
   }),
 }));
 
@@ -200,12 +302,28 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsPrices', () => ({
+  usePerpsPrices: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
+  useIsPriceDeviatedAboveThreshold: jest.fn(() => ({
+    isDeviatedAboveThreshold: false,
+    isLoading: false,
+  })),
+}));
+
 jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: () => mockUsePerpsAccount(),
   usePerpsConnection: () => ({
     isConnected: true,
     isConnecting: false,
+    isInitialized: true,
     error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn(),
   }),
   usePerpsOpenOrders: () => ({
     orders: [],
@@ -245,6 +363,45 @@ jest.mock('../../hooks', () => ({
   usePerpsNetworkManagement: jest.fn(() => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
   })),
+  usePerpsNavigation: jest.fn(() => ({
+    navigateToHome: mockNavigateToHome,
+    navigateToActivity: mockNavigateToActivity,
+    navigateToOrder: mockNavigateToOrder,
+    navigateToTutorial: mockNavigateToTutorial,
+    navigateBack: mockNavigateBack,
+    canGoBack: mockCanGoBack(),
+  })),
+  usePositionManagement: jest.fn(() => ({
+    showModifyActionSheet: false,
+    showAdjustMarginActionSheet: false,
+    showReversePositionSheet: false,
+    modifyActionSheetRef: { current: null },
+    adjustMarginActionSheetRef: { current: null },
+    reversePositionSheetRef: { current: null },
+    openModifySheet: jest.fn(),
+    closeModifySheet: jest.fn(),
+    openAdjustMarginSheet: jest.fn(),
+    closeAdjustMarginSheet: jest.fn(),
+    openReversePositionSheet: jest.fn(),
+    closeReversePositionSheet: jest.fn(),
+    handleReversePosition: jest.fn(),
+  })),
+}));
+
+// Mock usePerpsABTest to return default variant
+jest.mock('../../utils/abTesting/usePerpsABTest', () => ({
+  usePerpsABTest: () => ({
+    variantName: 'semantic',
+    isEnabled: false,
+  }),
+}));
+
+// Mock usePerpsOICap to return not at cap by default
+jest.mock('../../hooks/usePerpsOICap', () => ({
+  usePerpsOICap: () => ({
+    isAtCap: false,
+    capPercentage: 50,
+  }),
 }));
 
 // Mock PerpsMarketStatisticsCard to simplify the test
@@ -365,11 +522,10 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsAccount.mockReturnValue({
       account: {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
         returnOnEquity: '0.00',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       },
       isInitialLoading: false,
     });
@@ -377,11 +533,10 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         availableBalance: '1000',
-        totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalValue: '1000',
+        totalBalance: '1000',
       },
       isInitialLoading: false,
     });
@@ -422,12 +577,20 @@ describe('PerpsMarketDetailsView', () => {
       volume: '$1.23B',
       maxLeverage: '40x',
     };
+
+    // Reset order fills mock to default
+    mockUsePerpsOrderFillsImpl.mockReturnValue({
+      orderFills: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
   });
 
   // Clean up mocks after each test
   afterEach(() => {
     jest.clearAllMocks();
-    mockRefreshCandleData.mockClear();
     mockRefreshOrders.mockClear();
     mockRefreshMarketStats.mockClear();
     mockNavigate.mockClear();
@@ -570,11 +733,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
-          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalValue: '0.00',
+          totalBalance: '0.00',
         },
         isInitialLoading: false,
       });
@@ -582,11 +744,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
-          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '0',
+          totalBalance: '0',
         },
         isInitialLoading: false,
       });
@@ -617,16 +778,15 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeNull();
     });
 
-    it('renders long/short buttons when user has balance and existing position', () => {
+    it('renders modify/close buttons when user has balance and existing position', () => {
       // Override with non-zero balance and existing position
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '1000.00',
-          totalBalance: '1500.00',
           marginUsed: '500.00',
           unrealizedPnl: '50.00',
           returnOnEquity: '3.33',
-          totalValue: '1550.00',
+          totalBalance: '1550.00',
         },
         isInitialLoading: false,
       });
@@ -655,7 +815,7 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: jest.fn(),
       });
 
-      const { getByTestId, queryByText } = renderWithProvider(
+      const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -664,13 +824,21 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Shows long/short buttons even with existing position
+      // Shows modify/close buttons when existing position exists (not long/short buttons)
       expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON),
       ).toBeTruthy();
       expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
       ).toBeTruthy();
+
+      // Long/short buttons should NOT be shown when position exists
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeNull();
 
       // Does not show add funds message
       expect(queryByText('Add funds to start trading perps')).toBeNull();
@@ -718,10 +886,12 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       // Trigger the refresh
-      await refreshControl.props.onRefresh();
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
-      // Should refresh candle data by default
-      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      // Note: Candle data now uses WebSocket streaming (usePerpsLiveCandles)
+      // so no manual refresh is needed - data updates automatically
     });
 
     it('refreshes candle data when position tab is active', async () => {
@@ -749,15 +919,17 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
 
-      // Assert - Only candle data refreshes since positions update via WebSocket
-      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      // Assert - Candle data uses WebSocket streaming, no manual refresh needed
       // refreshPosition is a no-op for WebSocket, so we don't expect it to be called
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
-    it('refreshes statistics data when statistics tab is active', async () => {
+    it('refreshes statistics data via WebSocket', async () => {
       // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
@@ -793,19 +965,17 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Act - Switch to statistics tab
-      const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
-      fireEvent.press(statisticsTab);
-
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
 
-      // Assert - Only candle data refreshes (all other data updates via WebSocket)
-      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      // Market stats, positions, and orders update via WebSocket, no manual refresh
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      // Assert - All data now updates via WebSocket, no manual refresh needed
+      // Market stats, candles, positions, and orders update via WebSocket
       expect(mockRefreshMarketStats).not.toHaveBeenCalled();
       expect(mockRefreshPosition).not.toHaveBeenCalled();
       expect(mockRefreshOrders).not.toHaveBeenCalled();
@@ -836,10 +1006,13 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
 
-      // Assert - Only candle data refreshes (positions update via WebSocket)
-      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      // Assert - Candle data now uses WebSocket streaming (no manual refresh)
+      // Positions also update via WebSocket
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
@@ -863,20 +1036,17 @@ describe('PerpsMarketDetailsView', () => {
       expect(refreshControl.props.refreshing).toBe(false);
 
       // Trigger the refresh
-      const refreshPromise = refreshControl.props.onRefresh();
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
-      // Wait for refresh to complete
-      await refreshPromise;
-
-      // Verify refresh functions were called
-      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      // Note: Candle data now uses WebSocket streaming (no manual refresh needed)
     });
 
-    it('handles errors during refresh operation', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const mockRefreshPosition = jest
-        .fn()
-        .mockRejectedValue(new Error('Refresh failed'));
+    it('handles refresh gracefully with WebSocket streaming', async () => {
+      // Note: Candle data now uses WebSocket streaming, so refresh is a no-op
+      // This test verifies the refresh control doesn't break with WebSocket data
+      const mockRefreshPosition = jest.fn();
 
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
@@ -885,10 +1055,6 @@ describe('PerpsMarketDetailsView', () => {
         existingPosition: null,
         refreshPosition: mockRefreshPosition,
       });
-
-      mockRefreshCandleData.mockRejectedValue(
-        new Error('Candle data refresh failed'),
-      );
 
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -905,16 +1071,14 @@ describe('PerpsMarketDetailsView', () => {
       );
       const refreshControl = scrollView.props.refreshControl;
 
-      // Trigger the refresh
-      await refreshControl.props.onRefresh();
+      // Trigger the refresh - should complete without errors
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
-      // Should log error
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to refresh'),
-        expect.any(Error),
-      );
-
-      consoleErrorSpy.mockRestore();
+      // Refresh control should exist and be functional
+      expect(refreshControl).toBeDefined();
+      expect(refreshControl.props.refreshing).toBe(false);
     });
   });
 
@@ -947,8 +1111,8 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(longButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
+      expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
       });
@@ -982,8 +1146,8 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(shortButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
+      expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
       });
@@ -994,11 +1158,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
-          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalValue: '0.00',
+          totalBalance: '0.00',
         },
         isInitialLoading: false,
       });
@@ -1006,11 +1169,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
-          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '0',
+          totalBalance: '0',
         },
         isInitialLoading: false,
       });
@@ -1117,11 +1279,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
-          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalValue: '0.00',
+          totalBalance: '0.00',
         },
         isInitialLoading: false,
       });
@@ -1129,11 +1290,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
-          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '0',
+          totalBalance: '0',
         },
         isInitialLoading: false,
       });
@@ -1384,8 +1544,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
+      // Find and press the TradingView link
+      const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
       // Verify Linking.openURL was called with correct URL
@@ -1397,8 +1557,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('handles error when opening TradingView URL fails', async () => {
-      // Mock console.error to avoid test output pollution
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockLoggerError.mockClear();
 
       // Mock Linking.openURL to reject
       (Linking.openURL as jest.Mock).mockRejectedValueOnce(
@@ -1414,19 +1573,608 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
+      // Find and press the TradingView link
+      const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
-      // Wait for the error to be logged
+      // Wait for the error to be logged using Logger.error
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          'Failed to open Trading View URL:',
+        expect(mockLoggerError).toHaveBeenCalledWith(
           expect.any(Error),
+          expect.objectContaining({
+            feature: 'perps',
+            message: 'Failed to open Trading View URL',
+          }),
         );
       });
+    });
+  });
 
-      consoleErrorSpy.mockRestore();
+  describe('Fullscreen chart functionality', () => {
+    it('opens fullscreen chart modal when fullscreen button is pressed', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Verify close button is not initially visible (modal is closed)
+      expect(queryByTestId('perps-chart-fullscreen-close-button')).toBeNull();
+
+      // Press fullscreen button
+      const fullscreenButton = getByTestId(
+        'perps-market-header-fullscreen-button',
+      );
+      fireEvent.press(fullscreenButton);
+
+      // Verify modal is now visible by checking for close button
+      await waitFor(() => {
+        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
+      });
+    });
+
+    it('closes fullscreen chart modal when close button is pressed', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Open the modal first
+      const fullscreenButton = getByTestId(
+        'perps-market-header-fullscreen-button',
+      );
+      fireEvent.press(fullscreenButton);
+
+      // Wait for modal to be visible
+      await waitFor(() => {
+        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
+      });
+
+      // Press close button
+      const closeButton = getByTestId('perps-chart-fullscreen-close-button');
+      fireEvent.press(closeButton);
+
+      // Verify modal is closed
+      await waitFor(() => {
+        expect(queryByTestId('perps-chart-fullscreen-close-button')).toBeNull();
+      });
+    });
+
+    it('renders fullscreen chart when modal is open', async () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Open the modal
+      const fullscreenButton = getByTestId(
+        'perps-market-header-fullscreen-button',
+      );
+      fireEvent.press(fullscreenButton);
+
+      // Wait for modal to be visible and verify chart is rendered
+      await waitFor(() => {
+        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
+        expect(getByTestId('fullscreen-chart')).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Position opened timestamp calculation', () => {
+    it('computes position opened timestamp from order fills data', () => {
+      // Arrange
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          coin: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '50',
+          marginUsed: '500',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '1.14',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+      });
+
+      mockUsePerpsOrderFillsImpl.mockReturnValue({
+        orderFills: [
+          {
+            orderId: 'order-1',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp: timestamp - 2000,
+            size: '0.3',
+            price: '43000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+          {
+            orderId: 'order-2',
+            symbol: 'BTC',
+            side: 'buy',
+            direction: 'Open Long',
+            timestamp,
+            size: '0.5',
+            price: '44000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+          {
+            orderId: 'order-3',
+            symbol: 'ETH',
+            side: 'sell',
+            direction: 'Open Short',
+            timestamp: timestamp - 1000,
+            size: '1.0',
+            price: '3000',
+            pnl: '0',
+            fee: '0.001',
+            feeToken: 'USDC',
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+      expect(mockUsePerpsOrderFillsImpl).toHaveBeenCalled();
+    });
+  });
+
+  describe('TP/SL child order filtering', () => {
+    beforeEach(() => {
+      // Reset to default mock implementation
+      mockUsePerpsOpenOrdersImpl.mockImplementation(() => ({
+        orders: [],
+        refresh: mockRefreshOrders,
+        isLoading: false,
+        error: null,
+      }));
+    });
+
+    it('excludes child orders from default TP order selection', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'parent-order-1',
+          orderId: 'parent-order-1',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+          takeProfitOrderId: 'child-tp-order-1',
+          stopLossOrderId: 'child-sl-order-1',
+        },
+        {
+          id: 'child-tp-order-1',
+          orderId: 'child-tp-order-1',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+        {
+          id: 'standalone-tp-order',
+          orderId: 'standalone-tp-order',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '51000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('excludes child orders from default SL order selection', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'parent-order-2',
+          orderId: 'parent-order-2',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          takeProfitOrderId: 'child-tp-order-2',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+          stopLossOrderId: 'child-sl-order-2',
+        },
+        {
+          orderId: 'child-sl-order-2',
+          id: 'child-sl-order-2',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '40000',
+          orderType: 'market',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Stop Market',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+        {
+          id: 'standalone-sl-order',
+          orderId: 'standalone-sl-order',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '39000',
+          orderType: 'market',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Stop Market',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('includes standalone trigger orders when no child orders exist', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'order-1',
+          orderId: 'order-1',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+        },
+        {
+          id: 'standalone-tp-1',
+          orderId: 'standalone-tp-1',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+        {
+          id: 'standalone-sl-1',
+          orderId: 'standalone-sl-1',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '40000',
+          orderType: 'market',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Stop Market',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('handles orders with only takeProfitOrderId', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'parent-order-3',
+          orderId: 'parent-order-3',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          takeProfitOrderId: 'child-tp-order-3',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+        },
+        {
+          id: 'child-tp-order-3',
+          orderId: 'child-tp-order-3',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('handles orders with only stopLossOrderId', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'parent-order-4',
+          orderId: 'parent-order-4',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          stopLossOrderId: 'child-sl-order-4',
+        },
+        {
+          id: 'child-sl-order-4',
+          orderId: 'child-sl-order-4',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '40000',
+          orderType: 'market',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Stop Market',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('handles empty order list', () => {
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders: [],
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
     });
   });
 });

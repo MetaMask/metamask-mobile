@@ -1,8 +1,6 @@
 import React from 'react';
 import { renderWithProviders } from './testUtils';
 import RewardsIntroModal from './RewardsIntroModal';
-import storageWrapper from '../../../../../store/storage-wrapper';
-import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 
 // Mock child component to capture props
 const mockOnboardingIntroStep = jest.fn((_props: Record<string, unknown>) => {
@@ -36,16 +34,5 @@ describe('RewardsIntroModal', () => {
         confirmLabel: 'mocked_rewards.onboarding.gtm_confirm',
       }),
     );
-  });
-
-  it('marks rewards intro modal as seen in storage on mount', async () => {
-    const setItemSpy = jest
-      .spyOn(storageWrapper, 'setItem')
-      .mockResolvedValueOnce(undefined);
-
-    renderWithProviders(<RewardsIntroModal />);
-
-    // Effect should trigger setItem once
-    expect(setItemSpy).toHaveBeenCalledWith(REWARDS_GTM_MODAL_SHOWN, 'true');
   });
 });

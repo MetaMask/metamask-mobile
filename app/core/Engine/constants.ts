@@ -1,13 +1,6 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapControllerStateChangeEvent } from './controllers/snaps';
-///: END:ONLY_INCLUDE_IF
-
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { RatesControllerStateChangeEvent } from './controllers/RatesController/constants';
-///: END:ONLY_INCLUDE_IF
-
-import { swapsUtils } from '@metamask/swaps-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { SWAPS_TESTNET_CHAIN_ID } from '../../constants/bridge';
+
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
  * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
@@ -19,7 +12,10 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RewardsDataService',
   'TokenDetectionController',
   'WebSocketService',
+  'BackendWebSocketService',
+  'AccountActivityService',
   'MultichainAccountService',
+  'ProfileMetricsService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -37,7 +33,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NftController:stateChange',
   'PermissionController:stateChange',
   'PhishingController:stateChange',
-  'PPOMController:stateChange',
   'PreferencesController:stateChange',
   'RemoteFeatureFlagController:stateChange',
   'SelectedNetworkController:stateChange',
@@ -51,9 +46,10 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TokenSearchDiscoveryController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
+  'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  SnapControllerStateChangeEvent,
+  'SnapController:stateChange',
   'SnapsRegistry:stateChange',
   'SubjectMetadataController:stateChange',
   'AuthenticationController:stateChange',
@@ -65,7 +61,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'MultichainBalancesController:stateChange',
-  RatesControllerStateChangeEvent,
   'MultichainAssetsRatesController:stateChange',
   // TODO: Export this from the assets controller
   'MultichainAssetsController:stateChange',
@@ -78,23 +73,28 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
   'SeedlessOnboardingController:stateChange',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  'SamplePetnamesController:stateChange',
+  ///: END:ONLY_INCLUDE_IF
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'DelegationController:stateChange',
+  'ProfileMetricsController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [
-  swapsUtils.ETH_CHAIN_ID,
-  swapsUtils.BSC_CHAIN_ID,
-  swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-  swapsUtils.POLYGON_CHAIN_ID,
-  swapsUtils.AVALANCHE_CHAIN_ID,
-  swapsUtils.ARBITRUM_CHAIN_ID,
-  swapsUtils.OPTIMISM_CHAIN_ID,
-  swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-  swapsUtils.LINEA_CHAIN_ID,
-  swapsUtils.BASE_CHAIN_ID,
-  swapsUtils.SEI_CHAIN_ID,
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.BSC,
+  SWAPS_TESTNET_CHAIN_ID,
+  CHAIN_IDS.POLYGON,
+  CHAIN_IDS.AVALANCHE,
+  CHAIN_IDS.ARBITRUM,
+  CHAIN_IDS.OPTIMISM,
+  CHAIN_IDS.ZKSYNC_ERA,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.BASE,
+  CHAIN_IDS.SEI,
+  CHAIN_IDS.MONAD,
 ];
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
@@ -107,6 +107,7 @@ export const OPTIMISM_DISPLAY_NAME = 'OP';
 export const ZK_SYNC_ERA_DISPLAY_NAME = 'zkSync Era';
 export const BASE_DISPLAY_NAME = 'Base';
 export const SEI_DISPLAY_NAME = 'Sei';
+export const MONAD_DISPLAY_NAME = 'Monad';
 
 export const NETWORK_TO_NAME_MAP = {
   [CHAIN_IDS.MAINNET]: MAINNET_DISPLAY_NAME,
@@ -119,4 +120,6 @@ export const NETWORK_TO_NAME_MAP = {
   [CHAIN_IDS.ZKSYNC_ERA]: ZK_SYNC_ERA_DISPLAY_NAME,
   [CHAIN_IDS.BASE]: BASE_DISPLAY_NAME,
   [CHAIN_IDS.SEI]: SEI_DISPLAY_NAME,
+  // TODO: Update to use CHAIN_IDS.MONAD when it is added to the transaction controller
+  [CHAIN_IDS.MONAD]: MONAD_DISPLAY_NAME,
 } as const;

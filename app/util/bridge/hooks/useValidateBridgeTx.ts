@@ -1,5 +1,4 @@
-import { QuoteResponse } from '../../../components/UI/Bridge/types';
-import { QuoteMetadata } from '@metamask/bridge-controller';
+import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { SolMethod } from '@metamask/keyring-api';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
@@ -11,12 +10,15 @@ export default function useValidateBridgeTx() {
 
   const validateBridgeTx = async ({
     quoteResponse,
+    signal,
   }: {
     quoteResponse: QuoteResponse & QuoteMetadata;
+    signal?: AbortSignal;
   }) => {
     const response = await fetch(
       `${AppConstants.SECURITY_ALERTS_API.URL}/solana/message/scan`,
       {
+        signal,
         headers: {
           'Content-Type': 'application/json',
           accept: 'application/json',

@@ -4,31 +4,10 @@ import reducer, {
   selectConfirmationMetrics,
   ConfirmationMetrics,
   selectConfirmationMetricsById,
-  setTransactionPayToken,
-  TransactionPayToken,
-  selectTransactionPayToken,
-  setTransactionBridgeQuotes,
-  selectTransactionBridgeQuotesById,
-  selectIsTransactionBridgeQuotesLoadingById,
-  setTransactionBridgeQuotesLoading,
-  setTransactionUpdating,
-  selectIsTransactionUpdatingById,
 } from './index';
 import { RootState } from '../../../../reducers';
-import { TransactionBridgeQuote } from '../../../../components/Views/confirmations/utils/bridge';
 
 const ID_MOCK = '123-456';
-
-const PAY_TOKEN_MOCK: TransactionPayToken = {
-  address: '0x456',
-  chainId: '0x123',
-};
-
-const QUOTE_MOCK = {
-  quote: {
-    srcChainId: '0x1',
-  },
-} as unknown as TransactionBridgeQuote;
 
 describe('confirmationMetrics slice', () => {
   describe('updateConfirmationMetric', () => {
@@ -134,134 +113,6 @@ describe('confirmationMetrics slice', () => {
       expect(selectConfirmationMetricsById(state, ID_MOCK)).toEqual(
         metricsById[ID_MOCK],
       );
-    });
-  });
-
-  describe('setTransactionPayToken', () => {
-    it('updates transaction pay token for ID', () => {
-      const action = setTransactionPayToken({
-        transactionId: ID_MOCK,
-        payToken: PAY_TOKEN_MOCK,
-      });
-
-      const state = reducer(initialState, action);
-
-      expect(state.transactionPayTokenById[ID_MOCK]).toEqual(PAY_TOKEN_MOCK);
-    });
-  });
-
-  describe('selectTransactionPayToken', () => {
-    it('returns transaction pay token', () => {
-      const state = {
-        confirmationMetrics: {
-          transactionPayTokenById: { [ID_MOCK]: PAY_TOKEN_MOCK },
-        },
-      } as unknown as RootState;
-
-      expect(selectTransactionPayToken(state, ID_MOCK)).toEqual(PAY_TOKEN_MOCK);
-    });
-  });
-
-  describe('setTransactionBridgeQuotes', () => {
-    it('updates transaction bridge quotes for ID', () => {
-      const action = setTransactionBridgeQuotes({
-        transactionId: ID_MOCK,
-        quotes: [QUOTE_MOCK],
-      });
-
-      const state = reducer(initialState, action);
-
-      expect(state.transactionBridgeQuotesById[ID_MOCK]).toStrictEqual([
-        QUOTE_MOCK,
-      ]);
-    });
-  });
-
-  describe('selectTransactionBridgeQuotesById', () => {
-    it('returns transaction bridge quotes by ID', () => {
-      const state = {
-        confirmationMetrics: {
-          transactionBridgeQuotesById: { [ID_MOCK]: [QUOTE_MOCK] },
-        },
-      } as unknown as RootState;
-
-      expect(selectTransactionBridgeQuotesById(state, ID_MOCK)).toStrictEqual([
-        QUOTE_MOCK,
-      ]);
-    });
-  });
-
-  describe('selectTransactionBridgeQuotesLoadingById', () => {
-    it('returns true if set as loading in state', () => {
-      const state = {
-        confirmationMetrics: {
-          isTransactionBridgeQuotesLoadingById: { [ID_MOCK]: true },
-        },
-      } as unknown as RootState;
-
-      expect(selectIsTransactionBridgeQuotesLoadingById(state, ID_MOCK)).toBe(
-        true,
-      );
-    });
-
-    it('returns false if not in state', () => {
-      const state = {
-        confirmationMetrics: {
-          isTransactionBridgeQuotesLoadingById: {},
-        },
-      } as unknown as RootState;
-
-      expect(selectIsTransactionBridgeQuotesLoadingById(state, ID_MOCK)).toBe(
-        false,
-      );
-    });
-  });
-
-  describe('setTransactionBridgeQuotesLoading', () => {
-    it('updates loading state for ID', () => {
-      const action = setTransactionBridgeQuotesLoading({
-        transactionId: ID_MOCK,
-        isLoading: true,
-      });
-
-      const state = reducer(initialState, action);
-
-      expect(state.isTransactionBridgeQuotesLoadingById[ID_MOCK]).toBe(true);
-    });
-  });
-
-  describe('setTransactionUpdating', () => {
-    it('updates updating state for ID', () => {
-      const action = setTransactionUpdating({
-        transactionId: ID_MOCK,
-        isUpdating: true,
-      });
-
-      const state = reducer(initialState, action);
-
-      expect(state.isTransactionUpdating[ID_MOCK]).toBe(true);
-    });
-  });
-
-  describe('selectIsTransactionUpdatingById', () => {
-    it('returns true if set as updating in state', () => {
-      const state = {
-        confirmationMetrics: {
-          isTransactionUpdating: { [ID_MOCK]: true },
-        },
-      } as unknown as RootState;
-
-      expect(selectIsTransactionUpdatingById(state, ID_MOCK)).toBe(true);
-    });
-
-    it('returns false if not in state', () => {
-      const state = {
-        confirmationMetrics: {
-          isTransactionUpdating: {},
-        },
-      } as unknown as RootState;
-
-      expect(selectIsTransactionUpdatingById(state, ID_MOCK)).toBe(false);
     });
   });
 });

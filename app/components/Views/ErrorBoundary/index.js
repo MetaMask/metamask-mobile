@@ -503,18 +503,18 @@ class ErrorBoundary extends Component {
           />,
         )
       : this.state.error
-      ? this.renderWithSafeArea(
-          <Fallback
-            errorMessage={this.getErrorMessage()}
-            resetError={this.resetError}
-            showExportSeedphrase={this.showExportSeedphrase}
-            copyErrorToClipboard={this.copyErrorToClipboard}
-            openTicket={this.openTicket}
-            sentryId={this.state.sentryId}
-            onboardingErrorConfig={onboardingErrorConfig}
-          />,
-        )
-      : this.props.children;
+        ? this.renderWithSafeArea(
+            <Fallback
+              errorMessage={this.getErrorMessage()}
+              resetError={this.resetError}
+              showExportSeedphrase={this.showExportSeedphrase}
+              copyErrorToClipboard={this.copyErrorToClipboard}
+              openTicket={this.openTicket}
+              sentryId={this.state.sentryId}
+              onboardingErrorConfig={onboardingErrorConfig}
+            />,
+          )
+        : this.props.children;
   }
 }
 

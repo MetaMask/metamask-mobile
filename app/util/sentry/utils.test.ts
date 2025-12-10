@@ -1,5 +1,10 @@
 /* eslint-disable dot-notation */
-import { UserFeedback, captureUserFeedback } from '@sentry/react-native';
+import {
+  Scope,
+  UserFeedback,
+  captureUserFeedback,
+  getGlobalScope,
+} from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
   excludeEvents,
@@ -9,6 +14,7 @@ import {
   AllProperties,
   rewriteReport,
   rewriteBreadcrumb,
+  setEASUpdateContext,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
@@ -21,12 +27,9 @@ import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
-
-jest.mock('@sentry/react-native', () => ({
-  ...jest.requireActual('@sentry/react-native'),
-  captureUserFeedback: jest.fn(),
-}));
+import { OTA_VERSION } from '../../constants/ota';
 const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
 jest.mock('../../store', () => ({
   store: {
@@ -55,6 +58,39 @@ jest.mock('../device', () => ({
 jest.mock('./tags', () => ({
   getTraceTags: jest.fn(() => ({ mockTag: 'mockValue' })),
 }));
+
+jest.mock('../../constants/ota', () => ({
+  OTA_VERSION: 'v1',
+}));
+
+const expoUpdatesMockValues: {
+  updateId: string;
+  isEmbeddedLaunch: boolean;
+  channel: string;
+  runtimeVersion: string;
+  manifest: {
+    metadata?: { updateGroup?: string };
+    extra?: { expoClient?: { owner?: string; slug?: string } };
+  };
+} = {
+  updateId: 'test-update-id-123',
+  isEmbeddedLaunch: false,
+  channel: 'production',
+  runtimeVersion: '1.0.0',
+  manifest: {
+    metadata: {
+      updateGroup: 'test-group-id',
+    },
+    extra: {
+      expoClient: {
+        owner: 'test-owner',
+        slug: 'test-project',
+      },
+    },
+  },
+};
+
+jest.mock('expo-updates', () => expoUpdatesMockValues);
 
 describe('deriveSentryEnvironment', () => {
   it('returns flask-production for non-dev production environment and flask build type', async () => {
@@ -243,6 +279,7 @@ describe('captureSentryFeedback', () => {
   describe('maskObject', () => {
     const rootState: DeepPartial<RootState> = {
       legalNotices: {
+        isPna25Acknowledged: true,
         newPrivacyPolicyToastClickedOrClosed: true,
         newPrivacyPolicyToastShownDate: null,
       },
@@ -611,6 +648,7 @@ describe('captureSentryFeedback', () => {
       const maskedState = maskObject(rootState, { legalNotices: true });
       expect(maskedState).toEqual({
         legalNotices: {
+          isPna25Acknowledged: true,
           newPrivacyPolicyToastClickedOrClosed: true,
           newPrivacyPolicyToastShownDate: null,
         },
@@ -821,8 +859,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.url).toBe('https:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.url).toBe('https:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should rewrite breadcrumb to field to protocol only', () => {
@@ -835,8 +873,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.to).toBe('http:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.to).toBe('http:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should rewrite breadcrumb from field to protocol only', () => {
@@ -849,8 +887,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.from).toBe('https:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.from).toBe('https:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should handle breadcrumb with multiple URL fields', () => {
@@ -864,9 +902,9 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.url).toBe('https:');
-    expect(result.data.to).toBe('http:');
-    expect(result.data.from).toBe('ftp:');
+    expect(result.data?.url).toBe('https:');
+    expect(result.data?.to).toBe('http:');
+    expect(result.data?.from).toBe('ftp:');
   });
 
   it('should handle breadcrumb without data', () => {
@@ -916,10 +954,10 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].stacktrace.frames).toHaveLength(1);
-    expect(result.exception.values[0].stacktrace.frames[0].filename).toBe(
-      'app:///main.js',
-    );
+    expect(result.exception?.values?.[0]?.stacktrace?.frames).toHaveLength(1);
+    expect(
+      result.exception?.values?.[0]?.stacktrace?.frames?.[0]?.filename,
+    ).toBe('app:///main.js');
   });
 
   it('should simplify complex error messages', () => {
@@ -1005,7 +1043,7 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].value).toBe('Exception with URL **');
+    expect(result.exception?.values?.[0]?.value).toBe('Exception with URL **');
   });
 
   it('should sanitize Ethereum addresses from error messages', () => {
@@ -1040,7 +1078,9 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].value).toBe('Transaction failed for **');
+    expect(result.exception?.values?.[0]?.value).toBe(
+      'Transaction failed for **',
+    );
   });
 
   it('should sanitize multiple addresses from error messages', () => {
@@ -1083,9 +1123,9 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.contexts.device.timezone).toBe(null);
-    expect(result.contexts.device.name).toBe(null);
-    expect(result.contexts.device.other).toBe('should remain');
+    expect(result.contexts?.device?.timezone).toBe(null);
+    expect(result.contexts?.device?.name).toBe(null);
+    expect(result.contexts?.device?.other).toBe('should remain');
   });
 
   it('should handle report without device context', () => {
@@ -1108,5 +1148,90 @@ describe('rewriteReport', () => {
     };
 
     expect(() => rewriteReport(report)).toThrow('Store error');
+  });
+});
+
+describe('setEASUpdateContext', () => {
+  const manifestMock = expoUpdatesMockValues.manifest;
+  const scopeMock = { setTag: jest.fn() };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedGetGlobalScope.mockReturnValue(scopeMock as unknown as Scope);
+    expoUpdatesMockValues.isEmbeddedLaunch = false;
+
+    manifestMock.metadata = {
+      updateGroup: 'test-group-id',
+    };
+    manifestMock.extra = {
+      expoClient: {
+        owner: 'test-owner',
+        slug: 'test-project',
+      },
+    };
+  });
+
+  it('sets Sentry tags for OTA update metadata', () => {
+    setEASUpdateContext();
+
+    expect(mockedGetGlobalScope).toHaveBeenCalledTimes(1);
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-update-id',
+      expoUpdatesMockValues.updateId,
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-is-embedded-update',
+      expoUpdatesMockValues.isEmbeddedLaunch,
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-update-group-id',
+      'test-group-id',
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-update-debug-url',
+      'https://expo.dev/accounts/test-owner/projects/test-project/updates/test-group-id',
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-ota-version',
+      OTA_VERSION,
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-runtime-version',
+      expoUpdatesMockValues.runtimeVersion,
+    );
+  });
+
+  it('marks debug url as not applicable for embedded updates without metadata', () => {
+    manifestMock.metadata = undefined;
+    expoUpdatesMockValues.isEmbeddedLaunch = true;
+
+    setEASUpdateContext();
+
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-update-debug-url',
+      'not applicable for embedded updates',
+    );
+    expect(scopeMock.setTag).not.toHaveBeenCalledWith(
+      'expo-update-group-id',
+      expect.anything(),
+    );
+  });
+
+  it('warns when retrieving the Sentry scope fails', () => {
+    const error = new Error('scope failure');
+    mockedGetGlobalScope.mockImplementation(() => {
+      throw error;
+    });
+    const consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+
+    setEASUpdateContext();
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'Failed to set EAS update context in Sentry:',
+      error,
+    );
+    expect(scopeMock.setTag).not.toHaveBeenCalled();
   });
 });

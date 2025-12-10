@@ -8,11 +8,12 @@ exports[`NetworkDetails renders correctly 1`] = `
     deviceWidth={null}
     hardwareAccelerated={false}
     hideModalContentWhileAnimating={false}
-    onBackdropPress={[Function]}
+    onBackdropPress={[MockFunction]}
     onModalHide={[Function]}
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
     onRequestClose={[Function]}
+    onSwipeComplete={[MockFunction]}
     panResponderThreshold={4}
     scrollHorizontal={false}
     scrollOffset={0}
@@ -68,10 +69,11 @@ exports[`NetworkDetails renders correctly 1`] = `
       deviceHeight={null}
       deviceWidth={null}
       hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
+      onBackdropPress={[MockFunction]}
       onModalHide={[Function]}
       onModalWillHide={[Function]}
       onModalWillShow={[Function]}
+      onSwipeComplete={[MockFunction]}
       panResponderThreshold={4}
       pointerEvents="box-none"
       scrollHorizontal={false}
@@ -148,7 +150,6 @@ exports[`NetworkDetails renders correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#ffffff",
                       "flexDirection": "row",
                       "gap": 16,
                       "padding": 16,
@@ -295,23 +296,25 @@ exports[`NetworkDetails renders correctly 1`] = `
                   </Text>
                   <RCTScrollView
                     collapsable={false}
+                    contentContainerStyle={
+                      {
+                        "paddingBottom": 24,
+                      }
+                    }
                     handlerTag={1}
                     handlerType="NativeViewGestureHandler"
                     nestedScrollEnabled={true}
                     onGestureHandlerEvent={[Function]}
                     onGestureHandlerStateChange={[Function]}
-                    onLayout={[Function]}
                     style={
-                      [
-                        {
-                          "borderColor": "#b7bbc8",
-                          "borderRadius": 10,
-                          "borderWidth": 1,
-                          "marginVertical": 16,
-                          "padding": 16,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 10,
+                        "borderWidth": 1,
+                        "flex": 1,
+                        "marginVertical": 16,
+                        "padding": 16,
+                      }
                     }
                   >
                     <View>
@@ -383,67 +386,92 @@ exports[`NetworkDetails renders correctly 1`] = `
                       >
                         https://localhost:8545
                       </Text>
-                      <TouchableOpacity
-                        activeOpacity={0.5}
-                        onPress={[Function]}
+                      <Text
+                        accessibilityRole="text"
                         style={
                           {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "height": 24,
-                            "justifyContent": "center",
+                            "color": "#121314",
+                            "fontFamily": "Geist Medium",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
                           }
                         }
-                        testID="accordionheader"
                       >
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                        Chain ID
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "marginBottom": 8,
                           }
-                          testID="accordionheader-title"
-                        >
-                          View details
-                        </Text>
-                        <View
-                          style={
-                            [
-                              {
-                                "marginLeft": 4,
-                              },
-                              {
-                                "transform": [
-                                  {
-                                    "rotate": "0deg",
-                                  },
-                                ],
-                              },
-                            ]
+                        }
+                      >
+                        1
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Medium",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
                           }
-                          testID="accordionheader-arrow-icon-animation"
-                        >
-                          <SvgMock
-                            color="#4459ff"
-                            fill="currentColor"
-                            height={16}
-                            name="ArrowDown"
-                            style={
-                              {
-                                "height": 16,
-                                "width": 16,
-                              }
-                            }
-                            testID="accordionheader-arrow-icon"
-                            width={16}
-                          />
-                        </View>
-                      </TouchableOpacity>
+                        }
+                      >
+                        Display name
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "marginBottom": 8,
+                          }
+                        }
+                      >
+                        Test Network
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Medium",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        Block explorer URL
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        https://test.com
+                      </Text>
                     </View>
                   </RCTScrollView>
                 </View>
@@ -451,7 +479,6 @@ exports[`NetworkDetails renders correctly 1`] = `
               <View
                 style={
                   {
-                    "backgroundColor": "#ffffff",
                     "flexDirection": "row",
                     "paddingHorizontal": 8,
                     "paddingVertical": 4,

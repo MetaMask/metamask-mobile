@@ -44,10 +44,6 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
-  "PPOMController": {
-    "storageMetadata": [],
-    "versionInfo": []
-  },
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
@@ -63,7 +59,12 @@
   },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
-    "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
+    "networksMetadata": {
+      "mainnet": {
+        "status": "unknown",
+        "EIPS": {}
+      }
+    },
     "networkConfigurationsByChainId": {
       "0x1": {
         "blockExplorerUrls": [],
@@ -109,6 +110,66 @@
             "networkClientId": "monad-testnet",
             "type": "custom",
             "url": "https://testnet-rpc.monad.xyz"
+          }
+        ]
+      },
+      "0x38": {
+        "blockExplorerUrls": [],
+        "chainId": "0x38",
+        "defaultRpcEndpointIndex": 0,
+        "name": "BNB Chain",
+        "nativeCurrency": "BNB",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "bsc-mainnet",
+            "type": "infura",
+            "url": "https://bsc-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x89": {
+        "blockExplorerUrls": [],
+        "chainId": "0x89",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Polygon",
+        "nativeCurrency": "POL",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "polygon-mainnet",
+            "type": "infura",
+            "url": "https://polygon-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xa": {
+        "blockExplorerUrls": [],
+        "chainId": "0xa",
+        "defaultRpcEndpointIndex": 0,
+        "name": "OP",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "optimism-mainnet",
+            "type": "infura",
+            "url": "https://optimism-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xa4b1": {
+        "blockExplorerUrls": [],
+        "chainId": "0xa4b1",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Arbitrum",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "arbitrum-mainnet",
+            "type": "infura",
+            "url": "https://arbitrum-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
       },
@@ -188,6 +249,11 @@
         "0x18c6": false,
         "0x2105": true,
         "0x279f": false,
+        "0x38": true,
+        "0x531": true,
+        "0x89": true,
+        "0xa": true,
+        "0xa4b1": true,
         "0xaa36a7": false,
         "0xe705": false,
         "0xe708": true
@@ -205,12 +271,15 @@
     }
   },
   "PhishingController": {
+    "addressScanCache": {},
     "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0,
-    "urlScanCache": {}
+    "tokenScanCache": {},
+    "urlScanCache": {},
+    "whitelistPaths": {}
   },
   "PreferencesController": {
     "featureFlags": {},
@@ -238,6 +307,7 @@
       "0xa869": true,
       "0xaa37dc": true,
       "0x89": true,
+      "0x8f": true,
       "0x13881": true,
       "0xa86a": true,
       "0xfa": true,
@@ -398,15 +468,24 @@
   "PerpsController": {
     "activeProvider": "hyperliquid",
     "isTestnet": false,
+    "initializationState": "uninitialized",
+    "initializationError": null,
+    "initializationAttempts": 0,
     "connectionStatus": "disconnected",
     "positions": [],
     "accountState": null,
-    "pendingOrders": [],
     "depositInProgress": false,
+    "depositRequests": [],
     "lastDepositTransactionId": null,
     "lastDepositResult": null,
-    "lastWithdrawResult": null,
     "withdrawInProgress": false,
+    "withdrawalRequests": [],
+    "withdrawalProgress": {
+      "progress": 0,
+      "lastUpdated": 0,
+      "activeWithdrawalId": null
+    },
+    "lastWithdrawResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
@@ -418,6 +497,10 @@
       "testnet": false,
       "mainnet": false
     },
+    "watchlistMarkets": [],
+    "tradeConfigurations": {},
+    "marketFilterPreferences": {},
+    "hip3ConfigVersion": 0,
     "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
@@ -459,6 +542,13 @@
     "isPushEnabled": true,
     "isUpdatingFCMToken": false
   },
+  "TransactionPayController": {
+    "transactionData": {}
+  },
+  "ProfileMetricsController": {
+    "initialEnqueueCompleted": false,
+    "syncQueue": {}
+  },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
@@ -468,20 +558,6 @@
   },
   "MultichainBalancesController": {
     "balances": {}
-  },
-  "RatesController": {
-    "cryptocurrencies": ["btc", "sol"],
-    "fiatCurrency": "usd",
-    "rates": {
-      "btc": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      },
-      "sol": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      }
-    }
   },
   "MultichainNetworkController": {
     "isEvmSelected": true,
@@ -561,7 +637,8 @@
   },
   "MultichainAssetsController": {
     "accountsAssets": {},
-    "assetsMetadata": {}
+    "assetsMetadata": {},
+    "allIgnoredAssets": {}
   },
   "BridgeController": {
     "assetExchangeRates": {},
@@ -638,6 +715,9 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "SamplePetnamesController": {
+    "namesByChainIdAndAddress": {}
+  },
   "RewardsController": {
     "accounts": {},
     "activeAccount": null,
@@ -653,8 +733,10 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "claimTransaction": null,
-    "depositTransaction": null,
-    "isOnboarded": {}
+    "balances": {},
+    "claimablePositions": {},
+    "pendingDeposits": {},
+    "withdrawTransaction": null,
+    "accountMeta": {}
   }
 }

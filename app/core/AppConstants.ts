@@ -39,6 +39,8 @@ export default {
   },
   CARD: {
     URL: 'https://card.metamask.io',
+    TRAVEL_URL: 'https://travel.metamask.io/access',
+    CARD_TOS_URL: 'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
   },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
@@ -73,9 +75,11 @@ export default {
     POLLING_FREQUENCY: 10000,
   },
   DEEPLINKS: {
+    ORIGIN_CAROUSEL: 'carousel',
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
     ORIGIN_NOTIFICATION: 'notifications',
+    ORIGIN_IN_APP_BROWSER: 'in-app-browser',
   },
   WALLET_CONNECT: {
     //One day in hours
@@ -104,7 +108,7 @@ export default {
     POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
     DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
-    DEFAULT_SLIPPAGE_BRIDGE: 0.5,
+    DEFAULT_SLIPPAGE_BRIDGE: 2,
     DEFAULT_SLIPPAGE_SOLANA: undefined,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
@@ -170,7 +174,7 @@ export default {
   },
   BAANX_API_URL: {
     DEV: 'https://foxdev2-ag.foxcard.io',
-    UAT: 'https://foxuat2-ag.foxcard.io',
+    UAT: 'https://dev.api.baanx.com',
     PRD: 'https://api.baanx.com',
   },
   ERRORS: {
@@ -240,8 +244,6 @@ export default {
       'https://legal.consensys.io/plain/terms-of-use/',
   },
   FAVICON_CACHE_MAX_SIZE: 100,
-  PPOM_INITIALISATION_STATE_CHANGE_EVENT:
-    'PPOMController:initialisationStateChangeEvent',
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
     'token-api',
     'token.api',
@@ -264,4 +266,6 @@ export default {
   TOKEN_DISCOVERY_BROWSER_ENABLED:
     process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
   EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3',
+  DELEGATION_MANAGER_ADDRESS: '0xdb9B1e94B5b69Df7e401DDbedE43491141047dB3',
+  GASLESS_7702_ENFORCER_ADDRESS: '0x00e0251aaA263dfE3B3541B758A82D1CBA1c3B6D',
 } as const;

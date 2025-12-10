@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Image, ActivityIndicator, Linking } from 'react-native';
+import { Image, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useOptin } from '../../hooks/useOptIn';
@@ -9,7 +9,6 @@ import {
   Text,
   TextVariant,
   BoxAlignItems,
-  BoxFlexDirection,
   IconSize,
   Icon,
   IconName,
@@ -23,21 +22,19 @@ import TextField, {
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
+import { selectOnboardingReferralCode } from '../../../../../reducers/rewards/selectors';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import {
-  REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
-  REWARDS_ONBOARD_TERMS_URL,
-} from './constants';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import RewardsLegalDisclaimer from './RewardsLegalDisclaimer';
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const onboardingReferralCode = useSelector(selectOnboardingReferralCode);
   const navigation = useNavigation();
   const { optin, optinError, optinLoading } = useOptin();
-  const urlParams = useParams<{ isFromDeeplink: boolean; referral?: string }>();
+
   const {
     referralCode,
     setReferralCode: handleReferralCodeChange,
@@ -45,14 +42,12 @@ const OnboardingStep4: React.FC = () => {
     isValid: referralCodeIsValid,
     isUnknownError: isUnknownErrorReferralCode,
   } = useValidateReferralCode(
-    urlParams?.isFromDeeplink && urlParams?.referral
-      ? urlParams.referral.trim().toUpperCase()
+    onboardingReferralCode
+      ? onboardingReferralCode.trim().toUpperCase()
       : undefined,
   );
 
-  const isPrefilledReferral = Boolean(
-    urlParams?.isFromDeeplink && urlParams?.referral,
-  );
+  const isPrefilledReferral = Boolean(onboardingReferralCode);
 
   const handleNext = useCallback(() => {
     optin({ referralCode, isPrefilled: isPrefilledReferral });
@@ -171,48 +166,14 @@ const OnboardingStep4: React.FC = () => {
     </Box>
   );
 
-  const renderLegalDisclaimer = () => {
-    const openTermsOfUse = () => {
-      Linking.openURL(REWARDS_ONBOARD_TERMS_URL);
-    };
-
-    const openLearnMore = () => {
-      Linking.openURL(REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL);
-    };
-
-    return (
-      <Box twClassName="w-full flex-row mt-4">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="justify-center flex-wrap gap-2"
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-alternative text-center"
-          >
-            {strings('rewards.onboarding.step4_legal_disclaimer_1')}{' '}
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-primary-default"
-              onPress={openTermsOfUse}
-            >
-              {strings('rewards.onboarding.step4_legal_disclaimer_2')}
-            </Text>
-            {strings('rewards.onboarding.step4_legal_disclaimer_3')}{' '}
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-primary-default"
-              onPress={openLearnMore}
-            >
-              {strings('rewards.onboarding.step4_legal_disclaimer_4')}
-            </Text>
-            .{' '}
-          </Text>
-        </Box>
-      </Box>
-    );
-  };
+  const renderLegalDisclaimer = () => (
+    <RewardsLegalDisclaimer
+      disclaimerPart1={strings('rewards.onboarding.step4_legal_disclaimer_1')}
+      disclaimerPart2={strings('rewards.onboarding.step4_legal_disclaimer_2')}
+      disclaimerPart3={strings('rewards.onboarding.step4_legal_disclaimer_3')}
+      disclaimerPart4={strings('rewards.onboarding.step4_legal_disclaimer_4')}
+    />
+  );
 
   let onNextLoadingText = '';
   if (optinLoading) {

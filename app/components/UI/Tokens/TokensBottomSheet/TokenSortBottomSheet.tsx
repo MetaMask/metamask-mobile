@@ -57,7 +57,7 @@ const TokenSortBottomSheet = () => {
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
-      <View style={styles.bottomSheetWrapper}>
+      <View>
         <Text
           testID={WalletViewSelectorsIDs.SORT_BY}
           variant={TextVariant.HeadingMD}

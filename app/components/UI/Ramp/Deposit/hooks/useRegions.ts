@@ -2,11 +2,13 @@ import {
   DepositSdkMethodQuery,
   useDepositSdkMethod,
 } from './useDepositSdkMethod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDepositSDK } from '../sdk';
 import { DepositRegion } from '@consensys/native-ramps-sdk';
+import { useDepositUser } from './useDepositUser';
 
 export interface UseRegionsResult {
+  userRegionLocked: boolean;
   regions: DepositRegion[] | null;
   isFetching: boolean;
   error: string | null;
@@ -14,14 +16,31 @@ export interface UseRegionsResult {
 }
 
 export function useRegions(): UseRegionsResult {
-  const { selectedRegion, setSelectedRegion } = useDepositSDK();
+  const { selectedRegion, setSelectedRegion, isAuthenticated } =
+    useDepositSDK();
   const [{ data: regions, error, isFetching }, retryFetchRegions] =
     useDepositSdkMethod('getCountries');
 
-  useEffect(() => {
-    if (regions && regions.length > 0) {
-      let newSelectedRegion: DepositRegion | null = null;
+  const { userDetails } = useDepositUser();
+  const [userRegionLocked, setUserRegionLocked] = useState<boolean>(false);
 
+  useEffect(() => {
+    setUserRegionLocked(false);
+
+    if (regions && regions.length > 0) {
+      if (isAuthenticated && userDetails?.address?.countryCode) {
+        const userRegion = regions.find(
+          (region) => region.isoCode === userDetails.address.countryCode,
+        );
+
+        if (userRegion) {
+          setSelectedRegion(userRegion);
+          setUserRegionLocked(true);
+          return;
+        }
+      }
+
+      let newSelectedRegion: DepositRegion | null = null;
       if (selectedRegion) {
         newSelectedRegion =
           regions.find((region) => region.isoCode === selectedRegion.isoCode) ||
@@ -39,9 +58,16 @@ export function useRegions(): UseRegionsResult {
         setSelectedRegion(newSelectedRegion);
       }
     }
-  }, [regions, selectedRegion, setSelectedRegion]);
+  }, [
+    regions,
+    selectedRegion,
+    setSelectedRegion,
+    isAuthenticated,
+    userDetails,
+  ]);
 
   return {
+    userRegionLocked,
     regions,
     isFetching,
     error,

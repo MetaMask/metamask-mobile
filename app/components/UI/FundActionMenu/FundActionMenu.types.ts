@@ -18,7 +18,7 @@ export type FundActionMenuRouteProp = RouteProp<
 >;
 
 export interface ActionConfig {
-  type: 'deposit' | 'buy' | 'sell';
+  type: 'deposit' | 'buy' | 'sell' | 'buy-unified';
   label: string;
   description: string;
   iconName: IconName;
@@ -26,7 +26,7 @@ export interface ActionConfig {
   isVisible: boolean;
   isDisabled?: boolean;
   analyticsEvent: IMetaMetricsEvent;
-  analyticsProperties: Record<string, string | number>;
+  analyticsProperties: Record<string, string | number | boolean | undefined>;
   traceName: TraceName;
   traceProperties?: Record<
     string,

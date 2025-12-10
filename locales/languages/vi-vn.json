@@ -439,8 +439,6 @@
     "privacy_mode_desc": "Các trang web phải yêu cầu quyền truy cập để xem thông tin tài khoản của bạn.",
     "show_hex_data": "Hiển thị dữ liệu thập lục phân",
     "show_hex_data_desc": "Chọn tùy chọn này để hiển thị trường dữ liệu thập lục phân trên màn hình gửi.",
-    "show_custom_nonce": "Tùy chỉnh số chỉ dùng một lần của giao dịch",
-    "custom_nonce_desc": "Bật tùy chọn này để thay đổi số dùng một lần (số giao dịch) trên màn hình xác nhận. Đây là tính năng nâng cao, hãy dùng một cách thận trọng.",
     "accounts_identicon_title": "Biểu tượng nhận dạng tài khoản",
     "accounts_identicon_desc": "Jazzicons và Blockies là hai kiểu biểu tượng duy nhất, giúp bạn ngay lập tức nhận dạng được một tài khoản.",
     "jazzicons": "Jazzicons",

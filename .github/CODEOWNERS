@@ -40,8 +40,11 @@ app/core/Engine/index.ts                                    @MetaMask/mobile-pla
 app/core/Engine/README.md                                   @MetaMask/mobile-platform
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
-app/core/DeeplinkManager   @MetaMask/mobile-platform
-app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts @MetaMask/perps
+app/core/DeeplinkManager                                    @MetaMask/mobile-platform
+scripts/build.sh                                            @MetaMask/mobile-platform
+fingerprint.config.js                                       @MetaMask/mobile-platform
+scripts/update-expo-channel.js                              @MetaMask/mobile-admins
+certs/certificate.pem                                       @MetaMask/mobile-admins
 
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
@@ -62,7 +65,6 @@ app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmati
 app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
 app/core/Engine/controllers/transaction-controller          @MetaMask/confirmations
 app/core/Analytics/events/confirmations                     @MetaMask/confirmations
-ppom                                                        @MetaMask/confirmations
 app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
 
 # Wallet integrations Team
@@ -98,7 +100,7 @@ app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-e
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
-app/components/UI/Bridge              @MetaMask/swaps-engineers
+app/components/UI/Bridge             @MetaMask/swaps-engineers
 
 # Notifications Team
 app/components/Views/Notifications @MetaMask/notifications
@@ -145,8 +147,17 @@ app/components/UI/Perps/             @MetaMask/perps
 app/components/UI/WalletAction/*perps* @MetaMask/perps
 app/core/Engine/controllers/perps-controller @MetaMask/perps
 app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
+app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
+
+# Predict Team
+app/components/UI/Predict/                                    @MetaMask/predict
+app/core/Engine/controllers/predict-controller                @MetaMask/predict
+app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
+app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts  @MetaMask/predict
+**/Predict/**                                                 @MetaMask/predict
+**/predict/**                                                 @MetaMask/predict
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
@@ -183,25 +194,29 @@ app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamas
 app/selectors/assets @MetaMask/metamask-assets
 
 # UX Team
-app/components/Views/AccountActions @MetaMask/mobile-core-ux
-app/components/Views/AccountSelector @MetaMask/mobile-core-ux
-app/components/Views/AddressQRCode @MetaMask/mobile-core-ux
-app/components/Views/EditAccountName @MetaMask/mobile-core-ux
-app/components/Views/LockScreen @MetaMask/mobile-core-ux
-app/components/Views/Login @MetaMask/mobile-core-ux
-app/components/Views/NetworkConnect @MetaMask/mobile-core-ux
-app/components/Views/NetworkSelector @MetaMask/mobile-core-ux
-app/components/Views/OnboardingCarousel @MetaMask/mobile-core-ux
-app/components/Views/OnboardingSuccess @MetaMask/mobile-core-ux
-app/components/Views/QRAccountDisplay @MetaMask/mobile-core-ux
-app/components/Views/QRScanner @MetaMask/mobile-core-ux
-app/components/Views/Settings @MetaMask/mobile-core-ux
-app/components/Views/TermsAndConditions @MetaMask/mobile-core-ux
-app/reducers/experimentalSettings @MetaMask/mobile-core-ux
-app/reducers/modals @MetaMask/mobile-core-ux
-app/reducers/navigation @MetaMask/mobile-core-ux
-app/reducers/privacy @MetaMask/mobile-core-ux
-app/reducers/settings @MetaMask/mobile-core-ux
+app/components/Views/AccountActions              @MetaMask/mobile-core-ux
+app/components/Views/AccountSelector             @MetaMask/mobile-core-ux
+app/components/Views/AddressQRCode               @MetaMask/mobile-core-ux
+app/components/Views/EditAccountName             @MetaMask/mobile-core-ux
+app/components/Views/LockScreen                  @MetaMask/mobile-core-ux
+app/components/Views/Login                       @MetaMask/mobile-core-ux
+app/components/Views/NetworkConnect              @MetaMask/mobile-core-ux
+app/components/Views/NetworkSelector             @MetaMask/mobile-core-ux
+app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
+app/components/Views/QRScanner                   @MetaMask/mobile-core-ux
+app/components/Views/Settings                    @MetaMask/mobile-core-ux
+app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
+app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
+app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
+app/components/UI/MultichainTransactionListItem  @MetaMask/mobile-core-ux
+app/components/UI/TransactionActionModal         @MetaMask/mobile-core-ux
+app/components/UI/TransactionElement             @MetaMask/mobile-core-ux
+app/components/UI/Transactions                   @MetaMask/mobile-core-ux
+app/reducers/experimentalSettings                @MetaMask/mobile-core-ux
+app/reducers/modals                              @MetaMask/mobile-core-ux
+app/reducers/navigation                          @MetaMask/mobile-core-ux
+app/reducers/privacy                             @MetaMask/mobile-core-ux
+app/reducers/settings                            @MetaMask/mobile-core-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
@@ -211,11 +226,14 @@ app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/we
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
+app/components/Views/OnboardingCarousel                     @MetaMask/web3auth
+app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 
 # Delegation team
-app/core/Engine/controllers/gator-permissions-controller    @MetaMask/delegation
-app/core/Engine/messengers/gator-permissions-controller-messenger      @MetaMask/delegation
+app/core/Engine/controllers/gator-permissions-controller              @MetaMask/delegation
+app/core/Engine/messengers/gator-permissions-controller-messenger     @MetaMask/delegation
+
 # QA Team - E2E Framework
 e2e/api-mocking/                             @MetaMask/qa
 e2e/fixtures/                                @MetaMask/qa
@@ -223,6 +241,10 @@ e2e/framework/                               @MetaMask/qa
 e2e/pages/                                   @MetaMask/qa
 e2e/utils/                                   @MetaMask/qa
 e2e/viewHelper.ts                            @MetaMask/qa
+
+# Co-owned by Swaps and Ramps teams
+app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/ramp
+app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/ramp
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

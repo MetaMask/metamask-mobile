@@ -1,5 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { RefreshControl } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
@@ -8,26 +9,47 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList, FlashListProps } from '@shopify/flash-list';
 import styleSheet from './MarketListContent.styles';
 import {
   PredictCategory,
   PredictMarket as PredictMarketType,
 } from '../../types';
+import { PredictEntryPoint } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../PredictMarket';
+import PredictMarketSkeleton from '../PredictMarketSkeleton';
 import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
-
+import { ScrollCoordinator } from '../../types/scrollCoordinator';
+import PredictOffline from '../PredictOffline';
+import { strings } from '../../../../../../locales/i18n';
+import PredictionsDark from '../../../../../images/predictions-no-search-results-dark.svg';
+import PredictionsLight from '../../../../../images/predictions-no-search-results-light.svg';
+import { useAssetFromTheme } from '../../../../../util/theme';
 interface MarketListContentProps {
   q?: string;
   category: PredictCategory;
+  entryPoint?: PredictEntryPoint;
+  scrollCoordinator?: ScrollCoordinator;
 }
+
+// create once at module scope to avoid remounting on each render
+type PredictFlashListProps = FlashListProps<PredictMarketType>;
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList as unknown as React.ComponentType<PredictFlashListProps>,
+) as unknown as React.ComponentType<PredictFlashListProps>;
 
 const MarketListContent: React.FC<MarketListContentProps> = ({
   category,
   q,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  scrollCoordinator,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const ThemedPredictions = useAssetFromTheme(
+    PredictionsLight,
+    PredictionsDark,
+  );
   const tw = useTailwind();
   const {
     marketData,
@@ -39,21 +61,22 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     fetchMore,
   } = usePredictMarketData({ category, q, pageSize: 20 });
 
-  const listRef = useRef<FlashListRef<PredictMarketType>>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const scrollHandler = scrollCoordinator?.getScrollHandler(category);
+
   const renderItem = useCallback(
-    ({ item, index }: { item: PredictMarketType; index: number }) => (
+    (info: { item: PredictMarketType; index: number }) => (
       <PredictMarket
-        key={item.id}
-        market={item}
+        market={info.item}
+        entryPoint={entryPoint}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
-          index + 1,
+          info.index + 1,
         )}
       />
     ),
-    [category],
+    [category, entryPoint],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -77,71 +100,42 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     if (!isFetchingMore) return null;
 
     return (
-      <Box twClassName="py-4">
-        <Skeleton
-          testID="skeleton-footer-1"
-          height={40}
-          width={'80%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-footer-2"
-          height={40}
-          width={'60%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-footer-3"
-          height={40}
-          width={'40%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-footer-4"
-          height={40}
-          width={'20%'}
-          style={styles.skeleton}
-        />
+      <Box twClassName="py-2">
+        <PredictMarketSkeleton testID="skeleton-footer-1" />
+        <PredictMarketSkeleton testID="skeleton-footer-2" />
       </Box>
     );
-  }, [isFetchingMore, styles.skeleton]);
+  }, [isFetchingMore]);
 
   if (isFetching) {
     return (
-      <Box style={styles.loadingContainer}>
-        <Skeleton
-          testID="skeleton-loading-1"
-          height={60}
-          width={'100%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-loading-2"
-          height={60}
-          width={'60%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-loading-3"
-          height={60}
-          width={'40%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-loading-4"
-          height={60}
-          width={'20%'}
-          style={styles.skeleton}
-        />
+      <Box style={styles.loadingContainer} twClassName="py-2 px-4">
+        <PredictMarketSkeleton testID="skeleton-loading-1" />
+        <PredictMarketSkeleton testID="skeleton-loading-2" />
+        <PredictMarketSkeleton testID="skeleton-loading-3" />
+        <PredictMarketSkeleton testID="skeleton-loading-4" />
       </Box>
     );
   }
 
   if (error) {
+    return <PredictOffline onRetry={handleRefresh} />;
+  }
+
+  if (q && q.length > 0 && marketData.length === 0) {
     return (
-      <Box style={styles.errorContainer}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
-          Error: {error}
+      <Box
+        testID={getPredictMarketListSelector.emptyState()}
+        style={styles.emptySearchContainer}
+      >
+        <ThemedPredictions
+          testID="icon"
+          width={100}
+          height={100}
+          style={tw.style('mb-4')}
+        />
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {strings('predict.search_no_markets_found', { q })}
         </Text>
       </Box>
     );
@@ -154,15 +148,36 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
         style={styles.emptyContainer}
       >
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          No {category} markets available
+          {strings('predict.search_empty_state', { category })}
         </Text>
       </Box>
     );
   }
 
+  if (scrollCoordinator && scrollHandler) {
+    return (
+      <AnimatedFlashList
+        data={marketData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.7}
+        ListFooterComponent={renderFooter}
+        onScroll={scrollHandler as never}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+        contentContainerStyle={tw.style('pt-2 pb-4 px-4')}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        getItemType={() => 'market'}
+      />
+    );
+  }
+
   return (
     <FlashList
-      ref={listRef}
       data={marketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -172,7 +187,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }
-      contentContainerStyle={tw.style('pb-5')}
+      contentContainerStyle={tw.style('pt-4 pb-5 px-4')}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       getItemType={() => 'market'}

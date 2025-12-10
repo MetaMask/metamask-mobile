@@ -562,7 +562,101 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         }
                                       }
                                       accessible={true}
-                                      focusable={true}
+                                      focusable={false}
+                                      onClick={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#b7bbc8",
+                                          "borderRadius": 8,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 0,
+                                          "left": 0,
+                                          "opacity": 0,
+                                          "paddingHorizontal": 16,
+                                          "position": "absolute",
+                                          "top": 0,
+                                        }
+                                      }
+                                      testID="textfield"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "backgroundColor": "inherit",
+                                              "height": 38,
+                                            },
+                                            {
+                                              "flex": 1,
+                                            },
+                                          ]
+                                        }
+                                      >
+                                        <TextInput
+                                          autoCapitalize="none"
+                                          autoComplete="off"
+                                          autoCorrect={false}
+                                          autoFocus={false}
+                                          editable={true}
+                                          keyboardType="default"
+                                          onBlur={[Function]}
+                                          onChangeText={[Function]}
+                                          onFocus={[Function]}
+                                          onKeyPress={[Function]}
+                                          onSelectionChange={[Function]}
+                                          onSubmitEditing={[Function]}
+                                          placeholder=""
+                                          placeholderTextColor="#b7bbc8"
+                                          showSoftInputOnFocus={true}
+                                          spellCheck={false}
+                                          style={
+                                            {
+                                              "backgroundColor": "transparent",
+                                              "borderColor": "transparent",
+                                              "borderWidth": 1,
+                                              "color": "#686e7d",
+                                              "display": "flex",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "height": 66,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 20,
+                                              "opacity": 1,
+                                              "paddingBottom": 12,
+                                              "paddingTop": 12,
+                                              "paddingVertical": 0,
+                                            }
+                                          }
+                                          submitBehavior="submit"
+                                          testID="import-from-seed-screen-seed-phrase-input-id_0"
+                                          textAlignVertical="top"
+                                          textContentType="oneTimeCode"
+                                          value=""
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      focusable={false}
                                       onClick={[Function]}
                                       onResponderGrant={[Function]}
                                       onResponderMove={[Function]}
@@ -608,12 +702,11 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           editable={true}
                                           keyboardType="default"
                                           multiline={true}
-                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onKeyPress={[Function]}
-                                          onSubmitEditing={[Function]}
+                                          onSelectionChange={[Function]}
                                           placeholder="Add a space between each word and make sure no one is watching."
                                           placeholderTextColor="#686e7d"
                                           showSoftInputOnFocus={true}
@@ -630,7 +723,10 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "fontWeight": "400",
                                               "height": 66,
                                               "letterSpacing": 0,
+                                              "lineHeight": 20,
                                               "opacity": 1,
+                                              "paddingBottom": 12,
+                                              "paddingTop": 12,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -679,6 +775,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                 accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
+                                onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={

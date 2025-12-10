@@ -25,7 +25,7 @@ const createTransaction = (
     type,
     hash,
     txParams: value ? { value } : undefined,
-  } as unknown as TransactionMeta);
+  }) as unknown as TransactionMeta;
 
 describe('filterDuplicateOutgoingTransactions', () => {
   describe('Edge Cases', () => {

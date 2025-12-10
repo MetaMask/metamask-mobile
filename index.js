@@ -8,6 +8,9 @@ import 'react-native-gesture-handler';
 // why-did-you-render must run as early as possible (after gesture-handler) in dev
 import './wdyr';
 
+// Required for EAS Updates to resolve assets (.riv, .png, etc.) from OTA bundles
+import 'expo-asset';
+
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
 import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';
@@ -86,6 +89,7 @@ LogBox.ignoreLogs([
   "ViewPropTypes will be removed from React Native, along with all other PropTypes. We recommend that you migrate away from PropTypes and switch to a type system like TypeScript. If you need to continue using ViewPropTypes, migrate to the 'deprecated-react-native-prop-types' package.",
   'ReactImageView: Image source "null"',
   'Warning: componentWillReceiveProps has been renamed',
+  'You passed a server string as an argument to one of the react-native-keychain functions',
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;

@@ -439,8 +439,6 @@
     "privacy_mode_desc": "Os websites devem solicitar acesso para exibir as informações da sua conta.",
     "show_hex_data": "Mostrar dados hexadecimais",
     "show_hex_data_desc": "Selecione esta opção para mostrar o campo de dados hexadecimais na tela de envio.",
-    "show_custom_nonce": "Personalizar nonce da transação",
-    "custom_nonce_desc": "Ative isso para alterar o nonce (número da transação) nas telas de confirmação. Esse é um recurso avançado; use com cautela.",
     "accounts_identicon_title": "Identicon da conta",
     "accounts_identicon_desc": "Jazzicons e Blockies são dois estilos diferentes de ícones exclusivos que ajudam você a identificar uma conta rapidamente.",
     "jazzicons": "Jazzicons",

@@ -24,12 +24,12 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
     description: {
       start: strings(
         `notifications.menu_item_description.${notification.type}`,
-        { symbol: notification.data.staked_eth.symbol },
+        { symbol: notification.payload.data.staked_eth.symbol },
       ),
     },
 
     image: {
-      url: notification.data.staked_eth.image,
+      url: notification.payload.data.staked_eth.image,
     },
 
     badgeIcon: getNotificationBadge(notification.type),
@@ -38,7 +38,7 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.chain_id,
+      notification.payload.chain_id,
     );
 
     return {
@@ -48,37 +48,37 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
         {
           type: ModalFieldType.ADDRESS,
           label: strings('notifications.modal.label_account'),
-          address: notification.address,
+          address: notification.payload.address,
         },
         {
           type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_unstake_ready'),
-          description: notification.data.staked_eth.symbol,
+          description: notification.payload.data.staked_eth.symbol,
           amount: `${formatAmount(
-            parseFloat(notification.data.staked_eth.amount),
+            parseFloat(notification.payload.data.staked_eth.amount),
             { shouldEllipse: true },
-          )} ${notification.data.staked_eth.symbol}`,
+          )} ${notification.payload.data.staked_eth.symbol}`,
           usdAmount: `$${formatAmount(
-            parseFloat(notification.data.staked_eth.usd),
+            parseFloat(notification.payload.data.staked_eth.usd),
             { shouldEllipse: true },
           )}`,
-          tokenIconUrl: notification.data.staked_eth.image,
+          tokenIconUrl: notification.payload.data.staked_eth.image,
           tokenNetworkUrl: nativeTokenDetails?.image,
         },
         {
           type: ModalFieldType.TRANSACTION,
-          txHash: notification.tx_hash,
+          txHash: notification.payload.tx_hash,
         },
         {
           type: ModalFieldType.STAKING_PROVIDER,
-          stakingProvider: notification.data.staked_eth.symbol,
-          tokenIconUrl: notification.data.staked_eth.image,
+          stakingProvider: notification.payload.data.staked_eth.symbol,
+          tokenIconUrl: notification.payload.data.staked_eth.image,
         },
       ],
       footer: {
         type: ModalFooterType.BLOCK_EXPLORER,
-        chainId: notification.chain_id,
-        txHash: notification.tx_hash,
+        chainId: notification.payload.chain_id,
+        txHash: notification.payload.tx_hash,
       },
     };
   },

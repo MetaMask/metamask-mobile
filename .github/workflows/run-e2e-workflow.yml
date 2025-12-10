@@ -15,7 +15,7 @@ on:
         required: true
         type: string
       test_suite_tag:
-        description: 'The Cucumber tag expression to use for filtering tests'
+        description: 'The tests tag expression to use for filtering tests'
         required: true
         type: string
       split_number:
@@ -42,7 +42,7 @@ on:
         description: 'The environment to build for'
         required: false
         type: string
-        default: 'qa'
+        default: 'e2e'
       changed_files:
         description: 'Changed files'
         required: false
@@ -53,9 +53,6 @@ jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
-      cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -80,7 +77,6 @@ jobs:
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEEDLESS_ONBOARDING_ENABLED: 'true'
-      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
@@ -113,7 +109,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -187,75 +183,53 @@ jobs:
         with:
           path: artifacts/
 
-      - name: Run E2E tests
+      - name: 🧪 Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: |
-          platform="${{ inputs.platform }}"
-          test_suite_tag="${{ inputs.test_suite_tag }}"
-
-          echo "🚀 Running ${{ inputs.test-suite-name }} tests on $platform"
-
-          # Validate required test suite tag
-          if [[ -z "$test_suite_tag" ]]; then
-            echo "❌ Error: test_suite_tag is required for non-api-specs tests"
-            exit 1
-          fi
-
-          export TEST_SUITE_TAG="$test_suite_tag"
-          echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
-
-          # Run tests (Detox/Jest handle retries internally)
-          echo "🚀 Starting E2E tests..."
+          echo "Running ${{ inputs.test-suite-name }} tests on ${{ inputs.platform }}"
+          echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
+          echo "Using TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}"
 
           # Always use the splitting script (handles both split and non-split cases)
-          echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
-
-          node .github/scripts/run-e2e-tags-gha.mjs
-
-          echo "✅ Test execution completed"
+          node .github/scripts/e2e-split-tags-shards.mjs
         env:
           JOB_NAME: ${{ inputs.test-suite-name }}
           RUN_ID: ${{ github.run_id }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 
-      - name: Upload test results
+      - name: Merge Detox JUnit reports
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "📊 Merging Detox JUnit XML reports..."
+
+          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y > /dev/null 2>&1
+          npm install xml2js@0.6.2 --no-audit --no-fund --silent
+
+          # Copy node_modules to workspace for script usage
+          cp -r node_modules ${{ github.workspace }}/
+          cd ${{ github.workspace }}
+
+          # Run merge script
+          node .github/scripts/e2e-merge-detox-junit-reports.mjs
+
+          # Clean up temporary node_modules
+          rm -rf node_modules temp-deps
+
+      - name: Upload JUnit XML results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-test-results
+          name: test-e2e-${{ inputs.test-suite-name }}-junit-results
           path: e2e/reports/
           retention-days: 7
 
-      - name: Prepare screenshots
-        if: failure()
-        run: |
-          echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
-
-          case "${{ inputs.platform }}" in
-            android)
-              KEEP_PREFIX="android"
-              ;;
-            ios)
-              KEEP_PREFIX="ios"
-              ;;
-            *)
-              echo "⚠️ Unknown platform '${{ inputs.platform }}'; skipping pruning to avoid accidental deletion."
-              exit 0
-              ;;
-          esac
-
-          # Remove all artifacts except the ones that match the keep prefix. We should later on improve this to avoid having rm -rf references.
-          find artifacts -mindepth 1 -prune \
-            ! -name "${KEEP_PREFIX}*" \
-            ! -name 'coverage-*' \
-            -exec echo "Removing:" {} \; \
-            -exec rm -rf {} + 2>/dev/null || true
-        continue-on-error: true
-
-      - name: Upload screenshots
+      - name: Upload Screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-screenshots
-          path: artifacts/
+          name: test-e2e-${{ inputs.test-suite-name }}-screenshots
+          path: e2e/artifacts/
           retention-days: 7

@@ -1,22 +1,37 @@
-import { BaseControllerMessenger } from '../../types';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import { MultichainNetworkControllerMessenger } from '@metamask/multichain-network-controller';
 
 /**
  * Get the MultichainNetworkControllerMessenger for the MultichainNetworkController.
  *
- * @param baseControllerMessenger - The base controller messenger.
+ * @param rootExtendedMessenger - The root extended messenger.
  * @returns The MultichainNetworkControllerMessenger.
  */
 export function getMultichainNetworkControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): MultichainNetworkControllerMessenger {
-  return baseControllerMessenger.getRestricted({
-    name: 'MultichainNetworkController',
-    allowedActions: [
+  const messenger = new Messenger<
+    'MultichainNetworkController',
+    MessengerActions<MultichainNetworkControllerMessenger>,
+    MessengerEvents<MultichainNetworkControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'MultichainNetworkController',
+    parent: rootExtendedMessenger,
+  });
+  rootExtendedMessenger.delegate({
+    actions: [
       'NetworkController:setActiveNetwork',
       'NetworkController:getState',
       'AccountsController:listMultichainAccounts',
     ],
-    allowedEvents: ['AccountsController:selectedAccountChange'],
+    events: ['AccountsController:selectedAccountChange'],
+    messenger,
   });
+  return messenger;
 }

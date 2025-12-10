@@ -30,7 +30,7 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByCatchAll(this._device, 'Create account');
+      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT);
     }
   }
 
@@ -42,13 +42,13 @@ class AccountListComponent {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
-      await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.scrollIntoView(this.device, this.addAccountButton, {scrollParams: {direction: 'down'}});
+      await AppwrightGestures.tap(this.addAccountButton); 
     }
   }
 
   async tapOnAddWalletButton() {
-    const element = await this.addWalletButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
+    await AppwrightGestures.tap(this.addWalletButton); // Use static tap method with retry logic
   }
 
   async isComponentDisplayed() {
@@ -71,7 +71,7 @@ class AccountListComponent {
   }
 
   async tapOnAccountByName(name) {
-    let account = await AppwrightSelectors.getElementByText(this.device, name);
+    const account = AppwrightSelectors.getElementByText(this.device, name);
     await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
     await AppwrightGestures.tap(account); // Tap after scrolling into view
   }

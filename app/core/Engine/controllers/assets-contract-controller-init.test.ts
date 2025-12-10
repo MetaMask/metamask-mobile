@@ -1,19 +1,22 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import {
-  getAssetsContractControllerMessenger,
-  type AssetsContractControllerMessenger,
-} from '../messengers/assets-contract-controller-messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getAssetsContractControllerMessenger } from '../messengers/assets-contract-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { assetsContractControllerInit } from './assets-contract-controller-init';
-import { AssetsContractController } from '@metamask/assets-controllers';
+import {
+  AssetsContractController,
+  type AssetsContractControllerMessenger,
+} from '@metamask/assets-controllers';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/assets-controllers');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<AssetsContractControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

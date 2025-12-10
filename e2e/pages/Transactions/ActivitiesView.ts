@@ -9,6 +9,17 @@ class ActivitiesView {
   get title(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
+  get predictionsTab(): DetoxElement {
+    return Matchers.getElementByLabel(
+      ActivitiesViewSelectorsText.PREDICTIONS_TAB,
+    );
+  }
+
+  get tabsBar(): DetoxElement {
+    return Matchers.getElementByID(
+      `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
+    );
+  }
 
   get container(): DetoxElement {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
@@ -111,6 +122,23 @@ class ActivitiesView {
   }
   async tapOnTransactionItem(row: number): Promise<void> {
     await Gestures.waitAndTap(this.transactionItem(row));
+  }
+  async tapOnPredictionsTab(): Promise<void> {
+    // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
+    await Gestures.swipe(this.tabsBar, 'left', {
+      percentage: 0.5,
+      speed: 'slow',
+      elemDescription: 'Activity View Tabs Bar',
+    });
+    await Gestures.waitAndTap(this.predictionsTab, {
+      elemDescription: 'Predictions Tab in Activity View',
+    });
+  }
+  async tapPredictPosition(positionName: string): Promise<void> {
+    const el = Matchers.getElementByText(positionName);
+    await Gestures.waitAndTap(el, {
+      elemDescription: `Tapping Predict Position: ${positionName}`,
+    });
   }
 }
 

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import type { OrderType, ClosePositionParams } from '../controllers/types';
-import { usePerpsTrading } from './usePerpsTrading';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import type { ClosePositionParams, OrderType } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionValidationParams {
   coin: string;
@@ -19,6 +19,7 @@ interface UsePerpsClosePositionValidationParams {
   remainingPositionValue: number; // Value remaining after close (kept for interface completeness)
   receiveAmount: number; // Amount user will receive after fees
   isPartialClose: boolean;
+  skipValidation?: boolean;
 }
 
 interface ValidationResult {
@@ -54,17 +55,12 @@ interface ValidationResult {
  * - Example: ERROR - Trying to close a $5 position (below $6 minimum on mainnet)
  * - Note: This shouldn't happen if positions were opened correctly
  *
- * 4. NEGATIVE RECEIVE AMOUNT
- * - When fees exceed the position value + P&L
- * - Example: ERROR - Position worth $10, fees are $12, user would receive -$2
- * - Protects users from paying to close losing positions
- *
- * 5. MISSING LIMIT PRICE (checked by protocol validation)
+ * 4. MISSING LIMIT PRICE (checked by protocol validation)
  * - Limit orders require a price to be specified
  * - Example: ERROR - Limit order with no price or price <= 0
  * - Note: This is validated by the provider, not duplicate-checked in UI
  *
- * 6. ZERO AMOUNT FOR MARKET ORDER
+ * 5. ZERO AMOUNT FOR MARKET ORDER
  * - Market orders with 0% close percentage
  * - Example: ERROR - Slider at 0% for market order
  *
@@ -83,6 +79,11 @@ interface ValidationResult {
  * - Example: WARNING - Closing only 5% of a $1,000 position ($50)
  * - Example: WARNING - Closing only 2% of a $5,000 position ($100)
  * - Useful for taking small profits but may not justify transaction costs
+ *
+ * 3. NEGATIVE RECEIVE AMOUNT
+ * - When fees exceed the recoverable value from the position
+ * - Example: WARNING - Closing will cost you $2 due to fees and losses
+ * - User can still proceed to close the position if they choose to exit
  *
  * ==========================================
  * SPECIAL BEHAVIORS:
@@ -107,6 +108,7 @@ export function usePerpsClosePositionValidation(
     receiveAmount,
     isPartialClose,
     positionValue,
+    skipValidation,
   } = params;
 
   const { validateClosePosition } = usePerpsTrading();
@@ -143,11 +145,10 @@ export function usePerpsClosePositionValidation(
       );
 
       // Start with protocol validation results
-      const errors: string[] = protocolValidation.isValid
-        ? []
-        : protocolValidation.error
-        ? [protocolValidation.error]
-        : [];
+      const errors: string[] = [];
+      if (!protocolValidation.isValid && protocolValidation.error) {
+        errors.push(protocolValidation.error);
+      }
       const warnings: string[] = [];
 
       // UI-specific validations that don't belong in the provider
@@ -168,14 +169,22 @@ export function usePerpsClosePositionValidation(
         );
       }
 
-      // Check if user will receive a positive amount after fees
-      if (receiveAmount <= 0) {
-        errors.push(strings('perps.close_position.negative_receive_amount'));
+      // Warn if user will receive negative amount (but allow them to proceed)
+      if (receiveAmount < 0) {
+        warnings.push(
+          strings('perps.close_position.negative_receive_warning', {
+            amount: Math.abs(receiveAmount).toFixed(2),
+          }),
+        );
       }
 
       // Limit order specific validation (price warning only - required check is done by protocol)
-      if (orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0) {
-        const limitPriceNum = parseFloat(limitPrice);
+      if (
+        orderType === 'limit' &&
+        limitPrice &&
+        Number.parseFloat(limitPrice) > 0
+      ) {
+        const limitPriceNum = Number.parseFloat(limitPrice);
         // Add warning if limit price is far from current price
         const priceDifference = Math.abs(
           (limitPriceNum - currentPrice) / currentPrice,
@@ -228,6 +237,11 @@ export function usePerpsClosePositionValidation(
   ]);
 
   useEffect(() => {
+    // Skip validation during keypad input to prevent flickering
+    if (skipValidation) {
+      return;
+    }
+
     // Skip validation if critical data is missing
     if (!coin || currentPrice === 0) {
       setValidation({
@@ -240,7 +254,7 @@ export function usePerpsClosePositionValidation(
     }
 
     performValidation();
-  }, [performValidation, coin, currentPrice]);
+  }, [performValidation, coin, currentPrice, skipValidation]);
 
   return validation;
 }

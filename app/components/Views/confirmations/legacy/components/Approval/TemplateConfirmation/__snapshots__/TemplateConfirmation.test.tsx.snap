@@ -41,7 +41,6 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,
@@ -53,7 +52,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[Function]}
+        onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
@@ -91,7 +90,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[Function]}
+        onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

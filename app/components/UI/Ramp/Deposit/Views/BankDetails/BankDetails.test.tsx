@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { AxiosError } from 'axios';
 import BankDetails from './BankDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -283,9 +283,11 @@ describe('BankDetails Component', () => {
     const mockLoggerError = jest.spyOn(Logger, 'error');
     render(BankDetails);
 
-    screen
-      .getByTestId('bank-details-refresh-control-scrollview')
-      .props.refreshControl.props.onRefresh();
+    await act(async () => {
+      await screen
+        .getByTestId('bank-details-refresh-control-scrollview')
+        .props.refreshControl.props.onRefresh();
+    });
 
     await waitFor(() => {
       expect(mockLoggerError).toHaveBeenCalled();
@@ -502,9 +504,11 @@ describe('BankDetails Component', () => {
 
       render(BankDetails);
 
-      screen
-        .getByTestId('bank-details-refresh-control-scrollview')
-        .props.refreshControl.props.onRefresh();
+      await act(async () => {
+        await screen
+          .getByTestId('bank-details-refresh-control-scrollview')
+          .props.refreshControl.props.onRefresh();
+      });
 
       await waitFor(() => {
         expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
@@ -528,9 +532,11 @@ describe('BankDetails Component', () => {
       const mockLoggerError = jest.spyOn(Logger, 'error');
       render(BankDetails);
 
-      screen
-        .getByTestId('bank-details-refresh-control-scrollview')
-        .props.refreshControl.props.onRefresh();
+      await act(async () => {
+        await screen
+          .getByTestId('bank-details-refresh-control-scrollview')
+          .props.refreshControl.props.onRefresh();
+      });
 
       await waitFor(() => {
         expect(mockLoggerError).toHaveBeenCalledWith(

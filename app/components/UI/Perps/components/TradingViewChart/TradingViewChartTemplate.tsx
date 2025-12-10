@@ -3,6 +3,7 @@ import { Theme } from '../../../../../util/theme/models';
 export const createTradingViewChartTemplate = (
   theme: Theme,
   lightweightChartsLib: string,
+  coloredVolume = true,
 ): string => `<!DOCTYPE html>
 <html>
 <head>
@@ -22,10 +23,11 @@ export const createTradingViewChartTemplate = (
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            overflow: hidden;
         }
         #container {
             width: 100%;
-            height: 100vh;
+            height: 100%;
             position: relative;
             background: ${theme.colors.background.default};
             /* Touch optimization for chart container */
@@ -33,6 +35,7 @@ export const createTradingViewChartTemplate = (
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -46,10 +49,146 @@ export const createTradingViewChartTemplate = (
         // Global variables
         window.chart = null;
         window.candlestickSeries = null;
+        window.volumeSeries = null; // Volume histogram series
         window.isInitialDataLoad = true; // Track if this is the first data load
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
-        window.visibleCandleCount = 45; // Default visible candle count
+        window.visibleCandleCount = 30; // Default visible candle count (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
         window.allCandleData = []; // Store all loaded data for zoom functionality
+        window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
+        window.currentInterval = null; // Track current interval for zoom reset on change
+
+        // Helper function to get date string in user's timezone (YYYY-MM-DD)
+        window.getDateString = function(date, userTimezone) {
+            const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
+            const month = date.toLocaleString('en-US', { month: '2-digit', timeZone: userTimezone });
+            const day = date.toLocaleString('en-US', { day: '2-digit', timeZone: userTimezone });
+            return year + '-' + month + '-' + day;
+        };
+        
+        // Helper function to check if a date is today in user's timezone
+        window.isToday = function(date, userTimezone) {
+            const now = new Date();
+            const todayString = window.getDateString(now, userTimezone);
+            const dateString = window.getDateString(date, userTimezone);
+            return todayString === dateString;
+        };
+
+        // Cache for Intl.NumberFormat instances to avoid expensive recreation
+        // Key: decimal count (e.g., "0", "2", "4"), Value: NumberFormat instance
+        window.formatterCache = new Map();
+
+        // Price formatting constants (matches formatUtils.ts PRICE_RANGES_UNIVERSAL)
+        window.PRICE_THRESHOLD = {
+            VERY_HIGH: 100000,  // > $100k
+            HIGH: 10000,        // > $10k
+            LARGE: 1000,        // > $1k
+            MEDIUM: 100,        // > $100
+            MEDIUM_LOW: 10,     // > $10
+            LOW: 0.01,          // >= $0.01
+        };
+
+        // Universal price ranges configuration (matches PRICE_RANGES_UNIVERSAL from formatUtils.ts)
+        window.PRICE_RANGES = [
+            { threshold: window.PRICE_THRESHOLD.VERY_HIGH, minDec: 0, maxDec: 0, sigDig: 6 },
+            { threshold: window.PRICE_THRESHOLD.HIGH, minDec: 0, maxDec: 0, sigDig: 5 },
+            { threshold: window.PRICE_THRESHOLD.LARGE, minDec: 0, maxDec: 1, sigDig: 5 },
+            { threshold: window.PRICE_THRESHOLD.MEDIUM, minDec: 0, maxDec: 2, sigDig: 5 },
+            { threshold: window.PRICE_THRESHOLD.MEDIUM_LOW, minDec: 0, maxDec: 4, sigDig: 5 },
+            { threshold: window.PRICE_THRESHOLD.LOW, minDec: 2, maxDec: 6, sigDig: 5 },
+            { threshold: 0, minDec: 2, maxDec: 6, sigDig: 4 }, // < $0.01
+        ];
+
+        // Get or create cached Intl.NumberFormat for given decimal precision
+        // Caching prevents expensive formatter recreation on every Y-axis label render
+        window.getCachedFormatter = function(decimals) {
+            const key = String(decimals);
+
+            if (!window.formatterCache.has(key)) {
+                window.formatterCache.set(key, new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                }));
+            }
+
+            return window.formatterCache.get(key);
+        };
+
+        // Format price with significant digits (matches formatUtils.ts logic)
+        window.formatPriceWithSignificantDigits = function(value, sigDigits, minDec, maxDec) {
+            if (value === 0) return { value: 0, decimals: minDec || 0 };
+
+            const absValue = Math.abs(value);
+
+            if (absValue >= 1) {
+                const integerDigits = Math.floor(Math.log10(absValue)) + 1;
+                const decimalsNeeded = sigDigits - integerDigits;
+                let targetDecimals = Math.max(decimalsNeeded, 0);
+
+                if (minDec !== undefined && targetDecimals < minDec) {
+                    targetDecimals = minDec;
+                }
+
+                const finalDecimals = maxDec !== undefined ? Math.min(targetDecimals, maxDec) : targetDecimals;
+                const roundedValue = Number(value.toFixed(finalDecimals));
+
+                return { value: roundedValue, decimals: finalDecimals };
+            }
+
+            // For values < 1, use toPrecision
+            const precisionStr = absValue.toPrecision(sigDigits);
+            const precisionNum = parseFloat(precisionStr);
+            const valueStr = precisionNum.toString();
+            const [, decPart = ''] = valueStr.split('.');
+            let actualDecimals = decPart.length;
+
+            if (minDec !== undefined && actualDecimals < minDec) {
+                actualDecimals = minDec;
+            }
+            if (maxDec !== undefined && actualDecimals > maxDec) {
+                actualDecimals = maxDec;
+            }
+
+            const finalValue = value < 0 ? -precisionNum : precisionNum;
+            const roundedValue = Number(finalValue.toFixed(actualDecimals));
+
+            return { value: roundedValue, decimals: actualDecimals };
+        };
+
+        // Format price using universal ranges (matches formatPerpsFiat from formatUtils.ts)
+        window.formatPriceUniversal = function(price) {
+            if (price === 0) return '0';
+            if (isNaN(price)) return '0';
+
+            const absPrice = Math.abs(price);
+
+            // Find matching range
+            let rangeConfig = null;
+            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
+                if (absPrice > window.PRICE_RANGES[i].threshold) {
+                    rangeConfig = window.PRICE_RANGES[i];
+                    break;
+                }
+            }
+
+            // Fallback to last range if nothing matched
+            if (!rangeConfig) {
+                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
+            }
+
+            // Calculate formatting with significant digits
+            const { value: formattedValue, decimals } = window.formatPriceWithSignificantDigits(
+                price,
+                rangeConfig.sigDig,
+                rangeConfig.minDec,
+                rangeConfig.maxDec
+            );
+
+            // Format the number with consistent decimal places using cached formatter
+            // Keep trailing zeros to maintain visual consistency on Y-axis
+            // e.g., for $1.24-$1.26 range, all values show 4 decimals: 1.2391, 1.2560, 1.2500
+            const formatter = window.getCachedFormatter(decimals);
+            return formatter.format(formattedValue);
+        };
         
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
         window.formatTimestamp = function(time, tickMarkType, isCrosshair = false) {
@@ -67,9 +206,6 @@ export const createTradingViewChartTemplate = (
                     timeZone: userTimezone
                 });
             } else {
-                // Debug logging to see what tickMarkType we're getting
-                console.log('📊 TradingView: tickMarkType =', tickMarkType, 'for time =', time);
-                
                 // Use TradingView's native tickMarkType if available
                 if (tickMarkType) {
                     switch (tickMarkType) {
@@ -81,25 +217,46 @@ export const createTradingViewChartTemplate = (
                                 timeZone: userTimezone
                             });
                         case 'DayOfMonth':
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
+                            // Always show day + month for DayOfMonth tick type (e.g., 1D candles)
+                            // Format: "17 Nov" (day before month)
+                            const day = date.toLocaleString('en-US', { 
                                 day: 'numeric',
                                 timeZone: userTimezone
                             });
+                            const month = date.toLocaleString('en-US', { 
+                                month: 'short',
+                                timeZone: userTimezone
+                            });
+                            return day + ' ' + month;
                         case 'Hour':
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
                         case 'Minute':
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
+                            // Show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         case 'Second':
                             return date.toLocaleString('en-US', { 
                                 hour: '2-digit', 
@@ -120,54 +277,97 @@ export const createTradingViewChartTemplate = (
                         
                         // Calculate the time span in hours
                         const timeSpanHours = (visibleRange.to - visibleRange.from) / 3600;
-                        
-                        console.log('📊 TradingView: Fallback logic - timeSpanHours =', timeSpanHours, 'from', startDate.toISOString(), 'to', endDate.toISOString());
-                        
+
                         if (timeSpanHours <= 24) {
-                            // Less than 24 hours: show time only
-                            console.log('📊 TradingView: Using time format (≤24h)');
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
+                            // Less than 24 hours: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         } else if (timeSpanHours <= 24 * 7) {
-                            // Less than a week: show date only
-                            console.log('📊 TradingView: Using date format (≤1 week)');
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                timeZone: userTimezone
-                            });
-                        } else if (timeSpanHours <= 24 * 30) {
-                            // Less than a month: show date only
-                            console.log('📊 TradingView: Using date format (≤1 month)');
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                timeZone: userTimezone
-                            });
+                           // Less than a week: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         } else {
-                            // More than a month: show month only
-                            console.log('📊 TradingView: Using month format (>1 month)');
-                            return date.toLocaleString('en-US', { 
+                             // Longer ranges: always show day + month (e.g., "17 Nov")
+                            // This is especially important for 1D candles
+                            const day = date.toLocaleString('en-US', { 
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                            const month = date.toLocaleString('en-US', { 
                                 month: 'short',
                                 timeZone: userTimezone
                             });
+                            return day + ' ' + month;
                         }
                     }
                 }
                 
                 // Final fallback: show date and time
-                return date.toLocaleString('en-US', { 
-                    month: 'short',
+                // Format: "17 Nov 00:15"
+                const day = date.toLocaleString('en-US', { 
                     day: 'numeric',
+                    timeZone: userTimezone
+                });
+                const month = date.toLocaleString('en-US', { 
+                    month: 'short',
+                    timeZone: userTimezone
+                });
+                const timeStr = date.toLocaleString('en-US', { 
                     hour: '2-digit', 
                     minute: '2-digit',
                     hour12: false,
                     timeZone: userTimezone
                 });
+
+                return day + ' ' + month + ' ' + timeStr;
             }
         };
         
@@ -175,7 +375,7 @@ export const createTradingViewChartTemplate = (
         window.ZOOM_LIMITS = {
             MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
             MAX_CANDLES: 250, // Maximum candles visible when zoomed out
-            DEFAULT_CANDLES: 45 // Default visible candles
+            DEFAULT_CANDLES: 30 // Default visible candles (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
         };
         
         // Performance optimization variables
@@ -186,10 +386,59 @@ export const createTradingViewChartTemplate = (
         window.lastLogicalRange = null;
         window.panVelocity = 0;
         window.panningDisableTime = 300; // ms to disable zoom restrictions after panning stops
-        
+
         // Reset prevention variables
         window.hasUserInteracted = false; // Track if user has ever interacted with the chart
         window.lastDataLength = 0; // Track actual data changes vs rerenders
+
+        // Edge detection variables for historical data loading
+        window.lastHistoryFetchTime = 0;
+        window.HISTORY_FETCH_COOLDOWN = 2000; // 2 seconds cooldown between fetches
+        window.EDGE_THRESHOLD = 5; // Consider "at edge" if within 5 candles from start
+        // Set up edge detection for loading more historical data
+        window.setupEdgeDetection = function() {
+            if (!window.chart) {
+                return;
+            }
+
+            try {
+                // Subscribe to visible logical range changes
+                window.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+                    if (!range || !window.allCandleData || window.allCandleData.length === 0) {
+                        return;
+                    }
+
+                    // Check if we're near the left edge (oldest data)
+                    const isAtLeftEdge = range.from <= window.EDGE_THRESHOLD;
+
+                    if (isAtLeftEdge) {
+                        const now = Date.now();
+                        const timeSinceLastFetch = now - window.lastHistoryFetchTime;
+
+                        // Throttle to avoid spam requests
+                        if (timeSinceLastFetch < window.HISTORY_FETCH_COOLDOWN) {
+                            return;
+                        }
+
+                        // Update last fetch time
+                        window.lastHistoryFetchTime = now;
+
+                        // Send message to React Native to fetch more historical data
+                        if (window.ReactNativeWebView) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'NEED_MORE_HISTORY',
+                                timestamp: new Date().toISOString(),
+                                currentDataLength: window.allCandleData.length,
+                                visibleRange: { from: range.from, to: range.to }
+                            }));
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('📊 TradingView: Error setting up edge detection:', error);
+            }
+        };
+
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -198,9 +447,10 @@ export const createTradingViewChartTemplate = (
             }
             try {
                 // Create chart with theme applied via template literals
-                window.chart = LightweightCharts.createChart(document.getElementById('container'), {
-                    width: window.innerWidth,
-                    height: window.innerHeight,
+                const container = document.getElementById('container');
+                window.chart = LightweightCharts.createChart(container, {
+                    width: container.clientWidth,
+                    height: container.clientHeight,
                     layout: {
                         background: {
                             color: 'transparent'
@@ -211,7 +461,7 @@ export const createTradingViewChartTemplate = (
                         fontFamily: 'system-ui, -apple-system, sans-serif',
                     },
                     // Optimized for smooth panning on mobile devices
-                    autoSize: false, // Disable auto-resize for better performance
+                    autoSize: true, // Enable auto-resize to match container dimensions
                     handleScroll: true,
                     handleScale: true,
                     // Enhanced kinetic scrolling with momentum tuning for mobile
@@ -247,40 +497,64 @@ export const createTradingViewChartTemplate = (
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Smart decimal precision based on price value and range
-                            const absPrice = Math.abs(price);
-                            
-                            if (absPrice >= 1000) {
-                                // For large values (like ETH), show no decimals
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0
-                                }).format(price);
-                            } else if (absPrice >= 100) {
-                                // For medium values, show 1 decimal place
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 1,
-                                    maximumFractionDigits: 1
-                                }).format(price);
-                            } else if (absPrice >= 1) {
-                                // For small values, show 2 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }).format(price);
-                            } else if (absPrice >= 0.01) {
-                                // For very small values, show 4 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 4,
-                                    maximumFractionDigits: 4
-                                }).format(price);
-                            } else {
-                                // For extremely small values (like PUMP-USD), show 6 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 6,
-                                    maximumFractionDigits: 6
-                                }).format(price);
+                            // Hybrid formatter: starts with universal formatting but adjusts for tight ranges
+                            // This prevents duplicate Y-axis labels when zoomed in while maintaining
+                            // consistency with header and pills at normal zoom levels
+
+                            if (price === 0) return '0';
+                            if (isNaN(price)) return '0';
+
+                            // For the current price line label, use universal formatting to match header
+                            // TradingView ignores axisLabelFormatter on price lines, so we detect the
+                            // current price value here and apply consistent formatting
+                            if (window.currentPriceNumeric !== undefined &&
+                                Math.abs(price - window.currentPriceNumeric) < 0.0000001) {
+                                return window.formatPriceUniversal(price);
                             }
+
+                            const absPrice = Math.abs(price);
+
+                            // Get base formatting configuration from universal ranges
+                            let rangeConfig = null;
+                            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
+                                if (absPrice > window.PRICE_RANGES[i].threshold) {
+                                    rangeConfig = window.PRICE_RANGES[i];
+                                    break;
+                                }
+                            }
+                            if (!rangeConfig) {
+                                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
+                            }
+
+                            // Calculate base formatting with significant digits
+                            const { value: formattedValue, decimals: baseDecimals } = window.formatPriceWithSignificantDigits(
+                                price,
+                                rangeConfig.sigDig,
+                                rangeConfig.minDec,
+                                rangeConfig.maxDec
+                            );
+
+                            // Determine if we need extra decimals based on visible range
+                            let finalDecimals = baseDecimals;
+
+                            if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
+                                const span = window.visiblePriceRange.span;
+
+                                // Dynamic decimal adjustment based on zoom level
+                                // Tighter visible range = more decimals needed to distinguish Y-axis labels
+                                if (span < 1) {
+                                    finalDecimals = Math.max(4, baseDecimals);
+                                } else if (span < 10) {
+                                    finalDecimals = Math.max(3, baseDecimals);
+                                } else if (span < 100) {
+                                    finalDecimals = Math.max(2, baseDecimals);
+                                }
+                                // For span >= 100, use baseDecimals (no adjustment needed)
+                            }
+
+                            // Format with final decimal precision using cached formatter
+                            const formatter = window.getCachedFormatter(finalDecimals);
+                            return formatter.format(formattedValue);
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
@@ -295,6 +569,9 @@ export const createTradingViewChartTemplate = (
                         timeVisible: true,
                         secondsVisible: false,
                         borderColor: 'transparent',
+                        rightOffset: 0, // Prevent right margin/padding
+                        barSpacing: 8, // Spacing between candles
+                        minBarSpacing: 1, // Minimum spacing when zoomed in
                         // Mobile-optimized scroll and zoom handling
                         handleScale: {
                             axisPressedMouseMove: {
@@ -343,12 +620,42 @@ export const createTradingViewChartTemplate = (
                         ticksVisible: true,
                         // Ensure edge tick marks are visible for granular display
                         ensureEdgeTickMarksVisible: true,
+                        // With multiple panes, scale automatically appears only in its pane
+                        // No scaleMargins needed - pane heights control layout
                     },
                     leftPriceScale: {
                         borderColor: 'transparent',
-                        visible: false, // Disable left scale to avoid conflicts
+                        visible: false, // Hide left scale - volume uses overlay with no labels
+                        autoScale: true,
+                        mode: 0,
                     }
                 });
+
+                // Configure pane separator styling for visual separation between candlesticks and volume
+                try {
+                    window.chart.applyOptions({
+                        layout: {
+                            background: {
+                                color: '${theme.colors.background.default}',
+                            },
+                            textColor: '${theme.colors.text.muted}',
+                            // Pane separator configuration (appears between panes)
+                            panes: {
+                                separatorColor: 'transparent', // Hide separator line between panes
+                                separatorHoverColor: 'transparent', // Hide hover color
+                                enableResize: false, // Prevent user from dragging separator
+                            },
+                        },
+                    });
+                } catch (error) {
+                    // Pane configuration is optional, errors are not critical
+                }
+
+                // Initialize volume visibility state (default: visible)
+                window.volumeVisible = true;
+
+                // Initialize colored volume state (from template parameter)
+                window.coloredVolume = ${coloredVolume};
 
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
@@ -356,7 +663,10 @@ export const createTradingViewChartTemplate = (
                         type: 'CHART_READY',
                         timestamp: new Date().toISOString()
                     }));
-                } 
+                }
+
+                // Set up edge detection for loading more historical data
+                window.setupEdgeDetection();
             } catch (error) {
                 console.error('TradingView: Error creating chart:', error);
             }
@@ -368,7 +678,7 @@ export const createTradingViewChartTemplate = (
             if (window.candlestickSeries) {
                 window.chart.removeSeries(window.candlestickSeries);
             }
-            // Create new candlestick series with performance optimizations
+            // Create new candlestick series in pane 0 (top pane)
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
                 upColor: '${theme.colors.success.default}',
                 downColor: '${theme.colors.error.default}',
@@ -377,6 +687,7 @@ export const createTradingViewChartTemplate = (
                 wickDownColor: '${theme.colors.error.default}',
                 priceLineColor: '${theme.colors.icon.alternative}',
                 priceLineWidth: 1,
+                priceScaleId: 'right', // Explicitly use right price scale
                 lastValueVisible: false,
                 // Use native PriceLineSource for better price line handling
                 priceLineSource: window.LightweightCharts.PriceLineSource.LastBar,
@@ -389,15 +700,16 @@ export const createTradingViewChartTemplate = (
                 // Optimize for smooth panning
                 crosshairMarkerVisible: false, // Disable crosshair during panning for performance
                 crosshairMarkerRadius: 0, // Minimize crosshair impact
+            }, 0); // Pane index 0 (default/top pane for candlesticks)
+
+            // Apply minimal scale margins to the candlestick price scale
+            // Note: Volume is in a separate pane, so no bottom margin needed
+            window.candlestickSeries.priceScale().applyOptions({
+                scaleMargins: {
+                    top: 0.05,    // 5% padding at top
+                    bottom: 0.05, // Minimal bottom padding - pane heights control layout
+                },
             });
-            
-            // Function to format numbers to 5 significant digits
-            function formatToSignificantDigits(num, digits = 5) {
-                if (num === 0) return '0';
-                const magnitude = Math.floor(Math.log10(Math.abs(num)));
-                const factor = Math.pow(10, digits - 1 - magnitude);
-                return (Math.round(num * factor) / factor).toString();
-            }
 
             // Subscribe to crosshair events to send OHLC data to React Native
             window.chart.subscribeCrosshairMove((param) => {
@@ -417,17 +729,25 @@ export const createTradingViewChartTemplate = (
                 if (window.candlestickSeries && param.seriesData && param.seriesData.get(window.candlestickSeries)) {
                     const data = param.seriesData.get(window.candlestickSeries);
                     if (data && data.open !== undefined) {
+                        // Get volume data from the volume series if available
+                        let volumeValue = null;
+                        if (window.volumeSeries && param.seriesData.get(window.volumeSeries)) {
+                            const volumeData = param.seriesData.get(window.volumeSeries);
+                            if (volumeData && volumeData.value !== undefined) {
+                                volumeValue = volumeData.value.toString();
+                            }
+                        }
+
+                        // Send raw numeric values as strings - formatting will be done on React Native side
                         const ohlcData = {
-                            open: formatToSignificantDigits(data.open),
-                            high: formatToSignificantDigits(data.high),
-                            low: formatToSignificantDigits(data.low),
-                            close: formatToSignificantDigits(data.close),
+                            open: data.open.toString(),
+                            high: data.high.toString(),
+                            low: data.low.toString(),
+                            close: data.close.toString(),
+                            volume: volumeValue,
                             time: param.time
                         };
-                        
-                        // Console log for debugging
-                        console.log('OHLC Data:', ohlcData);
-                        
+
                         // Send OHLC data back to React Native
                         if (window.ReactNativeWebView) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -460,13 +780,173 @@ export const createTradingViewChartTemplate = (
             
             return window.candlestickSeries;
         };
+
+        // Empty formatter to hide volume Y-axis labels
+        window.formatVolumeEmpty = function(value) {
+            return ''; // Always return empty string to hide labels
+        };
+
+        // Function to create volume histogram series
+        window.createVolumeSeries = function() {
+            if (!window.chart) {
+                return null;
+            }
+
+            // Remove existing volume series if it exists
+            if (window.volumeSeries) {
+                try {
+                    window.chart.removeSeries(window.volumeSeries);
+                } catch (e) {
+                    // Silent error handling
+                }
+            }
+
+            // Create volume histogram series
+            try {
+                // Use the old API: chart.addSeries(SeriesType, options, paneIndex)
+                // Pane index 1 creates a NEW separate pane below the default pane 0
+                window.volumeSeries = window.chart.addSeries(window.LightweightCharts.HistogramSeries, {
+                    color: '${theme.colors.success.default}',
+                    priceFormat: {
+                        type: 'custom',
+                        formatter: window.formatVolumeEmpty, // Use empty formatter to hide Y-axis labels
+                        minMove: 0.01,
+                    },
+                    priceScaleId: '', // Use empty string for separate/independent price scale
+                    lastValueVisible: false,
+                    priceLineVisible: false,
+                    base: 0, // Start histogram from zero
+                }, 1); // Pane index 1 - creates NEW bottom pane for volume
+
+                // Configure volume price scale options (completely hidden)
+                window.volumeSeries.priceScale().applyOptions({
+                    autoScale: true,
+                    mode: 0, // Normal mode for proper scaling
+                    visible: false, // Hide the price scale completely for volume
+                    scaleMargins: {
+                        top: 0.1,
+                        bottom: 0.2, // Add 20% margin at bottom to prevent 0 from showing
+                    },
+                });
+
+                // Configure pane heights: 80% for candlesticks (pane 0), 20% for volume (pane 1)
+                // Call the helper function to set dynamic heights after both panes exist
+                try {
+                    // Set pane heights after a brief delay to ensure panes are fully created
+                    setTimeout(() => {
+                        if (window.setPaneHeights) {
+                            window.setPaneHeights();
+                        }
+                    }, 100);
+                } catch (e) {
+                    // Pane height configuration is optional
+                }
+
+                return window.volumeSeries;
+            } catch (error) {
+                return null;
+            }
+        };
+
+        // Helper function to set pane heights with 80/20 split (candlesticks/volume)
+        window.setPaneHeights = function() {
+            if (!window.chart) {
+                return;
+            }
+
+            try {
+                const panes = window.chart.panes();
+
+                if (panes.length < 2) {
+                    return;
+                }
+
+                // Use actual container height for accurate measurement during orientation changes
+                // This fixes race conditions where window.chart.options().height may be stale
+                const container = document.getElementById('container');
+                const totalHeight = container ? container.clientHeight : (window.chart.options().height || window.innerHeight);
+
+                // Calculate heights with 80/20 split
+                // Note: TradingView has a minimum pane height of ~30px
+                const mainPaneHeight = Math.floor(totalHeight * 0.80); // 80% for candlesticks
+                const volumePaneHeight = Math.max(Math.floor(totalHeight * 0.20), 30); // 20% for volume (min 30px)
+
+                // Set pane heights
+                panes[0].setHeight(mainPaneHeight);  // Candlestick pane
+                panes[1].setHeight(volumePaneHeight); // Volume pane
+            } catch (error) {
+                // Silent error handling
+            }
+        };
+
+        // Function to update visible price range for dynamic formatting
+        window.updateVisiblePriceRange = function() {
+            if (!window.allCandleData || window.allCandleData.length === 0) {
+                return;
+            }
+            
+            try {
+                // Get visible range from time scale
+                const timeScale = window.chart.timeScale();
+                const visibleLogicalRange = timeScale.getVisibleLogicalRange();
+                
+                if (!visibleLogicalRange) {
+                    // Fallback: use all data
+                    let minPrice = Infinity;
+                    let maxPrice = -Infinity;
+                    
+                    window.allCandleData.forEach(candle => {
+                        if (candle && candle.low !== undefined && candle.high !== undefined) {
+                            minPrice = Math.min(minPrice, candle.low);
+                            maxPrice = Math.max(maxPrice, candle.high);
+                        }
+                    });
+                    
+                    if (minPrice !== Infinity && maxPrice !== -Infinity) {
+                        window.visiblePriceRange = {
+                            min: minPrice,
+                            max: maxPrice,
+                            span: maxPrice - minPrice
+                        };
+                    }
+                    return;
+                }
+                
+                // Calculate visible data indices
+                const firstVisibleIndex = Math.max(0, Math.ceil(visibleLogicalRange.from));
+                const lastVisibleIndex = Math.min(window.allCandleData.length - 1, Math.floor(visibleLogicalRange.to));
+                
+                if (firstVisibleIndex <= lastVisibleIndex) {
+                    let minPrice = Infinity;
+                    let maxPrice = -Infinity;
+                    
+                    for (let i = firstVisibleIndex; i <= lastVisibleIndex; i++) {
+                        const candle = window.allCandleData[i];
+                        if (candle && candle.low !== undefined && candle.high !== undefined) {
+                            minPrice = Math.min(minPrice, candle.low);
+                            maxPrice = Math.max(maxPrice, candle.high);
+                        }
+                    }
+                    
+                    if (minPrice !== Infinity && maxPrice !== -Infinity) {
+                        window.visiblePriceRange = {
+                            min: minPrice,
+                            max: maxPrice,
+                            span: maxPrice - minPrice
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating visible price range:', error);
+            }
+        };
         
         // Function to create/update current price line
         window.updateCurrentPriceLine = function(currentPrice) {
             if (!window.candlestickSeries) {
                 return;
             }
-            
+
             // Remove existing current price line if it exists
             if (window.priceLines.currentPrice) {
                 try {
@@ -475,43 +955,104 @@ export const createTradingViewChartTemplate = (
                     // Silent error handling
                 }
                 window.priceLines.currentPrice = null;
+                window.currentPriceNumeric = undefined;
             }
-            
+
             // Create new current price line if price is valid
             if (currentPrice && !isNaN(parseFloat(currentPrice))) {
-                console.log('📊 TradingView: Creating current price line at:', currentPrice);
                 try {
+                    const priceNumeric = parseFloat(currentPrice);
+                    // Store numeric value so priceFormatter can detect and use universal formatting
+                    window.currentPriceNumeric = priceNumeric;
+
                     const priceLine = window.candlestickSeries.createPriceLine({
-                        price: parseFloat(currentPrice),
-                        color: '#FFF', // White
-                        lineWidth: 1,
-                        lineStyle: 0, // Solid line
+                        price: priceNumeric,
+                        color: '${theme.colors.background.muted}',
+                        lineWidth: 2,
+                        lineStyle: 2, // Dashed line
                         axisLabelVisible: true,
-                        title: 'Current'
+                        title: '',
                     });
                     // Store reference for future removal
                     window.priceLines.currentPrice = priceLine;
-                    console.log('📊 TradingView: Current price line created successfully');
                 } catch (error) {
                     // Silent error handling
-                    console.error('TradingView: Error creating current price line:', error);
                 }
-            } else {
-                console.log('📊 TradingView: No valid current price provided:', currentPrice);
             }
         };
 
         // Optimized resize handler with throttling
         let resizeTimeout;
+        let finalResizeTimeout; // Debounced final call to ensure pane heights are correct after all resize events
         window.addEventListener('resize', function() {
             if (resizeTimeout) clearTimeout(resizeTimeout);
+            if (finalResizeTimeout) clearTimeout(finalResizeTimeout);
             resizeTimeout = setTimeout(() => {
                 if (window.chart) {
-                    window.chart.applyOptions({
-                        width: window.innerWidth,
-                        height: window.innerHeight
-                    });
+                    // With autoSize: true, chart automatically resizes to container
+                    // No need to manually set width/height
+
+                    // Conditionally recalculate pane heights based on pane count
+                    const panes = window.chart.panes();
+
+                    if (panes.length === 2 && window.volumeSeries) {
+                        // Force volume series to recalculate scale by refreshing data
+                        try {
+                            if (window.allCandleData && window.allCandleData.length > 0) {
+                                const volumeData = window.allCandleData.map(candle => ({
+                                    time: candle.time,
+                                    value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
+                                    color: window.coloredVolume
+                                        ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                        : '${theme.colors.border.muted}'
+                                }));
+                                window.volumeSeries.setData(volumeData);
+
+                                // Re-apply 80/20 split AFTER data refresh (with small delay)
+                                setTimeout(function() {
+                                    if (window.setPaneHeights) {
+                                        window.setPaneHeights();
+                                    }
+                                }, 50);
+                            } else {
+                                // Fallback: just toggle autoscale and apply pane heights
+                                window.volumeSeries.priceScale().applyOptions({
+                                    autoScale: true,
+                                });
+                                if (window.setPaneHeights) {
+                                    window.setPaneHeights();
+                                }
+                            }
+                        } catch (error) {
+                            // Silent error handling
+                        }
+                    } else if (panes.length === 1) {
+                        // Volume is hidden: Expand candlestick to 100% height
+                        const chartHeight = window.chart.options().height;
+                        panes[0].setHeight(chartHeight);
+
+                        // Reset scale margins to use full pane
+                        if (window.candlestickSeries) {
+                            window.candlestickSeries.priceScale().applyOptions({
+                                scaleMargins: {
+                                    top: 0.05,
+                                    bottom: 0.05,
+                                },
+                            });
+                        }
+
+                        // Update visible price range instead of fitContent
+                        window.updateVisiblePriceRange();
+                    }
                 }
+
+                // Schedule a final pane height enforcement after resize events fully settle
+                // This fixes race conditions during orientation changes where multiple resize events fire
+                finalResizeTimeout = setTimeout(() => {
+                    if (window.chart && window.volumeSeries && window.setPaneHeights) {
+                        window.setPaneHeights();
+                    }
+                }, 300); // Wait for resize events to fully settle
             }, 100); // Throttle resize to prevent excessive redraws
         });
         
@@ -519,6 +1060,9 @@ export const createTradingViewChartTemplate = (
         window.cleanupChartEventListeners = function() {
             if (resizeTimeout) {
                 clearTimeout(resizeTimeout);
+            }
+            if (finalResizeTimeout) {
+                clearTimeout(finalResizeTimeout);
             }
         };
         // Store price lines for management
@@ -536,18 +1080,17 @@ export const createTradingViewChartTemplate = (
         // Helper functions to hide/show all price lines during panning
         window.hideAllPriceLines = function() {
             if (!window.candlestickSeries) return;
-            
-            // Store current price line data for restoration
+
+            // Store price line data for restoration (exclude currentPrice as it's managed separately)
             window.originalPriceLineData = {
                 entryPrice: window.priceLines.entryPrice,
                 liquidationPrice: window.priceLines.liquidationPrice,
                 takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice,
-                currentPrice: window.priceLines.currentPrice
+                stopLossPrice: window.priceLines.stopLossPrice
             };
-            
-            // Remove all price lines
-            Object.keys(window.priceLines).forEach(key => {
+
+            // Remove price lines (exclude currentPrice as it's managed by updateCurrentPriceLine)
+            ['entryPrice', 'liquidationPrice', 'takeProfitPrice', 'stopLossPrice'].forEach(key => {
                 if (window.priceLines[key]) {
                     try {
                         window.candlestickSeries.removePriceLine(window.priceLines[key]);
@@ -567,7 +1110,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.entryPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.entryPrice.price,
-                        color: '#CCC',
+                        color: '${theme.colors.text.muted}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -581,7 +1124,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.liquidationPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.liquidationPrice.price,
-                        color: '#FF7584',
+                        color: '${theme.colors.error.default}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -595,7 +1138,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.takeProfitPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.takeProfitPrice.price,
-                        color: '#BAF24A',
+                        color: '${theme.colors.success.default}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -609,7 +1152,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.stopLossPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.stopLossPrice.price,
-                        color: '#484848',
+                        color: '${theme.colors.background.alternative}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -619,40 +1162,9 @@ export const createTradingViewChartTemplate = (
                     // Silent error handling
                 }
             }
-            
-            // Recreate current price line from stored data
-            if (window.originalPriceLineData.currentPrice) {
-                try {
-                    window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
-                        price: window.originalPriceLineData.currentPrice.price,
-                        color: '#FFF',
-                        lineWidth: 1,
-                        lineStyle: 0,
-                        axisLabelVisible: true,
-                        title: 'Current'
-                    });
-                } catch (error) {
-                    // Silent error handling
-                }
-            }
-            
-            // Recreate current price line from stored data
-            if (window.originalPriceLineData.currentPrice) {
-                try {
-                    window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
-                        price: window.originalPriceLineData.currentPrice.price,
-                        color: '#FFF',
-                        lineWidth: 1,
-                        lineStyle: 0,
-                        axisLabelVisible: true,
-                        title: 'Current'
-                    });
-                } catch (error) {
-                    // Silent error handling
-                }
-            }
-            
+
             // Clear stored data
+            // Note: currentPrice is NOT recreated here as it's managed separately by updateCurrentPriceLine
             window.originalPriceLineData = null;
         };
         // Simple zoom function without complex interaction tracking
@@ -660,42 +1172,42 @@ export const createTradingViewChartTemplate = (
             if (!window.chart || !window.allCandleData || window.allCandleData.length === 0) {
                 return;
             }
-            
+
             // Simple zoom without interaction restrictions
             const minCandles = window.ZOOM_LIMITS.MIN_CANDLES;
             const maxCandles = window.ZOOM_LIMITS.MAX_CANDLES;
             const actualCandleCount = Math.max(minCandles, Math.min(maxCandles, candleCount));
-            
-            // Get the last N candles to display (most recent data)
-            const startIndex = Math.max(0, window.allCandleData.length - actualCandleCount);
-            const visibleData = window.allCandleData.slice(startIndex);
-            
-            if (window.candlestickSeries && visibleData.length > 0) {
-                const firstTime = visibleData[0].time;
-                const lastTime = visibleData[visibleData.length - 1].time;
-                
-                // Calculate the time interval between candles for padding
-                const timeInterval = visibleData.length > 1 
-                    ? visibleData[1].time - visibleData[0].time 
-                    : 60; // Default to 1 minute if only one candle
-                
-                // Add padding to ensure the latest candle is fully visible
-                // Add half a candle period to the end to ensure latest candle is visible
-                const paddedLastTime = lastTime + (timeInterval / 2);
-                
-                try {
-                    window.chart.timeScale().setVisibleRange({
-                        from: firstTime,
-                        to: paddedLastTime,
-                    });
-                } catch (error) {
-                    console.error('TradingView: Error setting visible range:', error);
-                    // Fallback to fit content if setVisibleRange fails
-                    window.chart.timeScale().fitContent();
+
+            const dataLength = window.allCandleData.length;
+
+            try {
+                // Use setVisibleLogicalRange for consistent bar width control
+                // Logical range uses bar indices: from = first visible bar, to = last visible bar
+                // We want to show the last N candles, so:
+                // - from = dataLength - actualCandleCount (first visible bar index)
+                // - to = dataLength - 1 + small offset for right padding
+                const fromIndex = Math.max(0, dataLength - actualCandleCount);
+                const toIndex = dataLength - 1 + 2; // +2 for a small right margin
+
+                window.chart.timeScale().setVisibleLogicalRange({
+                    from: fromIndex,
+                    to: toIndex,
+                });
+
+                // Scroll to real-time to ensure latest candles are visible at the right edge
+                if (forceReset) {
+                    window.chart.timeScale().scrollToRealTime();
                 }
+            } catch (error) {
+                console.error('TradingView: Error setting visible logical range:', error);
+                // Fallback to fitContent if setVisibleLogicalRange fails
+                window.chart.timeScale().fitContent();
             }
-            
+
             window.visibleCandleCount = actualCandleCount;
+
+            // Update visible price range for dynamic formatting after zoom
+            window.updateVisiblePriceRange();
         };
 
         // Update TPSL price lines
@@ -703,10 +1215,7 @@ export const createTradingViewChartTemplate = (
             if (!window.candlestickSeries) {
                 return;
             }
-            
-            // Debug: Log the received lines data
-            console.log('📊 TradingView: updatePriceLines called with:', lines);
-            
+
             // Update current price line if provided
             if (lines.currentPrice) {
                 window.updateCurrentPriceLine(lines.currentPrice);
@@ -727,7 +1236,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.entryPrice),
-                        color: '#CCC', // Light Gray
+                        color: '${theme.colors.text.muted}', // Light Gray
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -754,7 +1263,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.takeProfitPrice),
-                        color: '#BAF24A', // Light Green
+                        color: '${theme.colors.success.default}', // Light Green
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -781,7 +1290,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.stopLossPrice),
-                        color: '#484848', // Dark Gray
+                        color: '${theme.colors.background.alternative}', // Dark Gray
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -808,7 +1317,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.liquidationPrice),
-                        color: '#FF7584', // Red
+                        color: '${theme.colors.error.default}', // Red
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -833,10 +1342,16 @@ export const createTradingViewChartTemplate = (
                             if (!window.candlestickSeries) {
                                 window.createCandlestickSeries();
                             }
+
+                            // Create or get volume series (only if user wants it visible)
+                            if (!window.volumeSeries && window.volumeVisible) {
+                                window.createVolumeSeries();
+                            }
+
                             if (window.candlestickSeries) {
                                 // Store all data for zoom functionality
                                 window.allCandleData = [...message.data];
-                                
+
                                 // Use batch update for better performance during large data sets
                                 try {
                                     window.candlestickSeries.setData(message.data);
@@ -853,34 +1368,70 @@ export const createTradingViewChartTemplate = (
                                         }
                                     }
                                 }
+
+                                // Defer volume series update to next frame for better performance
+                                // This allows candlesticks to render first, preventing blank screen on Android
+                                if (window.volumeSeries) {
+                                    requestAnimationFrame(() => {
+                                        try {
+                                            const volumeData = message.data.map(candle => ({
+                                                time: candle.time,
+                                                value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
+                                                color: window.coloredVolume
+                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                                    : '${theme.colors.border.muted}'
+                                            }));
+
+                                            window.volumeSeries.setData(volumeData);
+
+                                            // Enforce pane heights after volume data is set
+                                            // This ensures the 80/20 split is maintained after data refresh
+                                            setTimeout(() => {
+                                                if (window.setPaneHeights) {
+                                                    window.setPaneHeights();
+                                                }
+                                            }, 50);
+                                        } catch (error) {
+                                            // Silent error handling
+                                        }
+                                    });
+                                }
                                 
                                 // Update visible candle count if provided
                                 if (message.visibleCandleCount) {
                                     window.visibleCandleCount = message.visibleCandleCount;
                                 }
-                                
-                                // Simple auto-scale logic: ONLY on initial load
-                                const shouldAutoscale = window.isInitialDataLoad;
-                                
-                                if (shouldAutoscale) {
-                                    // Apply zoom to show only 45 candles on initial load
-                                    window.applyZoom(window.visibleCandleCount, true);
-                                    console.log('📊 TradingView: Applied initial zoom to', window.visibleCandleCount, 'candles');
+
+                                // Detect interval change for zoom reset
+                                const intervalChanged = message.interval && window.currentInterval !== message.interval;
+                                if (message.interval) {
+                                    window.currentInterval = message.interval;
                                 }
-                                
+
+                                // Auto-scale on initial load OR when interval changes
+                                const shouldAutoscale = window.isInitialDataLoad || intervalChanged;
+
+                                if (shouldAutoscale) {
+                                    // Apply zoom to show configured candle count
+                                    window.applyZoom(window.visibleCandleCount, true);
+                                }
+
+                                // Update visible price range for dynamic formatting
+                                window.updateVisiblePriceRange();
+
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
-                                
-                                // Update current price line with the latest candle's close price
-                                if (message.data && message.data.length > 0) {
-                                    const latestCandle = message.data[message.data.length - 1];
-                                    if (latestCandle && latestCandle.close) {
-                                        window.updateCurrentPriceLine(latestCandle.close.toString());
-                                    }
-                                }
-                            } else {
-                                console.error('📊 TradingView: Failed to create candlestick series');
+
+                                // Price line is updated via ADD_AUXILIARY_LINES with mark price from React Native
+                                // Do NOT use candle close price here - it differs from header's mark price
                             }
+                        }
+                        break;
+                    case 'CLEAR_DATA':
+                        // Clear chart data (e.g., during market switch)
+                        if (window.candlestickSeries) {
+                            window.candlestickSeries.setData([]);
+                            window.allCandleData = [];
                         }
                         break;
                     case 'ADD_AUXILIARY_LINES':
@@ -893,7 +1444,6 @@ export const createTradingViewChartTemplate = (
                         if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
                             window.visibleCandleCount = window.ZOOM_LIMITS.DEFAULT_CANDLES;
                             window.applyZoom(window.ZOOM_LIMITS.DEFAULT_CANDLES, true); // Force reset
-                            console.log('📊 TradingView: Reset to default state - 45 candles');
                         }
                         break;
                     case 'ZOOM_TO_LATEST_CANDLE':
@@ -901,7 +1451,6 @@ export const createTradingViewChartTemplate = (
                         if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
                             const candleCount = message.candleCount || window.visibleCandleCount;
                             window.applyZoom(candleCount, true); // Force zoom to latest
-                            console.log('📊 TradingView: Zoomed to latest', candleCount, 'candles');
                         }
                         break;
                     case 'CLEAR_TPSL_LINES':
@@ -946,9 +1495,8 @@ export const createTradingViewChartTemplate = (
                                     console.error('TradingView: Error removing liquidation line:', error);
                                 }
                             }
-                            
+
                             // Note: currentPrice line is intentionally preserved
-                            console.log('📊 TradingView: Cleared TPSL lines (preserved current price line)');
                         }
                         break;
                     case 'UPDATE_INTERVAL':
@@ -963,9 +1511,102 @@ export const createTradingViewChartTemplate = (
                             }));
                         }
                         break;
+                    case 'TOGGLE_VOLUME_VISIBILITY':
+                        // Toggle volume by removing/recreating pane (prevents empty pane space)
+                        if (window.chart) {
+                            const isVisible = message.visible;
+
+                            try {
+                                if (isVisible) {
+                                    // Set visibility state FIRST (before creating series)
+                                    window.volumeVisible = true;
+
+                                    // Show volume - recreate series and pane if it doesn't exist
+                                    if (!window.volumeSeries) {
+                                        // Recreate volume series
+                                        window.createVolumeSeries();
+
+                                        // Set volume data if we have it
+                                        if (window.allCandleData && window.allCandleData.length > 0) {
+                                            const volumeData = window.allCandleData.map(candle => ({
+                                                time: candle.time,
+                                                value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
+                                                color: window.coloredVolume
+                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                                    : '${theme.colors.border.muted}'
+                                            }));
+                                            window.volumeSeries.setData(volumeData);
+                                        }
+
+                                        // Restore candlestick scale margins for 80/20 split
+                                        if (window.candlestickSeries) {
+                                            window.candlestickSeries.priceScale().applyOptions({
+                                                scaleMargins: {
+                                                    top: 0.05,    // 5% padding at top
+                                                    bottom: 0.30, // Reserve 30% at bottom for volume
+                                                },
+                                            });
+                                        }
+                                    }
+                                } else {
+                                    // Hide volume - remove series AND pane entirely
+                                    if (window.volumeSeries) {
+                                        try {
+                                            // Remove the series (pane is automatically removed by TradingView)
+                                            window.chart.removeSeries(window.volumeSeries);
+                                            window.volumeSeries = null;
+
+                                            // Set visibility state AFTER removing series
+                                            window.volumeVisible = false;
+
+                                            // Reset candlestick pane to full height (100%)
+                                            // Use setTimeout to allow TradingView to complete pane removal
+                                            setTimeout(function() {
+                                                try {
+                                                    const panes = window.chart.panes();
+                                                    if (panes.length === 1) {
+                                                        // Only one pane left - expand to full height
+                                                        const chartHeight = window.chart.options().height;
+
+                                                        // Set pane to full chart height
+                                                        panes[0].setHeight(chartHeight);
+
+                                                        // CRITICAL FIX: Reset candlestick scale margins to use full pane
+                                                        if (window.candlestickSeries) {
+                                                            window.candlestickSeries.priceScale().applyOptions({
+                                                                scaleMargins: {
+                                                                    top: 0.05,    // 5% padding at top
+                                                                    bottom: 0.05, // Reset from 30% to 5%
+                                                                },
+                                                            });
+                                                        }
+
+                                                        // Force chart to recalculate layout by triggering resize
+                                                        window.chart.applyOptions({
+                                                            width: window.chart.options().width,
+                                                            height: chartHeight
+                                                        });
+
+                                                        // Update visible price range instead of fitContent to preserve scroll
+                                                        window.updateVisiblePriceRange();
+                                                    }
+                                                } catch (heightError) {
+                                                    // Silent error handling
+                                                }
+                                            }, 100);
+                                        } catch (removeError) {
+                                            // Silent error handling
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                // Silent error handling
+                            }
+                        }
+                        break;
                 }
             } catch (error) {
-                console.error('📊 TradingView: Message handling error:', error);
+                // Silent error handling
             }
         });
         // Also listen for React Native WebView messages

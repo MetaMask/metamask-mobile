@@ -1,9 +1,10 @@
 import { ParamListBase } from '@react-navigation/native';
 import type {
   Position,
-  OrderResult,
+  Order,
   OrderType,
   PerpsMarketData,
+  TPSLTrackingData,
 } from '../controllers/types';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
@@ -19,9 +20,11 @@ export interface PerpsNavigationParamList extends ParamListBase {
     direction: 'long' | 'short';
     asset: string;
     leverage?: number;
-    size?: string;
+    amount?: string;
     price?: string;
     orderType?: OrderType;
+    existingPosition?: Position; // Pass existing position for leverage consistency when adding to position
+    hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
   };
 
   PerpsOrderSuccess: {
@@ -68,6 +71,20 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsMarketListView: {
     source?: string;
+    variant?: 'full' | 'minimal';
+    title?: string;
+    showBalanceActions?: boolean;
+    showBottomNav?: boolean;
+    defaultSearchVisible?: boolean;
+    showWatchlistOnly?: boolean;
+    defaultMarketTypeFilter?:
+      | 'crypto'
+      | 'equity'
+      | 'commodity'
+      | 'forex'
+      | 'all'
+      | 'stocks_and_commodities';
+    fromHome?: boolean;
   };
 
   PerpsMarketDetails: {
@@ -88,11 +105,31 @@ export interface PerpsNavigationParamList extends ParamListBase {
     position: Position;
   };
 
+  PerpsAdjustMargin: {
+    position: Position;
+    mode: 'add' | 'remove';
+  };
+
+  // Action selection routes
+  PerpsSelectModifyAction: {
+    position: Position;
+  };
+
+  PerpsSelectAdjustMarginAction: {
+    position: Position;
+  };
+
+  PerpsSelectOrderType: {
+    currentOrderType: OrderType;
+    asset: string;
+    direction: 'long' | 'short';
+  };
+
   // Order history routes
   PerpsOrderHistory: undefined;
 
   PerpsOrderDetails: {
-    order: OrderResult;
+    order: Order;
     action?: 'view' | 'edit' | 'cancel';
   };
 
@@ -114,6 +151,55 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsTutorial: {
     isFromDeeplink?: boolean;
     isFromGTMModal?: boolean;
+  };
+
+  // TP/SL screen
+  PerpsTPSL: {
+    asset: string;
+    currentPrice?: number;
+    direction?: 'long' | 'short';
+    position?: Position;
+    initialTakeProfitPrice?: string;
+    initialStopLossPrice?: string;
+    leverage?: number;
+    orderType?: 'market' | 'limit';
+    limitPrice?: string;
+    amount?: string; // For new orders - USD amount to calculate position size for P&L
+    szDecimals?: number; // For new orders - asset decimal precision for P&L
+    onConfirm: (
+      takeProfitPrice?: string,
+      stopLossPrice?: string,
+      trackingData?: TPSLTrackingData,
+    ) => Promise<void>;
+  };
+
+  // PnL Hero Card screen
+  PerpsPnlHeroCard: {
+    position: Position;
+    marketPrice?: string;
+  };
+
+  // Order Book view - Full depth order book display
+  PerpsOrderBook: {
+    symbol: string;
+    marketData?: PerpsMarketData;
+  };
+
+  // Activity view - Stack-based for proper back navigation
+  // Uses the same redirect params as the tab-based TRANSACTIONS_VIEW
+  PerpsActivity: {
+    /**
+     * Redirect to Perps transactions tab
+     */
+    redirectToPerpsTransactions?: boolean;
+    /**
+     * Redirect to Orders tab
+     */
+    redirectToOrders?: boolean;
+    /**
+     * Show back button in header for stack navigation
+     */
+    showBackButton?: boolean;
   };
 
   // Root perps view

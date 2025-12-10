@@ -45,9 +45,22 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
 }) => {
   const { colors, typography } = useTheme();
   const style = styles(colors, typography);
+  const [pendingNavigation, setPendingNavigation] = React.useState<
+    string | null
+  >(null);
 
   const { title, from, to, baseFee, priorityFee } = displayData;
   const { id, timestamp, chain, status } = transaction;
+
+  const handleModalHide = () => {
+    if (pendingNavigation) {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: pendingNavigation },
+      });
+      setPendingNavigation(null);
+    }
+  };
 
   const viewOnBlockExplorer = (label: string) => {
     let url = '';
@@ -66,11 +79,8 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
     }
 
     try {
+      setPendingNavigation(url);
       onClose();
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: { url },
-      });
     } catch (e) {
       console.error(e, {
         message: `failed to open block explorer for ${chain}`,
@@ -117,6 +127,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
     <Modal
       isVisible={isVisible}
       onBackdropPress={onClose}
+      onModalHide={handleModalHide}
       backdropOpacity={0.7}
       animationIn="slideInUp"
       animationOut="slideOutDown"

@@ -1,40 +1,32 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
   Text,
   TextVariant,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { AccountGroupId } from '@metamask/account-api';
-import { renderSlightlyLongAddress } from '../../../../../util/address';
-import NetworkAvatars from './NetworkAvatars';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
-import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { strings } from '../../../../../../locales/i18n';
 import { useLinkAccountGroup } from '../../hooks/useLinkAccountGroup';
-import RewardsInfoBanner from '../RewardsInfoBanner';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selectors/multichainNetworkController';
+import { CaipChainId } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { isTestNet } from '../../../../../util/networks';
+import { MultichainAddressRow } from '../../../../../component-library/components-temp/MultichainAccounts';
 
 interface RouteParams {
   accountGroupId: AccountGroupId;
@@ -48,20 +40,34 @@ interface AddressItem {
   isSupported?: boolean;
 }
 
+interface FlattenedAddressItem {
+  address: string;
+  hasOptedIn: boolean;
+  scope: CaipChainId;
+  networkName: string;
+  isSupported?: boolean;
+}
+
 const RewardOptInAccountGroupModal: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { accountGroupId, addressData } = route.params as RouteParams;
-  const tw = useTailwind();
+  const { height: screenHeight } = useWindowDimensions();
+
+  const listStyle = useMemo(
+    () => ({ maxHeight: screenHeight * 0.65 }),
+    [screenHeight],
+  );
+
   const accountGroupContext = useSelector((state: RootState) =>
     selectAccountGroupById(state, accountGroupId),
   );
-  const { linkAccountGroup, isLoading } = useLinkAccountGroup();
-  const evmAddress = useSelector((state: RootState) =>
-    selectIconSeedAddressByAccountGroupId(accountGroupId)(state),
+  const evmNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
+  const nonEvmNetworks = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
   );
+  const { linkAccountGroup, isLoading } = useLinkAccountGroup();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   // Local state to track succeeded/failed accounts from linkAccountGroup operations
   const [localAccountStatuses, setLocalAccountStatuses] = useState<
@@ -72,17 +78,179 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // Computed address data that merges local statuses with original addressData
-  const computedAddressData = useMemo(
-    () =>
-      addressData
-        .map((item) => ({
-          ...item,
-          hasOptedIn: localAccountStatuses[item.address] ?? item.hasOptedIn,
-        }))
-        ?.filter((item) => item.address),
-    [addressData, localAccountStatuses],
-  );
+  // Build a lookup of all networks by CAIP chain ID
+  const allNetworks = useMemo(() => {
+    const networks: Record<CaipChainId, { name: string; hexChainId?: string }> =
+      {};
+
+    // Add EVM networks
+    Object.entries(evmNetworks || {}).forEach(([hexChainId, networkConfig]) => {
+      if (networkConfig?.name && typeof hexChainId === 'string') {
+        try {
+          const caipChainId = toEvmCaipChainId(hexChainId as `0x${string}`);
+          networks[caipChainId] = {
+            name: networkConfig.name,
+            hexChainId,
+          };
+        } catch (error) {
+          console.warn('Invalid EVM chain ID:', hexChainId, error);
+        }
+      }
+    });
+
+    // Add non-EVM networks (including Solana, Bitcoin, etc.)
+    Object.entries(nonEvmNetworks || {}).forEach(([chainId, networkConfig]) => {
+      if (typeof chainId === 'string' && networkConfig?.name) {
+        const caipChainId = chainId as CaipChainId;
+        networks[caipChainId] = {
+          name: networkConfig.name,
+        };
+      }
+    });
+
+    return networks;
+  }, [evmNetworks, nonEvmNetworks]);
+
+  // Flatten address data: create one item per address+scope combination
+  const flattenedAddressData = useMemo(() => {
+    const flattened: FlattenedAddressItem[] = [];
+
+    const addFlattenedItem = (
+      address: string,
+      hasOptedIn: boolean,
+      scope: CaipChainId,
+      networkName: string,
+      isSupported?: boolean,
+    ) => {
+      flattened.push({
+        address,
+        hasOptedIn,
+        scope,
+        networkName,
+        isSupported,
+      });
+    };
+
+    const processMatchingNetwork = (
+      chainId: string,
+      network: { name: string; hexChainId?: string },
+      namespace: string,
+      address: string,
+      hasOptedIn: boolean,
+      isSupported: boolean | undefined,
+    ) => {
+      const chainIdParts = chainId.split(':');
+      if (chainIdParts.length < 2) {
+        return;
+      }
+
+      const chainIdNamespace = chainIdParts[0];
+      if (chainIdNamespace !== namespace) {
+        return;
+      }
+
+      // Skip testnets for EVM networks
+      if (network.hexChainId && isTestNet(network.hexChainId)) {
+        return;
+      }
+
+      addFlattenedItem(
+        address,
+        hasOptedIn,
+        chainId as CaipChainId,
+        network.name,
+        isSupported,
+      );
+    };
+
+    const processWildcardScope = (
+      caipScope: CaipChainId,
+      address: string,
+      hasOptedIn: boolean,
+      isSupported: boolean | undefined,
+    ) => {
+      const scopeParts = caipScope.split(':');
+      if (scopeParts.length < 2) {
+        console.warn('Invalid CAIP scope format:', caipScope);
+        return;
+      }
+
+      const namespace = scopeParts[0];
+      if (!namespace) {
+        console.warn('Invalid CAIP scope format:', caipScope);
+        return;
+      }
+
+      // Add all networks matching this namespace (excluding testnets)
+      Object.entries(allNetworks).forEach(([chainId, network]) => {
+        processMatchingNetwork(
+          chainId,
+          network,
+          namespace,
+          address,
+          hasOptedIn,
+          isSupported,
+        );
+      });
+    };
+
+    const processSpecificScope = (
+      caipScope: CaipChainId,
+      address: string,
+      hasOptedIn: boolean,
+      isSupported: boolean | undefined,
+    ) => {
+      const network = allNetworks[caipScope];
+      if (network) {
+        addFlattenedItem(
+          address,
+          hasOptedIn,
+          caipScope,
+          network.name,
+          isSupported,
+        );
+      } else {
+        console.warn('Unknown network for scope:', caipScope);
+      }
+    };
+
+    const processScope = (
+      scope: string,
+      address: string,
+      hasOptedIn: boolean,
+      isSupported: boolean | undefined,
+    ) => {
+      if (typeof scope !== 'string' || !scope.trim()) {
+        return;
+      }
+
+      const caipScope = scope as CaipChainId;
+
+      // Handle wildcard patterns (e.g., "eip155:*" or "bip122:0")
+      if (caipScope.includes(':*') || caipScope.endsWith(':0')) {
+        processWildcardScope(caipScope, address, hasOptedIn, isSupported);
+      } else {
+        processSpecificScope(caipScope, address, hasOptedIn, isSupported);
+      }
+    };
+
+    const processAddressItem = (item: AddressItem) => {
+      if (!item?.address || !Array.isArray(item.scopes)) {
+        return;
+      }
+
+      const updatedHasOptedIn =
+        localAccountStatuses[item.address] ?? item.hasOptedIn;
+
+      item.scopes.forEach((scope: string) => {
+        processScope(scope, item.address, updatedHasOptedIn, item.isSupported);
+      });
+    };
+
+    addressData.forEach(processAddressItem);
+
+    return flattened;
+  }, [addressData, localAccountStatuses, allNetworks]);
 
   const handleLinkAccountGroup = useCallback(async () => {
     try {
@@ -98,72 +266,105 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     }
   }, [linkAccountGroup, accountGroupId]);
 
-  const renderAddressItem = useCallback(({ item }: { item: AddressItem }) => {
-    if (!item?.address) {
-      return <></>;
-    }
-
-    const isUnsupported = item.isSupported === false;
-    const iconName = isUnsupported
-      ? IconName.Warning
-      : item.hasOptedIn
-      ? IconName.Check
-      : IconName.Close;
-    const iconColor = isUnsupported
-      ? IconColor.Warning
-      : item.hasOptedIn
-      ? IconColor.Success
-      : IconColor.Error;
-
-    return (
-      <Box
-        testID={`flat-list-item-${item.address}`}
-        twClassName="flex-row items-center justify-between px-4 py-4 rounded-lg border bg-background-muted border-muted mb-2"
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1"
-        >
-          <Icon name={iconName} color={iconColor} />
-
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="flex-1 ml-3 gap-2"
-          >
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {renderSlightlyLongAddress(item.address)}
+  const renderItem = useCallback(
+    ({
+      item: itemCtx,
+    }: {
+      item:
+        | { type: 'header'; title: string }
+        | ({ type: 'item' } & FlattenedAddressItem);
+    }) => {
+      if (itemCtx.type === 'header') {
+        return (
+          <Box twClassName="px-4 py-2">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              twClassName="text-alternative"
+            >
+              {itemCtx.title}
             </Text>
-
-            <NetworkAvatars
-              scopes={item.scopes}
-              maxVisible={3}
-              testID={`network-avatars-${item.address}`}
-            />
           </Box>
-        </Box>
-      </Box>
-    );
-  }, []);
+        );
+      }
 
-  const unsupportedAddresses = useMemo(
-    () =>
-      computedAddressData?.filter((item) => item.isSupported === false) ?? [],
-    [computedAddressData],
+      if (!itemCtx.address || !itemCtx.scope) {
+        return null;
+      }
+
+      return (
+        <MultichainAddressRow
+          testID={`flat-list-item-${itemCtx.address}-${itemCtx.scope}`}
+          chainId={itemCtx.scope}
+          networkName={itemCtx.networkName}
+          address={itemCtx.address}
+        />
+      );
+    },
+    [],
   );
 
   const canOptInAddresses = useMemo(
     () =>
-      computedAddressData?.filter(
-        (item) => item.isSupported === true && !item.hasOptedIn,
+      flattenedAddressData?.filter(
+        (item) => item.isSupported !== false && !item.hasOptedIn,
       ) ?? [],
-    [computedAddressData],
+    [flattenedAddressData],
   );
+
+  // Flatten addresses with section headers for FlatList
+  const flatListData = useMemo(() => {
+    const supportedAddresses = flattenedAddressData.filter(
+      (item) => item.isSupported !== false,
+    );
+    const unsupportedAddresses = flattenedAddressData.filter(
+      (item) => item.isSupported === false,
+    );
+
+    const trackedAddresses = supportedAddresses.filter(
+      (item) => item.hasOptedIn,
+    );
+    const untrackedAddresses = supportedAddresses.filter(
+      (item) => !item.hasOptedIn,
+    );
+
+    const data: (
+      | { type: 'header'; title: string }
+      | ({ type: 'item' } & FlattenedAddressItem)
+    )[] = [];
+
+    if (trackedAddresses.length > 0) {
+      data.push({
+        type: 'header',
+        title: strings('rewards.link_account_group.tracked'),
+      });
+      trackedAddresses.forEach((item) => {
+        data.push({ type: 'item', ...item });
+      });
+    }
+
+    if (untrackedAddresses.length > 0) {
+      data.push({
+        type: 'header',
+        title: strings('rewards.link_account_group.untracked'),
+      });
+      untrackedAddresses.forEach((item) => {
+        data.push({ type: 'item', ...item });
+      });
+    }
+
+    if (unsupportedAddresses.length > 0) {
+      data.push({
+        type: 'header',
+        title: strings('rewards.link_account_group.unsupported'),
+      });
+      unsupportedAddresses.forEach((item) => {
+        data.push({ type: 'item', ...item });
+      });
+    }
+
+    return data;
+  }, [flattenedAddressData]);
 
   return (
     <BottomSheet
@@ -172,63 +373,27 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       onClose={handleDismiss}
     >
       {Boolean(accountGroupContext?.metadata?.name) && (
-        <BottomSheetHeader
-          startAccessory={
-            <AvatarAccount
-              accountAddress={
-                evmAddress || '0x0000000000000000000000000000000000000000'
-              }
-              type={avatarAccountType}
-              size={AvatarSize.Lg}
-            />
-          }
-          onClose={handleDismiss}
-        >
-          <Box
-            twClassName="items-center"
-            flexDirection={BoxFlexDirection.Column}
-          >
-            {/* Account Name */}
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              numberOfLines={1}
-            >
-              {accountGroupContext?.metadata?.name}
-            </Text>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {strings('rewards.link_account_group.linked_accounts')}
-            </Text>
-          </Box>
+        <BottomSheetHeader>
+          <Text variant={TextVariant.HeadingSm}>
+            {accountGroupContext?.metadata?.name}
+          </Text>
         </BottomSheetHeader>
       )}
 
-      {unsupportedAddresses.length > 0 && (
-        <Box twClassName="px-4 pb-4">
-          <RewardsInfoBanner
-            title={strings(
-              'rewards.onboarding.not_supported_account_type_title',
-            )}
-            description={strings(
-              'rewards.onboarding.not_supported_account_type_description',
-            )}
-            testID="unsupported-accounts-banner"
-          />
-        </Box>
+      {flatListData.length > 0 && (
+        <FlatList
+          testID="reward-opt-in-address-list"
+          style={listStyle}
+          data={flatListData}
+          keyExtractor={(item, index) =>
+            item.type === 'header'
+              ? `header-${item.title}-${index}`
+              : `${item.address}-${item.scope}-${index}`
+          }
+          renderItem={renderItem}
+          showsVerticalScrollIndicator
+        />
       )}
-
-      <Box twClassName="px-4 gap-2">
-        {computedAddressData.length > 0 && (
-          <FlatList
-            testID="reward-opt-in-address-list"
-            data={computedAddressData}
-            keyExtractor={(item) => `${item.address}`}
-            renderItem={renderAddressItem}
-            showsVerticalScrollIndicator
-            style={tw.style('max-h-80')}
-          />
-        )}
-      </Box>
 
       {canOptInAddresses.length > 0 && (
         <Box twClassName="px-4 gap-2 pt-2">

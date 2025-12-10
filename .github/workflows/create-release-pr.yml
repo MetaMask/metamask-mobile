@@ -6,16 +6,10 @@ on:
       semver-version:
         description: 'A semantic version, eg: x.x.x'
         required: true
-      mobile-build-version:
-        description: 'Mobile build number (integer). Must be provided for mobile releases.'
-        required: true
 
   workflow_call:
     inputs:
       semver-version:
-        required: true
-        type: string
-      mobile-build-version:
         required: true
         type: string
     secrets:
@@ -77,69 +71,30 @@ jobs:
         run: |
           .github/scripts/resolve-previous-ref.sh
 
-  validate-build-number:
-    runs-on: ubuntu-latest
-    steps:
-      # Ensures a manual build number is provided and is numeric (digits only)
-      - name: Validate mobile-build-version
-        shell: bash
-        env:
-          INPUT_BUILD: ${{ inputs.mobile-build-version }}
-        run: |
-          # Validation policy:
-          # - Required (non-empty)
-          # - Digits-only regex: ^[0-9]+$
-          #   Valid: 1, 42, 20251003, 123456
-          #   Invalid: '', '1.2', '+1', '0x10', 'abc', spaces
-          set -euo pipefail
-          if [ -z "${INPUT_BUILD:-}" ]; then
-            echo "Error: mobile-build-version is required and must be provided." >&2
-            exit 1
-          fi
-          if ! [[ "${INPUT_BUILD}" =~ ^[0-9]+$ ]]; then
-            echo "Error: mobile-build-version must be digits only, got: ${INPUT_BUILD}" >&2
-            exit 1
-          fi
+  generate-build-version:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.3.0
+    permissions:
+      id-token: write
 
   create-release-pr:
-    needs: [resolve-bases, resolve-previous-ref, validate-build-number]
+    needs: [resolve-bases, resolve-previous-ref, generate-build-version]
     name: Create Release Pull Request using Github Tools
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@7fe185fdb0e60981c898e88d82e44ff33f604daa
-    with:
-      platform: mobile
-      checkout-base-branch: ${{ needs.resolve-bases.outputs.checkout_base }}
-      release-pr-base-branch: ${{ needs.resolve-bases.outputs.release_base }}
-      semver-version: ${{ inputs.semver-version }}
-      previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
-      mobile-build-version: ${{ inputs.mobile-build-version }}
-      github-tools-version: 7fe185fdb0e60981c898e88d82e44ff33f604daa
-    secrets:
-      # This token needs write permissions to metamask-mobile & read permissions to metamask-planning
-      # If called from auto-create-release-pr use the PR_TOKEN passed in as an input, if called manually use github secret token values
-      # (this is due to github limitations on fetching secrets from called workflows).
-      github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
-      google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-      id-token: write
-
-  add-e2e-label:
-    needs: create-release-pr
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
-      - name: Add Run Smoke E2E label to release PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Find the release PR that was just created
-          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --head "release/${{ inputs.semver-version }}" --json number --jq '.[0].number')
-          if [ -n "$PR_NUMBER" ]; then
-            gh pr edit "$PR_NUMBER" --repo ${{ github.repository }} --add-label "Run Smoke E2E"
-            echo "Added 'Run Smoke E2E' label to PR #$PR_NUMBER"
-          else
-            echo "Could not find release PR for release/${{ inputs.semver-version }}"
-            exit 1
-          fi
+      - name: Create Release PR
+        uses: MetaMask/github-tools/.github/actions/create-release-pr@v1
+        with:
+          platform: mobile
+          checkout-base-branch: ${{ needs.resolve-bases.outputs.checkout_base }}
+          release-pr-base-branch: ${{ needs.resolve-bases.outputs.release_base }}
+          semver-version: ${{ inputs.semver-version }}
+          previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
+          mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
+          # This token needs write permissions to metamask-mobile & read permissions to metamask-planning
+          # If called from auto-create-release-pr use the PR_TOKEN passed in as an input, if called manually use github secret token values
+          # (this is due to github limitations on fetching secrets from called workflows).
+          github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+          google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}

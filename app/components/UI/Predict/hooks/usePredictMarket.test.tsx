@@ -25,7 +25,8 @@ describe('usePredictMarket', () => {
     image: 'https://example.com/btc.png',
     status: 'open',
     recurrence: Recurrence.NONE,
-    categories: ['crypto', 'trending'],
+    category: 'crypto',
+    tags: ['trending'],
     outcomes: [
       {
         id: 'outcome-1',
@@ -64,11 +65,17 @@ describe('usePredictMarket', () => {
         groupItemTitle: 'Yes/No',
       },
     ],
+    liquidity: 1000000,
+    volume: 1000000,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     (Engine.context.PredictController.getMarket as jest.Mock) = mockGetMarket;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('initial state', () => {

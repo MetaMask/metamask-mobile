@@ -17,19 +17,10 @@ import {
   selectSelectedDestChainId,
   setSelectedDestChainId,
 } from '../../../../core/redux/slices/bridge';
-import {
-  ETH_CHAIN_ID,
-  BASE_CHAIN_ID,
-  BSC_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  ARBITRUM_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-} from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge';
 import { Box } from '../../Box/Box';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
@@ -39,7 +30,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 // Using ScrollView from react-native-gesture-handler to fix scroll issues with the bottom sheet
 import { ScrollView } from 'react-native-gesture-handler';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { BridgeViewMode } from '../types';
 ///: END:ONLY_INCLUDE_IF
 const createStyles = (params: { theme: Theme }) => {
@@ -47,10 +38,13 @@ const createStyles = (params: { theme: Theme }) => {
   return StyleSheet.create({
     networksButton: {
       borderColor: theme.colors.border.muted,
+      backgroundColor: theme.colors.background.default,
+      borderRadius: 10,
     },
     selectedNetworkIcon: {
-      borderColor: theme.colors.primary.muted,
-      backgroundColor: theme.colors.primary.muted,
+      borderColor: theme.colors.border.muted,
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 10,
     },
     scrollView: {
       flexGrow: 0,
@@ -58,7 +52,7 @@ const createStyles = (params: { theme: Theme }) => {
     contentContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: 10,
       paddingHorizontal: 4,
     },
   });
@@ -69,24 +63,23 @@ const createStyles = (params: { theme: Theme }) => {
  * 1 = most popular
  * Infinity = least popular
  */
-const ChainPopularity: Record<Hex | CaipChainId, number> = {
-  [ETH_CHAIN_ID]: 1,
+export const ChainPopularity: Record<Hex | CaipChainId, number> = {
+  [CHAIN_IDS.MAINNET]: 1,
+  [CHAIN_IDS.BSC]: 2,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  [SolScope.Mainnet]: 2,
+  [BtcScope.Mainnet]: 3,
+  [SolScope.Mainnet]: 4,
+  [TrxScope.Mainnet]: 5,
   ///: END:ONLY_INCLUDE_IF
-  [BASE_CHAIN_ID]: 3,
-  [BSC_CHAIN_ID]: 4,
-  [LINEA_CHAIN_ID]: 5,
-  [OPTIMISM_CHAIN_ID]: 6,
-  [ARBITRUM_CHAIN_ID]: 7,
-  [AVALANCHE_CHAIN_ID]: 9,
-  [POLYGON_CHAIN_ID]: 8,
-  [ZKSYNC_ERA_CHAIN_ID]: 10,
-  [NETWORKS_CHAIN_ID.SEI]: 11,
-};
-
-const ShortChainNames: Record<Hex | CaipChainId, string> = {
-  [ETH_CHAIN_ID]: 'Ethereum',
+  [CHAIN_IDS.BASE]: 6,
+  [CHAIN_IDS.ARBITRUM]: 7,
+  [CHAIN_IDS.LINEA_MAINNET]: 8,
+  [CHAIN_IDS.POLYGON]: 9,
+  [CHAIN_IDS.AVALANCHE]: 10,
+  [CHAIN_IDS.OPTIMISM]: 11,
+  [CHAIN_IDS.ZKSYNC_ERA]: 12,
+  [NETWORKS_CHAIN_ID.SEI]: 13,
+  [NETWORKS_CHAIN_ID.MONAD]: 14,
 };
 
 export const BridgeDestNetworksBar = () => {
@@ -137,7 +130,7 @@ export const BridgeDestNetworksBar = () => {
               <Box
                 flexDirection={FlexDirection.Row}
                 alignItems={AlignItems.center}
-                gap={4}
+                gap={8}
               >
                 {selectedDestChainId === chain.chainId ? (
                   <AvatarNetwork
@@ -145,7 +138,10 @@ export const BridgeDestNetworksBar = () => {
                     size={AvatarSize.Xs}
                   />
                 ) : null}
-                <Text>{ShortChainNames[chain.chainId] ?? chain.name}</Text>
+                <Text>
+                  {NETWORK_TO_SHORT_NETWORK_NAME_MAP[chain.chainId] ??
+                    chain.name}
+                </Text>
               </Box>
             }
             style={

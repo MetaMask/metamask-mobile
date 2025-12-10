@@ -7,6 +7,8 @@ import {
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
 import StorageWrapper from '../../store/storage-wrapper';
+import Device from '../device';
+import { Dimensions } from 'react-native';
 
 const isVersionSeenAndGreaterThanMinAppVersion = (
   versionSeen: string | null,
@@ -61,4 +63,17 @@ export const shouldShowWhatsNewModal = async () => {
     return true;
   }
   return false;
+};
+
+export const getScreenDimensions = () => {
+  const { width, height } = Dimensions.get('window');
+
+  const animationHeightRatio =
+    Device.isSmallDevice() || Device.isMediumDevice() ? 0.4 : 0.5;
+
+  return {
+    screenWidth: width,
+    screenHeight: height,
+    animationHeight: height * animationHeightRatio,
+  };
 };

@@ -11,6 +11,7 @@
 
 ## E2E Framework Structure
 
+- **Testing Scenarios (`e2e/specs/`)** - Test files organized by feature
 - **TypeScript Framework (`e2e/framework/`)**: Modern testing framework with type safety
 - **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
 - **Page Objects (`e2e/pages/`)**: Page Object Model implementation
@@ -192,9 +193,6 @@ new FixtureBuilder().build();
 // With popular networks
 new FixtureBuilder().withPopularNetworks().build();
 
-// With Ganache network
-new FixtureBuilder().withGanacheNetwork().build();
-
 // With connected test dapp
 new FixtureBuilder()
   .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
@@ -315,72 +313,3 @@ await Utilities.executeWithRetry(
 - [ ] Tests work on both iOS and Android platforms
 - [ ] Test names are descriptive without 'should' prefix
 - [ ] Uses FixtureBuilder for test data setup
-
-**Predefined Job Coverage** (update when new tags are added):
-
-- `SmokeConfirmations` (3 splits) / `SmokeConfirmationsRedesigned` (2 splits)
-- `SmokeTrade` (2 splits) / `SmokeWalletPlatform` (2 splits) / `SmokeIdentity` (2 splits)
-- `SmokeAccounts` (2 splits) / `SmokeNetworkAbstractions` (2 splits) / `SmokeNetworkExpansion` (2 splits)
-- `SmokeCore` (2 splits) / `SmokeWalletUX` (2 splits) / `SmokeSwaps` (2 splits)
-- `SmokeAssets` (1 split) / `SmokeStake` (1 split) / `SmokeCard` (1 split) / `SmokeNotifications` (1 split)
-
-**Maintenance**: When adding new smoke test tags:
-
-1. Update `scripts/smart-e2e-selector-ai.ts` with tag mapping and split configuration
-2. Add corresponding job declarations to `.github/workflows/smart-e2e-ai-selection.yml`
-3. Follow existing pattern: `{tag-name}-{platform}-smoke` with conditional execution
-4. Update this documentation list
-
-## AI E2E Testing System
-
-## Overview
-
-The AI E2E Testing system is an intelligent test selection mechanism that analyzes code changes in pull requests and automatically recommends which End-to-End (E2E) smoke tests should be executed. The system runs in **analysis-only mode** by default, providing test recommendations as PR comments without triggering actual test execution.
-
-## How It Works
-
-### Automatic Analysis on Every PR
-
-The system runs automatically on every pull request:
-
-1. **File Detection**: The `needs-e2e-build` job detects changed files
-2. **AI Analysis**: The `ai-e2e-analysis` job analyzes changes using Claude AI
-3. **Test Matrix**: A test matrix is generated (available for future use)
-
-## Configuration
-
-### Environment Variables
-
-- **`E2E_CLAUDE_API_KEY`**: Required for AI analysis (stored in GitHub Secrets)
-
-### Script Options
-
-```bash
-Options:
-  -b, --base-branch <branch>   Base branch to compare against
-  -d, --dry-run               Show commands without running
-  -v, --verbose               Verbose output with AI reasoning
-  -o, --output <format>       Output format (default|json|tags|matrix)
-  --include-main-changes       Include broader context from main branch
-  --show-tags                 Show comparison of available vs pipeline tags
-  --changed-files <files>     Use pre-computed changed files list
-  -h, --help                 Show help information
-```
-
-### Local Testing
-
-Test the AI analysis locally before pushing:
-
-```bash
-# Test current branch changes
-yarn ai-e2e --verbose
-
-# Test specific base branch
-yarn ai-e2e --base-branch origin/main --verbose
-
-# Get machine-readable output
-yarn ai-e2e --output json | jq '.'
-
-# See the test matrix
-yarn ai-e2e --output matrix | jq '.'
-```

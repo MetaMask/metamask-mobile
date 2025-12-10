@@ -16,7 +16,6 @@ jest.mock('../../../core/ClipboardManager', () => ({
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   getDecimalChainId: jest.fn(() => 1),
-  isPortfolioViewEnabled: jest.fn(() => true),
 }));
 
 jest.mock('@react-navigation/compat', () => ({

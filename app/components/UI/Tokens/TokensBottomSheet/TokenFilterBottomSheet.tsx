@@ -27,7 +27,6 @@ import {
   NetworkType,
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 enum FilterOption {
   AllNetworks,
@@ -70,9 +69,7 @@ const TokenFilterBottomSheet = () => {
       default:
         break;
     }
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      selectNetwork(chainId);
-    }
+    selectNetwork(chainId);
   };
 
   const isCurrentNetwork = Boolean(
@@ -81,7 +78,7 @@ const TokenFilterBottomSheet = () => {
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
-      <View style={styles.bottomSheetWrapper}>
+      <View>
         <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
           {strings('wallet.filter_by')}
         </Text>

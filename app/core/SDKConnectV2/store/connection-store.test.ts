@@ -1,15 +1,15 @@
 import { ConnectionStore } from './connection-store';
 import { ConnectionInfo } from '../types/connection-info';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageWrapper from '../../../store/storage-wrapper';
 
-jest.mock('@react-native-async-storage/async-storage');
 jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
     getItem: jest.fn(),
     setItem: jest.fn(),
     removeItem: jest.fn(),
+    getAllKeys: jest.fn(),
+    multiGet: jest.fn(),
   },
 }));
 
@@ -157,21 +157,21 @@ describe('ConnectionStore', () => {
       },
     ];
 
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
+    (StorageWrapper.getAllKeys as jest.Mock).mockResolvedValueOnce([
       'test-prefix/id1',
       'test-prefix/id2',
       'other-prefix/id3',
     ]);
 
-    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
+    (StorageWrapper.multiGet as jest.Mock).mockResolvedValueOnce([
       ['test-prefix/id1', JSON.stringify(connections[0])],
       ['test-prefix/id2', JSON.stringify(connections[1])],
     ]);
 
     const result = await store.list();
 
-    expect(AsyncStorage.getAllKeys).toHaveBeenCalled();
-    expect(AsyncStorage.multiGet).toHaveBeenCalledWith([
+    expect(StorageWrapper.getAllKeys).toHaveBeenCalled();
+    expect(StorageWrapper.multiGet).toHaveBeenCalledWith([
       'test-prefix/id1',
       'test-prefix/id2',
     ]);
@@ -179,12 +179,12 @@ describe('ConnectionStore', () => {
   });
 
   it('should return empty array when no connections exist', async () => {
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([]);
+    (StorageWrapper.getAllKeys as jest.Mock).mockResolvedValueOnce([]);
 
     const result = await store.list();
 
     expect(result).toEqual([]);
-    expect(AsyncStorage.multiGet).not.toHaveBeenCalled();
+    expect(StorageWrapper.multiGet).not.toHaveBeenCalled();
   });
 
   it('should filter out expired connections from list', async () => {
@@ -206,12 +206,12 @@ describe('ConnectionStore', () => {
       expiresAt: Date.now() - 1000, // Already expired
     };
 
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
+    (StorageWrapper.getAllKeys as jest.Mock).mockResolvedValueOnce([
       'test-prefix/valid-id',
       'test-prefix/expired-id',
     ]);
 
-    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
+    (StorageWrapper.multiGet as jest.Mock).mockResolvedValueOnce([
       ['test-prefix/valid-id', JSON.stringify(validConnection)],
       ['test-prefix/expired-id', JSON.stringify(expiredConnection)],
     ]);
@@ -235,12 +235,12 @@ describe('ConnectionStore', () => {
       expiresAt: Date.now() + 1000 * 60 * 60, // Valid for 1 hour
     };
 
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
+    (StorageWrapper.getAllKeys as jest.Mock).mockResolvedValueOnce([
       'test-prefix/valid-id',
       'test-prefix/corrupted-id',
     ]);
 
-    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
+    (StorageWrapper.multiGet as jest.Mock).mockResolvedValueOnce([
       ['test-prefix/valid-id', JSON.stringify(validConnection)],
       ['test-prefix/corrupted-id', 'invalid json'],
     ]);
@@ -281,12 +281,12 @@ describe('ConnectionStore', () => {
       expiresAt: Date.now() - 1000,
     };
 
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
+    (StorageWrapper.getAllKeys as jest.Mock).mockResolvedValueOnce([
       'test-prefix/valid-id',
       'test-prefix/expired-id',
     ]);
 
-    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
+    (StorageWrapper.multiGet as jest.Mock).mockResolvedValueOnce([
       ['test-prefix/valid-id', JSON.stringify(validConnection)],
       ['test-prefix/expired-id', JSON.stringify(expiredConnection)],
     ]);

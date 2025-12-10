@@ -17,7 +17,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
-import { InteractionManager, Alert } from 'react-native';
+import { InteractionManager, Alert, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -53,7 +53,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('lottie-react-native', () => 'LottieView');
+jest.mock('./FoxRiveLoaderAnimation/FoxRiveLoaderAnimation');
 
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
@@ -257,13 +257,153 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    // Check if title text is rendered correctly for loading state
-    const loadingTitle = component.getByText(
-      strings('secure_your_wallet.creating_password'),
-    );
-    expect(loadingTitle).toBeTruthy();
+    // Now using FoxRiveLoaderAnimation which shows "Setting up your wallet..."
     jest.spyOn(Device, 'isIos').mockRestore();
     jest.spyOn(Device, 'isMediumDevice').mockRestore();
+  });
+
+  it('renders FoxRiveLoaderAnimation component with correct props in loading state', async () => {
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByRole('button', {
+      name: strings('choose_password.create_password_cta'),
+    });
+
+    // Fill form and submit to trigger loading state
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'Test123456!');
+      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+      fireEvent.press(checkbox);
+    });
+
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    // Verify FoxRiveLoaderAnimation component is rendered
+    const animationComponent = component.getByTestId(
+      'fox-rive-loader-animation',
+    );
+    expect(animationComponent).toBeTruthy();
+  });
+
+  it('applies loadingWrapper styles when in loading state', async () => {
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByRole('button', {
+      name: strings('choose_password.create_password_cta'),
+    });
+
+    // Fill form and submit to trigger loading state
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'Test123456!');
+      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+      fireEvent.press(checkbox);
+    });
+
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    // Verify loading wrapper is present (contains the animation)
+    const animationComponent = component.getByTestId(
+      'fox-rive-loader-animation',
+    );
+    expect(animationComponent.parent).toBeTruthy();
+
+    expect(() =>
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toThrow();
+  });
+
+  it('toggles between loading and normal state correctly', async () => {
+    // Mock Authentication.newWalletAndKeychain to control loading state
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+
+    let resolveWalletCreation: () => void;
+    const walletCreationPromise = new Promise<void>((resolve) => {
+      resolveWalletCreation = resolve;
+    });
+
+    mockNewWalletAndKeychain.mockReturnValue(walletCreationPromise);
+
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Initially should show normal form
+    expect(
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toBeTruthy();
+    expect(() => component.getByTestId('fox-rive-loader-animation')).toThrow();
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByRole('button', {
+      name: strings('choose_password.create_password_cta'),
+    });
+
+    // Fill form and submit to trigger loading state
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'Test123456!');
+      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+      fireEvent.press(checkbox);
+    });
+
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    expect(component.getByTestId('fox-rive-loader-animation')).toBeTruthy();
+    expect(() =>
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toThrow();
+
+    // Complete wallet creation to exit loading state
+    await act(async () => {
+      resolveWalletCreation();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    mockNewWalletAndKeychain.mockRestore();
   });
 
   it('error message is shown when passwords do not match', async () => {
@@ -431,7 +571,7 @@ describe('ChoosePassword', () => {
     );
   });
 
-  it('create a password and navigate to AccountBackupStep1', async () => {
+  it('create a password and navigate to ManualBackupStep1', async () => {
     // Mock Authentication.newWalletAndKeychain to resolve quickly to trigger loading state
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
@@ -505,13 +645,18 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    // Wait a moment for the loading state to be set and componentDidUpdate to be called
+    // Wait for loading state to be set and animation to complete
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    expect(mockNavigation.replace).toHaveBeenCalledWith('AccountBackupStep1', {
-      seedPhrase: expect.any(Array),
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.replace).toHaveBeenCalledWith('ManualBackupStep1', {
+        seedPhrase: expect.any(Array),
+        backupFlow: false,
+        settingsBackup: false,
+      });
     });
 
     // // Clean up mock
@@ -837,14 +982,17 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
 
-    expect(mockNavigation.reset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [
-        {
-          name: 'OnboardingSuccess',
-          params: { showPasswordHint: true },
-        },
-      ],
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingSuccess',
+            params: { showPasswordHint: true },
+          },
+        ],
+      });
     });
 
     mockNewWalletAndKeychain.mockRestore();
@@ -906,14 +1054,17 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
 
-    expect(mockNavigation.reset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [
-        {
-          name: 'OnboardingSuccess',
-          params: { showPasswordHint: true },
-        },
-      ],
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingSuccess',
+            params: { showPasswordHint: true },
+          },
+        ],
+      });
     });
 
     mockNewWalletAndKeychain.mockRestore();
@@ -1557,6 +1708,82 @@ describe('ChoosePassword', () => {
         });
 
         expect(submitButton.props.disabled).toBe(true);
+      });
+    });
+  });
+
+  describe('OAuth Login Description Text', () => {
+    it('should show iOS-specific description when Platform.OS is ios and OAuth login is successful', async () => {
+      // Mock Platform.OS to be 'ios'
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: 'ios',
+      });
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Check that iOS-specific text is rendered
+      expect(() =>
+        component.getByText(/Use this for wallet recovery/),
+      ).not.toThrow();
+
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: originalPlatform,
+      });
+    });
+
+    it('should show different text when Platform.OS is android and OAuth login is successful', async () => {
+      // Mock Platform.OS to be 'android'
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: 'android',
+      });
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Check that non-iOS text is rendered
+      expect(() =>
+        component.getByText(/If you lose this password/),
+      ).not.toThrow();
+
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: originalPlatform,
       });
     });
   });

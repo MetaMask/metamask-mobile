@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   GestureResponderEvent,
@@ -72,8 +72,8 @@ const PriceChart = ({
     priceDiff > 0
       ? theme.colors.primary.default
       : priceDiff < 0
-      ? theme.colors.primary.default
-      : theme.colors.text.alternative;
+        ? theme.colors.primary.default
+        : theme.colors.text.alternative;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
@@ -81,6 +81,48 @@ const PriceChart = ({
   };
 
   const priceList = prices.map((_: TokenPrice) => _[1]);
+
+  // Detect if this is a stablecoin and calculate appropriate Y-axis range
+  const { isStablecoin, yMin, yMax } = useMemo(() => {
+    if (priceList.length === 0) {
+      return { isStablecoin: false, yMin: undefined, yMax: undefined };
+    }
+
+    // Use median for better outlier resistance
+    const sortedPrices = [...priceList].sort((a, b) => a - b);
+    const medianPrice = sortedPrices[Math.floor(sortedPrices.length / 2)];
+    const minPrice = sortedPrices[0];
+    const maxPrice = sortedPrices[sortedPrices.length - 1];
+
+    // Detect stablecoin: median price between $0.90 and $1.10
+    const isStablecoinPrice = medianPrice >= 0.9 && medianPrice <= 1.1;
+
+    if (!isStablecoinPrice) {
+      return { isStablecoin: false, yMin: undefined, yMax: undefined };
+    }
+
+    // For stablecoins, create an intelligently zoomed view
+    const priceRange = maxPrice - minPrice;
+
+    // Ensure minimum range of 2% of median price for meaningful visualization
+    // This prevents over-zooming on very stable prices (e.g., all $1.000)
+    const minRange = medianPrice * 0.02; // 2% range minimum
+
+    // Use larger of actual range or minimum range
+    const effectiveRange = Math.max(priceRange, minRange);
+
+    // Add 20% padding to the effective range for visual breathing room
+    const padding = effectiveRange * 0.2;
+
+    // Center the range around the median for balanced visualization
+    const halfRange = effectiveRange / 2;
+
+    return {
+      isStablecoin: true,
+      yMin: Math.max(0, medianPrice - halfRange - padding),
+      yMax: medianPrice + halfRange + padding,
+    };
+  }, [priceList]);
 
   const onActiveIndexChange = (index: number) => {
     setPositionX(index);
@@ -255,36 +297,47 @@ const PriceChart = ({
     );
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.chartLoading}>
-        <SkeletonPlaceholder
-          backgroundColor={theme.colors.background.section}
-          highlightColor={theme.colors.background.subsection}
-        >
-          <SkeletonPlaceholder.Item
-            width={Dimensions.get('screen').width - 32}
-            height={CHART_HEIGHT}
-            borderRadius={6}
-          ></SkeletonPlaceholder.Item>
-        </SkeletonPlaceholder>
-      </View>
-    );
-  }
+  /**
+   * Loading overlay component.
+   * Note: We render this conditionally in the return statement rather than early-returning
+   * to work around an Android bug where charts wouldn't render until screen interaction.
+   * @see https://github.com/MetaMask/metamask-mobile/issues/20854
+   */
+  const LoadingOverlay = () => (
+    <View style={styles.noDataOverlay}>
+      <SkeletonPlaceholder
+        backgroundColor={theme.colors.background.section}
+        highlightColor={theme.colors.background.subsection}
+      >
+        <SkeletonPlaceholder.Item
+          width={Dimensions.get('screen').width - 32}
+          height={CHART_HEIGHT}
+          borderRadius={6}
+        ></SkeletonPlaceholder.Item>
+      </SkeletonPlaceholder>
+    </View>
+  );
 
   const chartHasData = priceList.length > 0;
 
   return (
     <View style={styles.chart}>
       <View style={styles.chartArea} {...panResponder.current.panHandlers}>
-        {!chartHasData && <NoDataOverlay />}
+        {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
+        {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
           contentInset={{ top: apx(40), bottom: apx(40) }}
-          svg={chartHasData ? { fill: `url(#dataGradient)` } : undefined}
+          svg={
+            chartHasData && !isLoading
+              ? { fill: `url(#dataGradient)` }
+              : undefined
+          }
+          yMin={isStablecoin && chartHasData ? yMin : undefined}
+          yMax={isStablecoin && chartHasData ? yMax : undefined}
         >
-          <Line chartHasData={chartHasData} />
+          {!isLoading && <Line chartHasData={chartHasData} />}
           {chartHasData ? <Tooltip /> : <NoDataGradient />}
           {chartHasData && <DataGradient />}
         </AreaChart>

@@ -210,6 +210,30 @@ describe('PermissionApproval', () => {
     expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
   });
 
+  it(`does not navigate if there is a permission diff for the ${Caip25EndowmentPermissionName} permission`, async () => {
+    const navigationMock = {
+      navigate: jest.fn(),
+    };
+
+    mockApprovalRequest({
+      type: ApprovalTypes.REQUEST_PERMISSIONS,
+      requestData: {
+        ...HOST_INFO_MOCK,
+        diff: {
+          permissionDiffMap: {
+            [Caip25EndowmentPermissionName]: {},
+          },
+        },
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    render(<PermissionApproval navigation={navigationMock} />);
+
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
+  });
+
   it(`does not navigate if no ${Caip25EndowmentPermissionName} permission`, async () => {
     const navigationMock = {
       navigate: jest.fn(),

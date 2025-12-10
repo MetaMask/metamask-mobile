@@ -6,10 +6,7 @@ import Text from '../../Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
-import {
-  isPrivateConnection,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { isPrivateConnection } from '../../../util/networks';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
@@ -75,6 +72,7 @@ interface NetworkProps {
   onAccept?: () => void;
   autoSwitchNetwork?: boolean;
   allowNetworkSwitch?: boolean;
+  skipEnableNetwork?: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -96,6 +94,7 @@ const NetworkModals = (props: NetworkProps) => {
     onAccept,
     autoSwitchNetwork,
     allowNetworkSwitch = true,
+    skipEnableNetwork = false,
   } = props;
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
@@ -140,9 +139,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const onUpdateNetworkFilter = useCallback(() => {
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      selectNetwork(chainId as `0x${string}`);
-    }
+    selectNetwork(chainId as `0x${string}`);
   }, [chainId, selectNetwork]);
 
   const cancelButtonProps: ButtonProps = {
@@ -237,7 +234,7 @@ const NetworkModals = (props: NetworkProps) => {
           ?.networkClientId;
     }
 
-    if (networkClientId) {
+    if (networkClientId && !skipEnableNetwork) {
       onUpdateNetworkFilter();
     }
 
@@ -384,6 +381,8 @@ const NetworkModals = (props: NetworkProps) => {
       backdropOpacity={0.7}
       animationInTiming={600}
       animationOutTiming={600}
+      onBackdropPress={onClose}
+      onSwipeComplete={onClose}
       propagateSwipe
     >
       <View style={styles.modalContainer}>

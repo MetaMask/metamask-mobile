@@ -3,7 +3,7 @@ import Engine from '../../../../../../core/Engine';
 import { MATIC_CONTRACTS, POLYGON_MAINNET_CHAIN_ID } from '../constants';
 import { SAFE_FACTORY_ADDRESS, SAFE_MULTISEND_ADDRESS } from './constants';
 import {
-  computeSafeAddress,
+  computeProxyAddress,
   createSafeFeeAuthorization,
   getDeployProxyWalletTypedData,
   encodeCreateProxy,
@@ -18,6 +18,8 @@ import {
   getSafeTransactionCallData,
   getProxyWalletAllowancesTransaction,
   getClaimTransaction,
+  getWithdrawTransactionCallData,
+  getSafeUsdcAmount,
 } from './utils';
 import { OperationType } from './types';
 import { Signer } from '../../types';
@@ -27,6 +29,30 @@ import { query } from '@metamask/controller-utils';
 import { PredictPosition, PredictPositionStatus } from '../../../types';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { getAllowance, getIsApprovedForAll } from '../utils';
+
+jest.mock('@metamask/transaction-controller', () => ({
+  TransactionType: {
+    cancel: 'cancel',
+    contractInteraction: 'contractInteraction',
+    deployContract: 'deployContract',
+    incoming: 'incoming',
+    personalSign: 'personalSign',
+    retry: 'retry',
+    sign: 'sign',
+    signTypedData: 'signTypedData',
+    simpleSend: 'simpleSend',
+    smart: 'smart',
+    swap: 'swap',
+    swapAndSend: 'swapAndSend',
+    swapApproval: 'swapApproval',
+    tokenMethodApprove: 'tokenMethodApprove',
+    tokenMethodIncreaseAllowance: 'tokenMethodIncreaseAllowance',
+    tokenMethodSetApprovalForAll: 'tokenMethodSetApprovalForAll',
+    tokenMethodTransfer: 'tokenMethodTransfer',
+    tokenMethodTransferFrom: 'tokenMethodTransferFrom',
+    tokenMethodSafeTransferFrom: 'tokenMethodSafeTransferFrom',
+  },
+}));
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -53,6 +79,7 @@ jest.mock('../../../../../../util/transactions', () => ({
 jest.mock('../utils', () => ({
   encodeApprove: jest.fn(() => '0x095ea7b3000000000000000000000000'),
   encodeErc1155Approve: jest.fn(() => '0xa22cb465000000000000000000000000'),
+  encodeErc20Transfer: jest.fn(() => '0xa9059cbb000000000000000000000000'),
   encodeClaim: jest.fn(() => '0x4e71d92d000000000000000000000000'),
   getAllowance: jest.fn(),
   getIsApprovedForAll: jest.fn(),
@@ -81,7 +108,7 @@ const mockGetIsApprovedForAll = getIsApprovedForAll as jest.MockedFunction<
 
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890' as const;
 const TEST_SAFE_ADDRESS = '0x9999999999999999999999999999999999999999' as const;
-const TEST_TO_ADDRESS = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382' as const;
+const TEST_TO_ADDRESS = '0x100c7b833bbd604a77890783439bbb9d65e31de7' as const;
 
 function buildSigner({
   address = TEST_ADDRESS,
@@ -123,66 +150,54 @@ describe('safe utils', () => {
     jest.clearAllMocks();
   });
 
-  describe('computeSafeAddress', () => {
-    it('computes Safe address from signer address', async () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('computeProxyAddress', () => {
+    it('computes proxy address from signer address', () => {
       const signer = buildSigner();
-      mockNetworkController();
-      mockQuery.mockResolvedValue(
-        '0x0000000000000000000000009999999999999999999999999999999999999999',
-      );
 
-      const safeAddress = await computeSafeAddress(signer.address);
+      const proxyAddress = computeProxyAddress(signer.address);
 
-      expect(safeAddress).toBe(TEST_SAFE_ADDRESS);
+      expect(proxyAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
+      expect(typeof proxyAddress).toBe('string');
     });
 
-    it('calls Safe Factory computeProxyAddress function', async () => {
-      const signer = buildSigner({
-        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      });
-      mockNetworkController();
-      mockQuery.mockResolvedValue(
-        '0x0000000000000000000000001111111111111111111111111111111111111111',
-      );
+    it('returns properly formatted address', () => {
+      const testAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
-      await computeSafeAddress(signer.address);
+      const proxyAddress = computeProxyAddress(testAddress);
 
-      expect(mockQuery).toHaveBeenCalledWith(expect.any(EthQuery), 'call', [
-        {
-          to: SAFE_FACTORY_ADDRESS,
-          data: expect.stringContaining('0x'),
-        },
-      ]);
-
-      const callData = mockQuery.mock.calls[0][2][0].data;
-      expect(callData).toContain(signer.address.slice(2).toLowerCase());
+      expect(proxyAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
     });
 
-    it('returns properly formatted address', async () => {
-      const signer = buildSigner();
-      mockNetworkController();
-      mockQuery.mockResolvedValue(
-        '0x000000000000000000000000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-      );
+    it('returns deterministic address for same input', () => {
+      const testAddress = '0x1234567890123456789012345678901234567890';
 
-      const safeAddress = await computeSafeAddress(signer.address);
+      const proxyAddress1 = computeProxyAddress(testAddress);
+      const proxyAddress2 = computeProxyAddress(testAddress);
 
-      expect(safeAddress).toMatch(/^0x[a-f0-9]{40}$/);
+      expect(proxyAddress1).toBe(proxyAddress2);
     });
 
-    it('uses Polygon network', async () => {
-      const signer = buildSigner();
-      mockNetworkController();
-      mockQuery.mockResolvedValue(
-        '0x0000000000000000000000009999999999999999999999999999999999999999',
-      );
+    it('returns different addresses for different inputs', () => {
+      const address1 = '0x1234567890123456789012345678901234567890';
+      const address2 = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
-      await computeSafeAddress(signer.address);
+      const proxyAddress1 = computeProxyAddress(address1);
+      const proxyAddress2 = computeProxyAddress(address2);
 
-      expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith(
-        numberToHex(POLYGON_MAINNET_CHAIN_ID),
-      );
-      expect(mockGetNetworkClientById).toHaveBeenCalledWith('polygon');
+      expect(proxyAddress1).not.toBe(proxyAddress2);
+    });
+
+    it('computes address using CREATE2', () => {
+      const testAddress = '0x1234567890123456789012345678901234567890';
+
+      const proxyAddress = computeProxyAddress(testAddress);
+
+      expect(proxyAddress).toBeTruthy();
+      expect(proxyAddress.length).toBe(42);
     });
   });
 
@@ -288,16 +303,6 @@ describe('safe utils', () => {
 
       expect(feeAuth).toHaveProperty('type', 'safe-transaction');
       expect(feeAuth.authorization.tx).toBeDefined();
-    });
-
-    it('calls Safe contract for transaction hash', async () => {
-      setupMocksForFeeAuth();
-
-      await createSafeFeeAuthorization(testParams);
-
-      expect(mockQuery).toHaveBeenCalledTimes(2);
-      const secondCallArgs = mockQuery.mock.calls[1];
-      expect(secondCallArgs[2][0].to).toBe(TEST_SAFE_ADDRESS);
     });
 
     it('handles signature v value adjustment for 0 and 1', async () => {
@@ -723,6 +728,51 @@ describe('safe utils', () => {
       expect(safeTxn.to).toBeDefined();
       expect(safeTxn.data).toBeDefined();
     });
+
+    it('creates claim transaction without transfer when includeTransfer is not provided', () => {
+      const safeTxn = createClaimSafeTransaction([mockPosition]);
+
+      expect(safeTxn).toHaveProperty('to');
+      expect(safeTxn).toHaveProperty('data');
+    });
+
+    it('includes transfer transaction when includeTransfer address is provided', () => {
+      const includeTransfer = { address: TEST_ADDRESS };
+
+      const safeTxn = createClaimSafeTransaction(
+        [mockPosition],
+        includeTransfer,
+      );
+
+      expect(safeTxn.to).toBe(SAFE_MULTISEND_ADDRESS);
+      expect(safeTxn.operation).toBe(OperationType.DelegateCall);
+      expect(safeTxn.data).toBeDefined();
+    });
+
+    it('creates multisend transaction with transfer for single position when includeTransfer is provided', () => {
+      const includeTransfer = { address: TEST_ADDRESS };
+
+      const safeTxn = createClaimSafeTransaction(
+        [mockPosition],
+        includeTransfer,
+      );
+
+      expect(safeTxn.to).toBe(SAFE_MULTISEND_ADDRESS);
+      expect(safeTxn.operation).toBe(OperationType.DelegateCall);
+    });
+
+    it('includes transfer with correct recipient address', () => {
+      const recipientAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      const includeTransfer = { address: recipientAddress };
+
+      const safeTxn = createClaimSafeTransaction(
+        [mockPosition],
+        includeTransfer,
+      );
+
+      expect(safeTxn).toBeDefined();
+      expect(safeTxn.data).toBeDefined();
+    });
   });
 
   describe('getSafeTransactionCallData', () => {
@@ -837,9 +887,6 @@ describe('safe utils', () => {
       mockNetworkController();
       mockQuery
         .mockResolvedValueOnce(
-          '0x0000000000000000000000009999999999999999999999999999999999999999',
-        )
-        .mockResolvedValueOnce(
           '0x0000000000000000000000000000000000000000000000000000000000000001',
         )
         .mockResolvedValueOnce(
@@ -856,11 +903,11 @@ describe('safe utils', () => {
       expect(tx).toHaveProperty('params');
       expect(tx?.params).toHaveProperty('to');
       expect(tx?.params).toHaveProperty('data');
-      expect(tx?.params.to).toMatch(/^0x[a-f0-9]{40}$/);
+      expect(tx?.params.to).toMatch(/^0x[a-fA-F0-9]{40}$/);
       expect(tx?.params.data).toMatch(/^0x[a-f0-9]+$/);
     });
 
-    it('computes Safe address for signer', async () => {
+    it('uses computed proxy address for transaction', async () => {
       // Given a signer with specific address
       const signer = buildSigner({
         address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
@@ -868,9 +915,6 @@ describe('safe utils', () => {
 
       mockNetworkController();
       mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000001111111111111111111111111111111111111111',
-        )
         .mockResolvedValueOnce(
           '0x0000000000000000000000000000000000000000000000000000000000000001',
         )
@@ -882,18 +926,11 @@ describe('safe utils', () => {
       );
 
       // When generating allowances transaction
-      await getProxyWalletAllowancesTransaction({ signer });
+      const tx = await getProxyWalletAllowancesTransaction({ signer });
 
-      // Then Safe address is computed for the signer
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.any(EthQuery),
-        'call',
-        expect.arrayContaining([
-          expect.objectContaining({
-            to: SAFE_FACTORY_ADDRESS,
-          }),
-        ]),
-      );
+      // Then transaction uses the computed proxy address
+      const expectedProxyAddress = computeProxyAddress(signer.address);
+      expect(tx?.params.to).toBe(expectedProxyAddress);
     });
 
     it('includes allowances for USDC and outcome tokens', async () => {
@@ -983,17 +1020,19 @@ describe('safe utils', () => {
       setupMocksForFeeAuth();
 
       // When generating claim transaction
-      const tx = await getClaimTransaction({
+      const txs = await getClaimTransaction({
         signer,
         positions,
         safeAddress: TEST_SAFE_ADDRESS,
       });
 
       // Then transaction is returned with correct structure
-      expect(tx).toHaveProperty('from', signer.address);
-      expect(tx).toHaveProperty('to', TEST_SAFE_ADDRESS);
-      expect(tx).toHaveProperty('data');
-      expect(tx.data).toMatch(/^0x[a-f0-9]+$/);
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0]).toHaveProperty('params');
+      expect(txs[0].params).toHaveProperty('to', TEST_SAFE_ADDRESS);
+      expect(txs[0].params).toHaveProperty('data');
+      expect(txs[0].params.data).toMatch(/^0x[a-f0-9]+$/);
     });
 
     it('handles multiple positions in one transaction', async () => {
@@ -1007,16 +1046,18 @@ describe('safe utils', () => {
       setupMocksForFeeAuth();
 
       // When generating claim transaction
-      const tx = await getClaimTransaction({
+      const txs = await getClaimTransaction({
         signer,
         positions,
         safeAddress: TEST_SAFE_ADDRESS,
       });
 
       // Then single transaction is returned with all claims
-      expect(tx).toHaveProperty('from');
-      expect(tx).toHaveProperty('to');
-      expect(tx).toHaveProperty('data');
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0]).toHaveProperty('params');
+      expect(txs[0].params).toHaveProperty('to');
+      expect(txs[0].params).toHaveProperty('data');
     });
 
     it('signs the claim transaction', async () => {
@@ -1046,14 +1087,14 @@ describe('safe utils', () => {
       setupMocksForFeeAuth();
 
       // When generating claim transaction
-      const tx = await getClaimTransaction({
+      const txs = await getClaimTransaction({
         signer,
         positions,
         safeAddress: customSafeAddress,
       });
 
       // Then transaction is sent to the provided Safe address
-      expect(tx.to).toBe(customSafeAddress);
+      expect(txs[0].params.to).toBe(customSafeAddress);
     });
 
     it('creates transaction for negRisk positions', async () => {
@@ -1064,15 +1105,325 @@ describe('safe utils', () => {
       setupMocksForFeeAuth();
 
       // When generating claim transaction
-      const tx = await getClaimTransaction({
+      const txs = await getClaimTransaction({
         signer,
         positions: [negRiskPosition],
         safeAddress: TEST_SAFE_ADDRESS,
       });
 
       // Then transaction is generated successfully
-      expect(tx).toBeDefined();
-      expect(tx.data).toMatch(/^0x[a-f0-9]+$/);
+      expect(txs).toBeDefined();
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0].params.data).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('generates claim transaction without transfer when includeTransferTransaction is false', async () => {
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      const txs = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+        includeTransferTransaction: false,
+      });
+
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0]).toHaveProperty('params');
+    });
+
+    it('generates claim transaction without transfer when includeTransferTransaction is undefined', async () => {
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      const txs = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+      });
+
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+    });
+
+    it('includes transfer transaction when includeTransferTransaction is true', async () => {
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      const txs = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+        includeTransferTransaction: true,
+      });
+
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0]).toHaveProperty('params');
+      expect(txs[0].params).toHaveProperty('data');
+    });
+
+    it('uses signer address for transfer when includeTransferTransaction is true', async () => {
+      const signerAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      const signer = buildSigner({ address: signerAddress });
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      const txs = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+        includeTransferTransaction: true,
+      });
+
+      expect(txs).toBeDefined();
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs[0].params.data).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('signs claim transaction with transfer when includeTransferTransaction is true', async () => {
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+        includeTransferTransaction: true,
+      });
+
+      expect(mockSignPersonalMessage).toHaveBeenCalled();
+    });
+  });
+
+  describe('getWithdrawTransactionCallData', () => {
+    it('generates call data for withdraw transaction', async () => {
+      const signer = buildSigner();
+      const data = `0xa9059cbb${'0'.repeat(128)}`;
+
+      setupMocksForFeeAuth();
+
+      const callData = await getWithdrawTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        data: data as `0x${string}`,
+      });
+
+      expect(callData).toMatch(/^0x[a-f0-9]+$/);
+      expect(typeof callData).toBe('string');
+    });
+
+    it('uses MATIC collateral contract address', async () => {
+      const signer = buildSigner();
+      const data = `0xa9059cbb${'0'.repeat(128)}`;
+
+      setupMocksForFeeAuth();
+
+      const callData = await getWithdrawTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        data: data as `0x${string}`,
+      });
+
+      expect(callData).toBeDefined();
+      expect(mockQuery).toHaveBeenCalled();
+    });
+
+    it('creates Call operation type transaction', async () => {
+      const signer = buildSigner();
+      const data = '0x1234567890abcdef';
+
+      setupMocksForFeeAuth();
+
+      const callData = await getWithdrawTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        data: data as `0x${string}`,
+      });
+
+      expect(callData).toBeTruthy();
+      expect(callData.length).toBeGreaterThan(10);
+    });
+
+    it('signs the withdraw transaction', async () => {
+      const signer = buildSigner();
+      const data = `0xa9059cbb${'0'.repeat(128)}`;
+
+      setupMocksForFeeAuth();
+
+      await getWithdrawTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        data: data as `0x${string}`,
+      });
+
+      expect(mockSignPersonalMessage).toHaveBeenCalled();
+    });
+
+    it('queries nonce from Safe contract', async () => {
+      const signer = buildSigner();
+      const data = `0xa9059cbb${'0'.repeat(128)}`;
+
+      setupMocksForFeeAuth();
+
+      await getWithdrawTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        data: data as `0x${string}`,
+      });
+
+      const nonceCall = mockQuery.mock.calls.find(
+        (call) => call[2][0].to === TEST_SAFE_ADDRESS,
+      );
+      expect(nonceCall).toBeDefined();
+    });
+
+    it('handles custom data parameter', async () => {
+      const signer = buildSigner();
+      const customData =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de7000000000000000000000000000000000000000000000000000000000000007b';
+
+      setupMocksForFeeAuth();
+
+      const callData = await getWithdrawTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        data: customData as `0x${string}`,
+      });
+
+      expect(callData).toMatch(/^0x[a-f0-9]+$/);
+    });
+  });
+
+  describe('getSafeUsdcAmount', () => {
+    it('decodes USDC amount from ERC20 transfer data', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000000989680';
+
+      const amount = getSafeUsdcAmount(data);
+
+      expect(amount).toBe(10);
+    });
+
+    it('returns zero for transfer with zero amount', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000000000000';
+
+      const amount = getSafeUsdcAmount(data);
+
+      expect(amount).toBe(0);
+    });
+
+    it('decodes small fractional USDC amount', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000000000001';
+
+      const amount = getSafeUsdcAmount(data);
+
+      expect(amount).toBe(0.000001);
+    });
+
+    it('decodes large USDC amount', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000077359400';
+
+      const amount = getSafeUsdcAmount(data);
+
+      expect(amount).toBe(2000);
+    });
+
+    it('rounds to 6 decimal places for USDC precision', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000000989680';
+
+      const amount = getSafeUsdcAmount(data);
+
+      expect(amount).toBe(10);
+      expect(amount.toString().split('.')[1]?.length || 0).toBeLessThanOrEqual(
+        6,
+      );
+    });
+
+    it('throws error for non-ERC20 transfer data', () => {
+      const invalidData =
+        '0x12345678000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000000989680';
+
+      expect(() => getSafeUsdcAmount(invalidData)).toThrow(
+        'Not an ERC20 transfer call',
+      );
+    });
+
+    it('throws error for data without transfer selector', () => {
+      const invalidData = '0x000000000000000000000000100c7b833bbd604a77';
+
+      expect(() => getSafeUsdcAmount(invalidData)).toThrow(
+        'Not an ERC20 transfer call',
+      );
+    });
+
+    it('throws error for invalid encoded amount', () => {
+      const invalidData =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de7GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG';
+
+      expect(() => getSafeUsdcAmount(invalidData)).toThrow(
+        'Invalid encoded amount in calldata',
+      );
+    });
+
+    it('throws error for unreasonably large USDC amount', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+
+      expect(() => getSafeUsdcAmount(data)).toThrow(
+        'Decoded USDC amount is invalid or too large',
+      );
+    });
+
+    it('handles 1.5 USDC amount correctly', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000000186a00';
+
+      const amount = getSafeUsdcAmount(data);
+
+      expect(amount).toBe(1.6);
+    });
+
+    it('decodes medium-sized USDC amounts', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000002faf080';
+
+      const amount = getSafeUsdcAmount(data);
+
+      expect(amount).toBe(50);
+    });
+
+    it('validates non-negative amounts', () => {
+      const validData =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de70000000000000000000000000000000000000000000000000000000000000064';
+
+      const amount = getSafeUsdcAmount(validData);
+
+      expect(amount).toBeGreaterThanOrEqual(0);
+    });
+
+    it('handles exact 1 USDC', () => {
+      const data =
+        '0xa9059cbb000000000000000000000000100c7b833bbd604a77890783439bbb9d65e31de700000000000000000000000000000000000000000000000000000000000f4240';
+
+      const amount = getSafeUsdcAmount(data);
+
+      expect(amount).toBe(1);
     });
   });
 });

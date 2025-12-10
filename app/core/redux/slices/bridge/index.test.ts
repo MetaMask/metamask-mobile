@@ -10,6 +10,7 @@ import reducer, {
   selectBridgeViewMode,
   setDestToken,
   selectBip44DefaultPair,
+  selectGasIncludedQuoteParams,
 } from '.';
 import {
   BridgeToken,
@@ -50,11 +51,15 @@ describe('bridge slice', () => {
         destAmount: undefined,
         sourceToken: undefined,
         destToken: undefined,
+        isGasIncludedSTXSendBundleSupported: false,
+        isGasIncluded7702Supported: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
         slippage: '0.5',
         isSubmittingTx: false,
+        isSelectingRecipient: false,
+        isMaxSourceAmount: false,
       });
     });
   });
@@ -224,8 +229,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toEqual({
@@ -255,8 +259,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toEqual({
@@ -295,8 +298,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         {
           eip155: {
@@ -383,6 +385,70 @@ describe('bridge slice', () => {
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectGasIncludedQuoteParams', () => {
+    it('returns gasIncluded true with 7702 false when STX send bundle is supported', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded true with 7702 true for swap when 7702 is supported', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: true });
+    });
+
+    it('returns gasIncluded false with 7702 false for swap without 7702 support', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: false,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded false with 7702 false for bridge mode', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: mockToken,
+          destToken: mockDestToken,
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
     });
   });
 });

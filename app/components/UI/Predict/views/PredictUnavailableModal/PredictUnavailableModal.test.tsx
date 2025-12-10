@@ -28,6 +28,10 @@ describe('PredictUnavailableModal', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders without crashing', () => {
     render(<PredictUnavailableModal />);
     expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);

@@ -27,13 +27,15 @@ import {
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
+  );
   const tabBarRef = useRef(null);
   const tw = useTailwind();
 
@@ -45,7 +47,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const callback = options.callback;
       const rootScreenName = options.rootScreenName;
       const key = `tab-bar-item-${tabBarIconKey}`; // this key is also used to identify elements for e2e testing
-      const isSelected = state.index === index;
+      const isSelected = options?.isSelected
+        ? options.isSelected(state.routeNames[state.index])
+        : state.index === index;
       const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const labelText = labelKey ? strings(labelKey) : '';
@@ -82,19 +86,30 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
             break;
           case Routes.REWARDS_VIEW:
-            if (isRewardsEnabled) {
-              navigation.navigate(Routes.REWARDS_VIEW);
-            }
+            navigation.navigate(Routes.REWARDS_VIEW);
             break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
               screen: 'Settings',
             });
+            break;
+          case Routes.TRENDING_VIEW:
+            if (isAssetsTrendingTokensEnabled) {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: Routes.TRENDING_VIEW }],
+              });
+            }
+            break;
         }
       };
 
       const isWalletAction =
         rootScreenName === Routes.MODAL.TRADE_WALLET_ACTIONS;
+
+      if (options?.isHidden) {
+        return null;
+      }
 
       return (
         <View key={key} style={tw.style('flex-1 w-full')}>
@@ -117,7 +132,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       trackEvent,
       createEventBuilder,
       tw,
-      isRewardsEnabled,
+      isAssetsTrendingTokensEnabled,
     ],
   );
 
@@ -131,7 +146,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.End}
-        twClassName="w-full pt-3 px-2 bg-default border-t border-muted"
+        twClassName="w-full pt-3 mb-1 px-2 bg-default border-t border-muted"
         style={[tw.style(`pb-[${bottomInset}px]`)]}
       >
         {renderTabBarItems()}

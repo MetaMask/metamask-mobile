@@ -12,7 +12,7 @@ ButtonBase text.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string or Node                                              | Yes                                                     |
+| string or Node                                      | Yes                                                     |
 
 ### `labelColor`
 
@@ -28,7 +28,7 @@ Optional prop for the size of the button.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [ButtonSize](../../Button.types.ts)          | Yes                                                     | Md                                                     |
+| [ButtonSize](../../Button.types.ts)                 | Yes                                                     | Md                                                     |
 
 ### `onPress`
 
@@ -44,7 +44,7 @@ Optional prop for the icon name of the icon that will be displayed before the la
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icons/Icon.types.ts)                | No                                                   |
+| [IconName](../../../../Icons/Icon/Icon.types.ts)    | No                                                      |
 
 ### `endIconName`
 
@@ -52,7 +52,7 @@ Optional prop for the icon name of the icon that will be displayed after the lab
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icons/Icon.types.ts)                | No                                                   |
+| [IconName](../../../../Icons/Icon/Icon.types.ts)    | No                                                      |
 
 ### `isDanger`
 
@@ -60,7 +60,7 @@ Optional boolean to show the danger state of the button.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                                             | No                                                      | false                                                   |
+| boolean                                             | No                                                      | false                                                  |
 
 ### `width`
 
@@ -68,7 +68,7 @@ Optional param to control the width of the button.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [ButtonWidthTypes](../../Button.types.ts) or number                  | No                                                      |      ButtonWidthTypes.Auto                                                   |
+| [ButtonWidthTypes](../../Button.types.ts) or number | No                                                      | ButtonWidthTypes.Auto                                  |
 
 ### `isDisabled`
 
@@ -78,7 +78,7 @@ Disabled button do not trigger the onPress handler and have reduced (50%) opacit
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                                             | No                                                      | false                                                   |
+| boolean                                             | No                                                      | false                                                  |
 
 ## Usage
 
@@ -93,5 +93,5 @@ Disabled button do not trigger the onPress handler and have reduced (50%) opacit
   isDanger
   width={ButtonWidthTypes.Auto}
   isDisabled
-/>;
+/>
 ```

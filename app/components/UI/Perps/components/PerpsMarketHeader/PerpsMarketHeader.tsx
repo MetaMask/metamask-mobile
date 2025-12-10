@@ -15,6 +15,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsMarketData } from '../../controllers/types';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';
@@ -24,7 +25,9 @@ interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
   onBackPress?: () => void;
   onMorePress?: () => void;
-  onActivityPress?: () => void;
+  onFavoritePress?: () => void;
+  onFullscreenPress?: () => void;
+  isFavorite?: boolean;
   testID?: string;
 }
 
@@ -32,18 +35,19 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   market,
   onBackPress,
   onMorePress,
-  onActivityPress,
+  onFavoritePress,
+  onFullscreenPress,
+  isFavorite = false,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.container} testID={testID}>
-      {/* Back Button */}
       {onBackPress && (
         <View style={styles.backButton}>
           <ButtonIcon
-            iconName={IconName.Arrow2Left}
+            iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
@@ -69,11 +73,11 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             color={TextColor.Default}
             style={styles.assetName}
           >
-            {market.symbol}-USD
+            {getPerpsDisplaySymbol(market.symbol)}-USD
           </Text>
           <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
-        <View style={styles.positionValueRow}>
+        <View style={styles.secondRow}>
           <LivePriceHeader
             symbol={market.symbol}
             fallbackPrice={market.price || '0'}
@@ -84,11 +88,24 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
         </View>
       </View>
 
+      {/* Fullscreen Button */}
+      {onFullscreenPress && (
+        <View style={styles.fullscreenButton}>
+          <ButtonIcon
+            iconName={IconName.Expand}
+            iconColor={IconColor.Default}
+            size={ButtonIconSizes.Md}
+            onPress={onFullscreenPress}
+            testID={`${testID}-fullscreen-button`}
+          />
+        </View>
+      )}
+
       {/* Right Action Button */}
-      {onActivityPress ? (
-        <TouchableOpacity onPress={onActivityPress} style={styles.moreButton}>
+      {onFavoritePress ? (
+        <TouchableOpacity onPress={onFavoritePress} style={styles.moreButton}>
           <Icon
-            name={IconName.Activity}
+            name={isFavorite ? IconName.StarFilled : IconName.Star}
             size={IconSize.Lg}
             color={IconColor.Default}
           />

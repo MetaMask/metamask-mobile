@@ -39,7 +39,6 @@ import Networks, {
   isTestNet,
   getNetworkImageSource,
   isMainNet,
-  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -61,7 +60,7 @@ import {
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import { InfuraNetworkType } from '@metamask/controller-utils';
-import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
+import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
@@ -107,6 +106,7 @@ import {
   NETWORK_SELECTOR_SOURCES,
   NetworkSelectorSource,
 } from '../../../constants/networkSelector';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
 
 interface infuraNetwork {
   name: string;
@@ -149,6 +149,9 @@ const NetworkSelector = () => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -555,7 +558,28 @@ const NetworkSelector = () => {
             variant={
               isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu
             }
-            title={name}
+            title={
+              isSendFlow ? (
+                name
+              ) : (
+                <View>
+                  <Text variant={TextVariant.BodyMD}>{name}</Text>
+                  {isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </Text>
+                  ) : undefined}
+                </View>
+              )
+            }
+            tertiaryText={
+              isSendFlow && isGasFeesSponsoredNetworkEnabled(chainId)
+                ? strings('networks.no_network_fee')
+                : undefined
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -850,22 +874,20 @@ const NetworkSelector = () => {
       );
 
       // set tokenNetworkFilter
-      if (isPortfolioViewEnabled()) {
-        const { PreferencesController } = Engine.context;
-        if (!isAllNetwork) {
-          PreferencesController.setTokenNetworkFilter({
-            [chainId]: true,
-          });
-        } else {
-          // Remove the chainId from the tokenNetworkFilter
-          const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
-          PreferencesController.setTokenNetworkFilter({
-            // TODO fix type of preferences controller level
-            // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ...(newTokenNetworkFilter as any),
-          });
-        }
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetwork) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      } else {
+        // Remove the chainId from the tokenNetworkFilter
+        const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
+        PreferencesController.setTokenNetworkFilter({
+          // TODO fix type of preferences controller level
+          // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(newTokenNetworkFilter as any),
+        });
       }
 
       setShowConfirmDeleteModal({
@@ -1020,11 +1042,9 @@ const NetworkSelector = () => {
             shouldNavigateBack={false}
           >
             <BottomSheetHeader>
-              <Text variant={TextVariant.HeadingMD}>
-                {strings('app_settings.delete')}{' '}
-                {showConfirmDeleteModal.networkName}{' '}
-                {strings('asset_details.network')}
-              </Text>
+              {strings('app_settings.delete')}{' '}
+              {showConfirmDeleteModal.networkName}{' '}
+              {strings('asset_details.network')}
             </BottomSheetHeader>
             <View style={styles.containerDeleteText}>
               <Text style={styles.textCentred}>

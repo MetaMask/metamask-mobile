@@ -6,6 +6,7 @@ import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
 const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
+  AlertKeys.InsufficientPredictBalance,
 ];
 
 const KEYBOARD_ALERTS: AlertKeys[] = [
@@ -13,56 +14,71 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.SignedOrSubmitted,
   AlertKeys.PerpsHardwareAccount,
+  AlertKeys.InsufficientPredictBalance,
 ];
 
-export const ON_CHANGE_ALERTS = [
+const ON_CHANGE_ALERTS = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
+  AlertKeys.InsufficientPredictBalance,
 ];
 
 export function useTransactionCustomAmountAlerts({
   isInputChanged,
+  isKeyboardVisible,
   pendingTokenAmount,
 }: {
   isInputChanged: boolean;
+  isKeyboardVisible: boolean;
   pendingTokenAmount: string;
-}) {
+}): {
+  alertMessage?: string;
+  alertTitle?: string;
+} {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
-  const filteredConfirmationAlerts = useMemo(
-    () =>
-      confirmationAlerts.filter(
-        (a) => !PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys),
-      ),
-    [confirmationAlerts],
-  );
+  const filteredAlerts = useMemo(() => {
+    const blockingAlerts = confirmationAlerts.filter((a) => a.isBlocking);
+
+    return blockingAlerts.filter((a) => {
+      const isIgnoredAsNoInput =
+        !isInputChanged && ON_CHANGE_ALERTS.includes(a.key as AlertKeys);
+
+      const isIgnoredAsKeyboardVisible =
+        isKeyboardVisible && !KEYBOARD_ALERTS.includes(a.key as AlertKeys);
+
+      const isIgnoredAsPending =
+        isKeyboardVisible && PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys);
+
+      return (
+        !isIgnoredAsNoInput &&
+        !isIgnoredAsKeyboardVisible &&
+        !isIgnoredAsPending
+      );
+    });
+  }, [confirmationAlerts, isInputChanged, isKeyboardVisible]);
 
   const alerts = useMemo(
-    () =>
-      [...pendingTokenAlerts, ...filteredConfirmationAlerts].filter((a) =>
-        KEYBOARD_ALERTS.includes(a.key as AlertKeys),
-      ),
-    [filteredConfirmationAlerts, pendingTokenAlerts],
+    () => [...pendingTokenAlerts, ...filteredAlerts],
+    [filteredAlerts, pendingTokenAlerts],
   );
 
   const firstAlert = alerts?.[0];
 
-  const hasAlert =
-    Boolean(firstAlert) &&
-    (!ON_CHANGE_ALERTS.includes(firstAlert?.key as AlertKeys) ||
-      isInputChanged);
+  if (!firstAlert) {
+    return {};
+  }
 
-  const keyboardAlertMessage = hasAlert
-    ? firstAlert?.title ?? (firstAlert?.message as string | undefined)
+  const alertTitle =
+    firstAlert.title ?? (firstAlert.message as string | undefined);
+
+  const alertMessage = firstAlert.title
+    ? (firstAlert.message as string | undefined)
     : undefined;
-
-  const alertMessage =
-    hasAlert && firstAlert?.title ? (firstAlert?.message as string) : undefined;
 
   return {
     alertMessage,
-    excludeBannerKeys: KEYBOARD_ALERTS,
-    keyboardAlertMessage,
+    alertTitle,
   };
 }

@@ -136,32 +136,40 @@ const Price = ({
               </SkeletonPlaceholder>
             </View>
           ) : distributedPriceData.length > 0 ? (
-            <Text style={styles.priceDiff} variant={TextVariant.BodyMDMedium}>
-              {
-                <Icon
-                  name={
-                    diff > 0
-                      ? 'trending-up'
-                      : diff < 0
-                      ? 'trending-down'
-                      : 'minus'
-                  }
-                  size={16}
-                  style={styles.priceDiffIcon}
-                />
-              }{' '}
-              {addCurrencySymbol(diff, currentCurrency, true)} (
-              {diff > 0 ? '+' : ''}
-              {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
-              %){' '}
+            <View style={styles.priceDiffContainer}>
               <Text
-                testID="price-label"
-                color={TextColor.Alternative}
+                style={styles.priceDiff}
                 variant={TextVariant.BodyMDMedium}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
               >
-                {date}
+                {
+                  <Icon
+                    name={
+                      diff > 0
+                        ? 'trending-up'
+                        : diff < 0
+                          ? 'trending-down'
+                          : 'minus'
+                    }
+                    size={16}
+                    style={styles.priceDiffIcon}
+                  />
+                }{' '}
+                {addCurrencySymbol(diff, currentCurrency, true)} (
+                {diff > 0 ? '+' : ''}
+                {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
+                %){' '}
+                <Text
+                  testID="price-label"
+                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMDMedium}
+                >
+                  {date}
+                </Text>
               </Text>
-            </Text>
+            </View>
           ) : null}
         </Text>
       </View>

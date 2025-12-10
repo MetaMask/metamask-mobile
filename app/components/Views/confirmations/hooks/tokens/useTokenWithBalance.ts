@@ -3,20 +3,31 @@ import { useSelector } from 'react-redux';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { RootState } from '../../../../../reducers';
 import { selectSingleTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { toChecksumAddress } from '../../../../../util/address';
 import { useTokenFiatRate } from './useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { selectAccountBalanceByChainId } from '../../../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { getNativeTokenAddress } from '../../utils/asset';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+
+  const internalAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
+  );
+
+  const selectedEvmAddress =
+    (internalAccounts.find((a) => a.type === 'eip155:eoa')?.address as Hex) ??
+    selectedAddress;
+
   const fiatFormatter = useFiatFormatter();
+  const nativeTokenAddress = getNativeTokenAddress(chainId);
 
   const token = useSelector((state: RootState) =>
     selectSingleTokenByAddressAndChainId(state, tokenAddress, chainId),
@@ -25,7 +36,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const tokenBalanceResult = useSelector((state: RootState) =>
     selectSingleTokenBalance(
       state,
-      selectedAddress as Hex,
+      selectedEvmAddress,
       chainId,
       toChecksumAddress(tokenAddress),
     ),
@@ -37,9 +48,13 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
 
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
 
-  const nativeBalanceResult = useSelector((state: RootState) =>
-    selectAccountBalanceByChainId(state, chainId),
-  );
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+
+  const nativeBalanceResult = Object.entries(
+    accountsByChainId?.[chainId] ?? {},
+  ).find(
+    ([address]) => address.toLowerCase() === selectedEvmAddress.toLowerCase(),
+  )?.[1];
 
   const conversionRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, chainId),
@@ -52,7 +67,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const nativeBalanceHex = (nativeBalanceResult?.balance as Hex) ?? '0x0';
 
   const isNative =
-    tokenAddress.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase();
+    tokenAddress.toLowerCase() === nativeTokenAddress.toLowerCase();
 
   return useMemo(() => {
     if (!token && !isNative) {
@@ -63,7 +78,8 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
       isNative ? nativeBalanceHex : tokenBalanceHex,
     );
 
-    const decimals = token?.decimals ?? 18;
+    const balanceRaw = balanceRawValue.toString(10);
+    const decimals = Number(token?.decimals ?? 18);
     const balanceValue = balanceRawValue.shiftedBy(-decimals);
     const fiatRate = isNative ? conversionRate : tokenFiatRate;
 
@@ -81,6 +97,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
       address: tokenAddress,
       balance,
       balanceFiat,
+      balanceRaw,
       chainId,
       decimals,
       symbol,

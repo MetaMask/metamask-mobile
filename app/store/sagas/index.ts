@@ -33,6 +33,8 @@ import { applyVaultInitialization } from '../../util/generateSkipOnboardingState
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import { selectExistingUser } from '../../reducers/user';
+import UrlParser from 'url-parse';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -172,6 +174,22 @@ export function* handleDeeplinkSaga() {
       completedOnboarding = yield select(selectCompletedOnboarding);
     }
 
+    const existingUser: boolean = yield select(selectExistingUser);
+
+    if (AppStateEventProcessor.pendingDeeplink) {
+      const url = new UrlParser(AppStateEventProcessor.pendingDeeplink);
+      // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
+      if (!existingUser && url.pathname === '/onboarding') {
+        setTimeout(() => {
+          SharedDeeplinkManager.parse(url.href, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }, 200);
+        AppStateEventProcessor.clearPendingDeeplink();
+        continue;
+      }
+    }
+
     const { KeyringController } = Engine.context;
     const isUnlocked = KeyringController.isUnlocked();
 
@@ -199,6 +217,37 @@ export function* handleDeeplinkSaga() {
     }
   }
 }
+
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+/**
+ * Handles updating the Snaps registry when the user has booted the app and is onboarded
+ */
+export function* handleSnapsRegistry() {
+  while (true) {
+    const result = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    const state: boolean = yield select(selectCompletedOnboarding);
+    const completedOnboarding =
+      result.type === 'SET_COMPLETED_ONBOARDING'
+        ? result.completedOnboarding
+        : state;
+
+    if (!completedOnboarding) {
+      continue;
+    }
+
+    try {
+      const { SnapController } = Engine.context;
+      yield call([SnapController, SnapController.updateRegistry]);
+    } catch {
+      // Ignore
+    }
+  }
+}
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Handles initializing app services on start up
@@ -230,4 +279,7 @@ export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  yield fork(handleSnapsRegistry);
+  ///: END:ONLY_INCLUDE_IF
 }

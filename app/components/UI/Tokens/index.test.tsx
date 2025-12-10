@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -8,15 +8,106 @@ import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
 
 const selectedAddress = '0x123';
 
 jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
+}));
+
+jest.mock('../Earn/components/Musd/MusdConversionAssetListCta', () => {
+  const { View } = jest.requireActual('react-native');
+  const MusdConversionAssetListCta = () => (
+    <View testID="musd-conversion-cta" />
+  );
+
+  return {
+    __esModule: true,
+    default: MusdConversionAssetListCta,
+  };
+});
+
+// We don't need to mock TokenList - the actual implementation is fine for testing
+
+// Mock InteractionManager to execute callbacks immediately
+jest.mock('react-native', () => {
+  const actualReactNative = jest.requireActual('react-native');
+  return {
+    ...actualReactNative,
+    InteractionManager: {
+      runAfterInteractions: (callback: () => void) => {
+        callback();
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      },
+    },
+  };
+});
+
+jest.mock('@metamask/react-native-actionsheet', () => {
+  const ActualReact = jest.requireActual('react');
+  const { forwardRef } = ActualReact;
+  const { View } = jest.requireActual('react-native');
+  return forwardRef(
+    (
+      {
+        onPress,
+        testID,
+      }: {
+        onPress: (index: number) => void;
+        testID?: string;
+      },
+      ref: unknown,
+    ) => {
+      // Store the ref so we can call show() from tests
+      if (ref && typeof ref === 'object' && 'current' in ref) {
+        (ref as { current: { show: () => void } }).current = {
+          show: () => {
+            // Call onPress with index 0 (remove) when show is called
+            onPress(0);
+          },
+        };
+      }
+      return ActualReact.createElement(View, {
+        testID: testID || 'action-sheet',
+      });
+    },
+  );
+});
+
+const mockSelectInternalAccountByScope = jest.fn();
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
+  isNonEvmChainId: jest.fn(),
+}));
+
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
+
+jest.mock('../../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+}));
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => mockSelectInternalAccountByScope,
+  ),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -42,7 +133,7 @@ jest.mock('../../../core/Engine', () => ({
       stopPollingByPollingToken: jest.fn(),
     },
     TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },
@@ -76,6 +167,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainAssetsRatesController: {
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
+    },
+    MultichainAssetsController: {
+      ignoreAssets: jest.fn(() => Promise.resolve()),
     },
     AccountsController: {
       state: {
@@ -129,7 +223,7 @@ const initialState = {
       NetworkController: {
         networkConfigurationsByChainId: {
           '0x1': {
-            chainId: '0x1',
+            chainId: '0x1' as const,
             name: 'Ethereum Mainnet',
             nativeCurrency: 'ETH',
             rpcEndpoints: [{ networkClientId: '0x1' }],
@@ -191,9 +285,9 @@ const initialState = {
         tokenBalances: {
           [selectedAddress]: {
             '0x1': {
-              '0x00': '0x2386F26FC10000',
-              '0x01': '0xDE0B6B3A7640000',
-              '0x02': '0x0',
+              '0x00': '0x2386F26FC10000' as const,
+              '0x01': '0xDE0B6B3A7640000' as const,
+              '0x02': '0x0' as const,
             },
           },
         },
@@ -315,24 +409,29 @@ jest.mock(
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderComponent = (state: any = {}) =>
+const renderComponent = (state: any = {}, isFullView: boolean = false) =>
   renderWithProvider(
     <Stack.Navigator>
-      <Stack.Screen name="Amount" options={{}}>
-        {() => <Tokens />}
+      <Stack.Screen name="Tokens" options={{}}>
+        {() => <Tokens isFullView={isFullView} />}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
   );
 
 describe('Tokens', () => {
+  beforeEach(() => {
+    mockIsNonEvmChainId.mockReturnValue(false);
+    mockSelectInternalAccountByScope.mockReturnValue(null);
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { queryByText } = renderComponent(initialState);
     const tokensTabText = queryByText('Tokens');
     const nftsTabText = queryByText('NFTs');
@@ -340,7 +439,15 @@ describe('Tokens', () => {
     expect(nftsTabText).toBeDefined();
   });
 
-  it('should hide zero balance tokens when setting is on', async () => {
+  it('renders correctly with isFullView prop', () => {
+    const { queryByText } = renderComponent(initialState, true);
+    const tokensTabText = queryByText('Tokens');
+    const nftsTabText = queryByText('NFTs');
+    expect(tokensTabText).toBeDefined();
+    expect(nftsTabText).toBeDefined();
+  });
+
+  it('hides zero balance tokens when setting is on', async () => {
     const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
@@ -348,7 +455,7 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-LINK')).toBeNull();
   });
 
-  it('should show all balance tokens when hideZeroBalanceTokens setting is off', async () => {
+  it('shows all balance tokens when hideZeroBalanceTokens setting is off', async () => {
     const { queryByTestId } = renderComponent({
       ...initialState,
       settings: {
@@ -362,7 +469,7 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-LINK')).toBeDefined();
   });
 
-  it('should show all balance with capitalized tickers', async () => {
+  it('shows all balance with capitalized tickers', async () => {
     const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
@@ -410,7 +517,7 @@ describe('Tokens', () => {
     expect(true).toBe(true);
   });
 
-  it('should display unable to find conversion rate', async () => {
+  it('displays unable to find conversion rate', async () => {
     const testState = {
       ...initialState,
       engine: {
@@ -447,31 +554,6 @@ describe('Tokens', () => {
     expect(true).toBe(true);
   });
 
-  it('does not call goToAddEvmToken when non-EVM network is selected', async () => {
-    const state = {
-      ...initialState,
-      engine: {
-        ...initialState.engine,
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          MultichainNetworkController: {
-            selectedNetworkType: 'non-evm',
-          },
-        },
-      },
-      settings: {
-        hideZeroBalanceTokens: false,
-      },
-    };
-
-    const { getByTestId } = renderComponent(state);
-
-    await waitFor(() => {
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
-      expect(mockPush).not.toHaveBeenCalled();
-    });
-  });
-
   it('renders correctly when token list is empty', async () => {
     const state = {
       ...initialState,
@@ -504,7 +586,7 @@ describe('Tokens', () => {
   });
 
   describe('Portfolio View', () => {
-    it('should handle network filtering correctly', () => {
+    it('handles network filtering correctly', () => {
       const multiNetworkState = {
         ...initialState,
         engine: {
@@ -585,7 +667,7 @@ describe('Tokens', () => {
 
     describe('When hideZeroBalance is enabled', () => {
       describe('When currentNetwork is selected', () => {
-        it('should show zero balance native token and hide zero balance ERC20 token', () => {
+        it('shows zero balance native token and hides zero balance ERC20 token', () => {
           const stateWithZeroBalances = {
             ...initialState,
             settings: {
@@ -666,7 +748,7 @@ describe('Tokens', () => {
       });
 
       describe('When allNetworks is selected', () => {
-        it('should hide zero balance ERC20 tokens and native tokens', () => {
+        it('hides zero balance ERC20 tokens and native tokens', () => {
           const stateWithZeroBalances = {
             ...initialState,
             settings: {
@@ -778,7 +860,7 @@ describe('Tokens', () => {
     });
 
     describe('When hideZeroBalance is disabled', () => {
-      it('should show zero balance native and ERC20 tokens', () => {
+      it('shows zero balance native and ERC20 tokens', () => {
         const stateWithZeroBalances = {
           ...initialState,
           settings: {
@@ -886,6 +968,108 @@ describe('Tokens', () => {
         expect(queryByText('NON_ZERO_ERC20_1')).toBeDefined();
         expect(queryByText('NON_ZERO_ERC20_2')).toBeDefined();
         expect(queryByText('NON_ZERO_ERC20_3')).toBeDefined();
+      });
+    });
+  });
+
+  describe('Homepage Redesign V1 Features', () => {
+    it('renders tokens container when homepage redesign is enabled', async () => {
+      const { getByTestId, queryByTestId } = renderComponent({
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                homepageRedesignV1: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+      ).toBeOnTheScreen();
+      await waitFor(() => expect(queryByTestId('asset-ETH')).toBeDefined());
+    });
+
+    it('renders all tokens when isFullView is true regardless of homepage redesign', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <Stack.Navigator>
+          <Stack.Screen name="Amount">
+            {() => <Tokens isFullView />}
+          </Stack.Screen>
+        </Stack.Navigator>,
+        {
+          state: {
+            ...initialState,
+            engine: {
+              ...initialState.engine,
+              backgroundState: {
+                ...initialState.engine.backgroundState,
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+      ).toBeOnTheScreen();
+      await waitFor(() => expect(queryByTestId('asset-ETH')).toBeDefined());
+    });
+  });
+
+  describe('Multichain Accounts State 2', () => {
+    it('renders tokens when multichain accounts state 2 is enabled', async () => {
+      const { getByTestId, queryByTestId } = renderComponent({
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                multichainAccountsState2: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+      ).toBeOnTheScreen();
+      await waitFor(() => expect(queryByTestId('asset-ETH')).toBeDefined());
+    });
+  });
+
+  describe('Token removal functionality', () => {
+    it('renders action sheet for token removal', async () => {
+      renderComponent(initialState);
+
+      await waitFor(() => {
+        const actionSheet = screen.getByTestId('action-sheet');
+        expect(actionSheet).toBeOnTheScreen();
       });
     });
   });

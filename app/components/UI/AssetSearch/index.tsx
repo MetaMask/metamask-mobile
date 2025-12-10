@@ -1,21 +1,15 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   TextInput,
   View,
   StyleSheet,
   TextStyle,
-  DimensionValue,
+  ViewStyle,
 } from 'react-native';
-import { Hex } from '@metamask/utils';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Fuse from 'fuse.js';
-import { toLowerCaseEquals } from '../../../util/general';
-import { useSelector } from 'react-redux';
-import { TokenListToken } from '@metamask/assets-controllers';
 import { useTheme } from '../../../util/theme';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
-import { selectERC20TokensByChain } from '../../../selectors/tokenListController';
 import Icon, {
   IconName,
   IconSize,
@@ -23,75 +17,58 @@ import Icon, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import { selectChainId } from '../../../selectors/networkController';
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    searchSection: {
-      marginTop: 16,
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
+import { BridgeToken } from '../Bridge/types';
+import { useTokenSearch } from '../Bridge/hooks/useTokenSearch';
+import { Colors } from '../../../util/theme/models';
+const createStyles = (colors: Colors) => {
+  const commonSearchStyles = {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    borderColor: colors.border.default,
+    color: colors.text.default,
+  };
+  return StyleSheet.create({
+    searchSection: Object.assign({
+      ...commonSearchStyles,
       borderWidth: 1,
-      borderRadius: 8,
-      borderColor: colors.border.default,
-      color: colors.text.default,
-    },
-    searchSectionFocused: {
-      marginTop: 16,
-      marginBottom: 0,
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: 8,
-      color: colors.text.default,
-      borderColor: colors.primary.default,
+    } as ViewStyle),
+    searchSectionFocused: Object.assign({
+      ...commonSearchStyles,
       borderWidth: 2,
-    },
+      borderColor: colors.primary.default,
+    } as ViewStyle),
     textInput: {
       ...fontStyles.normal,
       color: colors.text.default,
     } as TextStyle,
     icon: {
-      paddingLeft: 20,
+      position: 'absolute',
+      left: 16,
       color: colors.icon.alternative,
     },
     iconClose: {
-      paddingRight: 20,
+      position: 'absolute',
+      right: 16,
       color: colors.icon.alternative,
     },
     input: {
-      width: '80%',
-      paddingHorizontal: 12,
+      width: '100%',
       paddingVertical: 12,
+      paddingHorizontal: 42,
       color: colors.icon.alternative,
       borderColor: colors.primary.alternative,
     },
   });
-
-const fuse = new Fuse<TokenListToken>([], {
-  shouldSort: true,
-  threshold: 0.45,
-  location: 0,
-  distance: 100,
-  maxPatternLength: 32,
-  minMatchCharLength: 1,
-  keys: [
-    { name: 'name', weight: 0.5 },
-    { name: 'symbol', weight: 0.5 },
-  ],
-});
+};
 
 interface Props {
   onSearch: ({
     results,
     searchQuery,
   }: {
-    results: TokenListToken[];
+    results: BridgeToken[];
     searchQuery: string;
   }) => void;
   /**
@@ -104,76 +81,29 @@ interface Props {
   onBlur: () => void;
 
   /**
-   * Whether all networks are enabled
+   * The selected network chain ID
    */
-  allNetworksEnabled: boolean;
+  allTokens: BridgeToken[];
 }
 
 // eslint-disable-next-line react/display-name
-const AssetSearch = ({
-  onSearch,
-  onFocus,
-  onBlur,
-  allNetworksEnabled,
-}: Props) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [inputDimensions, setInputDimensions] = useState<DimensionValue>('85%');
+const AssetSearch = ({ onSearch, onFocus, onBlur, allTokens }: Props) => {
   const [isFocus, setIsFocus] = useState(false);
-  const chainId = useSelector(selectChainId);
-  const tokenListForAllChains = useSelector(selectERC20TokensByChain);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const tokenList = useMemo(() => {
-    if (allNetworksEnabled) {
-      return Object.entries(tokenListForAllChains).flatMap(
-        ([networkId, { data }]) =>
-          Object.values(data).map((item) => ({
-            ...item,
-            chainId: networkId,
-          })),
-      );
-    }
-
-    return Object.values(
-      tokenListForAllChains?.[chainId as Hex]?.data ?? [],
-    ).map((item) => ({
-      ...item,
-      chainId: chainId as Hex,
-    }));
-  }, [allNetworksEnabled, tokenListForAllChains, chainId]);
+  const {
+    searchString,
+    setSearchString,
+    searchResults,
+    debouncedSearchString,
+  } = useTokenSearch({
+    tokens: allTokens || [],
+  });
 
   useEffect(() => {
-    setTimeout(() => {
-      setInputDimensions('86%');
-    }, 100);
-  }, []);
-
-  // Update fuse list
-  useEffect(() => {
-    if (Array.isArray(tokenList)) {
-      fuse.setCollection(tokenList);
-    }
-  }, [tokenList]);
-
-  const handleSearch = useCallback(
-    (searchText: string) => {
-      setSearchQuery(searchText);
-      const fuseSearchResult = fuse.search(searchText);
-      const addressSearchResult = tokenList?.filter((token: TokenListToken) =>
-        toLowerCaseEquals(token.address, searchText),
-      );
-      const results = [...addressSearchResult, ...fuseSearchResult];
-      onSearch({ searchQuery: searchText, results });
-    },
-    [setSearchQuery, onSearch, tokenList],
-  );
-
-  useEffect(() => {
-    setSearchQuery('');
-    handleSearch('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allNetworksEnabled]);
+    onSearch({ results: searchResults, searchQuery: debouncedSearchString });
+  }, [searchResults, debouncedSearchString, onSearch]);
 
   return (
     <View
@@ -186,11 +116,8 @@ const AssetSearch = ({
 
       <View style={styles.input}>
         <TextInput
-          style={[
-            styles.textInput,
-            { height: inputDimensions, width: inputDimensions },
-          ]}
-          value={searchQuery}
+          style={styles.textInput}
+          value={searchString}
           onFocus={() => {
             onFocus();
             setIsFocus(true);
@@ -201,23 +128,24 @@ const AssetSearch = ({
           }}
           placeholder={strings('token.search_tokens_placeholder')}
           placeholderTextColor={colors.text.muted}
-          onChangeText={handleSearch}
+          onChangeText={(searchText) => setSearchString(searchText)}
           testID={ImportTokenViewSelectorsIDs.SEARCH_BAR}
           keyboardAppearance={themeAppearance}
         />
       </View>
 
-      <View style={styles.iconClose}>
-        <ButtonIcon
-          size={ButtonIconSizes.Sm}
-          iconName={IconName.Close}
-          onPress={() => {
-            setSearchQuery('');
-            handleSearch('');
-          }}
-          testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
-        />
-      </View>
+      {searchString.length > 0 && (
+        <View style={styles.iconClose}>
+          <ButtonIcon
+            size={ButtonIconSizes.Sm}
+            iconName={IconName.Close}
+            onPress={() => {
+              setSearchString('');
+            }}
+            testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
+          />
+        </View>
+      )}
     </View>
   );
 };

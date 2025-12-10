@@ -35,6 +35,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      icon: {
+        default: '#000000',
+      },
+    },
+  })),
+}));
+
 jest.mock('lodash', () => ({
   isEmpty: jest.fn((value: unknown) => {
     if (value == null) return true;
@@ -105,6 +115,29 @@ jest.mock('@metamask/design-system-react-native', () => {
           children,
         ),
       ),
+    ButtonIcon: ({
+      iconName,
+      onPress,
+      testID,
+      isDisabled,
+      ...props
+    }: {
+      iconName: string;
+      onPress?: () => void;
+      testID?: string;
+      isDisabled?: boolean;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        {
+          onPress,
+          testID,
+          disabled: isDisabled,
+          ...props,
+        },
+        ReactActual.createElement(View, { testID: `icon-${iconName}` }),
+      ),
     TextVariant: {
       BodyMd: 'BodyMd',
       BodySm: 'BodySm',
@@ -129,6 +162,22 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     ButtonSize: {
       Lg: 'lg',
+    },
+    ButtonIconSize: {
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
+    },
+    IconName: {
+      Details: 'details',
+      Check: 'check',
+      Add: 'add',
+      Minus: 'minus',
+    },
+    TextColor: {
+      TextAlternative: 'textAlternative',
+      TextDefault: 'textDefault',
+      TextMuted: 'textMuted',
     },
   };
 });
@@ -211,8 +260,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     __esModule: true,
     default: MockIcon,
     IconName: {
-      QrCode: 'qr-code',
+      Details: 'details',
       Check: 'check',
+      Add: 'add',
     },
     IconColor: {
       Default: 'default',
@@ -281,21 +331,10 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => ({
 }));
 
 // Mock selectors
+const mockSelectIconSeedAddressByAccountGroupId = jest.fn();
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectIconSeedAddressByAccountGroupId: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/assets/balances', () => ({
-  selectBalanceByAccountGroup: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/preferencesController', () => ({
-  selectPrivacyMode: jest.fn(),
-}));
-
-// Mock utility functions
-jest.mock('../../../../../util/assets', () => ({
-  formatWithThreshold: jest.fn((value: number) => `$${value.toFixed(2)}`),
+  selectIconSeedAddressByAccountGroupId: (groupId: string) =>
+    mockSelectIconSeedAddressByAccountGroupId(groupId),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -309,6 +348,7 @@ const mockUseLinkAccountGroup = useLinkAccountGroup as jest.MockedFunction<
 describe('RewardSettingsAccountGroup', () => {
   const mockNavigate = jest.fn();
   const mockLinkAccountGroup = jest.fn();
+  const mockEvmAddress = '0x1234567890123456789012345678901234567890';
 
   const mockAccountGroup: AccountGroupWithOptInStatus = {
     id: 'keyring:wallet-1/ethereum',
@@ -366,6 +406,11 @@ describe('RewardSettingsAccountGroup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Mock selectIconSeedAddressByAccountGroupId to return a selector function
+    mockSelectIconSeedAddressByAccountGroupId.mockReturnValue(
+      () => mockEvmAddress,
+    );
+
     // Mock useNavigation
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -386,28 +431,14 @@ describe('RewardSettingsAccountGroup', () => {
       isError: false,
     });
 
-    // Mock useSelector calls
+    // Mock useSelector to execute the selector function
     mockUseSelector.mockImplementation((selector) => {
-      // Mock selectIconSeedAddressByAccountGroupId
-      if (
-        selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-      ) {
-        return '0x1234567890123456789012345678901234567890';
+      // The selector is a function that takes state and returns a value
+      // In the component, it calls selectIconSeedAddressByAccountGroupId(accountGroup.id)
+      // which returns a selector function, then calls that with state
+      if (typeof selector === 'function') {
+        return selector({} as never);
       }
-
-      // Mock selectBalanceByAccountGroup
-      if (selector.toString().includes('selectBalanceByAccountGroup')) {
-        return {
-          totalBalanceInUserCurrency: 100.5,
-          userCurrency: 'usd',
-        };
-      }
-
-      // Mock selectPrivacyMode
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
-      }
-
       return null;
     });
   });
@@ -422,7 +453,7 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       expect(
-        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-group-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
     });
 
@@ -435,7 +466,7 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       expect(
-        getByTestId('rewards-account-group-name-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-group-name-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
     });
 
@@ -448,11 +479,11 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       expect(
-        getByTestId('rewards-account-group-avatar-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-group-avatar-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
     });
 
-    it('should render account group balance when available', () => {
+    it('should render tracked accounts count', () => {
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
@@ -461,7 +492,7 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       expect(
-        getByTestId('rewards-account-group-balance-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-group-tracked-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
     });
 
@@ -474,12 +505,10 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       expect(
-        getByTestId('rewards-account-addresses-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-addresses-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(
-          'rewards-account-group-link-button-keyring:wallet-1/ethereum',
-        ),
+        getByTestId(`rewards-account-group-link-button-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
     });
   });
@@ -504,17 +533,71 @@ describe('RewardSettingsAccountGroup', () => {
       expect(getByTestId('icon-check')).toBeOnTheScreen();
     });
 
-    it('should show link text when there are opted out accounts', () => {
-      const { getByText } = render(
+    it('should show add icon when there are only opted out accounts', () => {
+      const itemWithOnlyOptedOut: RewardSettingsAccountGroupListFlatListItem = {
+        type: 'accountGroup',
+        accountGroup: {
+          ...mockAccountGroup,
+          optedInAccounts: [],
+          optedOutAccounts: mockAccountGroup.optedOutAccounts,
+        },
+      };
+
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={itemWithOnlyOptedOut}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      expect(getByTestId('icon-add')).toBeOnTheScreen();
+    });
+
+    it('should show add icon when there are both opted in and opted out accounts', () => {
+      const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
-      expect(
-        getByText('rewards.link_account_group.link_account'),
-      ).toBeOnTheScreen();
+      expect(getByTestId('icon-add')).toBeOnTheScreen();
+    });
+
+    it('should disable link button when all accounts are opted in', () => {
+      const itemWithNoOptedOut: RewardSettingsAccountGroupListFlatListItem = {
+        type: 'accountGroup',
+        accountGroup: {
+          ...mockAccountGroup,
+          optedOutAccounts: [],
+        },
+      };
+
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={itemWithNoOptedOut}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      const linkButton = getByTestId(
+        `rewards-account-group-link-button-${mockAccountGroup.id}`,
+      );
+      expect(linkButton).toHaveProp('disabled', true);
+    });
+
+    it('should enable link button when there are opted out accounts', () => {
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      const linkButton = getByTestId(
+        `rewards-account-group-link-button-${mockAccountGroup.id}`,
+      );
+      expect(linkButton).toHaveProp('disabled', false);
     });
   });
 
@@ -528,16 +611,14 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       const linkButton = getByTestId(
-        'rewards-account-group-link-button-keyring:wallet-1/ethereum',
+        `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
       fireEvent.press(linkButton);
 
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith(
-        'keyring:wallet-1/ethereum',
-      );
+      expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroup.id);
     });
 
-    it('should navigate to modal when QR button is pressed', () => {
+    it('navigates to modal when addresses button is pressed', () => {
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
@@ -545,15 +626,15 @@ describe('RewardSettingsAccountGroup', () => {
         />,
       );
 
-      const qrButton = getByTestId(
-        'rewards-account-addresses-keyring:wallet-1/ethereum',
+      const addressesButton = getByTestId(
+        `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      fireEvent.press(qrButton);
+      fireEvent.press(addressesButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'RewardOptInAccountGroupModal',
         {
-          accountGroupId: 'keyring:wallet-1/ethereum',
+          accountGroupId: mockAccountGroup.id,
           addressData: [
             {
               address: '0x1234567890123456789012345678901234567890',
@@ -570,6 +651,98 @@ describe('RewardSettingsAccountGroup', () => {
           ],
         },
       );
+    });
+
+    it('navigates to modal with unsupported accounts included in addressData', () => {
+      const itemWithUnsupported: RewardSettingsAccountGroupListFlatListItem = {
+        type: 'accountGroup',
+        accountGroup: {
+          ...mockAccountGroup,
+          unsupportedAccounts: [
+            {
+              id: 'account-3',
+              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              scopes: [EthScope.Mainnet],
+              type: 'eip155:eoa',
+              options: {},
+              metadata: {
+                name: '',
+                importTime: 0,
+                keyring: {
+                  type: '',
+                },
+                nameLastUpdatedAt: undefined,
+                snap: undefined,
+                lastSelected: undefined,
+              },
+              methods: [],
+            },
+          ],
+        },
+      };
+
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={itemWithUnsupported}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      const addressesButton = getByTestId(
+        `rewards-account-addresses-${mockAccountGroup.id}`,
+      );
+      fireEvent.press(addressesButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RewardOptInAccountGroupModal',
+        {
+          accountGroupId: mockAccountGroup.id,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: true,
+              isSupported: true,
+              scopes: [EthScope.Mainnet],
+            },
+            {
+              address: '0x0987654321098765432109876543210987654321',
+              hasOptedIn: false,
+              isSupported: true,
+              scopes: [EthScope.Mainnet],
+            },
+            {
+              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              hasOptedIn: false,
+              isSupported: false,
+              scopes: [EthScope.Mainnet],
+            },
+          ],
+        },
+      );
+    });
+
+    it('should not call linkAccountGroup when accountGroup is undefined', () => {
+      const itemWithoutGroup: RewardSettingsAccountGroupListFlatListItem = {
+        type: 'accountGroup',
+        accountGroup: undefined,
+      };
+
+      const { queryByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={itemWithoutGroup}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      // Component should not render at all
+      expect(
+        queryByTestId(
+          `rewards-account-group-link-button-${mockAccountGroup.id}`,
+        ),
+      ).toBeNull();
+
+      // Verify linkAccountGroup was not called
+      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
     });
   });
 
@@ -588,7 +761,7 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       expect(
-        queryByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+        queryByTestId(`rewards-account-group-${mockAccountGroup.id}`),
       ).toBeNull();
     });
 
@@ -611,38 +784,80 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       expect(
-        queryByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+        queryByTestId(`rewards-account-group-${mockAccountGroup.id}`),
       ).toBeNull();
     });
 
-    it('should not render balance when balance data is unavailable', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectBalanceByAccountGroup')) {
-          return null;
-        }
-        if (
-          selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-        ) {
-          return '0x1234567890123456789012345678901234567890';
-        }
-        if (selector.toString().includes('selectPrivacyMode')) {
-          return false;
-        }
-        return null;
+    it('should use fallback address when evmAddress is undefined', () => {
+      // Mock selector to throw an error (simulating no accounts found)
+      mockSelectIconSeedAddressByAccountGroupId.mockReturnValue(() => {
+        throw new Error('No accounts found');
       });
 
-      const { queryByTestId } = render(
+      const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
+      // Component should still render with fallback address
       expect(
-        queryByTestId(
-          'rewards-account-group-balance-keyring:wallet-1/ethereum',
-        ),
-      ).toBeNull();
+        getByTestId(`rewards-account-group-avatar-${mockAccountGroup.id}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('should use fallback address when selector returns undefined', () => {
+      // Mock selector to return undefined
+      mockSelectIconSeedAddressByAccountGroupId.mockReturnValue(
+        () => undefined,
+      );
+
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      // Component should still render with fallback address
+      expect(
+        getByTestId(`rewards-account-group-avatar-${mockAccountGroup.id}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('should call selectIconSeedAddressByAccountGroupId with correct account group ID', () => {
+      render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      // Verify the selector factory was called with the correct account group ID
+      expect(mockSelectIconSeedAddressByAccountGroupId).toHaveBeenCalledWith(
+        mockAccountGroup.id,
+      );
+    });
+
+    it('should not call selector when accountGroup.id is undefined', () => {
+      const itemWithoutId: RewardSettingsAccountGroupListFlatListItem = {
+        type: 'accountGroup',
+        accountGroup: {
+          ...mockAccountGroup,
+          id: undefined as never,
+        },
+      };
+
+      render(
+        <RewardSettingsAccountGroup
+          item={itemWithoutId}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      // Verify the selector was not called when accountGroup.id is undefined
+      expect(mockSelectIconSeedAddressByAccountGroupId).not.toHaveBeenCalled();
     });
   });
 
@@ -657,24 +872,22 @@ describe('RewardSettingsAccountGroup', () => {
 
       // Test that all major components have testIDs
       expect(
-        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-group-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
       expect(
-        getByTestId('rewards-account-group-avatar-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-group-avatar-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
       expect(
-        getByTestId('rewards-account-group-name-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-group-name-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
       expect(
-        getByTestId('rewards-account-group-balance-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-group-tracked-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
       expect(
-        getByTestId('rewards-account-addresses-keyring:wallet-1/ethereum'),
+        getByTestId(`rewards-account-addresses-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(
-          'rewards-account-group-link-button-keyring:wallet-1/ethereum',
-        ),
+        getByTestId(`rewards-account-group-link-button-${mockAccountGroup.id}`),
       ).toBeOnTheScreen();
     });
   });
@@ -701,82 +914,76 @@ describe('RewardSettingsAccountGroup', () => {
     });
   });
 
-  describe('isSelected Prop', () => {
-    it('should render with default background when isSelected is false', () => {
-      // Arrange & Act
-      const { getByTestId } = render(
-        <RewardSettingsAccountGroup
-          item={mockItem}
-          avatarAccountType={AvatarAccountType.Maskicon}
-          isSelected={false}
-        />,
-      );
-
-      // Assert
-      expect(
-        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
-      ).toBeOnTheScreen();
-    });
-
-    it('should render with highlighted background when isSelected is true', () => {
-      // Arrange & Act
-      const { getByTestId } = render(
-        <RewardSettingsAccountGroup
-          item={mockItem}
-          avatarAccountType={AvatarAccountType.Maskicon}
-          isSelected
-        />,
-      );
-
-      // Assert
-      expect(
-        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
-      ).toBeOnTheScreen();
-    });
-
-    it('should default isSelected to false when prop is not provided', () => {
-      // Arrange & Act
-      const { getByTestId } = render(
-        <RewardSettingsAccountGroup
-          item={mockItem}
-          avatarAccountType={AvatarAccountType.Maskicon}
-        />,
-      );
-
-      // Assert
-      expect(
-        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
-      ).toBeOnTheScreen();
-    });
-
-    it('should render successfully when isSelected prop changes', () => {
+  describe('Loading States', () => {
+    it('should show loading indicator when isLoading is true', () => {
       // Arrange
-      const { getByTestId, rerender } = render(
+      mockUseLinkAccountGroup.mockReturnValue({
+        linkAccountGroup: mockLinkAccountGroup,
+        isLoading: true,
+        isError: false,
+      });
+
+      // Act
+      const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
           avatarAccountType={AvatarAccountType.Maskicon}
-          isSelected={false}
         />,
       );
 
-      // Assert initial render
+      // Assert
       expect(
-        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+        getByTestId(
+          `rewards-account-group-link-button-loading-${mockAccountGroup.id}`,
+        ),
       ).toBeOnTheScreen();
+    });
 
-      // Act - Re-render with isSelected=true
-      rerender(
+    it('should not show link button when loading', () => {
+      // Arrange
+      mockUseLinkAccountGroup.mockReturnValue({
+        linkAccountGroup: mockLinkAccountGroup,
+        isLoading: true,
+        isError: false,
+      });
+
+      // Act
+      const { queryByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
           avatarAccountType={AvatarAccountType.Maskicon}
-          isSelected
         />,
       );
 
-      // Assert - Component still renders correctly
+      // Assert
       expect(
-        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
-      ).toBeOnTheScreen();
+        queryByTestId(
+          `rewards-account-group-link-button-${mockAccountGroup.id}`,
+        ),
+      ).toBeNull();
+    });
+
+    it('disables addresses button when loading', () => {
+      // Arrange
+      mockUseLinkAccountGroup.mockReturnValue({
+        linkAccountGroup: mockLinkAccountGroup,
+        isLoading: true,
+        isError: false,
+      });
+
+      // Act
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      // Assert
+      const addressesButton = getByTestId(
+        `rewards-account-addresses-${mockAccountGroup.id}`,
+      );
+      expect(addressesButton).toHaveProp('disabled', true);
     });
   });
 });

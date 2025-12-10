@@ -1,4 +1,4 @@
-import { Messenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/messenger';
 import {
   ExecuteSnapAction,
   TerminateSnapAction,
@@ -13,6 +13,7 @@ import {
   ErrorMessageEvent,
   OutboundRequest,
   OutboundResponse,
+  SetClientActive,
 } from '@metamask/snaps-controllers';
 import {
   GetEndowments,
@@ -36,10 +37,12 @@ import {
 import {
   KeyringControllerGetKeyringsByTypeAction,
   KeyringControllerLockEvent,
+  KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
 import { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 import { SelectedNetworkControllerGetNetworkClientIdForDomainAction } from '@metamask/selected-network-controller';
+import { RootMessenger } from '../../types';
 
 type Actions =
   | GetEndowments
@@ -81,24 +84,24 @@ export type SnapControllerMessenger = ReturnType<
 >;
 
 /**
- * Get a restricted messenger for the Snap controller. This is scoped to the
+ * Get a messenger for the Snap controller. This is scoped to the
  * actions and events that the Snap controller is allowed to handle.
  *
- * @param messenger - The messenger to restrict.
- * @returns The restricted messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The SnapControllerMessenger.
  */
-export function getSnapControllerMessenger(
-  messenger: Messenger<Actions, Events>,
-) {
-  return messenger.getRestricted({
-    name: 'SnapController',
-    allowedEvents: [
-      'ExecutionService:unhandledError',
-      'ExecutionService:outboundRequest',
-      'ExecutionService:outboundResponse',
-      'KeyringController:lock',
-    ],
-    allowedActions: [
+export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'SnapController',
+    Actions,
+    Events,
+    RootMessenger
+  >({
+    namespace: 'SnapController',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'PermissionController:getEndowments',
       'PermissionController:getPermissions',
       'PermissionController:hasPermission',
@@ -127,33 +130,53 @@ export function getSnapControllerMessenger(
       'NetworkController:getNetworkClientById',
       'SelectedNetworkController:getNetworkClientIdForDomain',
     ],
+    events: [
+      'ExecutionService:unhandledError',
+      'ExecutionService:outboundRequest',
+      'ExecutionService:outboundResponse',
+      'KeyringController:lock',
+    ],
+    messenger,
   });
+  return messenger;
 }
 
 type InitActions =
   | KeyringControllerGetKeyringsByTypeAction
-  | PreferencesControllerGetStateAction;
+  | PreferencesControllerGetStateAction
+  | SetClientActive;
+
+type InitEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent;
 
 export type SnapControllerInitMessenger = ReturnType<
   typeof getSnapControllerInitMessenger
 >;
 
 /**
- * Get a restricted messenger for the Snap controller init. This is scoped to
+ * Get a messenger for the Snap controller init. This is scoped to
  * the actions and events that the Snap controller init is allowed to handle.
  *
- * @param messenger - The messenger to restrict.
- * @returns The restricted messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The SnapControllerInitMessenger.
  */
-export function getSnapControllerInitMessenger(
-  messenger: Messenger<InitActions, never>,
-) {
-  return messenger.getRestricted({
-    name: 'SnapControllerInit',
-    allowedEvents: [],
-    allowedActions: [
+export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'SnapControllerInit',
+    InitActions,
+    InitEvents,
+    RootMessenger
+  >({
+    namespace: 'SnapControllerInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'KeyringController:getKeyringsByType',
       'PreferencesController:getState',
+      'SnapController:setClientActive',
     ],
+    events: ['KeyringController:lock', 'KeyringController:unlock'],
+    messenger,
   });
+  return messenger;
 }

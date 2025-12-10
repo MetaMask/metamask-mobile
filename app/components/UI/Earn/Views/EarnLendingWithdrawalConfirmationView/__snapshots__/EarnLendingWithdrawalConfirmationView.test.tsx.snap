@@ -275,7 +275,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#b7bbc8"
+                      color="#686e7d"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -512,7 +512,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                         }
                         testID="tagbase-text"
                       >
-                        Account 2
+                        Test Wallet Group
                       </Text>
                     </View>
                   </View>
@@ -596,7 +596,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#b7bbc8"
+                      color="#686e7d"
                       fill="currentColor"
                       height={16}
                       name="Question"

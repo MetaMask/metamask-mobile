@@ -23,11 +23,10 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
       availableBalance: '1000.00',
-      totalBalance: '1000.00',
       marginUsed: '0.00',
       unrealizedPnl: '0.00',
       returnOnEquity: '0.00',
-      totalValue: '1000.00',
+      totalBalance: '1000.00',
     },
     isInitialLoading: false,
   })),
@@ -258,7 +257,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {
-            amount: '$1,000.00',
+            amount: '$1,000',
           }),
         ),
       ).toBeOnTheScreen();

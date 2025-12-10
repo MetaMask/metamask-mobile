@@ -343,6 +343,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                             [
                               {
                                 "padding": 15,
+                                "paddingHorizontal": 16,
                               },
                               undefined,
                               {
@@ -414,7 +415,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                             accessibilityRole="button"
                             accessible={true}
                             activeOpacity={1}
-                            onPress={[Function]}
+                            onPress={[MockFunction]}
                             onPressIn={[Function]}
                             onPressOut={[Function]}
                             style={
@@ -804,6 +805,7 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                             [
                               {
                                 "padding": 15,
+                                "paddingHorizontal": 16,
                               },
                               undefined,
                               {

@@ -353,6 +353,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -766,6 +767,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -780,6 +782,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -1192,6 +1195,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -1625,6 +1629,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -1639,6 +1644,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -2051,6 +2057,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -2464,6 +2471,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -2478,6 +2486,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -2890,6 +2899,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -3349,6 +3359,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -3775,6 +3786,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -4188,6 +4200,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -4202,6 +4215,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={

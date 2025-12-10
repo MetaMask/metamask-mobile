@@ -20,7 +20,15 @@ import MultichainPermissionsSummary from '../MultichainPermissionsSummary/Multic
 import MultichainAccountConnectMultiSelector from '../MultichainAccountConnect/MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
 import { strings } from '../../../../../locales/i18n';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/NetworkConnectMultiSelector';
-import { CaipChainId, parseCaipAccountId } from '@metamask/utils';
+import {
+  CaipChainId,
+  parseCaipAccountId,
+  hasProperty,
+  KnownCaipNamespace,
+  isCaipChainId,
+} from '@metamask/utils';
+import { parseChainId } from '@walletconnect/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
 import { AccountGroupId } from '@metamask/account-api';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -35,6 +43,7 @@ import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 
 export interface MultichainAccountPermissionsProps {
   route: {
@@ -102,6 +111,8 @@ export const MultichainAccountPermissions = (
     selectNetworkConfigurationsByCaipChainId,
   );
 
+  const networkInfo = useNetworkInfo(hostInfo?.metadata?.origin);
+
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
     AccountGroupId[]
   >(() => connectedAccountGroups.map((group) => group.id));
@@ -112,13 +123,22 @@ export const MultichainAccountPermissions = (
 
   const networkAvatars: NetworkAvatarProps[] = useMemo(
     () =>
-      selectedChainIds.map((selectedChainId) => ({
-        size: AvatarSize.Xs,
-        name: networkConfigurations[selectedChainId]?.name || '',
-        imageSource: getNetworkImageSource({ chainId: selectedChainId }),
-        variant: AvatarVariant.Network,
-        caipChainId: selectedChainId,
-      })),
+      selectedChainIds
+        // TODO: Remove this filter once upstream issue is fixed
+        // selectedChainIds is populated by getAllScopesFromCaip25CaveatValue() from
+        // @metamask/chain-agnostic-permission, which incorrectly includes wallet scopes
+        // like 'wallet:eip155' that are not valid chain IDs.
+        // For now, filter to only include valid CAIP chain IDs, excluding wallet scopes.
+        .filter(
+          (chainId) => isCaipChainId(chainId) && !chainId.startsWith('wallet:'),
+        )
+        .map((selectedChainId) => ({
+          size: AvatarSize.Xs,
+          name: networkConfigurations[selectedChainId]?.name || '',
+          imageSource: getNetworkImageSource({ chainId: selectedChainId }),
+          variant: AvatarVariant.Network,
+          caipChainId: selectedChainId,
+        })),
     [networkConfigurations, selectedChainIds],
   );
 
@@ -299,11 +319,76 @@ export const MultichainAccountPermissions = (
   );
 
   const handleNetworksSelected = useCallback(
-    (newSelectedChainIds: CaipChainId[]) => {
+    async (newSelectedChainIds: CaipChainId[]) => {
+      // Check if we need to switch networks
+      if (newSelectedChainIds.length > 0) {
+        const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(networkInfo.chainId, 16)}`;
+
+        const newSelectedEvmChainId = newSelectedChainIds.find((chainId) => {
+          const { namespace } = parseChainId(chainId);
+          return namespace === KnownCaipNamespace.Eip155;
+        });
+
+        // Check if current network was originally permitted and is now being removed
+        const wasCurrentNetworkOriginallyPermitted = selectedChainIds.includes(
+          currentEvmCaipChainId,
+        );
+        const isCurrentNetworkStillPermitted = newSelectedChainIds.includes(
+          currentEvmCaipChainId,
+        );
+
+        if (
+          wasCurrentNetworkOriginallyPermitted &&
+          !isCurrentNetworkStillPermitted &&
+          newSelectedEvmChainId
+        ) {
+          // Find the network configuration for the first permitted chain
+          const networkToSwitch = Object.entries(networkConfigurations).find(
+            ([, config]) => config.caipChainId === newSelectedEvmChainId,
+          );
+
+          if (networkToSwitch) {
+            const [, config] = networkToSwitch;
+            if (
+              hasProperty(config, 'rpcEndpoints') &&
+              hasProperty(config, 'defaultRpcEndpointIndex')
+            ) {
+              const { rpcEndpoints, defaultRpcEndpointIndex } =
+                config as NetworkConfiguration;
+              const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+              // For per-dapp network selection, directly set the network for this domain
+              Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+                hostInfo?.metadata?.origin,
+                networkClientId,
+              );
+              // Trigger state update to notify BackgroundBridge and the dapp
+              (
+                Engine.context
+                  .SelectedNetworkController as typeof Engine.context.SelectedNetworkController & {
+                  update: (
+                    fn: (state: { activeDappNetwork: string | null }) => void,
+                  ) => void;
+                }
+              ).update((state: { activeDappNetwork: string | null }) => {
+                state.activeDappNetwork = networkClientId;
+              });
+            }
+          }
+        }
+      }
+
       setSelectedChainIds(newSelectedChainIds);
       setScreen(MultichainAccountPermissionsScreens.Connected);
     },
-    [setSelectedChainIds, setScreen],
+    [
+      setSelectedChainIds,
+      setScreen,
+      selectedChainIds,
+      hostInfo?.metadata?.origin,
+      networkConfigurations,
+      networkInfo.chainId,
+    ],
   );
 
   const renderConnectedScreen = useCallback(

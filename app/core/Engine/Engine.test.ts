@@ -2,6 +2,7 @@ import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
+import { InitializationState } from '../../components/UI/Perps/controllers';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   createMockAccountsControllerState,
@@ -11,6 +12,8 @@ import {
 import { mockNetworkState } from '../../util/test/network';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
+import { NetworkController } from '@metamask/network-controller';
+import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
@@ -71,10 +74,20 @@ jest.mock('@metamask/assets-controllers', () => {
   };
 });
 
+jest.mock('@metamask/remote-feature-flag-controller', () => ({
+  ...jest.requireActual('@metamask/remote-feature-flag-controller'),
+  ClientConfigApiService: jest.fn().mockReturnValue({
+    remoteFeatureFlags: {},
+    cacheTimestamp: 0,
+  }),
+}));
+
 jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),
   rejectOriginApprovals: jest.fn(),
 }));
+
+const ClientConfigApiServiceMock = jest.mocked(ClientConfigApiService);
 
 describe('Engine', () => {
   // Create a shared mock account for tests
@@ -90,6 +103,7 @@ describe('Engine', () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
     await Engine.destroyEngine();
+    await EngineClass.instance?.destroyEngineInstance();
   });
 
   it('should expose an API', () => {
@@ -120,7 +134,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
     expect(engine.context).toHaveProperty('MultichainBalancesController');
-    expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
@@ -146,7 +159,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: 'vault',
@@ -164,7 +178,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: undefined,
@@ -211,9 +226,11 @@ describe('Engine', () => {
         eligibility: {},
         lastError: null,
         lastUpdateTimestamp: 0,
-        claimTransaction: null,
-        depositTransaction: null,
-        isOnboarded: {},
+        balances: {},
+        claimablePositions: {},
+        pendingDeposits: {},
+        withdrawTransaction: null,
+        accountMeta: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({
@@ -226,6 +243,29 @@ describe('Engine', () => {
         gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
         isFetchingGatorPermissions: false,
         isGatorPermissionsEnabled: false,
+      },
+      PerpsController: {
+        ...backgroundState.PerpsController,
+        depositRequests: [],
+        withdrawalRequests: [],
+        withdrawalProgress: {
+          progress: 0,
+          lastUpdated: 0,
+          activeWithdrawalId: null,
+        },
+        marketFilterPreferences: 'volume',
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+        watchlistMarkets: {
+          mainnet: [],
+          testnet: [],
+        },
+        hip3ConfigVersion: 0,
+        initializationState: InitializationState.UNINITIALIZED,
+        initializationError: null,
+        initializationAttempts: 0,
       },
     };
 
@@ -358,18 +398,130 @@ describe('Engine', () => {
     });
   });
 
-  it('does not pass initial RemoteFeatureFlagController state to the controller', () => {
+  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
     const state = {
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {},
-        cacheTimestamp: 20000000000000,
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: true,
+        },
+        cacheTimestamp: 0,
       },
     };
-    const engine = Engine.init(state);
-    expect(engine.datamodel.state.RemoteFeatureFlagController).toStrictEqual({
-      remoteFeatureFlags: {},
-      cacheTimestamp: 0,
-    });
+    const enableRpcFailoverSpy = jest.spyOn(
+      NetworkController.prototype,
+      'enableRpcFailover',
+    );
+
+    Engine.init(state);
+
+    expect(enableRpcFailoverSpy).toHaveBeenCalled();
+  });
+
+  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already disabled', () => {
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: false,
+        },
+        cacheTimestamp: 0,
+      },
+    };
+    const disableRpcFailoverSpy = jest.spyOn(
+      NetworkController.prototype,
+      'disableRpcFailover',
+    );
+
+    Engine.init(state);
+
+    expect(disableRpcFailoverSpy).toHaveBeenCalled();
+  });
+
+  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is enabled later', async () => {
+    (Date.now as jest.Mock).mockReturnValue(1000000);
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: false,
+        },
+        cacheTimestamp: 0,
+      },
+    };
+    const keyringState = null;
+    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
+    const enableRpcFailoverSpy = jest.spyOn(
+      NetworkController.prototype,
+      'enableRpcFailover',
+    );
+    ClientConfigApiServiceMock
+      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
+      // all we need to override is `fetchRemoteFeatureFlags`
+      .mockReturnValue({
+        async fetchRemoteFeatureFlags() {
+          return {
+            remoteFeatureFlags: {
+              walletFrameworkRpcFailoverEnabled: true,
+            },
+            cacheTimestamp: 1,
+          };
+        },
+      });
+
+    Engine.init(state, keyringState, metaMetricsId);
+
+    // We can't await RemoteFeatureFlagController:stateChange because can't
+    // guarantee it hasn't been called already, so this is the next best option
+    while (enableRpcFailoverSpy.mock.calls.length === 0) {
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 100);
+      });
+    }
+    expect(enableRpcFailoverSpy).toHaveBeenCalled();
+  });
+
+  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is disabled later', async () => {
+    (Date.now as jest.Mock).mockReturnValue(1000000);
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: true,
+        },
+        cacheTimestamp: 0,
+      },
+    };
+    const keyringState = null;
+    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
+    const disableRpcFailoverSpy = jest.spyOn(
+      NetworkController.prototype,
+      'disableRpcFailover',
+    );
+    ClientConfigApiServiceMock
+      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
+      // all we need to override is `fetchRemoteFeatureFlags`
+      .mockReturnValue({
+        async fetchRemoteFeatureFlags() {
+          return {
+            remoteFeatureFlags: {
+              walletFrameworkRpcFailoverEnabled: false,
+            },
+            cacheTimestamp: 1,
+          };
+        },
+      });
+
+    Engine.init(state, keyringState, metaMetricsId);
+
+    // We can't await RemoteFeatureFlagController:stateChange because can't
+    // guarantee it hasn't been called already, so this is the next best option
+    while (disableRpcFailoverSpy.mock.calls.length === 0) {
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 100);
+      });
+    }
+    expect(disableRpcFailoverSpy).toHaveBeenCalled();
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
@@ -685,7 +837,15 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    });
+
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to active
@@ -704,7 +864,15 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    });
+
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to background
@@ -728,6 +896,33 @@ describe('Engine', () => {
 
     // Simulate app state change to inactive
     mockAppStateListener('inactive');
+
+    expect(messengerSpy).not.toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      expect.anything(),
+    );
+  });
+
+  it('does not call `SnapController:setClientActive` when the app is locked', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: false,
+      },
+    });
+
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to active
+    mockAppStateListener('active');
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',

@@ -5,7 +5,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { View } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -33,6 +34,7 @@ import {
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
+import ExternalAccountCell from './ExternalAccountCell';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -40,18 +42,28 @@ const MultichainAccountSelectorList = ({
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   showCheckbox = false,
+  showFooter = true,
   setKeyboardAvoidingViewEnabled,
+  accountSections: accountSectionsProp,
+  chainId,
+  hideAccountCellMenu = false,
+  showExternalAccountOnEmptySearch = false,
+  onSelectExternalAccount,
+  selectedExternalAddress,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
   const isMultichainAccountsEnabled = useSelector(
     selectMultichainAccountsState1Enabled,
   );
-  const accountSections = useSelector(selectAccountGroupsByWallet);
+  const accountSectionsFromSelector = useSelector(selectAccountGroupsByWallet);
+  const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
-  const [searchText, setSearchText] = useState('');
-  const [debouncedSearchText, setDebouncedSearchText] = useState('');
+  const [searchText, setSearchText] = useState(selectedExternalAddress || '');
+  const [debouncedSearchText, setDebouncedSearchText] = useState(
+    selectedExternalAddress || '',
+  );
   const [lastCreatedAccountId, setLastCreatedAccountId] = useState<
     string | null
   >(null);
@@ -128,11 +140,18 @@ const MultichainAccountSelectorList = ({
   }, [walletSections, debouncedSearchText, matchesSearch]);
 
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
-    if (filteredWalletSections.length === 0) {
-      return [];
-    }
-
     const items: FlattenedMultichainAccountListItem[] = [];
+
+    if (filteredWalletSections.length === 0) {
+      if (showExternalAccountOnEmptySearch) {
+        const address = debouncedSearchText.trim();
+        items.push({
+          type: 'external',
+          data: { address },
+        });
+      }
+      return items;
+    }
 
     filteredWalletSections.forEach((section) => {
       items.push({
@@ -155,21 +174,47 @@ const MultichainAccountSelectorList = ({
     });
 
     return items;
-  }, [filteredWalletSections]);
+  }, [
+    filteredWalletSections,
+    debouncedSearchText,
+    showExternalAccountOnEmptySearch,
+  ]);
 
-  // Compute first selected account index for initial positioning only
-  const initialSelectedIndex = useMemo(() => {
-    const targetId = selectedAccountGroups?.[0]?.id;
-    if (!targetId) return undefined;
-    const idx = flattenedData.findIndex(
-      (item) => item.type === 'cell' && item.data.id === targetId,
-    );
-    return idx >= 0 ? idx : undefined;
-  }, [flattenedData, selectedAccountGroups]);
+  // Track if we've done the initial scroll to selected item
+  const hasScrolledToSelected = useRef(false);
+
+  // Scroll to selected item on initial mount
+  useEffect(() => {
+    if (
+      !hasScrolledToSelected.current &&
+      listRefToUse.current &&
+      flattenedData.length > 0
+    ) {
+      const targetId = selectedAccountGroups?.[0]?.id;
+      if (targetId) {
+        const idx = flattenedData.findIndex(
+          (item) => item.type === 'cell' && item.data.id === targetId,
+        );
+        if (idx >= 0) {
+          const frameId = requestAnimationFrame(() => {
+            listRefToUse.current?.scrollToIndex({
+              index: idx,
+              animated: false,
+              viewPosition: 0.5,
+            });
+          });
+          hasScrolledToSelected.current = true;
+          return () => cancelAnimationFrame(frameId);
+        }
+      }
+      hasScrolledToSelected.current = true;
+    }
+  }, [flattenedData, selectedAccountGroups, listRefToUse]);
 
   // Reset scroll to top when search text changes
   useEffect(() => {
     if (listRefToUse.current) {
+      hasScrolledToSelected.current = false;
       // Use requestAnimationFrame to ensure the list has finished re-rendering
       const animationFrameId = requestAnimationFrame(() => {
         listRefToUse.current?.scrollToOffset({ offset: 0, animated: false });
@@ -224,6 +269,13 @@ const MultichainAccountSelectorList = ({
     [onSelectAccount],
   );
 
+  const handleSelectExternalAccount = useCallback(
+    (address: string) => {
+      onSelectExternalAccount?.(address);
+    },
+    [onSelectExternalAccount],
+  );
+
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
     useCallback(
       ({ item }: { item: FlattenedMultichainAccountListItem }) => {
@@ -241,11 +293,29 @@ const MultichainAccountSelectorList = ({
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
                 showCheckbox={showCheckbox}
+                chainId={chainId}
+                hideMenu={hideAccountCellMenu}
+              />
+            );
+          }
+
+          case 'external': {
+            const isSelected = selectedExternalAddress
+              ? item.data.address.toLowerCase() ===
+                selectedExternalAddress.toLowerCase()
+              : false;
+            return (
+              <ExternalAccountCell
+                address={item.data.address}
+                onPress={() => handleSelectExternalAccount(item.data.address)}
+                chainId={chainId}
+                isSelected={isSelected}
               />
             );
           }
 
           case 'footer': {
+            if (!showFooter) return null;
             return (
               <AccountListFooter
                 walletId={item.data.walletId}
@@ -262,8 +332,13 @@ const MultichainAccountSelectorList = ({
         selectedIdSet,
         handleSelectAccount,
         handleAccountCreated,
+        handleSelectExternalAccount,
         avatarAccountType,
         showCheckbox,
+        showFooter,
+        chainId,
+        hideAccountCellMenu,
+        selectedExternalAddress,
       ],
     );
 
@@ -274,6 +349,8 @@ const MultichainAccountSelectorList = ({
           return `header-${item.data.walletName}`;
         case 'cell':
           return `account-${item.data.id}`;
+        case 'external':
+          return `external-${item.data.address}`;
         case 'footer':
           return `footer-${item.data.walletName}`;
         default:
@@ -331,7 +408,9 @@ const MultichainAccountSelectorList = ({
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
-            initialScrollIndex={initialSelectedIndex}
+            renderScrollComponent={
+              ScrollView as React.ComponentType<ScrollViewProps>
+            }
             // Performance optimizations
             removeClippedSubviews
             {...props}

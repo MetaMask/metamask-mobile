@@ -17,7 +17,7 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_getBalance - mock balance
   eth_getBalance: '0x0', // 0 ETH balance
 
-  // eth_call - contract calls (return empty data)
+  // eth_call - contract calls (dinamically overridden in tests)
   eth_call: '0x',
 
   // eth_estimateGas - gas estimation
@@ -62,6 +62,13 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
   const ARBITRUM_RPC_URL = 'https://arb1.arbitrum.io/rpc';
+  const USDC_ARBITRUM_E = '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8'; // USDC.e (legacy)
+  const USDC_ARBITRUM = '0xaf88d065e77c8cc2239327c5edb3a432268e5831'; // Native USDC
+  // Encode balanceOf(Account1) result for 200 USDC (6 decimals) => 200000000
+  const TWO_HUNDRED_USDC_HEX =
+    '0x000000000000000000000000000000000000000000000000000000000bebc200';
+  // 100 ETH in wei
+  const HUNDRED_ETH_WEI_HEX = '0x56bc75e2d63100000';
 
   // Mock Arbitrum RPC endpoint through the mobile proxy
   await mockServer
@@ -80,12 +87,22 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
 
         // Handle batch requests
         if (Array.isArray(body)) {
-          const results = body.map((req) => ({
-            id: req.id,
-            jsonrpc: '2.0',
-            result:
-              (MOCK_RESPONSES as Record<string, unknown>)[req.method] || '0x',
-          }));
+          const results = body.map((req) => {
+            // Special-case eth_getBalance in batch
+            if (req.method === 'eth_getBalance') {
+              return {
+                id: req.id,
+                jsonrpc: '2.0',
+                result: HUNDRED_ETH_WEI_HEX,
+              };
+            }
+            return {
+              id: req.id,
+              jsonrpc: '2.0',
+              result:
+                (MOCK_RESPONSES as Record<string, unknown>)[req.method] || '0x',
+            };
+          });
 
           return {
             statusCode: 200,
@@ -95,6 +112,52 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
 
         // Handle single requests
         const method = body?.method as string | undefined;
+
+        // Special-case mock for ERC20 balanceOf(USDC, account) used by Pay with
+        if (method === 'eth_call') {
+          // Extract call data to detect balanceOf(address)
+          try {
+            interface EthCallArg {
+              to?: string;
+              data?: string;
+            }
+            const params = (body as { params?: EthCallArg[] })?.params ?? [];
+            const arg0 = (params[0] as EthCallArg | undefined) || undefined;
+            const to = arg0?.to?.toLowerCase?.();
+            const data: string | undefined = arg0?.data;
+            // ERC20 balanceOf selector 0x70a08231
+            const isBalanceOf =
+              typeof data === 'string' && data.startsWith('0x70a08231');
+            if (
+              (to === USDC_ARBITRUM || to === USDC_ARBITRUM_E) &&
+              isBalanceOf
+            ) {
+              return {
+                statusCode: 200,
+                body: JSON.stringify({
+                  id: body?.id ?? 1,
+                  jsonrpc: '2.0',
+                  result: TWO_HUNDRED_USDC_HEX,
+                }),
+              };
+            }
+          } catch (e) {
+            // fall back
+          }
+        }
+
+        // Special-case mock for native ETH balance on Arbitrum
+        if (method === 'eth_getBalance') {
+          return {
+            statusCode: 200,
+            body: JSON.stringify({
+              id: body?.id ?? 1,
+              jsonrpc: '2.0',
+              result: HUNDRED_ETH_WEI_HEX,
+            }),
+          };
+        }
+
         const result = method
           ? (MOCK_RESPONSES as Record<string, unknown>)[method] || '0x'
           : '0x';
@@ -141,6 +204,74 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
           'Content-Type': 'image/svg+xml',
           'Cache-Control': 'public, max-age=3600',
         },
+      };
+    });
+
+  // Mock Accounts API (balances/relationships) through the mobile proxy
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('accounts.api.cx.metamask.io');
+    })
+    .asPriority(1000)
+    .thenCallback(() => {
+      console.log('[Perps E2E Mock] Intercepted Accounts API request');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ data: [], included: [] }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+    });
+
+  // Mock Token API metadata through the mobile proxy
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('token.api.cx.metamask.io/token/42161');
+    })
+    .asPriority(1000)
+    .thenCallback((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      const url = new URL(urlParam);
+      const address = (url.searchParams.get('address') || '').toLowerCase();
+      console.log(
+        '[Perps E2E Mock] Intercepted Token API request for',
+        address,
+      );
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          address,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          chainId: 42161,
+          logo: '',
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    });
+
+  // Mock Tx Sentinel POST via mobile proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes(
+        'tx-sentinel-arbitrum-mainnet.api.cx.metamask.io',
+      );
+    })
+    .asPriority(1000)
+    .thenCallback(async () => {
+      console.log('[Perps E2E Mock] Intercepted Tx Sentinel request');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ status: 'ok' }),
+        headers: { 'Content-Type': 'application/json' },
       };
     });
 };

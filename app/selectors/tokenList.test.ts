@@ -19,7 +19,13 @@ import { RootState } from '../reducers';
 jest.mock('./preferencesController');
 jest.mock('./multichainNetworkController');
 jest.mock('./accountsController');
-jest.mock('./multichain');
+jest.mock('./multichain', () => ({
+  selectEvmTokens: jest.fn(),
+  selectEvmTokenFiatBalances: jest.fn(),
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectMultichainTokenListForAccountId: jest.fn(),
+  ///: END:ONLY_INCLUDE_IF
+}));
 jest.mock('../store', () => ({
   store: { getState: jest.fn() },
 }));
@@ -27,7 +33,7 @@ jest.mock('../store', () => ({
 // This selector consumes many selectors and is very hard to create exact state
 // So instead uses mocks to simulate the internal selector changes
 describe('selectSortedTokenKeys', () => {
-  const mockState = () => ({} as unknown as RootState);
+  const mockState = () => ({}) as unknown as RootState;
 
   const createEvmTokens = (tokenAddrs: string[]) =>
     tokenAddrs.map(
@@ -36,7 +42,7 @@ describe('selectSortedTokenKeys', () => {
           address,
           chainId: '0x1',
           isStaked: false,
-        } as TokenI),
+        }) as TokenI,
     );
 
   const createNonEvmTokens = (tokenAddrs: string[]) =>
@@ -47,9 +53,9 @@ describe('selectSortedTokenKeys', () => {
           chainId: '0x1337',
           isStaked: undefined,
           balanceFiat: idx + 10,
-        } as unknown as ReturnType<
+        }) as unknown as ReturnType<
           typeof selectMultichainTokenListForAccountId
-        >[number]),
+        >[number],
     );
 
   const arrangeMocks = () => {

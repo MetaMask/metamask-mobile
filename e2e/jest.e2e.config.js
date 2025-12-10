@@ -1,25 +1,16 @@
 /* eslint-disable import/no-commonjs */
 require('dotenv').config({ path: '.e2e.env' });
 
-// Determine maxWorkers based on environment
-let workers = process.env.GITHUB_CI ? 2 : process.env.CI ? 3 : 1;
-
-// Set maxWorkers to 1 for performance workflows
-if (process.env.BITRISE_TRIGGERED_WORKFLOW_ID) {
-  const workflowId = process.env.BITRISE_TRIGGERED_WORKFLOW_ID;
-  if (
-    workflowId === 'run_tag_smoke_performance_ios' ||
-    workflowId === 'run_tag_smoke_performance_android'
-  ) {
-    workers = 1;
-  }
-}
+// Due the emulator resource constraints, is much better to run the tests in band (1 worker)
+// Multiple workers will cause the tests to fail due to resource constraints.
+// Read https://medium.com/adobetech/improve-jest-runner-performance-a8f56708ba94
 
 module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/e2e/specs/**/*.spec.{js,ts}'],
-  testTimeout: 500000,
-  maxWorkers: workers,
+  testTimeout: 300000,
+  maxWorkers: 1,
+  clearMocks: true,
   setupFilesAfterEnv: ['<rootDir>/e2e/init.js'],
   globalSetup: 'detox/runners/jest/globalSetup',
   globalTeardown: 'detox/runners/jest/globalTeardown',
@@ -30,6 +21,10 @@ module.exports = {
       {
         outputDirectory: './e2e/reports',
         classNameTemplate: '{filepath}',
+        outputName: (() => {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          return `junit-${timestamp}.xml`;
+        })(),
       },
     ],
   ],

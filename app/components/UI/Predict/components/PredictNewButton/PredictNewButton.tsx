@@ -18,6 +18,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
 
 interface PredictNewButtonProps {}
 
@@ -26,21 +27,19 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
   const tw = useTailwind();
 
   const handlePress = () => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
       params: {
-        screen: Routes.PREDICT.ROOT,
-        params: {
-          screen: Routes.PREDICT.MARKET_LIST,
-        },
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_NEW_PREDICTION,
       },
     });
   };
 
   return (
     <Pressable
+      testID="predict-new-button"
       style={({ pressed }) =>
-        tw.style('mx-3 mb-4 py-4 rounded-xl flex-row', pressed)
+        tw.style('mb-4 py-4 rounded-xl flex-row', pressed)
       }
       onPress={handlePress}
     >
@@ -48,7 +47,7 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="gap-3"
+        twClassName="gap-4"
       >
         <Box twClassName="w-10 h-10 rounded-full bg-primary-muted items-center justify-center">
           <Icon

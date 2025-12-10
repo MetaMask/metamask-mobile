@@ -241,8 +241,8 @@ class TransactionEditor extends PureComponent {
         dappSuggestedGasPrice
           ? fromWei(dappSuggestedGasPrice, 'gwei')
           : gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? this.props.gasFeeEstimates[selected]
-          : this.props.gasFeeEstimates.gasPrice;
+            ? this.props.gasFeeEstimates[selected]
+            : this.props.gasFeeEstimates.gasPrice;
 
       const LegacyGasData = this.parseTransactionDataLegacy(
         {

@@ -20,7 +20,7 @@ const createMockState = (
         },
       },
     },
-  } as RootState);
+  }) as RootState;
 
 describe('Seedless Onboarding Controller Selectors', () => {
   describe('selectSeedlessOnboardingUserId', () => {

@@ -103,8 +103,8 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
   ...params: PartialParameters<NativeRampsSdk[T]>
 ): DepositSdkMethodResult<T> {
   const method = typeof config === 'string' ? config : config.method;
-  const onMount = typeof config === 'string' ? true : config.onMount ?? true;
-  const throws = typeof config === 'string' ? false : config.throws ?? false;
+  const onMount = typeof config === 'string' ? true : (config.onMount ?? true);
+  const throws = typeof config === 'string' ? false : (config.throws ?? false);
 
   const { sdk } = useDepositSDK();
   const [data, setData] = useState<Awaited<

@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { usePerpsSelector } from './usePerpsSelector';
 import type { PerpsControllerState } from '../controllers/PerpsController';
+import { usePerpsSelector } from './usePerpsSelector';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -156,9 +156,11 @@ describe('usePerpsSelector', () => {
     const accountBalanceSelector = (
       state: PerpsControllerState | undefined,
     ) => ({
-      total: parseFloat(state?.accountState?.totalBalance ?? '0'),
-      available: parseFloat(state?.accountState?.availableBalance ?? '0'),
-      used: parseFloat(state?.accountState?.marginUsed ?? '0'),
+      total: Number.parseFloat(state?.accountState?.totalBalance ?? '0'),
+      available: Number.parseFloat(
+        state?.accountState?.availableBalance ?? '0',
+      ),
+      used: Number.parseFloat(state?.accountState?.marginUsed ?? '0'),
     });
 
     // Act

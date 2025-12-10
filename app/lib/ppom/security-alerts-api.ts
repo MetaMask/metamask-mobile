@@ -8,10 +8,6 @@ export interface SecurityAlertsAPIRequest {
   params: unknown[];
 }
 
-export function isSecurityAlertsAPIEnabled() {
-  return process.env.MM_SECURITY_ALERTS_API_ENABLED === 'true';
-}
-
 export async function validateWithSecurityAlertsAPI(
   chainId: string,
   body: SecurityAlertsAPIRequest,

@@ -1,11 +1,9 @@
-import { useRegisterPushNotificationsEffect } from './useRegisterPushNotificationsEffect';
 import { useStartupNotificationsEffect } from './useStartupNotificationsEffect';
 
 /**
- * Registers Push Notifications and lists notifications on startup.
+ * Lists notifications on startup.
  */
 const useNotificationHandler = () => {
-  useRegisterPushNotificationsEffect();
   useStartupNotificationsEffect();
 };
 

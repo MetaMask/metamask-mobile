@@ -356,6 +356,40 @@ export default class Gestures {
   }
 
   /**
+   * Type text into a web element within a webview using JavaScript injection.
+   * @param {Promise<Detox.IndexableWebElement>} element - The web element to type into.
+   * @param {string} text - The text to type.
+   */
+  static async typeInWebElement(
+    elem: Promise<IndexableWebElement>,
+    text: string,
+  ): Promise<void> {
+    try {
+      await (
+        await elem
+      ).runScript(
+        (
+          el: {
+            focus: () => void;
+            value: string;
+            _valueTracker?: { setValue: (v: string) => void };
+            dispatchEvent: (event: { bubbles?: boolean }) => void;
+          },
+          value: string,
+        ) => {
+          el.focus();
+          el.value = value;
+          el._valueTracker && el._valueTracker.setValue('');
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        },
+        [text],
+      );
+    } catch {
+      await this.typeText(elem, text);
+    }
+  }
+
+  /**
    * Replace text in field with retry
    * @returns A Promise that resolves when the text is successfully replaced
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
@@ -414,6 +448,7 @@ export default class Gestures {
       checkEnabled = true,
       checkVisibility = true,
       elemDescription,
+      startOffsetPercentage = { x: NaN, y: NaN },
     } = options;
 
     return Utilities.executeWithRetry(
@@ -428,7 +463,13 @@ export default class Gestures {
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
         );
-        await el.swipe(direction, speed, percentage);
+        await el.swipe(
+          direction,
+          speed,
+          percentage,
+          startOffsetPercentage.x,
+          startOffsetPercentage.y,
+        );
       },
       {
         timeout,

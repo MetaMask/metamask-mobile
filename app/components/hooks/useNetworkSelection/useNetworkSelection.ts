@@ -15,12 +15,12 @@ import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../select
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import Engine from '../../../core/Engine';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 
 interface UseNetworkSelectionOptions {
@@ -133,11 +133,15 @@ export const useNetworkSelection = ({
         Engine.setSelectedAddress(bitcoAccountInScope.address);
       }
       ///: END:ONLY_INCLUDE_IF
+
+      // Enable the network in NetworkEnablementController
       await enableNetwork(chainId);
+
       onComplete?.();
     },
     [
       enableNetwork,
+
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       bitcoinInternalAccounts,
       ///: END:ONLY_INCLUDE_IF(bitcoin)
@@ -147,6 +151,7 @@ export const useNetworkSelection = ({
   const selectAllPopularNetworks = useCallback(
     async (onComplete?: () => void) => {
       await enableAllPopularNetworks();
+
       onComplete?.();
     },
     [enableAllPopularNetworks],
@@ -155,27 +160,12 @@ export const useNetworkSelection = ({
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      if (chainId.includes(KnownCaipNamespace.Bip122)) {
-        const bitcoAccountInScope = bitcoinInternalAccounts.find((account) =>
-          account.scopes.includes(chainId),
-        );
-
-        if (bitcoAccountInScope) {
-          Engine.setSelectedAddress(bitcoAccountInScope.address);
-        }
-      }
-      ///: END:ONLY_INCLUDE_IF
-
+      // Enable the network in NetworkEnablementController
       await enableNetwork(chainId);
+
       onComplete?.();
     },
-    [
-      enableNetwork,
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      bitcoinInternalAccounts,
-      ///: END:ONLY_INCLUDE_IF(bitcoin)
-    ],
+    [enableNetwork],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */

@@ -1,4 +1,4 @@
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { rpcErrors } from '@metamask/rpc-errors';
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { RelayerTypes } from '@walletconnect/types';
@@ -11,7 +11,6 @@ import {
   selectNetworkConfigurations,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../selectors/networkController';
-import Engine from '../Engine';
 import { getPermittedAccounts, getPermittedChains } from '../Permissions';
 import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
@@ -235,17 +234,6 @@ export const getScopedPermissions = async ({
   return {
     [KnownCaipNamespace.Eip155]: scopedPermissions,
   };
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const onRequestUserApproval = (origin: string) => async (args: any) => {
-  Engine.context.ApprovalController.clear(providerErrors.userRejectedRequest());
-  const responseData = await Engine.context.ApprovalController.add({
-    origin,
-    type: args.type,
-    requestData: args.requestData,
-  });
-  return responseData;
 };
 
 export const isSwitchingChainRequest = (

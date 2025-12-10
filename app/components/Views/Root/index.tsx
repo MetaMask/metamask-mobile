@@ -15,6 +15,7 @@ import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
 import FontLoadingGate from './FontLoadingGate';
+import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -73,20 +74,22 @@ const Root = ({ foxCode }: RootProps) => {
             <SnapsExecutionWebView />
             ///: END:ONLY_INCLUDE_IF
           }
-          <ThemeProvider>
-            <NavigationProvider>
-              <ControllersGate>
-                <ToastContextWrapper>
-                  <ErrorBoundary view="Root">
-                    <FontLoadingGate>
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
-                    </FontLoadingGate>
-                  </ErrorBoundary>
-                </ToastContextWrapper>
-              </ControllersGate>
-            </NavigationProvider>
-          </ThemeProvider>
+          <FeatureFlagOverrideProvider>
+            <ThemeProvider>
+              <NavigationProvider>
+                <ControllersGate>
+                  <ToastContextWrapper>
+                    <ErrorBoundary view="Root">
+                      <FontLoadingGate>
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </FontLoadingGate>
+                    </ErrorBoundary>
+                  </ToastContextWrapper>
+                </ControllersGate>
+              </NavigationProvider>
+            </ThemeProvider>
+          </FeatureFlagOverrideProvider>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>

@@ -1,6 +1,7 @@
 import {
   IconProps,
   IconSize,
+  IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { ButtonIconSizes } from '../../components/Buttons/ButtonIcon';
 import { ReactNode } from 'react';
@@ -27,6 +28,11 @@ interface KeyValueRowTooltip {
    * @default TooltipSizes.Md
    */
   size?: ButtonIconSizes;
+  /**
+   * Optional icon name for the tooltip icon.
+   * @default IconName.Question
+   */
+  iconName?: IconName;
   /**
    * Optional onPress handler
    */

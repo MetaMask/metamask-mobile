@@ -4,7 +4,6 @@ import { TokensControllerState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
-import { isPortfolioViewEnabled } from '../util/networks';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -99,10 +98,6 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
   (networkConfigurations, currentChainId) => {
-    if (!isPortfolioViewEnabled()) {
-      return [currentChainId];
-    }
-
     const popularNetworksChainIds = PopularList.map(
       (popular) => popular.chainId,
     );
@@ -221,16 +216,12 @@ export const selectTransformedTokens = createSelector(
 
 export const selectSingleTokenByAddressAndChainId = createSelector(
   selectAllTokens,
-  selectSelectedInternalAccountAddress,
   (_state: RootState, tokenAddress: Hex) => tokenAddress,
   (_state: RootState, _tokenAddress: Hex, chainId: Hex) => chainId,
-  (allTokens, selectedAddress, tokenAddress, chainId) => {
-    if (!selectedAddress) return undefined;
+  (allTokens, tokenAddress, chainId) => {
+    const chainTokens = Object.values(allTokens[chainId] ?? {}).flat();
 
-    const tokensForAddressAndChain =
-      allTokens[chainId]?.[selectedAddress] ?? [];
-
-    return tokensForAddressAndChain.find(
+    return chainTokens.find(
       (token) => token.address.toLowerCase() === tokenAddress.toLowerCase(),
     );
   },

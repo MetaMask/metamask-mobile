@@ -6,6 +6,7 @@ import { RootState } from '../../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { hasDepositOrderField } from './index';
 import { AnalyticsEvents } from '../types';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 
 function getDepositAnalyticsPayload(
   fiatOrder: FiatOrder,
@@ -32,6 +33,23 @@ function getDepositAnalyticsPayload(
   const order = fiatOrder.data;
 
   const selectedRegion = fiatOrdersRegionSelectorDeposit(state);
+  const networkConfigurations = selectNetworkConfigurationsByCaipChainId(state);
+
+  const chainId =
+    order?.network?.chainId || order?.cryptoCurrency?.chainId || '';
+
+  const getNetworkName = (depositOrder: typeof order) => {
+    if (!depositOrder?.network) {
+      return 'Unknown Network';
+    }
+    const depositNetwork = depositOrder.network;
+    const networkChainId = depositNetwork.chainId;
+    return (
+      depositNetwork.name ||
+      networkConfigurations[networkChainId as `${string}:${string}`]?.name ||
+      'Unknown Network'
+    );
+  };
 
   const baseAnalyticsData = {
     ramp_type: 'DEPOSIT' as const,
@@ -40,8 +58,10 @@ function getDepositAnalyticsPayload(
     exchange_rate: Number(order.exchangeRate),
     payment_method_id: order?.paymentMethod?.id || '',
     country: selectedRegion?.isoCode || '',
-    chain_id: order?.cryptoCurrency?.chainId || '',
+    chain_id: chainId,
     currency_destination: order?.cryptoCurrency?.assetId || '',
+    currency_destination_symbol: order?.cryptoCurrency?.symbol,
+    currency_destination_network: getNetworkName(order),
     currency_source: order?.fiatCurrency || '',
   };
 

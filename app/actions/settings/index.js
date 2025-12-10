@@ -12,13 +12,6 @@ export function setShowHexData(showHexData) {
   };
 }
 
-export function setShowCustomNonce(showCustomNonce) {
-  return {
-    type: 'SET_SHOW_CUSTOM_NONCE',
-    showCustomNonce,
-  };
-}
-
 export function setShowFiatOnTestnets(showFiatOnTestnets) {
   return {
     type: 'SET_SHOW_FIAT_ON_TESTNETS',
@@ -106,5 +99,12 @@ export function setDeepLinkModalDisabled(deepLinkModalDisabled) {
   return {
     type: 'SET_DEEP_LINK_MODAL_DISABLED',
     deepLinkModalDisabled,
+  };
+}
+
+export function setPerpsChartPreferredCandlePeriod(preferredCandlePeriod) {
+  return {
+    type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
+    preferredCandlePeriod,
   };
 }

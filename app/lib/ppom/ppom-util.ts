@@ -20,12 +20,8 @@ import {
 } from '@metamask/transaction-controller';
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
-import {
-  isSecurityAlertsAPIEnabled,
-  validateWithSecurityAlertsAPI,
-} from './security-alerts-api';
-import { PPOMController } from '@metamask/ppom-validator';
-import { Messenger } from '@metamask/base-controller';
+import { validateWithSecurityAlertsAPI } from './security-alerts-api';
+import { Messenger } from '@metamask/messenger';
 import { SignatureStateChange } from '@metamask/signature-controller';
 import cloneDeep from 'lodash/cloneDeep';
 
@@ -41,6 +37,7 @@ export interface PPOMRequest {
 }
 
 export type PPOMMessenger = Messenger<
+  'PPOMMessenger',
   never,
   SignatureStateChange | TransactionControllerUnapprovedTransactionAddedEvent
 >;
@@ -84,11 +81,7 @@ async function validateRequest(
     securityAlertId?: string;
   } = {},
 ) {
-  const {
-    AccountsController,
-    NetworkController,
-    PPOMController: ppomController,
-  } = Engine.context;
+  const { AccountsController, NetworkController } = Engine.context;
 
   const { method, networkClientId: requestNetworkClientId } = req;
   const { networkClientId: transactionNetworkClientId } = transactionMeta;
@@ -108,7 +101,7 @@ async function validateRequest(
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(method);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
 
-  if (!ppomController || !isBlockaidFeatEnabled || !isConfirmationMethod) {
+  if (!isBlockaidFeatEnabled || !isConfirmationMethod) {
     return;
   }
 
@@ -149,9 +142,7 @@ async function validateRequest(
 
     log('Normalized request', normalizedRequest);
 
-    securityAlertResponse = isSecurityAlertsAPIEnabled()
-      ? await validateWithAPI(ppomController, chainId, normalizedRequest)
-      : await validateWithController(ppomController, normalizedRequest);
+    securityAlertResponse = await validateWithAPI(chainId, normalizedRequest);
 
     securityAlertResponse = {
       ...securityAlertResponse,
@@ -172,32 +163,7 @@ async function validateRequest(
   }
 }
 
-async function validateWithController(
-  ppomController: PPOMController,
-  request: PPOMRequest,
-): Promise<SecurityAlertResponse> {
-  try {
-    log('Validating with controller', request);
-
-    const response = (await ppomController.usePPOM((ppom) =>
-      ppom.validateJsonRpc(request as unknown as Record<string, unknown>),
-    )) as SecurityAlertResponse;
-
-    return {
-      ...response,
-      source: SecurityAlertSource.Local,
-    };
-  } catch (e) {
-    Logger.log(`Error validating request with PPOM: ${e}`);
-    return {
-      ...SECURITY_ALERT_RESPONSE_FAILED,
-      source: SecurityAlertSource.Local,
-    };
-  }
-}
-
 async function validateWithAPI(
-  ppomController: PPOMController,
   chainId: string,
   request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
@@ -212,7 +178,10 @@ async function validateWithAPI(
     };
   } catch (e) {
     Logger.log(`Error validating request with security alerts API: ${e}`);
-    return await validateWithController(ppomController, request);
+    return {
+      ...SECURITY_ALERT_RESPONSE_FAILED,
+      source: SecurityAlertSource.API,
+    };
   }
 }
 

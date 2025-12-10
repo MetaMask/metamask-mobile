@@ -14,7 +14,6 @@ import {
 import { store } from '../../store';
 import Device from '../../util/device';
 import Logger from '../../util/Logger';
-import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { addTransaction } from '../../util/transaction-controller';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import { Minimizer } from '../NativeModules';
@@ -30,17 +29,17 @@ import {
   hideWCLoadingState,
   isSwitchingChainRequest,
   getRequestOrigin,
-  onRequestUserApproval,
   hasPermissionsToSwitchChainRequest,
   getNetworkClientIdForCaipChainId,
   getChainIdForCaipChainId,
   getHostname,
 } from './wc-utils';
-import { isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
-import { rpcErrors } from '@metamask/rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
+import AppConstants from '../AppConstants';
+import Engine from '../Engine';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -184,15 +183,11 @@ class WalletConnect2Session {
   }
 
   public getCurrentChainId() {
-    const providerConfigChainId = selectEvmChainId(store.getState());
-    if (isPerDappSelectedNetworkEnabled()) {
-      const perOriginChainId = selectPerOriginChainId(
-        store.getState(),
-        this.channelId,
-      );
-      return perOriginChainId;
-    }
-    return providerConfigChainId;
+    const perOriginChainId = selectPerOriginChainId(
+      store.getState(),
+      this.channelId,
+    );
+    return perOriginChainId;
   }
 
   /** Check for pending unresolved requests */
@@ -542,15 +537,61 @@ class WalletConnect2Session {
         `WC::checkWCPermissions switching to network:`,
         existingNetwork,
       );
+      const [networkClientId, networkConfiguration] = existingNetwork;
+
+      const hooks = getRpcMethodMiddlewareHooks({
+        origin: this.channelId,
+        url: { current: origin },
+        title: { current: this.session.peer.metadata.name },
+        icon: {
+          current: this.session.peer.metadata.icons?.[0] as ImageSourcePropType,
+        },
+        analytics: {},
+        channelId: this.channelId,
+        getSource: () => AppConstants.REQUEST_SOURCES.WC,
+      });
+
+      const originalRequestPermittedChainsPermissionIncrementalForOrigin =
+        hooks.requestPermittedChainsPermissionIncrementalForOrigin;
+      hooks.requestPermittedChainsPermissionIncrementalForOrigin = (
+        ...args
+      ) => {
+        // Clear any pending approvals before prompting the user to permit a new chain.
+        // Unsure why this is needed, but it was previously found here before this code was refactored.
+        // https://github.com/MetaMask/metamask-mobile/blob/081e412f6680e03ad509194acd620c67a273a92b/app/core/WalletConnect/wc-utils.ts#L242
+        Engine.context.ApprovalController.clear(
+          providerErrors.userRejectedRequest(),
+        );
+        return originalRequestPermittedChainsPermissionIncrementalForOrigin(
+          ...args,
+        );
+      };
+
+      const rpcUrl =
+        networkConfiguration.rpcEndpoints[
+          networkConfiguration.defaultRpcEndpointIndex
+        ].url;
+
       // Switching to the network is allowed so try switching into it
       await switchToNetwork({
-        network: existingNetwork,
+        networkClientId,
+        nativeCurrency: networkConfiguration.nativeCurrency,
         chainId: hexChainIdString,
-        requestUserApproval: onRequestUserApproval(channelId),
+        rpcUrl,
         analytics: {},
         origin: this.channelId,
-        dappUrl: origin,
-        hooks: getRpcMethodMiddlewareHooks(channelId),
+        hooks: getRpcMethodMiddlewareHooks({
+          origin: this.channelId,
+          url: { current: origin },
+          title: { current: this.session.peer.metadata.name },
+          icon: {
+            current: this.session.peer.metadata
+              .icons?.[0] as ImageSourcePropType,
+          },
+          analytics: {},
+          channelId: this.channelId,
+          getSource: () => AppConstants.REQUEST_SOURCES.WC,
+        }),
       });
     }
   };
@@ -713,9 +754,7 @@ class WalletConnect2Session {
     origin: string,
   ) {
     try {
-      const networkClientId = isPerDappSelectedNetworkEnabled()
-        ? getNetworkClientIdForCaipChainId(caip2ChainId)
-        : getGlobalNetworkClientId();
+      const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,

@@ -17,9 +17,14 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { OrderType } from '../../controllers/types';
-import { formatPercentage, formatPrice } from '../../utils/formatUtils';
+import {
+  formatPercentage,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import { createStyles } from './PerpsOrderHeader.styles';
 import { strings } from '../../../../../../locales/i18n';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -71,9 +76,9 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     }
 
     try {
-      return formatPrice(price);
+      return formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
     } catch {
-      // Fallback if formatPrice throws
+      // Fallback if formatPerpsFiat throws
       return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
   }, [price]);
@@ -108,7 +113,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
               direction === 'long'
                 ? strings('perps.market.long')
                 : strings('perps.market.short')
-            } ${asset}`}
+            } ${getPerpsDisplaySymbol(asset)}`}
         </Text>
         <View style={styles.priceRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>

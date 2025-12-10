@@ -27,8 +27,13 @@ import type {
 } from './types';
 import {
   getAddressAccountType,
+  isHardwareAccount,
   isValidHexAddress,
 } from '../../../../util/address';
+import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { store } from '../../../../store';
+import { BigNumber } from 'bignumber.js';
 
 const BATCHED_MESSAGE_TYPE = {
   WALLET_SEND_CALLS: 'wallet_sendCalls',
@@ -37,7 +42,20 @@ const BATCHED_MESSAGE_TYPE = {
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
+  transactionMeta?: TransactionMeta,
 ) {
+  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    return 'predict_deposit';
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    return 'predict_withdraw';
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
+    return 'predict_claim';
+  }
+
   switch (transactionType) {
     case TransactionType.bridgeApproval:
       return 'bridge_approval';
@@ -51,6 +69,8 @@ export function getTransactionTypeValue(
       return 'perps_deposit';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
+    case TransactionType.relayDeposit:
+      return 'relay_deposit';
     case TransactionType.simpleSend:
       return 'simple_send';
     case TransactionType.stakingClaim:
@@ -140,9 +160,8 @@ async function getBatchProperties(transactionMeta: TransactionMeta) {
     properties.batch_transaction_count = nestedTransactions?.length;
     properties.batch_transaction_method = 'eip7702';
 
-    properties.transaction_contract_method = await getNestedMethodNames(
-      transactionMeta,
-    );
+    properties.transaction_contract_method =
+      await getNestedMethodNames(transactionMeta);
 
     properties.transaction_contract_address = nestedTransactions
       ?.filter(
@@ -176,12 +195,20 @@ export async function generateDefaultTransactionMetrics(
   const { from } = txParams || {};
 
   let accountType = 'unknown';
+  let accountHardwareType: string | null = null;
 
   // Fails if wallet locked
   try {
-    accountType = isValidHexAddress(from)
-      ? getAddressAccountType(from)
-      : accountType;
+    if (isValidHexAddress(from)) {
+      // Get account type based on the keyring associated with
+      // this address.
+      accountType = getAddressAccountType(from);
+
+      // Also populate this one for HW accounts.
+      if (isHardwareAccount(from)) {
+        accountHardwareType = accountType;
+      }
+    }
   } catch {
     // Intentionally empty
   }
@@ -196,17 +223,17 @@ export async function generateDefaultTransactionMetrics(
         ...batchProperties,
         ...gasFeeProperties,
         account_type: accountType,
+        account_hardware_type: accountHardwareType,
         chain_id: chainId,
         dapp_host_name: origin ?? 'N/A',
         error: error?.message,
         status,
         source: 'MetaMask Mobile',
-        transaction_contract_method: await getTransactionContractMethod(
-          transactionMeta,
-        ),
+        transaction_contract_method:
+          await getTransactionContractMethod(transactionMeta),
         transaction_envelope_type: transactionMeta.txParams.type,
         transaction_internal_id: id,
-        transaction_type: getTransactionTypeValue(type),
+        transaction_type: getTransactionTypeValue(type, transactionMeta),
       },
     },
     getConfirmationMetricProperties(
@@ -245,11 +272,17 @@ export function generateRPCProperties(chainId: string) {
 
 function getGasMetricProperties(transactionMeta: TransactionMeta) {
   const {
+    chainId,
+    dappSuggestedGasFees,
     gasFeeEstimatesLoaded,
     gasFeeEstimates,
-    dappSuggestedGasFees,
+    gasFeeTokens,
+    selectedGasFeeToken,
+    txParams,
     userFeeLevel,
   } = transactionMeta;
+
+  const { from } = txParams ?? {};
   const { type: gasFeeEstimateType } = gasFeeEstimates ?? {};
 
   // Advanced is always presented
@@ -276,10 +309,30 @@ function getGasMetricProperties(transactionMeta: TransactionMeta) {
     }
   }
 
+  const gas_payment_tokens_available = gasFeeTokens?.map(
+    (token) => token.symbol,
+  );
+
+  let gas_paid_with = gasFeeTokens?.find(
+    (token) =>
+      token.tokenAddress.toLowerCase() === selectedGasFeeToken?.toLowerCase(),
+  )?.symbol;
+
+  if (selectedGasFeeToken?.toLowerCase() === getNativeTokenAddress(chainId)) {
+    gas_paid_with = 'pre-funded_ETH';
+  }
+
+  const gas_insufficient_native_asset = getNativeBalance(chainId, from).lt(
+    getMaxGasCost(transactionMeta),
+  );
+
   return {
     gas_estimation_failed: !gasFeeEstimatesLoaded,
     gas_fee_presented: presentedGasFeeOptions,
     gas_fee_selected: userFeeLevel,
+    gas_insufficient_native_asset,
+    gas_paid_with,
+    gas_payment_tokens_available,
   };
 }
 
@@ -289,4 +342,23 @@ async function getTransactionContractMethod(transactionMeta: TransactionMeta) {
     transactionMeta.networkClientId,
   );
   return methodData?.name ? [methodData.name] : [];
+}
+
+function getMaxGasCost(transactionMeta: TransactionMeta): BigNumber {
+  const { gas, gasPrice, maxFeePerGas } = transactionMeta.txParams ?? {};
+
+  return new BigNumber(gas ?? '0x0').multipliedBy(
+    maxFeePerGas ?? gasPrice ?? '0x0',
+  );
+}
+
+function getNativeBalance(chainId: string, address: string): BigNumber {
+  const state = store.getState();
+
+  const accountsByChainId =
+    state.engine?.backgroundState?.AccountTrackerController?.accountsByChainId;
+
+  const account = accountsByChainId?.[chainId]?.[address.toLowerCase()];
+
+  return new BigNumber((account?.balance as Hex) ?? '0x0');
 }

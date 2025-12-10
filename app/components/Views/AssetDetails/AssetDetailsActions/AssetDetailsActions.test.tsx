@@ -15,11 +15,19 @@ import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
+const mockAddListener = jest.fn(() => jest.fn()); // Returns unsubscribe function
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
+    useNavigation: jest.fn(() => ({
+      navigate: mockNavigate,
+      addListener: mockAddListener,
+    })),
+    useFocusEffect: jest.fn((callback) => {
+      // Call the callback immediately to simulate focus
+      callback();
+    }),
   };
 });
 
@@ -42,6 +50,20 @@ jest.mock('../../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => () => [
 jest.mock('../../../UI/Ramp/Deposit/hooks/useDepositEnabled', () => ({
   __esModule: true,
   default: () => ({ isDepositEnabled: true }),
+}));
+
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 describe('AssetDetailsActions', () => {
@@ -74,6 +96,9 @@ describe('AssetDetailsActions', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockAddListener.mockClear();
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
     jest.mocked(selectIsSwapsEnabled).mockReset();
   });
 
@@ -132,6 +157,28 @@ describe('AssetDetailsActions', () => {
         asset: undefined,
       },
     });
+  });
+
+  it('tracks action button click when buy button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: createStateWithSigningCapability() },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+
+    const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      action_name: 'buy',
+      action_position: 0, // ActionPosition.BUY = 0
+      button_label: strings('asset_overview.buy_button'),
+      location: 'home',
+    });
+    expect(mockEventBuilder.build).toHaveBeenCalled();
   });
 
   it('calls goToSwaps when the swap button is pressed', () => {

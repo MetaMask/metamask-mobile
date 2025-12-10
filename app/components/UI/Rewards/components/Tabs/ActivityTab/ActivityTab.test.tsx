@@ -253,10 +253,10 @@ describe('ActivityTab', () => {
       startDate: Date.now(),
       endDate: Date.now() + 1000,
       tiers: [],
+      activityTypes: [],
     },
     balance: {
       total: 0,
-      refereePortion: 0,
       updatedAt: Date.now(),
     },
     tier: {

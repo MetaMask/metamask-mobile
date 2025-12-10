@@ -1,4 +1,5 @@
 # List things here that *are - 'used, that depcheck is wrong about'
+
 ignores:
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
@@ -22,6 +23,8 @@ ignores:
   - 'reflect-metadata'
   # Husky is used for pre-commit hooks
   - 'husky'
+  # Auto changelog tooling used in release scripts
+  - '@metamask/auto-changelog'
   # Remove this once it's used in the project
   - 'rive-react-native'
   # Appwright will be used in a follow up PR. We will remove once PR is ready
@@ -32,6 +35,8 @@ ignores:
   # ESBuild is used for AI E2E script compilation
   - 'esbuild'
   - 'esbuild-register'
+  # xml2js is used in .github/scripts/ for E2E test report processing
+  - 'xml2js'
 
   # Used in scripts/repack for CI optimization
   - '@expo/repack-app'
@@ -41,19 +46,11 @@ ignores:
   ## Unused dependencies to investigate
   - '@babel/preset-env'
   - '@babel/runtime'
-  - '@cucumber/message-streams'
-  - '@cucumber/messages'
   - '@metamask/mobile-provider'
-  - '@rpii/wdio-html-reporter'
   - '@testing-library/react'
   - '@testing-library/react-hooks'
   - '@types/jest'
   - '@types/react-native-video'
-  - '@wdio/appium-service'
-  - '@wdio/browserstack-service'
-  - '@wdio/junit-reporter'
-  - '@wdio/local-runner'
-  - '@wdio/spec-reporter'
   - 'appium'
   - 'assert'
   - 'babel-core'
@@ -65,9 +62,9 @@ ignores:
   - 'execa'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
-  - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
+  - 'prettier-2'
 
   ## Unused devDependencies to investigate
   - '@metamask/swappable-obj-proxy'

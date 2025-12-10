@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SamplePetNames matches rendered snapshot 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "marginTop": 16,
+    }
+  }
+>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "alignSelf": "center",
+          "flex": 1,
+          "flexDirection": "row",
+        },
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 4,
+          "borderWidth": 1,
+          "padding": 16,
+          "width": "100%",
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Pet names on this network
+      </Text>
+      <View
+        testID="mocked-sample-pet-names-list"
+      />
+      <View
+        testID="mocked-sample-pet-names-form"
+      />
+    </TouchableOpacity>
+  </View>
+</RCTSafeAreaView>
+`;

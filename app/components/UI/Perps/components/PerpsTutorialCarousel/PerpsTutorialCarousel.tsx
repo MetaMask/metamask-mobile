@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image, TouchableOpacity, View, useColorScheme } from 'react-native';
+import {
+  Image,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+  ScrollView,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -26,11 +32,7 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 
-import {
-  usePerpsFirstTimeUser,
-  usePerpsTrading,
-  usePerpsNetworkManagement,
-} from '../../hooks';
+import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import createStyles from './PerpsTutorialCarousel.styles';
@@ -42,10 +44,8 @@ const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 import Character from '../../../../../images/character_3x.png';
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
-import { createFontScaleHandler } from '../../utils/textUtils';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
@@ -79,8 +79,8 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
           // eslint-disable-next-line react-native/no-inline-styles
           style={{
             width: '100%',
-            minHeight: 400,
-            flex: 1,
+            height: 350,
+            marginTop: 'auto',
           }}
           resizeMode="contain"
           testID={PerpsTutorialSelectorsIDs.CHARACTER_IMAGE}
@@ -132,17 +132,9 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
 const PerpsTutorialCarousel: React.FC = () => {
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
-  const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
 
-  // Font scaling state
-  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
-  const [descriptionFontSize, setDescriptionFontSize] = useState<number | null>(
-    null,
-  );
-  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
   const scrollableTabViewRef = useRef<
     typeof ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
@@ -152,7 +144,6 @@ const PerpsTutorialCarousel: React.FC = () => {
   const continueDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const previousTabRef = useRef(0);
   const isProgrammaticNavigationRef = useRef(false);
-  const { navigateToConfirmation } = useConfirmNavigation();
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -168,41 +159,10 @@ const PerpsTutorialCarousel: React.FC = () => {
     [currentTab, tutorialScreens.length],
   );
 
-  const shouldShowSkipButton = useMemo(
-    () => !isLastScreen || isEligible,
-    [isLastScreen, isEligible],
-  );
+  const shouldShowSkipButton = useMemo(() => !isLastScreen, [isLastScreen]);
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
-    titleFontSize,
-    descriptionFontSize,
-    subtitleFontSize,
-  });
-
-  // Create font scale handlers with height constraints for 160px headerSection
-  const handleTitleLayout = createFontScaleHandler({
-    maxHeight: 60,
-    currentFontSize: styles.title.fontSize || 24,
-    setter: setTitleFontSize,
-    minFontSize: 20,
-    currentValue: titleFontSize,
-  });
-
-  const handleDescriptionLayout = createFontScaleHandler({
-    maxHeight: 50,
-    currentFontSize: styles.description.fontSize || 16,
-    setter: setDescriptionFontSize,
-    minFontSize: 16,
-    currentValue: descriptionFontSize,
-  });
-
-  const handleSubtitleLayout = createFontScaleHandler({
-    maxHeight: 40,
-    currentFontSize: styles.subtitle.fontSize || 16,
-    setter: setSubtitleFontSize,
-    minFontSize: 16,
-    currentValue: subtitleFontSize,
   });
 
   const PerpsOnboardingAnimation = useMemo(
@@ -295,7 +255,7 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const navigateToMarketsList = useCallback(() => {
     NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKETS,
+      screen: Routes.PERPS.PERPS_HOME,
     });
   }, []);
 
@@ -325,26 +285,7 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Mark tutorial as completed
       markTutorialCompleted();
-
-      // We need to enable Arbitrum for deposits to work
-      // Arbitrum One is already added for all users as a default network
-      // For devs on testnet, Arbitrum Sepolia will be added/enabled
-      await ensureArbitrumNetworkExists();
-
-      if (isEligible) {
-        // Navigate immediately to confirmations screen for instant UI response
-        // Note: When from deeplink, user will go through deposit flow
-        // and should return to markets after completion
-        navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-
-        // Initialize deposit in the background without blocking
-        depositWithConfirmation().catch((error) => {
-          console.error('Failed to initialize deposit:', error);
-        });
-
-        return;
-      }
-
+      // Navigate all users to perps home screen for a more natural experience
       navigateToMarketsList();
     } else {
       // Go to next screen using the ref
@@ -387,10 +328,6 @@ const PerpsTutorialCarousel: React.FC = () => {
     currentTab,
     tutorialScreens,
     markTutorialCompleted,
-    isEligible,
-    navigateToConfirmation,
-    depositWithConfirmation,
-    ensureArbitrumNetworkExists,
     navigateToMarketsList,
   ]);
 
@@ -423,20 +360,12 @@ const PerpsTutorialCarousel: React.FC = () => {
   const renderTabBar = () => <View />;
 
   const buttonLabel = useMemo(() => {
-    if (!isEligible && isLastScreen) {
-      return strings('perps.tutorial.got_it');
-    }
-
     if (isLastScreen) {
-      return strings('perps.tutorial.add_funds');
+      return strings('perps.tutorial.lets_go');
     }
 
     return strings('perps.tutorial.continue');
-  }, [isEligible, isLastScreen]);
-
-  const skipLabel = isLastScreen
-    ? strings('perps.tutorial.got_it')
-    : strings('perps.tutorial.skip');
+  }, [isLastScreen]);
 
   return (
     <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
@@ -462,65 +391,71 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <View key={screen.id}>
-              <View style={styles.screenContainer}>
-                {/* Header Section - Fixed height for text content */}
-                <View style={styles.headerSection}>
-                  <Text
-                    variant={TextVariant.HeadingLG}
-                    color={TextColor.Default}
-                    style={styles.title}
-                    onLayout={handleTitleLayout}
-                  >
-                    {screen.title}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.description}
-                    onLayout={handleDescriptionLayout}
-                  >
-                    {screen.description}
-                  </Text>
-                  {screen.subtitle && (
+            <View key={screen.id} style={styles.fullScreenContainer}>
+              <ScrollView
+                style={styles.scrollableContent}
+                contentContainerStyle={styles.scrollContentContainer}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.screenContainer}>
+                  {/* Header Section - Now flexible height */}
+                  <View>
+                    <Text
+                      variant={TextVariant.HeadingLG}
+                      color={TextColor.Default}
+                      style={styles.title}
+                    >
+                      {screen.title}
+                    </Text>
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
-                      style={styles.subtitle}
-                      onLayout={handleSubtitleLayout}
+                      style={styles.description}
                     >
-                      {screen.subtitle}
+                      {screen.description}
                     </Text>
-                  )}
-                </View>
+                    {screen.subtitle && (
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                        style={styles.subtitle}
+                      >
+                        {screen.subtitle}
+                      </Text>
+                    )}
+                  </View>
 
-                {/* Content Section */}
-                <View style={styles.contentSection}>
-                  {screen?.content && screen.content}
+                  {/* Content Section */}
+                  {screen?.content && (
+                    <View style={styles.contentSection}>{screen.content}</View>
+                  )}
+
                   {screen?.riveArtboardName && (
-                    <Rive
-                      key={screen.id}
-                      style={styles.animation}
-                      artboardName={screen.riveArtboardName}
-                      source={PerpsOnboardingAnimation}
-                      fit={Fit.FitWidth}
-                      alignment={Alignment.Center}
-                      autoplay
-                    />
+                    <View style={styles.animationContainer}>
+                      <Rive
+                        key={screen.id}
+                        style={styles.animation}
+                        artboardName={screen.riveArtboardName}
+                        source={PerpsOnboardingAnimation}
+                        fit={Fit.FitWidth}
+                        alignment={Alignment.Center}
+                        autoplay
+                      />
+                    </View>
                   )}
                 </View>
-              </View>
-              <View style={styles.footerTextContainer}>
                 {screen.footerText && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles.footerText}
-                  >
-                    {screen.footerText}
-                  </Text>
+                  <View style={styles.footerTextContainer}>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                      style={styles.footerText}
+                    >
+                      {screen.footerText}
+                    </Text>
+                  </View>
                 )}
-              </View>
+              </ScrollView>
             </View>
           ))}
         </ScrollableTabView>
@@ -547,7 +482,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Alternative}
               >
-                {skipLabel}
+                {strings('perps.tutorial.skip')}
               </Text>
             </TouchableOpacity>
           </View>

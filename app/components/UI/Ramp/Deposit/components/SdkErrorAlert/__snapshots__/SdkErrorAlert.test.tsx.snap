@@ -1,0 +1,542 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SdkErrorAlert disables retry button when isRetrying is true 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      There was an issue fetching the regions.
+    </Text>
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      isDisabled={true}
+      loading={true}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "backgroundColor": "transparent",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Try again
+      </Text>
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`SdkErrorAlert does not render retry button when onRetry is not provided 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      There was an issue fetching the regions.
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`SdkErrorAlert renders payment methods error message 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      There was an issue fetching the payment methods.
+    </Text>
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      isDisabled={false}
+      loading={false}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "backgroundColor": "transparent",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Try again
+      </Text>
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`SdkErrorAlert renders regions error message 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      There was an issue fetching the regions.
+    </Text>
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      isDisabled={false}
+      loading={false}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "backgroundColor": "transparent",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Try again
+      </Text>
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`SdkErrorAlert renders tokens error message 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      There was an issue fetching the tokens.
+    </Text>
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      isDisabled={false}
+      loading={false}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "backgroundColor": "transparent",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Try again
+      </Text>
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`SdkErrorAlert renders user details error message 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={24}
+      name="Danger"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      There was an issue fetching the user details.
+    </Text>
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      isDisabled={false}
+      loading={false}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "backgroundColor": "transparent",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Try again
+      </Text>
+    </Text>
+  </View>
+</View>
+`;

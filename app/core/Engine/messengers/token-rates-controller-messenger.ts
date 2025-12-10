@@ -1,58 +1,33 @@
-import { Messenger } from '@metamask/base-controller';
-import type {
-  AccountsControllerGetAccountAction,
-  AccountsControllerGetSelectedAccountAction,
-  AccountsControllerSelectedEvmAccountChangeEvent,
-} from '@metamask/accounts-controller';
-import type {
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerGetStateAction,
-  NetworkControllerStateChangeEvent,
-} from '@metamask/network-controller';
-import type {
-  TokensControllerGetStateAction,
-  TokensControllerStateChangeEvent,
-} from '@metamask/assets-controllers';
-
-type AllowedActions =
-  | TokensControllerGetStateAction
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerGetStateAction
-  | AccountsControllerGetAccountAction
-  | AccountsControllerGetSelectedAccountAction;
-
-type AllowedEvents =
-  | TokensControllerStateChangeEvent
-  | NetworkControllerStateChangeEvent
-  | AccountsControllerSelectedEvmAccountChangeEvent;
-
-export type TokenRatesControllerMessenger = ReturnType<
-  typeof getTokenRatesControllerMessenger
->;
-
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import type { TokenRatesControllerMessenger } from '@metamask/assets-controllers';
+import { RootMessenger } from '../types';
 /**
- * Get a messenger restricted to the actions and events that the
- * token detection controller is allowed to handle.
+ * Get the messenger for the token rates controller. This is scoped to the
+ * actions and events that the token rates controller is allowed to handle.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The TokenRatesControllerMessenger.
  */
 export function getTokenRatesControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'TokenRatesController',
-    allowedActions: [
-      'TokensController:getState',
-      'NetworkController:getNetworkClientById',
-      'NetworkController:getState',
-      'AccountsController:getAccount',
-      'AccountsController:getSelectedAccount',
-    ],
-    allowedEvents: [
-      'TokensController:stateChange',
-      'NetworkController:stateChange',
-      'AccountsController:selectedEvmAccountChange',
-    ],
+  rootMessenger: RootMessenger,
+): TokenRatesControllerMessenger {
+  const messenger = new Messenger<
+    'TokenRatesController',
+    MessengerActions<TokenRatesControllerMessenger>,
+    MessengerEvents<TokenRatesControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'TokenRatesController',
+    parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: ['TokensController:getState', 'NetworkController:getState'],
+    events: ['TokensController:stateChange', 'NetworkController:stateChange'],
+    messenger,
+  });
+  return messenger;
 }

@@ -39,14 +39,16 @@ const NetworkConnectMultiSelector = ({
   defaultSelectedChainIds,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>([]);
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
+    defaultSelectedChainIds,
+  );
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
 
   useEffect(() => {
     setSelectedChainIds(defaultSelectedChainIds);
-  }, [setSelectedChainIds, defaultSelectedChainIds]);
+  }, [defaultSelectedChainIds]);
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
     onSubmit(selectedChainIds);
