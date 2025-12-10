@@ -829,7 +829,7 @@ const Onboarding = () => {
 
   useEffect(() => {
     // When a new user has onboarded and the PNA25 feature flag is on,
-    // set the PNA25 acknowledgement as true to prevent the notice from showing
+    // set the PNA25 acknowledgement as true to prevent the toast from showing
     if (isPna25FlagEnabled) {
       storePna25Acknowledged();
     }
