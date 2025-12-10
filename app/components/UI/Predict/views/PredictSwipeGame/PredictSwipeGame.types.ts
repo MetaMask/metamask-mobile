@@ -151,6 +151,8 @@ export interface SwipeCardProps {
   betAmount: number;
   isActive: boolean;
   onOutcomeChange?: (outcomeId: string) => void;
+  /** Optional overlay to render on top of the card (for swipe feedback) */
+  overlay?: React.ReactNode;
 }
 
 /**

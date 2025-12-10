@@ -49,6 +49,9 @@ import {
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// Pastel orange background for the game
+const PASTEL_ORANGE_BG = '#FFF5EB';
+
 /**
  * PredictSwipeGame - Tinder-style betting game for prediction markets
  *
@@ -186,34 +189,59 @@ const PredictSwipeGame: React.FC = () => {
       ? ((1 / currentCard.primaryOutcome.noToken.price) * betAmount).toFixed(2)
       : '0.00';
 
-  // Animated overlay styles based on swipe direction
+  // Animated overlay styles based on swipe direction (mutually exclusive)
   const yesOverlayStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      translateX.value,
-      [0, DEFAULT_GESTURE_CONFIG.horizontalThreshold],
-      [0, 0.85],
-      Extrapolate.CLAMP,
-    );
+    const absX = Math.abs(translateX.value);
+    const absY = Math.abs(translateY.value);
+    // Only show if horizontal is dominant
+    const isHorizontalDominant = absX > absY;
+    const isSwipingRight = translateX.value > 0;
+
+    const opacity =
+      isHorizontalDominant && isSwipingRight
+        ? interpolate(
+            translateX.value,
+            [0, DEFAULT_GESTURE_CONFIG.horizontalThreshold],
+            [0, 0.85],
+            Extrapolate.CLAMP,
+          )
+        : 0;
     return { opacity };
   });
 
   const noOverlayStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      translateX.value,
-      [-DEFAULT_GESTURE_CONFIG.horizontalThreshold, 0],
-      [0.85, 0],
-      Extrapolate.CLAMP,
-    );
+    const absX = Math.abs(translateX.value);
+    const absY = Math.abs(translateY.value);
+    // Only show if horizontal is dominant
+    const isHorizontalDominant = absX > absY;
+    const isSwipingLeft = translateX.value < 0;
+
+    const opacity =
+      isHorizontalDominant && isSwipingLeft
+        ? interpolate(
+            -translateX.value,
+            [0, DEFAULT_GESTURE_CONFIG.horizontalThreshold],
+            [0, 0.85],
+            Extrapolate.CLAMP,
+          )
+        : 0;
     return { opacity };
   });
 
   const skipOverlayStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      Math.abs(translateY.value),
-      [0, DEFAULT_GESTURE_CONFIG.verticalThreshold],
-      [0, 0.7],
-      Extrapolate.CLAMP,
-    );
+    const absX = Math.abs(translateX.value);
+    const absY = Math.abs(translateY.value);
+    // Only show if vertical is dominant
+    const isVerticalDominant = absY > absX;
+
+    const opacity = isVerticalDominant
+      ? interpolate(
+          absY,
+          [0, DEFAULT_GESTURE_CONFIG.verticalThreshold],
+          [0, 0.7],
+          Extrapolate.CLAMP,
+        )
+      : 0;
     return { opacity };
   });
 
@@ -221,10 +249,7 @@ const PredictSwipeGame: React.FC = () => {
   if (isLoading) {
     return (
       <SafeAreaView
-        style={[
-          styles.container,
-          { backgroundColor: colors.background.default },
-        ]}
+        style={[styles.container, { backgroundColor: PASTEL_ORANGE_BG }]}
       >
         <Box twClassName="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={colors.primary.default} />
@@ -240,10 +265,7 @@ const PredictSwipeGame: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView
-        style={[
-          styles.container,
-          { backgroundColor: colors.background.default },
-        ]}
+        style={[styles.container, { backgroundColor: PASTEL_ORANGE_BG }]}
       >
         <Box twClassName="flex-1 items-center justify-center p-6">
           <Icon
@@ -269,10 +291,7 @@ const PredictSwipeGame: React.FC = () => {
   if (!hasMoreCards) {
     return (
       <SafeAreaView
-        style={[
-          styles.container,
-          { backgroundColor: colors.background.default },
-        ]}
+        style={[styles.container, { backgroundColor: PASTEL_ORANGE_BG }]}
       >
         <Box twClassName="flex-1 items-center justify-center p-6">
           <Text style={{ fontSize: 64 }}>🎉</Text>
@@ -341,10 +360,7 @@ const PredictSwipeGame: React.FC = () => {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaView
-        style={[
-          styles.container,
-          { backgroundColor: colors.background.default },
-        ]}
+        style={[styles.container, { backgroundColor: PASTEL_ORANGE_BG }]}
         testID={SWIPE_GAME_TEST_IDS.CONTAINER}
         edges={['top']}
       >
@@ -490,86 +506,88 @@ const PredictSwipeGame: React.FC = () => {
                     preview={currentPreview}
                     betAmount={betAmount}
                     isActive
+                    overlay={
+                      <>
+                        {/* YES Overlay (swiping right) */}
+                        <Animated.View
+                          style={[
+                            styles.swipeOverlay,
+                            styles.yesOverlayBg,
+                            yesOverlayStyle,
+                          ]}
+                        >
+                          <Text
+                            variant={TextVariant.HeadingLg}
+                            style={styles.overlayText}
+                          >
+                            YES
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodyLg}
+                            style={styles.overlayText}
+                          >
+                            Bet ${betAmount} → Win ${yesPotentialWin}
+                          </Text>
+                        </Animated.View>
+
+                        {/* NO Overlay (swiping left) */}
+                        <Animated.View
+                          style={[
+                            styles.swipeOverlay,
+                            styles.noOverlayBg,
+                            noOverlayStyle,
+                          ]}
+                        >
+                          <Text
+                            variant={TextVariant.HeadingLg}
+                            style={styles.overlayText}
+                          >
+                            NO
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodyLg}
+                            style={styles.overlayText}
+                          >
+                            Bet ${betAmount} → Win ${noPotentialWin}
+                          </Text>
+                        </Animated.View>
+
+                        {/* SKIP Overlay (swiping up/down) */}
+                        <Animated.View
+                          style={[
+                            styles.swipeOverlay,
+                            styles.skipOverlayBg,
+                            skipOverlayStyle,
+                          ]}
+                        >
+                          <Text
+                            variant={TextVariant.HeadingLg}
+                            style={styles.overlayText}
+                          >
+                            SKIP
+                          </Text>
+                        </Animated.View>
+
+                        {/* Order pending overlay */}
+                        {isPendingOrder && (
+                          <View
+                            style={[styles.swipeOverlay, styles.pendingOverlay]}
+                          >
+                            <ActivityIndicator
+                              size="large"
+                              color={colors.primary.default}
+                            />
+                            <Text
+                              variant={TextVariant.BodyMd}
+                              twClassName="mt-3"
+                            >
+                              Placing bet...
+                            </Text>
+                          </View>
+                        )}
+                      </>
+                    }
                   />
-
-                  {/* ===== SWIPE OVERLAYS ===== */}
-                  {/* YES Overlay (swiping right) */}
-                  <Animated.View style={[styles.swipeOverlay, yesOverlayStyle]}>
-                    <Box
-                      twClassName="flex-1 items-center justify-center rounded-3xl"
-                      style={{ backgroundColor: 'rgba(40, 167, 69, 0.9)' }}
-                    >
-                      <Text style={styles.overlayIcon}>✓</Text>
-                      <Text
-                        variant={TextVariant.HeadingLg}
-                        style={styles.overlayText}
-                      >
-                        YES
-                      </Text>
-                      <Text
-                        variant={TextVariant.BodyLg}
-                        style={styles.overlayText}
-                      >
-                        Bet ${betAmount} → Win ${yesPotentialWin}
-                      </Text>
-                    </Box>
-                  </Animated.View>
-
-                  {/* NO Overlay (swiping left) */}
-                  <Animated.View style={[styles.swipeOverlay, noOverlayStyle]}>
-                    <Box
-                      twClassName="flex-1 items-center justify-center rounded-3xl"
-                      style={{ backgroundColor: 'rgba(215, 58, 73, 0.9)' }}
-                    >
-                      <Text style={styles.overlayIcon}>✗</Text>
-                      <Text
-                        variant={TextVariant.HeadingLg}
-                        style={styles.overlayText}
-                      >
-                        NO
-                      </Text>
-                      <Text
-                        variant={TextVariant.BodyLg}
-                        style={styles.overlayText}
-                      >
-                        Bet ${betAmount} → Win ${noPotentialWin}
-                      </Text>
-                    </Box>
-                  </Animated.View>
-
-                  {/* SKIP Overlay (swiping up/down) */}
-                  <Animated.View
-                    style={[styles.swipeOverlay, skipOverlayStyle]}
-                  >
-                    <Box
-                      twClassName="flex-1 items-center justify-center rounded-3xl"
-                      style={{ backgroundColor: 'rgba(100, 100, 100, 0.85)' }}
-                    >
-                      <Text style={styles.overlayIcon}>↕</Text>
-                      <Text
-                        variant={TextVariant.HeadingLg}
-                        style={styles.overlayText}
-                      >
-                        SKIP
-                      </Text>
-                    </Box>
-                  </Animated.View>
-
-                  {/* Order pending overlay */}
-                  {isPendingOrder && (
-                    <Box
-                      twClassName="absolute inset-0 items-center justify-center rounded-3xl"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.8)' }}
-                    >
-                      <ActivityIndicator
-                        size="large"
-                        color={colors.primary.default}
-                      />
-                      <Text variant={TextVariant.BodyMd} twClassName="mt-3">
-                        Placing bet...
-                      </Text>
-                    </Box>
-                  )}
                 </Animated.View>
               </GestureDetector>
             )}
@@ -697,12 +715,21 @@ const styles = StyleSheet.create({
   swipeOverlay: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 24,
-    overflow: 'hidden',
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  overlayIcon: {
-    fontSize: 64,
-    color: 'white',
-    marginBottom: 8,
+  yesOverlayBg: {
+    backgroundColor: 'rgba(40, 167, 69, 0.92)',
+  },
+  noOverlayBg: {
+    backgroundColor: 'rgba(215, 58, 73, 0.92)',
+  },
+  skipOverlayBg: {
+    backgroundColor: 'rgba(100, 100, 100, 0.88)',
+  },
+  pendingOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   overlayText: {
     color: 'white',

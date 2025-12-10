@@ -44,6 +44,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   betAmount,
   isActive,
   onOutcomeChange,
+  overlay,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -115,9 +116,11 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
       key={card.marketId}
       style={[styles.cardContainer, levitateStyle]}
     >
-      <Box
-        twClassName="bg-default rounded-3xl overflow-hidden"
-        style={styles.cardShadow}
+      <View
+        style={[
+          styles.cardWrapper,
+          { backgroundColor: colors.background.default },
+        ]}
         testID={SWIPE_GAME_TEST_IDS.CARD}
       >
         {/* ===== IMAGE SECTION (55% of card) ===== */}
@@ -169,10 +172,10 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         </View>
 
         {/* ===== CONTENT SECTION ===== */}
-        <Box twClassName="p-4">
+        <Box twClassName="p-5">
           {/* Primary Outcome Label */}
           {card.isMultiOutcome && (
-            <Text variant={TextVariant.BodySm} twClassName="text-muted mb-3">
+            <Text variant={TextVariant.BodyMd} twClassName="text-muted mb-4">
               Betting on: {card.primaryOutcome.title}
             </Text>
           )}
@@ -180,62 +183,56 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           {/* ===== ODDS PILLS (Side by side) ===== */}
           <Box twClassName="flex-row gap-3">
             {/* NO Pill */}
-            <Box
-              twClassName="flex-1 rounded-2xl p-3 items-center"
-              style={{
-                backgroundColor: colors.error.muted,
-                borderWidth: 1,
-                borderColor: 'rgba(215, 58, 73, 0.2)',
-              }}
-            >
+            <View style={styles.oddsPillNo}>
               <Text
-                variant={TextVariant.HeadingMd}
+                variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Bold}
                 style={{ color: colors.error.default }}
               >
                 NO
               </Text>
-              <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Bold}>
+              <Text
+                variant={TextVariant.HeadingLg}
+                fontWeight={FontWeight.Bold}
+              >
                 {formatPercentage(noPrice)}
               </Text>
               <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-success-default mt-1"
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                style={{ color: colors.success.default }}
               >
                 +${(noPotentialReturn - betAmount).toFixed(2)}
               </Text>
-            </Box>
+            </View>
 
             {/* YES Pill */}
-            <Box
-              twClassName="flex-1 rounded-2xl p-3 items-center"
-              style={{
-                backgroundColor: colors.success.muted,
-                borderWidth: 1,
-                borderColor: 'rgba(40, 167, 69, 0.2)',
-              }}
-            >
+            <View style={styles.oddsPillYes}>
               <Text
-                variant={TextVariant.HeadingMd}
+                variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Bold}
                 style={{ color: colors.success.default }}
               >
                 YES
               </Text>
-              <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Bold}>
+              <Text
+                variant={TextVariant.HeadingLg}
+                fontWeight={FontWeight.Bold}
+              >
                 {formatPercentage(yesPrice)}
               </Text>
               <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-success-default mt-1"
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                style={{ color: colors.success.default }}
               >
                 +${(yesPotentialReturn - betAmount).toFixed(2)}
               </Text>
-            </Box>
+            </View>
           </Box>
 
           {/* ===== METADATA ===== */}
-          <Box twClassName="flex-row items-center justify-center gap-2 mt-3">
+          <Box twClassName="flex-row items-center justify-center gap-2 mt-4 pt-3" style={styles.metadataSection}>
             <Text variant={TextVariant.BodySm} twClassName="text-muted">
               Vol: $
               {card.totalVolume >= 1000000
@@ -259,13 +256,16 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           {/* Multi-outcome indicator */}
           {card.isMultiOutcome && card.alternativeOutcomes.length > 0 && (
             <Box twClassName="mt-3 items-center">
-              <Text variant={TextVariant.BodySm} twClassName="text-primary">
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium} twClassName="text-primary">
                 {card.alternativeOutcomes.length} more options available →
               </Text>
             </Box>
           )}
         </Box>
-      </Box>
+
+        {/* Overlay (swipe feedback) - rendered inside cardWrapper for perfect fit */}
+        {overlay}
+      </View>
     </Animated.View>
   );
 };
@@ -274,17 +274,20 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: CARD_WIDTH,
     maxWidth: 400,
-  },
-  cardShadow: {
-    shadowColor: '#000',
+    // MetaMask orange shadow for brand feel
+    shadowColor: '#F6851B',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  cardWrapper: {
+    borderRadius: 24,
+    overflow: 'hidden',
   },
   imageContainer: {
     width: '100%',
-    height: 200,
+    height: 220,
     position: 'relative',
   },
   image: {
@@ -296,7 +299,33 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 100,
+    height: 120,
+  },
+  oddsPillNo: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: 'rgba(215, 58, 73, 0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(215, 58, 73, 0.15)',
+  },
+  oddsPillYes: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: 'rgba(40, 167, 69, 0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(40, 167, 69, 0.15)',
+  },
+  metadataSection: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
   },
 });
 
