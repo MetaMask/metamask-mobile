@@ -2,7 +2,10 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import { createStore, Store } from 'redux';
-import useIsInsufficientBalance from './index';
+import useIsInsufficientBalance, {
+  formatEffectiveGasFee,
+  transformEffectiveToAtomic,
+} from './index';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'ethers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -550,6 +553,58 @@ describe('useIsInsufficientBalance', () => {
       );
 
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('transformEffectiveToAtomic', () => {
+    it('should transform effective gas fee to atomic gas fee', () => {
+      const effectiveGasFee = '0.000000000000000001';
+      const decimals = 18;
+      const atomicGasFee = transformEffectiveToAtomic(
+        effectiveGasFee,
+        decimals,
+      );
+      expect(atomicGasFee.toString()).toBe('1');
+    });
+
+    it('should transform effective gas fee to atomic gas fee with decimals', () => {
+      const effectiveGasFee = '0.000001426955931521';
+      const decimals = 6;
+      const atomicGasFee = transformEffectiveToAtomic(
+        effectiveGasFee,
+        decimals,
+      );
+      expect(atomicGasFee.toString()).toBe('1');
+    });
+  });
+
+  describe('formatEffectiveGasFee', () => {
+    it('should format effective gas fee to string', () => {
+      const effectiveGasFee = '0.000000000000000001';
+      const decimals = 18;
+      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      expect(formattedGasFee).toBe(effectiveGasFee);
+    });
+
+    it('should format effective gas fee to string for integer part > 0', () => {
+      const effectiveGasFee = '23.000000000000000001';
+      const decimals = 18;
+      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      expect(formattedGasFee).toBe(effectiveGasFee);
+    });
+
+    it('should format effective gas fee to string when token decimals is less than effective gas fee decimals', () => {
+      const effectiveGasFee = '0.000005426955931521';
+      const decimals = 6;
+      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      expect(formattedGasFee).toBe('0.000005');
+    });
+
+    it('should format effective gas fee to string when token decimals is more than effective gas fee decimals', () => {
+      const effectiveGasFee = '0.000005';
+      const decimals = 18;
+      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      expect(formattedGasFee).toBe('0.000005');
     });
   });
 });
