@@ -22,12 +22,18 @@ import { useStyles } from '../../hooks/useStyles';
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { strings } from '../../../../locales/i18n';
 
+enum SnapUIDateTimePickerType {
+  Date = 'date',
+  Time = 'time',
+  DateTime = 'datetime',
+}
+
 /**
  * The props for the SnapUIDateTimePicker component.
  */
 export interface SnapUIDateTimePickerProps {
   name: string;
-  type: 'date' | 'time' | 'datetime';
+  type: SnapUIDateTimePickerType;
   label?: string;
   error?: string;
   placeholder?: string;
@@ -45,17 +51,17 @@ export interface SnapUIDateTimePickerProps {
  */
 function formatDateForDisplay(
   date: Date | null,
-  type: 'date' | 'time' | 'datetime',
+  type: SnapUIDateTimePickerType,
 ) {
   if (!date) {
     return undefined;
   }
   switch (type) {
-    case 'date':
+    case SnapUIDateTimePickerType.Date:
       return DateTime.fromJSDate(date).toLocaleString(DateTime.DATE_SHORT);
-    case 'time':
+    case SnapUIDateTimePickerType.Time:
       return DateTime.fromJSDate(date).toLocaleString(DateTime.TIME_SIMPLE);
-    case 'datetime':
+    case SnapUIDateTimePickerType.DateTime:
       return DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_SHORT);
   }
 }
@@ -67,15 +73,15 @@ function formatDateForDisplay(
  * @param type - The type of the picker (date, time, datetime).
  * @returns The normalized date.
  */
-function normalizeDate(date: Date, type: 'date' | 'time' | 'datetime'): Date {
+function normalizeDate(date: Date, type: SnapUIDateTimePickerType): Date {
   switch (type) {
-    case 'date':
+    case SnapUIDateTimePickerType.Date:
       date.setHours(0, 0, 0, 0);
       break;
-    case 'time':
+    case SnapUIDateTimePickerType.Time:
       date.setSeconds(0, 0);
       break;
-    case 'datetime':
+    case SnapUIDateTimePickerType.DateTime:
       date.setSeconds(0, 0);
       break;
     default:
@@ -103,7 +109,7 @@ function normalizeDate(date: Date, type: 'date' | 'time' | 'datetime'): Date {
 export const SnapUIDateTimePicker: FunctionComponent<
   SnapUIDateTimePickerProps
 > = ({
-  type = 'datetime',
+  type = SnapUIDateTimePickerType.DateTime,
   label,
   placeholder,
   name,
@@ -132,8 +138,12 @@ export const SnapUIDateTimePicker: FunctionComponent<
   // Android mode state to handle the two-step process for datetime type.
   // First step is date selection, second step is time selection.
   // We have to manage this manually as there is no native datetime picker on Android.
-  const [androidMode, setAndroidMode] = useState<'date' | 'time' | undefined>(
-    type === 'datetime' ? 'date' : type,
+  const [androidMode, setAndroidMode] = useState<
+    SnapUIDateTimePickerType.Date | SnapUIDateTimePickerType.Time | undefined
+  >(
+    type === SnapUIDateTimePickerType.DateTime
+      ? SnapUIDateTimePickerType.Date
+      : type,
   );
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -155,7 +165,9 @@ export const SnapUIDateTimePicker: FunctionComponent<
     _event: DateTimePickerEvent,
     date: Date | undefined,
   ) => {
-    if (!date) return;
+    if (!date) {
+      return;
+    }
 
     setInternalValue(date);
   };
@@ -192,29 +204,39 @@ export const SnapUIDateTimePicker: FunctionComponent<
     event: DateTimePickerEvent,
     date: Date | undefined,
   ) => {
-    if (!date) return;
+    if (!date) {
+      return;
+    }
 
     // Handle the first of two-step process for datetime type. (date selection)
-    if (type === 'datetime' && androidMode === 'date' && event.type === 'set') {
+    if (
+      type === SnapUIDateTimePickerType.DateTime &&
+      androidMode === SnapUIDateTimePickerType.Date &&
+      event.type === 'set'
+    ) {
       setInternalValue(date);
-      setAndroidMode('time');
+      setAndroidMode(SnapUIDateTimePickerType.Time);
       return;
     }
 
     // Handle the second of two-step process for datetime type. (time selection)
-    if (type === 'datetime' && androidMode === 'time' && event.type === 'set') {
+    if (
+      type === SnapUIDateTimePickerType.DateTime &&
+      androidMode === SnapUIDateTimePickerType.Time &&
+      event.type === 'set'
+    ) {
       setInternalValue(date);
       submitInternalValue(date);
 
-      setAndroidMode('date');
+      setAndroidMode(SnapUIDateTimePickerType.Date);
       return;
     }
 
     // Handle dismissal for datetime type when selecting a date.
     if (
       event.type === 'dismissed' &&
-      type === 'datetime' &&
-      androidMode === 'date'
+      type === SnapUIDateTimePickerType.DateTime &&
+      androidMode === SnapUIDateTimePickerType.Date
     ) {
       setShowDatePicker(false);
       setInternalValue(value ?? new Date());
@@ -225,10 +247,10 @@ export const SnapUIDateTimePicker: FunctionComponent<
     // This resets the mode back to date for next opening.
     if (
       event.type === 'dismissed' &&
-      type === 'datetime' &&
-      androidMode === 'time'
+      type === SnapUIDateTimePickerType.DateTime &&
+      androidMode === SnapUIDateTimePickerType.Time
     ) {
-      setAndroidMode('date');
+      setAndroidMode(SnapUIDateTimePickerType.Date);
       return;
     }
     // Handle single step date or time selection.

@@ -3,6 +3,7 @@ import { Theme } from '../../../util/theme/models';
 import Device from '../../../util/device';
 
 /**
+ * Generates the style sheet for the SnapUIDateTimePicker component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
