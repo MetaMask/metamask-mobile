@@ -49,9 +49,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       tokenFilter: jest.fn(),
       getMusdOutputChainId: jest
         .fn()
-        .mockImplementation((chainId) =>
-          chainId || CHAIN_IDS.MAINNET,
-        ),
+        .mockImplementation((chainId) => chainId || CHAIN_IDS.MAINNET),
     });
   });
 
