@@ -47,7 +47,7 @@ class PerpsDepositScreen {
 
   async isAmountInputVisible() {
     const input = await this.amountInput;
-    await input.isVisible({ timeout: 15000 });
+    await expect(input).toBeVisible();
   }
 
   async selectPayTokenByText(token) {
