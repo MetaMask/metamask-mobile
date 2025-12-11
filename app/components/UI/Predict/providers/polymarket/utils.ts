@@ -426,7 +426,7 @@ const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   }
 
   if (isMoneylineMarket(market)) {
-    return market.groupItemTitle ?? market.question;
+    return market.groupItemTitle || market.question;
   }
   return market.groupItemTitle;
 };
