@@ -16,16 +16,8 @@ export const HEADERBASE_VARIANT_TEXT_VARIANTS: Record<
 };
 
 /**
- * Test IDs for HeaderBase component.
+ * Default test IDs for HeaderBase component.
  */
-export const HeaderBaseTestIds = {
-  CONTAINER: 'header-base-container',
-  TITLE: 'header-base-title',
-  START_ACCESSORY: 'header-base-start-accessory',
-  END_ACCESSORY: 'header-base-end-accessory',
-} as const;
-
-// Legacy test IDs for backward compatibility
 export const HEADERBASE_TEST_ID = 'header';
 export const HEADERBASE_TITLE_TEST_ID = 'header-title';
 

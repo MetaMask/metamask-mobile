@@ -16,28 +16,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Internal dependencies.
 import { HeaderBaseProps, HeaderBaseVariant } from './HeaderBase.types';
 import {
-  HeaderBaseTestIds,
   HEADERBASE_TEST_ID,
   HEADERBASE_TITLE_TEST_ID,
   HEADERBASE_VARIANT_TEXT_VARIANTS,
 } from './HeaderBase.constants';
 
 /**
- * HeaderBase is a simple header component with center-aligned title
- * and optional start/end accessories.
- *
- * @example
- * ```tsx
- * <HeaderBase
- *   startButtonIconProps={{ iconName: IconName.ArrowLeft, onPress: handleBack }}
- *   endButtonIconProps={[
- *     { iconName: IconName.Search, onPress: handleSearch },
- *     { iconName: IconName.Close, onPress: handleClose },
- *   ]}
- * >
- *   Header Title
- * </HeaderBase>
- * ```
+ * HeaderBase is a flexible header component that supports optional
+ * start and end accessories with configurable alignment and text variants.
  */
 const HeaderBase: React.FC<HeaderBaseProps> = ({
   children,
@@ -95,7 +81,6 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
       ? Math.max(startAccessoryWidth, endAccessoryWidth)
       : undefined;
 
-  // Render start content
   const renderStartContent = () => {
     if (startAccessory) {
       return startAccessory;
@@ -106,7 +91,6 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
     return null;
   };
 
-  // Render end content
   const renderEndContent = () => {
     if (endAccessory) {
       return endAccessory;
@@ -138,7 +122,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
     ? `${baseStyles} ${twClassName}`
     : baseStyles;
 
-  // Title wrapper classes based on variant
+  // Title  classes based on variant
   const titleWrapperClass = isLeftAligned ? 'flex-1' : 'flex-1 items-center';
 
   return (
@@ -151,7 +135,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
       testID={testID}
       {...viewProps}
     >
-      {/* Start accessory wrapper */}
+      {/* Start accessory */}
       {shouldRenderStartWrapper && (
         <View
           style={
@@ -159,7 +143,6 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
               ? tw.style('items-start', { width: accessoryWrapperWidth })
               : undefined
           }
-          testID={HeaderBaseTestIds.START_ACCESSORY}
           {...startAccessoryWrapperProps}
         >
           <View onLayout={handleStartAccessoryLayout}>
@@ -168,7 +151,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
         </View>
       )}
 
-      {/* Title wrapper */}
+      {/* Title */}
       <Box twClassName={titleWrapperClass}>
         {typeof children === 'string' ? (
           <Text
@@ -183,7 +166,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
         )}
       </Box>
 
-      {/* End accessory wrapper */}
+      {/* End accessory */}
       {shouldRenderEndWrapper && (
         <View
           style={
@@ -191,7 +174,6 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
               ? tw.style('items-end', { width: accessoryWrapperWidth })
               : undefined
           }
-          testID={HeaderBaseTestIds.END_ACCESSORY}
           {...endAccessoryWrapperProps}
         >
           <View onLayout={handleEndAccessoryLayout}>{renderEndContent()}</View>
@@ -202,4 +184,3 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
 };
 
 export default HeaderBase;
-
