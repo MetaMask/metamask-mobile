@@ -304,4 +304,100 @@ describe('useBlockExplorer', () => {
       expect(typeof name).toBe('string');
     });
   });
+
+  describe('getBlockExplorerBaseUrl', () => {
+    describe('EVM chains', () => {
+      const testCases = [
+        {
+          network: 'Ethereum',
+          chainId: '0x1',
+          expectedBaseUrl: 'https://etherscan.io',
+        },
+        {
+          network: 'Polygon',
+          chainId: '0x89',
+          expectedBaseUrl: 'https://polygonscan.com',
+        },
+        {
+          network: 'Arbitrum',
+          chainId: '0xa4b1',
+          expectedBaseUrl: 'https://arbiscan.io',
+        },
+        {
+          network: 'BNB Chain',
+          chainId: '0x38',
+          expectedBaseUrl: 'https://bscscan.com',
+        },
+        {
+          network: 'Optimism',
+          chainId: '0xa',
+          expectedBaseUrl: 'https://optimistic.etherscan.io',
+        },
+        {
+          network: 'Base',
+          chainId: '0x2105',
+          expectedBaseUrl: 'https://basescan.org',
+        },
+      ] as const;
+
+      it.each(testCases)(
+        'should return correct base URL for $network',
+        ({ chainId, expectedBaseUrl }) => {
+          const { result } = renderHookWithProvider(() => useBlockExplorer());
+          const { getBlockExplorerBaseUrl } = result.current;
+
+          const url = getBlockExplorerBaseUrl(chainId);
+
+          expect(url).toBe(expectedBaseUrl);
+        },
+      );
+    });
+
+    describe('Non-EVM chains', () => {
+      it('should return correct base URL for Solana', () => {
+        const { result } = renderHookWithProvider(() => useBlockExplorer());
+        const { getBlockExplorerBaseUrl } = result.current;
+        const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+        const url = getBlockExplorerBaseUrl(solanaChainId);
+
+        expect(url).toContain('solscan.io');
+      });
+
+      it('should return correct base URL for Bitcoin', () => {
+        const { result } = renderHookWithProvider(() => useBlockExplorer());
+        const { getBlockExplorerBaseUrl } = result.current;
+        const bitcoinChainId = 'bip122:000000000019d6689c085ae165831e93';
+
+        const url = getBlockExplorerBaseUrl(bitcoinChainId);
+
+        expect(url).toContain('mempool.space');
+      });
+    });
+
+    describe('Fallback scenarios', () => {
+      it('should return base URL without address path for unknown EVM chain', () => {
+        const { result } = renderHookWithProvider(() => useBlockExplorer());
+        const { getBlockExplorerBaseUrl } = result.current;
+        const unknownChainId = '0x9999';
+
+        const url = getBlockExplorerBaseUrl(unknownChainId);
+
+        // Should use etherscan fallback or custom RPC block explorer
+        expect(url).toBeDefined();
+        expect(url).not.toContain('/address/');
+      });
+
+      it('should use hook chainId when no targetChainId is provided', () => {
+        const { result } = renderHookWithProvider(() =>
+          useBlockExplorer('0x89'),
+        );
+        const { getBlockExplorerBaseUrl } = result.current;
+
+        const url = getBlockExplorerBaseUrl();
+
+        expect(url).toBe('https://polygonscan.com');
+      });
+    });
+  });
 });

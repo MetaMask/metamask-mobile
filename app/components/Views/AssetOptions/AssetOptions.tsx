@@ -147,7 +147,17 @@ const AssetOptions = (props: Props) => {
   };
 
   const openOnBlockExplorer = () => {
-    const url = explorer.getBlockExplorerUrl(address, networkId);
+    // Extract actual token address from CAIP format for non-EVM chains
+    const tokenAddress = isNonEvmChainId(networkId)
+      ? extractTokenAddressFromCaip(address)
+      : address;
+
+    // For native currencies, go to the base block explorer URL
+    // For tokens, go to the address/account page
+    const url = isNativeCurrency
+      ? explorer.getBlockExplorerBaseUrl(networkId)
+      : explorer.getBlockExplorerUrl(tokenAddress, networkId);
+
     if (url) {
       goToBrowserUrl(url, explorer.getBlockExplorerName(networkId));
     }

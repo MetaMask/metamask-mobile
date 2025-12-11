@@ -93,12 +93,16 @@ const mockGetBlockExplorerName = jest.fn(() => 'example-explorer.com');
 const mockGetBlockExplorerUrl = jest.fn(
   (address: string) => `https://example-explorer.com/address/${address}`,
 );
+const mockGetBlockExplorerBaseUrl = jest.fn(
+  () => 'https://example-explorer.com',
+);
 
 jest.mock('../../hooks/useBlockExplorer', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     getBlockExplorerName: mockGetBlockExplorerName,
     getBlockExplorerUrl: mockGetBlockExplorerUrl,
+    getBlockExplorerBaseUrl: mockGetBlockExplorerBaseUrl,
     toBlockExplorer: jest.fn(),
     getEvmBlockExplorerUrl: jest.fn(),
   })),
@@ -278,6 +282,7 @@ describe('AssetOptions Component', () => {
     mockTrackEvent.mockClear();
     mockGetBlockExplorerName.mockClear();
     mockGetBlockExplorerUrl.mockClear();
+    mockGetBlockExplorerBaseUrl.mockClear();
     if (mockRemoveNonEvmToken) {
       mockRemoveNonEvmToken.mockClear();
       mockRemoveNonEvmToken.mockResolvedValue(undefined);
@@ -467,7 +472,7 @@ describe('AssetOptions Component', () => {
       expect(queryByText('Remove token')).not.toBeOnTheScreen();
     });
 
-    it('calls getBlockExplorerUrl for non-EVM token', async () => {
+    it('extracts token address from CAIP format and calls getBlockExplorerUrl for non-EVM token', async () => {
       mockIsNonEvmChainId.mockReturnValue(true);
       (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
@@ -488,15 +493,15 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       await waitFor(() => {
-        // Verify that getBlockExplorerUrl was called with the token address
+        // Verify that getBlockExplorerUrl was called with the extracted token address (not CAIP format)
         expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
-          mockNonEvmTokenAddress,
+          'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
           mockNonEvmChainId,
         );
       });
     });
 
-    it('calls getBlockExplorerUrl for wrapped SOL', async () => {
+    it('calls getBlockExplorerUrl with extracted address for wrapped SOL (non-native currency)', async () => {
       mockIsNonEvmChainId.mockReturnValue(true);
       (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
@@ -506,7 +511,7 @@ describe('AssetOptions Component', () => {
             params: {
               address: mockWrappedSolAddress,
               chainId: mockNonEvmChainId,
-              isNativeCurrency: false,
+              isNativeCurrency: false, // wrapped SOL is not marked as native currency
               asset: mockAsset as unknown as TokenI,
             },
           }}
@@ -517,11 +522,102 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       await waitFor(() => {
-        // Verify that getBlockExplorerUrl was called
+        // Verify that getBlockExplorerUrl was called with the extracted token address
         expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
-          mockWrappedSolAddress,
+          'So11111111111111111111111111111111111111111',
           mockNonEvmChainId,
         );
+      });
+    });
+
+    it('calls getBlockExplorerBaseUrl for non-EVM native currency (SOL)', async () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: 'native-sol-address',
+              chainId: mockNonEvmChainId,
+              isNativeCurrency: true, // This is native SOL
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('View on block explorer'));
+      jest.runAllTimers();
+
+      await waitFor(() => {
+        // For native currency, should call getBlockExplorerBaseUrl
+        expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith(
+          mockNonEvmChainId,
+        );
+        // Should NOT call getBlockExplorerUrl
+        expect(mockGetBlockExplorerUrl).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('EVM native currency support', () => {
+    it('calls getBlockExplorerBaseUrl for EVM native currency (ETH)', async () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              isNativeCurrency: true, // This is native ETH
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('View on block explorer'));
+      jest.runAllTimers();
+
+      await waitFor(() => {
+        // For native currency, should call getBlockExplorerBaseUrl
+        expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith('0x1');
+        // Should NOT call getBlockExplorerUrl
+        expect(mockGetBlockExplorerUrl).not.toHaveBeenCalled();
+      });
+    });
+
+    it('calls getBlockExplorerUrl for EVM ERC20 token', async () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: '0x123456789abcdef',
+              chainId: '0x1',
+              isNativeCurrency: false, // This is an ERC20 token
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('View on block explorer'));
+      jest.runAllTimers();
+
+      await waitFor(() => {
+        // For ERC20 token, should call getBlockExplorerUrl
+        expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
+          '0x123456789abcdef',
+          '0x1',
+        );
+        // Should NOT call getBlockExplorerBaseUrl
+        expect(mockGetBlockExplorerBaseUrl).not.toHaveBeenCalled();
       });
     });
   });
