@@ -68,10 +68,9 @@ describe('useBalanceRefresh', () => {
       await result.current.refreshBalance();
     });
 
-    expect(Engine.context.AccountTrackerController.refresh).toHaveBeenCalledWith([
-      'mainnet-client',
-      'polygon-client',
-    ]);
+    expect(
+      Engine.context.AccountTrackerController.refresh,
+    ).toHaveBeenCalledWith(['mainnet-client', 'polygon-client']);
   });
 
   it('calls CurrencyRateController.updateExchangeRate with native currencies', async () => {
@@ -88,9 +87,9 @@ describe('useBalanceRefresh', () => {
 
   it('logs error when refresh fails', async () => {
     const mockError = new Error('Refresh failed');
-    (Engine.context.AccountTrackerController.refresh as jest.Mock).mockRejectedValueOnce(
-      mockError,
-    );
+    (
+      Engine.context.AccountTrackerController.refresh as jest.Mock
+    ).mockRejectedValueOnce(mockError);
 
     const { result } = renderHook(() => useBalanceRefresh());
 
@@ -109,7 +108,9 @@ describe('useBalanceRefresh', () => {
   it('handles timeout gracefully', async () => {
     jest.useFakeTimers();
 
-    (Engine.context.AccountTrackerController.refresh as jest.Mock).mockImplementation(
+    (
+      Engine.context.AccountTrackerController.refresh as jest.Mock
+    ).mockImplementation(
       () => new Promise(() => {}), // Never resolves
     );
 
@@ -131,4 +132,3 @@ describe('useBalanceRefresh', () => {
     jest.useRealTimers();
   });
 });
-
