@@ -146,6 +146,13 @@ export class BrowserStackAPI {
         },
       });
 
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(
+          `Error fetching session details: HTTP ${response.status}, body: ${errorBody}`,
+        );
+      }
+
       const sessionData = await response.json();
 
       // Map the raw API response to our SessionDetails interface

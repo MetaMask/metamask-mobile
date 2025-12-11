@@ -29,10 +29,11 @@ class Timers {
     if (this.timers.has(id)) {
       // eslint-disable-next-line no-console
       console.log(`Timer with id "${id}" already exists.`);
-      return this.timers.get(id);
+      return undefined;
     }
-    this.timers.set(id, { start: null, end: null, duration: null });
-    return undefined;
+    const timer: Timer = { start: null, end: null, duration: null };
+    this.timers.set(id, timer);
+    return timer;
   }
 
   // Start a timer
