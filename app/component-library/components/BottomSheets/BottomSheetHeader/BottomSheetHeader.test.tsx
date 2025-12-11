@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { TextVariant } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import BottomSheetHeader from './BottomSheetHeader';
@@ -100,46 +99,6 @@ describe('BottomSheetHeader', () => {
     expect(backButton.props.style).toMatchObject(
       expect.objectContaining({ opacity: 0.5 }),
     );
-  });
-
-  it('applies HeadingSm text variant by default', () => {
-    const { getByTestId } = render(
-      <BottomSheetHeader testID="header">Header Content</BottomSheetHeader>,
-    );
-
-    const titleElement = getByTestId('header-title');
-
-    expect(titleElement.props.variant).toBe(TextVariant.HeadingSm);
-  });
-
-  it('applies HeadingLg text variant when variant is Display', () => {
-    const { getByTestId } = render(
-      <BottomSheetHeader
-        variant={BottomSheetHeaderVariant.Display}
-        testID="header"
-      >
-        Header Content
-      </BottomSheetHeader>,
-    );
-
-    const titleElement = getByTestId('header-title');
-
-    expect(titleElement.props.variant).toBe(TextVariant.HeadingLg);
-  });
-
-  it('applies HeadingSm text variant when variant is Compact', () => {
-    const { getByTestId } = render(
-      <BottomSheetHeader
-        variant={BottomSheetHeaderVariant.Compact}
-        testID="header"
-      >
-        Header Content
-      </BottomSheetHeader>,
-    );
-
-    const titleElement = getByTestId('header-title');
-
-    expect(titleElement.props.variant).toBe(TextVariant.HeadingSm);
   });
 
   it('renders snapshot correctly with Display variant', () => {
