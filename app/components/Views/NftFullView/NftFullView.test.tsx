@@ -4,9 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 
 // Mock external dependencies that are not under test
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-  }),
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = () => ({});
+    return tw;
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
