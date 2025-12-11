@@ -56,7 +56,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: android
           setup-simulator: false
@@ -183,6 +183,7 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}

@@ -104,6 +104,9 @@ export class TradingService {
         params.price && {
           [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
         }),
+      ...(params.trackingData?.source && {
+        [PerpsEventProperties.SOURCE]: params.trackingData.source,
+      }),
     });
 
     // Add success-specific properties

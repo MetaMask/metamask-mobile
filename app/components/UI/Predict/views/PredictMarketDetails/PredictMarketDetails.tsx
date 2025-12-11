@@ -562,7 +562,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           market,
           outcome: firstOpenOutcome ?? market?.outcomes?.[0],
           outcomeToken: token,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          entryPoint:
+            entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
       },
       {
@@ -1033,7 +1034,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const renderActionButtons = () => (
     <>
       {(() => {
-        if (market?.status === PredictMarketStatus.CLOSED && hasPositivePnl) {
+        if (!isClaimablePositionsLoading && hasPositivePnl) {
           return (
             <ButtonHero
               size={ButtonSizeHero.Lg}
@@ -1163,6 +1164,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               key={outcome.id}
               market={market}
               outcome={outcome}
+              entryPoint={entryPoint}
             />
           ))}
           <Pressable
@@ -1240,6 +1242,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               }
               market={market}
               outcome={outcome}
+              entryPoint={entryPoint}
             />
           ))}
       </Box>

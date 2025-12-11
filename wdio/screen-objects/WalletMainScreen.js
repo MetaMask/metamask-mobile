@@ -10,6 +10,7 @@ import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.se
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
+import TimerHelper from 'appwright/utils/TimersHelper.js';
 
 class WalletMainScreen {
 
@@ -281,6 +282,66 @@ class WalletMainScreen {
     } else {
       const element = await this.walletButton;
       await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+    }
+  }
+
+  async getTotalBalanceText() {
+    if (!this._device) {
+      return await this.totalBalanceText;
+    } else {
+      const balanceContainer = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
+      const balanceContainerText = await balanceContainer.getText();
+
+      return balanceContainerText;
+    }
+  }
+
+  async isMenuButtonVisible() {
+    if (!this._device) {
+      return await this.balanceContainer.isVisible();
+    } else {
+      const menuButton = await AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON);
+      const timer = new TimerHelper('Time for the menu button to be visible');
+      timer.start();
+      await appwrightExpect(menuButton).toBeVisible();
+      timer.stop();
+      return timer;
+    }
+  }
+
+  async waitForBalanceToStabilize(options = {}) {
+    const { 
+      maxWaitTime = 60000,         // 1 minute timeout
+      pollInterval = 100, 
+      sameResultTimeout = 20000    // 20 seconds with the same result = stable
+    } = options;
+
+    const startTime = Date.now();
+    let previousBalance = '';
+    let sameResultStartTime = null;
+
+    while (true) {
+      // Check if we exceeded the maximum wait time (1 minute)
+      if (Date.now() - startTime > maxWaitTime) {
+        console.log(`Max wait time (${maxWaitTime}ms) exceeded - returning current balance`);
+        return previousBalance;
+      }
+
+      const currentBalance = await this.getTotalBalanceText();
+
+      if (currentBalance === previousBalance && previousBalance !== '') {
+        // Same result - check if 20 seconds have passed
+        const timeSinceSameResult = Date.now() - sameResultStartTime;
+        
+        if (timeSinceSameResult >= sameResultTimeout) {
+          return currentBalance;
+        }
+      } else {
+        sameResultStartTime = Date.now();
+        previousBalance = currentBalance;
+      }
+
+      await AppwrightGestures.wait(pollInterval);
     }
   }
 
