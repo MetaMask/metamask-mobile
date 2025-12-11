@@ -278,6 +278,11 @@ describe('PerpsChartFullscreenModal', () => {
         <PerpsChartFullscreenModal {...defaultProps} isVisible />,
       );
 
+      // Wait for the initial effect to complete before unmounting
+      await waitFor(() => {
+        expect(mockUnlockAsync).toHaveBeenCalled();
+      });
+
       unmount();
 
       await waitFor(() => {
