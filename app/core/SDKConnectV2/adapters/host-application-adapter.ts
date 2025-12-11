@@ -69,6 +69,18 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     );
   }
 
+  showNotFoundError(): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_not_found.title'),
+        description: strings('sdk_connect_v2.show_not_found.description'),
+        status: 'error',
+      }),
+    );
+  }
+
   syncConnectionList(conns: Connection[]): void {
     const v2Sessions: SDKSessions = conns.reduce((acc, conn) => {
       const props: ConnectionProps & { isV2: boolean } = {
