@@ -832,7 +832,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       onScrollEndDrag={onScrollEnd}
       onMomentumScrollEnd={onScrollEnd}
       onLayout={handleListLayout}
-      scrollEventThrottle={16}
+      scrollEventThrottle={0}
       // iOS-specific: use contentInset for proper pull-to-refresh
       contentInset={Platform.select({ ios: { top: contentInsetTop } })}
       contentOffset={getInitialContentOffset()}
