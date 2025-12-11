@@ -31,7 +31,10 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import Title from '../../../Base/Title';
-import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
+import styleSheet, {
+  CHART_HEIGHT,
+  CHART_HORIZONTAL_PADDING,
+} from './PriceChart.styles';
 import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
 
@@ -134,7 +137,9 @@ const PriceChart = ({
       onActiveIndexChange(-1);
       return;
     }
-    const chartWidth = Dimensions.get('window').width;
+    // Account for horizontal padding when calculating chart width
+    const chartWidth =
+      Dimensions.get('window').width - CHART_HORIZONTAL_PADDING * 2;
     const xDistance = chartWidth / priceList.length;
     if (x <= 0) {
       x = 0;

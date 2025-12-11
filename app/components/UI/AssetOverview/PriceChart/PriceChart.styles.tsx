@@ -6,13 +6,14 @@ import {
 } from '../../../../component-library/components/Texts/Text';
 
 export const CHART_HEIGHT = Dimensions.get('screen').height * 0.44;
+export const CHART_HORIZONTAL_PADDING = 16;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { typography } = theme;
   return StyleSheet.create({
     chart: {
-      paddingHorizontal: 16,
+      paddingHorizontal: CHART_HORIZONTAL_PADDING,
       height: CHART_HEIGHT - 10, // hack to remove internal padding that is not configurable
       paddingTop: 0,
       marginVertical: 10,
@@ -23,7 +24,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     chartLoading: {
       width: Dimensions.get('screen').width,
-      paddingHorizontal: 16,
+      paddingHorizontal: CHART_HORIZONTAL_PADDING,
       paddingTop: 10,
     },
     noDataOverlay: {
