@@ -60,7 +60,8 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
 
   // Determine what to render for start/end
   const hasStartContent = startAccessory || startButtonIconProps;
-  const hasEndContent = endAccessory || endButtonIconProps;
+  const hasEndContent =
+    endAccessory || (endButtonIconProps && endButtonIconProps.length > 0);
   const hasAnyAccessory = hasStartContent || hasEndContent;
 
   // For Compact: render both wrappers if any accessory exists (for centering)
