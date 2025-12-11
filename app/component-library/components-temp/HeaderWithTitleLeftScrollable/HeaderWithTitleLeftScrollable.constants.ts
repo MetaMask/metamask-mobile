@@ -23,4 +23,3 @@ export const HeaderWithTitleLeftScrollableTestIds = {
   COMPACT_TITLE: 'header-with-title-left-scrollable-compact-title',
   LARGE_CONTENT: 'header-with-title-left-scrollable-large-content',
 } as const;
-
