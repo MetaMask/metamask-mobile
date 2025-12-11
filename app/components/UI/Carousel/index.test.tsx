@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
-import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import Carousel, { useFetchCarouselSlides } from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -232,7 +232,7 @@ describe('Carousel Navigation', () => {
     fireEvent.press(slide);
 
     expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io');
-    expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
   });
 
   it('handles internal deeplinks through SharedDeeplinkManager', async () => {
@@ -251,7 +251,7 @@ describe('Carousel Navigation', () => {
     const slide = await findByTestId(slideTestID);
     fireEvent.press(slide);
 
-    expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalledWith(
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
       'https://link.metamask.io/swap',
       {
         origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,

@@ -2,7 +2,7 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import AnnouncementCtaFooter from './AnnouncementCtaFooter';
-import { SharedDeeplinkManager } from '../../../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
@@ -124,7 +124,7 @@ describe('AnnouncementCtaFooter', () => {
       expect(getByText('Try Swap')).toBeOnTheScreen();
     });
 
-    it('calls SharedDeeplinkManager.getInstance().parse when mobile link button is pressed', () => {
+    it('calls SharedDeeplinkManager.parse when mobile link button is pressed', () => {
       const props = {
         type: ModalFooterType.ANNOUNCEMENT_CTA,
         mobileLink: {
@@ -138,7 +138,7 @@ describe('AnnouncementCtaFooter', () => {
       const button = getByText('Try Swap');
       fireEvent.press(button);
 
-      expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalledWith(
+      expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
         'metamask://swap',
         {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,

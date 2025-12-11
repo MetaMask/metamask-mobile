@@ -22,9 +22,7 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import DeeplinkManager, {
-  SharedDeeplinkManager,
-} from '../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -182,7 +180,7 @@ export function* handleDeeplinkSaga() {
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
         setTimeout(() => {
-          SharedDeeplinkManager.getInstance().parse(url.href, {
+          SharedDeeplinkManager.parse(url.href, {
             origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
           });
         }, 200);
@@ -210,7 +208,7 @@ export function* handleDeeplinkSaga() {
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
-        SharedDeeplinkManager.getInstance().parse(deeplink, {
+        SharedDeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);
@@ -264,7 +262,7 @@ export function* startAppServices() {
   yield call(EngineService.start);
 
   // Start DeeplinkManager and process branch deeplinks
-  DeeplinkManager.start();
+  SharedDeeplinkManager.start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();

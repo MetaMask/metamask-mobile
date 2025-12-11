@@ -16,8 +16,8 @@ export { handleDeeplink } from './handlers/legacy/handleDeeplink';
 
 // Legacy system (for backward compatibility - will be removed in future)
 export {
-  default as DeeplinkManager,
-  SharedDeeplinkManager,
+  default as SharedDeeplinkManager, // Re-exports the default (wrapper) as SharedDeeplinkManager
+  DeeplinkManager, // Re-exports the class
 } from './DeeplinkManager';
 
 // Utilities

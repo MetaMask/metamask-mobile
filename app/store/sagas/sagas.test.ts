@@ -23,7 +23,7 @@ import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import Engine from '../../core/Engine';
-import { SharedDeeplinkManager } from '../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
@@ -343,7 +343,7 @@ describe('handleDeeplinkSaga', () => {
         .dispatch(checkForDeeplink())
         .silentRun();
 
-      expect(SharedDeeplinkManager.getInstance().parse).not.toHaveBeenCalled();
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
@@ -378,9 +378,7 @@ describe('handleDeeplinkSaga', () => {
           .silentRun();
 
         expect(Engine.context.KeyringController.isUnlocked).toHaveBeenCalled();
-        expect(
-          SharedDeeplinkManager.getInstance().parse,
-        ).not.toHaveBeenCalled();
+        expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
@@ -404,9 +402,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(
-            SharedDeeplinkManager.getInstance().parse,
-          ).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
@@ -432,7 +428,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
@@ -470,7 +466,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
@@ -496,9 +492,7 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(
-            SharedDeeplinkManager.getInstance().parse,
-          ).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });
 
@@ -519,7 +513,7 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(SharedDeeplinkManager.getInstance().parse).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
         });
 
         it('not handle onboarding deeplink when pathname is not /onboarding', async () => {
@@ -538,9 +532,7 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(
-            SharedDeeplinkManager.getInstance().parse,
-          ).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });
     });

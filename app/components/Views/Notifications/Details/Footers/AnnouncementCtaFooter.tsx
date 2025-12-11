@@ -6,7 +6,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { ModalFooterAnnouncementCta } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
-import { SharedDeeplinkManager } from '../../../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -48,7 +48,7 @@ export default function AnnouncementCtaFooter(
       return {
         label: mobileLinkText,
         onPress: () =>
-          SharedDeeplinkManager.getInstance().parse(mobileLinkUrl, {
+          SharedDeeplinkManager.parse(mobileLinkUrl, {
             origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
           }),
       };

@@ -1,7 +1,7 @@
 import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../../constants/deeplinks';
 import AppConstants from '../../../AppConstants';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../../DeeplinkManager';
+import { DeeplinkManager } from '../../DeeplinkManager';
 import extractURLParams from '../../utils/extractURLParams';
 import {
   hasSignature,

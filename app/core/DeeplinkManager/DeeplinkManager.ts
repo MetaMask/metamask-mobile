@@ -7,7 +7,7 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 
-class DeeplinkManager {
+export class DeeplinkManager {
   // singleton instance
   private static _instance: DeeplinkManager | null = null;
   public pendingDeeplink: string | null;
@@ -120,9 +120,10 @@ class DeeplinkManager {
   }
 }
 
-export const SharedDeeplinkManager = {
-  getInstance: () => DeeplinkManager.getInstance(),
+export default {
   init: () => DeeplinkManager.getInstance(),
+  start: () => DeeplinkManager.start(),
+  getInstance: () => DeeplinkManager.getInstance(),
   parse: (
     url: string,
     args: {
@@ -135,5 +136,3 @@ export const SharedDeeplinkManager = {
   getPendingDeeplink: () => DeeplinkManager.getInstance().getPendingDeeplink(),
   expireDeeplink: () => DeeplinkManager.getInstance().expireDeeplink(),
 };
-
-export default DeeplinkManager;

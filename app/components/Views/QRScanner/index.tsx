@@ -24,7 +24,7 @@ import {
   MM_WALLETCONNECT_DEEPLINK,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
-import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
@@ -519,16 +519,15 @@ const QRScanner = ({
           return;
         }
 
-        const handledByDeeplink =
-          await SharedDeeplinkManager.getInstance().parse(content, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-            onHandled: () => {
-              const stackNavigation = navigation as {
-                pop?: (count: number) => void;
-              };
-              stackNavigation.pop?.(2);
-            },
-          });
+        const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+          onHandled: () => {
+            const stackNavigation = navigation as {
+              pop?: (count: number) => void;
+            };
+            stackNavigation.pop?.(2);
+          },
+        });
 
         if (handledByDeeplink) {
           trackEvent(

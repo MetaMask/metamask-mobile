@@ -8,7 +8,7 @@ import AppConstants from '../../../../AppConstants';
 import SDKConnect from '../../../../SDKConnect/SDKConnect';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../../DeeplinkManager';
+import { DeeplinkManager } from '../../../DeeplinkManager';
 import extractURLParams from '../../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
 import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';

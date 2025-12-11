@@ -2,7 +2,7 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
 import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
-import DeeplinkManager, { SharedDeeplinkManager } from './DeeplinkManager';
+import SharedDeeplinkManager, { DeeplinkManager } from './DeeplinkManager';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
@@ -245,7 +245,7 @@ describe('SharedDeeplinkManager', () => {
       onHandled: jest.fn(),
     };
 
-    SharedDeeplinkManager.getInstance().parse(url, args);
+    SharedDeeplinkManager.parse(url, args);
 
     expect(spyParse).toHaveBeenCalledWith(url, args);
   });

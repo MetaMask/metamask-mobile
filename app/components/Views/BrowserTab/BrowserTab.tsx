@@ -54,7 +54,7 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { isInternalDeepLink } from '../../../util/deeplinks';
-import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,

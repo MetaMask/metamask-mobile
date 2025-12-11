@@ -1,4 +1,4 @@
-import DeeplinkManager from '../DeeplinkManager';
+import { DeeplinkManager } from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from '../handlers/legacy/handleDappUrl';
 import handleUniversalLink from '../handlers/legacy/handleUniversalLink';

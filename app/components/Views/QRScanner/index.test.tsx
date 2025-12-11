@@ -189,7 +189,7 @@ const initialState = {
 
 // Import useMetrics after mocking
 import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
-import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
@@ -656,9 +656,7 @@ describe('QrScanner', () => {
           SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
         ).mockReturnValue(false);
 
-        (
-          SharedDeeplinkManager.getInstance().parse as jest.Mock
-        ).mockResolvedValue(false);
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
         let confirmCallback: (() => void) | undefined;
         mockNavigate.mockImplementation((_route, params) => {
@@ -724,9 +722,7 @@ describe('QrScanner', () => {
           SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
         ).mockReturnValue(false);
 
-        (
-          SharedDeeplinkManager.getInstance().parse as jest.Mock
-        ).mockResolvedValue(false);
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
         let cancelCallback: (() => void) | undefined;
         mockNavigate.mockImplementation((_route, params) => {
@@ -786,9 +782,7 @@ describe('QrScanner', () => {
           SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
         ).mockReturnValue(false);
 
-        (
-          SharedDeeplinkManager.getInstance().parse as jest.Mock
-        ).mockResolvedValue(false);
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
         const mockOnScanSuccess = jest.fn();
         renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
