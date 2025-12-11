@@ -581,14 +581,23 @@ generateAndroidBinary() {
 			# NOTE: Do NOT use --reset-cache here - we want to leverage the cached Metro files
 			# from the workflow's "Cache Metro bundler" step for faster subsequent builds
 			echo "🔥 Pre-warming Metro bundler cache (prevents Daemon crashes during JS bundling)..."
-			NODE_OPTIONS="--max-old-space-size=12288" npx react-native bundle \
+
+			# Use Expo's export:embed which properly handles Metro caching and skips ESLint validation
+			# This is more reliable than react-native bundle for Expo projects
+			NODE_OPTIONS="--max-old-space-size=12288" npx expo export:embed \
 				--platform android \
-				--dev false \
 				--entry-file index.js \
 				--bundle-output /tmp/metro-warmup.bundle \
 				--assets-dest /tmp/metro-warmup-assets \
-				|| echo "⚠️ Metro cache warmup failed, continuing anyway..."
-			echo "✅ Metro bundler cache warmed"
+				--skip-manifest-validation \
+				2>&1 | head -50 || true
+
+			# Verify bundling actually succeeded
+			if [ -f /tmp/metro-warmup.bundle ]; then
+				echo "✅ Metro cache warmed successfully ($(du -h /tmp/metro-warmup.bundle | cut -f1))"
+			else
+				echo "⚠️  Metro cache warmup failed, build may be slower and less stable"
+			fi
 		fi
 	fi
 

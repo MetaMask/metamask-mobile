@@ -142,6 +142,7 @@ jobs:
 
       - name: Build Android E2E APKs
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
+        timeout-minutes: 25
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=12288"
