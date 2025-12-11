@@ -78,9 +78,9 @@ test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   // Fill amount
   await TimerHelper.withTimer(
     performanceTracker,
-    'Fill amount - 10 USD',
+    'Fill amount - 2 USD',
     async () => {
-      await PerpsDepositScreen.fillUsdAmount('10');
+      await PerpsDepositScreen.fillUsdAmount('2');
     },
   );
 
@@ -89,7 +89,7 @@ test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
     performanceTracker,
     'Cancel - 1 click',
     async () => {
-      await PerpsDepositScreen.tapCancel();
+      await PerpsDepositScreen.checkTransactionFeeIsVisible();
     },
   );
 

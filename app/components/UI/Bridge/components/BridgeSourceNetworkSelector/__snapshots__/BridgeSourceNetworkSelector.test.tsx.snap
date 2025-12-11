@@ -467,7 +467,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -548,7 +548,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     {
                                       "backgroundColor": "transparent",
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -562,7 +562,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     style={
                                       {
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -738,7 +738,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 18,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
@@ -770,7 +770,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   {
                                                     "color": "#121314",
                                                     "flex": 1,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 18,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -931,7 +931,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 18,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
@@ -963,7 +963,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   {
                                                     "color": "#121314",
                                                     "flex": 1,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 18,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -1124,7 +1124,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 18,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
@@ -1156,7 +1156,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   {
                                                     "color": "#121314",
                                                     "flex": 1,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 18,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -1317,7 +1317,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 18,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
@@ -1349,7 +1349,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   {
                                                     "color": "#121314",
                                                     "flex": 1,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 18,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -1510,7 +1510,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 18,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
@@ -1542,7 +1542,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   {
                                                     "color": "#121314",
                                                     "flex": 1,
-                                                    "fontFamily": "Geist Medium",
+                                                    "fontFamily": "Geist-Medium",
                                                     "fontSize": 18,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -1601,7 +1601,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,

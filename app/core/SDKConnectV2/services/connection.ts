@@ -13,6 +13,7 @@ import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
+import { errorCodes } from '@metamask/rpc-errors';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -52,7 +53,13 @@ export class Connection {
           'error' in responseData && responseData.error !== undefined;
 
         if (isError) {
-          this.hostApp.showConnectionError(this.info);
+          if (
+            responseData.error.code === errorCodes.provider.userRejectedRequest
+          ) {
+            this.hostApp.showConfirmationRejectionError(this.info);
+          } else {
+            this.hostApp.showConnectionError(this.info);
+          }
         } else {
           this.hostApp.showReturnToApp(this.info);
         }
