@@ -2,7 +2,6 @@ import { test } from '../../../fixtures/performance-test.js';
 
 import TimerHelper from '../../../utils/TimersHelper.js';
 import OnboardingSheet from '../../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import ImportFromSeedScreen from '../../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreatePasswordScreen from '../../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
@@ -16,12 +15,11 @@ import PerpsOrderView from '../../../../wdio/screen-objects/PerpsOrderView.js';
 import PerpsClosePositionView from '../../../../wdio/screen-objects/PerpsClosePositionView.js';
 import PerpsPositionDetailsView from '../../../../wdio/screen-objects/PerpsPositionDetailsView.js';
 import PerpsPositionsView from '../../../../wdio/screen-objects/PerpsPositionsView.js';
-import { login } from '../../../utils/Flows.js';
+import { login, selectAccountDevice } from '../../../utils/Flows.js';
 
 async function screensSetup(device) {
   const screens = [
     OnboardingSheet,
-    ImportFromSeedScreen,
     CreatePasswordScreen,
     WalletMainScreen,
     TabBarModal,
@@ -60,7 +58,12 @@ test('Perps open position and close it', async ({
   await screensSetup(device);
   await login(device);
 
+  // Perps requires independent account for each device to avoid clashes when running tests in parallel
+  await selectAccountDevice(device, testInfo);
+
   await TabBarModal.tapActionButton();
+
+  await device.waitForTimeout(100000);
   selectPerpsMainScreenTimer.start();
   await WalletActionModal.tapPerpsButton();
   selectPerpsMainScreenTimer.stop();

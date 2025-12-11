@@ -1,5 +1,6 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import Utilities from '../../e2e/framework/Utilities';
 
 class PerpsPositionDetailsView {
   get device() {
@@ -33,30 +34,20 @@ class PerpsPositionDetailsView {
   }
 
   async closePositionWithRetry() {
-    let isClosed = false;
-    for (let i = 0; i < 5; i++) {
-      if (!(await this.isPositionOpen())) {
-        isClosed = true;
-        break;
-      }
-
-      try {
+    await Utilities.executeWithRetry(async () => {
+      if (await this.isPositionOpen()) {
         await this.tapClosePositionButton();
-        await this.device.waitForTimeout(3000);
-        console.log(`Retry closing position attempt ${i + 1} successful`);
-
-        if (!(await this.isPositionOpen())) {
-          isClosed = true;
-          break;
-        }
-      } catch (error) {
-        console.log(`Retry closing position attempt ${i + 1} failed:`, error);
+        const closePositionButton = await this.closePositionButton;
+        await AppwrightSelectors.waitForElementToDisappear(
+          closePositionButton,
+          'Close Position Button',
+          5000,
+        );
       }
-    }
-
-    if (!isClosed) {
-      throw new Error('Failed to close position');
-    }
+    }, {
+      description: 'close position',
+      elemDescription: 'Close Position Button',
+    });
   }  
 }
 
