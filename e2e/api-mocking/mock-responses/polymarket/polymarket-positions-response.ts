@@ -297,37 +297,6 @@ export const POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE = [
   {
     proxyWallet: PROXY_WALLET_ADDRESS,
     asset:
-      '58716612325563573083695434995001914264547326571961868286450107533347570622844',
-    conditionId:
-      '0xbf97a1420a810787dc6ffa2810f1d1d91977267e542b8685ecd21e622567a46c',
-    size: 6,
-    avgPrice: 0.66,
-    initialValue: 3.96,
-    currentValue: 0,
-    cashPnl: -3.96,
-    percentPnl: -100,
-    totalBought: 6,
-    realizedPnl: 0,
-    percentRealizedPnl: -100,
-    curPrice: 0,
-    redeemable: true,
-    mergeable: true,
-    title: 'Blue Jays vs. Mariners',
-    slug: 'mlb-tor-sea-2025-10-17',
-    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg',
-    eventId: '60362',
-    eventSlug: 'mlb-tor-sea-2025-10-17',
-    outcome: 'Blue Jays',
-    outcomeIndex: 0,
-    oppositeOutcome: 'Mariners',
-    oppositeAsset:
-      '42939601076825532550105235762150970758026025994237741085435131668957359315522',
-    endDate: '2025-10-24',
-    negativeRisk: false,
-  },
-  {
-    proxyWallet: PROXY_WALLET_ADDRESS,
-    asset:
       '74764475795121623056006185669021820483304079465092865059622185495692711341808',
     conditionId:
       '0xb4bba8acb4a85c9f4ccd0eec6393e746c0176d271c2d0e52792968a05dd64b0c',
