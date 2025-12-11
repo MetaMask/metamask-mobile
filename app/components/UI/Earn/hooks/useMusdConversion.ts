@@ -208,9 +208,7 @@ export const useMusdConversion = () => {
               },
             );
 
-          const newTransactionId = transactionMeta.id;
-
-          return newTransactionId;
+          return transactionMeta.id;
         } catch (err) {
           // Prevent the user from being stuck on the confirmation screen without a transaction.
           navigation.goBack();
