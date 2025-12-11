@@ -446,110 +446,122 @@ describe('AssetOptions Component', () => {
     });
   });
 
-  describe('Non-EVM chain support', () => {
-    const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-    const mockNonEvmTokenAddress =
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-    const mockWrappedSolAddress =
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:So11111111111111111111111111111111111111111';
+  describe('Block explorer navigation', () => {
+    // Chain configurations for non-EVM networks
+    const nonEvmChains = {
+      solana: {
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        nativeAddress: 'native-sol-address',
+        tokenAddress:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        extractedTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        wrappedNativeAddress:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:So11111111111111111111111111111111111111111',
+        extractedWrappedAddress: 'So11111111111111111111111111111111111111111',
+      },
+      bitcoin: {
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+        nativeAddress: 'native-btc-address',
+        // Bitcoin doesn't typically have non-native tokens in the same way
+      },
+    };
 
-    it('hides Remove token option for wrapped SOL (native token)', () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-
-      const { queryByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: mockWrappedSolAddress,
-              chainId: mockNonEvmChainId,
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
-
-      expect(queryByText('Remove token')).not.toBeOnTheScreen();
-    });
-
-    it('extracts token address from CAIP format and calls getBlockExplorerUrl for non-EVM token', async () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
-
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: mockNonEvmTokenAddress,
-              chainId: mockNonEvmChainId,
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
-
-      fireEvent.press(getByText('View on block explorer'));
-      jest.runAllTimers();
-
-      await waitFor(() => {
-        // Verify that getBlockExplorerUrl was called with the extracted token address (not CAIP format)
-        expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
-          'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          mockNonEvmChainId,
-        );
-      });
-    });
-
-    it('calls getBlockExplorerUrl with extracted address for wrapped SOL (non-native currency)', async () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
-
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: mockWrappedSolAddress,
-              chainId: mockNonEvmChainId,
-              isNativeCurrency: false, // wrapped SOL is not marked as native currency
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
-
-      fireEvent.press(getByText('View on block explorer'));
-      jest.runAllTimers();
-
-      await waitFor(() => {
-        // Verify that getBlockExplorerUrl was called with the extracted token address
-        expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
-          'So11111111111111111111111111111111111111111',
-          mockNonEvmChainId,
-        );
-      });
-    });
-  });
-
-  describe('Native currency and token block explorer navigation', () => {
-    const nativeCurrencyTestCases = [
+    // Comprehensive test cases for block explorer URL generation
+    const blockExplorerTestCases = [
+      // EVM Native currencies
       {
-        name: 'EVM native currency (ETH)',
+        name: 'EVM native - Ethereum (ETH)',
         isNonEvm: false,
+        isNativeCurrency: true,
         address: '0x0000000000000000000000000000000000000000',
         chainId: '0x1',
+        expectedMethod: 'getBlockExplorerBaseUrl',
+        expectedArgs: ['0x1'],
       },
       {
-        name: 'non-EVM native currency (SOL)',
+        name: 'EVM native - Polygon (MATIC)',
+        isNonEvm: false,
+        isNativeCurrency: true,
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x89',
+        expectedMethod: 'getBlockExplorerBaseUrl',
+        expectedArgs: ['0x89'],
+      },
+      // EVM Non-native (ERC20 tokens)
+      {
+        name: 'EVM non-native - ERC20 token on Ethereum',
+        isNonEvm: false,
+        isNativeCurrency: false,
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC
+        chainId: '0x1',
+        expectedMethod: 'getBlockExplorerUrl',
+        expectedArgs: ['0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', '0x1'],
+      },
+      {
+        name: 'EVM non-native - ERC20 token on Polygon',
+        isNonEvm: false,
+        isNativeCurrency: false,
+        address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        chainId: '0x89',
+        expectedMethod: 'getBlockExplorerUrl',
+        expectedArgs: ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', '0x89'],
+      },
+      // Non-EVM Native currencies
+      {
+        name: 'Non-EVM native - Solana (SOL)',
         isNonEvm: true,
-        address: 'native-sol-address',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        isNativeCurrency: true,
+        address: nonEvmChains.solana.nativeAddress,
+        chainId: nonEvmChains.solana.chainId,
+        expectedMethod: 'getBlockExplorerBaseUrl',
+        expectedArgs: [nonEvmChains.solana.chainId],
+      },
+      {
+        name: 'Non-EVM native - Bitcoin (BTC)',
+        isNonEvm: true,
+        isNativeCurrency: true,
+        address: nonEvmChains.bitcoin.nativeAddress,
+        chainId: nonEvmChains.bitcoin.chainId,
+        expectedMethod: 'getBlockExplorerBaseUrl',
+        expectedArgs: [nonEvmChains.bitcoin.chainId],
+      },
+      // Non-EVM Non-native (SPL tokens, etc.)
+      {
+        name: 'Non-EVM non-native - SPL token on Solana (USDC)',
+        isNonEvm: true,
+        isNativeCurrency: false,
+        address: nonEvmChains.solana.tokenAddress,
+        chainId: nonEvmChains.solana.chainId,
+        expectedMethod: 'getBlockExplorerUrl',
+        expectedArgs: [
+          nonEvmChains.solana.extractedTokenAddress,
+          nonEvmChains.solana.chainId,
+        ],
+      },
+      {
+        name: 'Non-EVM non-native - Wrapped SOL on Solana',
+        isNonEvm: true,
+        isNativeCurrency: false,
+        address: nonEvmChains.solana.wrappedNativeAddress,
+        chainId: nonEvmChains.solana.chainId,
+        expectedMethod: 'getBlockExplorerUrl',
+        expectedArgs: [
+          nonEvmChains.solana.extractedWrappedAddress,
+          nonEvmChains.solana.chainId,
+        ],
       },
     ];
 
-    it.each(nativeCurrencyTestCases)(
-      'calls getBlockExplorerBaseUrl for $name',
-      async ({ isNonEvm, address, chainId }) => {
+    it.each(blockExplorerTestCases)(
+      'navigates to block explorer for $name',
+      async ({
+        isNonEvm,
+        isNativeCurrency,
+        address,
+        chainId,
+        expectedMethod,
+        expectedArgs,
+      }) => {
         mockIsNonEvmChainId.mockReturnValue(isNonEvm);
         (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
@@ -559,7 +571,7 @@ describe('AssetOptions Component', () => {
               params: {
                 address,
                 chainId,
-                isNativeCurrency: true,
+                isNativeCurrency,
                 asset: mockAsset as unknown as TokenI,
               },
             }}
@@ -570,22 +582,30 @@ describe('AssetOptions Component', () => {
         jest.runAllTimers();
 
         await waitFor(() => {
-          expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith(chainId);
-          expect(mockGetBlockExplorerUrl).not.toHaveBeenCalled();
+          if (expectedMethod === 'getBlockExplorerBaseUrl') {
+            expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith(
+              ...expectedArgs,
+            );
+            expect(mockGetBlockExplorerUrl).not.toHaveBeenCalled();
+          } else {
+            expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
+              ...expectedArgs,
+            );
+            expect(mockGetBlockExplorerBaseUrl).not.toHaveBeenCalled();
+          }
         });
       },
     );
 
-    it('calls getBlockExplorerUrl for EVM ERC20 token', async () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+    it('hides Remove token option for wrapped SOL (native token)', () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
 
-      const { getByText } = render(
+      const { queryByText } = render(
         <AssetOptions
           route={{
             params: {
-              address: '0x123456789abcdef',
-              chainId: '0x1',
+              address: nonEvmChains.solana.wrappedNativeAddress,
+              chainId: nonEvmChains.solana.chainId,
               isNativeCurrency: false,
               asset: mockAsset as unknown as TokenI,
             },
@@ -593,16 +613,7 @@ describe('AssetOptions Component', () => {
         />,
       );
 
-      fireEvent.press(getByText('View on block explorer'));
-      jest.runAllTimers();
-
-      await waitFor(() => {
-        expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
-          '0x123456789abcdef',
-          '0x1',
-        );
-        expect(mockGetBlockExplorerBaseUrl).not.toHaveBeenCalled();
-      });
+      expect(queryByText('Remove token')).not.toBeOnTheScreen();
     });
   });
 
