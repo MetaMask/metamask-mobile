@@ -1080,10 +1080,43 @@ const MainNavigator = () => {
         component={NotificationsModeView}
       />
       <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-      <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
+      <Stack.Screen
+        name="NftDetails"
+        component={NftDetailsModeView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
       />
       <Stack.Screen
         name={Routes.WALLET.NFTS_FULL_VIEW}
