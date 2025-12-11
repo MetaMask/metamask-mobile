@@ -140,6 +140,7 @@ exports[`GasImpactModal render matches snapshot 1`] = `
             style={
               [
                 {
+                  "backgroundColor": "#ffffff",
                   "flexDirection": "row",
                   "gap": 16,
                   "padding": 16,
@@ -246,6 +247,7 @@ exports[`GasImpactModal render matches snapshot 1`] = `
           <View
             style={
               {
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "paddingBottom": 16,
                 "paddingHorizontal": 8,

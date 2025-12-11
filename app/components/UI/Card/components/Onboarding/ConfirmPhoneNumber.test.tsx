@@ -150,59 +150,110 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-// Mock TextField component
-jest.mock('../../../../../component-library/components/Form/TextField', () => {
+// Mock Label component
+jest.mock('../../../../../component-library/components/Form/Label', () => {
   const React = jest.requireActual('react');
-  const { View, TextInput } = jest.requireActual('react-native');
+  const { Text } = jest.requireActual('react-native');
 
-  const MockTextField = ({
-    value,
-    onChangeText,
+  return ({
+    children,
     testID,
-    isError,
-    size,
-    ...props
   }: {
-    value: string;
-    onChangeText?: (text: string) => void;
+    children: React.ReactNode;
     testID?: string;
-    isError?: boolean;
-    size?: string;
-    [key: string]: unknown;
-  }) =>
-    React.createElement(
-      View,
-      { testID: 'textfield', accessible: true },
+  }) => React.createElement(Text, { testID: testID || 'label' }, children);
+});
+
+// Mock CodeField and related components
+jest.mock('react-native-confirmation-code-field', () => {
+  const React = jest.requireActual('react');
+  const { TextInput, View, Text } = jest.requireActual('react-native');
+
+  const MockCodeField = React.forwardRef(
+    (
+      {
+        value,
+        onChangeText,
+        cellCount,
+        keyboardType,
+        textContentType,
+        autoComplete,
+        renderCell,
+        rootStyle,
+        ...props
+      }: {
+        value: string;
+        onChangeText?: (text: string) => void;
+        cellCount: number;
+        keyboardType?: string;
+        textContentType?: string;
+        autoComplete?: string;
+        renderCell?: (params: {
+          index: number;
+          symbol: string;
+          isFocused: boolean;
+        }) => React.ReactNode;
+        rootStyle?: unknown;
+        [key: string]: unknown;
+      },
+      ref: React.Ref<typeof TextInput>,
+    ) =>
       React.createElement(
         View,
-        null,
+        { testID: 'code-field', style: rootStyle },
         React.createElement(TextInput, {
-          testID: testID || 'textfield-input',
+          ref,
+          testID: 'confirm-phone-number-code-field',
           value,
           onChangeText,
-          editable: true,
+          keyboardType,
+          textContentType,
+          autoComplete,
+          maxLength: cellCount,
           ...props,
         }),
+        // Render cells for visual representation
+        Array.from({ length: cellCount }, (_, index) => {
+          const symbol = value[index] || '';
+          const isFocused = index === value.length;
+          return renderCell
+            ? renderCell({ index, symbol, isFocused })
+            : React.createElement(
+                View,
+                { key: index, testID: `code-cell-${index}` },
+                React.createElement(Text, null, symbol),
+              );
+        }),
       ),
-    );
+  );
+
+  const MockCursor = () => React.createElement(Text, { testID: 'cursor' }, '|');
+
+  const mockUseBlurOnFulfill = jest.fn(() => {
+    const ref = React.useRef({
+      focus: jest.fn(),
+      blur: jest.fn(),
+    });
+    return ref;
+  });
 
   return {
-    __esModule: true,
-    default: MockTextField,
-    TextFieldSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-      Sm: 'Sm',
-    },
+    CodeField: MockCodeField,
+    Cursor: MockCursor,
+    useClearByFocusCell: jest.fn(() => [{}, jest.fn()]),
+    useBlurOnFulfill: mockUseBlurOnFulfill,
   };
 });
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_BUTTON_CLICKED: 'card_button_clicked',
-    CARD_VIEWED: 'card_viewed',
-  },
+// Mock useStyles hook
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: jest.fn(() => ({
+    styles: {
+      codeFieldRoot: {},
+      cellRoot: {},
+      focusCell: {},
+    },
+  })),
 }));
 
 // Mock i18n strings
@@ -216,13 +267,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
           'We sent a 6-digit code to {phoneNumber}. Enter it below to verify your phone number.',
         'card.card_onboarding.confirm_phone_number.confirm_code_label':
           'Confirmation code',
-        // The component uses confirm_email strings for resend functionality
-        'card.card_onboarding.confirm_email.resend_verification':
+        'card.card_onboarding.confirm_phone_number.resend_verification':
           'Resend verification code',
-        'card.card_onboarding.confirm_email.resend_cooldown':
+        'card.card_onboarding.confirm_phone_number.resend_cooldown':
           'Resend in {seconds}s',
-        'card.card_onboarding.confirm_email.didnt_receive_code':
-          "Didn't receive a code? ",
         'card.card_onboarding.continue_button': 'Continue',
       };
 
@@ -318,17 +366,6 @@ describe('ConfirmPhoneNumber Component', () => {
       phoneNumber: '1234567890',
     });
 
-    // Set up useMetrics mock
-    const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
-    useMetrics.mockReturnValue({
-      trackEvent: jest.fn(),
-      createEventBuilder: jest.fn(() => ({
-        addProperties: jest.fn(() => ({
-          build: jest.fn(() => ({})),
-        })),
-      })),
-    });
-
     // Set up default mock returns for hooks
     const mockVerifyPhoneVerification = jest.fn().mockResolvedValue({
       user: { id: 'user-123', name: 'Test User' },
@@ -394,7 +431,7 @@ describe('ConfirmPhoneNumber Component', () => {
   });
 
   describe('Form Fields', () => {
-    it('renders confirmation code field with correct properties', () => {
+    it('should render confirmation code field with correct properties', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -404,9 +441,13 @@ describe('ConfirmPhoneNumber Component', () => {
 
       const codeField = getByTestId('confirm-phone-number-code-field');
       expect(codeField).toBeTruthy();
+      expect(codeField.props.keyboardType).toBe('number-pad');
+      expect(codeField.props.textContentType).toBe('oneTimeCode');
+      expect(codeField.props.autoComplete).toBe('one-time-code');
+      expect(codeField.props.maxLength).toBe(6);
     });
 
-    it('renders code field input element', () => {
+    it('should render confirmation code label', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -414,6 +455,23 @@ describe('ConfirmPhoneNumber Component', () => {
         </Provider>,
       );
 
+      const label = getByTestId('label');
+      expect(label).toBeTruthy();
+      expect(label).toHaveTextContent('Confirmation code');
+    });
+
+    it('should render code field cells', () => {
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      const codeField = getByTestId('code-field');
+      expect(codeField).toBeTruthy();
+
+      // The code field should be present - cells are rendered internally
       const codeFieldInput = getByTestId('confirm-phone-number-code-field');
       expect(codeFieldInput).toBeTruthy();
     });
@@ -759,16 +817,18 @@ describe('ConfirmPhoneNumber Component', () => {
 
       const codeField = getByTestId('confirm-phone-number-code-field');
 
-      // Test normal input - component filters non-numeric and limits to 6 digits
+      // Test normal input
       fireEvent.changeText(codeField, '123456');
       expect(codeField.props.value).toBe('123456');
 
-      // Test partial input
+      // The CodeField component itself handles the 6-digit limit internally
+      // We can't test the limit behavior directly as it's handled by the library
+      // Instead, we test that the component accepts the expected input format
       fireEvent.changeText(codeField, '123');
       expect(codeField.props.value).toBe('123');
     });
 
-    it('renders code field input element', () => {
+    it('has correct input properties for verification code', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -777,7 +837,9 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       const codeField = getByTestId('confirm-phone-number-code-field');
-      expect(codeField).toBeTruthy();
+      expect(codeField.props.keyboardType).toBe('number-pad');
+      expect(codeField.props.textContentType).toBe('oneTimeCode');
+      expect(codeField.props.autoComplete).toBe('one-time-code');
     });
 
     it('shows error message when verification fails', () => {
@@ -991,7 +1053,7 @@ describe('ConfirmPhoneNumber Component', () => {
       });
     });
 
-    it('navigates to VERIFY_IDENTITYon successful verification', async () => {
+    it('navigates to VERIFY_IDENTITY on successful verification', async () => {
       const mockVerifyPhoneVerification = jest.fn().mockResolvedValue({
         user: { id: 'user-123' },
       });
@@ -1084,7 +1146,7 @@ describe('ConfirmPhoneNumber Component', () => {
       });
 
       const store = createTestStore();
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -1101,15 +1163,13 @@ describe('ConfirmPhoneNumber Component', () => {
         });
       }
 
-      // Ensure UI reflects expired cooldown (shows both "Didn't receive a code?" and "Resend verification code")
+      // Ensure UI reflects expired cooldown
       await waitFor(() => {
-        expect(resendElement).toHaveTextContent(/Resend verification code/);
+        expect(resendElement).toHaveTextContent('Resend verification code');
       });
 
-      // Press the resend link (the inner Text element with onPress handler)
-      const resendLink = getByText('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendLink);
+        fireEvent.press(resendElement);
       });
 
       expect(mockSendPhoneVerification).toHaveBeenCalledWith({
@@ -1212,7 +1272,7 @@ describe('ConfirmPhoneNumber Component', () => {
         reset: jest.fn(),
       });
 
-      const { getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -1225,11 +1285,12 @@ describe('ConfirmPhoneNumber Component', () => {
         });
       }
 
-      // Find the resend link text within the resend verification element
-      const resendLink = getByText('Resend verification code');
+      const resendElementAfterCooldown = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
 
       await act(async () => {
-        fireEvent.press(resendLink);
+        fireEvent.press(resendElementAfterCooldown);
         await Promise.resolve();
       });
 
@@ -1354,6 +1415,15 @@ describe('ConfirmPhoneNumber Component', () => {
     });
 
     it('shows "Resend verification code" when cooldown expires', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -1365,7 +1435,16 @@ describe('ConfirmPhoneNumber Component', () => {
         'confirm-phone-number-resend-verification',
       );
 
-      // Initial state shows cooldown (60s on mount)
+      // Trigger resend and wait for state updates
+      await act(async () => {
+        fireEvent.press(resendElement);
+        // Allow the async sendPhoneVerification to complete
+        await Promise.resolve();
+        // Allow one timer tick to process
+        jest.advanceTimersByTime(0);
+      });
+
+      // Should start at 60 seconds
       expect(resendElement).toHaveTextContent('Resend in 60s');
 
       // Advance timer by 60 seconds to expire cooldown (step per second)
@@ -1375,9 +1454,7 @@ describe('ConfirmPhoneNumber Component', () => {
         });
       }
 
-      // After cooldown expires, shows both "Didn't receive a code?" and "Resend verification code"
-      expect(resendElement).toHaveTextContent(/receive a code/i);
-      expect(resendElement).toHaveTextContent(/Resend verification code/i);
+      expect(resendElement).toHaveTextContent('Resend verification code');
     });
 
     it('allows resend after cooldown expires', async () => {
@@ -1391,7 +1468,7 @@ describe('ConfirmPhoneNumber Component', () => {
       });
 
       const store = createTestStore();
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -1401,17 +1478,14 @@ describe('ConfirmPhoneNumber Component', () => {
         'confirm-phone-number-resend-verification',
       );
 
-      // Expire initial cooldown
+      // Expire initial cooldown and perform first resend
       for (let i = 0; i < 60; i++) {
         act(() => {
           jest.advanceTimersByTime(1000);
         });
       }
-
-      // Press the resend link
-      const resendLink = getByText('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendLink);
+        fireEvent.press(resendElement);
         await Promise.resolve();
       });
       expect(mockSendPhoneVerification).toHaveBeenCalledTimes(1);
@@ -1427,10 +1501,10 @@ describe('ConfirmPhoneNumber Component', () => {
       }
 
       // Should be able to resend again
-      expect(resendElement).toHaveTextContent(/Resend verification code/);
-      const resendLinkAgain = getByText('Resend verification code');
+      expect(resendElement).toHaveTextContent('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendLinkAgain);
+        fireEvent.press(resendElement);
+        // Allow the async sendPhoneVerification to complete
         await Promise.resolve();
       });
       expect(mockSendPhoneVerification).toHaveBeenCalledTimes(2);
@@ -1447,7 +1521,7 @@ describe('ConfirmPhoneNumber Component', () => {
       });
 
       const store = createTestStore();
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -1457,24 +1531,22 @@ describe('ConfirmPhoneNumber Component', () => {
         'confirm-phone-number-resend-verification',
       );
 
-      // Expire initial cooldown
+      // Expire initial cooldown and perform first resend
       for (let i = 0; i < 60; i++) {
         act(() => {
           jest.advanceTimersByTime(1000);
         });
       }
-
-      // Perform first resend
-      const resendLink = getByText('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendLink);
+        fireEvent.press(resendElement);
         await Promise.resolve();
       });
       expect(mockSendPhoneVerification).toHaveBeenCalledTimes(1);
 
-      // Now in cooldown - try to resend (pressing the container won't work during cooldown)
+      // Try to resend during cooldown
       await act(async () => {
         fireEvent.press(resendElement);
+        // Allow the async sendPhoneVerification to complete
         await Promise.resolve();
       });
       expect(mockSendPhoneVerification).toHaveBeenCalledTimes(1); // Should not increase
@@ -1534,7 +1606,7 @@ describe('ConfirmPhoneNumber Component', () => {
       });
 
       const store = createTestStore();
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -1546,24 +1618,22 @@ describe('ConfirmPhoneNumber Component', () => {
           jest.advanceTimersByTime(1000);
         });
       }
-
-      // Press the resend link
-      const resendLink = getByText('Resend verification code');
-      const resendElement = getByTestId(
+      // Re-query element after re-render
+      const resendElementAfterCooldown = getByTestId(
         'confirm-phone-number-resend-verification',
       );
 
       // Multiple rapid presses
       await act(async () => {
-        fireEvent.press(resendLink);
-        fireEvent.press(resendElement);
-        fireEvent.press(resendElement);
+        fireEvent.press(resendElementAfterCooldown);
+        fireEvent.press(resendElementAfterCooldown);
+        fireEvent.press(resendElementAfterCooldown);
         await Promise.resolve();
       });
 
-      // Should only send once due to ref guard
+      // Should only send once
       expect(mockSendPhoneVerification).toHaveBeenCalledTimes(1);
-      expect(resendElement).toHaveTextContent('Resend in 60s');
+      expect(resendElementAfterCooldown).toHaveTextContent('Resend in 60s');
     });
 
     it('maintains cooldown state during loading', async () => {
@@ -1577,7 +1647,7 @@ describe('ConfirmPhoneNumber Component', () => {
       });
 
       const store = createTestStore();
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -1590,17 +1660,18 @@ describe('ConfirmPhoneNumber Component', () => {
         });
       }
       // Re-query element after re-render
-      const resendElement = getByTestId(
+      const resendElementAfterCooldownLoading = getByTestId(
         'confirm-phone-number-resend-verification',
       );
 
-      // Should show text when cooldown expires (even during loading)
-      expect(resendElement).toHaveTextContent(/Resend verification code/);
+      // Should show original text when loading (no cooldown)
+      expect(resendElementAfterCooldownLoading).toHaveTextContent(
+        'Resend verification code',
+      );
 
       // Should not be able to press during loading
-      const resendLink = getByText('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendLink);
+        fireEvent.press(resendElementAfterCooldownLoading);
         await Promise.resolve();
       });
 

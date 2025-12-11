@@ -23,58 +23,49 @@ The subscription object contains the details of the specific feed you want to su
 2. `notification`:
    - Subscription message: `{ "type": "notification", "user": "<address>" }`
    - Data format: `Notification`
-3. `webData3` :
-   - Subscription message: `{ "type": "webData3", "user": "<address>" }`
-   - Data format: `WebData3`&#x20;
-4. `twapStates` :
-   - Subscription message: `{ "type": "twapStates", "user": "<address>" }`
-   - Data format: `TwapStates`&#x20;
-5. `clearinghouseState:`
-   - Subscription message: `{ "type": "clearinghouseState", "user": "<address>" }`
-   - Data format: `ClearinghouseState`&#x20;
-6. `openOrders`:
-   - Subscription message: `{ "type": "openOrders", "user": "<address>" }`
-   - Data format: `OpenOrders`&#x20;
-7. `candle`:
+3. `webData2`
+   - Subscription message: `{ "type": "webData2", "user": "<address>" }`
+   - Data format: `WebData2`
+4. `candle`:
    - Subscription message: `{ "type": "candle", "coin": "<coin_symbol>", "interval": "<candle_interval>" }`
    - &#x20;Supported intervals: "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M"
    - Data format: `Candle[]`
-8. `l2Book`:
+5. `l2Book`:
    - Subscription message: `{ "type": "l2Book", "coin": "<coin_symbol>" }`
    - Optional parameters: nSigFigs: int, mantissa: int
    - Data format: `WsBook`
-9. `trades`:
+6. `trades`:
    - Subscription message: `{ "type": "trades", "coin": "<coin_symbol>" }`
    - Data format: `WsTrade[]`
-10. `orderUpdates`:
-    - Subscription message: `{ "type": "orderUpdates", "user": "<address>" }`
-    - Data format: `WsOrder[]`
-11. `userEvents`:&#x20;
-    - Subscription message: `{ "type": "userEvents", "user": "<address>" }`
-    - Data format: `WsUserEvent`
-12. `userFills`:&#x20;
-    - Subscription message: `{ "type": "userFills", "user": "<address>" }`
-    - Optional parameter: `aggregateByTime: bool`&#x20;
-    - Data format: `WsUserFills`
-13. `userFundings`:&#x20;
+7. `orderUpdates`:
+   - Subscription message: `{ "type": "orderUpdates", "user": "<address>" }`
+   - Data format: `WsOrder[]`
+8. `userEvents`:&#x20;
+   - Subscription message: `{ "type": "userEvents", "user": "<address>" }`
+   - Data format: `WsUserEvent`
+9. `userFills`:&#x20;
+   - Subscription message: `{ "type": "userFills", "user": "<address>" }`
+   - Optional parameter: `aggregateByTime: bool`&#x20;
+   - Data format: `WsUserFills`
+10. `userFundings`:&#x20;
     - Subscription message: `{ "type": "userFundings", "user": "<address>" }`
     - Data format: `WsUserFundings`
-14. `userNonFundingLedgerUpdates`:&#x20;
+11. `userNonFundingLedgerUpdates`:&#x20;
     - Subscription message: `{ "type": "userNonFundingLedgerUpdates", "user": "<address>" }`
     - Data format: `WsUserNonFundingLedgerUpdates`
-15. `activeAssetCtx`:&#x20;
-    - Subscription message: `{ "type": "activeAssetCtx", "coin": "<coin_symbol>" }`
+12. `activeAssetCtx`:&#x20;
+    - Subscription message: `{ "type": "activeAssetCtx", "coin": "coin_symbol>" }`
     - Data format: `WsActiveAssetCtx` or `WsActiveSpotAssetCtx`&#x20;
-16. `activeAssetData`: (only supports Perps)
-    - Subscription message: `{ "type": "activeAssetData", "user": "<address>", "coin": "<coin_symbol>" }`
+13. `activeAssetData`: (only supports Perps)
+    - Subscription message: `{ "type": "activeAssetData", "user": "<address>", "coin": "coin_symbol>" }`
     - Data format: `WsActiveAssetData`
-17. `userTwapSliceFills`:&#x20;
+14. `userTwapSliceFills`:&#x20;
     - Subscription message: `{ "type": "userTwapSliceFills", "user": "<address>" }`
     - Data format: `WsUserTwapSliceFills`
-18. `userTwapHistory`:&#x20;
+15. `userTwapHistory`:&#x20;
     - Subscription message: `{ "type": "userTwapHistory", "user": "<address>" }`
     - Data format: `WsUserTwapHistory`
-19. `bbo` :
+16. `bbo` :
     - Subscription message: `{ "type": "bbo", "coin": "<coin>" }`
     - Data format: `WsBbo`
 
@@ -311,64 +302,6 @@ interface WsUserTwapHistory {
   isSnapshot?: boolean;
   user: string;
   history: Array<WsTwapHistory>;
-}
-
-// Additional undocumented fields in WebData3 will be removed on a future update
-interface WebData3 {
-  userState: {
-    agentAddress: string | null;
-    agentValidUntil: number | null;
-    serverTime: number;
-    cumLedger: number;
-    isVault: boolean;
-    user: string;
-    optOutOfSpotDusting?: boolean;
-    dexAbstractionEnabled?: boolean;
-  };
-  perpDexStates: Array<PerpDexState>;
-}
-
-interface PerpDexState {
-  totalVaultEquity: number;
-  perpsAtOpenInterestCap?: Array<string>;
-  leadingVaults?: Array<LeadingVault>;
-}
-
-interface LeadingVault {
-  address: string;
-  name: string;
-}
-
-interface ClearinghouseState {
-  assetPositions: Array<AssetPosition>;
-  marginSummary: MarginSummary;
-  crossMarginSummary: MarginSummary;
-  crossMaintenanceMarginUsed: number;
-  withdrawable: number;
-}
-
-interface MarginSummary {
-  accountValue: number;
-  totalNtlPos: number;
-  totalRawUsd: number;
-  totalMarginUsed: number;
-}
-
-interface AssetPosition {
-  type: 'oneWay';
-  position: Position;
-}
-
-interface OpenOrders {
-  dex: string;
-  user: string;
-  orders: Array<Order>;
-}
-
-interface TwapStates {
-  dex: string;
-  user: string;
-  states: Array<[number, TwapState]>;
 }
 ```
 

@@ -46,11 +46,7 @@ export const useAssetBalances = (
 ): Map<string, AssetBalanceInfo> => {
   const { MultichainAssetsRatesController, TokenRatesController } =
     Engine.context;
-  const chainIds = [
-    CHAIN_IDS.LINEA_MAINNET,
-    SOLANA_MAINNET.chainId,
-    CHAIN_IDS.BASE,
-  ];
+  const chainIds = [CHAIN_IDS.LINEA_MAINNET, SOLANA_MAINNET.chainId];
 
   const tokensWithBalance = useTokensWithBalance({
     chainIds,

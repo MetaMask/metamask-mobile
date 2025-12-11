@@ -51,7 +51,7 @@ export const performEvmRefresh = async (
     }),
     AccountTrackerController.refresh(networkClientIds),
     CurrencyRateController.updateExchangeRate(nativeCurrencies),
-    TokenRatesController.updateExchangeRates(
+    TokenRatesController.updateExchangeRatesByChainId(
       chainIds
         .filter((chainId) => {
           const config = evmNetworkConfigurationsByChainId[chainId];

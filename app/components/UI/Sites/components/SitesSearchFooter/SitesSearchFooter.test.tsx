@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import SitesSearchFooter from './SitesSearchFooter';
-import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -131,19 +130,6 @@ describe('SitesSearchFooter', () => {
   });
 
   describe('navigation', () => {
-    const assertBrowserNavigation = (siteUrl?: string) => {
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.BROWSER.HOME,
-        expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-          params: expect.objectContaining({
-            ...(siteUrl ? { newTabUrl: siteUrl } : {}),
-            fromTrending: true,
-          }),
-        }),
-      );
-    };
-
     it('navigates to URL when URL link is pressed', () => {
       const { getByTestId } = render(
         <SitesSearchFooter searchQuery="metamask.io" />,
@@ -151,7 +137,11 @@ describe('SitesSearchFooter', () => {
 
       fireEvent.press(getByTestId('trending-search-footer-url-link'));
 
-      assertBrowserNavigation('metamask.io');
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TrendingBrowser', {
+        newTabUrl: 'metamask.io',
+        timestamp: 1234567890,
+        fromTrending: true,
+      });
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
     });
 
@@ -162,7 +152,11 @@ describe('SitesSearchFooter', () => {
 
       fireEvent.press(getByTestId('trending-search-footer-google-link'));
 
-      assertBrowserNavigation('https://www.google.com/search?q=ethereum');
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TrendingBrowser', {
+        newTabUrl: 'https://www.google.com/search?q=ethereum',
+        timestamp: 1234567890,
+        fromTrending: true,
+      });
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
     });
 
@@ -173,9 +167,11 @@ describe('SitesSearchFooter', () => {
 
       fireEvent.press(getByTestId('trending-search-footer-google-link'));
 
-      assertBrowserNavigation(
-        'https://www.google.com/search?q=ethereum%20%26%20bitcoin',
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TrendingBrowser', {
+        newTabUrl: 'https://www.google.com/search?q=ethereum%20%26%20bitcoin',
+        timestamp: 1234567890,
+        fromTrending: true,
+      });
     });
   });
 

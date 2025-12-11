@@ -54,5 +54,4 @@ export type PerpsTooltipContentKey =
   | 'points'
   | 'market_hours'
   | 'after_hours_trading'
-  | 'oracle_price'
-  | 'spread';
+  | 'oracle_price';

@@ -57,6 +57,22 @@ describe('Skeleton', () => {
     expect(skeletonElement.props.style.width).toBe('100%');
   });
 
+  it('should render with children', () => {
+    const childTestId = 'child-component';
+    const childrenWrapperId = 'children-wrapper';
+
+    const { getByTestId } = render(
+      <Skeleton childrenWrapperProps={{ testID: childrenWrapperId }}>
+        <View testID={childTestId} />
+      </Skeleton>,
+    );
+
+    const childElement = getByTestId(childTestId);
+    const childrenWrapper = getByTestId(childrenWrapperId);
+    expect(childElement).toBeDefined();
+    expect(childrenWrapper).toBeDefined();
+  });
+
   it('should hide children when hideChildren is true', () => {
     const childTestId = 'child-component';
     const childrenWrapperId = 'children-wrapper';
@@ -76,14 +92,16 @@ describe('Skeleton', () => {
 
   it('should display children normally when hideChildren is false', () => {
     const childTestId = 'child-component';
+    const childrenWrapperId = 'children-wrapper';
 
     const { getByTestId } = render(
-      <Skeleton>
+      <Skeleton childrenWrapperProps={{ testID: childrenWrapperId }}>
         <View testID={childTestId} />
       </Skeleton>,
     );
 
-    expect(getByTestId(childTestId)).toBeDefined();
+    const childrenWrapper = getByTestId(childrenWrapperId);
+    expect(childrenWrapper.props.style[1]).toBe(undefined);
   });
 
   it('should animate when no children are present', () => {

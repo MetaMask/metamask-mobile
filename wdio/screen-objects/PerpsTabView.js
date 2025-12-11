@@ -35,7 +35,7 @@ class PerpsTabView {
   async tapOnboardingButton() {
     const button = await this.onboardingButton;
     await button.isVisible({ timeout: 5000 });
-    await AppwrightGestures.tap(this.onboardingButton); // Use static tap method with retry logic
+    await AppwrightGestures.tap(button); // Use static tap method with retry logic
   }
 }
 

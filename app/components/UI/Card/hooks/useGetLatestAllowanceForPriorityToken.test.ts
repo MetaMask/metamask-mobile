@@ -4,10 +4,7 @@ import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPri
 import { useCardSDK } from '../sdk';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import Logger from '../../../../util/Logger';
-import {
-  SPENDING_LIMIT_UNSUPPORTED_TOKENS,
-  caipChainIdToNetwork,
-} from '../constants';
+import { SPENDING_LIMIT_UNSUPPORTED_TOKENS } from '../constants';
 
 // Mock dependencies
 jest.mock('../sdk');
@@ -23,11 +20,6 @@ jest.mock('ethers', () => ({
       formatUnits: jest.fn(),
     },
   },
-}));
-
-const mockIsNonEvmChainId = jest.fn();
-jest.mock('../../../../core/Multichain/utils', () => ({
-  isNonEvmChainId: (...args: unknown[]) => mockIsNonEvmChainId(...args),
 }));
 
 describe('useGetLatestAllowanceForPriorityToken', () => {
@@ -62,8 +54,6 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       toString: () => '11806489',
     });
     (ethers.utils.formatUnits as jest.Mock).mockReturnValue('15.0');
-    // Default: EVM chains return false (not non-EVM)
-    mockIsNonEvmChainId.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -125,9 +115,7 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     });
   });
 
-  it('skips fetch for non-EVM chains', async () => {
-    // Mock isNonEvmChainId to return true for Solana
-    mockIsNonEvmChainId.mockReturnValue(true);
+  it('skips fetch for non-Linea chains', async () => {
     const mockToken = createMockToken({
       caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     });
@@ -189,7 +177,6 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       mockToken.walletAddress,
       mockToken.address,
       mockToken.delegationContract,
-      caipChainIdToNetwork[mockToken.caipChainId] ?? 'linea',
     );
   });
 
@@ -206,7 +193,6 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
         mockToken.walletAddress,
         '0xstagingtokenaddress123456789012345678',
         mockToken.delegationContract,
-        caipChainIdToNetwork[mockToken.caipChainId] ?? 'linea',
       );
     });
   });
@@ -437,7 +423,6 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
         mockToken.walletAddress,
         mockToken.address,
         mockToken.delegationContract,
-        caipChainIdToNetwork[mockToken.caipChainId] ?? 'linea',
       );
       expect(result.current.latestAllowance).toBe('15.0');
     });

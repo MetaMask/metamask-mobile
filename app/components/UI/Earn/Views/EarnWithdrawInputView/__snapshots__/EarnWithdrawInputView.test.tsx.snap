@@ -471,77 +471,34 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                <View
-                                  accessibilityState={
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
                                     {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 32,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 40,
                                     }
                                   }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                 >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                        "justifyContent": "center",
-                                      }
+                                  0
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#b7bbc8",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 32,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 40,
                                     }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Bold",
-                                          "fontSize": 32,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 40,
-                                        }
-                                      }
-                                    >
-                                      0
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#b7bbc8",
-                                          "fontFamily": "Geist Bold",
-                                          "fontSize": 32,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 40,
-                                        }
-                                      }
-                                    >
-                                      ETH
-                                    </Text>
-                                  </View>
-                                </View>
+                                  }
+                                >
+                                  ETH
+                                </Text>
                               </View>
                               <View>
                                 <TouchableOpacity
@@ -620,8 +577,10 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#b7bbc8",
                                 "borderRadius": 20,
+                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -655,8 +614,10 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#b7bbc8",
                                 "borderRadius": 20,
+                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -690,8 +651,10 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#b7bbc8",
                                 "borderRadius": 20,
+                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -725,8 +688,10 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#b7bbc8",
                                 "borderRadius": 20,
+                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,

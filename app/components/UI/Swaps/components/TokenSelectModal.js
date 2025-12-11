@@ -26,9 +26,9 @@ import { fontStyles } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
-import TokenIcon from '../../../Base/TokenIcon';
+import TokenIcon from './TokenIcon';
 import Alert from '../../../Base/Alert';
-import { useLegacySwapsBlockExplorer } from '../../Bridge/hooks/useLegacySwapsBlockExplorer';
+import useBlockExplorer from '../utils/useBlockExplorer';
 import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
@@ -153,7 +153,7 @@ function TokenSelectModal({
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useLegacySwapsBlockExplorer(networkConfigurations);
+  const explorer = useBlockExplorer(networkConfigurations);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();

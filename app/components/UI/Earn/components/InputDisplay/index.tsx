@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
@@ -44,7 +44,6 @@ export interface InputDisplayProps {
   currencyToggleValue: string;
   maxWithdrawalAmount?: string;
   error?: string;
-  onPressAmount?: () => void;
 }
 
 const { View: AnimatedView } = Animated;
@@ -116,7 +115,6 @@ const InputDisplay = ({
   currencyToggleValue,
   maxWithdrawalAmount,
   error,
-  onPressAmount,
 }: InputDisplayProps) => {
   const { colors } = useTheme();
   const navigation = useNavigation();
@@ -235,29 +233,25 @@ const InputDisplay = ({
         </Text>
       </View>
       <View style={styles.amountRow}>
-        <Pressable onPress={onPressAmount}>
-          <View style={styles.amountRow}>
-            <Text
-              style={styles.amountText}
-              color={TextColor.Default}
-              variant={TextVariant.DisplayMD}
-            >
-              {isFiat ? amountFiatNumber : amountToken}
-            </Text>
-            {isStablecoinLendingEnabled ? (
-              <AnimatedView
-                style={[styles.amountCursor, { opacity: cursorOpacity }]}
-              />
-            ) : null}
-            <Text
-              style={styles.amountText}
-              color={TextColor.Muted}
-              variant={TextVariant.DisplayMD}
-            >
-              {isFiat ? currentCurrency.toUpperCase() : ticker}
-            </Text>
-          </View>
-        </Pressable>
+        <Text
+          style={styles.amountText}
+          color={TextColor.Default}
+          variant={TextVariant.DisplayMD}
+        >
+          {isFiat ? amountFiatNumber : amountToken}
+        </Text>
+        {isStablecoinLendingEnabled ? (
+          <AnimatedView
+            style={[styles.amountCursor, { opacity: cursorOpacity }]}
+          />
+        ) : null}
+        <Text
+          style={styles.amountText}
+          color={TextColor.Muted}
+          variant={TextVariant.DisplayMD}
+        >
+          {isFiat ? currentCurrency.toUpperCase() : ticker}
+        </Text>
       </View>
       <View>
         <CurrencyToggle

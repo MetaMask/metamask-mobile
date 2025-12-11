@@ -134,6 +134,7 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
           style={
             [
               {
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "padding": 16,
@@ -194,6 +195,7 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
         <View
           style={
             {
+              "backgroundColor": "#ffffff",
               "flexDirection": "row",
               "paddingHorizontal": 16,
               "paddingVertical": 24,
