@@ -132,7 +132,7 @@ export class BrowserStackAPI {
   /**
    * Get session details from BrowserStack API
    * @param {string} sessionId - The session ID
-   * @returns {Promise<Object|null>} Session details including buildId and session data
+   * @returns {Promise<SessionDetails>} Session details including buildId and session data
    */
   async getSessionDetails(sessionId: string): Promise<SessionDetails> {
     try {
@@ -147,9 +147,16 @@ export class BrowserStackAPI {
       });
 
       const sessionData = await response.json();
-      return sessionData;
+
+      // Map the raw API response to our SessionDetails interface
+      // BrowserStack API returns build_hashed_id, but our interface uses buildId
+      return {
+        buildId: sessionData.build_hashed_id,
+        sessionData,
+        profilingData: null,
+      };
     } catch (error) {
-      console.error('Error getting session details:', error);
+      logger.error('Error getting session details:', error);
       throw error;
     }
   }

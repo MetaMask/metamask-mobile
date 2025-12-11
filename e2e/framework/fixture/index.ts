@@ -2,6 +2,7 @@ import { test as base, type FullProject } from '@playwright/test';
 import { WebDriverConfig } from '../types';
 import { createServiceProvider, type ServiceProvider } from '../services';
 import { PerformanceTracker } from '../performance/PerformanceTracker';
+import Timers from '../performance/Timers';
 import { createLogger } from '../logger';
 
 const logger = createLogger({ name: 'TestFixture' });
@@ -117,6 +118,9 @@ export const test = base.extend<TestLevelFixtures>({
   },
 
   performanceTracker: async ({ deviceProvider: _ }, use, testInfo) => {
+    // Reset timers from previous tests to prevent ID collisions and stale data
+    Timers.resetTimers();
+
     const performanceTracker = new PerformanceTracker();
     await use(performanceTracker);
 

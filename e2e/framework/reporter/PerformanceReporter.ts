@@ -466,7 +466,7 @@ class PerformanceReporter implements Reporter {
           <html>
           <head>
             <title>Performance Metrics: ${testName} - ${
-              this.metrics[0].device
+              this.metrics[0].device?.name ?? 'Unknown'
             }</title>
             <style>
               body { font-family: Arial, sans-serif; margin: 40px; }
@@ -941,10 +941,10 @@ class PerformanceReporter implements Reporter {
               key !== 'note' &&
               key !== 'total'
             ) {
-              const cpuAvg = profilingSummary?.cpu?.avg || 'N/A';
-              const memoryAvg = profilingSummary?.memory?.avg || 'N/A';
-              const battery = profilingSummary?.battery?.total || 'N/A';
-              const issues = profilingSummary?.issues || 'N/A';
+              const cpuAvg = profilingSummary?.cpu?.avg ?? 'N/A';
+              const memoryAvg = profilingSummary?.memory?.avg ?? 'N/A';
+              const battery = profilingSummary?.battery?.total ?? 'N/A';
+              const issues = profilingSummary?.issues ?? 'N/A';
               csvRows.push(
                 `"${key}","${value}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
               );
