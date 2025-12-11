@@ -7203,6 +7203,10 @@
     "show_return_to_app": {
       "title": "Success",
       "description": "Return to the app to continue."
+    },
+    "show_not_found": {
+      "title": "Connection Not Found",
+      "description": "Please establish a new connection from the app to continue."
     }
   },
   "network_connection_banner": {
