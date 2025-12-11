@@ -63,7 +63,6 @@ test('Perps open position and close it', async ({
 
   await TabBarModal.tapActionButton();
 
-  await device.waitForTimeout(100000);
   selectPerpsMainScreenTimer.start();
   await WalletActionModal.tapPerpsButton();
   selectPerpsMainScreenTimer.stop();
