@@ -4,7 +4,10 @@ import { defineConfig } from './framework/config';
 export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
-  reporter: [['html', { open: 'never' }]],
+  reporter: [
+    ['html', { open: 'never' }],
+    ['./framework/reporter/PerformanceReporter.ts'],
+  ],
   use: {
     trace: 'on-first-retry',
   },
@@ -26,9 +29,9 @@ export default defineConfig({
       },
     },
     {
-      // Browserstack does not support appium 3 just yet.
       name: 'dummy-test-browserstack',
-      testMatch: 'tests/dumy.spec.ts',
+      testDir: './performance',
+      testMatch: 'login.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
