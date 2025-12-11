@@ -89,7 +89,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -110,7 +110,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -192,7 +192,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -213,7 +213,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -295,7 +295,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -316,7 +316,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -432,7 +432,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -453,7 +453,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -535,7 +535,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -556,7 +556,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -638,7 +638,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -659,7 +659,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -775,7 +775,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -796,7 +796,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -878,7 +878,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -899,7 +899,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -981,7 +981,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1002,7 +1002,7 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1119,7 +1119,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1140,7 +1140,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             [
               {
                 "color": "#b7bbc8",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1223,7 +1223,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1244,7 +1244,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             [
               {
                 "color": "#b7bbc8",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1327,7 +1327,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1348,7 +1348,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             [
               {
                 "color": "#b7bbc8",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1464,7 +1464,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1485,7 +1485,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1568,7 +1568,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1589,7 +1589,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             [
               {
                 "color": "#b7bbc8",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1671,7 +1671,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1692,7 +1692,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1841,7 +1841,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1862,7 +1862,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1944,7 +1944,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1965,7 +1965,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2047,7 +2047,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2068,7 +2068,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2184,7 +2184,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2205,7 +2205,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2287,7 +2287,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2308,7 +2308,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2390,7 +2390,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2411,7 +2411,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,

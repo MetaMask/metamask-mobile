@@ -54,14 +54,16 @@ const OnboardingSuccessEndAnimation: React.FC<
       style={styles.animationContainer}
     >
       <View style={styles.animationWrapper}>
-        <Rive
-          ref={riveRef}
-          source={onboardingLoaderEndAnimation}
-          style={styles.riveAnimation}
-          autoplay
-          fit={Fit.Contain}
-          alignment={Alignment.Center}
-        />
+        {!isE2E && (
+          <Rive
+            ref={riveRef}
+            source={onboardingLoaderEndAnimation}
+            style={styles.riveAnimation}
+            autoplay
+            fit={Fit.Contain}
+            alignment={Alignment.Center}
+          />
+        )}
       </View>
     </View>
   );
