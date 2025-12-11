@@ -55,19 +55,39 @@ class PredictDepositScreen {
   }
 
   async searchToken(tokenName) {
-    const searchField = await AppwrightSelectors.getElementByID(
-      this._device,
-      'textfieldsearch',
-    );
-    await AppwrightGestures.typeText(searchField, tokenName);
+    let searchField;
+    if (AppwrightSelectors.isIOS(this._device)) {
+      // iOS: Use placeholder text to find the search field
+      searchField = await AppwrightSelectors.getElementByCatchAll(
+        this._device,
+        'Search token',
+      );
+    } else {
+      // Android: Use testID
+      searchField = await AppwrightSelectors.getElementByID(
+        this._device,
+        'textfieldsearch',
+      );
+    }
+    await searchField.fill(tokenName);
   }
 
   async tapEthereumFilter() {
-    const ethereumFilter = await AppwrightSelectors.getElementByText(
+    // Dismiss keyboard before tapping filter
+    await AppwrightGestures.hideKeyboard(this._device);
+    const ethereumFilter = await AppwrightSelectors.getElementByCatchAll(
       this._device,
       'Ethereum',
     );
-    await AppwrightGestures.tap(ethereumFilter);
+    // Wait for keyboard to be fully dismissed and element to be visible
+    await appwrightExpect(ethereumFilter).toBeVisible({ timeout: 15000 });
+    if (AppwrightSelectors.isIOS(this._device)) {
+      // iOS: Use double tap for more reliable interaction
+      await ethereumFilter.tap();
+      await ethereumFilter.tap();
+    } else {
+      await ethereumFilter.tap();
+    }
   }
 
   async tapFirstUsdc(tokenName) {
