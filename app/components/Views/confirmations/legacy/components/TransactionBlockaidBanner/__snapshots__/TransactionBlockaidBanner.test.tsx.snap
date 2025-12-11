@@ -61,7 +61,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -75,7 +75,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -102,7 +102,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
