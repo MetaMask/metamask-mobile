@@ -30,7 +30,7 @@ import {
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
 import {
-  selectRawProcessedRemoteFeatureFlags,
+  selectrawRemoteFeatureFlags,
   selectLocalOverrides,
 } from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
@@ -45,9 +45,7 @@ export interface MinimumVersionFlagValue {
   minimumVersion: string;
 }
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
-  const rawProcessedRemoteFeatureFlags = useSelector(
-    selectRawProcessedRemoteFeatureFlags,
-  );
+  const rawRemoteFeatureFlags = useSelector(selectrawRemoteFeatureFlags);
   const override = useSelector(selectLocalOverrides);
   const tw = useTailwind();
   const theme = useTheme();
@@ -137,9 +135,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           value: unknown;
         }
         const abTestOptions: AbTestType[] = Array.isArray(
-          rawProcessedRemoteFeatureFlags[flag.key],
+          rawRemoteFeatureFlags[flag.key],
         )
-          ? (rawProcessedRemoteFeatureFlags[flag.key] as AbTestType[])
+          ? (rawRemoteFeatureFlags[flag.key] as AbTestType[])
           : [];
         const flagValue = flag.value as AbTestType;
 

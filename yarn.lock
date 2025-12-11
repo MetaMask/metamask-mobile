@@ -9035,21 +9035,21 @@ __metadata:
   linkType: hard
 
 "@metamask/remote-feature-flag-controller@file:/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller::locator=metamask%40workspace%3A.":
-  version: 2.0.1
-  resolution: "@metamask/remote-feature-flag-controller@file:/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller#/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller::hash=ce21bc&locator=metamask%40workspace%3A."
+  version: 3.0.0
+  resolution: "@metamask/remote-feature-flag-controller@file:/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller#/Users/sallem/Desktop/metamask/core/packages/remote-feature-flag-controller::hash=731dfb&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.16.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/0dd9b350f281c088ac007dc54db482e775990dbe22df9fd97b548e82cf7af4bdc5d886347fa86165506426e978318e84aa040092bc8d91c3b8b5d9f937a1f7fc
+  checksum: 10/6528470a09a2c8cf6c14fc9f03a6b5577945ab28ad9105c4aa4816ea6edbdd84f570e737f49068559146f9c3bbe58843b570f8d5e174184288305aeb9b688455
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "@metamask/remote-feature-flag-controller@npm:2.0.1"
+"@metamask/remote-feature-flag-controller@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@metamask/remote-feature-flag-controller@npm:3.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.16.0"

@@ -8,7 +8,7 @@ import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-
 interface ExtendedRemoteFeatureFlagControllerState
   extends RemoteFeatureFlagControllerState {
   localOverrides?: Record<string, unknown>;
-  rawProcessedRemoteFeatureFlags?: Record<string, unknown>;
+  rawRemoteFeatureFlags?: Record<string, unknown>;
 }
 
 // Access the controller state directly
@@ -48,10 +48,10 @@ export const selectLocalOverrides = createSelector(
     )?.localOverrides ?? {},
 );
 
-export const selectRawProcessedRemoteFeatureFlags = createSelector(
+export const selectrawRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
   (remoteFeatureFlagControllerState: unknown) =>
     (
       remoteFeatureFlagControllerState as ExtendedRemoteFeatureFlagControllerState
-    )?.rawProcessedRemoteFeatureFlags ?? {},
+    )?.rawRemoteFeatureFlags ?? {},
 );
