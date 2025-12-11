@@ -9,18 +9,20 @@ export const styleSheet = (params: { theme: Theme }) => {
     container: {
       flex: 1,
       backgroundColor: theme.brandColors.indigo100,
-      gap: 24,
+    },
+    imageContainer: {
+      flex: 1,
+      minHeight: 100,
     },
     backgroundImage: {
       width: '100%',
-      height: 438,
-      resizeMode: 'cover',
+      height: '100%',
+      resizeMode: 'contain',
     },
     content: {
       paddingHorizontal: 16,
-      justifyContent: 'center',
       alignItems: 'center',
-      paddingBottom: 24,
+      paddingVertical: 24,
     },
     heading: {
       marginBottom: 16,
@@ -29,7 +31,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       fontWeight: 500,
     },
     bodyText: {
-      marginBottom: 32,
       textAlign: 'center',
       color: colors.accent04.dark,
     },

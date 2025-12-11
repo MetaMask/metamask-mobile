@@ -88,11 +88,21 @@ const EarnMusdConversionEducationView = () => {
   }, [dispatch, initiateConversion, outputChainId, preferredPaymentToken]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'top']}>
-      <Image source={musdEducationBackground} style={styles.backgroundImage} />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={musdEducationBackground}
+          style={styles.backgroundImage}
+        />
+      </View>
 
       <View style={styles.content}>
-        <Text variant={TextVariant.HeadingLG} style={styles.heading}>
+        <Text
+          variant={TextVariant.HeadingLG}
+          style={styles.heading}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
           {strings('earn.musd_conversion.education.heading')}
         </Text>
 
