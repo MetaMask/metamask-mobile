@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { TextVariant } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import BottomSheetHeader from './BottomSheetHeader';
@@ -101,16 +102,17 @@ describe('BottomSheetHeader', () => {
     );
   });
 
-  it('applies compact variant by default', () => {
+  it('applies HeadingSm text variant by default', () => {
     const { getByTestId } = render(
       <BottomSheetHeader testID="header">Header Content</BottomSheetHeader>,
     );
 
     const titleElement = getByTestId('header-title');
-    expect(titleElement.props.style.textAlign).toBe('center');
+
+    expect(titleElement.props.variant).toBe(TextVariant.HeadingSm);
   });
 
-  it('applies display variant when variant prop is set to Display', () => {
+  it('applies HeadingLg text variant when variant is Display', () => {
     const { getByTestId } = render(
       <BottomSheetHeader
         variant={BottomSheetHeaderVariant.Display}
@@ -121,10 +123,11 @@ describe('BottomSheetHeader', () => {
     );
 
     const titleElement = getByTestId('header-title');
-    expect(titleElement.props.style.textAlign).toBe('left');
+
+    expect(titleElement.props.variant).toBe(TextVariant.HeadingLg);
   });
 
-  it('applies compact variant when variant prop is set to Compact', () => {
+  it('applies HeadingSm text variant when variant is Compact', () => {
     const { getByTestId } = render(
       <BottomSheetHeader
         variant={BottomSheetHeaderVariant.Compact}
@@ -135,7 +138,8 @@ describe('BottomSheetHeader', () => {
     );
 
     const titleElement = getByTestId('header-title');
-    expect(titleElement.props.style.textAlign).toBe('center');
+
+    expect(titleElement.props.variant).toBe(TextVariant.HeadingSm);
   });
 
   it('renders snapshot correctly with Display variant', () => {
