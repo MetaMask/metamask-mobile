@@ -2,6 +2,7 @@ import { unstable_batchedUpdates as batchFunc } from 'react-native';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import UntypedEngine from '../Engine';
 import { Engine as TypedEngine } from '../Engine/Engine';
+import { RootExtendedMessenger } from '../Engine/types';
 import Batcher from '../Batcher';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
@@ -49,6 +50,73 @@ export class EngineService {
       });
     }),
   );
+
+  /**
+   * Sets up persistence subscriptions on a messenger.
+   * This can be called BEFORE controllers are initialized.
+   * The subscriptions will capture events once controllers start emitting.
+   *
+   * We subscribe to ALL controller events and filter at event time using metadata,
+   * since metadata is only available after controllers are created.
+   *
+   * @param messenger - The controller messenger to subscribe to
+   */
+  private setupPersistenceSubscriptions = (
+    messenger: RootExtendedMessenger,
+  ) => {
+    try {
+      BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
+        const controllerName = eventName.split(':')[0];
+
+        // Skip CronjobController (handled separately by CronjobControllerStorageManager)
+        if (eventName === 'CronjobController:stateChange') {
+          return;
+        }
+
+        const persistController = createPersistController(200);
+
+        messenger.subscribe(
+          eventName,
+          async (controllerState: StateConstraint) => {
+            try {
+              // Get metadata at event time (controllers now exist)
+              const controllerMetadata =
+                // @ts-expect-error - Engine context has stateless controllers
+                UntypedEngine.context?.[controllerName]?.metadata;
+
+              // Skip controllers without persistent state
+              if (!hasPersistedState(controllerMetadata)) {
+                return;
+              }
+
+              const filteredState = getPersistentState(
+                controllerState,
+                controllerMetadata,
+              );
+              await persistController(filteredState, controllerName);
+            } catch (error) {
+              Logger.error(
+                error as Error,
+                `Failed to persist ${controllerName} state during state change`,
+              );
+            }
+          },
+        );
+      });
+
+      Logger.log('Persistence subscriptions set up on messenger successfully');
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to set up persistence subscriptions on messenger',
+      );
+      throw new Error(
+        `Critical: Persistence subscription setup failed. ${
+          (error as Error).message
+        }`,
+      );
+    }
+  };
 
   private initializeControllers = (engine: TypedEngine) => {
     // coordination mechanism to prevent race conditions between engine initialization and UI rendering
@@ -104,10 +172,8 @@ export class EngineService {
       );
     });
 
-    // CRITICAL: Set up filesystem persistence for all controllers
-    // This is called automatically after Redux subscriptions to ensure
-    // both Redux and filesystem are kept in sync when controller state changes
-    this.setupEnginePersistence();
+    // NOTE: Filesystem persistence is now set up earlier in start() via setupPersistenceSubscriptions()
+    // This ensures state changes during Engine.init() are captured
   };
 
   /**
@@ -154,8 +220,20 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
+
+      // PHASE 1: Get/create messenger BEFORE engine init
+      // This allows us to set up subscriptions before controllers emit events
+      const messenger = Engine.getOrCreateMessenger();
+
+      // PHASE 2: Set up persistence subscriptions on messenger
+      // These subscriptions will capture events once controllers start emitting
+      this.setupPersistenceSubscriptions(messenger);
+
+      // PHASE 3: Now initialize Engine (controllers will emit events, captured by subscriptions)
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       Engine.init(state, null, metaMetricsId);
+
+      // PHASE 4: Set up Redux subscriptions (existing behavior)
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.initializeControllers(Engine as unknown as TypedEngine);
     } catch (error) {
@@ -190,6 +268,11 @@ export class EngineService {
   }
 
   /**
+   * @deprecated Use setupPersistenceSubscriptions instead.
+   * This method is kept for backwards compatibility but is no longer called.
+   * Persistence is now set up via setupPersistenceSubscriptions() BEFORE Engine.init()
+   * to capture state changes that occur during controller initialization.
+   *
    * Sets up persistence subscriptions for all engine controllers.
    *
    * This method subscribes to each controller's state change events and automatically
@@ -286,6 +369,10 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine from backup:`, {
         hasState: Object.keys(state).length > 0,
       });
+
+      // Get messenger and set up persistence BEFORE init
+      const messenger = Engine.getOrCreateMessenger();
+      this.setupPersistenceSubscriptions(messenger);
 
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       const instance = Engine.init(state, newKeyringState, metaMetricsId);

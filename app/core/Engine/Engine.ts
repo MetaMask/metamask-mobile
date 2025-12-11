@@ -191,9 +191,27 @@ export class Engine {
    */
   static instance: Engine | null;
   /**
+   * Pending messenger created before engine initialization.
+   * This allows subscriptions to be set up before controllers emit events.
+   */
+  static pendingMessenger: RootExtendedMessenger | null = null;
+  /**
    * Flag to disable automatic vault backups (used during wallet reset)
    */
   static disableAutomaticVaultBackup = false;
+
+  /**
+   * Creates the controller messenger without initializing controllers.
+   * This allows subscriptions to be set up before controllers emit events.
+   *
+   * @returns The created or existing pending messenger
+   */
+  static createMessenger(): RootExtendedMessenger {
+    if (!Engine.pendingMessenger) {
+      Engine.pendingMessenger = getRootExtendedMessenger();
+    }
+    return Engine.pendingMessenger;
+  }
   /**
    * A collection of all controller instances
    */
@@ -267,7 +285,11 @@ export class Engine {
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
-    this.controllerMessenger = getRootExtendedMessenger();
+    // Use pending messenger if available (set up before init for early subscriptions),
+    // otherwise create a new one. Clear pending after use.
+    this.controllerMessenger =
+      Engine.pendingMessenger ?? getRootExtendedMessenger();
+    Engine.pendingMessenger = null;
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
@@ -1274,6 +1296,23 @@ export default {
   get controllerMessenger() {
     assertEngineExists(instance);
     return instance.controllerMessenger;
+  },
+
+  /**
+   * Gets the existing messenger or creates a new pending one.
+   * Use this to set up subscriptions BEFORE calling init().
+   *
+   * If the engine is already initialized, returns the existing messenger.
+   * Otherwise, creates and returns a pending messenger that will be used
+   * when the engine is initialized.
+   *
+   * @returns The controller messenger
+   */
+  getOrCreateMessenger(): RootExtendedMessenger {
+    if (instance) {
+      return instance.controllerMessenger;
+    }
+    return Engine.createMessenger();
   },
 
   get state() {
