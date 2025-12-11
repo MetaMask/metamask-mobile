@@ -97,7 +97,6 @@ jest.mock('@shopify/flash-list', () => ({
 jest.mock('@metamask/react-native-actionsheet', () => () => null);
 
 // Mock child components with minimal complexity
-jest.mock('./NftGridRefreshControl', () => () => null);
 jest.mock('./NftGridItemActionSheet', () => () => null);
 jest.mock('./NftGridHeader', () => {
   const { View, Text } = jest.requireActual('react-native');

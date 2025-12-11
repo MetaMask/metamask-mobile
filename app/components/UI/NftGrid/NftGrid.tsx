@@ -7,6 +7,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
+import { RefreshControl } from 'react-native';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { useNftRefresh } from './useNftRefresh';
 import { FlashList } from '@shopify/flash-list';
@@ -18,7 +19,6 @@ import {
   isNftFetchingProgressSelector,
   multichainCollectiblesByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
-import NftGridRefreshControl from './NftGridRefreshControl';
 import NftGridItem from './NftGridItem';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
@@ -42,6 +42,7 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../util/theme';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 
 interface NFTNavigationParamList {
@@ -89,7 +90,8 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
     const [longPressedCollectible, setLongPressedCollectible] =
       useState<Nft | null>(null);
     const tw = useTailwind();
-    const { onRefresh } = useNftRefresh();
+    const { colors } = useTheme();
+    const { refreshing, onRefresh } = useNftRefresh();
 
     useImperativeHandle(ref, () => ({
       refresh: onRefresh,
@@ -190,7 +192,14 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
         keyExtractor={(_, index) => `nft-row-${index}`}
         testID={RefreshTestId}
         decelerationRate="fast"
-        refreshControl={<NftGridRefreshControl />}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
       />
     );
