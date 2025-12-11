@@ -4,16 +4,23 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import NotificationCta from './Cta';
 import { Linking } from 'react-native';
+import SharedDeeplinkManager from '../../../../core/DeeplinkManager/DeeplinkManager';
 
-const mockParse = jest.fn();
-
-jest.mock('../../../../core/DeeplinkManager/DeeplinkManager', () => ({
-  SharedDeeplinkManager: {
-    getInstance: () => ({
+jest.mock('../../../../core/DeeplinkManager/DeeplinkManager', () => {
+  const mockParse = jest.fn().mockResolvedValue(true);
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn(),
+      start: jest.fn(),
+      getInstance: jest.fn(() => ({ parse: mockParse })),
       parse: mockParse,
-    }),
-  },
-}));
+      setDeeplink: jest.fn(),
+      getPendingDeeplink: jest.fn(),
+      expireDeeplink: jest.fn(),
+    },
+  };
+});
 
 describe('NotificationCta', () => {
   const ctaContent = 'Test Link';
@@ -37,7 +44,7 @@ describe('NotificationCta', () => {
 
     expect(root).toBeOnTheScreen();
     await userEvent.press(getByText(ctaContent));
-    expect(mockParse).toHaveBeenCalled();
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
   });
 
   it('handles external CTAs', async () => {

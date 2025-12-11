@@ -67,21 +67,22 @@ jest.mock('../../../core/SDKConnectV2', () => ({
   },
 }));
 
-const mockParse = jest.fn().mockImplementation(() => Promise.resolve());
-
-jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
-  __esModule: true,
-  SharedDeeplinkManager: {
-    // ← Named export, not default
-    getInstance: () => ({
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
+  // Default to false (not handled) so QR scanner handles the content directly
+  const mockParse = jest.fn().mockResolvedValue(false);
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn(),
+      start: jest.fn(),
+      getInstance: jest.fn(() => ({ parse: mockParse })),
       parse: mockParse,
-    }),
-    init: jest.fn(),
-  },
-  default: {
-    start: jest.fn(),
-  }, // Mock the class if needed
-}));
+      setDeeplink: jest.fn(),
+      getPendingDeeplink: jest.fn(),
+      expireDeeplink: jest.fn(),
+    },
+  };
+});
 
 jest.mock('../../../util/validators', () => ({
   isValidMnemonic: jest.fn().mockReturnValue(false),

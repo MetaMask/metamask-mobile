@@ -67,20 +67,21 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-const mockParse = jest.fn().mockImplementation(() => Promise.resolve());
-
-jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
-  SharedDeeplinkManager: {
-    getInstance: () => ({
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
+  const mockParse = jest.fn().mockResolvedValue(true);
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn(),
+      start: jest.fn(),
+      getInstance: jest.fn(() => ({ parse: mockParse })),
       parse: mockParse,
-    }),
-    init: jest.fn(),
-    parse: mockParse,
-    setDeeplink: jest.fn(),
-    getPendingDeeplink: jest.fn(),
-    expireDeeplink: jest.fn(),
-  },
-}));
+      setDeeplink: jest.fn(),
+      getPendingDeeplink: jest.fn(),
+      expireDeeplink: jest.fn(),
+    },
+  };
+});
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(() => Promise.resolve()),
