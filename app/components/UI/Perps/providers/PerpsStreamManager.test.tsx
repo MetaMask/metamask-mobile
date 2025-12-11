@@ -2004,4 +2004,146 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenCalledWith(undefined);
     });
   });
+
+  describe('clearAllChannels', () => {
+    it('disconnects all channels when called', () => {
+      // Arrange - spy on disconnect methods
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+      const ordersDisconnect = jest.spyOn(
+        testStreamManager.orders,
+        'disconnect',
+      );
+      const positionsDisconnect = jest.spyOn(
+        testStreamManager.positions,
+        'disconnect',
+      );
+      const fillsDisconnect = jest.spyOn(testStreamManager.fills, 'disconnect');
+      const accountDisconnect = jest.spyOn(
+        testStreamManager.account,
+        'disconnect',
+      );
+      const marketDataDisconnect = jest.spyOn(
+        testStreamManager.marketData,
+        'disconnect',
+      );
+      const oiCapsDisconnect = jest.spyOn(
+        testStreamManager.oiCaps,
+        'disconnect',
+      );
+      const topOfBookDisconnect = jest.spyOn(
+        testStreamManager.topOfBook,
+        'disconnect',
+      );
+      const candlesDisconnect = jest.spyOn(
+        testStreamManager.candles,
+        'disconnect',
+      );
+
+      // Act
+      testStreamManager.clearAllChannels();
+
+      // Assert - all channels should be disconnected
+      expect(pricesDisconnect).toHaveBeenCalledTimes(1);
+      expect(ordersDisconnect).toHaveBeenCalledTimes(1);
+      expect(positionsDisconnect).toHaveBeenCalledTimes(1);
+      expect(fillsDisconnect).toHaveBeenCalledTimes(1);
+      expect(accountDisconnect).toHaveBeenCalledTimes(1);
+      expect(marketDataDisconnect).toHaveBeenCalledTimes(1);
+      expect(oiCapsDisconnect).toHaveBeenCalledTimes(1);
+      expect(topOfBookDisconnect).toHaveBeenCalledTimes(1);
+      expect(candlesDisconnect).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      pricesDisconnect.mockRestore();
+      ordersDisconnect.mockRestore();
+      positionsDisconnect.mockRestore();
+      fillsDisconnect.mockRestore();
+      accountDisconnect.mockRestore();
+      marketDataDisconnect.mockRestore();
+      oiCapsDisconnect.mockRestore();
+      topOfBookDisconnect.mockRestore();
+      candlesDisconnect.mockRestore();
+    });
+
+    it('clears WebSocket subscriptions from all channels', () => {
+      // Arrange - set up subscriptions on multiple channels
+      const priceCallback = jest.fn();
+      const orderCallback = jest.fn();
+      const positionCallback = jest.fn();
+
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+      const ordersDisconnect = jest.spyOn(
+        testStreamManager.orders,
+        'disconnect',
+      );
+      const positionsDisconnect = jest.spyOn(
+        testStreamManager.positions,
+        'disconnect',
+      );
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: priceCallback,
+      });
+
+      testStreamManager.orders.subscribe({
+        callback: orderCallback,
+      });
+
+      testStreamManager.positions.subscribe({
+        callback: positionCallback,
+      });
+
+      // Verify subscriptions are active
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+      expect(mockSubscribeToOrders).toHaveBeenCalled();
+      expect(mockSubscribeToPositions).toHaveBeenCalled();
+
+      // Act - reconnect all channels
+      testStreamManager.clearAllChannels();
+
+      // Assert - disconnect was called on all channels
+      expect(pricesDisconnect).toHaveBeenCalled();
+      expect(ordersDisconnect).toHaveBeenCalled();
+      expect(positionsDisconnect).toHaveBeenCalled();
+
+      // Cleanup
+      pricesDisconnect.mockRestore();
+      ordersDisconnect.mockRestore();
+      positionsDisconnect.mockRestore();
+    });
+
+    it('allows channels to reconnect when subscribers are still active', () => {
+      // Arrange - clear any previous calls
+      jest.clearAllMocks();
+
+      // Set up a subscription
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+
+      // Act - reconnect all channels
+      testStreamManager.clearAllChannels();
+
+      expect(pricesDisconnect).toHaveBeenCalled();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      unsubscribe();
+      pricesDisconnect.mockRestore();
+    });
+  });
 });

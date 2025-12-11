@@ -701,7 +701,7 @@
       "error_sdk_not_initialized": "SDK not initialized",
       "logged_out_error": "Error logging out",
       "more_ways_to_buy": "More ways to buy",
-      "more_ways_to_buy_description": "Use a different payment provider"
+      "more_ways_to_buy_description": "Switch to the classic version"
     },
     "region_modal": {
       "select_a_region": "Select a region",
@@ -980,7 +980,7 @@
     "add_funds": "Add funds",
     "trade_perps": "Trade perps",
     "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
-    "available": "available to trade",
+    "available": "available",
     "deposit_in_progress": "Deposit in progress",
     "withdraw_in_progress": "Withdraw in progress",
     "multiple_transactions_in_progress": "Transactions in progress",
@@ -2471,10 +2471,16 @@
     "action_description_4_legacy": "collect your full IP address*",
     "action_description_5_legacy": "sell data. Ever!",
     "action_description_never_legacy": "Never",
-    "toast_message": "We’ve updated our privacy policy",
+    "toast_message": "We've updated our privacy policy",
     "toast_action_button": "Close",
     "toast_read_more": "Read more",
-    "pna25_toast_message": "We’re updating MetaMetrics. We'll associate some in-app activity to on-chain data to better understand usage. You can opt out via Settings."
+    "pna25_title": "Privacy and product updates",
+    "pna25_description": "To better serve you, we're updating our analytics so publicly available data like wallet addresses and related on-chain activity can be associated with actions you take in MetaMask using a pseudonymous ID. This helps us improve MetaMask's performance, security, and features in order to make a better, safer wallet.",
+    "pna25_description_2": "We take privacy seriously. We do not use this information for advertising or sell your data to third parties. You can opt out anytime in Settings.",
+    "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
+    "pna25_blog_post_link": "blog post",
+    "pna25_confirm_button": "Accept and close",
+    "pna25_open_settings_button": "Open Settings"
   },
   "template_confirmation": {
     "ok": "OK",
@@ -3237,7 +3243,7 @@
       "daily_resource": "Daily resource",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
-      "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
+      "daily_resource_description": "This is your daily allowance based on your staked TRX. Hold TRX to get 600 bandwidth daily.",
       "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
       "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
       "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
@@ -3365,7 +3371,8 @@
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
     "open_settings": "Settings",
-    "camera_not_available": "Camera not available"
+    "camera_not_available": "Camera not available",
+    "tron_address_not_supported": "Tron addresses are not currently supported"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -4684,8 +4691,8 @@
     "webview_error_no_address_provided": "No wallet address was provided to continue",
     "settings_modal": {
       "title": "Settings",
-      "use_new_buy_experience": "Use new buy experience",
-      "use_new_buy_experience_description": "Try new native on ramp"
+      "use_new_buy_experience": "More ways to buy",
+      "use_new_buy_experience_description": "Switch to the new version"
     },
     "onboarding": {
       "what_to_expect": "What to Expect",
@@ -5663,8 +5670,7 @@
       "fee": "Fee"
     },
     "musd_conversion": {
-      "confirmation_button": "Convert to mUSD",
-      "earn_rewards_with": "Earn rewards with mUSD",
+      "convert_to_musd": "Convert to mUSD",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
@@ -5704,8 +5710,11 @@
       "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
-      "estimated_annual_reward": "Estimated annual reward",
+      "estimated_annual_reward": "Est. annual reward",
       "trx_locked_for": "TRX locked for",
+      "trx_locked_for_minimum_time": "~3 days",
+      "trx_released_in": "TRX released in",
+      "trx_released_in_minimum_time": "~14 days",
       "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
@@ -6486,57 +6495,52 @@
       "select_method": "Select method"
     },
     "card_onboarding": {
-      "title": "Enable MetaMask Card features",
-      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
-      "verify_account_button": "Sign in",
-      "non_cardholder_title": "Welcome to MetaMask Card",
-      "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
-      "non_cardholder_verify_account_button": "Get started",
+      "title": "Spend\nand\nEarn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto like cash and earn rewards.",
+      "apply_now_button": "Apply now",
       "sign_up": {
-        "title": "Sign up",
-        "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "title": "Let's get started",
+        "description": "Create your MetaMask Card account, provided by Crypto Life. This will be separate from your MetaMask account.",
         "i_already_have_an_account": "I already have an account",
         "email_label": "Email",
         "password_label": "Password",
-        "confirm_password_label": "Re-enter your password",
-        "country_label": "Country of Residence",
-        "email_placeholder": "Enter your email address",
         "password_placeholder": "Must be 15+ characters long",
-        "confirm_password_placeholder": "Re-enter your password",
+        "confirm_password_label": "Confirm password",
+        "country_label": "Country of residence",
         "country_placeholder": "Select your country",
-        "password_mismatch": "Passwords do not match",
+        "password_mismatch": "Passwords must match",
         "invalid_email": "Invalid email address",
-        "invalid_password": "Password must be at least 15 characters long and not contain non-printable characters or consecutive spaces"
+        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces."
       },
       "confirm_email": {
         "title": "Confirm your email",
-        "description": "We've sent a confirmation code to: {{email}}",
-        "confirm_code_label": "Confirmation code",
-        "confirm_code_placeholder": "Enter the 6-digit code",
-        "resend_verification": "Resend verification code",
+        "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
+        "didnt_receive_code": "Didn't receive the code? ",
+        "resend_verification": "Resend it",
         "resend_cooldown": "Resend available in {{seconds}} seconds",
         "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
-        "title": "Phone number",
-        "description": "We'll send your confirmation code to this number",
-        "phone_number_label": "Phone number",
-        "phone_number_placeholder": "Enter your phone number",
+        "title": "Confirm your phone number",
+        "description": "Enter your phone number. We'll send you a confirmation code there.",
+        "phone_number_label": "Enter phone number",
         "country_area_code_label": "Country area code",
         "invalid_phone_number": "Invalid phone number",
         "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
       },
       "confirm_phone_number": {
         "title": "Confirm your phone number",
-        "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
-        "confirm_code_label": "Confirmation code",
-        "resend_verification": "Resend verification code",
+        "description": "Enter the verification code sent to\n{{phoneNumber}}",
+         "didnt_receive_code": "Didn't receive the code? ",
+        "resend_verification": "Resend it",
         "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "verify_identity": {
-        "title": "Next, verify your identity",
-        "description": "To keep your account secure, Crypto Life needs to verify your identity through Veriff.\n\nYour info goes directly to Veriff and Crypto Life, MetaMask never sees or stores it.\n\nHave your ID and proof of address ready. This usually takes 5 minutes.",
-        "verify_button": "Start verification",
+        "title": "Verify your identity",
+        "description": "Our partner, Crypto Life, uses a service called Veriff to keep your account secure. ",
+        "terms_1": "Your info goes directly to Veriff and Crypto Life. MetaMask never sees it.",
+        "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
+        "verify_button": "Next",
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "kyc_webview": {
@@ -6546,8 +6550,10 @@
         "close_button": "Exit"
       },
       "validating_kyc": {
-        "title": "Validating your KYC...",
-        "timeout_button": "Restart verification"
+        "title": "Awaiting approval",
+        "description": "Our partner needs to approve your identity. Once you've been approved, you'll be ready to spend.",
+        "timeout_button": "Restart verification",
+        "terms": "Approvals usually take around 12 hours. We'll notify you when a decision is made."
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -6566,64 +6572,46 @@
         "success_toast": "Your ID was verified!"
       },
       "kyc_failed": {
-        "title": "Rejected",
-        "description": "Your KYC was rejected. Please try again."
+        "title": "You're not eligible for MetaMask Card right now",
+        "description": "Our partner approves based on set criteria. Learn more.",
+        "close_button": "Back to home"
       },
       "personal_details": {
-        "title": "Now, our partner needs some info about you",
-        "description": "Don't worry, this info is private and we never see it",
+        "title": "Add your info",
+        "description": "Enter your personal details. We'll use this info for verification purposes.",
         "first_name_label": "First name",
         "last_name_label": "Last name",
         "date_of_birth_label": "Date of birth",
-        "nationality_label": "Country of Nationality",
+        "nationality_label": "Nationality",
         "ssn_label": "Social Security Number",
-        "first_name_placeholder": "Enter your first name",
-        "last_name_placeholder": "Enter your last name",
-        "date_of_birth_placeholder": "Enter your date of birth",
-        "nationality_placeholder": "Select your nationality",
-        "ssn_placeholder": "Enter your SSN",
         "invalid_ssn": "Invalid SSN",
         "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
       "physical_address": {
-        "title": "Residential address",
-        "description": "Please provide your physical residence address to Crypto Life",
+        "title": "Add your address",
+        "description":"Enter your home address. If approved, we'll send your physical card here.",
         "address_line_1_label": "Address line 1",
         "address_line_2_label": "Address line 2",
         "city_label": "City",
         "state_label": "State",
-        "zip_code_label": "ZIP or Postal code",
-        "address_line_1_placeholder": "Street address",
-        "address_line_2_placeholder": "Floor, apartment or suite number",
-        "city_placeholder": "Enter your city",
-        "state_placeholder": "Enter your state",
-        "zip_code_placeholder": "Enter your ZIP code or postal code",
-        "same_mailing_address_label": "Residential address is the same as mailing address",
-        "electronic_consent_1": "I agree to the ",
-        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
-        "electronic_consent_3": " and to receive all communications electronically",
-        "terms_and_conditions_1": "I agree to the ",
-        "terms_and_conditions_2": "Terms and Conditions",
-        "terms_and_conditions_3": " of MetaMask Card",
-        "privacy_policy_1": "I agree to the data practices described in the ",
-        "privacy_policy_2": "Privacy Policy",
-        "right_to_information_1": "I have been informed of my ",
-        "right_to_information_2": "Right to Information",
-        "right_to_information_3": " as provided by law",
-        "account_opening_disclosure_1": "I agree to the terms, conditions, fees, and features outlined in the ",
-        "account_opening_disclosure_2": "Account Opening Disclosure"
+        "zip_code_label": "Zip code",
+        "country_label": "Country",
+        "electronic_consent_1": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically. ",
+        "electronic_consent_2": "View document(PDF)"
       },
       "mailing_address": {
         "title": "Mailing address",
-        "description": "Please provide your mailing address"
+        "description": "Please provide a mailing address that we can send your card to."
       },
       "complete": {
-        "title": "Approved!",
-        "description": "Your KYC was approved. You can now use MetaMask Card."
+        "title": "You're in!",
+        "description": "Let's set up your card so you can start spending your crypto.",
+        "confirm_button": "Set up my card"
       },
       "continue_button": "Next",
       "confirm_button": "Confirm",
       "retry_button": "Try again",
+      "close_button": "Got it",
       "errors": {
         "email_already_exists": "Email already exists. Please use a different email.",
         "invalid_email_format": "Invalid email format. Please check your email and try again.",
@@ -6706,7 +6694,11 @@
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See card details, transactions and more"
+        "advanced_card_management_description": "See card details, transactions and more",
+        "travel_title": "MetaMask Travel",
+        "travel_description": "Book hotels with up to 60% discounts vs. Expedia",
+        "card_tos_title": "Card Terms and Conditions",
+        "card_tos_description": "Read the card provider's terms"
       }
     },
     "card_spending_limit": {
@@ -6723,7 +6715,8 @@
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
-      "solana_not_supported": "Enable Solana tokens on card.metamask.io"
+      "solana_not_supported": "Enable Solana tokens on card.metamask.io",
+      "select_token": "Select token"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -7202,6 +7195,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_rejection": {
+      "title": "Approval Rejected",
+      "description": "User rejected the request."
     },
     "show_return_to_app": {
       "title": "Success",
