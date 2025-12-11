@@ -139,7 +139,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
   // First step is date selection, second step is time selection.
   // We have to manage this manually as there is no native datetime picker on Android.
   const [androidMode, setAndroidMode] = useState<
-    SnapUIDateTimePickerType.Date | SnapUIDateTimePickerType.Time | undefined
+    SnapUIDateTimePickerType.Date | SnapUIDateTimePickerType.Time
   >(
     type === SnapUIDateTimePickerType.DateTime
       ? SnapUIDateTimePickerType.Date
