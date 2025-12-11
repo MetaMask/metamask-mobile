@@ -11,6 +11,7 @@ import React, {
   useState,
 } from 'react';
 import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
+import { useBalanceRefresh } from './hooks';
 
 import {
   ActivityIndicator,
@@ -88,7 +89,6 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNativeCurrencyByChainId,
-  selectNativeNetworkCurrencies,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -222,7 +222,7 @@ const createStyles = ({ colors }: Theme) =>
     },
   });
 
-interface WalletProps {
+type WalletProps = {
   navigation: NavigationProp<ParamListBase>;
   storePrivacyPolicyShownDate: () => void;
   shouldShowNewPrivacyToast: boolean;
@@ -230,8 +230,8 @@ interface WalletProps {
   storePrivacyPolicyClickedOrClosed: () => void;
   showNftFetchingLoadingIndicator: () => void;
   hideNftFetchingLoadingIndicator: () => void;
-}
-interface WalletTokensTabViewProps {
+};
+type WalletTokensTabViewProps = {
   navigation: WalletProps['navigation'];
   onChangeTab: (changeTabProperties: {
     i: number;
@@ -243,7 +243,7 @@ interface WalletTokensTabViewProps {
     shouldSelectPerpsTab?: boolean;
     initialTab?: string;
   };
-}
+};
 
 const WalletTokensTabView = forwardRef<
   WalletTokensTabViewHandle,
@@ -394,12 +394,12 @@ const WalletTokensTabView = forwardRef<
 
   // Expose refresh method to parent
   useImperativeHandle(ref, () => ({
-    refresh: async (refreshSharedContent: () => Promise<void>) => {
+    refresh: async (onBalanceRefresh: () => Promise<void>) => {
       const activeTabRef = getTabRefByIndex(currentTabIndex);
 
-      // Always refresh shared content (balance) + tab-specific content if available
+      // Always refresh balance + tab-specific content if available
       const promises = [
-        refreshSharedContent(),
+        onBalanceRefresh(),
         activeTabRef?.current?.refresh(),
       ].filter(Boolean);
 
@@ -582,6 +582,7 @@ const Wallet = ({
   const walletRef = useRef(null);
   const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
   const isPerpsFlagEnabled = useFeatureFlag(
@@ -609,7 +610,6 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
   /**
    * Object containing the balance of the current selected account
@@ -1399,42 +1399,14 @@ const Wallet = ({
     [styles.wrapper, isHomepageRedesignV1Enabled],
   );
 
-  const refreshSharedContent = useCallback(async () => {
-    const TIMEOUT_MS = 5000; // 5 second timeout
-    const { AccountTrackerController, CurrencyRateController } = Engine.context;
-    const networkClientIds = Object.values(evmNetworkConfigurations)
-      .map(
-        ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
-          rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId,
-      )
-      .filter((id): id is string => Boolean(id));
-
-    try {
-      await Promise.race([
-        Promise.allSettled([
-          AccountTrackerController.refresh(networkClientIds),
-          CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        ]),
-        new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error('refreshSharedContent timed out')),
-            TIMEOUT_MS,
-          ),
-        ),
-      ]);
-    } catch (error) {
-      Logger.error(error as Error, 'Error refreshing shared content');
-    }
-  }, [evmNetworkConfigurations, nativeCurrencies]);
-
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await walletTokensTabViewRef.current?.refresh(refreshSharedContent);
+      await walletTokensTabViewRef.current?.refresh(refreshBalance);
     } finally {
       setRefreshing(false);
     }
-  }, [refreshSharedContent]);
+  }, [refreshBalance]);
 
   const content = (
     <>
