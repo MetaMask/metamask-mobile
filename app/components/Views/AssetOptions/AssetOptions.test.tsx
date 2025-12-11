@@ -529,66 +529,52 @@ describe('AssetOptions Component', () => {
         );
       });
     });
-
-    it('calls getBlockExplorerBaseUrl for non-EVM native currency (SOL)', async () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
-
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: 'native-sol-address',
-              chainId: mockNonEvmChainId,
-              isNativeCurrency: true, // This is native SOL
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
-
-      fireEvent.press(getByText('View on block explorer'));
-      jest.runAllTimers();
-
-      await waitFor(() => {
-        // For native currency, should call getBlockExplorerBaseUrl
-        expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith(
-          mockNonEvmChainId,
-        );
-        // Should NOT call getBlockExplorerUrl
-        expect(mockGetBlockExplorerUrl).not.toHaveBeenCalled();
-      });
-    });
   });
 
-  describe('EVM native currency support', () => {
-    it('calls getBlockExplorerBaseUrl for EVM native currency (ETH)', async () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+  describe('Native currency and token block explorer navigation', () => {
+    const nativeCurrencyTestCases = [
+      {
+        name: 'EVM native currency (ETH)',
+        isNonEvm: false,
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      },
+      {
+        name: 'non-EVM native currency (SOL)',
+        isNonEvm: true,
+        address: 'native-sol-address',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      },
+    ];
 
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: '0x0000000000000000000000000000000000000000',
-              chainId: '0x1',
-              isNativeCurrency: true, // This is native ETH
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
+    it.each(nativeCurrencyTestCases)(
+      'calls getBlockExplorerBaseUrl for $name',
+      async ({ isNonEvm, address, chainId }) => {
+        mockIsNonEvmChainId.mockReturnValue(isNonEvm);
+        (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
-      fireEvent.press(getByText('View on block explorer'));
-      jest.runAllTimers();
+        const { getByText } = render(
+          <AssetOptions
+            route={{
+              params: {
+                address,
+                chainId,
+                isNativeCurrency: true,
+                asset: mockAsset as unknown as TokenI,
+              },
+            }}
+          />,
+        );
 
-      await waitFor(() => {
-        // For native currency, should call getBlockExplorerBaseUrl
-        expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith('0x1');
-        // Should NOT call getBlockExplorerUrl
-        expect(mockGetBlockExplorerUrl).not.toHaveBeenCalled();
-      });
-    });
+        fireEvent.press(getByText('View on block explorer'));
+        jest.runAllTimers();
+
+        await waitFor(() => {
+          expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith(chainId);
+          expect(mockGetBlockExplorerUrl).not.toHaveBeenCalled();
+        });
+      },
+    );
 
     it('calls getBlockExplorerUrl for EVM ERC20 token', async () => {
       mockIsNonEvmChainId.mockReturnValue(false);
@@ -600,7 +586,7 @@ describe('AssetOptions Component', () => {
             params: {
               address: '0x123456789abcdef',
               chainId: '0x1',
-              isNativeCurrency: false, // This is an ERC20 token
+              isNativeCurrency: false,
               asset: mockAsset as unknown as TokenI,
             },
           }}
@@ -611,12 +597,10 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       await waitFor(() => {
-        // For ERC20 token, should call getBlockExplorerUrl
         expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
           '0x123456789abcdef',
           '0x1',
         );
-        // Should NOT call getBlockExplorerBaseUrl
         expect(mockGetBlockExplorerBaseUrl).not.toHaveBeenCalled();
       });
     });
