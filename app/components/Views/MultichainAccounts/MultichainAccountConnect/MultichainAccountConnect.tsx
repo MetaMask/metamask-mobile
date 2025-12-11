@@ -849,7 +849,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         isVisible={showPhishingModal}
         animationIn="slideInUp"
         animationOut="slideOutDown"
-        style={styles.fullScreenModal}
         backdropOpacity={1}
         backdropColor={colors.background.alternative}
         animationInTiming={300}
@@ -875,7 +874,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       goToEtherscam,
       goToFilePhishingIssue,
       showPhishingModal,
-      styles.fullScreenModal,
     ],
   );
 
