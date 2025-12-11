@@ -22,6 +22,9 @@ import { useStyles } from '../../hooks/useStyles';
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { strings } from '../../../../locales/i18n';
 
+/**
+ * The type of the SnapUIDateTimePicker.
+ */
 enum SnapUIDateTimePickerType {
   Date = 'date',
   Time = 'time',
