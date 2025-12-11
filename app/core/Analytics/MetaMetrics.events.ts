@@ -222,7 +222,6 @@ enum EVENT_NAME {
   EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
-  BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   RAMP_REGION_SELECTED = 'Ramp Region Selected',
   ONRAMP_GET_STARTED_CLICKED = 'On-ramp Get Started Clicked',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
@@ -246,7 +245,6 @@ enum EVENT_NAME {
   RAMP_REGION_RESET = 'Ramp Region Reset',
 
   // Off Ramp
-  SELL_BUTTON_CLICKED = 'Sell Button Clicked',
   OFFRAMP_GET_STARTED_CLICKED = 'Off-ramp Get Started Clicked',
   OFFRAMP_PAYMENT_METHOD_SELECTED = 'Off-ramp Payment Method Selected',
   OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED = 'Off-ramp Continue To Amount Clicked',
@@ -306,7 +304,7 @@ enum EVENT_NAME {
   SEND_FLOW = 'Send Flow',
   SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
-  TOAST_DISPLAYED = 'Toast Displayed',
+  NOTICE_UPDATE_DISPLAYED = 'Notice Update Displayed',
 
   // Send Flow
   SEND_ASSET_SELECTED = 'Send Asset Selected',
@@ -898,7 +896,6 @@ const events = {
   TOKENS_HIDDEN: generateOpt(EVENT_NAME.TOKENS_HIDDEN),
 
   // ONRAMP
-  BUY_BUTTON_CLICKED: generateOpt(EVENT_NAME.BUY_BUTTON_CLICKED),
   RAMP_REGION_SELECTED: generateOpt(EVENT_NAME.RAMP_REGION_SELECTED),
   ONRAMP_GET_STARTED_CLICKED: generateOpt(
     EVENT_NAME.ONRAMP_GET_STARTED_CLICKED,
@@ -936,7 +933,6 @@ const events = {
   RAMP_REGION_RESET: generateOpt(EVENT_NAME.RAMP_REGION_RESET),
 
   // OFFRAMP
-  SELL_BUTTON_CLICKED: generateOpt(EVENT_NAME.SELL_BUTTON_CLICKED),
   OFFRAMP_GET_STARTED_CLICKED: generateOpt(
     EVENT_NAME.OFFRAMP_GET_STARTED_CLICKED,
   ),
@@ -1529,8 +1525,8 @@ const events = {
   QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
   QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
 
-  // Toast
-  TOAST_DISPLAYED: generateOpt(EVENT_NAME.TOAST_DISPLAYED),
+  // Privacy Notice
+  NOTICE_UPDATE_DISPLAYED: generateOpt(EVENT_NAME.NOTICE_UPDATE_DISPLAYED),
 };
 
 /**

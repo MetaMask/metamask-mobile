@@ -13,8 +13,6 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import Checkbox from '../../../../../component-library/components/Checkbox';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -37,6 +35,11 @@ import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { Linking, TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Checkbox from '../../../../../component-library/components/Checkbox';
+
+// No-op function for disabled SelectComponent
+const noop = () => undefined;
 
 export const AddressFields = ({
   addressLine1,
@@ -77,6 +80,17 @@ export const AddressFields = ({
       }));
   }, [registrationSettings]);
 
+  const countryOptions = useMemo(() => {
+    if (!registrationSettings?.countries) {
+      return [];
+    }
+    return registrationSettings.countries.map((country) => ({
+      key: country.iso3166alpha2,
+      value: country.iso3166alpha2,
+      label: country.name,
+    }));
+  }, [registrationSettings]);
+
   return (
     <>
       {/* Address Line 1 */}
@@ -89,9 +103,6 @@ export const AddressFields = ({
         <TextField
           autoCapitalize={'none'}
           onChangeText={handleAddressLine1Change}
-          placeholder={strings(
-            'card.card_onboarding.physical_address.address_line_1_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={addressLine1}
@@ -113,9 +124,6 @@ export const AddressFields = ({
         <TextField
           autoCapitalize={'none'}
           onChangeText={handleAddressLine2Change}
-          placeholder={strings(
-            'card.card_onboarding.physical_address.address_line_2_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={addressLine2}
@@ -135,9 +143,6 @@ export const AddressFields = ({
         <TextField
           autoCapitalize={'none'}
           onChangeText={handleCityChange}
-          placeholder={strings(
-            'card.card_onboarding.physical_address.city_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={city}
@@ -163,9 +168,6 @@ export const AddressFields = ({
               label={strings(
                 'card.card_onboarding.physical_address.state_label',
               )}
-              defaultValue={strings(
-                'card.card_onboarding.physical_address.state_placeholder',
-              )}
               testID="state-select"
             />
           </Box>
@@ -179,9 +181,6 @@ export const AddressFields = ({
         <TextField
           autoCapitalize={'none'}
           onChangeText={handleZipCodeChange}
-          placeholder={strings(
-            'card.card_onboarding.physical_address.zip_code_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={zipCode}
@@ -193,14 +192,31 @@ export const AddressFields = ({
           testID="zip-code-input"
         />
       </Box>
+      {/* Country */}
+      <Box>
+        <Label>
+          {strings('card.card_onboarding.physical_address.country_label')}
+        </Label>
+        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+          <SelectComponent
+            options={countryOptions}
+            selectedValue={selectedCountry || ''}
+            onValueChange={noop}
+            label={strings(
+              'card.card_onboarding.physical_address.country_label',
+            )}
+            testID="country-select"
+          />
+        </Box>
+      </Box>
     </>
   );
 };
 
 const PhysicalAddress = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const { user, setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
@@ -211,44 +227,13 @@ const PhysicalAddress = () => {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
-  const [isSameMailingAddress, setIsSameMailingAddress] = useState(true);
   const [electronicConsent, setElectronicConsent] = useState(false);
-  const [termsAndConditions, setTermsAndConditions] = useState(false);
-  const [privacyPolicy, setPrivacyPolicy] = useState(false);
-  const [accountOpeningDisclosure, setAccountOpeningDisclosure] =
-    useState(false);
-  const [rightToInformation, setRightToInformation] = useState(false);
 
   const { data: registrationSettings } = useRegistrationSettings();
-
-  const termsAndConditionsUSUrl = useMemo(
-    () => registrationSettings?.links?.us?.termsAndConditions || '',
-    [registrationSettings?.links?.us?.termsAndConditions],
-  );
-
-  const privacyPolicyUSUrl = useMemo(
-    () => registrationSettings?.links?.us?.noticeOfPrivacy || '',
-    [registrationSettings?.links?.us?.noticeOfPrivacy],
-  );
-
-  const accountOpeningDisclosureUSUrl = useMemo(
-    () => registrationSettings?.links?.us?.accountOpeningDisclosure || '',
-    [registrationSettings?.links?.us?.accountOpeningDisclosure],
-  );
 
   const eSignConsentDisclosureUSUrl = useMemo(
     () => registrationSettings?.links?.us?.eSignConsentDisclosure || '',
     [registrationSettings?.links?.us?.eSignConsentDisclosure],
-  );
-
-  const termsAndConditionsIntlUrl = useMemo(
-    () => registrationSettings?.links?.intl?.termsAndConditions || '',
-    [registrationSettings?.links?.intl?.termsAndConditions],
-  );
-
-  const rightToInformationIntlUrl = useMemo(
-    () => registrationSettings?.links?.intl?.rightToInformation || '',
-    [registrationSettings?.links?.intl?.rightToInformation],
   );
 
   const {
@@ -269,82 +254,11 @@ const PhysicalAddress = () => {
     reset: resetConsent,
   } = useRegisterUserConsent();
 
-  const handleSameMailingAddressToggle = useCallback(() => {
-    resetRegisterAddress();
-    setIsSameMailingAddress(!isSameMailingAddress);
-  }, [isSameMailingAddress, resetRegisterAddress]);
-
-  const handleElectronicConsentToggle = useCallback(() => {
-    resetConsent();
-    resetRegisterAddress();
-    setElectronicConsent(!electronicConsent);
-  }, [electronicConsent, resetRegisterAddress, resetConsent]);
-
   const openESignConsentDisclosureUS = useCallback(() => {
     if (eSignConsentDisclosureUSUrl) {
       Linking.openURL(eSignConsentDisclosureUSUrl);
     }
-    setElectronicConsent(!electronicConsent);
-  }, [eSignConsentDisclosureUSUrl, electronicConsent]);
-
-  const handleAccountOpeningDisclosureToggle = useCallback(() => {
-    resetConsent();
-    resetRegisterAddress();
-    setAccountOpeningDisclosure(!accountOpeningDisclosure);
-  }, [accountOpeningDisclosure, resetRegisterAddress, resetConsent]);
-
-  const openAccountOpeningDisclosureUS = useCallback(() => {
-    if (accountOpeningDisclosureUSUrl) {
-      Linking.openURL(accountOpeningDisclosureUSUrl);
-    }
-    setAccountOpeningDisclosure(!accountOpeningDisclosure);
-  }, [accountOpeningDisclosureUSUrl, accountOpeningDisclosure]);
-
-  const handleRightToInformationToggle = useCallback(() => {
-    resetConsent();
-    resetRegisterAddress();
-    setRightToInformation(!rightToInformation);
-  }, [rightToInformation, resetRegisterAddress, resetConsent]);
-
-  const openRightToInformationIntl = useCallback(() => {
-    if (rightToInformationIntlUrl) {
-      Linking.openURL(rightToInformationIntlUrl);
-    }
-    setRightToInformation(!rightToInformation);
-  }, [rightToInformationIntlUrl, rightToInformation]);
-
-  const handleTermsAndConditionsToggle = useCallback(() => {
-    resetConsent();
-    resetRegisterAddress();
-    setTermsAndConditions(!termsAndConditions);
-  }, [termsAndConditions, resetRegisterAddress, resetConsent]);
-
-  const openTermsAndConditionsIntl = useCallback(() => {
-    if (termsAndConditionsIntlUrl) {
-      Linking.openURL(termsAndConditionsIntlUrl);
-    }
-    setTermsAndConditions(!termsAndConditions);
-  }, [termsAndConditionsIntlUrl, termsAndConditions]);
-
-  const openTermsAndConditionsUS = useCallback(() => {
-    if (termsAndConditionsUSUrl) {
-      Linking.openURL(termsAndConditionsUSUrl);
-    }
-    setTermsAndConditions(!termsAndConditions);
-  }, [termsAndConditionsUSUrl, termsAndConditions]);
-
-  const handlePrivacyPolicyToggle = useCallback(() => {
-    resetConsent();
-    resetRegisterAddress();
-    setPrivacyPolicy(!privacyPolicy);
-  }, [privacyPolicy, resetRegisterAddress, resetConsent]);
-
-  const openPrivacyPolicyUS = useCallback(() => {
-    if (privacyPolicyUSUrl) {
-      Linking.openURL(privacyPolicyUSUrl);
-    }
-    setPrivacyPolicy(!privacyPolicy);
-  }, [privacyPolicyUSUrl, privacyPolicy]);
+  }, [eSignConsentDisclosureUSUrl]);
 
   const handleAddressLine1Change = useCallback(
     (text: string) => {
@@ -386,6 +300,12 @@ const PhysicalAddress = () => {
     [resetRegisterAddress],
   );
 
+  const handleElectronicConsentToggle = useCallback(() => {
+    resetConsent();
+    resetRegisterAddress();
+    setElectronicConsent(!electronicConsent);
+  }, [electronicConsent, resetRegisterAddress, resetConsent]);
+
   const isDisabled = useMemo(
     () =>
       registerLoading ||
@@ -398,14 +318,7 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry === 'US') ||
       !zipCode ||
-      (selectedCountry === 'US' &&
-        (!electronicConsent ||
-          !accountOpeningDisclosure ||
-          !privacyPolicy ||
-          !termsAndConditions)) ||
-      (selectedCountry !== 'US' &&
-        (!rightToInformation || !termsAndConditions)),
-
+      !electronicConsent,
     [
       registerLoading,
       registerIsError,
@@ -419,10 +332,6 @@ const PhysicalAddress = () => {
       selectedCountry,
       zipCode,
       electronicConsent,
-      accountOpeningDisclosure,
-      privacyPolicy,
-      termsAndConditions,
-      rightToInformation,
     ],
   );
 
@@ -432,14 +341,9 @@ const PhysicalAddress = () => {
       !user?.id ||
       !addressLine1 ||
       !city ||
-      (!state && selectedCountry === 'US') ||
+      (selectedCountry === 'US' && !state) ||
       !zipCode ||
-      (selectedCountry === 'US' &&
-        (!electronicConsent ||
-          !accountOpeningDisclosure ||
-          !privacyPolicy ||
-          !termsAndConditions)) ||
-      (selectedCountry !== 'US' && (!rightToInformation || !termsAndConditions))
+      !electronicConsent
     ) {
       return;
     }
@@ -489,7 +393,7 @@ const PhysicalAddress = () => {
         city,
         usState: state || undefined,
         zip: zipCode,
-        isSameMailingAddress,
+        isSameMailingAddress: true,
       });
 
       if (updatedUser) {
@@ -523,15 +427,9 @@ const PhysicalAddress = () => {
         // Reset the navigation stack to the verifying registration screen
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
+          routes: [{ name: Routes.CARD.ONBOARDING.VALIDATING_KYC }],
         });
         return;
-      }
-
-      // When isSameMailingAddress = false AND countryOfResidence = "US"
-      // The registration is not yet complete, proceed to mailing address
-      if (!isSameMailingAddress && selectedCountry === 'US') {
-        navigation.navigate(Routes.CARD.ONBOARDING.MAILING_ADDRESS);
       }
 
       // Something is wrong. We need to display the registerError or restart the flow
@@ -572,199 +470,40 @@ const PhysicalAddress = () => {
         zipCode={zipCode}
         handleZipCodeChange={handleZipCodeChange}
       />
-
-      {selectedCountry === 'US' ? (
-        <>
-          {/* US: Check box 1: Same Mailing Address */}
-          <Checkbox
-            isChecked={isSameMailingAddress}
-            onPress={handleSameMailingAddressToggle}
-            label={strings(
-              'card.card_onboarding.physical_address.same_mailing_address_label',
-            )}
-            style={tw.style('h-auto')}
-            testID="physical-address-same-mailing-address-checkbox"
-          />
-
-          {/* US: Check box 2: Electronic Consent */}
-          <Checkbox
-            isChecked={electronicConsent}
-            onPress={handleElectronicConsentToggle}
-            label={
-              <TouchableOpacity onPress={openESignConsentDisclosureUS}>
-                <Text variant={TextVariant.BodyMd}>
-                  {strings(
-                    'card.card_onboarding.physical_address.electronic_consent_1',
-                  )}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-primary-default underline"
-                  >
-                    {strings(
-                      'card.card_onboarding.physical_address.electronic_consent_2',
-                    )}
-                  </Text>
-                  {strings(
-                    'card.card_onboarding.physical_address.electronic_consent_3',
-                  )}
-                </Text>
-              </TouchableOpacity>
-            }
-            style={tw.style('h-auto')}
-            testID="physical-address-electronic-consent-checkbox"
-          />
-          {/* US: Check box 3: Account Opening Disclosure */}
-          <Checkbox
-            isChecked={accountOpeningDisclosure}
-            onPress={handleAccountOpeningDisclosureToggle}
-            label={
-              <TouchableOpacity onPress={openAccountOpeningDisclosureUS}>
-                <Text variant={TextVariant.BodyMd}>
-                  {strings(
-                    'card.card_onboarding.physical_address.account_opening_disclosure_1',
-                  )}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-primary-default underline"
-                  >
-                    {strings(
-                      'card.card_onboarding.physical_address.account_opening_disclosure_2',
-                    )}
-                  </Text>
-                </Text>
-              </TouchableOpacity>
-            }
-            style={tw.style('h-auto')}
-            testID="physical-address-account-opening-disclosure-checkbox"
-          />
-          {/* US: Check box 4: Terms and Conditions */}
-          <Checkbox
-            isChecked={termsAndConditions}
-            onPress={handleTermsAndConditionsToggle}
-            label={
-              <TouchableOpacity onPress={openTermsAndConditionsUS}>
-                <Text variant={TextVariant.BodyMd}>
-                  {strings(
-                    'card.card_onboarding.physical_address.terms_and_conditions_1',
-                  )}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-primary-default underline"
-                  >
-                    {strings(
-                      'card.card_onboarding.physical_address.terms_and_conditions_2',
-                    )}
-                  </Text>
-                  {strings(
-                    'card.card_onboarding.physical_address.terms_and_conditions_3',
-                  )}
-                </Text>
-              </TouchableOpacity>
-            }
-            style={tw.style('h-auto')}
-            testID="physical-address-terms-and-conditions-checkbox"
-          />
-
-          {/* US: Check box 5: Privacy Policy */}
-          <Checkbox
-            isChecked={privacyPolicy}
-            onPress={handlePrivacyPolicyToggle}
-            label={
-              <TouchableOpacity onPress={openPrivacyPolicyUS}>
-                <Text variant={TextVariant.BodyMd}>
-                  {strings(
-                    'card.card_onboarding.physical_address.privacy_policy_1',
-                  )}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-primary-default underline"
-                  >
-                    {strings(
-                      'card.card_onboarding.physical_address.privacy_policy_2',
-                    )}
-                  </Text>
-                </Text>
-              </TouchableOpacity>
-            }
-            style={tw.style('h-auto')}
-            testID="physical-address-privacy-policy-checkbox"
-          />
-        </>
-      ) : (
-        <>
-          {/* Intl: Check box 1: Terms and Conditions */}
-          <Checkbox
-            isChecked={termsAndConditions}
-            onPress={handleTermsAndConditionsToggle}
-            label={
-              <TouchableOpacity onPress={openTermsAndConditionsIntl}>
-                <Text variant={TextVariant.BodyMd}>
-                  {strings(
-                    'card.card_onboarding.physical_address.terms_and_conditions_1',
-                  )}
-
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-primary-default underline"
-                  >
-                    {strings(
-                      'card.card_onboarding.physical_address.terms_and_conditions_2',
-                    )}
-                  </Text>
-
-                  {strings(
-                    'card.card_onboarding.physical_address.terms_and_conditions_3',
-                  )}
-                </Text>
-              </TouchableOpacity>
-            }
-            style={tw.style('h-auto')}
-            testID="physical-address-terms-and-conditions-checkbox"
-          />
-
-          {/* Intl: Check box 2: Right to Information */}
-          <Checkbox
-            isChecked={rightToInformation}
-            onPress={handleRightToInformationToggle}
-            label={
-              <TouchableOpacity onPress={openRightToInformationIntl}>
-                <Text variant={TextVariant.BodyMd}>
-                  {strings(
-                    'card.card_onboarding.physical_address.right_to_information_1',
-                  )}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-primary-default underline"
-                  >
-                    {strings(
-                      'card.card_onboarding.physical_address.right_to_information_2',
-                    )}
-                  </Text>
-                  {strings(
-                    'card.card_onboarding.physical_address.right_to_information_3',
-                  )}
-                </Text>
-              </TouchableOpacity>
-            }
-            style={tw.style('h-auto')}
-            testID="physical-address-right-to-information-checkbox"
-          />
-        </>
-      )}
+      <Checkbox
+        isChecked={electronicConsent}
+        onPress={handleElectronicConsentToggle}
+        label={
+          <TouchableOpacity
+            onPress={openESignConsentDisclosureUS}
+            style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-text-alternative"
+            >
+              {strings(
+                'card.card_onboarding.physical_address.electronic_consent_1',
+              )}
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-primary-default underline"
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.electronic_consent_2',
+                )}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+        }
+        style={tw.style('h-auto flex flex-row items-start')}
+        testID="physical-address-electronic-consent-checkbox"
+      />
     </>
   );
 
   const renderActions = () => (
-    <Box>
-      <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
-        isDisabled={isDisabled}
-        testID="physical-address-continue-button"
-      />
+    <Box twClassName="flex flex-col justify-center gap-2">
       {registerIsError ? (
         <Text
           variant={TextVariant.BodySm}
@@ -782,6 +521,15 @@ const PhysicalAddress = () => {
           {consentError}
         </Text>
       ) : null}
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        testID="physical-address-continue-button"
+      />
     </Box>
   );
 

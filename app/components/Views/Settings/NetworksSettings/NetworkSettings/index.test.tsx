@@ -1331,6 +1331,57 @@ describe('NetworkSettings', () => {
       expect(updateNavBarSpy).toHaveBeenCalled();
       expect(validateRpcAndChainIdSpy).toHaveBeenCalled();
     });
+
+    it('uses fallback block explorer URL when blockExplorerUrls is empty', () => {
+      const propsWithEmptyBlockExplorerUrls = {
+        route: {
+          params: {
+            network: 'mainnet',
+          },
+        },
+        navigation: {
+          setOptions: jest.fn(),
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        },
+        networkConfigurations: {
+          '0x1': {
+            blockExplorerUrls: [], // Empty array - should trigger fallback
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'Infura',
+                url: 'https://mainnet.infura.io/v3/',
+              },
+            ],
+            name: 'Ethereum Main Network',
+            nativeCurrency: 'ETH',
+          },
+        },
+      };
+
+      const wrapperWithFallback = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...propsWithEmptyBlockExplorerUrls} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instanceWithFallback = wrapperWithFallback.instance();
+      instanceWithFallback.componentDidMount?.();
+
+      // Fallback should use BlockExplorerUrl['mainnet'] = 'https://etherscan.io'
+      expect(wrapperWithFallback.state('blockExplorerUrl')).toBe(
+        'https://etherscan.io',
+      );
+      expect(wrapperWithFallback.state('blockExplorerUrls')).toEqual([
+        'https://etherscan.io',
+      ]);
+    });
   });
 
   describe('NetworkSettings - handleNetworkUpdate', () => {
