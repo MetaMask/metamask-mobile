@@ -3,13 +3,20 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { PERFORMANCE_CONFIG } from '../../../../../components/UI/Perps/constants/perpsConfig';
-import { store } from '../../../../../store';
+import ReduxService from '../../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../components/UI/Perps/selectors/perpsController';
 
 // Mock dependencies
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
-jest.mock('../../../../../store');
+jest.mock('../../../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../../../../components/UI/Perps/selectors/perpsController');
 
 describe('handlePerpsUrl', () => {
@@ -32,9 +39,9 @@ describe('handlePerpsUrl', () => {
     // Mock DevLogger
     (DevLogger.log as jest.Mock) = jest.fn();
 
-    // Mock store.getState
+    // Mock ReduxService.store.getState
     mockGetState = jest.fn();
-    (store.getState as jest.Mock) = mockGetState;
+    (ReduxService.store.getState as jest.Mock) = mockGetState;
   });
 
   afterEach(() => {
