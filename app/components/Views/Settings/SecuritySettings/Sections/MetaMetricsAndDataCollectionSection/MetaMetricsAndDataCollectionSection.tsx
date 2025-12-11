@@ -141,7 +141,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
       // If user has not acknowledged PNA25 and is enabling metrics
       // we count this as an acknowledgement of PNA25
-      // and the PNA25 toast is not shown to them
+      // and the PNA25 notice is not shown to them
       if (isPna25FlagEnabled && !isPna25Acknowledged) {
         dispatch(storePna25Acknowledged());
       }
