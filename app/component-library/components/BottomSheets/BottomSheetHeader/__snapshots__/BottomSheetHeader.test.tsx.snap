@@ -28,7 +28,7 @@ exports[`BottomSheetHeader renders snapshot correctly with Compact variant 1`] =
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -71,7 +71,7 @@ exports[`BottomSheetHeader renders snapshot correctly with Display variant 1`] =
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,
@@ -114,7 +114,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

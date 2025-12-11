@@ -1159,7 +1159,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -1183,7 +1183,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -1856,7 +1856,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -1880,7 +1880,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -1951,7 +1951,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                           style={
                                             {
                                               "color": "#ffffff",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3141,7 +3141,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -3165,7 +3165,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -3236,7 +3236,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                           style={
                                             {
                                               "color": "#ffffff",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3882,7 +3882,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -3906,7 +3906,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -3977,7 +3977,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                           style={
                                             {
                                               "color": "#ffffff",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -5167,7 +5167,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -5191,7 +5191,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -5262,7 +5262,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                           style={
                                             {
                                               "color": "#ffffff",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -5908,7 +5908,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -5932,7 +5932,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -6003,7 +6003,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                           style={
                                             {
                                               "color": "#ffffff",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -6649,7 +6649,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -6673,7 +6673,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -6744,7 +6744,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                           style={
                                             {
                                               "color": "#ffffff",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,

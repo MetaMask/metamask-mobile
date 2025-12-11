@@ -155,7 +155,7 @@ exports[`QuickActionButton renders correctly with default props 1`] = `
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "fontWeight": 400,
               "letterSpacing": 0,
