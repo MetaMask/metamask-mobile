@@ -173,7 +173,6 @@ function withRequest<ReturnValue>(
       'NetworkController:getNetworkClientById',
       'TransactionController:getNonceLock',
       'TransactionController:getTransactions',
-      'TransactionController:confirmExternalTransaction',
       'TransactionController:updateTransaction',
     ],
     events: ['NetworkController:stateChange'],

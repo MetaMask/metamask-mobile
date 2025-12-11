@@ -92,6 +92,9 @@ export interface TrackingData {
   // Close-specific (used for position close operations)
   receivedAmount?: number; // Amount user receives after close (calculated by hooks)
   realizedPnl?: number; // Realized P&L from close (calculated by hooks)
+
+  // Entry source for analytics (e.g., 'trending' for Trending page discovery)
+  source?: string;
 }
 
 // TP/SL-specific tracking data for analytics events
