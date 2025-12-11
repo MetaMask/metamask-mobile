@@ -5,17 +5,21 @@ import {
   OnboardingActionTypes,
   SAVE_EVENT,
   SET_COMPLETED_ONBOARDING,
+  SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 
 export interface OnboardingState {
   events: [ITrackingEvent][];
   completedOnboarding: boolean;
+  /** Tracks which seedless onboarding migrations have been applied */
+  seedlessOnboardingMigrationVersion: number;
 }
 
 export const initialOnboardingState: OnboardingState = {
   events: [],
   completedOnboarding: false,
+  seedlessOnboardingMigrationVersion: 0,
 };
 
 /**
@@ -42,6 +46,11 @@ const onboardingReducer = (
       return {
         ...state,
         completedOnboarding: action.completedOnboarding,
+      };
+    case SET_SEEDLESS_ONBOARDING_MIGRATION_VERSION:
+      return {
+        ...state,
+        seedlessOnboardingMigrationVersion: action.version,
       };
     default:
       return state;

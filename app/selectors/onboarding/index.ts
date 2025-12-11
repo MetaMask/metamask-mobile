@@ -7,3 +7,8 @@ export const selectCompletedOnboarding = createSelector(
   selectOnboarding,
   (onboardingState) => onboardingState.completedOnboarding,
 );
+
+export const selectSeedlessOnboardingMigrationVersion = createSelector(
+  selectOnboarding,
+  (onboardingState) => onboardingState.seedlessOnboardingMigrationVersion,
+);

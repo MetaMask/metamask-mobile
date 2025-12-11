@@ -59,9 +59,18 @@ import {
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
+  EncAccountDataType,
 } from '@metamask/seedless-onboarding-controller';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import {
+  selectCompletedOnboarding,
+  selectSeedlessOnboardingMigrationVersion,
+} from '../../selectors/onboarding';
+import {
+  setSeedlessOnboardingMigrationVersion,
+  SeedlessOnboardingMigrationVersion,
+} from '../../actions/onboarding';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -642,6 +651,20 @@ class AuthenticationService {
       // eslint-disable-next-line no-void
       void this.postLoginAsyncOperations();
 
+      // Migrations for social login users (rehydration + existing user unlock).
+      // oauth2Login fallback needed: Redux state is batched, so vault isn't available yet during rehydration.
+      const isSeedlessLoginFlow = selectSeedlessOnboardingLoginFlow(
+        ReduxService.store.getState(),
+      );
+      if (isSeedlessLoginFlow || authData.oauth2Login) {
+        // eslint-disable-next-line no-void
+        void this.runSeedlessOnboardingMigrations({
+          skipOnboardingCheck: authData.oauth2Login,
+        }).catch((err) => {
+          Logger.error(err, 'Error during seedless onboarding migrations');
+        });
+      }
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -714,6 +737,14 @@ class AuthenticationService {
       // NOTE: We do not await on purpose, to run those operations in the background.
       // eslint-disable-next-line no-void
       void this.postLoginAsyncOperations();
+
+      // Migrations for existing social login users unlocking via biometrics.
+      if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+        // eslint-disable-next-line no-void
+        void this.runSeedlessOnboardingMigrations().catch((err) => {
+          Logger.error(err, 'Error during seedless onboarding migrations');
+        });
+      }
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -821,6 +852,14 @@ class AuthenticationService {
       }
 
       await this.syncKeyringEncryptionKey();
+
+      // New users already have dataType set on their secrets during creation,
+      // so we mark the migration as complete to prevent it from running
+      ReduxService.store.dispatch(
+        setSeedlessOnboardingMigrationVersion(
+          SeedlessOnboardingMigrationVersion.DataType,
+        ),
+      );
 
       this.dispatchOauthReset();
     } catch (error) {
@@ -975,6 +1014,7 @@ class AuthenticationService {
         SecretType.PrivateKey,
         {
           keyringId,
+          dataType: EncAccountDataType.ImportedPrivateKey,
         },
       );
     } else {
@@ -1293,6 +1333,100 @@ class AuthenticationService {
     await SeedlessOnboardingController.storeKeyringEncryptionKey(
       keyringEncryptionKey,
     );
+  };
+
+  /**
+   * Runs seedless onboarding migrations if needed.
+   * @param options.skipOnboardingCheck - Skip completedOnboarding check (for rehydration)
+   */
+  runSeedlessOnboardingMigrations = async ({
+    skipOnboardingCheck = false,
+  } = {}): Promise<void> => {
+    const state = ReduxService.store.getState();
+    const seedlessOnboardingMigrationVersion =
+      selectSeedlessOnboardingMigrationVersion(state);
+    const completedOnboarding = selectCompletedOnboarding(state);
+
+    if (!skipOnboardingCheck && !completedOnboarding) {
+      return;
+    }
+
+    if (
+      seedlessOnboardingMigrationVersion <
+      SeedlessOnboardingMigrationVersion.DataType
+    ) {
+      await this.migrateSeedlessDataTypes();
+    }
+  };
+
+  /**
+   * Assigns dataType to legacy secrets without one.
+   */
+  private migrateSeedlessDataTypes = async (): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+
+    try {
+      const secretDatas =
+        await SeedlessOnboardingController.fetchAllSecretData();
+
+      if (!secretDatas || secretDatas.length === 0) {
+        ReduxService.store.dispatch(
+          setSeedlessOnboardingMigrationVersion(
+            SeedlessOnboardingMigrationVersion.DataType,
+          ),
+        );
+        return;
+      }
+
+      let hasPrimarySrp = secretDatas.some(
+        (secret) => secret.dataType === EncAccountDataType.PrimarySrp,
+      );
+
+      const updates: { itemId: string; dataType: EncAccountDataType }[] = [];
+
+      for (const secret of secretDatas) {
+        if (!secret.itemId) {
+          continue;
+        }
+
+        if (secret.dataType !== undefined && secret.dataType !== null) {
+          continue;
+        }
+
+        let dataType: EncAccountDataType;
+
+        if (secret.type === SecretType.Mnemonic) {
+          if (hasPrimarySrp) {
+            dataType = EncAccountDataType.ImportedSrp;
+          } else {
+            dataType = EncAccountDataType.PrimarySrp;
+            hasPrimarySrp = true;
+          }
+        } else if (secret.type === SecretType.PrivateKey) {
+          dataType = EncAccountDataType.ImportedPrivateKey;
+        } else {
+          continue;
+        }
+
+        updates.push({ itemId: secret.itemId, dataType });
+      }
+
+      if (updates.length === 1) {
+        await SeedlessOnboardingController.updateSecretDataItem(updates[0]);
+      } else if (updates.length > 1) {
+        await SeedlessOnboardingController.batchUpdateSecretDataItems({
+          updates,
+        });
+      }
+
+      ReduxService.store.dispatch(
+        setSeedlessOnboardingMigrationVersion(
+          SeedlessOnboardingMigrationVersion.DataType,
+        ),
+      );
+    } catch (error) {
+      Logger.error(error as Error, 'Error during seedless dataType migration');
+    }
   };
 }
 

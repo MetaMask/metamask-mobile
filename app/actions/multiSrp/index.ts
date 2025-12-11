@@ -20,7 +20,10 @@ import { getTraceTags } from '../../util/sentry/tags';
 import ReduxService from '../../core/redux';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import {
+  SecretType,
+  EncAccountDataType,
+} from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
@@ -110,6 +113,7 @@ export async function importNewSecretRecoveryPhrase(
         SecretType.Mnemonic,
         {
           keyringId: newKeyring.id,
+          dataType: EncAccountDataType.ImportedSrp,
         },
       );
       addSeedPhraseSuccess = true;
