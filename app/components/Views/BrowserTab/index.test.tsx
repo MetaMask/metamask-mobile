@@ -205,7 +205,7 @@ describe('BrowserTab', () => {
       ).toBe(false);
     });
 
-    it('stops webview from loading a phishing website', async () => {
+    it('allows initial page load and checks phishing status asynchronously', async () => {
       const { getPhishingTestResultAsync } = jest.requireMock(
         '../../../util/phishingDetection',
       );
