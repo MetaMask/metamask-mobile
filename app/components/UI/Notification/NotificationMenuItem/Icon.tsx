@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { Image } from 'expo-image';
+import { BadgeIcon, IconSize } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
 import React, {
@@ -10,9 +11,6 @@ import React, {
 } from 'react';
 import useStyles from '../List/useStyles';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import METAMASK_FOX from '../../../../images/branding/fox.png';
 
@@ -62,9 +60,9 @@ function NotificationIcon(props: NotificationIconProps) {
         <BadgeWrapper
           badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
           badgeElement={
-            <Badge
-              variant={BadgeVariant.NotificationsKinds}
+            <BadgeIcon
               iconName={props.badgeIcon}
+              iconProps={{ size: IconSize.Lg }}
             />
           }
           style={styles.badgeWrapper}
@@ -86,7 +84,7 @@ function NotificationIcon(props: NotificationIconProps) {
         <View
           style={
             !props.isRead
-              ? tw`absolute -left-1 top-1/2 size-1 rounded-full bg-info-default`
+              ? tw`absolute -left-2 top-1/2 size-1 rounded-full bg-info-default`
               : undefined
           }
         />
