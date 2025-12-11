@@ -1217,23 +1217,30 @@ describe('handleUniversalLink', () => {
       expect(handled).toHaveBeenCalled();
     });
 
-    describe('whitelisted sources', () => {
-      const whitelistedSources = [
+    describe('in-app link sources', () => {
+      const inAppSources = [
         AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
         AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
-        AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
         AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+        AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
       ];
 
-      it.each(whitelistedSources)(
-        'skips interstitial modal when source is "%s" with non-whitelisted URL',
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+
+      beforeEach(() => {
+        mockSubtle.verify.mockResolvedValue(true);
+      });
+
+      it.each(inAppSources)(
+        'skips modal when source is "%s" with signed (PRIVATE) link',
         async (testSource) => {
-          const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com?sig=${validSignature}`;
           const testUrlObj = {
             ...urlObj,
             hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-            href: nonWhitelistedUrl,
+            href: signedUrl,
             pathname: `/${ACTIONS.DAPP}/example.com`,
           };
 
@@ -1242,7 +1249,7 @@ describe('handleUniversalLink', () => {
             handled,
             urlObj: testUrlObj,
             browserCallBack: mockBrowserCallBack,
-            url: nonWhitelistedUrl,
+            url: signedUrl,
             source: testSource,
           });
 
@@ -1251,34 +1258,110 @@ describe('handleUniversalLink', () => {
         },
       );
 
-      it('displays interstitial modal when source is not whitelisted and URL is not whitelisted', async () => {
-        const nonWhitelistedSource = 'external-browser';
-        const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
-        const testUrlObj = {
-          ...urlObj,
-          hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-          href: nonWhitelistedUrl,
-          pathname: `/${ACTIONS.DAPP}/example.com`,
-        };
+      it.each(inAppSources)(
+        'displays "Proceed with caution" modal when source is "%s" with unsigned (PUBLIC) link',
+        async (testSource) => {
+          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: unsignedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
 
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj: testUrlObj,
-          browserCallBack: mockBrowserCallBack,
-          url: nonWhitelistedUrl,
-          source: nonWhitelistedSource,
-        });
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: unsignedUrl,
+            source: testSource,
+          });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
-        expect(handled).toHaveBeenCalled();
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+    });
+
+    describe('external sources show modal regardless of signature status', () => {
+      const sourcesRequiringModal = [AppConstants.DEEPLINKS.ORIGIN_DEEPLINK];
+
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+
+      beforeEach(() => {
+        mockSubtle.verify.mockResolvedValue(true);
       });
 
+      it.each(sourcesRequiringModal)(
+        'displays "Redirecting you to MetaMask" modal when source is "%s" with signed (PRIVATE) link',
+        async (testSource) => {
+          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com?sig=${validSignature}`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: signedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: signedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PRIVATE,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+
+      it.each(sourcesRequiringModal)(
+        'displays "Proceed with caution" modal when source is "%s" with unsigned (PUBLIC) link',
+        async (testSource) => {
+          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: unsignedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: unsignedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+    });
+
+    describe('sources not in inAppLinkSources', () => {
       it('skips interstitial modal when URL is whitelisted even with non-whitelisted source', async () => {
         const nonWhitelistedSource = 'external-browser';
         const whitelistedUrl =

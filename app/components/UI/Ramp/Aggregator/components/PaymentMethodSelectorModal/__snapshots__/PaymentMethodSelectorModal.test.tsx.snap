@@ -466,7 +466,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -554,9 +554,8 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -661,7 +660,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -676,7 +675,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#4459ff",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -739,7 +738,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 22,
@@ -776,7 +775,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -790,7 +789,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -804,7 +803,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -838,9 +837,8 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -943,7 +941,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -958,7 +956,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#4459ff",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1021,7 +1019,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 22,
@@ -1058,7 +1056,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1072,7 +1070,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1086,7 +1084,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1116,7 +1114,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
@@ -1611,7 +1609,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1699,9 +1697,8 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -1806,7 +1803,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1821,7 +1818,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#4459ff",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1884,7 +1881,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 22,
@@ -1921,7 +1918,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1935,7 +1932,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1949,7 +1946,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1983,9 +1980,8 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -2088,7 +2084,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2103,7 +2099,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#4459ff",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2166,7 +2162,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 22,
@@ -2203,7 +2199,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2217,7 +2213,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2231,7 +2227,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2261,7 +2257,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
@@ -2756,7 +2752,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2844,9 +2840,8 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -2949,7 +2944,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2964,7 +2959,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#4459ff",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3027,7 +3022,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 22,
@@ -3064,7 +3059,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3078,7 +3073,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3092,7 +3087,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3126,9 +3121,8 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                       style={
                                         [
                                           {
-                                            "borderColor": "#b7bbc8",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "borderRadius": 8,
-                                            "borderWidth": 1.5,
                                             "padding": 16,
                                           },
                                           undefined,
@@ -3233,7 +3227,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3248,7 +3242,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#4459ff",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3311,7 +3305,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 22,
@@ -3348,7 +3342,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3362,7 +3356,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3376,7 +3370,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               style={
                                                 {
                                                   "color": "#b7bbc8",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
