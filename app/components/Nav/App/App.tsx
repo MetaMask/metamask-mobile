@@ -143,6 +143,7 @@ import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import Pna25BottomSheet from '../../Views/Pna25BottomSheet';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
 import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
@@ -588,6 +589,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
       component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET}
+      component={Pna25BottomSheet}
     />
     <Stack.Screen
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}

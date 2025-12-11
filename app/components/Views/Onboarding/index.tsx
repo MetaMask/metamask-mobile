@@ -940,7 +940,9 @@ const Onboarding = () => {
 
         <FadeOutOverlay />
 
-        <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+        {!isE2E && (
+          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+        )}
 
         <View>{handleSimpleNotification()}</View>
 
