@@ -9549,9 +9549,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:62.6.0, @metamask/transaction-controller@npm:^62.4.0, @metamask/transaction-controller@npm:^62.5.0":
-  version: 62.6.0
-  resolution: "@metamask/transaction-controller@npm:62.6.0"
+"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@62.6.0-preview-d2037635":
+  version: 62.6.0-preview-d2037635
+  resolution: "@metamask-previews/transaction-controller@npm:62.6.0-preview-d2037635"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -9583,7 +9583,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/d02731b018ee575dd9a8ca3529f9296cda51e9bf939628c7846c37a4cc024fdf41960393489c203c30c09730c68016be2c98619fcd60aaa3f24db7921069fc00
+  checksum: 10/a8f6d5795100dfdbf827290de8259d966ea59788a74b58279e97708c24280a46634d558cab6582388b4d2202526b7e7cf1ba07235bac4203e2419fa96d51176b
   languageName: node
   linkType: hard
 
@@ -9625,9 +9625,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A62.6.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch":
+"@metamask/transaction-controller@npm:^62.4.0, @metamask/transaction-controller@npm:^62.5.0, @metamask/transaction-controller@npm:^62.6.0":
   version: 62.6.0
-  resolution: "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A62.6.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch::version=62.6.0&hash=1a3342"
+  resolution: "@metamask/transaction-controller@npm:62.6.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -9659,7 +9659,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/b75b4a26082fb59a5a58bc8761471961d5ebab4529020005030ef28010c1dac6f6ba893c6777b66c85d8dd096625ff379515656166ffce619156fa52d8a8bc5b
+  checksum: 10/d02731b018ee575dd9a8ca3529f9296cda51e9bf939628c7846c37a4cc024fdf41960393489c203c30c09730c68016be2c98619fcd60aaa3f24db7921069fc00
   languageName: node
   linkType: hard
 
@@ -34319,7 +34319,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
-    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.6.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
+    "@metamask/transaction-controller": "npm:@metamask-previews/transaction-controller@62.6.0-preview-d2037635"
     "@metamask/transaction-pay-controller": "npm:^10.5.0"
     "@metamask/tron-wallet-snap": "npm:^1.16.0"
     "@metamask/utils": "npm:^11.8.1"
