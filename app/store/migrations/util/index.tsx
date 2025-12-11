@@ -109,18 +109,13 @@ export function addFailoverUrlToNetworkConfiguration(
   quickNodeEnvVar: string,
 ): unknown {
   try {
-    // Validate if the NetworkController state exists and has the expected structure.
-    if (!isObject(state)) {
+    // Validate basic state structure using shared utility
+    if (!ensureValidState(state, migrationVersion)) {
       return state;
     }
 
-    if (
-      !hasProperty(state, 'engine') ||
-      !isObject(state.engine) ||
-      !hasProperty(state.engine, 'backgroundState') ||
-      !isObject(state.engine.backgroundState) ||
-      !hasProperty(state.engine.backgroundState, 'NetworkController')
-    ) {
+    // Validate NetworkController-specific structure
+    if (!hasProperty(state.engine.backgroundState, 'NetworkController')) {
       captureException(
         new Error(
           `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
