@@ -171,10 +171,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       }
     }, [longPressedCollectible]);
 
-    const handleLongPress = useCallback((nft: Nft) => {
-      setLongPressedCollectible(nft);
-    }, []);
-
     const goToAddCollectible = useCallback(() => {
       setIsAddNFTEnabled(false);
       navigation.push('AddAsset', { assetType: 'collectible' });
@@ -183,6 +179,10 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       );
       setIsAddNFTEnabled(true);
     }, [navigation, trackEvent, createEventBuilder]);
+
+    const handleLongPress = useCallback((nft: Nft) => {
+      setLongPressedCollectible(nft);
+    }, []);
 
     const handleViewAllNfts = useCallback(() => {
       trackEvent(
