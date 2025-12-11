@@ -120,6 +120,27 @@ const TRON_STAKING_COPY: Record<
   },
 };
 
+/**
+ * Maps known TRON error codes to localization keys.
+ * Falls back to the raw error message for unrecognized errors.
+ */
+const TRON_ERROR_LOCALIZATION_KEYS: Record<string, string> = {
+  InsufficientBalance: 'stake.tron.errors.insufficient_balance',
+};
+
+export const getLocalizedErrorMessage = (errors?: string[]): string => {
+  if (!errors || errors.length === 0) {
+    return '';
+  }
+
+  const localizedMessages = errors.map((error) => {
+    const localizationKey = TRON_ERROR_LOCALIZATION_KEYS[error];
+    return localizationKey ? strings(localizationKey) : error;
+  });
+
+  return localizedMessages.join('\n');
+};
+
 export const handleTronStakingNavigationResult = (
   navigation: NavigationProp<ParamListBase>,
   result: TronStakingNavigationResult,
@@ -145,7 +166,7 @@ export const handleTronStakingNavigationResult = (
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings(copy.errorTitleKey),
-        description: result?.errors?.join('\n') ?? '',
+        description: getLocalizedErrorMessage(result?.errors),
         type: 'error',
       },
     });
