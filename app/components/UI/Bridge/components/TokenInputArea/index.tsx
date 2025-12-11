@@ -286,7 +286,7 @@ export const TokenInputArea = forwardRef<
     nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
-    const displayCurrencyValue = getDisplayCurrencyValue({
+    const currencyValue = getDisplayCurrencyValue({
       token,
       amount,
       evmMultiChainMarketData,
@@ -396,13 +396,8 @@ export const TokenInputArea = forwardRef<
             ) : (
               <>
                 <Box style={styles.currencyContainer}>
-                  {token &&
-                  amount &&
-                  Number(amount) > 0 &&
-                  displayCurrencyValue ? (
-                    <Text color={TextColor.Alternative}>
-                      {displayCurrencyValue}
-                    </Text>
+                  {token && amount && Number(amount) > 0 && currencyValue ? (
+                    <Text color={TextColor.Alternative}>{currencyValue}</Text>
                   ) : null}
                 </Box>
                 <Box
