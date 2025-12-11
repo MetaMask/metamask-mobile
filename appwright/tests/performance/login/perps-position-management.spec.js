@@ -52,7 +52,7 @@ test('Perps open position and close it', async ({
     'Select Perps Main Screen',
   );
   const skipTutorialTimer = new TimerHelper('Skip Tutorial');
-  const selectMarketTimer = new TimerHelper('Select Market ETH');
+  const selectMarketTimer = new TimerHelper('Select Market BTC');
   const openPositionTimer = new TimerHelper('Open Long Position');
   const setLeverageTimer = new TimerHelper('Set Leverage');
   const closePositionTimer = new TimerHelper('Close Position');

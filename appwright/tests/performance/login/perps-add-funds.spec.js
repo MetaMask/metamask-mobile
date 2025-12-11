@@ -60,7 +60,7 @@ test('Perps add funds', async ({ device, performanceTracker }, testInfo) => {
   // Get quote
   getQuoteTimer.start();
   await PerpsDepositScreen.fillUsdAmount(5);
-  await PerpsDepositScreen.isAddFundsVisible({ timeout: 5000 });
+  await PerpsDepositScreen.isAddFundsVisible();
   await PerpsDepositScreen.isTotalVisible();
   getQuoteTimer.stop();
   performanceTracker.addTimer(getQuoteTimer);

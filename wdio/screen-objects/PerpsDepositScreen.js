@@ -87,14 +87,14 @@ class PerpsDepositScreen {
     await expect(transactionFee).toBeVisible();
   }
 
-  async isAddFundsVisible(options = { timeout: 15000 }) {
+  async isAddFundsVisible() {
     const addFunds = await this.addFundsButton;
-    return await addFunds.isVisible(options);
+    await expect(addFunds).toBeVisible();
   }
 
   async isTotalVisible() {
     const total = await AppwrightSelectors.getElementByText(this._device, 'Total');
-    expect(total).toBeVisible();
+    await expect(total).toBeVisible();
   }
 }
 
