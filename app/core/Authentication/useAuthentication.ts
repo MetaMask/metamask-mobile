@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
+import Authentication from './';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
-import Authentication from './Authentication';
 
 /**
  * Custom hook to manage authentication features.
