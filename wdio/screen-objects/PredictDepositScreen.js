@@ -1,5 +1,6 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import { expect as appwrightExpect } from 'appwright';
 
 class PredictDepositScreen {
   get device() {
@@ -80,15 +81,31 @@ class PredictDepositScreen {
   async fillUsdAmount(amount) {
     // Tap on the amount display to activate it
     await AppwrightGestures.tap(this.amountInput);
-    
-    // Type the amount using the keypad
+
+    // Type the amount using the keypad with platform-specific selectors
     const amountString = String(amount);
     for (const digit of amountString) {
-      const keypadButton = await AppwrightSelectors.getElementByCatchAll(
-        this._device,
-        digit,
-      );
-      await AppwrightGestures.tap(keypadButton);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        // Android: Use content-desc for number buttons, text for decimal point
+        const xpath =
+          digit === '.'
+            ? `//android.view.View[@text="."]`
+            : `//android.widget.Button[@content-desc='${digit}']`;
+        const keypadButton = await AppwrightSelectors.getElementByXpath(
+          this._device,
+          xpath,
+        );
+        await appwrightExpect(keypadButton).toBeVisible({ timeout: 15000 });
+        await AppwrightGestures.tap(keypadButton);
+      } else {
+        // iOS: Use XCUIElementTypeButton with name attribute
+        const keypadButton = await AppwrightSelectors.getElementByXpath(
+          this._device,
+          `//XCUIElementTypeButton[@name="${digit}"]`,
+        );
+        await appwrightExpect(keypadButton).toBeVisible({ timeout: 15000 });
+        await AppwrightGestures.tap(keypadButton);
+      }
     }
   }
 
