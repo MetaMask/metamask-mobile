@@ -158,9 +158,12 @@ const useFeedScrollManager = ({
   const tabKeyToScrollPosition = useRef<Record<string, number>>({});
 
   // Measure heights using useLayoutEffect
+  // Retry mechanism ensures we get measurements even if initial render hasn't completed
   useLayoutEffect(() => {
     let headerMeasured = false;
     let tabBarMeasured = false;
+    let retryCount = 0;
+    const maxRetries = 10;
 
     const checkLayoutReady = () => {
       if (headerMeasured && tabBarMeasured && !layoutReady) {
@@ -190,8 +193,15 @@ const useFeedScrollManager = ({
           }
         });
       }
+
+      // Retry if measurements failed and we haven't exceeded max retries
+      if ((!headerMeasured || !tabBarMeasured) && retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(measureHeights, 50);
+      }
     };
 
+    // Initial measurement attempt
     const timeoutId = setTimeout(measureHeights, 50);
     return () => clearTimeout(timeoutId);
   }, [headerRef, tabBarRef, layoutReady, sharedHeaderHeight, sharedTabBarHeight]);
@@ -328,21 +338,32 @@ const useFeedScrollManager = ({
 };
 
 // =============================================================================
-// ANIMATED WRAPPERS (handle positioning/transforms)
+// ANIMATED HEADER (handles scroll-driven positioning)
 // =============================================================================
 
 interface AnimatedHeaderProps {
   headerTranslateY: SharedValue<number>;
-  children: React.ReactNode;
+  headerRef: React.RefObject<View>;
+  tabBarRef: React.RefObject<View>;
+  tabs: FeedTab[];
+  activeIndex: number;
+  onTabPress: (index: number) => void;
 }
 
 /**
- * Animated wrapper that handles header positioning.
- * Translates on Y axis based on headerTranslateY value.
+ * Animated header containing both balance and tab bar.
+ * The balance section scrolls away while tab bar pins to top.
+ *
+ * Animation: Container translates from 0 to -headerHeight (balance height).
+ * When fully translated, balance is hidden above viewport, tab bar is at y=0.
  */
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   headerTranslateY,
-  children,
+  headerRef,
+  tabBarRef,
+  tabs,
+  activeIndex,
+  onTabPress,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -359,46 +380,16 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         animatedStyle,
       ]}
     >
-      {children}
-    </Animated.View>
-  );
-};
-
-interface AnimatedTabBarProps {
-  headerTranslateY: SharedValue<number>;
-  headerHeight: number;
-  children: React.ReactNode;
-}
-
-/**
- * Animated wrapper that handles tab bar positioning.
- * Starts below header and pins to top when header is hidden.
- */
-const AnimatedTabBar: React.FC<AnimatedTabBarProps> = ({
-  headerTranslateY,
-  headerHeight,
-  children,
-}) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
-
-  // TabBar position = headerHeight + headerTranslateY
-  // When header visible (translateY=0): top = headerHeight
-  // When header hidden (translateY=-headerHeight): top = 0
-  // Subtract 1px to overlap with header and prevent any sub-pixel gaps
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: headerHeight + headerTranslateY.value - 1 }],
-  }));
-
-  return (
-    <Animated.View
-      style={[
-        tw.style('absolute top-0 left-0 right-0 z-10'),
-        { backgroundColor: colors.background.default },
-        animatedStyle,
-      ]}
-    >
-      {children}
+      <View ref={headerRef}>
+        <PredictFeedHeader />
+      </View>
+      <View ref={tabBarRef}>
+        <PredictFeedTabBar
+          tabs={tabs}
+          activeIndex={activeIndex}
+          onTabPress={onTabPress}
+        />
+      </View>
     </Animated.View>
   );
 };
@@ -483,7 +474,7 @@ const PredictFeedTopNav: React.FC<PredictFeedTopNavProps> = ({
  * Has no knowledge of animation or positioning.
  */
 const PredictFeedHeader: React.FC = () => (
-  <Box twClassName="py-8">
+  <Box twClassName="py-4">
     <PredictBalance />
   </Box>
 );
@@ -1081,54 +1072,30 @@ const PredictFeed: React.FC = () => {
       </Box>
 
       <Box twClassName="flex-1 relative">
-        {layoutReady ? (
-          <>
-            {/* Header - Animated wrapper around pure UI */}
-            <AnimatedHeader headerTranslateY={headerTranslateY}>
-              <PredictFeedHeader />
-            </AnimatedHeader>
+        {/* Animated Header - Contains balance and tab bar */}
+        <AnimatedHeader
+          headerTranslateY={headerTranslateY}
+          headerRef={headerRef}
+          tabBarRef={tabBarRef}
+          tabs={TABS}
+          activeIndex={activeIndex}
+          onTabPress={setActiveIndex}
+        />
 
-            {/* Tab Bar - Animated wrapper around pure UI */}
-            <AnimatedTabBar
-              headerTranslateY={headerTranslateY}
-              headerHeight={headerHeight}
-            >
-              <PredictFeedTabBar
-                tabs={TABS}
-                activeIndex={activeIndex}
-                onTabPress={setActiveIndex}
-              />
-            </AnimatedTabBar>
-
-            {/* Tab Content - Takes remaining space */}
-            <PredictFeedTabs
-              activeIndex={activeIndex}
-              scrollHandler={scrollHandler}
-              headerHeight={headerHeight}
-              tabBarHeight={tabBarHeight}
-              headerTranslateY={headerTranslateY}
-              trackRef={trackRef}
-              onScrollEnd={onScrollEnd}
-              updateTabScrollPosition={updateTabScrollPosition}
-              getTabScrollPosition={getTabScrollPosition}
-              getCurrentHeaderOffset={getCurrentHeaderOffset}
-            />
-          </>
-        ) : (
-          // Measurement phase - render in normal flow to measure heights
-          // Using View for refs since Box might not support .measure()
-          <Box>
-            <View ref={headerRef}>
-              <PredictFeedHeader />
-            </View>
-            <View ref={tabBarRef}>
-              <PredictFeedTabBar
-                tabs={TABS}
-                activeIndex={activeIndex}
-                onTabPress={setActiveIndex}
-              />
-            </View>
-          </Box>
+        {/* Tab Content - Takes remaining space, only render when layout is ready */}
+        {layoutReady && (
+          <PredictFeedTabs
+            activeIndex={activeIndex}
+            scrollHandler={scrollHandler}
+            headerHeight={headerHeight}
+            tabBarHeight={tabBarHeight}
+            headerTranslateY={headerTranslateY}
+            trackRef={trackRef}
+            onScrollEnd={onScrollEnd}
+            updateTabScrollPosition={updateTabScrollPosition}
+            getTabScrollPosition={getTabScrollPosition}
+            getCurrentHeaderOffset={getCurrentHeaderOffset}
+          />
         )}
       </Box>
 
