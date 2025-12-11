@@ -360,7 +360,7 @@ engine.controllerMessenger.subscribeOnceIf(
 | **updateBatcher**                 | Efficient batched Redux updates                        | `EngineService.updateBatcher` |
 | **setupPersistenceSubscriptions** | Early subscription setup (before init)                 | `EngineService` method        |
 
-### **Critical Innovation: Early Messenger Subscription** ⭐
+### **Critical: Early Messenger Subscription** ⭐
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
