@@ -1,5 +1,4 @@
 import { test } from '../../../../fixtures/performance-test.js';
-import TimerHelper from '../../../../utils/TimersHelper.js';
 import WelcomeScreen from '../../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -60,13 +59,10 @@ test('Cold Start after importing a wallet', async ({
     dismissModals: false,
   }); // Skip intro screens on second login
 
-  const timer1 = new TimerHelper(
+  const timer1 = await WalletMainScreen.isMenuButtonVisible();
+  timer1.changeName(
     'Time since the user clicks on unlock button, until the app unlocks',
   );
-
-  timer1.start();
-  await WalletActionModal.isSendButtonVisible();
-  timer1.stop();
 
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
