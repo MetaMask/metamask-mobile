@@ -6,9 +6,9 @@
 # JVM MEMORY CONFIGURATION - Tuned for 48GB runner
 # ============================================================================
 # Heap: 12GB to leave room for Node.js and native memory
-# Metaspace: 512MB (sufficient for React Native builds)
-# G1GC: Optimized for low-latency with aggressive GC to prevent OOM
-org.gradle.jvmargs=-Xmx12g -Xms4g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=200 -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/gradle-heap-dump.hprof -Dfile.encoding=UTF-8
+# Metaspace: 1GB (sufficient for React Native native libraries)
+# G1GC: MaxGCPauseMillis=500 balances throughput vs latency (200ms was too aggressive)
+org.gradle.jvmargs=-Xmx12g -Xms4g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=500 -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/gradle-heap-dump.hprof -Dfile.encoding=UTF-8
 
 # ============================================================================
 # PARALLELISM - Reduced to prevent memory contention
