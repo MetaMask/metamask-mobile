@@ -585,6 +585,9 @@ enum EVENT_NAME {
   PREDICT_GEO_BLOCKED_TRIGGERED = 'Geo Blocked Triggered',
   PREDICT_FEED_VIEWED = 'Predict Feed Viewed',
 
+  // Trending
+  TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
+
   // Share
   SHARE_ACTION = 'Share Action',
 
@@ -1514,6 +1517,8 @@ const events = {
     EVENT_NAME.PREDICT_GEO_BLOCKED_TRIGGERED,
   ),
   PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
+
+  TRENDING_FEED_VIEWED: generateOpt(EVENT_NAME.TRENDING_FEED_VIEWED),
 
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),

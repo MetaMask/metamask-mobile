@@ -45,6 +45,16 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
 }));
 
+// Mock TrendingFeedSessionManager
+jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      isFromTrending: false,
+    }),
+  },
+}));
+
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
 
