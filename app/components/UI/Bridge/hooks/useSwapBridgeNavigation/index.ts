@@ -24,6 +24,7 @@ import {
   selectIsBridgeEnabledSourceFactory,
   setSourceToken,
   setDestToken,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
@@ -126,6 +127,11 @@ export const useSwapBridgeNavigation = ({
         // fallback to ETH on mainnet
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
       }
+
+      // Reset the manual dest token flag on navigation so auto-update works correctly
+      // This ensures if user previously manually set dest, then closed and reopened the app,
+      // changing source token will still auto-update the dest token
+      dispatch(setIsDestTokenManuallySet(false));
 
       // Pre-populate Redux state before navigation to prevent empty button flash
       dispatch(setSourceToken(sourceToken));
