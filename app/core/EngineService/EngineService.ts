@@ -240,13 +240,13 @@ export class EngineService {
             // @ts-expect-error - Engine context has stateless controllers
             const currentState = UntypedEngine.context[controllerName]?.state;
             const initialControllerState = initialState[controllerName];
+            const filteredState = getPersistentState(
+              currentState,
+              controllerMetadata,
+            );
 
-            if (currentState !== initialControllerState) {
+            if (initialControllerState && Object.keys(initialControllerState).every((key) => initialControllerState[key] === filteredState[key])) {
               try {
-                const filteredState = getPersistentState(
-                  currentState,
-                  controllerMetadata,
-                );
                 // Reuse the same debounced function for consistency
                 persistController(filteredState, controllerName);
                 Logger.log(
