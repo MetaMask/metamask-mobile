@@ -74,7 +74,7 @@ exports[`SnapUIAddress renders Bitcoin address 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -178,7 +178,7 @@ exports[`SnapUIAddress renders Bitcoin address with blockie 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -273,7 +273,7 @@ exports[`SnapUIAddress renders Cosmos address 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -377,7 +377,7 @@ exports[`SnapUIAddress renders Cosmos address with blockie 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -472,7 +472,7 @@ exports[`SnapUIAddress renders Ethereum address 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -576,7 +576,7 @@ exports[`SnapUIAddress renders Ethereum address with blockie 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -671,7 +671,7 @@ exports[`SnapUIAddress renders Hedera address 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -775,7 +775,7 @@ exports[`SnapUIAddress renders Hedera address with blockie 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -870,7 +870,7 @@ exports[`SnapUIAddress renders Polkadot address 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -974,7 +974,7 @@ exports[`SnapUIAddress renders Polkadot address with blockie 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1069,7 +1069,7 @@ exports[`SnapUIAddress renders Starknet address 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1173,7 +1173,7 @@ exports[`SnapUIAddress renders Starknet address with blockie 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1268,7 +1268,7 @@ exports[`SnapUIAddress renders legacy Ethereum address 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,

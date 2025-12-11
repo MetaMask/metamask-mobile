@@ -33,6 +33,7 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
+import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import {
   useFeatureFlag,
   FeatureFlagNames,
@@ -260,9 +261,7 @@ export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
-  const isPredictEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
   const isMusdHoldingEnabled = useFeatureFlag(
     FeatureFlagNames.rewardsEnableMusdHolding,

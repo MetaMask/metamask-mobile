@@ -191,7 +191,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
