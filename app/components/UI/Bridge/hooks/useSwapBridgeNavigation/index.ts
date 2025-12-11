@@ -24,6 +24,7 @@ import {
   selectIsBridgeEnabledSourceFactory,
   setSourceToken,
   setDestToken,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
@@ -33,6 +34,7 @@ import {
   getDefaultDestToken,
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -127,6 +129,11 @@ export const useSwapBridgeNavigation = ({
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
       }
 
+      // Reset the manual dest token flag on navigation so auto-update works correctly
+      // This ensures if user previously manually set dest, then closed and reopened the app,
+      // changing source token will still auto-update the dest token
+      dispatch(setIsDestTokenManuallySet(false));
+
       // Pre-populate Redux state before navigation to prevent empty button flash
       dispatch(setSourceToken(sourceToken));
 
@@ -169,14 +176,21 @@ export const useSwapBridgeNavigation = ({
           ? ActionLocation.NAVBAR
           : ActionLocation.ASSET_DETAILS,
       });
+      // Check if user is in an active trending session for analytics
+      const isFromTrending =
+        TrendingFeedSessionManager.getInstance().isFromTrending;
+
+      const swapEventProperties = {
+        location,
+        chain_id_source: getDecimalChainId(sourceToken.chainId),
+        token_symbol_source: sourceToken?.symbol,
+        token_address_source: sourceToken?.address,
+        from_trending: isFromTrending,
+      };
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-          .addProperties({
-            location,
-            chain_id_source: getDecimalChainId(sourceToken.chainId),
-            token_symbol_source: sourceToken?.symbol,
-            token_address_source: sourceToken?.address,
-          })
+          .addProperties(swapEventProperties)
           .build(),
       );
       trace({

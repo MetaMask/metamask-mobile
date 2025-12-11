@@ -70,7 +70,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
               },
@@ -144,7 +144,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
             }
           }
         >
@@ -165,7 +165,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "paddingHorizontal": 16,
               "paddingVertical": 12,
             }
@@ -177,7 +177,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
           style={
             {
               "color": "#ca3542",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "marginTop": 0,
               "paddingBottom": 8,
             }
@@ -225,7 +225,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

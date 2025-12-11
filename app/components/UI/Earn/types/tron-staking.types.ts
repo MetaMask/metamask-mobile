@@ -54,3 +54,13 @@ export type ComputeFeeResult = {
     fungible: true;
   };
 }[];
+
+export interface ComputeStakeFeeParams {
+  fromAccountId: string;
+  value: string;
+  options: {
+    purpose: TronResourceType.ENERGY | TronResourceType.BANDWIDTH;
+  };
+}
+
+export type ComputeStakeFeeResult = ComputeFeeResult;

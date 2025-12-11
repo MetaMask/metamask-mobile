@@ -81,7 +81,8 @@ enum EVENT_NAME {
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
-  NETWORK_ADDED = 'Network Added',
+  RPC_ADDED = 'RPC Added',
+  RPC_REMOVED = 'RPC Removed',
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
@@ -304,7 +305,7 @@ enum EVENT_NAME {
   SEND_FLOW = 'Send Flow',
   SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
-  TOAST_DISPLAYED = 'Toast Displayed',
+  NOTICE_UPDATE_DISPLAYED = 'Notice Update Displayed',
 
   // Send Flow
   SEND_ASSET_SELECTED = 'Send Asset Selected',
@@ -584,6 +585,9 @@ enum EVENT_NAME {
   PREDICT_GEO_BLOCKED_TRIGGERED = 'Geo Blocked Triggered',
   PREDICT_FEED_VIEWED = 'Predict Feed Viewed',
 
+  // Trending
+  TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
+
   // Share
   SHARE_ACTION = 'Share Action',
 
@@ -714,7 +718,8 @@ const events = {
   VIEW_ALL_ASSETS_CLICKED: generateOpt(EVENT_NAME.VIEW_ALL_ASSETS_CLICKED),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
-  NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
+  RPC_ADDED: generateOpt(EVENT_NAME.RPC_ADDED),
+  RPC_REMOVED: generateOpt(EVENT_NAME.RPC_REMOVED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
   NETWORK_REQUEST_REJECTED: generateOpt(EVENT_NAME.NETWORK_REQUEST_REJECTED),
   SEND_TRANSACTION_STARTED: generateOpt(EVENT_NAME.SEND_TRANSACTION_STARTED),
@@ -1513,6 +1518,8 @@ const events = {
   ),
   PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
 
+  TRENDING_FEED_VIEWED: generateOpt(EVENT_NAME.TRENDING_FEED_VIEWED),
+
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
 
@@ -1520,8 +1527,8 @@ const events = {
   QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
   QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
 
-  // Toast
-  TOAST_DISPLAYED: generateOpt(EVENT_NAME.TOAST_DISPLAYED),
+  // Privacy Notice
+  NOTICE_UPDATE_DISPLAYED: generateOpt(EVENT_NAME.NOTICE_UPDATE_DISPLAYED),
 };
 
 /**
