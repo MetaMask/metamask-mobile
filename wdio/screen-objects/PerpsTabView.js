@@ -1,5 +1,6 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import { expect as appwrightExpect } from 'appwright';
 
 class PerpsTabView {
 
@@ -42,7 +43,7 @@ class PerpsTabView {
 
   async tapOnboardingButton() {
     const button = await this.onboardingButton;
-    await button.isVisible({ timeout: 5000 });
+    await appwrightExpect(button).toBeVisible({ timeout: 5000 });
     await AppwrightGestures.tap(this.onboardingButton); // Use static tap method with retry logic
   }
 }

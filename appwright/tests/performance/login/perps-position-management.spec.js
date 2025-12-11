@@ -53,6 +53,7 @@ test('Perps open position and close it', async ({
   );
   const skipTutorialTimer = new TimerHelper('Skip Tutorial');
   const selectMarketTimer = new TimerHelper('Select Market BTC');
+  const openOrderScreenTimer = new TimerHelper('Open Order Screen');
   const openPositionTimer = new TimerHelper('Open Long Position');
   const setLeverageTimer = new TimerHelper('Set Leverage');
   const closePositionTimer = new TimerHelper('Close Position');
@@ -84,14 +85,18 @@ test('Perps open position and close it', async ({
   }
 
   // Open Position
-  openPositionTimer.start();
+  openOrderScreenTimer.start();
   await PerpsMarketDetailsView.tapLongButton();
+  openOrderScreenTimer.stop();
+  performanceTracker.addTimer(openOrderScreenTimer);
+
   // Set leverage to 40x
   setLeverageTimer.start();
   await PerpsOrderView.setLeverage(40);
   setLeverageTimer.stop();
   performanceTracker.addTimer(setLeverageTimer);
 
+  openPositionTimer.start();
   await PerpsOrderView.tapPlaceOrder();
   openPositionTimer.stop();
   performanceTracker.addTimer(openPositionTimer);

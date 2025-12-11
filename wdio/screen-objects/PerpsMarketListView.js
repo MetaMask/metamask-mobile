@@ -1,5 +1,6 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import { expect as appwrightExpect } from 'appwright';
 
 class PerpsMarketListView {
 
@@ -22,7 +23,7 @@ class PerpsMarketListView {
 
   async isHeaderVisible() { 
     const header = await this.listHeader;
-    await header.isVisible({ timeout: 10000 });
+    await appwrightExpect(header).toBeVisible({ timeout: 10000 });
   }
 
   async tapBackButtonMarketList() {

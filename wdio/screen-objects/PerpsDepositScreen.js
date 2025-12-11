@@ -1,7 +1,7 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import AmountScreen from './AmountScreen';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 
 class PerpsDepositScreen {
 
@@ -47,7 +47,7 @@ class PerpsDepositScreen {
 
   async isAmountInputVisible() {
     const input = await this.amountInput;
-    await expect(input).toBeVisible();
+    await appwrightExpect(input).toBeVisible();
   }
 
   async selectPayTokenByText(token) {
@@ -79,17 +79,17 @@ class PerpsDepositScreen {
 
   async checkTransactionFeeIsVisible() {
     const transactionFee = await AppwrightSelectors.getElementByID(this._device, 'bridge-fee-row');
-    await expect(transactionFee).toBeVisible();
+    await appwrightExpect(transactionFee).toBeVisible();
   }
 
   async isAddFundsVisible() {
     const addFunds = await this.addFundsButton;
-    await expect(addFunds).toBeVisible();
+    await appwrightExpect(addFunds).toBeVisible();
   }
 
   async isTotalVisible() {
     const total = await AppwrightSelectors.getElementByText(this._device, 'Total');
-    await expect(total).toBeVisible();
+    await appwrightExpect(total).toBeVisible();
   }
 }
 
