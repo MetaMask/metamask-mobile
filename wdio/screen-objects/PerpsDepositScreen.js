@@ -61,11 +61,6 @@ class PerpsDepositScreen {
     await AmountScreen.tapOnNextButton();
   }
 
-  async tapBackspace() {
-    AmountScreen.device = this._device;
-    await AmountScreen.tapBackspace();
-  }
-
   async tapPayWith() {
     await AppwrightGestures.tap(this.payWithButton); // Use static tap method with retry logic
   }

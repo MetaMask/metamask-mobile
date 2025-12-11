@@ -33,24 +33,22 @@ class PerpsPositionDetailsView {
   }
 
   async closePositionWithRetry() {
-    let isClosed = false;
     for (let i = 0; i < 5; i++) {
-      if (await this.isPositionOpen()) {
-        try {
-          await this.tapClosePositionButton();
-          await this.device.waitForTimeout(3000);
-          console.log(`Retry closing position attempt ${i + 1} successful`);
-        } catch (error) {
-          console.log(`Retry closing position attempt ${i + 1} failed:`, error);
-          throw error;
-        }
+      if (!(await this.isPositionOpen())) {
+        return;
       }
-      else {
-        isClosed = true;
-        break;
+
+      try {
+        await this.tapClosePositionButton();
+        await this.device.waitForTimeout(3000);
+        console.log(`Retry closing position attempt ${i + 1} successful`);
+      } catch (error) {
+        console.log(`Retry closing position attempt ${i + 1} failed:`, error);
+        throw error;
       }
     }
-    if (!isClosed) {
+
+    if (await this.isPositionOpen()) {
       throw new Error('Failed to close position');
     }
   }  
