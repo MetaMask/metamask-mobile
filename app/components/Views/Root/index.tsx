@@ -14,7 +14,6 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
-
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
