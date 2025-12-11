@@ -9,7 +9,7 @@ import { IconName } from '@metamask/design-system-react-native';
 // Internal dependencies.
 import HeaderCenter from './HeaderCenter';
 import { HeaderCenterTestIds } from './HeaderCenter.constants';
-import { HeaderBaseTestIds } from '../HeaderBase/HeaderBase.constants';
+import { HeaderBaseTestIds } from '../../components/HeaderBase';
 
 describe('HeaderCenter', () => {
   beforeEach(() => {

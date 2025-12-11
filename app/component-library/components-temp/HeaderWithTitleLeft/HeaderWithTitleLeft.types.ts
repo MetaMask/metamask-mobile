@@ -5,13 +5,14 @@ import { ReactNode } from 'react';
 import { ButtonIconProps } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import { HeaderBaseProps } from '../HeaderBase/HeaderBase.types';
+import { HeaderBaseProps } from '../../components/HeaderBase';
 import { TitleLeftProps } from '../TitleLeft/TitleLeft.types';
 
 /**
  * HeaderWithTitleLeft component props.
  */
-export interface HeaderWithTitleLeftProps extends Omit<HeaderBaseProps, 'children'> {
+export interface HeaderWithTitleLeftProps
+  extends Omit<HeaderBaseProps, 'children'> {
   /**
    * Callback when the back button is pressed.
    * If provided, a back button will be rendered as startAccessory.
@@ -33,4 +34,3 @@ export interface HeaderWithTitleLeftProps extends Omit<HeaderBaseProps, 'childre
    */
   titleLeftProps?: TitleLeftProps;
 }
-

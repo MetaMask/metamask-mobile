@@ -2,7 +2,7 @@
 import { ButtonIconProps } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import { HeaderBaseProps } from '../HeaderBase/HeaderBase.types';
+import { HeaderBaseProps } from '../../components/HeaderBase';
 
 /**
  * HeaderCenter component props.

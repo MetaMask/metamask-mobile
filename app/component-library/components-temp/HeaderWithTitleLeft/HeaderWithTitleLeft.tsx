@@ -9,7 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import HeaderBase from '../HeaderBase';
+import HeaderBase from '../../components/HeaderBase';
 import TitleLeft from '../TitleLeft';
 import { HeaderWithTitleLeftProps } from './HeaderWithTitleLeft.types';
 import { HeaderWithTitleLeftTestIds } from './HeaderWithTitleLeft.constants';
@@ -36,6 +36,7 @@ const HeaderWithTitleLeft: React.FC<HeaderWithTitleLeftProps> = ({
   titleLeft,
   titleLeftProps,
   startButtonIconProps,
+  twClassName,
   testID = HeaderWithTitleLeftTestIds.CONTAINER,
   ...headerBaseProps
 }) => {
@@ -72,12 +73,15 @@ const HeaderWithTitleLeft: React.FC<HeaderWithTitleLeftProps> = ({
 
   const hasTitleSection = titleLeft || titleLeftProps;
 
+  const resolvedTwClassName = twClassName ? `px-2 ${twClassName}` : 'px-2';
+
   return (
     <Box testID={testID}>
       {/* HeaderBase section */}
       <HeaderBase
         testID={HeaderWithTitleLeftTestIds.HEADER_BASE}
         startButtonIconProps={resolvedStartButtonIconProps}
+        twClassName={resolvedTwClassName}
         {...headerBaseProps}
       />
 

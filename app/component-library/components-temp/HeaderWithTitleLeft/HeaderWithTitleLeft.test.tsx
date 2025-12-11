@@ -7,7 +7,7 @@ import { Text, View } from 'react-native';
 import HeaderWithTitleLeft from './HeaderWithTitleLeft';
 import { HeaderWithTitleLeftTestIds } from './HeaderWithTitleLeft.constants';
 import { TitleLeftTestIds } from '../TitleLeft/TitleLeft.constants';
-import { HeaderBaseTestIds } from '../HeaderBase/HeaderBase.constants';
+import { HeaderBaseTestIds } from '../../components/HeaderBase';
 
 describe('HeaderWithTitleLeft', () => {
   beforeEach(() => {

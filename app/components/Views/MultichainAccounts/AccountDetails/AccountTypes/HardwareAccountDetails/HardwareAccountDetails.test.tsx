@@ -5,7 +5,7 @@ import { createMockInternalAccount } from '../../../../../../util/test/accountsC
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
-import { HEADERBASE_TITLE_TEST_ID } from '../../../../../../component-library/components/HeaderBase/HeaderBase.constants';
+import { HEADERBASE_TITLE_TEST_ID } from '../../../../../../component-library/components/HeaderBase';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 
 const mockNavigate = jest.fn();

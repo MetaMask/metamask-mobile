@@ -6,7 +6,7 @@ import { SharedValue } from 'react-native-reanimated';
 import { ButtonIconProps } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import { HeaderBaseProps } from '../HeaderBase/HeaderBase.types';
+import { HeaderBaseProps } from '../../components/HeaderBase';
 import { TitleLeftProps } from '../TitleLeft/TitleLeft.types';
 
 /**
@@ -67,7 +67,7 @@ export interface UseHeaderWithTitleLeftScrollableOptions {
   expandedHeight?: number;
   /**
    * Height of the header in its collapsed (compact) state.
-   * @default 56
+   * @default 48
    */
   collapsedHeight?: number;
   /**
@@ -112,4 +112,3 @@ export interface UseHeaderWithTitleLeftScrollableReturn {
    */
   scrollTriggerPosition: number;
 }
-

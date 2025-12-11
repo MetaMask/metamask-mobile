@@ -11,7 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import HeaderBase from '../HeaderBase';
+import HeaderBase from '../../components/HeaderBase';
 import { HeaderCenterProps } from './HeaderCenter.types';
 import { HeaderCenterTestIds } from './HeaderCenter.constants';
 
@@ -39,6 +39,7 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
   onClose,
   closeButtonProps,
   endButtonIconProps,
+  twClassName,
   testID = HeaderCenterTestIds.CONTAINER,
   ...headerBaseProps
 }) => {
@@ -83,10 +84,13 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
     return null;
   };
 
+  const resolvedTwClassName = twClassName ? `px-2 ${twClassName}` : 'px-2';
+
   return (
     <HeaderBase
       testID={testID}
       endButtonIconProps={resolvedEndButtonIconProps}
+      twClassName={resolvedTwClassName}
       {...headerBaseProps}
     >
       {renderContent()}

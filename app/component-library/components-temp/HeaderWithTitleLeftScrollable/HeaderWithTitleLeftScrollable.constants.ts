@@ -6,7 +6,7 @@ export const DEFAULT_EXPANDED_HEIGHT = 140;
 /**
  * Default height of the header in its collapsed (compact) state.
  */
-export const DEFAULT_COLLAPSED_HEIGHT = 56;
+export const DEFAULT_COLLAPSED_HEIGHT = 48;
 
 /**
  * Height of the toolbar row containing the HeaderBase.

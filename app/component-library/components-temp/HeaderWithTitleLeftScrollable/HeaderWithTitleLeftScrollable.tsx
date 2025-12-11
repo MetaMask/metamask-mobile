@@ -3,6 +3,7 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { StyleSheet, View, LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedStyle,
+  useDerivedValue,
   interpolate,
   Extrapolation,
   useSharedValue,
@@ -17,10 +18,9 @@ import {
   IconName,
   ButtonIconProps,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
-import HeaderBase from '../HeaderBase';
+import HeaderBase from '../../components/HeaderBase';
 import TitleLeft from '../TitleLeft';
 import { HeaderWithTitleLeftScrollableProps } from './HeaderWithTitleLeftScrollable.types';
 import {
@@ -36,6 +36,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1,
+  },
+  overflowHidden: {
+    overflow: 'hidden',
   },
 });
 
@@ -89,8 +92,6 @@ const HeaderWithTitleLeftScrollable: React.FC<
   testID = HeaderWithTitleLeftScrollableTestIds.CONTAINER,
   ...headerBaseProps
 }) => {
-  const tw = useTailwind();
-
   // Measure actual content height for dynamic sizing
   const [measuredHeight, setMeasuredHeight] = useState(DEFAULT_EXPANDED_HEIGHT);
   const animatedMeasuredHeight = useSharedValue(DEFAULT_EXPANDED_HEIGHT);
@@ -144,53 +145,40 @@ const HeaderWithTitleLeftScrollable: React.FC<
     };
   });
 
-  // Animated style for the compact title opacity (fades in as header collapses)
+  // Derived value: triggers timed animation when large content is fully hidden
+  const compactTitleProgress = useDerivedValue(() => {
+    const largeContentHeight =
+      animatedMeasuredHeight.value - DEFAULT_COLLAPSED_HEIGHT;
+    const isFullyHidden = scrollY.value >= largeContentHeight;
+
+    // Animate to 1 when hidden, 0 when visible (with timing)
+    return withTiming(isFullyHidden ? 1 : 0, { duration: 150 });
+  });
+
+  // Animated style for the compact title (timed fade up when large content is fully hidden)
   const compactTitleAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      scrollY.value,
-      [effectiveScrollTriggerPosition * 0.5, effectiveScrollTriggerPosition],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
+    const progress = compactTitleProgress.value;
 
     return {
-      opacity,
+      opacity: progress,
+      transform: [{ translateY: (1 - progress) * 8 }], // Fade up from 8px below
     };
   });
 
-  // Animated style for the large header content (fades out as header collapses)
+  // Animated style for the large header content (moves up behind header, synced 1:1 with scroll)
   const largeContentAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      scrollY.value,
-      [0, effectiveScrollTriggerPosition * 0.5],
-      [1, 0],
-      Extrapolation.CLAMP,
-    );
-
-    const translateY = interpolate(
-      scrollY.value,
-      [0, effectiveScrollTriggerPosition],
-      [0, -20],
-      Extrapolation.CLAMP,
+    const largeContentHeight =
+      animatedMeasuredHeight.value - DEFAULT_COLLAPSED_HEIGHT;
+    // Move up 1:1 with scroll, clamped between 0 and -largeContentHeight
+    // Math.min(..., 0) prevents moving down on overscroll
+    // Math.max(..., -largeContentHeight) prevents moving up too far
+    const translateY = Math.min(
+      Math.max(-scrollY.value, -largeContentHeight),
+      0,
     );
 
     return {
-      opacity,
       transform: [{ translateY }],
-    };
-  });
-
-  // Animated style for background opacity (becomes more opaque as header collapses)
-  const backgroundAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      scrollY.value,
-      [0, effectiveScrollTriggerPosition],
-      [0.95, 1],
-      Extrapolation.CLAMP,
-    );
-
-    return {
-      opacity,
     };
   });
 
@@ -209,21 +197,15 @@ const HeaderWithTitleLeftScrollable: React.FC<
       style={[styles.absoluteContainer, headerAnimatedStyle]}
       testID={testID}
     >
-      {/* Background layer */}
-      <Animated.View
-        style={[
-          tw.style('absolute inset-0 bg-default'),
-          backgroundAnimatedStyle,
-        ]}
-      />
-
       {/* Header content - measured for dynamic height */}
       <View onLayout={handleLayout}>
         {/* HeaderBase with compact title */}
         <HeaderBase
           testID={HeaderWithTitleLeftScrollableTestIds.HEADER_BASE}
           startButtonIconProps={resolvedStartButtonIconProps}
-          twClassName={twClassName}
+          twClassName={
+            twClassName ? `bg-default px-2 ${twClassName}` : 'bg-default px-2'
+          }
           {...headerBaseProps}
         >
           {/* Compact title - fades in when collapsed */}
@@ -241,13 +223,15 @@ const HeaderWithTitleLeftScrollable: React.FC<
           </Animated.View>
         </HeaderBase>
 
-        {/* Large header content - fades out when collapsed */}
-        <Animated.View
-          style={largeContentAnimatedStyle}
-          testID={HeaderWithTitleLeftScrollableTestIds.LARGE_CONTENT}
-        >
-          {renderLargeContent()}
-        </Animated.View>
+        {/* Large header content - clips as it moves up behind header */}
+        <View style={styles.overflowHidden}>
+          <Animated.View
+            style={largeContentAnimatedStyle}
+            testID={HeaderWithTitleLeftScrollableTestIds.LARGE_CONTENT}
+          >
+            {renderLargeContent()}
+          </Animated.View>
+        </View>
       </View>
     </Animated.View>
   );
