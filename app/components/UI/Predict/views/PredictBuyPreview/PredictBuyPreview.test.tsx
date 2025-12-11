@@ -140,6 +140,11 @@ jest.mock('../../utils/format', () => ({
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return num.toLocaleString('en-US');
   }),
+  formatPercentage: jest.fn((value, options) =>
+    value !== undefined
+      ? `${value.toFixed(options?.truncate ?? false)}%`
+      : '0%',
+  ),
 }));
 
 const mockMarket: PredictMarket = {
