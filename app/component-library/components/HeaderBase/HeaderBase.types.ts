@@ -80,4 +80,3 @@ export interface HeaderBaseProps extends ViewProps {
    */
   twClassName?: string;
 }
-

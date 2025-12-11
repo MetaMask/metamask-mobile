@@ -135,7 +135,9 @@ describe('HeaderBase', () => {
 
     it('does not render end accessory wrapper when endAccessory is not provided', () => {
       const { queryByTestId } = render(
-        <HeaderBase endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}>
+        <HeaderBase
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        >
           Title
         </HeaderBase>,
       );
