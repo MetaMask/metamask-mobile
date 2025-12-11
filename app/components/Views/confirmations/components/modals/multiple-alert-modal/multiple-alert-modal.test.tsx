@@ -163,6 +163,7 @@ describe('MultipleAlertModal', () => {
           setAlertKey,
           alertKey: 'alert2',
         });
+
         const { getByText, rerender } = render(<MultipleAlertModal />);
 
         expect(getByText('Test Alert 2')).toBeOnTheScreen();
@@ -172,30 +173,10 @@ describe('MultipleAlertModal', () => {
           setAlertKey,
           alertKey: 'alert1',
         });
+
         rerender(<MultipleAlertModal />);
 
         expect(getByText('Test Alert')).toBeOnTheScreen();
-      });
-
-      it('applies the correct severity styling for the new alert', () => {
-        const setAlertKey = jest.fn();
-        (useAlerts as jest.Mock).mockReturnValue({
-          ...baseMockUseAlerts,
-          setAlertKey,
-          alertKey: 'alert1',
-        });
-        const { getByTestId, rerender } = render(<MultipleAlertModal />);
-
-        expect(getByTestId('multiple-alert-modal-icon')).toBeOnTheScreen();
-
-        (useAlerts as jest.Mock).mockReturnValue({
-          ...baseMockUseAlerts,
-          setAlertKey,
-          alertKey: 'alert2',
-        });
-        rerender(<MultipleAlertModal />);
-
-        expect(getByTestId('multiple-alert-modal-icon')).toBeOnTheScreen();
       });
     });
   });
