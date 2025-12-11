@@ -428,7 +428,7 @@ describe('AssetOptions Component', () => {
       });
     });
 
-    it('should render portfolio option for EVM tokens', () => {
+    it('renders portfolio option for EVM tokens', () => {
       const { getByText } = render(
         <AssetOptions
           route={{

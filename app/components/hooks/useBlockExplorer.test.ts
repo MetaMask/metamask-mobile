@@ -43,7 +43,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('useBlockExplorer', () => {
-  it('should navigate to the correct block explorer for no-RPC provider', () => {
+  it('navigates to the correct block explorer for no-RPC provider', () => {
     const { result } = renderHookWithProvider(() => useBlockExplorer());
     const { toBlockExplorer } = result.current;
     const address = '0x1234567890abcdef';
@@ -56,7 +56,7 @@ describe('useBlockExplorer', () => {
     });
   });
 
-  it('should navigate to the correct block explorer for RPC provider', () => {
+  it('navigates to the correct block explorer for RPC provider', () => {
     const { result } = renderHookWithProvider(() => useBlockExplorer());
     const { toBlockExplorer } = result.current;
     const address = '0x1234567890abcdef';
@@ -105,7 +105,7 @@ describe('useBlockExplorer', () => {
     ] as const;
 
     it.each(testCases)(
-      'should return correct block explorer URL for $network',
+      'returns correct block explorer URL for $network',
       ({ chainId, expectedUrl }) => {
         const { result } = renderHookWithProvider(() => useBlockExplorer());
         const { getBlockExplorerUrl } = result.current;
@@ -118,7 +118,7 @@ describe('useBlockExplorer', () => {
     );
 
     it.each(testCases)(
-      'should return correct block explorer name for $network',
+      'returns correct block explorer name for $network',
       ({ chainId, expectedName }) => {
         const { result } = renderHookWithProvider(() => useBlockExplorer());
         const { getBlockExplorerName } = result.current;
@@ -131,7 +131,7 @@ describe('useBlockExplorer', () => {
   });
 
   describe('Non-EVM chains support', () => {
-    it('should return correct block explorer URL for Solana', () => {
+    it('returns correct block explorer URL for Solana', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const address = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
@@ -143,7 +143,7 @@ describe('useBlockExplorer', () => {
       );
     });
 
-    it('should return correct block explorer URL for Bitcoin', () => {
+    it('returns correct block explorer URL for Bitcoin', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const address = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
@@ -157,7 +157,7 @@ describe('useBlockExplorer', () => {
   });
 
   describe('RPC networks with custom block explorers', () => {
-    it('should use custom RPC block explorer when available', () => {
+    it('uses custom RPC block explorer when available', () => {
       // This test verifies the RPC fallback path is covered
       // The actual implementation uses the mocked state from the main test setup
       const { result } = renderHookWithProvider(() => useBlockExplorer());
@@ -172,7 +172,7 @@ describe('useBlockExplorer', () => {
   });
 
   describe('Fallback scenarios', () => {
-    it('should fallback to etherscan when no specific block explorer is found', () => {
+    it('falls back to etherscan when no specific block explorer is found', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const address = '0x1234567890abcdef';
@@ -184,7 +184,7 @@ describe('useBlockExplorer', () => {
       expect(url).toContain('/address/');
     });
 
-    it('should return null when no block explorer is available', () => {
+    it('returns null when no block explorer is available', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const address = '0x1234567890abcdef';
@@ -194,7 +194,7 @@ describe('useBlockExplorer', () => {
       expect(url).toBeDefined(); // Should fallback to etherscan
     });
 
-    it('should handle missing address gracefully', () => {
+    it('handles missing address gracefully', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const polygonChainId = '0x89';
@@ -205,7 +205,7 @@ describe('useBlockExplorer', () => {
   });
 
   describe('Block explorer names for edge cases', () => {
-    it('should return fallback name when no block explorer is found', () => {
+    it('returns fallback name when no block explorer is found', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerName } = result.current;
       const unknownChainId = '0x9999';
@@ -214,7 +214,7 @@ describe('useBlockExplorer', () => {
       expect(name).toBeDefined();
     });
 
-    it('should handle non-EVM chain names', () => {
+    it('handles non-EVM chain names', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerName } = result.current;
       const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -225,7 +225,7 @@ describe('useBlockExplorer', () => {
   });
 
   describe('CAIP chain ID conversion edge cases', () => {
-    it('should handle non-EVM CAIP chain IDs correctly', () => {
+    it('handles non-EVM CAIP chain IDs correctly', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const address = '0x1234567890abcdef';
@@ -238,7 +238,7 @@ describe('useBlockExplorer', () => {
       expect(url).toBeDefined();
     });
 
-    it('should handle already hex-formatted chain IDs', () => {
+    it('handles already hex-formatted chain IDs', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const address = '0x1234567890abcdef';
@@ -250,7 +250,7 @@ describe('useBlockExplorer', () => {
   });
 
   describe('Built-in block explorer coverage', () => {
-    it('should use built-in block explorers for supported chains', () => {
+    it('uses built-in block explorers for supported chains', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const address = '0x1234567890abcdef';
@@ -262,7 +262,7 @@ describe('useBlockExplorer', () => {
   });
 
   describe('Navigation edge cases', () => {
-    it('should handle navigation when block explorer URL is available', () => {
+    it('handles navigation when block explorer URL is available', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { toBlockExplorer } = result.current;
 
@@ -283,7 +283,7 @@ describe('useBlockExplorer', () => {
   });
 
   describe('Etherscan fallback coverage', () => {
-    it('should use etherscan fallback when no specific block explorer is found', () => {
+    it('uses etherscan fallback when no specific block explorer is found', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerUrl } = result.current;
       const address = '0x1234567890abcdef';
@@ -294,7 +294,7 @@ describe('useBlockExplorer', () => {
       expect(url).toContain('/address/');
     });
 
-    it('should use etherscan fallback for block explorer names', () => {
+    it('uses etherscan fallback for block explorer names', () => {
       const { result } = renderHookWithProvider(() => useBlockExplorer());
       const { getBlockExplorerName } = result.current;
 
@@ -341,7 +341,7 @@ describe('useBlockExplorer', () => {
       ] as const;
 
       it.each(testCases)(
-        'should return correct base URL for $network',
+        'returns correct base URL for $network',
         ({ chainId, expectedBaseUrl }) => {
           const { result } = renderHookWithProvider(() => useBlockExplorer());
           const { getBlockExplorerBaseUrl } = result.current;
@@ -354,7 +354,7 @@ describe('useBlockExplorer', () => {
     });
 
     describe('Non-EVM chains', () => {
-      it('should return correct base URL for Solana', () => {
+      it('returns correct base URL for Solana', () => {
         const { result } = renderHookWithProvider(() => useBlockExplorer());
         const { getBlockExplorerBaseUrl } = result.current;
         const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -364,7 +364,7 @@ describe('useBlockExplorer', () => {
         expect(url).toContain('solscan.io');
       });
 
-      it('should return correct base URL for Bitcoin', () => {
+      it('returns correct base URL for Bitcoin', () => {
         const { result } = renderHookWithProvider(() => useBlockExplorer());
         const { getBlockExplorerBaseUrl } = result.current;
         const bitcoinChainId = 'bip122:000000000019d6689c085ae165831e93';
@@ -376,7 +376,7 @@ describe('useBlockExplorer', () => {
     });
 
     describe('Fallback scenarios', () => {
-      it('should return base URL without address path for unknown EVM chain', () => {
+      it('returns base URL without address path for unknown EVM chain', () => {
         const { result } = renderHookWithProvider(() => useBlockExplorer());
         const { getBlockExplorerBaseUrl } = result.current;
         const unknownChainId = '0x9999';
@@ -388,7 +388,7 @@ describe('useBlockExplorer', () => {
         expect(url).not.toContain('/address/');
       });
 
-      it('should use hook chainId when no targetChainId is provided', () => {
+      it('uses hook chainId when no targetChainId is provided', () => {
         const { result } = renderHookWithProvider(() =>
           useBlockExplorer('0x89'),
         );
