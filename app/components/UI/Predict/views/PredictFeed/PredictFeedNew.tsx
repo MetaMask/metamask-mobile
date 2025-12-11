@@ -151,6 +151,11 @@ const useFeedScrollManager = ({
   // Flag to skip delta calculation on first scroll after tab switch
   const isTabSwitching = useSharedValue(false);
 
+  // Threshold-based animation: accumulate delta before moving header
+  const SCROLL_THRESHOLD = 100;
+  const accumulatedDelta = useSharedValue(0);
+  const lastDirection = useSharedValue(0); // 1 = down, -1 = up, 0 = none
+
   // Layout measurements (JS side)
   const [headerHeight, setHeaderHeight] = useState(0);
   const [tabBarHeight, setTabBarHeight] = useState(0);
@@ -269,7 +274,7 @@ const useFeedScrollManager = ({
     });
   }, [tabs, activeIndex, headerTranslateY]);
 
-  // Direction-based scroll handler
+  // Direction-based scroll handler with threshold
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       'worklet';
@@ -279,6 +284,8 @@ const useFeedScrollManager = ({
       if (isTabSwitching.value) {
         isTabSwitching.value = false;
         lastScrollY.value = currentY;
+        accumulatedDelta.value = 0;
+        lastDirection.value = 0;
         return;
       }
 
@@ -292,9 +299,28 @@ const useFeedScrollManager = ({
         sharedHeaderHeight.value + sharedTabBarHeight.value;
       const atTopThreshold = -contentInsetTop;
 
-      // At/near top of list - always show header fully
+      // At/near top of list - always show header fully and reset threshold
       if (currentY <= atTopThreshold) {
         headerTranslateY.value = 0;
+        accumulatedDelta.value = 0;
+        lastDirection.value = 0;
+        return;
+      }
+
+      // Determine current direction: 1 = down, -1 = up
+      const currentDirection = delta > 0 ? 1 : delta < 0 ? -1 : 0;
+
+      // If direction changed, reset accumulated delta
+      if (currentDirection !== 0 && currentDirection !== lastDirection.value) {
+        lastDirection.value = currentDirection;
+        accumulatedDelta.value = 0;
+      }
+
+      // Accumulate delta
+      accumulatedDelta.value += Math.abs(delta);
+
+      // Only move header after threshold is exceeded
+      if (accumulatedDelta.value < SCROLL_THRESHOLD) {
         return;
       }
 
