@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import Engine from '../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -204,5 +205,122 @@ describe('useConfirmAction', () => {
     });
     result?.current?.onReject(undefined, true);
     expect(goBackSpy).not.toHaveBeenCalled();
+  });
+
+  it('sets waitForResult to false when approvalType is TransactionBatch', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
+    const transactionBatchState = {
+      engine: {
+        backgroundState: {
+          ...stakingDepositConfirmationState.engine.backgroundState,
+          ApprovalController: {
+            pendingApprovals: {
+              'batch-approval-id': {
+                id: 'batch-approval-id',
+                origin: 'metamask',
+                type: 'transaction_batch',
+                time: 1738825814816,
+                requestData: { batchId: '0x123456789abcdef' },
+                requestState: null,
+                expectsResult: false,
+              },
+            },
+            pendingApprovalCount: 1,
+            approvalFlows: [],
+          },
+        },
+      },
+    };
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: transactionBatchState,
+    });
+
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    const callArgs = (Engine.acceptPendingApproval as jest.Mock).mock.calls[0];
+    expect(callArgs[0]).toBe('batch-approval-id');
+    expect(callArgs[2]).toEqual({
+      waitForResult: false,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+    await flushPromises();
+  });
+
+  it('sets waitForResult to true when approvalType is not TransactionBatch', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    const callArgs = (Engine.acceptPendingApproval as jest.Mock).mock.calls[0];
+    expect(callArgs[0]).toBe('76b33b40-7b5c-11ef-bc0a-25bce29dbc09');
+    expect(callArgs[2]).toEqual({
+      waitForResult: true,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+    await flushPromises();
+  });
+
+  it('navigates to transactions view when confirming batch transaction', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
+    const lendingBatchId = 'lending-batch-id';
+    const lendingDepositBatchState = {
+      engine: {
+        backgroundState: {
+          ...stakingDepositConfirmationState.engine.backgroundState,
+          ApprovalController: {
+            pendingApprovals: {
+              [lendingBatchId]: {
+                id: lendingBatchId,
+                origin: 'metamask',
+                type: 'transaction_batch',
+                time: 1738825814816,
+                requestData: {},
+                requestState: null,
+                expectsResult: false,
+              },
+            },
+            pendingApprovalCount: 1,
+            approvalFlows: [],
+          },
+          TransactionController: {
+            transactions: [],
+            transactionBatches: [
+              {
+                id: lendingBatchId,
+                chainId: '0x1' as `0x${string}`,
+                origin: 'metamask',
+                from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+                transactions: [
+                  { type: TransactionType.contractInteraction },
+                  { type: TransactionType.lendingDeposit },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: lendingDepositBatchState,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith('TransactionsView');
   });
 });

@@ -40,7 +40,6 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -93,7 +92,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -778,7 +777,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Bold",
+                                "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -835,7 +834,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -893,7 +892,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -908,7 +907,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -928,7 +927,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -951,7 +950,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -990,7 +989,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1025,7 +1024,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1075,7 +1074,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1113,7 +1112,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1151,7 +1150,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1216,7 +1215,6 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -1269,7 +1267,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1954,7 +1952,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Bold",
+                                "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -2011,7 +2009,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2069,7 +2067,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2084,7 +2082,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2104,7 +2102,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -2127,7 +2125,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2166,7 +2164,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2201,7 +2199,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -2251,7 +2249,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2289,7 +2287,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2327,7 +2325,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2392,7 +2390,6 @@ exports[`Wallet should render correctly 1`] = `
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -2445,7 +2442,7 @@ exports[`Wallet should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3130,7 +3127,7 @@ exports[`Wallet should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Bold",
+                                "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -3187,7 +3184,7 @@ exports[`Wallet should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3245,7 +3242,7 @@ exports[`Wallet should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3260,7 +3257,7 @@ exports[`Wallet should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3280,7 +3277,7 @@ exports[`Wallet should render correctly 1`] = `
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -3303,7 +3300,7 @@ exports[`Wallet should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3342,7 +3339,7 @@ exports[`Wallet should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3377,7 +3374,7 @@ exports[`Wallet should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -3427,7 +3424,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3465,7 +3462,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3503,7 +3500,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -3568,7 +3565,6 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -3621,7 +3617,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -4306,7 +4302,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Bold",
+                                "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -4363,7 +4359,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -4421,7 +4417,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -4436,7 +4432,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -4456,7 +4452,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -4479,7 +4475,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -4518,7 +4514,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -4553,7 +4549,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -4603,7 +4599,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -4641,7 +4637,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -4679,7 +4675,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -4744,7 +4740,6 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "height": 72,
@@ -4797,7 +4792,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -5482,7 +5477,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Bold",
+                                "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -5539,7 +5534,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -5597,7 +5592,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -5612,7 +5607,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -5632,7 +5627,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -5655,7 +5650,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -5694,7 +5689,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -5729,7 +5724,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -5779,7 +5774,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -5817,7 +5812,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -5855,7 +5850,7 @@ TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,

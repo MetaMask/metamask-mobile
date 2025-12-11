@@ -16,6 +16,9 @@ import {
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
 import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -49,6 +52,7 @@ const Scan = ({
   ledgerError,
 }: ScanProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedDevice, setSelectedDevice] = useState<
     BluetoothDevice | undefined
@@ -66,6 +70,14 @@ const Scan = ({
     bluetoothOn,
   );
   const [permissionErrorShown, setPermissionErrorShown] = useState(false);
+
+  const ledgerModelName = useMemo(() => {
+    if (selectedDevice) {
+      const [bluetoothServiceId] = selectedDevice.serviceUUIDs;
+      return ledgerDeviceUUIDToModelName(bluetoothServiceId);
+    }
+    return undefined;
+  }, [selectedDevice]);
 
   useEffect(() => {
     if (
@@ -109,7 +121,16 @@ const Scan = ({
             },
           });
           break;
-        case BluetoothPermissionErrors.BluetoothAccessBlocked:
+        case BluetoothPermissionErrors.BluetoothAccessBlocked: {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+              .addProperties({
+                device_type: HardwareDeviceTypes.LEDGER,
+                device_model: ledgerModelName,
+                error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
+              })
+              .build(),
+          );
           onScanningErrorStateChanged({
             errorTitle: strings('ledger.bluetooth_access_blocked'),
             errorSubtitle: strings('ledger.bluetooth_access_blocked_message'),
@@ -121,6 +142,7 @@ const Scan = ({
             },
           });
           break;
+        }
         case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
           onScanningErrorStateChanged({
             errorTitle: strings('ledger.nearbyDevices_access_blocked'),
@@ -172,6 +194,8 @@ const Scan = ({
     bluetoothPermissionError,
     bluetoothConnectionError,
     permissionErrorShown,
+    selectedDevice,
+    ledgerModelName,
   ]);
 
   useEffect(() => {

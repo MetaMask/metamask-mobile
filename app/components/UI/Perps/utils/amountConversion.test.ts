@@ -8,8 +8,8 @@ describe('convertPerpsAmountToUSD', () => {
   });
 
   it('handles USD strings correctly', () => {
-    expect(convertPerpsAmountToUSD('$10.32')).toBe('$10'); // Rounded down using Math.floor()
-    expect(convertPerpsAmountToUSD('$0.50')).toBe('$0'); // Rounded down using Math.floor()
+    expect(convertPerpsAmountToUSD('$10.32')).toBe('$10.32'); // Preserves decimals
+    expect(convertPerpsAmountToUSD('$0.50')).toBe('$0.50'); // Preserves decimals
     expect(convertPerpsAmountToUSD('$1000')).toBe('$1,000');
   });
 
@@ -20,8 +20,8 @@ describe('convertPerpsAmountToUSD', () => {
 
   it('handles numeric strings correctly', () => {
     expect(convertPerpsAmountToUSD('100')).toBe('$100');
-    expect(convertPerpsAmountToUSD('0.5')).toBe('$0'); // Rounded down using Math.floor()
-    expect(convertPerpsAmountToUSD('1234.56')).toBe('$1,234'); // Rounded down using Math.floor()
+    expect(convertPerpsAmountToUSD('0.5')).toBe('$0.50'); // Preserves decimals
+    expect(convertPerpsAmountToUSD('1234.56')).toBe('$1,234.56'); // Preserves decimals
   });
 
   it('handles edge cases', () => {
@@ -34,8 +34,8 @@ describe('convertPerpsAmountToUSD', () => {
     // Very small wei amount
     expect(convertPerpsAmountToUSD('0x1')).toBe('$0');
 
-    // Very small decimal - gets threshold formatting
-    expect(convertPerpsAmountToUSD('0.001')).toBe('$0');
+    // Very small decimal - gets threshold formatting from formatPerpsFiat
+    expect(convertPerpsAmountToUSD('0.001')).toBe('<$0.01');
   });
 
   it('handles very large amounts', () => {
@@ -46,15 +46,17 @@ describe('convertPerpsAmountToUSD', () => {
     expect(convertPerpsAmountToUSD('$1000000')).toBe('$1,000,000');
   });
 
-  it('rounds down dollar amounts using Math.floor()', () => {
-    // Test various decimal values to ensure they round down correctly
-    expect(convertPerpsAmountToUSD('$10.02')).toBe('$10');
-    expect(convertPerpsAmountToUSD('$10.99')).toBe('$10');
-    expect(convertPerpsAmountToUSD('$0.99')).toBe('$0');
-    expect(convertPerpsAmountToUSD('$999.99')).toBe('$999');
-    expect(convertPerpsAmountToUSD('10.02')).toBe('$10');
-    expect(convertPerpsAmountToUSD('10.99')).toBe('$10');
-    expect(convertPerpsAmountToUSD('0.99')).toBe('$0');
-    expect(convertPerpsAmountToUSD('999.99')).toBe('$999');
+  it('preserves decimal amounts correctly', () => {
+    // Test various decimal values to ensure they preserve decimals
+    expect(convertPerpsAmountToUSD('$10.02')).toBe('$10.02');
+    expect(convertPerpsAmountToUSD('$10.99')).toBe('$10.99');
+    expect(convertPerpsAmountToUSD('$0.99')).toBe('$0.99');
+    expect(convertPerpsAmountToUSD('$999.99')).toBe('$999.99');
+    expect(convertPerpsAmountToUSD('10.02')).toBe('$10.02');
+    expect(convertPerpsAmountToUSD('10.99')).toBe('$10.99');
+    expect(convertPerpsAmountToUSD('0.99')).toBe('$0.99');
+    expect(convertPerpsAmountToUSD('999.99')).toBe('$999.99');
+    // Test the specific bug case: $2.30 withdrawal showing $1.30
+    expect(convertPerpsAmountToUSD('1.30')).toBe('$1.30');
   });
 });

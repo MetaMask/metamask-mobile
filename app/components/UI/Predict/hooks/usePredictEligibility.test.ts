@@ -232,6 +232,10 @@ describe('usePredictEligibility', () => {
     });
 
     it('ignores transition from active to background', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
@@ -246,6 +250,10 @@ describe('usePredictEligibility', () => {
     });
 
     it('ignores transition from active to inactive', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
@@ -260,6 +268,10 @@ describe('usePredictEligibility', () => {
     });
 
     it('ignores transition from background to inactive', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
@@ -275,7 +287,11 @@ describe('usePredictEligibility', () => {
   });
 
   describe('debouncing', () => {
-    it('skips refresh when less than 1 minute has passed', async () => {
+    it('skips refresh when less than debounce interval has passed', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
@@ -288,7 +304,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(30000);
+      jest.advanceTimersByTime(50);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -300,12 +316,16 @@ describe('usePredictEligibility', () => {
         'PredictController: Skipping refresh due to debounce',
         expect.objectContaining({
           timeSinceLastRefresh: expect.any(Number),
-          minimumInterval: 60000,
+          minimumInterval: 100,
         }),
       );
     });
 
-    it('allows refresh when 1 minute has elapsed', async () => {
+    it('allows refresh when debounce interval has elapsed', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
@@ -318,7 +338,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(60000);
+      jest.advanceTimersByTime(100);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -328,7 +348,11 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
     });
 
-    it('allows refresh when more than 1 minute has elapsed', async () => {
+    it('allows refresh when more than debounce interval has elapsed', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
@@ -341,7 +365,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(120000);
+      jest.advanceTimersByTime(200);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -352,6 +376,10 @@ describe('usePredictEligibility', () => {
     });
 
     it('resets debounce timer after successful refresh', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
@@ -364,7 +392,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(60000);
+      jest.advanceTimersByTime(100);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -373,7 +401,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
 
-      jest.advanceTimersByTime(30000);
+      jest.advanceTimersByTime(50);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -418,6 +446,10 @@ describe('usePredictEligibility', () => {
     });
 
     it('updates debounce timer after manual refresh', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       const { result } = renderHook(() =>
         usePredictEligibility({ providerId: 'polymarket' }),
       );
@@ -431,7 +463,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(30000);
+      jest.advanceTimersByTime(50);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -491,6 +523,10 @@ describe('usePredictEligibility', () => {
     });
 
     it('continues operation after failed refresh', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       mockRefreshEligibility.mockRejectedValueOnce(new Error('Network error'));
 
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
@@ -506,7 +542,7 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
       mockRefreshEligibility.mockResolvedValueOnce(undefined);
-      jest.advanceTimersByTime(60000);
+      jest.advanceTimersByTime(100);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -607,6 +643,10 @@ describe('usePredictEligibility', () => {
     });
 
     it('allows new refresh after previous one completes', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       let resolveFirstRefresh: (() => void) | undefined;
       const firstRefreshPromise = new Promise<void>((resolve) => {
         resolveFirstRefresh = resolve;
@@ -631,7 +671,7 @@ describe('usePredictEligibility', () => {
       });
 
       mockRefreshEligibility.mockResolvedValueOnce(undefined);
-      jest.advanceTimersByTime(60000);
+      jest.advanceTimersByTime(100);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -642,6 +682,10 @@ describe('usePredictEligibility', () => {
     });
 
     it('clears in-flight promise after error', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
       let rejectRefresh: ((error: Error) => void) | undefined;
       const refreshPromise = new Promise<void>((_resolve, reject) => {
         rejectRefresh = reject;
@@ -670,11 +714,259 @@ describe('usePredictEligibility', () => {
       });
 
       mockRefreshEligibility.mockResolvedValueOnce(undefined);
-      jest.advanceTimersByTime(60000);
+      jest.advanceTimersByTime(100);
 
       await act(async () => {
         handleAppStateChange('background');
         handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('auto-refresh when country is missing', () => {
+    it('starts polling when country is not returned', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Country missing, auto-refreshing eligibility',
+        { providerId: 'polymarket', retryCount: 1, maxRetries: 3 },
+      );
+    });
+
+    it('polls again after polling interval when country is still missing', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
+    });
+
+    it('continues polling while country is missing up to max retries', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      // Wait for initial poll to complete (retry 1)
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      // Advance timer to trigger second poll (retry 2)
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
+
+      // Advance timer to trigger third poll (retry 3 - max)
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
+    });
+
+    it('stops polling after reaching max retries', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      // Complete all 3 retries
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
+
+      // Advance timer again - no more polls should happen
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      // Still 3 calls - no additional polling after max retries
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Max retries reached for missing country',
+        expect.objectContaining({
+          providerId: 'polymarket',
+          retryCount: 3,
+        }),
+      );
+    });
+
+    it('does not start polling when country is already available', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true, country: 'US' },
+      };
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockDevLogger).not.toHaveBeenCalledWith(
+        'PredictController: Country missing, auto-refreshing eligibility',
+        expect.any(Object),
+      );
+    });
+
+    it('continues polling after failed refresh', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      mockRefreshEligibility.mockRejectedValueOnce(new Error('Network error'));
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Auto-refresh for missing country failed',
+        expect.objectContaining({
+          error: 'Network error',
+          retryCount: 1,
+        }),
+      );
+
+      mockRefreshEligibility.mockResolvedValueOnce(undefined);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
+    });
+
+    it('logs unknown error when auto-refresh fails with non-Error', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      mockRefreshEligibility.mockRejectedValueOnce('string error');
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Auto-refresh for missing country failed',
+        expect.objectContaining({
+          error: 'Unknown',
+          retryCount: 1,
+        }),
+      );
+    });
+
+    it('clears timeout on unmount', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      const { unmount } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      unmount();
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses sequential polling pattern - waits for response before scheduling next poll', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        polymarket: { eligible: true },
+      };
+
+      let resolveRefresh: (() => void) | undefined;
+      const refreshPromise = new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      resolveRefresh?.();
+      await act(async () => {
+        await refreshPromise;
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
       });
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);

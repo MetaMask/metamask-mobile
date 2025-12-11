@@ -48,4 +48,4 @@ export const selectMultichainAccountsIntroModalSeen = (state: RootState) =>
  * Selects the musdConversionEducationSeen state
  */
 export const selectMusdConversionEducationSeen = (state: RootState) =>
-  state.user.musdConversionEducationSeen;
+  state.user?.musdConversionEducationSeen ?? false;

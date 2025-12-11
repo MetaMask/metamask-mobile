@@ -30,7 +30,6 @@ jobs:
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       SEEDLESS_ONBOARDING_ENABLED: 'true'
-      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
@@ -49,6 +48,7 @@ jobs:
       GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
     steps:
       # Get the source code from the repository
@@ -67,7 +67,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: ios
           setup-simulator: false
@@ -178,7 +178,6 @@ jobs:
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}

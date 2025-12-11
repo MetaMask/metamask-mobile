@@ -56,28 +56,6 @@ export const WidthHeight = () => {
   );
 };
 
-export const WithChildren = () => {
-  const styles = StyleSheet.create({
-    container: {
-      display: 'flex',
-      flexDirection: 'column',
-      borderRadius: 12,
-      padding: 16,
-    },
-    skeleton: {
-      marginBottom: 8,
-    },
-  });
-
-  return (
-    <SkeletonComponent style={styles.container}>
-      <SkeletonComponent height={32} width="100%" style={styles.skeleton} />
-      <SkeletonComponent height={16} width="95%" style={styles.skeleton} />
-      <SkeletonComponent height={16} width="95%" />
-    </SkeletonComponent>
-  );
-};
-
 export const HideChildren = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const styles = StyleSheet.create({

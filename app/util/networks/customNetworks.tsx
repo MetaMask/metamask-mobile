@@ -379,6 +379,7 @@ export const NETWORK_CHAIN_ID: {
   readonly PLASMA: '0x2611';
   readonly CRONOS: '0x19';
   readonly HYPE: '0x3e7';
+  readonly X_LAYER: '0xc4';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -414,6 +415,7 @@ export const NETWORK_CHAIN_ID: {
   PLASMA: '0x2611',
   CRONOS: '0x19',
   HYPE: '0x3e7',
+  X_LAYER: '0xc4',
   ...CHAIN_IDS,
 };
 
@@ -455,4 +457,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.PLASMA]: require('../../images/plasma.png'),
   [NETWORK_CHAIN_ID.CRONOS]: require('../../images/cronos.png'),
   [NETWORK_CHAIN_ID.HYPE]: require('../../images/hyperevm.png'),
+  [NETWORK_CHAIN_ID.X_LAYER]: require('../../images/x-layer.png'),
 };

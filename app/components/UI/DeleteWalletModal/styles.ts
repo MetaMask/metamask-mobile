@@ -80,7 +80,7 @@ export const createStyles = (colors: any) =>
     warningText: {
       textAlign: 'left',
       width: '100%',
-      fontFamily: 'Geist Medium',
+      fontFamily: 'Geist-Medium',
     },
     warningTextContainer: {
       flexDirection: 'column',

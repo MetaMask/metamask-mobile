@@ -33,6 +33,8 @@ import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
+import { useAutoUpdateDestToken } from '../../hooks/useAutoUpdateDestToken';
 
 export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
   const dispatch = useDispatch();
@@ -49,6 +51,7 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
   const selectedSourceToken = useSelector(selectSourceToken);
   const selectedDestToken = useSelector(selectDestToken);
   const selectedChainId = useSelector(selectChainId);
+  const { autoUpdateDestToken } = useAutoUpdateDestToken();
 
   const {
     chainId: selectedEvmChainId, // Will be the most recently selected EVM chain if you are on Solana
@@ -98,6 +101,8 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
       // and also the next time you open up the token selector to fetch top tokens for the right chain
       navigation.goBack();
       dispatch(setSourceToken(token));
+      // Auto-update destination token when source chain changes AND dest wasn't manually set
+      autoUpdateDestToken(token);
 
       // Switch to the chain of the selected token
       const evmNetworkConfiguration =
@@ -118,6 +123,7 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
       dispatch,
       evmNetworkConfigurations,
       onSetRpcTarget,
+      autoUpdateDestToken,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       onNonEvmNetworkChange,
       ///: END:ONLY_INCLUDE_IF
@@ -145,7 +151,9 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
         return <SkeletonItem />;
       }
 
-      const networkName = allNetworkConfigurations[item.chainId]?.name;
+      const networkName =
+        NETWORK_TO_SHORT_NETWORK_NAME_MAP[item.chainId] ??
+        allNetworkConfigurations[item.chainId]?.name;
 
       return (
         <TokenSelectorItem
