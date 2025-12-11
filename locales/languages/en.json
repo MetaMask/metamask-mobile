@@ -2471,10 +2471,16 @@
     "action_description_4_legacy": "collect your full IP address*",
     "action_description_5_legacy": "sell data. Ever!",
     "action_description_never_legacy": "Never",
-    "toast_message": "We’ve updated our privacy policy",
+    "toast_message": "We've updated our privacy policy",
     "toast_action_button": "Close",
     "toast_read_more": "Read more",
-    "pna25_toast_message": "We’re updating MetaMetrics. We'll associate some in-app activity to on-chain data to better understand usage. You can opt out via Settings."
+    "pna25_title": "Privacy and product updates",
+    "pna25_description": "To better serve you, we're updating our analytics so publicly available data like wallet addresses and related on-chain activity can be associated with actions you take in MetaMask using a pseudonymous ID. This helps us improve MetaMask's performance, security, and features in order to make a better, safer wallet.",
+    "pna25_description_2": "We take privacy seriously. We do not use this information for advertising or sell your data to third parties. You can opt out anytime in Settings.",
+    "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
+    "pna25_blog_post_link": "blog post",
+    "pna25_confirm_button": "Accept and close",
+    "pna25_open_settings_button": "Open Settings"
   },
   "template_confirmation": {
     "ok": "OK",
@@ -6710,7 +6716,8 @@
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
-      "solana_not_supported": "Enable Solana tokens on card.metamask.io"
+      "solana_not_supported": "Enable Solana tokens on card.metamask.io",
+      "select_token": "Select token"
     },
     "change_asset": {
       "title": "Change token and network",

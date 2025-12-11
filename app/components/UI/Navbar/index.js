@@ -2057,6 +2057,7 @@ export const getSettingsNavigationOptions = (
  * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
  * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
  * @param {import('../Earn/types/lending.types').EarnTokenDetails | null | undefined} [earnToken] - Optional earn token.
+ * @param {string | null | undefined} [aprOverride] - Optional APR override (e.g., for Tron staking).
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -2067,6 +2068,7 @@ export function getStakingNavbar(
   metricsOptions,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   earnToken = null,
+  aprOverride = null,
   ///: END:ONLY_INCLUDE_IF
 ) {
   const {
@@ -2141,7 +2143,9 @@ export function getStakingNavbar(
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const apr = parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1);
+  const apr =
+    aprOverride ??
+    `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
   ///: END:ONLY_INCLUDE_IF
 
   return {
@@ -2164,7 +2168,7 @@ export function getStakingNavbar(
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Success}
               >
-                {`${apr}% ${strings('earn.apr')}`}
+                {`${apr} ${strings('earn.apr')}`}
               </MorphText>
             </View>
           )

@@ -393,7 +393,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                   }
                                 }
                                 testID="input-search-asset"
@@ -525,7 +525,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "#ffffff",
-                                                  "borderColor": "#121314",
+                                                  "borderColor": "#b7bbc8",
                                                   "borderRadius": 4,
                                                   "borderWidth": 2,
                                                   "height": 20,
@@ -669,7 +669,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -683,7 +683,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -767,7 +767,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "#ffffff",
-                                                  "borderColor": "#121314",
+                                                  "borderColor": "#b7bbc8",
                                                   "borderRadius": 4,
                                                   "borderWidth": 2,
                                                   "height": 20,
@@ -911,7 +911,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -925,7 +925,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -982,7 +982,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                             style={
                               {
                                 "color": "#ffffff",
-                                "fontFamily": "Geist Medium",
+                                "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,

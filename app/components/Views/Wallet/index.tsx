@@ -21,17 +21,10 @@ import {
   TabsList,
   TabsListRef,
 } from '../../../component-library/components-temp/Tabs';
-import {
-  CONSENSYS_PRIVACY_POLICY,
-  HOWTO_MANAGE_METAMETRICS,
-} from '../../../constants/urls';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
+import { shouldShowNewPrivacyToastSelector } from '../../../selectors/legalNotices';
 import {
-  shouldShowNewPrivacyToastSelector,
-  selectShouldShowPna25Toast,
-} from '../../../selectors/legalNotices';
-import {
-  storePna25Acknowledged as storePna25AcknowledgedAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../actions/legalNotices';
@@ -166,13 +159,19 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { selectPerpsGtmOnboardingModalEnabledFlag } from '../../UI/Perps';
+import {
+  selectPerpsEnabledFlag,
+  selectPerpsGtmOnboardingModalEnabledFlag,
+} from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectPredictGtmOnboardingModalEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import {
+  selectPredictEnabledFlag,
+  selectPredictGtmOnboardingModalEnabledFlag,
+} from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
@@ -182,7 +181,7 @@ import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModa
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
-import { ButtonIconVariant } from '../../../component-library/components/Toast/Toast.types';
+import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -218,8 +217,6 @@ interface WalletProps {
   navigation: NavigationProp<ParamListBase>;
   storePrivacyPolicyShownDate: () => void;
   shouldShowNewPrivacyToast: boolean;
-  shouldShowPna25Toast: boolean;
-  storePna25Acknowledged: () => void;
   currentRouteName: string;
   storePrivacyPolicyClickedOrClosed: () => void;
 }
@@ -238,9 +235,7 @@ interface WalletTokensTabViewProps {
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
-  const isPerpsFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -254,9 +249,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       (isEvmSelected || isMultichainAccountsState2Enabled),
     [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
-  const isPredictFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => isPredictFlagEnabled,
     [isPredictFlagEnabled],
@@ -347,8 +340,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
   // Calculate Predict tab visibility
-  const predictTabIndex =
-    isPerpsEnabled && isPredictEnabled ? 2 : isPredictEnabled ? 1 : -1;
+  let predictTabIndex = -1;
+  if (isPerpsEnabled && isPredictEnabled) {
+    predictTabIndex = 2;
+  } else if (isPredictEnabled) {
+    predictTabIndex = 1;
+  }
   const isPredictTabVisible = currentTabIndex === predictTabIndex;
 
   // Store the visibility update callback from PerpsTabView
@@ -501,26 +498,19 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
-  shouldShowPna25Toast,
-  storePna25Acknowledged,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
   const { navigate } = useNavigation();
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
-  const pna25ToastShownRef = useRef(false);
   const theme = useTheme();
 
-  const isPerpsFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const isPredictFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictGTMModalEnabled = useSelector(
     selectPredictGtmOnboardingModalEnabledFlag,
   );
@@ -920,61 +910,6 @@ const Wallet = ({
     currentToast,
   ]);
 
-  useEffect(() => {
-    if (!shouldShowPna25Toast || pna25ToastShownRef.current) return;
-
-    currentToast?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Info,
-      labelOptions: [
-        {
-          label: strings(`privacy_policy.pna25_toast_message`),
-          isBold: false,
-        },
-      ],
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: () => {
-          storePna25Acknowledged();
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.TOAST_DISPLAYED)
-              .addProperties({
-                toast_name: 'pna25',
-                closed: true,
-              })
-              .build(),
-          );
-          currentToast?.closeToast();
-        },
-      },
-      linkButtonOptions: {
-        label: strings(`privacy_policy.gather_basic_usage_learn_more`),
-        onPress: () => {
-          Linking.openURL(HOWTO_MANAGE_METAMETRICS);
-        },
-      },
-      hasNoTimeout: true,
-    });
-
-    pna25ToastShownRef.current = true;
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOAST_DISPLAYED)
-        .addProperties({
-          toast_name: 'pna25',
-          closed: false,
-        })
-        .build(),
-    );
-  }, [
-    shouldShowPna25Toast,
-    storePna25Acknowledged,
-    currentToast,
-    trackEvent,
-    createEventBuilder,
-  ]);
-
   /**
    * Network onboarding state
    */
@@ -1005,9 +940,7 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useFeatureFlag(
-    FeatureFlagNames.carouselBanners,
-  );
+  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -1037,6 +970,11 @@ const Wallet = ({
    * Show rewards intro modal if ff is enabled and never showed before
    */
   useRewardsIntroModal();
+
+  /**
+   * Show PNA25 bottom sheet if remote feature flag is enabled and never showed before
+   */
+  usePna25BottomSheet();
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -1266,13 +1204,16 @@ const Wallet = ({
     if (isEvmSelected) {
       importAllDetectedTokens();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    isEvmSelected,
     isTokenDetectionEnabled,
     evmNetworkConfigurations,
     chainId,
     currentDetectedTokens,
     selectedNetworkClientId,
+    getTokenAddedAnalyticsParams,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const onChangeTab = useCallback(
@@ -1407,7 +1348,6 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
-  shouldShowPna25Toast: selectShouldShowPna25Toast(state),
 });
 
 // TODO: Replace "any" with type
@@ -1417,7 +1357,6 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),
   storePrivacyPolicyClickedOrClosed: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  storePna25Acknowledged: () => dispatch(storePna25AcknowledgedAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

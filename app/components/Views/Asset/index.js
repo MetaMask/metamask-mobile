@@ -635,6 +635,7 @@ class Asset extends PureComponent {
             headerHeight={280}
             onScrollThroughContent={this.onScrollThroughContent}
             tokenChainId={asset.chainId}
+            skipScrollOnClick
           />
         )}
       </View>
