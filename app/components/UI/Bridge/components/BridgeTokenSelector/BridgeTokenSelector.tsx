@@ -424,6 +424,9 @@ export const BridgeTokenSelector: React.FC = () => {
           placeholder={strings('swaps.search_token')}
           testID="bridge-token-search-input"
           style={styles.searchInput}
+          autoComplete="off"
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </Box>
 
