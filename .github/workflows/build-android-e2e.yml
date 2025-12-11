@@ -126,11 +126,25 @@ jobs:
           # - "Cache build artifacts"
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
+      # Cache Metro bundler to prevent "Bundler cache is empty" warnings
+      # This prevents memory spikes during JS bundling that can crash Gradle Daemon
+      - name: Cache Metro bundler
+        uses: cirruslabs/cache@v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
+        with:
+          path: |
+            node_modules/.cache/metro
+            /tmp/metro-*
+          key: metro-${{ env.CACHE_GENERATION }}-${{ hashFiles('yarn.lock', 'index.js', 'metro.config.js') }}
+          restore-keys: |
+            metro-${{ env.CACHE_GENERATION }}-
+            metro-
+
       - name: Build Android E2E APKs
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
+          export NODE_OPTIONS="--max-old-space-size=12288"
           # Use E2E gradle properties for GitHub Actions builds (gradle.properties.github)
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
@@ -144,7 +158,7 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
+          NODE_OPTIONS: '--max-old-space-size=12288'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'

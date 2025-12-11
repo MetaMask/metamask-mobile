@@ -6,11 +6,13 @@
 org.gradle.jvmargs=-Xmx16g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
 
 # Enable performance optimizations but limit parallelism to prevent OOM
+# IMPORTANT: workers.max reduced from 6 to 2 to prevent Gradle Daemon crashes
+# during concurrent JS bundling (Metro + Gradle compete for memory on 48GB runner)
 org.gradle.parallel=true
 org.gradle.configureondemand=true
 org.gradle.caching=true
 org.gradle.daemon=true
-org.gradle.workers.max=6
+org.gradle.workers.max=2
 org.gradle.vfs.watch=false
 
 # CI-specific optimizations - enabled for GitHub Actions

@@ -575,6 +575,20 @@ generateAndroidBinary() {
 			# Enable Gradle debugging flags for E2E builds to investigate Daemon disappearance issues
 			gradleDebugFlags="--stacktrace --info"
 			echo "📊 E2E build: Enabling Gradle debugging flags (--stacktrace --info)"
+
+			# Pre-warm Metro bundler cache to prevent "Bundler cache is empty" warnings
+			# This prevents memory spikes during concurrent JS bundling that can crash Gradle Daemon
+			# NOTE: Do NOT use --reset-cache here - we want to leverage the cached Metro files
+			# from the workflow's "Cache Metro bundler" step for faster subsequent builds
+			echo "🔥 Pre-warming Metro bundler cache (prevents Daemon crashes during JS bundling)..."
+			NODE_OPTIONS="--max-old-space-size=12288" npx react-native bundle \
+				--platform android \
+				--dev false \
+				--entry-file index.js \
+				--bundle-output /tmp/metro-warmup.bundle \
+				--assets-dest /tmp/metro-warmup-assets \
+				|| echo "⚠️ Metro cache warmup failed, continuing anyway..."
+			echo "✅ Metro bundler cache warmed"
 		fi
 	fi
 
