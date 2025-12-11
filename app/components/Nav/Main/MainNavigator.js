@@ -185,9 +185,8 @@ const AssetStackFlow = (props) => (
   </Stack.Navigator>
 );
 
-const AssetModalFlow = (props) => (
+const AssetNavigator = (props) => (
   <Stack.Navigator
-    mode={'modal'}
     initialRouteName={'AssetStackFlow'}
     screenOptions={clearStackNavigatorOptions}
   >
@@ -1038,7 +1037,25 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="Asset"
+        component={AssetNavigator}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
