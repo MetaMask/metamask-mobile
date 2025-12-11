@@ -46,7 +46,7 @@ const BasicFunctionalityEmptyState = ({
           <Box twClassName="items-center mb-4">
             <Icon
               name={iconName}
-              color={colors.icon.muted}
+              color={IconColor.muted}
               size={IconSize.Xl}
             />
           </Box>
