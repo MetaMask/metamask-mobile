@@ -1,63 +1,57 @@
 # GitHub Actions-specific Gradle settings
-# Optimized for E2E builds on LG runner (16 vCPUs, 48GB RAM)
-# CRITICAL: These settings prevent OOM crashes during concurrent builds
+# Optimized for E2E builds on GitHub Actions runners
 
-# ============================================================================
-# JVM MEMORY CONFIGURATION - Tuned for 48GB runner
-# ============================================================================
-# Heap: 12GB to leave room for Node.js and native memory
-# Metaspace: 1GB (sufficient for React Native native libraries)
-# G1GC: MaxGCPauseMillis=500 balances throughput vs latency (200ms was too aggressive)
+# JVM configuration - tuned for 48GB runner to avoid OOM while maintaining performance
+# Heap: 12GB to leave room for Node.js/Metro and native memory
+# ExitOnOutOfMemoryError: fail-fast on OOM for CI
 org.gradle.jvmargs=-Xmx12g -Xms4g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=500 -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/gradle-heap-dump.hprof -Dfile.encoding=UTF-8
 
-# ============================================================================
-# PARALLELISM - Reduced to prevent memory contention
-# ============================================================================
-# Workers: 2 each worker can use 2-3GB
-# Parallel: Keep enabled but with fewer workers
+# Enable performance optimizations but limit parallelism to prevent OOM
 org.gradle.parallel=true
-org.gradle.workers.max=2
-
-# ============================================================================
-# DAEMON & CACHING
-# ============================================================================
-# Daemon: Disabled for CI (single-use process, cleaner state)
-# Caching: Enabled for faster incremental builds
-org.gradle.daemon=false
 org.gradle.caching=true
+org.gradle.daemon=false
+org.gradle.workers.max=2
+org.gradle.vfs.watch=false
 
-# ============================================================================
-# KOTLIN COMPILATION - Optimized for CI
-# ============================================================================
-# Incremental: Enabled for faster rebuilds when cache hits
-# Note: Letting Gradle decide execution strategy (default behavior)
+# CI-specific optimizations - enabled for GitHub Actions
 kotlin.incremental=true
 kotlin.incremental.android=true
 kotlin.caching.enabled=true
 
-# ============================================================================
-# FILE SYSTEM & MISC
-# ============================================================================
-# VFS watch disabled for CI - no benefit with daemon=false and fresh builds
-# See: https://docs.gradle.org/8.10.2/userguide/file_system_watching.html
-org.gradle.vfs.watch=false
+# File system optimizations
 org.gradle.vfs.verbose=false
 org.gradle.welcome=NEVER
 
-# ============================================================================
-# ANDROID CONFIGURATION
-# ============================================================================
+# AndroidX package structure to make it clearer which packages are bundled with the
+# Android operating system, and which are packaged with your app's APK
+# https://developer.android.com/topic/libraries/support-library/androidx-rn
 android.useAndroidX=true
 android.enableJetifier=true
-android.enablePngCrunchInReleaseBuilds=true
-android.disableResourceValidation=true
 
-# Build only x86_64 for E2E tests (emulator architecture)
+# Enable AAPT2 PNG crunching
+android.enablePngCrunchInReleaseBuilds=true
+
+# TODO: favour arch options here over cli options
+# replace them
+# Use this property to specify which architecture you want to build.
+# You can also override it from the CLI using
+# ./gradlew <task> -PreactNativeArchitectures=x86_64
 reactNativeArchitectures=x86_64
 
-# React Native New Architecture
+# Use this property to enable support to the new architecture.
+# This will allow you to use TurboModules and the Fabric render in
+# your application. You should enable this flag either if you want
+# to write custom TurboModules/Fabric components OR use libraries that
+# are providing them.
 newArchEnabled=true
+
+# Use this property to enable or disable the Hermes JS engine.
+# If set to false, you will be using JSC instead.
 hermesEnabled=true
 
-# Expo configuration
+# TODO: explain following config options
+# Some of these are depreceated in RN 0.72.15 but when removed the app won't build
+android.disableResourceValidation=true
+
+# Use legacy packaging to compress native libraries in the resulting APK.
 expo.useLegacyPackaging=false
