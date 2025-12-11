@@ -2,7 +2,7 @@
 
 This document describes the complete state management flow in MetaMask Mobile, from app initialization through migrations, Redux persist, sagas, Engine initialization, and the new early messenger subscription persistence system.
 
-## 🔄 Complete Application State Flow
+## Complete Application State Flow
 
 ```
 ┌─────────────────┐
@@ -360,7 +360,7 @@ engine.controllerMessenger.subscribeOnceIf(
 | **updateBatcher**                 | Efficient batched Redux updates                        | `EngineService.updateBatcher` |
 | **setupPersistenceSubscriptions** | Early subscription setup (before init)                 | `EngineService` method        |
 
-### **Critical: Early Messenger Subscription** ⭐
+### **Critical: Early Messenger Subscription**
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -493,7 +493,7 @@ EngineService                 Messenger              SnapController
               │                                             │
               │ Load PermissionController from FileSystem   │
               │ → Full state with permissions ✅            │
-              │ → Snaps work perfectly! 🎉                 │
+              │ → Snaps work                                │
               │                                             │
 ```
 
