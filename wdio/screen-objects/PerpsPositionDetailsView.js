@@ -29,26 +29,32 @@ class PerpsPositionDetailsView {
 
   async isPositionOpen() {
     const closePositionButton = await this.closePositionButton;
-    return closePositionButton.isVisible();
+    return await closePositionButton.isVisible();
   }
 
   async closePositionWithRetry() {
+    let isClosed = false;
     for (let i = 0; i < 5; i++) {
       if (!(await this.isPositionOpen())) {
-        return;
+        isClosed = true;
+        break;
       }
 
       try {
         await this.tapClosePositionButton();
         await this.device.waitForTimeout(3000);
         console.log(`Retry closing position attempt ${i + 1} successful`);
+
+        if (!(await this.isPositionOpen())) {
+          isClosed = true;
+          break;
+        }
       } catch (error) {
         console.log(`Retry closing position attempt ${i + 1} failed:`, error);
-        throw error;
       }
     }
 
-    if (await this.isPositionOpen()) {
+    if (!isClosed) {
       throw new Error('Failed to close position');
     }
   }  
