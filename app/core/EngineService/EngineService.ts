@@ -50,7 +50,16 @@ export class EngineService {
     }),
   );
 
-  private initializeControllers = (engine: TypedEngine) => {
+  /**
+   * Initializes controller subscriptions for Redux updates and filesystem persistence.
+   *
+   * @param engine - The initialized Engine instance
+   * @param initialState - Optional initial state loaded from persistence. If provided, controllers whose state changed during Engine.init() will be persisted.
+   */
+  private initializeControllers = (
+    engine: TypedEngine,
+    initialState?: Record<string, unknown>,
+  ) => {
     // coordination mechanism to prevent race conditions between engine initialization and UI rendering
     if (!engine.context) {
       Logger.error(
@@ -105,9 +114,8 @@ export class EngineService {
     });
 
     // CRITICAL: Set up filesystem persistence for all controllers
-    // This is called automatically after Redux subscriptions to ensure
-    // both Redux and filesystem are kept in sync when controller state changes
-    this.setupEnginePersistence();
+    // Pass initialState to detect and persist any state changes that occurred during Engine.init()
+    this.setupEnginePersistence(initialState);
   };
 
   /**
@@ -157,7 +165,11 @@ export class EngineService {
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
-      this.initializeControllers(Engine as unknown as TypedEngine);
+      // Pass state to detect controllers that changed during init
+      this.initializeControllers(
+        Engine as unknown as TypedEngine,
+        state as Record<string, unknown>,
+      );
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
@@ -197,26 +209,59 @@ export class EngineService {
    *
    * The persistence is debounced in createPersistController to prevent excessive disk writes during rapid state changes.
    * Controllers with no persistent state are skipped to avoid storing empty objects.
+   *
+   * @param initialState - Optional initial state to compare against. If provided, controllers whose state changed during Engine.init() will be persisted immediately. This catches state changes that occur before subscriptions are set up.
    */
-  private setupEnginePersistence = () => {
+  private setupEnginePersistence = (initialState?: Record<string, unknown>) => {
     try {
       if (UntypedEngine.controllerMessenger) {
         BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
           const controllerName = eventName.split(':')[0];
+
+          // Skip CronjobController as it's handled separately
+          if (eventName === 'CronjobController:stateChange') {
+            return;
+          }
 
           // Check if controller has any persistent state before setting up persistence
           const controllerMetadata =
             // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
             UntypedEngine.context[controllerName]?.metadata;
           if (!hasPersistedState(controllerMetadata)) {
-            Logger.log(
-              `Skipping persistence setup for ${controllerName}, no persistent state`,
-            );
             return;
           }
 
+          // Create debounced persist function (reused for both initial and ongoing persistence)
           const persistController = createPersistController(200);
 
+          // If initialState provided, check if state changed during Engine.init()
+          // Controllers preserve referential equality, so shallow comparison is sufficient
+          if (initialState) {
+            // @ts-expect-error - Engine context has stateless controllers
+            const currentState = UntypedEngine.context[controllerName]?.state;
+            const initialControllerState = initialState[controllerName];
+
+            if (currentState !== initialControllerState) {
+              try {
+                const filteredState = getPersistentState(
+                  currentState,
+                  controllerMetadata,
+                );
+                // Reuse the same debounced function for consistency
+                persistController(filteredState, controllerName);
+                Logger.log(
+                  `${LOG_TAG}: ${controllerName} state changed during init, queued for persist`,
+                );
+              } catch (error) {
+                Logger.error(
+                  error as Error,
+                  `Failed to persist ${controllerName} state that changed during init`,
+                );
+              }
+            }
+          }
+
+          // Set up subscription for future state changes
           UntypedEngine.controllerMessenger.subscribe(
             eventName,
             async (controllerState: StateConstraint) => {
@@ -229,14 +274,10 @@ export class EngineService {
 
                 await persistController(filteredState, controllerName);
               } catch (error) {
-                // Log and track persistence failures but don't crash
-                // Expected failures (low disk space, I/O errors) shouldn't crash the app
-                // The error is already logged in createPersistController, this provides additional context
                 Logger.error(
                   error as Error,
                   `Failed to persist ${controllerName} state during state change`,
                 );
-                // Continue running - graceful degradation is better than crashing for expected failures
               }
             },
           );
@@ -290,7 +331,8 @@ export class EngineService {
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       const instance = Engine.init(state, newKeyringState, metaMetricsId);
       if (instance) {
-        this.initializeControllers(instance);
+        // Pass state to detect controllers that changed during init
+        this.initializeControllers(instance, state as Record<string, unknown>);
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {
