@@ -38,6 +38,16 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
 }));
 
+// Mock TrendingFeedSessionManager
+jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      isFromTrending: false,
+    }),
+  },
+}));
+
 const mockMarket: PredictMarket = {
   id: 'test-market-1',
   providerId: 'test-provider',
