@@ -3,6 +3,7 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import AmountScreen from './AmountScreen';
 import { expect as appwrightExpect } from 'appwright';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils';
+import PerpsPositionDetailsView from './PerpsPositionDetailsView';
 
 class PerpsOrderView {
   get device() {
@@ -35,6 +36,7 @@ class PerpsOrderView {
 
   async tapPlaceOrder() {
     await AppwrightGestures.tap(this.placeOrderButton);
+    appwrightExpect(await PerpsPositionDetailsView.isPositionOpen()).toBe(true);
   }
 
   // Reuse logic from AmountScreen.js for Keypad interaction

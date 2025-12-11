@@ -33,8 +33,9 @@ export async function selectAccountDevice(device, testInfo) {
       accountName = 'Account 3';
       break;
     case 'Google Pixel 8 Pro':
-      accountName = 'Account 1';
-      // Account 1 is selected by default in the app
+      console.log(
+        `🔄 Account 1 is selected by default in the app for device: ${deviceName}`,
+      );
       return;
     case 'iPhone 16 Pro Max':
       accountName = 'Account 4';
@@ -43,8 +44,10 @@ export async function selectAccountDevice(device, testInfo) {
       accountName = 'Account 5';
       break;
     default:
-      console.log(`⚠️ Unknown device: ${deviceName}, using default Account 1`);
-      accountName = 'Account 1';
+      console.log(
+        `🔄 Account 1 is selected by default in the app for device: ${deviceName}`,
+      );
+      return;
   }
   // Account 2 is called stable and not used in this function
 
