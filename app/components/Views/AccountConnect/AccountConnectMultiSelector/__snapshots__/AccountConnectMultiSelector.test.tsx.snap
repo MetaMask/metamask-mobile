@@ -467,7 +467,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               accessible={true}
               style={
                 {
-                  "backgroundColor": "#4459ff1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "bottom": 0,
                   "flexDirection": "row",
                   "left": 0,

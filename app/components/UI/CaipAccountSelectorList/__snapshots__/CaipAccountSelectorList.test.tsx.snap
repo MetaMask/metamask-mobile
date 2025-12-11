@@ -68,7 +68,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#4459ff1a",
+            "backgroundColor": "#3c4d9d0f",
             "flexDirection": "row",
           }
         }
@@ -247,34 +247,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                 </View>
               </View>
             </View>
-          </View>
-          <View
-            accessibilityRole="checkbox"
-            accessible={true}
-            style={
-              {
-                "backgroundColor": "#4459ff1a",
-                "bottom": 0,
-                "flexDirection": "row",
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-                "width": 4,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "backgroundColor": "#4459ff",
-                  "borderRadius": 2,
-                  "marginLeft": 4,
-                  "marginVertical": 4,
-                  "width": 4,
-                }
-              }
-            />
           </View>
         </TouchableOpacity>
         <View
@@ -627,7 +599,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#4459ff1a",
+            "backgroundColor": "#3c4d9d0f",
             "flexDirection": "row",
           }
         }
@@ -769,34 +741,6 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                 </View>
               </View>
             </View>
-          </View>
-          <View
-            accessibilityRole="checkbox"
-            accessible={true}
-            style={
-              {
-                "backgroundColor": "#4459ff1a",
-                "bottom": 0,
-                "flexDirection": "row",
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-                "width": 4,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "backgroundColor": "#4459ff",
-                  "borderRadius": 2,
-                  "marginLeft": 4,
-                  "marginVertical": 4,
-                  "width": 4,
-                }
-              }
-            />
           </View>
         </TouchableOpacity>
         <View
@@ -1112,7 +1056,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#4459ff1a",
+            "backgroundColor": "#3c4d9d0f",
             "flexDirection": "row",
           }
         }
@@ -1291,34 +1235,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                 </View>
               </View>
             </View>
-          </View>
-          <View
-            accessibilityRole="checkbox"
-            accessible={true}
-            style={
-              {
-                "backgroundColor": "#4459ff1a",
-                "bottom": 0,
-                "flexDirection": "row",
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-                "width": 4,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "backgroundColor": "#4459ff",
-                  "borderRadius": 2,
-                  "marginLeft": 4,
-                  "marginVertical": 4,
-                  "width": 4,
-                }
-              }
-            />
           </View>
         </TouchableOpacity>
         <View
@@ -1671,7 +1587,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#4459ff1a",
+            "backgroundColor": "#3c4d9d0f",
             "flexDirection": "row",
           }
         }
@@ -1850,34 +1766,6 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                 </View>
               </View>
             </View>
-          </View>
-          <View
-            accessibilityRole="checkbox"
-            accessible={true}
-            style={
-              {
-                "backgroundColor": "#4459ff1a",
-                "bottom": 0,
-                "flexDirection": "row",
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-                "width": 4,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "backgroundColor": "#4459ff",
-                  "borderRadius": 2,
-                  "marginLeft": 4,
-                  "marginVertical": 4,
-                  "width": 4,
-                }
-              }
-            />
           </View>
         </TouchableOpacity>
         <View
