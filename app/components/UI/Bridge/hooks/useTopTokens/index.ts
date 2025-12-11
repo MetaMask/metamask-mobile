@@ -78,6 +78,7 @@ const formatCachedTokenListControllerTokens = (
       name: token.name,
       image: getTokenIconUrl(assetId, isNonEnvChain) || token.iconUrl || '',
       decimals: token.decimals,
+      aggregators: token.aggregators,
       chainId: isNonEnvChain ? caipChainId : hexChainId,
       accountType: getAccountType(caipChainId),
     };
@@ -190,6 +191,7 @@ export const useTopTokens = ({
 
     // Convert from BridgeAsset type to BridgeToken type
     const bridgeTokenObj: Record<string, BridgeToken> = {};
+
     Object.keys(rawBridgeAssets).forEach((addr) => {
       const bridgeAsset = rawBridgeAssets[addr];
 
@@ -209,8 +211,10 @@ export const useTopTokens = ({
         name: bridgeAsset.name,
         image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
+        aggregators: bridgeAsset.aggregators,
         chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
         accountType: getAccountType(caipChainId),
+        metadata: bridgeAsset.metadata,
       };
     });
 

@@ -13,6 +13,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
@@ -37,6 +42,8 @@ import SensitiveText, {
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
+import { strings } from '../../../../../../locales/i18n';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
@@ -74,6 +81,8 @@ export const TokenListItemBip44 = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
+
+    const { isAssetStockToken } = useRWAToken();
 
     const chainId = asset?.chainId as Hex;
 
@@ -220,6 +229,7 @@ export const TokenListItemBip44 = React.memo(
             <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
+            {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
             {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
           <View style={styles.percentageChange}>
@@ -233,6 +243,21 @@ export const TokenListItemBip44 = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
+            {isAssetStockToken(asset) && (
+              <View style={styles.stockBadge}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('token.stock')}
+                </Text>
+              </View>
+            )}
             {renderEarnCta()}
           </View>
         </View>

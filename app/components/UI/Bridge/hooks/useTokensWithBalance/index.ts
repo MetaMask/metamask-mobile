@@ -233,7 +233,11 @@ export const useTokensWithBalance: ({
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+          aggregators: token.aggregators,
           accountType: token.accountType,
+          metadata: ('metadata' in token
+            ? token.metadata
+            : undefined) as BridgeToken['metadata'],
         };
       });
     return sortAssets(properTokens, tokenSortConfig);

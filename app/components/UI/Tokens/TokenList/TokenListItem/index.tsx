@@ -24,6 +24,11 @@ import TextComponent, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -468,6 +473,21 @@ export const TokenListItem = React.memo(
                 {balanceValueFormatted?.toUpperCase()}
               </SensitiveText>
             ) : null}
+            {isStockToken() && (
+              <View style={styles.stockBadge}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <TextComponent
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('token.stock')}
+                </TextComponent>
+              </View>
+            )}
             {renderEarnCta()}
           </View>
         </View>

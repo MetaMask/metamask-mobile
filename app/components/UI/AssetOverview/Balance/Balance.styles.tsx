@@ -17,6 +17,15 @@ const styleSheet = (params: { theme: Theme }) => {
     badgeWrapper: {
       alignSelf: 'center',
     },
+    stockBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 8,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      gap: 4,
+    },
     ethLogo: {
       width: 40,
       height: 40,
@@ -52,6 +61,11 @@ const styleSheet = (params: { theme: Theme }) => {
     } as TextStyle,
     assetName: {
       flexDirection: 'row',
+      gap: 8,
+    },
+    balanceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 8,
     },
   });

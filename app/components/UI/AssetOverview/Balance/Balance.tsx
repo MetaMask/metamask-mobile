@@ -30,6 +30,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../component-library/components/Icons/Icon';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../component-library/components/Texts/SensitiveText';
@@ -50,6 +55,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -210,6 +216,8 @@ const Balance = ({
     ? ACCOUNT_TYPE_LABELS[asset.accountType]
     : undefined;
 
+  const { isAssetStockToken } = useRWAToken();
+
   return (
     <View style={styles.wrapper}>
       {!hideTitleHeading && (
@@ -251,17 +259,34 @@ const Balance = ({
             {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
 
-          {secondaryBalance && (
-            <SensitiveText
-              variant={TextVariant.BodySMMedium}
-              style={styles.tokenAmount}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-              testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
-            >
-              {secondaryBalance}
-            </SensitiveText>
-          )}
+          <View style={styles.balanceRow}>
+            {secondaryBalance && (
+              <SensitiveText
+                variant={TextVariant.BodySMMedium}
+                style={styles.tokenAmount}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
+              >
+                {secondaryBalance}
+              </SensitiveText>
+            )}
+            {isAssetStockToken(asset) && (
+              <View style={styles.stockBadge}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('token.stock')}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </AssetElement>
       <EarnBalance asset={asset} />

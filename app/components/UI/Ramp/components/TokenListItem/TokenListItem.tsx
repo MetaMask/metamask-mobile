@@ -15,6 +15,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconSize,
+  IconColor,
+  IconName as ComponentIconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -22,6 +27,10 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
+import { strings } from '../../../../../../locales/i18n';
+import { View } from 'react-native';
+import { useTheme } from '../../../../../util/theme';
+import createStyles from '../../../Tokens/styles';
 
 interface TokenListItemProps {
   token: DepositCryptoCurrency;
@@ -40,6 +49,8 @@ function TokenListItem({
   isDisabled = false,
   onInfoPress,
 }: Readonly<TokenListItemProps>) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const getTokenNetworkInfo = useTokenNetworkInfo();
   const { networkName, depositNetworkName, networkImageSource } =
     getTokenNetworkInfo(token.chainId);
@@ -77,6 +88,17 @@ function TokenListItem({
         <Text variant={TextVariant.BodyMD} color={textColor}>
           {token.symbol}
         </Text>
+
+        <View style={styles.stockBadge}>
+          <Icon
+            name={ComponentIconName.Clock}
+            size={IconSize.Xs}
+            color={IconColor.Alternative}
+          />
+          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+            {strings('token.stock')}
+          </Text>
+        </View>
       </ListItemColumn>
       {isDisabled && onInfoPress && (
         <ListItemColumn widthType={WidthType.Auto}>

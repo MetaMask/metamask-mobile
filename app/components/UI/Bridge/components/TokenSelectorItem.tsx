@@ -1,48 +1,54 @@
+import { ethers } from 'ethers';
 import React from 'react';
 import {
-  StyleSheet,
   ImageSourcePropType,
-  View,
-  TouchableOpacity,
   Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
+import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import TagBase, {
+  TagSeverity,
+  TagShape,
+} from '../../../../component-library/base-components/TagBase';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import TokenIcon from '../../../Base/TokenIcon';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../../component-library/hooks';
+import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../reducers';
+import { fontStyles } from '../../../../styles/common';
+import { Theme } from '../../../../util/theme/models';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
-import { useStyles } from '../../../../component-library/hooks';
-import { Theme } from '../../../../util/theme/models';
-import { BridgeToken } from '../types';
-import { ethers } from 'ethers';
-import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
 } from '../../Tokens/constants';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { useSelector } from 'react-redux';
-import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
-import { strings } from '../../../../../locales/i18n';
-import TagBase, {
-  TagShape,
-  TagSeverity,
-} from '../../../../component-library/base-components/TagBase';
+import { useRWAToken } from '../hooks/useRWAToken';
+import { BridgeToken } from '../types';
 import Tag from '../../../../component-library/components/Tags/Tag';
-import { RootState } from '../../../../reducers';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import parseAmount from '../../../../util/parseAmount';
+import TokenIcon from '../../../Base/TokenIcon';
 
 const createStyles = ({
   theme,
@@ -106,6 +112,15 @@ const createStyles = ({
       width: 32,
       height: 32,
     },
+    stockBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 8,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      gap: 4,
+    },
   });
 
 interface TokenSelectorItemProps {
@@ -152,6 +167,9 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
+
+  // to check if the token is a stock by checking if the name includes 'ondo' or 'stock'
+  const { isAssetStockToken } = useRWAToken();
 
   const balance = shouldShowBalance ? fiatValue : undefined;
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
@@ -239,6 +257,21 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {token.name}
             </Text>
+            {isAssetStockToken(token) && (
+              <View style={styles.stockBadge}>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.Alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('token.stock')}
+                </Text>
+              </View>
+            )}
           </Box>
 
           {/* Token balance and fiat value */}
