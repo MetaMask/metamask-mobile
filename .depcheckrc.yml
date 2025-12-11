@@ -108,6 +108,7 @@ ignores:
   - 'cross-spawn'
   - 'expo-build-properties'
   - 'expo-dev-client'
+  - 'expo-font'
 
   ## react native
   - '@react-native-community/cli'
