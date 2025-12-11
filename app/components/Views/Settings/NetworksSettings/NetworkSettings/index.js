@@ -14,6 +14,7 @@ import Networks, {
   getDecimalChainId,
   isWhitelistedSymbol,
 } from '../../../../../util/networks';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 import Engine from '../../../../../core/Engine';
 import URL from 'url-parse';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -48,7 +49,11 @@ import {
 import { selectIsRpcFailoverEnabled } from '../../../../../selectors/featureFlagController/walletFramework';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { isSafeChainId, toHex } from '@metamask/controller-utils';
+import {
+  BlockExplorerUrl,
+  isSafeChainId,
+  toHex,
+} from '@metamask/controller-utils';
 import { hexToNumber } from '@metamask/utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
@@ -101,6 +106,31 @@ const allNetworks = getAllNetworks();
 
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+
+/**
+ * Get block explorer URL as fallback when networkConfiguration doesn't have blockExplorerUrls.
+ * Checks PopularList first (by chainId), then falls back to BlockExplorerUrl (by networkType).
+ *
+ * @param {string} chainId - The chain ID (hex string)
+ * @param {string} [networkType] - Optional network type (e.g., 'mainnet', 'linea-mainnet')
+ * @returns {string | undefined} The block explorer URL or undefined
+ */
+const getDefaultBlockExplorerUrl = (chainId, networkType) => {
+  // First check PopularList by chainId
+  const popularNetwork = PopularList.find(
+    (network) => network.chainId === chainId,
+  );
+  if (popularNetwork?.rpcPrefs?.blockExplorerUrl) {
+    return popularNetwork.rpcPrefs.blockExplorerUrl;
+  }
+
+  // Fall back to BlockExplorerUrl for built-in networks (mainnet, linea, etc.)
+  if (networkType && BlockExplorerUrl[networkType]) {
+    return BlockExplorerUrl[networkType];
+  }
+
+  return undefined;
+};
 
 /**
  * Main view for app configurations
@@ -275,11 +305,15 @@ export class NetworkSettings extends PureComponent {
 
         nickname = networkConfiguration?.name;
         editable = false;
-        blockExplorerUrl = networkConfiguration
-          ? networkConfiguration.blockExplorerUrls[
-              networkConfiguration.defaultBlockExplorerUrlIndex
-            ]
-          : undefined;
+        // Use networkTypeOrRpcUrl as the network type for built-in networks (e.g., 'mainnet', 'linea-mainnet')
+        const fallbackExplorerUrl = getDefaultBlockExplorerUrl(
+          chainId,
+          networkTypeOrRpcUrl,
+        );
+        blockExplorerUrl =
+          networkConfiguration?.blockExplorerUrls?.[
+            networkConfiguration.defaultBlockExplorerUrlIndex
+          ] ?? fallbackExplorerUrl;
         rpcUrl = defaultRpcEndpoint?.url;
         failoverRpcUrls = defaultRpcEndpoint?.failoverUrls;
         rpcName = defaultRpcEndpoint
@@ -288,7 +322,13 @@ export class NetworkSettings extends PureComponent {
             : defaultRpcEndpoint.name
           : undefined;
         rpcUrls = networkConfiguration?.rpcEndpoints;
-        blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
+        // Use fallback if blockExplorerUrls is undefined/null OR empty array
+        const configBlockExplorerUrls = networkConfiguration?.blockExplorerUrls;
+        if (configBlockExplorerUrls?.length > 0) {
+          blockExplorerUrls = configBlockExplorerUrls;
+        } else {
+          blockExplorerUrls = fallbackExplorerUrl ? [fallbackExplorerUrl] : [];
+        }
 
         ticker = networkConfiguration?.nativeCurrency;
       } else {
@@ -305,16 +345,28 @@ export class NetworkSettings extends PureComponent {
           : undefined;
         nickname = networkConfiguration?.name;
         chainId = networkConfiguration?.chainId;
+        // Use networkClientId from the RPC endpoint for built-in networks
+        const networkClientId = defaultRpcEndpoint?.networkClientId;
+        const fallbackExplorerUrl = getDefaultBlockExplorerUrl(
+          chainId,
+          networkClientId,
+        );
         blockExplorerUrl =
-          networkConfiguration?.blockExplorerUrls[
+          networkConfiguration?.blockExplorerUrls?.[
             networkConfiguration?.defaultBlockExplorerUrlIndex
-          ];
+          ] ?? fallbackExplorerUrl;
         ticker = networkConfiguration?.nativeCurrency;
         editable = true;
         rpcUrl = defaultRpcEndpoint?.url;
         failoverRpcUrls = defaultRpcEndpoint?.failoverUrls;
         rpcUrls = networkConfiguration?.rpcEndpoints;
-        blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
+        // Use fallback if blockExplorerUrls is undefined/null OR empty array
+        const configBlockExplorerUrls = networkConfiguration?.blockExplorerUrls;
+        if (configBlockExplorerUrls?.length > 0) {
+          blockExplorerUrls = configBlockExplorerUrls;
+        } else {
+          blockExplorerUrls = fallbackExplorerUrl ? [fallbackExplorerUrl] : [];
+        }
         rpcName = defaultRpcEndpoint
           ? defaultRpcEndpoint.type === 'infura'
             ? 'Infura'
