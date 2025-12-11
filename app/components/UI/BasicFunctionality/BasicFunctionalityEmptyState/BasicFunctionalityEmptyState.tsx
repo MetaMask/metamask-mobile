@@ -5,13 +5,29 @@ import {
   TextVariant,
   Button,
   ButtonVariant,
+  Icon,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
+import Routes from '../../../../constants/navigation/Routes';
+import { useTheme } from '../../../../../app/util/theme';
+import { StyleProp, ViewStyle } from 'react-native';
 
-const BasicFunctionalityEmptyState = () => {
+interface BasicFunctionalityEmptyStateProps {
+  title?: string;
+  iconName?: IconName;
+  style?: StyleProp<ViewStyle>;
+}
+
+const BasicFunctionalityEmptyState = ({
+  title,
+  iconName,
+  style,
+}: BasicFunctionalityEmptyStateProps) => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   const handleEnableBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -22,14 +38,24 @@ const BasicFunctionalityEmptyState = () => {
   return (
     <Box
       testID="basic-functionality-empty-state"
-      twClassName="flex-col pt-9 pb-24 justify-center items-center gap-3 flex-1"
+      twClassName="flex-col justify-center items-center gap-3 flex-1"
+      style={style}
     >
       <Box twClassName="flex-col w-[337px] items-stretch">
+        {iconName && (
+          <Box twClassName="items-center mb-4">
+            <Icon
+              name={iconName}
+              color={colors.icon.muted}
+              size={IconSize.Xl}
+            />
+          </Box>
+        )}
         <Text
           variant={TextVariant.HeadingSm}
           twClassName="text-default text-center self-stretch mb-2"
         >
-          {strings('trending.basic_functionality_disabled_title')}
+          {title || strings('trending.basic_functionality_disabled_title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}

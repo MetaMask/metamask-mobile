@@ -22,7 +22,7 @@ import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 
 export const ExploreFeed: React.FC = () => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import BasicFunctionalityEmptyState from './BasicFunctionalityEmptyState';
-import Routes from '../../../../../constants/navigation/Routes';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 
