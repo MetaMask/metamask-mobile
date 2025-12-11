@@ -25,6 +25,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { isE2E } from '../../../util/test/utils';
 
 interface BannerIcon {
   color: IconColor;
@@ -42,6 +43,11 @@ const SpinningIcon = ({ twClassName, ...iconProps }: IconProps) => {
   }));
 
   useEffect(() => {
+    // Disable animation in E2E tests to prevent hanging in detox
+    if (isE2E) {
+      return;
+    }
+
     rotation.value = withRepeat(
       withTiming(360, {
         duration: 1000,
@@ -55,6 +61,10 @@ const SpinningIcon = ({ twClassName, ...iconProps }: IconProps) => {
       cancelAnimation(rotation);
     };
   }, [rotation]);
+
+  if (isE2E) {
+    return <Icon {...iconProps} twClassName={twClassName} />;
+  }
 
   return (
     <Animated.View
