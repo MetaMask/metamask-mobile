@@ -8,7 +8,7 @@ export const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.brandColors.indigo100,
       gap: 24,
     },
     backgroundImage: {
@@ -23,12 +23,15 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 24,
     },
     heading: {
-      marginBottom: 8,
+      marginBottom: 16,
       fontFamily: 'MMSans-Regular',
+      color: colors.accent04.dark,
+      fontWeight: 500,
     },
     bodyText: {
       marginBottom: 32,
       textAlign: 'center',
+      color: colors.accent04.dark,
     },
     continueButton: {
       alignSelf: 'stretch',

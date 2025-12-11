@@ -2255,14 +2255,15 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
  * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
  * @returns {Object} - Navigation options
  */
-export function getCloseOnlyNavbar(
+export function getCloseOnlyNavbar({
   navigation,
   themeColors,
+  backgroundColor = themeColors.background.default,
   onClose = undefined,
-) {
+}) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
