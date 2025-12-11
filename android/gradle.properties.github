@@ -25,7 +25,6 @@ org.gradle.workers.max=2
 # Caching: Enabled for faster incremental builds
 org.gradle.daemon=false
 org.gradle.caching=true
-org.gradle.configureondemand=true
 
 # ============================================================================
 # KOTLIN COMPILATION - Optimized for CI
@@ -39,6 +38,8 @@ kotlin.caching.enabled=true
 # ============================================================================
 # FILE SYSTEM & MISC
 # ============================================================================
+# VFS watch disabled for CI - no benefit with daemon=false and fresh builds
+# See: https://docs.gradle.org/8.10.2/userguide/file_system_watching.html
 org.gradle.vfs.watch=false
 org.gradle.vfs.verbose=false
 org.gradle.welcome=NEVER
