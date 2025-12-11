@@ -184,6 +184,13 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="StakeScreens"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
