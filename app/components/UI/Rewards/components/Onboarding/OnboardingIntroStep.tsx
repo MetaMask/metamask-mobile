@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
+import { Image, ImageBackground, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -318,7 +318,7 @@ const OnboardingIntroStep: React.FC<{
             tw.style('text-center text-white text-12 leading-1 pt-1'),
             // eslint-disable-next-line react-native/no-inline-styles
             {
-              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+              fontFamily: 'MMPoly-Regular',
             },
           ]}
         >
