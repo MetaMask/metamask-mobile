@@ -17,9 +17,7 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { doesPasswordMatch } from '../../../util/password';
-import { setAllowLoginWithRememberMe } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
-import { Authentication } from '../../../core';
+import { useAuthentication } from '../../../core/Authentication';
 
 export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -29,7 +27,7 @@ export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
 const TurnOffRememberMeModal = () => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
-  const dispatch = useDispatch();
+  const { turnOffRememberMeAndLockApp } = useAuthentication();
 
   const modalRef = useRef<ReusableModalRef>(null);
 
@@ -61,11 +59,6 @@ const TurnOffRememberMeModal = () => {
     modalRef?.current?.dismissModal(cb);
 
   const triggerClose = () => dismissModal();
-
-  const turnOffRememberMeAndLockApp = useCallback(async () => {
-    dispatch(setAllowLoginWithRememberMe(false));
-    Authentication.lockApp();
-  }, [dispatch]);
 
   const disableRememberMe = useCallback(async () => {
     dismissModal(async () => await turnOffRememberMeAndLockApp());
