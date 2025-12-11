@@ -34,6 +34,8 @@ import Animated, {
   useAnimatedStyle,
   useAnimatedScrollHandler,
   SharedValue,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated';
 import { FlashList, FlashListProps, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
@@ -503,6 +505,7 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
 
 interface AnimatedHeaderProps {
   headerTranslateY: SharedValue<number>;
+  headerHeight: number;
   headerRef: React.RefObject<View>;
   tabBarRef: React.RefObject<View>;
   tabs: FeedTab[];
@@ -512,13 +515,14 @@ interface AnimatedHeaderProps {
 
 /**
  * Animated header containing both balance and tab bar.
- * The balance section scrolls away while tab bar pins to top.
+ * The balance section scrolls away (with fade) while tab bar pins to top.
  *
  * Animation: Container translates from 0 to -headerHeight (balance height).
  * When fully translated, balance is hidden above viewport, tab bar is at y=0.
  */
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   headerTranslateY,
+  headerHeight,
   headerRef,
   tabBarRef,
   tabs,
@@ -528,8 +532,22 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
 
-  const animatedStyle = useAnimatedStyle(() => ({
+  const animatedContainerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: headerTranslateY.value }],
+  }));
+
+  // Fade out balance as header hides: opacity 1 -> 0 as translateY 0 -> -headerHeight
+  // Only interpolate after headerHeight is measured, otherwise keep full opacity
+  const animatedBalanceStyle = useAnimatedStyle(() => ({
+    opacity:
+      headerHeight > 0
+        ? interpolate(
+            headerTranslateY.value,
+            [-headerHeight, 0],
+            [0, 1],
+            Extrapolation.CLAMP,
+          )
+        : 1,
   }));
 
   return (
@@ -537,12 +555,12 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       style={[
         tw.style('absolute top-0 left-0 right-0 z-10'),
         { backgroundColor: colors.background.default },
-        animatedStyle,
+        animatedContainerStyle,
       ]}
     >
-      <View ref={headerRef}>
+      <Animated.View ref={headerRef} style={animatedBalanceStyle}>
         <PredictFeedHeader />
-      </View>
+      </Animated.View>
       <View ref={tabBarRef}>
         <PredictFeedTabBar
           tabs={tabs}
@@ -1100,6 +1118,7 @@ const PredictFeed: React.FC = () => {
         {/* Animated Header - Contains balance and tab bar */}
         <AnimatedHeader
           headerTranslateY={headerTranslateY}
+          headerHeight={headerHeight}
           headerRef={headerRef}
           tabBarRef={tabBarRef}
           tabs={TABS}
