@@ -3519,4 +3519,51 @@ describe('Authentication', () => {
       );
     });
   });
+
+  describe('importPrivateKeyWithSeedlessPasswordCheck', () => {
+    const mockPrivateKey =
+      '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('imports account when seedless password is not outdated', async () => {
+      const checkIsSeedlessPasswordOutdatedSpy = jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(false);
+      const importAccountFromPrivateKeySpy = jest
+        .spyOn(Authentication, 'importAccountFromPrivateKey')
+        .mockResolvedValue(undefined);
+
+      const result =
+        await Authentication.importPrivateKeyWithSeedlessPasswordCheck(
+          mockPrivateKey,
+        );
+
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith(true);
+      expect(importAccountFromPrivateKeySpy).toHaveBeenCalledWith(
+        mockPrivateKey,
+      );
+      expect(result).toBe(true);
+    });
+
+    it('skips import when seedless password is outdated', async () => {
+      const checkIsSeedlessPasswordOutdatedSpy = jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(true);
+      const importAccountFromPrivateKeySpy = jest
+        .spyOn(Authentication, 'importAccountFromPrivateKey')
+        .mockResolvedValue(undefined);
+
+      const result =
+        await Authentication.importPrivateKeyWithSeedlessPasswordCheck(
+          mockPrivateKey,
+        );
+
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith(true);
+      expect(importAccountFromPrivateKeySpy).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+    });
+  });
 });
