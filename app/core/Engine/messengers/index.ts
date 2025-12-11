@@ -53,7 +53,10 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
-import { getBridgeControllerMessenger } from './bridge-controller-messenger';
+import {
+  getBridgeControllerMessenger,
+  getBridgeControllerInitMessenger,
+} from './bridge-controller-messenger';
 import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
 import {
   getMultichainAccountServiceInitMessenger,
@@ -96,8 +99,14 @@ import { getTokenRatesControllerMessenger } from './token-rates-controller-messe
 import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
 import { getNftControllerMessenger } from './nft-controller-messenger';
 import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
-import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
-import { getUserStorageControllerMessenger } from './identity/user-storage-controller-messenger';
+import {
+  getSmartTransactionsControllerMessenger,
+  getSmartTransactionsControllerInitMessenger,
+} from './smart-transactions-controller-messenger';
+import {
+  getUserStorageControllerMessenger,
+  getUserStorageControllerInitMessenger,
+} from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
 import {
   getEarnControllerInitMessenger,
@@ -265,7 +274,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   UserStorageController: {
     getMessenger: getUserStorageControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getUserStorageControllerInitMessenger,
   },
   WebSocketService: {
     getMessenger: getWebSocketServiceMessenger,
@@ -318,7 +327,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getSmartTransactionsControllerInitMessenger,
   },
   SwapsController: {
     getMessenger: getSwapsControllerMessenger,
@@ -338,7 +347,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getBridgeControllerInitMessenger,
   },
   BridgeStatusController: {
     getMessenger: getBridgeStatusControllerMessenger,

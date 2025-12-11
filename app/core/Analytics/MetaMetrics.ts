@@ -333,7 +333,12 @@ class MetaMetrics implements IMetaMetrics {
    * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#identify
    */
   #identify = async (userTraits: UserTraits): Promise<void> => {
-    this.segmentClient?.identify(this.metametricsId, userTraits);
+    // DEBUG: Disabled for debugging - replaced with log
+    Logger.log(
+      `[MetaMetrics DEBUG] identify called with ID: ${this.metametricsId}, traits:`,
+      JSON.stringify(userTraits, null, 2),
+    );
+    // this.segmentClient?.identify(this.metametricsId, userTraits);
   };
 
   /**
@@ -361,15 +366,21 @@ class MetaMetrics implements IMetaMetrics {
     properties: JsonMap,
     saveDataRecording = true,
   ): void => {
-    this.segmentClient?.track(event, properties);
-    saveDataRecording &&
-      !this.dataRecorded &&
-      this.#setIsDataRecorded(true).catch((error) => {
-        // here we don't want to handle the error, there's nothing we can do
-        // so we just catch and log it async and do not await for return
-        // as this must not block the event tracking
-        Logger.error(error, 'Analytics Data Record Error');
-      });
+    // DEBUG: Disabled for debugging - replaced with log
+    Logger.log(
+      `[MetaMetrics DEBUG] track called - event: ${event}, properties:`,
+      JSON.stringify(properties, null, 2),
+      `saveDataRecording: ${saveDataRecording}`,
+    );
+    // this.segmentClient?.track(event, properties);
+    // saveDataRecording &&
+    //   !this.dataRecorded &&
+    //   this.#setIsDataRecorded(true).catch((error) => {
+    //     // here we don't want to handle the error, there's nothing we can do
+    //     // so we just catch and log it async and do not await for return
+    //     // as this must not block the event tracking
+    //     Logger.error(error, 'Analytics Data Record Error');
+    //   });
   };
 
   /**

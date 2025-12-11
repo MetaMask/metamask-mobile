@@ -4,8 +4,8 @@ import {
   type TokenDetectionControllerMessenger,
 } from '@metamask/assets-controllers';
 import { TokenDetectionControllerInitMessenger } from '../messengers/token-detection-controller-messenger';
-import { MetaMetrics, MetaMetricsEvents } from '../../Analytics';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { getDecimalChainId } from '../../../util/networks';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
@@ -36,16 +36,24 @@ export const tokenDetectionControllerInit: ControllerInitFunction<
     ),
     useTokenDetection: () => selectUseTokenDetection(getState()),
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
-    trackMetaMetricsEvent: () =>
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.TOKEN_DETECTED)
+    trackMetaMetricsEvent: () => {
+      try {
+        const event = AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TOKEN_DETECTED,
+        )
           .addProperties({
             token_standard: 'ERC20',
             asset_type: 'token',
             chain_id: getDecimalChainId(getGlobalChainId(networkController)),
           })
-          .build(),
-      ),
+          .build();
+
+        initMessenger.call('AnalyticsController:trackEvent', event);
+      } catch (error) {
+        // Analytics tracking failures should not break token detection
+        // Error is logged but not thrown
+      }
+    },
   });
 
   return {
