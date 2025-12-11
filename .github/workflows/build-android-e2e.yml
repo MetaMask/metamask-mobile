@@ -130,7 +130,7 @@ jobs:
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
+          export NODE_OPTIONS="--max-old-space-size=12288"
           # Use E2E gradle properties for GitHub Actions builds (gradle.properties.github)
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
@@ -144,7 +144,7 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
+          NODE_OPTIONS: '--max-old-space-size=12288'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
