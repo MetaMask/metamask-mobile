@@ -785,7 +785,8 @@
       "resend_code_button": "Resend it",
       "resend_cooldown": "Resend code in {{seconds}} seconds",
       "contact_support": "Contact support",
-      "error": "An error occurred while verifying the code"
+      "error": "An error occurred while verifying the code",
+      "paste": "Paste"
     },
     "verify_identity": {
       "title": "Verify your identity",
