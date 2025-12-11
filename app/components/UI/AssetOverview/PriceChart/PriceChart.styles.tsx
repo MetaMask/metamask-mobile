@@ -12,8 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { typography } = theme;
   return StyleSheet.create({
     chart: {
-      paddingRight: 0,
-      paddingLeft: 0,
+      paddingHorizontal: 16,
       height: CHART_HEIGHT - 10, // hack to remove internal padding that is not configurable
       paddingTop: 0,
       marginVertical: 10,
