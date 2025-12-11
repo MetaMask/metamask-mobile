@@ -1257,6 +1257,19 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={{
           headerShown: true,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
         }}
       />
       {
