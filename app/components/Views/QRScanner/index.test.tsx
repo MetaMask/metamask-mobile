@@ -62,8 +62,8 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('../../../core/SDKConnectV2', () => ({
   __esModule: true,
   default: {
-    isConnectDeeplink: jest.fn().mockReturnValue(false),
-    handleConnectDeeplink: jest.fn(),
+    isMwpDeeplink: jest.fn().mockReturnValue(false),
+    handleMwpDeeplink: jest.fn(),
   },
 }));
 
@@ -606,9 +606,9 @@ describe('QrScanner', () => {
         const SDKConnectV2Module = jest.requireMock(
           '../../../core/SDKConnectV2',
         );
-        (
-          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
-        ).mockReturnValue(true);
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          true,
+        );
 
         const mockOnScanSuccess = jest.fn();
         renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
@@ -652,9 +652,9 @@ describe('QrScanner', () => {
         const SDKConnectV2Module = jest.requireMock(
           '../../../core/SDKConnectV2',
         );
-        (
-          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
-        ).mockReturnValue(false);
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
 
         (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
@@ -718,9 +718,9 @@ describe('QrScanner', () => {
         const SDKConnectV2Module = jest.requireMock(
           '../../../core/SDKConnectV2',
         );
-        (
-          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
-        ).mockReturnValue(false);
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
 
         (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
@@ -778,9 +778,9 @@ describe('QrScanner', () => {
         const SDKConnectV2Module = jest.requireMock(
           '../../../core/SDKConnectV2',
         );
-        (
-          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
-        ).mockReturnValue(false);
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
 
         (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 

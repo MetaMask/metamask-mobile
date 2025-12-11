@@ -14,12 +14,12 @@ import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   ClobAuthDomain,
   EIP712Domain,
-  FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
 } from './constants';
+import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import {
   ApiKeyCreds,
   ClobHeaders,
@@ -2556,24 +2556,45 @@ describe('polymarket utils', () => {
   });
 
   describe('calculateFees', () => {
-    it('calculates fee using FEE_PERCENTAGE constant', async () => {
+    const feeCollection = DEFAULT_FEE_COLLECTION_FLAG;
+    const totalFeePercentage =
+      (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
+
+    beforeEach(() => {
+      // Mock the Gamma API response for market details
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          id: 'market-1',
+          tags: [],
+        }),
+      });
+    });
+
+    it('calculates fee using feeCollection config', async () => {
       const params = {
+        feeCollection,
         marketId: 'market-1',
         userBetAmount: 1,
       };
 
       const fees = await calculateFees(params);
 
-      const expectedTotal = (params.userBetAmount * FEE_PERCENTAGE) / 100;
-      const expectedEach = expectedTotal / 2;
+      const expectedMetamaskFee =
+        params.userBetAmount * feeCollection.metamaskFee;
+      const expectedProviderFee =
+        params.userBetAmount * feeCollection.providerFee;
+      const expectedTotal = expectedMetamaskFee + expectedProviderFee;
       expect(fees.totalFee).toBe(expectedTotal);
-      expect(fees.providerFee).toBe(expectedEach);
-      expect(fees.metamaskFee).toBe(expectedEach);
-      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
+      expect(fees.providerFee).toBe(expectedProviderFee);
+      expect(fees.metamaskFee).toBe(expectedMetamaskFee);
+      expect(fees.totalFeePercentage).toBe(totalFeePercentage);
+      expect(fees.collector).toBe(feeCollection.collector);
     });
 
     it('calculates fees correctly for various amounts', async () => {
       const params = {
+        feeCollection,
         marketId: 'market-1',
         userBetAmount: 1,
       };
@@ -2583,27 +2604,34 @@ describe('polymarket utils', () => {
       expect(fees.providerFee).toBeGreaterThanOrEqual(0);
       expect(fees.metamaskFee).toBeGreaterThanOrEqual(0);
       expect(fees.totalFee).toBeGreaterThanOrEqual(0);
-      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
+      expect(fees.totalFeePercentage).toBe(totalFeePercentage);
+      expect(fees.collector).toBe(feeCollection.collector);
     });
 
     it('handles large amounts correctly', async () => {
       const params = {
+        feeCollection,
         marketId: 'market-1',
         userBetAmount: 100,
       };
 
       const fees = await calculateFees(params);
 
-      const expectedTotal = (params.userBetAmount * FEE_PERCENTAGE) / 100;
-      const expectedEach = expectedTotal / 2;
+      const expectedMetamaskFee =
+        params.userBetAmount * feeCollection.metamaskFee;
+      const expectedProviderFee =
+        params.userBetAmount * feeCollection.providerFee;
+      const expectedTotal = expectedMetamaskFee + expectedProviderFee;
       expect(fees.totalFee).toBe(expectedTotal);
-      expect(fees.providerFee).toBe(expectedEach);
-      expect(fees.metamaskFee).toBe(expectedEach);
-      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
+      expect(fees.providerFee).toBe(expectedProviderFee);
+      expect(fees.metamaskFee).toBe(expectedMetamaskFee);
+      expect(fees.totalFeePercentage).toBe(totalFeePercentage);
+      expect(fees.collector).toBe(feeCollection.collector);
     });
 
     it('handles small amounts correctly', async () => {
       const params = {
+        feeCollection,
         marketId: 'market-1',
         userBetAmount: 0.25,
       };
@@ -2613,24 +2641,50 @@ describe('polymarket utils', () => {
       expect(typeof fees.providerFee).toBe('number');
       expect(typeof fees.metamaskFee).toBe('number');
       expect(typeof fees.totalFee).toBe('number');
-      const expectedTotal = (params.userBetAmount * FEE_PERCENTAGE) / 100;
-      const expectedEach = expectedTotal / 2;
+      const expectedMetamaskFee =
+        params.userBetAmount * feeCollection.metamaskFee;
+      const expectedProviderFee =
+        params.userBetAmount * feeCollection.providerFee;
+      const expectedTotal = expectedMetamaskFee + expectedProviderFee;
       expect(fees.totalFee).toBe(expectedTotal);
-      expect(fees.providerFee).toBe(expectedEach);
-      expect(fees.metamaskFee).toBe(expectedEach);
-      expect(fees.totalFeePercentage).toBe(FEE_PERCENTAGE);
+      expect(fees.providerFee).toBe(expectedProviderFee);
+      expect(fees.metamaskFee).toBe(expectedMetamaskFee);
+      expect(fees.totalFeePercentage).toBe(totalFeePercentage);
+      expect(fees.collector).toBe(feeCollection.collector);
     });
 
-    it('waives fees for markets with middle-east tag', async () => {
+    it('returns zero fees when feeCollection is not provided', async () => {
+      const params = {
+        marketId: 'market-1',
+        userBetAmount: 100,
+      };
+
+      const fees = await calculateFees(params);
+
+      expect(fees.providerFee).toBe(0);
+      expect(fees.metamaskFee).toBe(0);
+      expect(fees.totalFee).toBe(0);
+      expect(fees.totalFeePercentage).toBe(0);
+      expect(fees.collector).toBe('0x0');
+    });
+
+    it('waives fees for markets in waiveList', async () => {
+      // Mock market with a tag that's in the waiveList
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({
+        json: jest.fn().mockResolvedValue({
           id: 'market-with-waived-fees',
           tags: [{ slug: 'middle-east' }],
         }),
       });
 
+      const feeCollectionWithWaiveList = {
+        ...feeCollection,
+        waiveList: ['middle-east'],
+      };
+
       const params = {
+        feeCollection: feeCollectionWithWaiveList,
         marketId: 'market-with-waived-fees',
         userBetAmount: 100,
       };
@@ -2641,6 +2695,7 @@ describe('polymarket utils', () => {
       expect(fees.metamaskFee).toBe(0);
       expect(fees.totalFee).toBe(0);
       expect(fees.totalFeePercentage).toBe(0);
+      expect(fees.collector).toBe('0x0');
     });
   });
 

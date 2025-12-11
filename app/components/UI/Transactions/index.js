@@ -191,6 +191,11 @@ class Transactions extends PureComponent {
      * Whether multichain accounts state 2 is enabled
      */
     isMultichainAccountsState2Enabled: PropTypes.bool,
+    /**
+     * (optional) Skip automatic scrolling when a transaction is clicked/expanded.
+     * Useful in views like Asset Details scrolling inside modals will cause issues (such as closing the stacked tx modal)
+     */
+    skipScrollOnClick: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -327,7 +332,11 @@ class Transactions extends PureComponent {
         const selectedTx = new Map(state.selectedTx);
         const show = !selectedTx.get(id);
         selectedTx.set(id, show);
-        if (show && (this.props.headerHeight || index)) {
+        const invokeScroll =
+          show &&
+          (this.props.headerHeight || index) &&
+          !this.props.skipScrollOnClick;
+        if (invokeScroll) {
           InteractionManager.runAfterInteractions(() => {
             this.scrollToIndex(index);
           });
