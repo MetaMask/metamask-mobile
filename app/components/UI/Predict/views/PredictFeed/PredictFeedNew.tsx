@@ -35,13 +35,14 @@ import Animated, {
   useAnimatedScrollHandler,
   SharedValue,
 } from 'react-native-reanimated';
-import { FlashList, FlashListProps } from '@shopify/flash-list';
+import { FlashList, FlashListProps, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import {
   PredictCategory,
   PredictMarket as PredictMarketType,
 } from '../../types';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
@@ -77,7 +78,12 @@ const TABS: FeedTab[] = [
 ];
 
 // Create AnimatedFlashList once at module scope
-type PredictFlashListProps = FlashListProps<PredictMarketType>;
+// FlashList ref type for scroll management
+type PredictFlashListRef = FlashListRef<PredictMarketType>;
+type PredictFlashListProps = FlashListProps<PredictMarketType> & {
+  ref?: React.Ref<PredictFlashListRef>;
+};
+
 const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<PredictFlashListProps>,
 ) as unknown as React.ComponentType<PredictFlashListProps>;
@@ -108,7 +114,7 @@ interface UseFeedScrollManagerReturn {
   /** Scroll handler to attach to active FlashList */
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   /** Track a tab's FlashList ref */
-  trackRef: (tabKey: string, ref: FlashList<PredictMarketType> | null) => void;
+  trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
   /** Get the current header offset (0 to headerHeight) */
   getCurrentHeaderOffset: () => number;
   /** Called when scroll ends - syncs inactive tabs if needed */
@@ -154,7 +160,7 @@ const useFeedScrollManager = ({
   const [activeIndex, setActiveIndex] = useState(0);
 
   // Track refs and scroll positions for each tab
-  const tabKeyToRef = useRef<Record<string, FlashList<PredictMarketType>>>({});
+  const tabKeyToRef = useRef<Record<string, PredictFlashListRef>>({});
   const tabKeyToScrollPosition = useRef<Record<string, number>>({});
 
   // Measure heights using useLayoutEffect
@@ -204,11 +210,17 @@ const useFeedScrollManager = ({
     // Initial measurement attempt
     const timeoutId = setTimeout(measureHeights, 50);
     return () => clearTimeout(timeoutId);
-  }, [headerRef, tabBarRef, layoutReady, sharedHeaderHeight, sharedTabBarHeight]);
+  }, [
+    headerRef,
+    tabBarRef,
+    layoutReady,
+    sharedHeaderHeight,
+    sharedTabBarHeight,
+  ]);
 
   // Track ref for a tab
   const trackRef = useCallback(
-    (tabKey: string, ref: FlashList<PredictMarketType> | null) => {
+    (tabKey: string, ref: PredictFlashListRef | null) => {
       if (ref) {
         tabKeyToRef.current[tabKey] = ref;
       } else {
@@ -227,14 +239,16 @@ const useFeedScrollManager = ({
   );
 
   // Get scroll position for a tab
-  const getTabScrollPosition = useCallback((tabKey: string) => {
-    return tabKeyToScrollPosition.current[tabKey] ?? 0;
-  }, []);
+  const getTabScrollPosition = useCallback(
+    (tabKey: string) => tabKeyToScrollPosition.current[tabKey] ?? 0,
+    [],
+  );
 
   // Get current header offset (0 = visible, headerHeight = hidden)
-  const getCurrentHeaderOffset = useCallback(() => {
-    return -headerTranslateY.value;
-  }, [headerTranslateY]);
+  const getCurrentHeaderOffset = useCallback(
+    () => -headerTranslateY.value,
+    [headerTranslateY],
+  );
 
   // Sync inactive tabs when scroll ends
   const onScrollEnd = useCallback(() => {
@@ -335,63 +349,6 @@ const useFeedScrollManager = ({
     updateTabScrollPosition,
     getTabScrollPosition,
   };
-};
-
-// =============================================================================
-// ANIMATED HEADER (handles scroll-driven positioning)
-// =============================================================================
-
-interface AnimatedHeaderProps {
-  headerTranslateY: SharedValue<number>;
-  headerRef: React.RefObject<View>;
-  tabBarRef: React.RefObject<View>;
-  tabs: FeedTab[];
-  activeIndex: number;
-  onTabPress: (index: number) => void;
-}
-
-/**
- * Animated header containing both balance and tab bar.
- * The balance section scrolls away while tab bar pins to top.
- *
- * Animation: Container translates from 0 to -headerHeight (balance height).
- * When fully translated, balance is hidden above viewport, tab bar is at y=0.
- */
-const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
-  headerTranslateY,
-  headerRef,
-  tabBarRef,
-  tabs,
-  activeIndex,
-  onTabPress,
-}) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: headerTranslateY.value }],
-  }));
-
-  return (
-    <Animated.View
-      style={[
-        tw.style('absolute top-0 left-0 right-0 z-10'),
-        { backgroundColor: colors.background.default },
-        animatedStyle,
-      ]}
-    >
-      <View ref={headerRef}>
-        <PredictFeedHeader />
-      </View>
-      <View ref={tabBarRef}>
-        <PredictFeedTabBar
-          tabs={tabs}
-          activeIndex={activeIndex}
-          onTabPress={onTabPress}
-        />
-      </View>
-    </Animated.View>
-  );
 };
 
 // =============================================================================
@@ -515,12 +472,69 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
 };
 
 // =============================================================================
+// ANIMATED HEADER (handles scroll-driven positioning)
+// =============================================================================
+
+interface AnimatedHeaderProps {
+  headerTranslateY: SharedValue<number>;
+  headerRef: React.RefObject<View>;
+  tabBarRef: React.RefObject<View>;
+  tabs: FeedTab[];
+  activeIndex: number;
+  onTabPress: (index: number) => void;
+}
+
+/**
+ * Animated header containing both balance and tab bar.
+ * The balance section scrolls away while tab bar pins to top.
+ *
+ * Animation: Container translates from 0 to -headerHeight (balance height).
+ * When fully translated, balance is hidden above viewport, tab bar is at y=0.
+ */
+const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
+  headerTranslateY,
+  headerRef,
+  tabBarRef,
+  tabs,
+  activeIndex,
+  onTabPress,
+}) => {
+  const tw = useTailwind();
+  const { colors } = useTheme();
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: headerTranslateY.value }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        tw.style('absolute top-0 left-0 right-0 z-10'),
+        { backgroundColor: colors.background.default },
+        animatedStyle,
+      ]}
+    >
+      <View ref={headerRef}>
+        <PredictFeedHeader />
+      </View>
+      <View ref={tabBarRef}>
+        <PredictFeedTabBar
+          tabs={tabs}
+          activeIndex={activeIndex}
+          onTabPress={onTabPress}
+        />
+      </View>
+    </Animated.View>
+  );
+};
+
+// =============================================================================
 // COMPONENTS - Market List Item
 // =============================================================================
 
 interface PredictMarketListItemProps {
   market: PredictMarketType;
-  entryPoint: string;
+  entryPoint: PredictEntryPoint;
   testID?: string;
 }
 
@@ -541,8 +555,7 @@ interface PredictTabContentProps {
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
-  headerTranslateY: SharedValue<number>;
-  trackRef: (tabKey: string, ref: FlashList<PredictMarketType> | null) => void;
+  trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
   onScrollEnd: () => void;
   updateTabScrollPosition: (tabKey: string, position: number) => void;
   getTabScrollPosition: (tabKey: string) => number;
@@ -556,15 +569,14 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   scrollHandler,
   headerHeight,
   tabBarHeight,
-  headerTranslateY,
   trackRef,
   onScrollEnd,
-  updateTabScrollPosition,
+  updateTabScrollPosition: _updateTabScrollPosition,
   getTabScrollPosition,
   getCurrentHeaderOffset,
 }) => {
   const tw = useTailwind();
-  const listRef = useRef<FlashList<PredictMarketType>>(null);
+  const listRef = useRef<PredictFlashListRef>(null);
 
   const {
     marketData,
@@ -620,19 +632,6 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     });
   }, [contentInsetTop, getCurrentHeaderOffset]);
 
-  // Track scroll position changes
-  const handleScroll = useCallback(
-    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
-      // Adjust for iOS contentInset
-      const adjustedY =
-        Platform.OS === 'ios'
-          ? event.nativeEvent.contentOffset.y + contentInsetTop
-          : event.nativeEvent.contentOffset.y;
-      updateTabScrollPosition(tabKey, adjustedY);
-    },
-    [tabKey, updateTabScrollPosition, contentInsetTop],
-  );
-
   // Track if we've done initial scroll adjustment (backup for contentOffset)
   const hasAdjustedScroll = useRef(false);
 
@@ -684,8 +683,13 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       }
     }
     prevIsActive.current = isActive;
-  }, [isActive, getCurrentHeaderOffset, getTabScrollPosition, marketData, tabKey]);
-
+  }, [
+    isActive,
+    getCurrentHeaderOffset,
+    getTabScrollPosition,
+    marketData,
+    tabKey,
+  ]);
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -773,7 +777,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
   return (
     <AnimatedFlashList
-      ref={listRef as never}
+      ref={listRef}
       data={marketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -799,7 +803,6 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       getItemType={() => 'market'}
-      estimatedItemSize={150}
     />
   );
 };
@@ -813,8 +816,7 @@ interface PredictFeedTabsProps {
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
-  headerTranslateY: SharedValue<number>;
-  trackRef: (tabKey: string, ref: FlashList<PredictMarketType> | null) => void;
+  trackRef: (tabKey: string, ref: PredictFlashListRef | null) => void;
   onScrollEnd: () => void;
   updateTabScrollPosition: (tabKey: string, position: number) => void;
   getTabScrollPosition: (tabKey: string) => number;
@@ -826,7 +828,6 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   scrollHandler,
   headerHeight,
   tabBarHeight,
-  headerTranslateY,
   trackRef,
   onScrollEnd,
   updateTabScrollPosition,
@@ -874,7 +875,6 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
               scrollHandler={scrollHandler}
               headerHeight={headerHeight}
               tabBarHeight={tabBarHeight}
-              headerTranslateY={headerTranslateY}
               trackRef={trackRef}
               onScrollEnd={onScrollEnd}
               updateTabScrollPosition={updateTabScrollPosition}
@@ -960,7 +960,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             testID="search-icon"
             name={IconName.Search}
             size={IconSize.Sm}
-            color={colors.text.muted}
+            color={IconColor.IconMuted}
             style={tw.style('mr-2')}
           />
           <TextInput
@@ -976,13 +976,13 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Md}
-                color={colors.text.muted}
+                color={IconColor.IconMuted}
               />
             </Pressable>
           )}
         </Box>
         <Pressable onPress={handleCancel}>
-          <Text variant={TextVariant.BodyMD} style={tw.style('font-medium')}>
+          <Text variant={TextVariant.BodyMd} style={tw.style('font-medium')}>
             {strings('predict.search_cancel')}
           </Text>
         </Pressable>
@@ -1009,13 +1009,12 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
               </Text>
             </Box>
           ) : (
-            <FlashList
+            <FlashList<PredictMarketType>
               data={marketData}
               renderItem={renderItem}
               keyExtractor={keyExtractor}
               contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
               showsVerticalScrollIndicator={false}
-              estimatedItemSize={150}
             />
           )}
         </Box>
@@ -1089,7 +1088,6 @@ const PredictFeed: React.FC = () => {
             scrollHandler={scrollHandler}
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
-            headerTranslateY={headerTranslateY}
             trackRef={trackRef}
             onScrollEnd={onScrollEnd}
             updateTabScrollPosition={updateTabScrollPosition}
