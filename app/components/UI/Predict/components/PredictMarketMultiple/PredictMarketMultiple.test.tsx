@@ -418,4 +418,40 @@ describe('PredictMarketMultiple', () => {
 
     expect(getByText(/\+2\s+(more\s+)?outcomes/)).toBeOnTheScreen();
   });
+
+  describe('carousel mode', () => {
+    it('render market information correctly in carousel mode', () => {
+      const { getByText } = renderWithProvider(
+        <PredictMarketMultiple market={mockMarket} isCarousel />,
+        { state: initialState },
+      );
+
+      expect(
+        getByText('Will Bitcoin reach $150,000 by end of year?'),
+      ).toBeOnTheScreen();
+      expect(getByText('Bitcoin Price Prediction')).toBeOnTheScreen();
+      expect(getByText('65%')).toBeOnTheScreen();
+    });
+
+    it('navigate to place bet modal when buttons are pressed in carousel mode', () => {
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <PredictMarketMultiple market={mockMarket} isCarousel />,
+        { state: initialState },
+      );
+
+      const buttons = UNSAFE_getAllByType(Button);
+
+      // Press the "Yes" button
+      fireEvent.press(buttons[0]);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: {
+          market: mockMarket,
+          outcome: mockMarket.outcomes[0],
+          outcomeToken: mockMarket.outcomes[0].tokens[0],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        },
+      });
+    });
+  });
 });
