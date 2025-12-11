@@ -110,6 +110,9 @@ export const PerpsEventProperties = {
   // Button color test (TAT-1937)
   AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
   // Future tests: add as AB_TEST_{TEST_NAME} (no _ENABLED property needed)
+
+  // Watchlist/Favorites properties
+  FAVORITES_COUNT: 'favorites_count',
 } as const;
 
 /**
@@ -175,6 +178,7 @@ export const PerpsEventValues = {
     TUTORIAL_NAVIGATION: 'tutorial_navigation',
     CANDLE_PERIOD_VIEWED: 'candle_period_viewed',
     CANDLE_PERIOD_CHANGED: 'candle_period_changed',
+    FAVORITE_TOGGLED: 'favorite_toggled',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -182,6 +186,9 @@ export const PerpsEventValues = {
     STOP_LOSS_SET: 'stop_loss_set',
     TAKE_PROFIT_SET: 'take_profit_set',
     ADL_LEARN_MORE: 'adl_learn_more',
+    LEARN_MORE: 'learn_more',
+    FAVORITE_MARKET: 'favorite_market',
+    UNFAVORITE_MARKET: 'unfavorite_market',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'position_liquidated',
@@ -223,6 +230,8 @@ export const PerpsEventValues = {
     DEPOSIT_REVIEW: 'deposit_review',
     CLOSE_ALL_POSITIONS: 'close_all_positions',
     CANCEL_ALL_ORDERS: 'cancel_all_orders',
+    ORDER_BOOK: 'order_book',
+    ERROR: 'error',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',

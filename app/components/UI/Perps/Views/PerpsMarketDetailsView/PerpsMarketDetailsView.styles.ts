@@ -34,8 +34,11 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       backgroundColor: theme.colors.background.default,
     },
     section: {
-      paddingVertical: 8,
+      paddingVertical: 16,
       paddingHorizontal: 16,
+    },
+    sectionTitle: {
+      marginBottom: 12,
     },
     chartSection: {
       paddingTop: 0,

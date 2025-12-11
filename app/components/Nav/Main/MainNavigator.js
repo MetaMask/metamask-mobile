@@ -51,10 +51,8 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
-import TrendingView from '../../Views/TrendingView/TrendingView';
-import SitesListView from '../../Views/TrendingView/SitesListView';
-import SwapsAmountView from '../../UI/Swaps';
-import SwapsQuotesView from '../../UI/Swaps/QuotesView';
+import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
+import ExploreSearchScreen from '../../Views/TrendingView/ExploreSearchScreen/ExploreSearchScreen';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -102,9 +100,13 @@ import {
   PerpsScreenStack,
   PerpsModalStack,
   PerpsTutorialCarousel,
+  selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import { PredictScreenStack, PredictModalStack } from '../../UI/Predict';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  selectPredictEnabledFlag,
+} from '../../UI/Predict';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -119,7 +121,6 @@ import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
@@ -133,6 +134,7 @@ import {
   TOKEN,
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
+import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -276,45 +278,6 @@ const RewardsHome = () => (
   </Stack.Navigator>
 );
 
-// Persist the last trending screen across unmounts
-export const lastTrendingScreenRef = { current: 'TrendingFeed' };
-
-// Callback to update the last trending screen (outside component to persist)
-export const updateLastTrendingScreen = (screenName) => {
-  // eslint-disable-next-line react-compiler/react-compiler
-  lastTrendingScreenRef.current = screenName;
-};
-
-const TrendingHome = () => (
-  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen
-      name={Routes.TRENDING_VIEW}
-      component={TrendingView}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SITES_LIST_VIEW}
-      component={SitesListView}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
   <Stack.Navigator
@@ -339,15 +302,62 @@ const BrowserFlow = (props) => (
       component={Asset}
       initialParams={props.route.params}
     />
+  </Stack.Navigator>
+);
+
+const ExploreHome = () => (
+  <Stack.Navigator initialRouteName={Routes.TRENDING_FEED} mode="modal">
     <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
+      name={Routes.TRENDING_FEED}
+      component={ExploreFeed}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
+      name={Routes.EXPLORE_SEARCH}
+      component={ExploreSearchScreen}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
+      name={Routes.SITES_FULL_VIEW}
+      component={SitesFullView}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+
+    {/* Trending Browser Stack (uses existing browser flow) */}
+    <Stack.Screen
+      name={Routes.BROWSER.HOME}
+      component={BrowserFlow}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -670,10 +680,12 @@ const HomeTabs = () => {
     }
 
     // Hide tab bar when browser is in fullscreen mode
-    if (
-      isBrowserFullscreen &&
-      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
-    ) {
+    const currentStackRouteName =
+      currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
+    const isInBrowser =
+      currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
+      currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
+    if (isBrowserFullscreen && isInBrowser) {
       return null;
     }
 
@@ -697,21 +709,33 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       {isAssetsTrendingTokensEnabled ? (
-        <Tab.Screen
-          name={Routes.TRENDING_VIEW}
-          options={options.trending}
-          component={TrendingHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
+        <>
+          <Tab.Screen
+            name={Routes.TRENDING_VIEW}
+            options={{
+              ...options.trending,
+              isSelected: (rootScreenName) =>
+                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                  rootScreenName,
+                ),
+            }}
+            component={ExploreHome}
+            layout={({ children }) => UnmountOnBlurComponent(children)}
+          />
+          <Tab.Screen
+            name={Routes.BROWSER.HOME}
+            options={{
+              ...options.browser,
+              isHidden: true,
+            }}
+            component={BrowserFlow}
+            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          />
+        </>
       ) : (
         <Tab.Screen
           name={Routes.BROWSER.HOME}
-          options={{
-            ...options.browser,
-            tabBarButton: isAssetsTrendingTokensEnabled
-              ? () => null
-              : undefined,
-          }}
+          options={options.browser}
           component={BrowserFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
@@ -874,21 +898,6 @@ const NotificationsModeView = (props) => (
   </Stack.Navigator>
 );
 
-const Swaps = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
-    />
-    <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -939,23 +948,16 @@ const SampleFeatureFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const perpsEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
-  );
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
   );
 
   return (
@@ -1056,6 +1058,7 @@ const MainNavigator = () => {
           }),
         }}
       />
+
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
@@ -1099,7 +1102,6 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name="Swaps" component={Swaps} />
       <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react/no-unstable-nested-components */
 import BigNumber from 'bignumber.js';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -24,7 +25,10 @@ import {
   getDecimalChainId,
   isMainnetByChainId,
 } from '../../../../../../util/networks';
-import { mockTheme, useAppThemeFromContext } from '../../../../../../util/theme';
+import {
+  mockTheme,
+  useAppThemeFromContext,
+} from '../../../../../../util/theme';
 import Alert, { AlertType } from '../../../../../Base/Alert';
 import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 import HorizontalSelector from '../../../../../Base/HorizontalSelector';
@@ -33,7 +37,7 @@ import Text from '../../../../../Base/Text';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import FadeAnimationView from '../../../../../UI/FadeAnimationView';
 import StyledButton from '../../../../../UI/StyledButton';
-import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../../../../Base/InfoModal';
 import TimeEstimateInfoModal from '../../../../../UI/TimeEstimateInfoModal';
 import createStyles from './styles';
 
@@ -64,9 +68,8 @@ const EditGasFee1559Update = ({
     isVisible: false,
     value: '',
   });
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(
-    !selectedGasValue,
-  );
+  const [showAdvancedOptions, setShowAdvancedOptions] =
+    useState(!selectedGasValue);
   const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
   const [maxFeeError, setMaxFeeError] = useState('');
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
@@ -343,20 +346,14 @@ const EditGasFee1559Update = ({
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 
-  const switchNativeCurrencyDisplayOptions = (
-    nativeValue,
-    fiatValue,
-  ) => {
+  const switchNativeCurrencyDisplayOptions = (nativeValue, fiatValue) => {
     if (nativeCurrencySelected) return nativeValue;
     return fiatValue;
   };
 
   const valueToWatch = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
 
-  const LeftLabelComponent = ({
-    value,
-    infoValue,
-  }) => (
+  const LeftLabelComponent = ({ value, infoValue }) => (
     <View style={styles.labelTextContainer}>
       <Text black bold noMargin>
         {strings(value)}
@@ -383,10 +380,7 @@ const EditGasFee1559Update = ({
     </Text>
   );
 
-  const TextComponent = ({
-    title,
-    value,
-  }) => (
+  const TextComponent = ({ title, value }) => (
     <>
       <Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
         {strings(title)}
@@ -717,12 +711,12 @@ const EditGasFee1559Update = ({
                 modalInfo.value === 'gas_limit'
                   ? strings('edit_gas_fee_eip1559.gas_limit')
                   : modalInfo.value === 'max_priority_fee'
-                  ? strings('edit_gas_fee_eip1559.max_priority_fee')
-                  : modalInfo.value === 'max_fee'
-                  ? strings('edit_gas_fee_eip1559.max_fee')
-                  : modalInfo.value === 'new_gas_fee'
-                  ? strings('edit_gas_fee_eip1559.new_gas_fee')
-                  : null
+                    ? strings('edit_gas_fee_eip1559.max_priority_fee')
+                    : modalInfo.value === 'max_fee'
+                      ? strings('edit_gas_fee_eip1559.max_fee')
+                      : modalInfo.value === 'new_gas_fee'
+                        ? strings('edit_gas_fee_eip1559.new_gas_fee')
+                        : null
               }
               toggleModal={() =>
                 updateModalInfo({ ...modalInfo, isVisible: false })

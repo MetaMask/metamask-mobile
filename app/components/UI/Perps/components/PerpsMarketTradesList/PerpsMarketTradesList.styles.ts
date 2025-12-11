@@ -13,17 +13,24 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 16,
+    },
+    listContainer: {
+      gap: 1,
     },
     tradeItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
+      padding: 12,
+      backgroundColor: colors.background.section,
     },
-    lastTradeItem: {
-      borderBottomWidth: 0,
+    tradeItemFirst: {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+    },
+    tradeItemLast: {
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     leftSection: {
       flex: 1,

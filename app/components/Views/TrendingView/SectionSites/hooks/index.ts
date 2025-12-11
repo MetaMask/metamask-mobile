@@ -1,1 +1,0 @@
-export { useSitesData } from './useSitesData';

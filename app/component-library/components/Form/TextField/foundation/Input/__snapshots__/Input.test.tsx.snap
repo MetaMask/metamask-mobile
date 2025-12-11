@@ -12,7 +12,7 @@ exports[`Input should render correctly 1`] = `
       "borderColor": "#4459ff",
       "borderWidth": 1,
       "color": "#121314",
-      "fontFamily": "Geist Regular",
+      "fontFamily": "Geist-Regular",
       "fontSize": 16,
       "fontWeight": "400",
       "height": 24,

@@ -413,7 +413,6 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -436,7 +435,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -459,7 +458,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -482,7 +481,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -496,7 +495,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -515,7 +514,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
@@ -561,7 +560,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1000,7 +999,6 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -1023,7 +1021,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1046,7 +1044,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1069,7 +1067,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1083,7 +1081,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1102,7 +1100,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
@@ -1148,7 +1146,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
+                                    "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,

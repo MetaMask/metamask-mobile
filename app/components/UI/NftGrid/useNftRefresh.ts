@@ -107,12 +107,12 @@ export const useNftRefresh = (): UseNftRefreshReturn => {
       );
     });
   }, [
+    selectedAddress,
     chainIdsToDetectNftsFor,
     allNetworkClientIds,
-    createEventBuilder,
     getNftDetectionAnalyticsParams,
-    selectedAddress,
     trackEvent,
+    createEventBuilder,
   ]);
 
   return {

@@ -38,6 +38,16 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
 }));
 
+// Mock TrendingFeedSessionManager
+jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      isFromTrending: false,
+    }),
+  },
+}));
+
 const mockMarket: PredictMarket = {
   id: 'test-market-1',
   providerId: 'test-provider',
@@ -119,27 +129,27 @@ describe('PredictMarketMultiple', () => {
 
     // Press the "Yes" button
     fireEvent.press(buttons[0]);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[0],
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
-    );
+    });
 
     // Press the "No" button
     fireEvent.press(buttons[1]);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[1],
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
-    );
+    });
   });
 
   it('handle missing or invalid market data gracefully', () => {
@@ -296,11 +306,14 @@ describe('PredictMarketMultiple', () => {
     );
     fireEvent.press(marketTitle);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_DETAILS, {
-      marketId: mockMarket.id,
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      title: mockMarket.title,
-      image: mockMarket.image,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
+      },
     });
   });
 
@@ -414,5 +427,41 @@ describe('PredictMarketMultiple', () => {
     );
 
     expect(getByText(/\+2\s+(more\s+)?outcomes/)).toBeOnTheScreen();
+  });
+
+  describe('carousel mode', () => {
+    it('render market information correctly in carousel mode', () => {
+      const { getByText } = renderWithProvider(
+        <PredictMarketMultiple market={mockMarket} isCarousel />,
+        { state: initialState },
+      );
+
+      expect(
+        getByText('Will Bitcoin reach $150,000 by end of year?'),
+      ).toBeOnTheScreen();
+      expect(getByText('Bitcoin Price Prediction')).toBeOnTheScreen();
+      expect(getByText('65%')).toBeOnTheScreen();
+    });
+
+    it('navigate to place bet modal when buttons are pressed in carousel mode', () => {
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <PredictMarketMultiple market={mockMarket} isCarousel />,
+        { state: initialState },
+      );
+
+      const buttons = UNSAFE_getAllByType(Button);
+
+      // Press the "Yes" button
+      fireEvent.press(buttons[0]);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: {
+          market: mockMarket,
+          outcome: mockMarket.outcomes[0],
+          outcomeToken: mockMarket.outcomes[0].tokens[0],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        },
+      });
+    });
   });
 });

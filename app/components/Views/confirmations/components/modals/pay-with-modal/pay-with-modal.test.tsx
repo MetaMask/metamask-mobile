@@ -5,21 +5,41 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { merge } from 'lodash';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
-import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../../__mocks__/controllers/transaction-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import {
+  CHAIN_IDS,
+  TransactionType,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import { AssetType, TokenStandard } from '../../../types/token';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { useRoute } from '@react-navigation/native';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
+import { getAvailableTokens } from '../../../utils/transaction-pay';
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../utils/transaction-pay');
+
+jest.mock('../../../hooks/send/useAccountTokens', () => ({
+  useAccountTokens: () => [],
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: jest.fn(),
+}));
 
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
 const CHAIN_ID_2_MOCK = '0x2' as Hex;
@@ -91,9 +111,24 @@ const TOKENS_MOCK = [
     standard: TokenStandard.ERC20,
     symbol: 'TST5',
   },
+  {
+    accountType: EthAccountType.Eoa,
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    balance: '6.78',
+    balanceInSelectedCurrency: '$6.78',
+    chainId: CHAIN_ID_1_MOCK,
+    decimals: 6,
+    name: 'USD Coin',
+    standard: TokenStandard.ERC20,
+    symbol: 'USDC',
+  },
 ] as AssetType[];
 
 const REQUIRED_TOKENS_MOCK = [] as TransactionPayRequiredToken[];
+
+const MUSD_ALLOWLIST_MOCK = {
+  [CHAIN_ID_1_MOCK]: ['USDC'],
+};
 
 function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
   return renderScreen(
@@ -108,6 +143,17 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
         transactionApprovalControllerMock,
         simpleSendTransactionControllerMock,
         otherControllersMock,
+        {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnMusdConvertibleTokensAllowlist: MUSD_ALLOWLIST_MOCK,
+                },
+              },
+            },
+          },
+        },
       ),
     },
     {
@@ -119,21 +165,41 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
 describe('PayWithModal', () => {
   const setPayTokenMock = jest.fn();
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useAccountTokensMock = jest.mocked(useAccountTokens);
+  const getAvailableTokensMock = jest.mocked(getAvailableTokens);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
+  );
+  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
   );
 
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useAccountTokensMock.mockReturnValue(TOKENS_MOCK);
+    getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { address: '0x0', chainId: '0x0' },
+      payToken: { address: NATIVE_TOKEN_ADDRESS, chainId: CHAIN_ID_1_MOCK },
       setPayToken: setPayTokenMock,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    mockUseRoute.mockReturnValue({
+      params: {},
+    } as unknown as ReturnType<typeof useRoute>);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_1_MOCK,
+      networkClientId: '',
+      status: TransactionStatus.unapproved,
+      time: 0,
+      txParams: {
+        from: EMPTY_ADDRESS,
+      },
+      type: TransactionType.simpleSend,
+    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   });
 
   it('renders tokens', async () => {

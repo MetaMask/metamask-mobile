@@ -5,8 +5,7 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { useTheme } from '../../../util/theme';
-import { useSelector } from 'react-redux';
-import { selectSelectedNetworkClientId } from '../../../selectors/networkController';
+import { toHex } from '@metamask/controller-utils';
 
 const NftGridItemActionSheet = ({
   actionSheetRef,
@@ -16,17 +15,25 @@ const NftGridItemActionSheet = ({
   longPressedCollectible: Nft | null;
 }) => {
   const { themeAppearance } = useTheme();
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+
+  const getNetworkClientIdForNft = (nft: Nft) => {
+    if (!nft.chainId) return undefined;
+    const { NetworkController } = Engine.context;
+    return NetworkController.findNetworkClientIdByChainId(toHex(nft.chainId));
+  };
 
   const removeNft = () => {
     if (!longPressedCollectible) return;
 
     const { NftController } = Engine.context;
+    const networkClientId = getNetworkClientIdForNft(longPressedCollectible);
+
+    if (!networkClientId) return;
 
     NftController.removeAndIgnoreNft(
       longPressedCollectible.address,
       longPressedCollectible.tokenId,
-      selectedNetworkClientId,
+      networkClientId,
     );
 
     Alert.alert(
@@ -39,11 +46,14 @@ const NftGridItemActionSheet = ({
     if (!longPressedCollectible) return;
 
     const { NftController } = Engine.context;
+    const networkClientId = getNetworkClientIdForNft(longPressedCollectible);
+
+    if (!networkClientId) return;
 
     NftController.addNft(
       longPressedCollectible.address,
       longPressedCollectible.tokenId,
-      selectedNetworkClientId,
+      networkClientId,
     );
   };
 

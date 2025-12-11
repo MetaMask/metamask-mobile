@@ -62,6 +62,12 @@ jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
 }));
 
+// Gas fees sponsored feature flag: enable for all networks in tests
+jest.mock('../../../selectors/featureFlagController/gasFeesSponsored', () => ({
+  getGasFeesSponsoredNetworkEnabled: () => (chainId: string) =>
+    chainId === '0x38', // Enable sponsored label
+}));
+
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
 
@@ -647,6 +653,30 @@ describe('Network Selector', () => {
       const lineaCell = getByText('Linea');
       expect(lineaCell).toBeTruthy();
       expect(lineaRpcUrl).toBeTruthy();
+    });
+  });
+
+  describe('gas fees sponsored label', () => {
+    it('renders "No network fee" label in redesigned UI list items', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+
+      const { getAllByText, getByText } = renderComponent(initialState);
+
+      expect(getByText('BNB Chain')).toBeTruthy();
+      expect(getAllByText('No network fee').length).toBe(1);
+    });
+
+    it('renders "No network fee" as tertiary text in send flow', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const navModule = jest.requireMock('@react-navigation/native');
+      jest
+        .spyOn(navModule, 'useRoute')
+        .mockReturnValue({ params: { source: 'SEND_FLOW' } });
+
+      const { getAllByText, getByText } = renderComponent(initialState);
+
+      expect(getByText('BNB Chain')).toBeTruthy();
+      expect(getAllByText('No network fee').length).toBe(1);
     });
   });
 

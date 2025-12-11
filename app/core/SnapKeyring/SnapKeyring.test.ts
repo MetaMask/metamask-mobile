@@ -167,6 +167,7 @@ const createSnapKeyringBuilder = () =>
 // Mock the isSnapPreinstalled function
 jest.mock('./utils/snaps', () => ({
   isSnapPreinstalled: jest.fn(),
+  isMultichainWalletSnap: jest.fn().mockReturnValue(false),
   getSnapName: jest.fn().mockReturnValue('Mock Snap Name'),
 }));
 
@@ -175,7 +176,18 @@ jest.mock('../Analytics/helpers/SnapKeyring/trackSnapAccountEvent', () => ({
   trackSnapAccountEvent: jest.fn(),
 }));
 
+// Mock the isMultichainAccountsState2Enabled function
+const mockIsMultichainAccountsState2Enabled = jest.fn();
+jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
+}));
+
 describe('Snap Keyring Methods', () => {
+  beforeEach(() => {
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -299,6 +311,34 @@ describe('Snap Keyring Methods', () => {
 
       // Verify trackSnapAccountEvent was called
       expect(trackSnapAccountEvent).toHaveBeenCalled();
+    });
+
+    it('handles account creation without using user defined name - state 2', async () => {
+      // Enable state 2 feature flag
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const mockNameSuggestion = "suggested name that won't be used";
+      mockAddRequest.mockReturnValueOnce({
+        success: true,
+        name: mockNameSuggestion,
+      });
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+          accountNameSuggestion: mockNameSuggestion,
+        },
+      });
+
+      // Wait for any pending promises (including the account finalization which tracks the event)
+      await waitForAllPromises();
+
+      // Verify that setAccountName is not called since state 2 auto handles it
+      expect(mockStartFlow).toHaveBeenCalled();
+      expect(mockSetAccountName).not.toHaveBeenCalled();
+      expect(mockEndFlow).toHaveBeenCalled();
     });
 
     it('throws an error when user denies account creation', async () => {

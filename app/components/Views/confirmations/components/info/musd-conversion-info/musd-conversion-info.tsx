@@ -1,72 +1,75 @@
-import React, { useEffect } from 'react';
-import { strings } from '../../../../../../../locales/i18n';
-import useNavbar from '../../../hooks/ui/useNavbar';
-import { CustomAmountInfo } from '../custom-amount-info';
-import { MUSD_TOKEN_MAINNET } from '../../../../../UI/Earn/constants/musd';
-import { useAddToken } from '../../../hooks/tokens/useAddToken';
-import { Hex } from '@metamask/utils';
-import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import React, { useCallback } from 'react';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import OutputAmountTag from '../../../../../UI/Earn/components/OutputAmountTag';
+import {
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '../../../../../UI/Earn/constants/musd';
 import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
+import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
+import { useAddToken } from '../../../hooks/tokens/useAddToken';
+import { PayWithRow } from '../../rows/pay-with-row';
+import { CustomAmountInfo } from '../custom-amount-info';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+
+interface MusdOverrideContentProps {
+  amountHuman: string;
+}
+
+const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
+  amountHuman,
+}) => {
+  const { shouldShowOutputAmountTag, outputAmount, outputSymbol } =
+    useCustomAmount({ amountHuman });
+
+  const availableTokens = useTransactionPayAvailableTokens();
+  const hasTokens = availableTokens.length > 0;
+
+  return (
+    <>
+      {shouldShowOutputAmountTag && outputAmount !== null && (
+        <OutputAmountTag
+          amount={outputAmount}
+          symbol={outputSymbol ?? undefined}
+          showBackground={false}
+        />
+      )}
+      {hasTokens && <PayWithRow />}
+    </>
+  );
+};
 
 export const MusdConversionInfo = () => {
-  const route =
-    useRoute<RouteProp<Record<string, MusdConversionConfig>, string>>();
-  const navigation = useNavigation();
-  // TEMP: Will be brought back in subsequent PR.
-  // const preferredPaymentToken = route.params?.preferredPaymentToken;
-  const outputTokenInfo = route.params?.outputToken;
-  // TEMP: Will be brought back in subsequent PR.
-  // const rawAllowedPaymentTokens = route.params?.allowedPaymentTokens;
+  const { outputChainId, preferredPaymentToken } =
+    useParams<MusdConversionConfig>();
 
-  useEffect(() => {
-    if (!outputTokenInfo) {
-      console.error(
-        '[mUSD Conversion] outputToken is required but was not provided in route params. Navigating back.',
-      );
-      navigation.goBack();
-    }
-  }, [outputTokenInfo, navigation]);
+  const { decimals, name, symbol } = MUSD_TOKEN;
 
-  // TEMP: Will be brought back in subsequent PR.
-  // const allowedPaymentTokens = useMemo(() => {
-  //   if (!rawAllowedPaymentTokens) {
-  //     // No allowlist provided - allow all tokens
-  //     return undefined;
-  //   }
+  const tokenToAddAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN?.[outputChainId];
 
-  //   if (!areValidAllowedPaymentTokens(rawAllowedPaymentTokens)) {
-  //     console.warn(
-  //       'Invalid allowedPaymentTokens structure in route params. ' +
-  //         'Expected Record<Hex, Hex[]>. Allowing all tokens.',
-  //       rawAllowedPaymentTokens,
-  //     );
-  //     return undefined;
-  //   }
-
-  //   return rawAllowedPaymentTokens;
-  // }, [rawAllowedPaymentTokens]);
-
-  const tokenToAdd = outputTokenInfo || MUSD_TOKEN_MAINNET;
-
-  useNavbar(strings('earn.musd_conversion.earn_rewards_with'));
+  if (!tokenToAddAddress) {
+    throw new Error(
+      `mUSD token address not found for chain ID: ${outputChainId}`,
+    );
+  }
 
   useAddToken({
-    chainId: tokenToAdd.chainId as Hex,
-    decimals: tokenToAdd.decimals,
-    name: tokenToAdd.name,
-    symbol: tokenToAdd.symbol,
-    tokenAddress: tokenToAdd.address as Hex,
+    chainId: outputChainId,
+    decimals,
+    name,
+    symbol,
+    tokenAddress: tokenToAddAddress,
   });
 
-  if (!outputTokenInfo) {
-    return null;
-  }
+  const renderOverrideContent = useCallback(
+    (amountHuman: string) => <MusdOverrideContent amountHuman={amountHuman} />,
+    [],
+  );
 
   return (
     <CustomAmountInfo
-    // TEMP: Will be brought back in subsequent PR.
-    // allowedPaymentTokens={allowedPaymentTokens}
-    // preferredPaymentToken={preferredPaymentToken}
+      preferredToken={preferredPaymentToken}
+      overrideContent={renderOverrideContent}
     />
   );
 };

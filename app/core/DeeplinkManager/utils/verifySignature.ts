@@ -32,42 +32,47 @@ function getKeyData() {
 }
 
 function canonicalize(url: URL): string {
-  const params = new URLSearchParams(url.searchParams);
+  const sigParams = url.searchParams.get('sig_params');
 
-  const canonicalParams = new URLSearchParams();
+  let params;
+  if (sigParams === '') {
+    // Explicitly empty: sign only sig_params itself (no other params)
+    params = new URLSearchParams();
+    params.append('sig_params', '');
+  } else if (sigParams) {
+    const allowedParams = sigParams.split(',');
+    params = new URLSearchParams();
 
-  // If sig_params is present, only include the
-  // parameters listed in it for sig verification
-  if (params.has('sig_params')) {
-    const stringifiedSigParams = params.get('sig_params') || '';
-
-    // Filter to only valid, existing params with non-null values
-    stringifiedSigParams.split(',').forEach((paramName) => {
-      if (!paramName) return; // Skip empty strings
-
-      const value = params.get(paramName); // can be string or null
-      if (value !== null) {
-        // remove null
-        canonicalParams.set(paramName, value);
+    for (const allowedParam of allowedParams) {
+      const values = url.searchParams.getAll(allowedParam);
+      for (const value of values) {
+        params.append(allowedParam, value);
       }
-    });
+    }
 
-    canonicalParams.set('sig_params', stringifiedSigParams);
-    canonicalParams.sort();
-
-    const queryString = canonicalParams.toString();
-    return url.origin + url.pathname + (queryString ? `?${queryString}` : '');
+    params.append('sig_params', sigParams);
+  } else {
+    params = new URLSearchParams(url.searchParams);
+    params.delete('sig');
   }
 
-  // Fallback to old behavior for URLs without sig_params
-  params.delete('sig');
-  params.sort();
+  const paramsArray = Array.from(params.entries());
+  paramsArray.sort((a, b) => {
+    if (a[0] < b[0]) return -1;
+    if (a[0] > b[0]) return 1;
+    return 0;
+  });
 
-  const queryString = params.toString();
-  const fullUrl =
+  const queryString = paramsArray
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+    )
+    .join('&');
+
+  const result =
     url.origin + url.pathname + (queryString ? `?${queryString}` : '');
-
-  return fullUrl;
+  return result;
 }
 
 export const MISSING = 'MISSING' as const;

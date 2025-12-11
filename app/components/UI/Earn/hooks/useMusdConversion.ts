@@ -1,4 +1,4 @@
-import { Hex, isHexString } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -11,44 +11,17 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TransactionType } from '@metamask/transaction-controller';
-
-/**
- * Type guard to validate allowedPaymentTokens structure.
- * Checks if the value is a valid Record<Hex, Hex[]> mapping.
- * Validates that both keys (chain IDs) and values (token addresses) are hex strings.
- *
- * @param value - Value to validate
- * @returns true if valid, false otherwise
- */
-export const areValidAllowedPaymentTokens = (
-  value: unknown,
-): value is Record<Hex, Hex[]> => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return false;
-  }
-
-  return Object.entries(value).every(
-    ([key, val]) =>
-      isHexString(key) &&
-      Array.isArray(val) &&
-      val.every((addr) => isHexString(addr)),
-  );
-};
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 
 /**
  * Configuration for mUSD conversion
  */
 export interface MusdConversionConfig {
   /**
-   * The mUSD token to convert to
+   * The chain ID of the mUSD token to convert to.
    */
-  outputToken: {
-    address: Hex;
-    chainId: Hex;
-    symbol: string;
-    name: string;
-    decimals: number;
-  };
+  outputChainId: Hex;
   /**
    * The payment token to prefill in the confirmation screen
    */
@@ -56,12 +29,6 @@ export interface MusdConversionConfig {
     address: Hex;
     chainId: Hex;
   };
-  /**
-   * Optional allowlist of payment tokens that can be used to pay for the conversion, organized by chain ID.
-   * Maps chain IDs to arrays of allowed token addresses.
-   * If not provided, all tokens will be available for selection.
-   */
-  allowedPaymentTokens?: Record<Hex, Hex[]>;
   /**
    * Optional navigation stack to use (defaults to Routes.EARN.ROOT)
    */
@@ -73,7 +40,7 @@ export interface MusdConversionConfig {
  *
  * **EVM-Only**: This hook only supports EVM-compatible chains. It uses ERC-20
  * transfer encoding and MetaMask Pay's Relay integration, which are specific to
- * EVM networks. For non-EVM chains (Bitcoin, Solana, Tron), use alternative flows.
+ * EVM networks.
  *
  * This hook handles both transaction creation and navigation to the confirmation screen.
  *
@@ -81,17 +48,12 @@ export interface MusdConversionConfig {
  * const { initiateConversion } = useMusdConversion();
  *
  * await initiateConversion({
- *   outputToken: {
- *     address: MUSD_ADDRESS_ETHEREUM,
- *     chainId: ETHEREUM_MAINNET_CHAIN_ID,
- *     symbol: 'mUSD',
- *     name: 'mUSD',
- *     decimals: 6,
- *   },
+ *   outputChainId: CHAIN_IDS.MAINNET,
  *   preferredPaymentToken: {
- *     address: USDC_ADDRESS_ARBITRUM,
- *     chainId: NETWORKS_CHAIN_ID.ARBITRUM,
+ *     address: USDC_ADDRESS_MAINNET,
+ *     chainId: CHAIN_IDS.MAINNET,
  *   },
+ *   navigationStack: Routes.EARN.ROOT,
  * });
  */
 export const useMusdConversion = () => {
@@ -104,24 +66,49 @@ export const useMusdConversion = () => {
 
   const selectedAddress = selectedAccount?.address;
 
+  const hasSeenConversionEducationScreen = useSelector(
+    selectMusdConversionEducationSeen,
+  );
+
+  const navigateToConversionScreen = useCallback(
+    ({
+      outputChainId,
+      preferredPaymentToken,
+      navigationStack = Routes.EARN.ROOT,
+    }: MusdConversionConfig) => {
+      navigation.navigate(navigationStack, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: {
+          loader: ConfirmationLoader.CustomAmount,
+          preferredPaymentToken,
+          outputChainId,
+        },
+      });
+    },
+    [navigation],
+  );
+
   /**
-   * Creates a placeholder transaction and navigating to confirmation.
-   * Navigation happens immediately, then transaction creation happens in background.
+   * Creates a placeholder transaction and navigates to confirmation.
+   * Navigation happens immediately. Transaction creation and gas estimation happen asynchronously.
    */
   const initiateConversion = useCallback(
     async (config: MusdConversionConfig): Promise<string> => {
-      const {
-        outputToken,
-        preferredPaymentToken,
-        navigationStack = Routes.EARN.ROOT,
-      } = config;
+      const { outputChainId, preferredPaymentToken } = config;
 
       try {
         setError(null);
 
-        if (!outputToken || !preferredPaymentToken) {
+        if (!outputChainId || !preferredPaymentToken) {
           throw new Error(
-            'Output token and preferred payment token are required',
+            'Output chain ID and preferred payment token are required',
+          );
+        }
+
+        // TEMP: Until we enforce same-chain conversions.
+        if (outputChainId !== preferredPaymentToken.chainId) {
+          console.warn(
+            '[mUSD Conversion] Output chain ID and preferred payment token chain ID do not match',
           );
         }
 
@@ -130,13 +117,12 @@ export const useMusdConversion = () => {
         }
 
         const { NetworkController } = Engine.context;
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          outputToken.chainId,
-        );
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(outputChainId);
 
         if (!networkClientId) {
           throw new Error(
-            `Network client not found for chain ID: ${outputToken.chainId}`,
+            `Network client not found for chain ID: ${outputChainId}`,
           );
         }
 
@@ -145,21 +131,7 @@ export const useMusdConversion = () => {
          * since there can be a delay between the user's button press and
          * transaction creation in the background.
          */
-        navigation.navigate(navigationStack, {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params: {
-            loader: ConfirmationLoader.CustomAmount,
-            preferredPaymentToken,
-            outputToken: {
-              address: outputToken.address,
-              chainId: outputToken.chainId,
-              symbol: outputToken.symbol,
-              name: outputToken.name,
-              decimals: outputToken.decimals,
-            },
-            allowedPaymentTokens: config.allowedPaymentTokens,
-          },
-        });
+        navigateToConversionScreen(config);
 
         try {
           const ZERO_HEX_VALUE = '0x0';
@@ -175,14 +147,22 @@ export const useMusdConversion = () => {
 
           const { TransactionController } = Engine.context;
 
+          const mUSDTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId];
+
+          if (!mUSDTokenAddress) {
+            throw new Error(
+              `mUSD token address not found for chain ID: ${outputChainId}`,
+            );
+          }
+
           const { transactionMeta } =
             await TransactionController.addTransaction(
               {
-                to: outputToken.address,
+                to: mUSDTokenAddress,
                 from: selectedAddress,
                 data: transferData,
                 value: ZERO_HEX_VALUE,
-                chainId: outputToken.chainId,
+                chainId: outputChainId,
               },
               {
                 /**
@@ -196,7 +176,7 @@ export const useMusdConversion = () => {
                 // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
                 nestedTransactions: [
                   {
-                    to: outputToken.address,
+                    to: mUSDTokenAddress,
                     data: transferData as Hex,
                     value: ZERO_HEX_VALUE,
                   },
@@ -228,11 +208,12 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, selectedAddress],
+    [navigateToConversionScreen, navigation, selectedAddress],
   );
 
   return {
     initiateConversion,
+    hasSeenConversionEducationScreen,
     error,
   };
 };

@@ -2598,8 +2598,6 @@
     "show_fiat_on_testnets_modal_button": "Fortfahren",
     "show_hex_data": "Hex-Daten anzeigen",
     "show_hex_data_desc": "Wählen Sie dies, um das Hex-Datenfeld auf dem Sendebildschirm anzuzeigen.",
-    "show_custom_nonce": "Transaktions-Nonce anpassen",
-    "custom_nonce_desc": "Aktivieren Sie dies, wenn Sie die Transaktions-Nonce auf Bestätigungsbildschirmen ändern möchten. Dies ist eine erweiterte Funktion. Verwenden Sie sie mit Vorsicht.",
     "accounts_identicon_title": "Konto-Symbol",
     "accounts_identicon_desc": "Wählen Sie aus drei verschiedenen Stilen einzigartiger Symbole, mit denen Sie Konten auf einen Blick erkennen können.",
     "jazzicons": "Jazzicons",
@@ -3730,7 +3728,7 @@
     "show_test_networks": "Testnetzwerke anzeigen",
     "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet.",
     "network_deprecated_title": "Dieses Netzwerk ist veraltet",
-    "network_deprecated_description": "Das Netzwerk, zu dem Sie eine Verbindung herstellen möchten, wird von Metamask nicht mehr unterstützt.",
+    "network_deprecated_description": "Das Netzwerk, zu dem Sie eine Verbindung herstellen möchten, wird von MetaMask nicht mehr unterstützt.",
     "edit_networks_title": "Netzwerke bearbeiten"
   },
   "permissions": {

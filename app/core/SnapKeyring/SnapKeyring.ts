@@ -10,7 +10,11 @@ import { SnapKeyringBuilderMessenger } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
 import { getUniqueAccountName } from './utils/getUniqueAccountName';
-import { getSnapName, isSnapPreinstalled } from './utils/snaps';
+import {
+  getSnapName,
+  isMultichainWalletSnap,
+  isSnapPreinstalled,
+} from './utils/snaps';
 import { endTrace, TraceName } from '../../util/trace';
 import { store } from '../../store';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
@@ -18,6 +22,8 @@ import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSna
 import { endPerformanceTrace } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
 import { areAddressesEqual } from '../../util/address';
+import { isE2E } from '../../util/test/utils';
+import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 
 /**
  * Builder type for the Snap keyring.
@@ -185,13 +191,20 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           );
         }
 
-        if (accountName) {
-          // Set the account name if one is provided
-          this.#messenger.call(
-            'AccountsController:setAccountName',
-            accountId,
-            accountName,
-          );
+        // HACK: In state 2, account creations can run in parallel, thus, `accountName`
+        // sometimes conflict with other concurrent renaming. Since we don't rely on those
+        // account names anymore, we just omit this part and make this race-free.
+        // FIXME: We still rely on the old behavior in some e2e, so we cannot remove this
+        // entirely.
+        if (!isMultichainAccountsState2Enabled()) {
+          if (accountName) {
+            // Set the account name if one is provided
+            this.#messenger.call(
+              'AccountsController:setAccountName',
+              accountId,
+              accountName,
+            );
+          }
         }
 
         // Track successful account addition
@@ -238,27 +251,46 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   ) {
     assertIsValidSnapId(snapId);
 
+    // Preinstalled Snaps can skip some confirmation dialogs.
+    const isPreinstalled = isSnapPreinstalled(snapId);
+
+    // Since the introduction of BIP-44, multichain wallet Snaps will skip them automatically too!
+    let skipAll =
+      isMultichainAccountsState2Enabled() &&
+      isPreinstalled &&
+      isMultichainWalletSnap(snapId);
+    // FIXME: We still rely on the old behavior in some e2e, so we do not skip them in this case.
+    if (isE2E) {
+      skipAll = false;
+    }
+
+    // If Snap is preinstalled and does not request confirmation, skip the confirmation dialog.
+    const skipConfirmationDialog =
+      skipAll || (isPreinstalled && !displayConfirmation);
+
     // Only pre-installed Snaps can skip the account name suggestion dialog.
     const skipAccountNameSuggestionDialog =
-      isSnapPreinstalled(snapId) && !displayAccountNameSuggestion;
+      skipAll || (isPreinstalled && !displayAccountNameSuggestion);
+
+    // Only pre-installed Snaps can skip the account from being selected.
+    const skipSetSelectedAccountStep =
+      skipAll || (isPreinstalled && !setSelectedAccount);
+
     const skipApprovalFlow =
-      isSnapPreinstalled(snapId) &&
-      skipAccountNameSuggestionDialog &&
-      !displayConfirmation;
+      skipConfirmationDialog && skipAccountNameSuggestionDialog;
 
     // First part of the flow, which includes confirmation dialogs (if not skipped).
     // Once confirmed, we resume the Snap execution.
     const { accountName } = await this.addAccountConfirmations({
       snapId,
-      accountNameSuggestion,
+      // We do not set the account name suggestion if it's a multichain wallet Snap since the
+      // current naming could have race conditions with other account creations, and since
+      // naming is now handled by multichain account groups, we can skip this entirely.
+      accountNameSuggestion: skipAll ? '' : accountNameSuggestion,
       handleUserInput,
       skipAccountNameSuggestionDialog,
       skipApprovalFlow,
     });
-
-    // Only pre-installed Snaps can skip the account from being selected.
-    const skipSetSelectedAccountStep =
-      isSnapPreinstalled(snapId) && !setSelectedAccount;
 
     // The second part is about selecting the newly created account and showing some other
     // confirmation dialogs (or error dialogs if anything goes wrong while persisting the account

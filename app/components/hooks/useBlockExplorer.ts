@@ -193,6 +193,7 @@ const useBlockExplorer = (chainId?: string) => {
     toBlockExplorer,
     getBlockExplorerUrl,
     getBlockExplorerName,
+    getEvmBlockExplorerUrl,
   };
 };
 

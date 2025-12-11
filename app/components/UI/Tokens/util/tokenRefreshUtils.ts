@@ -55,7 +55,7 @@ export const performEvmTokenRefresh = async (
     TokenBalancesController.updateBalances({
       chainIds,
     }),
-    TokenRatesController.updateExchangeRatesByChainId(
+    TokenRatesController.updateExchangeRates(
       chainIds
         .filter((chainId) => {
           const config = evmNetworkConfigurationsByChainId[chainId];

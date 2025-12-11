@@ -24,6 +24,13 @@ import { HyperLiquidProvider } from './HyperLiquidProvider';
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
+// Mock stream manager - will be set up in test
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mockStreamManagerInstance: any;
+const mockGetStreamManagerInstance = jest.fn(() => mockStreamManagerInstance);
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: mockGetStreamManagerInstance,
+}));
 
 // Mock Sentry
 jest.mock('@sentry/react-native', () => ({
@@ -183,6 +190,34 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
       { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
     ],
   }),
+  metaAndAssetCtxs: jest.fn().mockResolvedValue([
+    {
+      universe: [
+        { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+        { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+      ],
+    },
+    [
+      {
+        funding: '0.0001',
+        openInterest: '1000',
+        prevDayPx: '49000',
+        dayNtlVlm: '1000000',
+        markPx: '50000',
+        midPx: '50000',
+        oraclePx: '50000',
+      },
+      {
+        funding: '0.0001',
+        openInterest: '500',
+        prevDayPx: '2900',
+        dayNtlVlm: '500000',
+        markPx: '3000',
+        midPx: '3000',
+        oraclePx: '3000',
+      },
+    ],
+  ]),
   perpDexs: jest.fn().mockResolvedValue([null]),
   allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
   frontendOpenOrders: jest.fn().mockResolvedValue([]),
@@ -294,6 +329,7 @@ describe('HyperLiquidProvider', () => {
       getNetwork: jest.fn().mockReturnValue('mainnet'),
       ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(),
+      setOnReconnectCallback: jest.fn(),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;
 
     mockWalletService = {
@@ -324,6 +360,10 @@ describe('HyperLiquidProvider', () => {
       isPositionsCacheInitialized: jest.fn().mockReturnValue(false),
       getCachedPositions: jest.fn().mockReturnValue([]),
       updateFeatureFlags: jest.fn().mockResolvedValue(undefined),
+      // Cache methods used by buildAssetMapping optimization
+      setDexMetaCache: jest.fn(),
+      setDexAssetCtxsCache: jest.fn(),
+      getDexAssetCtxsCache: jest.fn().mockReturnValue(undefined),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
@@ -1684,7 +1724,7 @@ describe('HyperLiquidProvider', () => {
       const accountState = await provider.getAccountState();
 
       expect(accountState).toBeDefined();
-      expect(accountState.totalBalance).toBe('20000'); // 10000 (spot) + 10000 (perps)
+      expect(accountState.totalBalance).toBe('20500'); // 10000 (spot) + 10500 (perps marginSummary)
       expect(
         mockClientService.getInfoClient().clearinghouseState,
       ).toHaveBeenCalled();
@@ -2764,6 +2804,9 @@ describe('HyperLiquidProvider', () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockRejectedValue(new Error('Network timeout')),
+            metaAndAssetCtxs: jest
+              .fn()
+              .mockRejectedValue(new Error('Network timeout')),
           }),
         );
 
@@ -2956,6 +2999,11 @@ describe('HyperLiquidProvider', () => {
 
     describe('updatePositionTPSL error scenarios', () => {
       it('should handle WebSocket error in getPositions', async () => {
+        // Set up mock BEFORE creating fresh provider (provider calls metaAndAssetCtxs on init)
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
         // Create a fresh provider to test WebSocket errors
         const freshProvider = new HyperLiquidProvider();
 
@@ -2965,10 +3013,6 @@ describe('HyperLiquidProvider', () => {
           .mockImplementation(async () => {
             throw new Error('WebSocket connection failed');
           });
-
-        MockedHyperLiquidClientService.mockImplementation(
-          () => mockClientService,
-        );
 
         const updateParams = {
           coin: 'BTC',
@@ -2982,6 +3026,11 @@ describe('HyperLiquidProvider', () => {
       });
 
       it('should handle non-WebSocket error in getPositions', async () => {
+        // Set up mock BEFORE creating fresh provider (provider calls metaAndAssetCtxs on init)
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
         // Create a fresh provider to test non-WebSocket errors
         const freshProvider = new HyperLiquidProvider();
 
@@ -2991,10 +3040,6 @@ describe('HyperLiquidProvider', () => {
           .mockImplementation(async () => {
             throw new Error('Generic API error');
           });
-
-        MockedHyperLiquidClientService.mockImplementation(
-          () => mockClientService,
-        );
 
         const updateParams = {
           coin: 'BTC',
@@ -3110,6 +3155,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       it('should handle missing allMids', async () => {
+        // Set up mock BEFORE creating fresh provider
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue({
@@ -3117,17 +3163,34 @@ describe('HyperLiquidProvider', () => {
             }),
             allMids: jest.fn().mockResolvedValue(null),
             predictedFundings: jest.fn().mockResolvedValue([]),
-            metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]),
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([
+              { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+              [
+                {
+                  funding: '0.0001',
+                  openInterest: '1000',
+                  prevDayPx: '49000',
+                  dayNtlVlm: '1000000',
+                  markPx: '50000',
+                  midPx: '50000',
+                  oraclePx: '50000',
+                },
+              ],
+            ]),
           }),
         );
 
+        // Create fresh provider to avoid cached state from other tests
+        const freshProvider = new HyperLiquidProvider();
+
         // Should gracefully handle missing price data with fallback
-        const result = await provider.getMarketDataWithPrices();
+        const result = await freshProvider.getMarketDataWithPrices();
         expect(Array.isArray(result)).toBe(true);
         expect(result[0].price).toBe('$---'); // Fallback when allMids is null
       });
 
       it('should handle meta and predictedFundings calls successfully', async () => {
+        // Set up mock BEFORE creating fresh provider
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue({
@@ -3142,13 +3205,20 @@ describe('HyperLiquidProvider', () => {
                   funding: '0.001',
                   openInterest: '1000000',
                   prevDayPx: '49000',
+                  dayNtlVlm: '1000000',
+                  markPx: '50000',
+                  midPx: '50000',
+                  oraclePx: '50000',
                 },
               ],
             ]),
           }),
         );
 
-        const result = await provider.getMarketDataWithPrices();
+        // Create fresh provider to avoid cached state from other tests
+        const freshProvider = new HyperLiquidProvider();
+
+        const result = await freshProvider.getMarketDataWithPrices();
 
         // Verify successful call with proper data structure
         expect(Array.isArray(result)).toBe(true);
@@ -5877,6 +5947,7 @@ describe('HyperLiquidProvider', () => {
         cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithDexMethods;
 
       beforeEach(() => {
@@ -6018,6 +6089,7 @@ describe('HyperLiquidProvider', () => {
         useDexAbstraction: boolean;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithDexAbstraction;
 
       beforeEach(() => {
@@ -6186,6 +6258,7 @@ describe('HyperLiquidProvider', () => {
         }): Promise<{ success: boolean; error?: string }>;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithAutoTransfer;
 
       beforeEach(() => {
@@ -6284,6 +6357,7 @@ describe('HyperLiquidProvider', () => {
         >;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithMarginCalc;
 
       beforeEach(() => {

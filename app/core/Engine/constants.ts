@@ -15,6 +15,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'BackendWebSocketService',
   'AccountActivityService',
   'MultichainAccountService',
+  'ProfileMetricsService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -78,6 +79,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'DelegationController:stateChange',
+  'ProfileMetricsController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [

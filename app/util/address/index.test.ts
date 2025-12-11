@@ -24,7 +24,9 @@ import {
   areAddressesEqual,
   toChecksumAddress,
   renderShortAccountName,
+  validateAddressOrENS,
 } from '.';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
@@ -93,6 +95,8 @@ jest.mock('../../selectors/networkController', () => ({
 jest.mock('../../util/ENSUtils', () => ({
   getCachedENSName: jest.fn().mockReturnValue(''),
   isDefaultAccountName: jest.fn().mockReturnValue(false),
+  doENSLookup: jest.fn().mockResolvedValue(null),
+  doENSReverseLookup: jest.fn().mockResolvedValue(null),
 }));
 
 describe('isENS', () => {
@@ -312,6 +316,50 @@ describe('isValidAddressInputViaQRCode', () => {
     const mockInput = 'https://www.metamask.io';
     expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
   });
+
+  describe('Bitcoin mainnet addresses', () => {
+    it('should be valid for P2WPKH address (bc1)', () => {
+      const mockInput = 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be valid for P2PKH address (1)', () => {
+      const mockInput = '1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be invalid for testnet address', () => {
+      const mockInput = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+
+    it('should be invalid for regtest address', () => {
+      const mockInput = 'bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+  });
+
+  describe('Tron addresses', () => {
+    it('should be valid for Tron mainnet address', () => {
+      const mockInput = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be valid for another Tron mainnet address', () => {
+      const mockInput = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be invalid for invalid Tron address (wrong length)', () => {
+      const mockInput = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5w';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+
+    it('should be invalid for invalid Tron address (does not start with T)', () => {
+      const mockInput = 'RLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+  });
 });
 
 describe('stripHexPrefix', () => {
@@ -513,8 +561,8 @@ describe('getAddressAccountType', () => {
       'Invalid address: undefined',
     );
   });
-  it('should return QR if address is from a keyring type qr', () => {
-    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR');
+  it('should return QR Hardware if address is from a keyring type qr', () => {
+    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR Hardware');
   });
   it('should return imported if address is from a keyring type simple', () => {
     expect(getAddressAccountType(mockSimpleKeyringAddress)).toBe('Imported');
@@ -736,5 +784,88 @@ describe('areAddressesEqual', () => {
     it('returns false when comparing Solana address with EVM address', () => {
       expect(areAddressesEqual(solanaAddress, ethAddress1)).toBe(false);
     });
+  });
+});
+
+describe('validateAddressOrENS', () => {
+  const mockAddressBook = {};
+  const mockInternalAccounts: InternalAccount[] = [];
+  const chainId = '0x1' as const;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('rejects burn address 0x0000000000000000000000000000000000000000', async () => {
+    const burnAddress = '0x0000000000000000000000000000000000000000';
+    const result = await validateAddressOrENS(
+      burnAddress,
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeDefined();
+    expect(result.addressReady).toBe(false);
+    expect(result.addToAddressToAddressBook).toBe(false);
+  });
+
+  it('rejects burn address 0x000000000000000000000000000000000000dEaD', async () => {
+    const burnAddress = '0x000000000000000000000000000000000000dEaD';
+    const result = await validateAddressOrENS(
+      burnAddress,
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeDefined();
+    expect(result.addressReady).toBe(false);
+    expect(result.addToAddressToAddressBook).toBe(false);
+  });
+
+  it('rejects burn address with different case', async () => {
+    const burnAddress = '0x000000000000000000000000000000000000DEAD';
+    const result = await validateAddressOrENS(
+      burnAddress,
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeDefined();
+    expect(result.addressReady).toBe(false);
+    expect(result.addToAddressToAddressBook).toBe(false);
+  });
+
+  it('rejects ENS that resolves to burn address', async () => {
+    const { doENSLookup } = jest.requireMock('../../util/ENSUtils');
+    const burnAddress = '0x0000000000000000000000000000000000000000';
+    doENSLookup.mockResolvedValueOnce(burnAddress);
+
+    const result = await validateAddressOrENS(
+      'test.eth',
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeDefined();
+    expect(result.addressReady).toBe(false);
+    expect(result.addToAddressToAddressBook).toBe(false);
+    expect(doENSLookup).toHaveBeenCalledWith('test.eth', chainId);
+  });
+
+  it('accepts valid non-burn address', async () => {
+    const validAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+    const result = await validateAddressOrENS(
+      validAddress,
+      mockAddressBook,
+      mockInternalAccounts,
+      chainId,
+    );
+
+    expect(result.addressError).toBeFalsy();
+    expect(result.addressReady).toBe(true);
   });
 });

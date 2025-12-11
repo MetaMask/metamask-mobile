@@ -1,4 +1,5 @@
 import {
+  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
 } from '@metamask/design-system-react-native';
@@ -10,12 +11,16 @@ import {
 } from '@metamask/transaction-controller';
 import React, { useCallback, useContext, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -23,6 +28,10 @@ const toastStyles = StyleSheet.create({
     alignContent: 'center',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  spinner: {
+    width: 24,
+    height: 24,
   },
 });
 
@@ -33,7 +42,7 @@ interface ToastConfig {
 
 interface PendingToastConfig extends ToastConfig {
   getAmount?: (transactionMeta: TransactionMeta) => string;
-  onPress?: () => void;
+  onPress?: (transactionMeta?: TransactionMeta) => void;
 }
 
 interface ConfirmedToastConfig extends ToastConfig {
@@ -68,7 +77,15 @@ export const usePredictToasts = ({
   const { toastRef } = useContext(ToastContext);
 
   const showPendingToast = useCallback(
-    ({ amount, config }: { amount?: string; config: PendingToastConfig }) => {
+    ({
+      amount,
+      config,
+      transactionMeta,
+    }: {
+      amount?: string;
+      config: PendingToastConfig;
+      transactionMeta?: TransactionMeta;
+    }) => {
       const title = amount
         ? config.title.replace('{amount}', amount)
         : config.title;
@@ -88,18 +105,19 @@ export const usePredictToasts = ({
         backgroundColor: theme.colors.accent04.normal,
         hasNoTimeout: false,
         startAccessory: (
-          <View style={toastStyles?.spinnerContainer}>
+          <Box style={toastStyles?.spinnerContainer}>
             <Spinner
               color={ReactNativeDsIconColor.PrimaryDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}
+              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
             />
-          </View>
+          </Box>
         ),
         ...(config.onPress
           ? {
-              linkButtonOptions: {
-                label: strings('predict.deposit.in_progress_link'),
-                onPress: config.onPress,
+              closeButtonOptions: {
+                label: strings('predict.deposit.track'),
+                onPress: () => config.onPress?.(transactionMeta),
+                variant: ButtonVariants.Link,
               },
             }
           : {}),
@@ -125,17 +143,26 @@ export const usePredictToasts = ({
             isBold: false,
           },
         ],
-        iconName: IconName.CheckBold,
+        iconName: IconName.Confirmation,
         iconColor: theme.colors.accent03.dark,
-        backgroundColor: theme.colors.accent03.normal,
+        backgroundColor: 'transparent',
         hasNoTimeout: false,
+        startAccessory: (
+          <View style={toastStyles?.spinnerContainer}>
+            <Icon
+              name={IconName.Confirmation}
+              color={theme.colors.success.default}
+              size={IconSize.Lg}
+            />
+          </View>
+        ),
       });
     },
     [
       confirmedToastConfig.description,
       confirmedToastConfig.title,
       theme.colors.accent03.dark,
-      theme.colors.accent03.normal,
+      theme.colors.success.default,
       toastRef,
     ],
   );
@@ -199,7 +226,11 @@ export const usePredictToasts = ({
         pendingToastConfig
       ) {
         const amount = pendingToastConfig.getAmount?.(transactionMeta);
-        showPendingToast({ amount, config: pendingToastConfig });
+        showPendingToast({
+          amount,
+          config: pendingToastConfig,
+          transactionMeta,
+        });
       } else if (transactionMeta.status === TransactionStatus.confirmed) {
         clearTransaction?.();
         const amount = confirmedToastConfig.getAmount(transactionMeta);

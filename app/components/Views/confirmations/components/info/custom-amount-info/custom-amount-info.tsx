@@ -14,7 +14,10 @@ import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
-import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import {
+  SetPayTokenRequest,
+  useAutomaticTransactionPayToken,
+} from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -54,12 +57,29 @@ export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
+  hasMax?: boolean;
+  preferredToken?: SetPayTokenRequest;
+  /**
+   * Optional render function that overrides the default content.
+   * When set, automatically hides PayTokenAmount, PayWithRow, and children.
+   */
+  overrideContent?: (amountHuman: string) => ReactNode;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay }) => {
+  ({
+    children,
+    currency,
+    disablePay,
+    hasMax,
+    preferredToken,
+    overrideContent,
+  }) => {
     useClearConfirmationOnBackSwipe();
-    useAutomaticTransactionPayToken({ disable: disablePay });
+    useAutomaticTransactionPayToken({
+      disable: disablePay,
+      preferredToken,
+    });
     useTransactionPayMetrics();
 
     const { styles } = useStyles(styleSheet, {});
@@ -108,11 +128,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {disablePay !== true && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+          {overrideContent ? (
+            overrideContent(amountHuman)
+          ) : (
+            <>
+              {disablePay !== true && (
+                <PayTokenAmount
+                  amountHuman={amountHuman}
+                  disabled={!hasTokens}
+                />
+              )}
+              {children}
+              {disablePay !== true && hasTokens && <PayWithRow />}
+            </>
           )}
-          {children}
-          {disablePay !== true && hasTokens && <PayWithRow />}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
@@ -131,6 +160,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
+              hasMax={hasMax}
             />
           )}
           {!hasTokens && <BuySection />}
@@ -268,7 +298,7 @@ function useButtonLabel() {
   }
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirmation_button');
+    return strings('earn.musd_conversion.convert_to_musd');
   }
 
   return strings('confirm.deposit_edit_amount_done');

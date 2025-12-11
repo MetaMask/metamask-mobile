@@ -11,12 +11,16 @@ import { merge } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { Alert } from '../../../types/alerts';
 import { GasFeeToken } from '@metamask/transaction-controller';
+import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert');
 jest.mock('../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../hooks/useNetworkInfo');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../hooks/transactions/useTransactionBatchesMetadata');
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 
 describe('SelectedGasFeeToken', () => {
   const mockUseInsufficientBalanceAlert = jest.mocked(
@@ -25,6 +29,12 @@ describe('SelectedGasFeeToken', () => {
   const mockUseSelectedGasFeeToken = jest.mocked(useSelectedGasFeeToken);
   const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
+  const mockUseTransactionBatchesMetadata = jest.mocked(
+    useTransactionBatchesMetadata,
+  );
+  const mockUseTransactionMetadataRequest = jest.mocked(
+    useTransactionMetadataRequest,
+  );
 
   const setupTest = ({
     insufficientBalance = [],
@@ -32,12 +42,16 @@ describe('SelectedGasFeeToken', () => {
     gaslessSupported = false,
     isSmartTransaction = false,
     gasFeeTokens = [],
+    transactionMetadata,
   }: {
     insufficientBalance?: Alert[];
     selectedGasFeeToken?: ReturnType<typeof useSelectedGasFeeToken>;
     gaslessSupported?: boolean;
     isSmartTransaction?: boolean;
     gasFeeTokens?: GasFeeToken[];
+    transactionMetadata?: ReturnType<
+      typeof useTransactionMetadataRequest
+    > | null;
     expectModal?: boolean;
   } = {}) => {
     mockUseInsufficientBalanceAlert.mockReturnValue(insufficientBalance);
@@ -45,10 +59,34 @@ describe('SelectedGasFeeToken', () => {
     mockUseIsGaslessSupported.mockReturnValue({
       isSupported: gaslessSupported,
       isSmartTransaction,
+      pending: false,
     });
     mockUseNetworkInfo.mockReturnValue({
       networkNativeCurrency: 'ETH',
     } as ReturnType<typeof useNetworkInfo>);
+
+    // Set transaction metadata mock
+    // - If explicitly set to null, mock as undefined
+    // - If explicitly provided (even undefined), use that value
+    // - Otherwise, create default based on gasFeeTokens
+    if (transactionMetadata === null) {
+      mockUseTransactionMetadataRequest.mockReturnValue(undefined);
+    } else if (transactionMetadata !== undefined) {
+      mockUseTransactionMetadataRequest.mockReturnValue(transactionMetadata);
+    } else if (gasFeeTokens.length > 0) {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        chainId: '0x1',
+        gasFeeTokens,
+      } as Partial<
+        ReturnType<typeof useTransactionMetadataRequest>
+      > as ReturnType<typeof useTransactionMetadataRequest>);
+    } else {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        chainId: '0x1',
+      } as Partial<
+        ReturnType<typeof useTransactionMetadataRequest>
+      > as ReturnType<typeof useTransactionMetadataRequest>);
+    }
 
     const state =
       gasFeeTokens.length > 0
@@ -90,6 +128,8 @@ describe('SelectedGasFeeToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Set default mock return values
+    mockUseTransactionBatchesMetadata.mockReturnValue(undefined);
   });
 
   it('renders the gas fee token button with the native token symbol', () => {
@@ -222,6 +262,95 @@ describe('SelectedGasFeeToken', () => {
       });
 
       expectModalToOpen();
+    });
+  });
+
+  describe('Batch Transactions', () => {
+    it('uses chainId from batch metadata when transaction metadata is unavailable', () => {
+      const batchChainId = '0xe708';
+
+      mockUseTransactionBatchesMetadata.mockReturnValue({
+        chainId: batchChainId,
+      } as Partial<
+        ReturnType<typeof mockUseTransactionBatchesMetadata>
+      > as ReturnType<typeof mockUseTransactionBatchesMetadata>);
+
+      // Create state without transaction metadata
+      const stateWithoutTransactionMeta = merge(
+        {},
+        transferTransactionStateMock,
+        {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [],
+              },
+            },
+          },
+        },
+      );
+
+      setupTest({ transactionMetadata: null });
+      const { getByTestId } = renderWithProvider(<SelectedGasFeeToken />, {
+        state: stateWithoutTransactionMeta,
+      });
+
+      expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
+      expect(mockUseNetworkInfo).toHaveBeenCalledWith(batchChainId);
+    });
+
+    it('prefers transaction metadata chainId over batch metadata chainId', () => {
+      const batchChainId = '0xe708';
+      const transactionChainId = '0x1';
+
+      mockUseTransactionBatchesMetadata.mockReturnValue({
+        chainId: batchChainId,
+      } as Partial<
+        ReturnType<typeof mockUseTransactionBatchesMetadata>
+      > as ReturnType<typeof mockUseTransactionBatchesMetadata>);
+
+      setupTest({
+        transactionMetadata: {
+          chainId: transactionChainId,
+        } as Partial<
+          ReturnType<typeof useTransactionMetadataRequest>
+        > as ReturnType<typeof useTransactionMetadataRequest>,
+      });
+
+      expect(mockUseNetworkInfo).toHaveBeenCalledWith(transactionChainId);
+    });
+
+    it('renders correctly with batch metadata chainId', () => {
+      const batchChainId = '0xe708';
+
+      mockUseTransactionBatchesMetadata.mockReturnValue({
+        chainId: batchChainId,
+      } as Partial<
+        ReturnType<typeof mockUseTransactionBatchesMetadata>
+      > as ReturnType<typeof mockUseTransactionBatchesMetadata>);
+
+      const stateWithoutTransactionMeta = merge(
+        {},
+        transferTransactionStateMock,
+        {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [],
+              },
+            },
+          },
+        },
+      );
+
+      setupTest({ transactionMetadata: null });
+      const { getByTestId, getByText } = renderWithProvider(
+        <SelectedGasFeeToken />,
+        { state: stateWithoutTransactionMeta },
+      );
+
+      expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
+      expect(getByText('ETH')).toBeOnTheScreen();
     });
   });
 });
