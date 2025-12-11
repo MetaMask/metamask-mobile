@@ -14,7 +14,11 @@ const styleSheet = (params: { vars: { insets: Insets } }) => {
       paddingBottom: Platform.OS === 'android' ? 10 : insets.bottom,
     },
     headerContainer: {
-      paddingHorizontal: 16,
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingLeft: 16,
+      paddingRight: 16,
     },
     contentContainer: {
       display: 'flex',

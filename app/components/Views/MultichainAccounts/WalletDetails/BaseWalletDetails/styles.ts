@@ -33,6 +33,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
 
     header: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
       margin: 16,
     },
 

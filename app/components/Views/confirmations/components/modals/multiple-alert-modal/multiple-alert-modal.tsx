@@ -9,9 +9,8 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import AlertModal from '../alert-modal';
-import HeaderBase, {
-  HeaderBaseProps,
-} from '../../../../../../component-library/components/HeaderBase';
+import { HeaderBaseProps } from '../../../../../../component-library/components/HeaderBase/HeaderBase.types';
+import HeaderBase from '../../../../../../component-library/components/HeaderBase';
 import { getSeverityStyle } from '../../../utils/alert-system';
 import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
