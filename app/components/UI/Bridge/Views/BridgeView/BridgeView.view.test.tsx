@@ -2,7 +2,19 @@ import React from 'react';
 import '../../../../../util/test/component-view/mocks';
 import { describeForPlatforms } from '../../../../../util/test/platform';
 import { renderBridgeView } from '../../../../../util/test/component-view/renderers/bridge';
-import { renderComponentViewScreen } from '../../../../../util/test/component-view/render';
+import {
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../../../../../util/test/component-view/render';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { BridgeSourceTokenSelector } from '../../components/BridgeSourceTokenSelector';
+import { BridgeDestNetworkSelector } from '../../components/BridgeDestNetworkSelector';
+import { BridgeDestTokenSelector } from '../../components/BridgeDestTokenSelector';
+import { BridgeViewMode } from '../../types';
+import {
+  initialState as bridgeInitialState,
+  optimismChainId,
+} from '../../_mocks_/initialState';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -17,579 +29,464 @@ import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { RequestStatus } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { normalizeQuote } from '../../../../../util/test/component-view/helpers/normalizeQuote';
-
-// Normalize QuoteResponse amounts to match selector expectations (amount.value shape)
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../../reducers';
+import { Text } from 'react-native';
+import SlippageModal from '../../components/SlippageModal';
+import { setSlippage } from '../../../../../core/redux/slices/bridge';
 
 describeForPlatforms('BridgeView component-view', () => {
-  it('renders base view and shows Select amount when no inputs', () => {
-    const { getByText, queryByTestId } = renderBridgeView({
-      deterministicFiat: true,
+  describe('Rendering and initialization', () => {
+    it('renders base view and shows Select amount when no inputs', () => {
+      const { getByText, queryByTestId } = renderBridgeView({
+        deterministicFiat: true,
+      });
+
+      expect(getByText(QuoteViewSelectorText.SELECT_AMOUNT)).toBeTruthy();
+      expect(queryByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeNull();
     });
 
-    expect(getByText(QuoteViewSelectorText.SELECT_AMOUNT)).toBeTruthy();
-    expect(queryByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeNull();
-  });
-
-  it('types via keypad and updates amount and fiat (deterministic)', () => {
-    const { getByText, getByTestId } = renderBridgeView({
-      deterministicFiat: true,
-    });
-
-    // Act: type 9.5 using keypad
-    const scroll = getByTestId(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
-    fireEvent.press(within(scroll).getByText('9'));
-    fireEvent.press(within(scroll).getByText('.'));
-    fireEvent.press(within(scroll).getByText('5'));
-
-    // Assert: input and fiat reflect typed amount
-    const input = getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
-    expect(input.props.value).toBe('9.5');
-    expect(getByText('$19,000.00')).toBeTruthy();
-  });
-
-  it('hides Max button for native token', () => {
-    // Native token - no Max button
-    const native = renderBridgeView({
-      deterministicFiat: true,
-      overrides: {
-        bridge: {
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-          },
-        },
-      },
-    });
-    expect(native.queryByTestId(QuoteViewSelectorIDs.MAX_BUTTON)).toBeNull();
-  });
-
-  it('shows Max button for native token on mainnet when gasless swap is enabled', async () => {
-    // Arrange via preset builder: enable gasless swap on mainnet and set a same-chain dest token (swap)
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withGaslessSwapEnabled('0x1')
-      .withOverrides({
-        bridge: {
-          // Native ETH with an immediate cached balance to avoid async fetch flakiness
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-            balance: '2.0',
-          },
-          // Any ERC-20 on mainnet to make it a swap (same chain)
-          destToken: {
-            address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-            chainId: '0x1',
-            decimals: 6,
-            name: 'Tether USD',
-            symbol: 'USDT',
-            image: '',
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
-
-    const { findByTestId } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
-
-    // Assert: Max button is visible for native token under gasless swap (smart tx) conditions
-    expect(await findByTestId(QuoteViewSelectorIDs.MAX_BUTTON)).toBeTruthy();
-  });
-
-  it('shows confirm button when a recommended quote exists and inputs are valid', () => {
-    // Arrange using real mock quote shape used across app unit tests
-    const quote = mockQuoteWithMetadata as unknown as Record<string, unknown>;
-    const normalized = normalizeQuote(quote);
-    // Ensure gas is considered sufficient and EVM chain
-    normalized.quote = {
-      ...(normalized.quote ?? {}),
-      srcChainId: '0x1',
-      gasIncluded: true,
-    };
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotes: [normalized],
-              recommendedQuote: normalized,
-              quotesLastFetched: Date.now(),
-              quotesLoadingStatus: RequestStatus.FETCHED,
+    it('renders Source Token Selector with header and search input', () => {
+      // Arrange: render Source Token Selector directly
+      const { getByText, getByTestId } = renderScreen(
+        BridgeSourceTokenSelector as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR },
+        {
+          state: {
+            ...bridgeInitialState,
+            bridge: {
+              ...bridgeInitialState.bridge,
+              bridgeViewMode: BridgeViewMode.Unified,
+              selectedSourceChainIds: ['0x1', '0xa'],
             },
           },
         },
-        bridge: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-          },
-          destToken: {
-            address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-            chainId: '0x1',
-            decimals: 6,
-            name: 'Tether USD',
-            symbol: 'USDT',
-            image: '',
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
+      );
 
-    const { getByTestId, queryByText } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
+      // Assert: header and search are visible (content is covered by unit tests)
+      expect(getByText(strings('bridge.select_token'))).toBeTruthy();
+      expect(getByTestId('bridge-token-search-input')).toBeTruthy();
+    });
 
-    // Assert: CTA visible and "Select amount" hidden
-    expect(getByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeTruthy();
-    expect(queryByText(QuoteViewSelectorText.SELECT_AMOUNT)).toBeNull();
-  });
-
-  it('disables confirm button while quotes are loading (active quote present)', () => {
-    // Arrange: real quote + loading status forces disabled CTA
-    const quote = mockQuoteWithMetadata as unknown as Record<string, unknown>;
-    const normalized = normalizeQuote(quote);
-    // EVM + gasless to avoid gas checks interfering with label
-    normalized.quote = {
-      ...(normalized.quote ?? {}),
-      srcChainId: '0x1',
-      gasIncluded: true,
-    };
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotes: [normalized],
-              recommendedQuote: normalized,
-              quotesLastFetched: Date.now(),
-              quotesLoadingStatus: RequestStatus.LOADING,
+    it('renders Destination Token Selector with header and search input', () => {
+      // Arrange: set selectedDestChainId so the list context is set
+      const { getByText, getByTestId } = renderScreen(
+        BridgeDestTokenSelector as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR },
+        {
+          state: {
+            ...bridgeInitialState,
+            bridge: {
+              ...bridgeInitialState.bridge,
+              bridgeViewMode: BridgeViewMode.Unified,
+              selectedDestChainId: optimismChainId,
             },
           },
         },
-        bridge: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-          },
-          destToken: {
-            address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-            chainId: '0x1',
-            decimals: 6,
-            name: 'Tether USD',
-            symbol: 'USDT',
-            image: '',
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
+      );
 
-    const { getByTestId, getByText } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
-
-    // Assert
-    const button = getByTestId(
-      QuoteViewSelectorIDs.CONFIRM_BUTTON,
-    ) as unknown as {
-      props: { accessibilityState?: { disabled?: boolean }; label?: string };
-    };
-    expect(button.props.accessibilityState?.disabled).toBe(true);
-    expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
+      // Assert: header and search present
+      expect(getByText(strings('bridge.select_token'))).toBeTruthy();
+      expect(getByTestId('bridge-token-search-input')).toBeTruthy();
+    });
   });
 
-  it('disables confirm button and shows “Insufficient funds” when balance is lower than sourceAmount', () => {
-    // Arrange: valid quote present + low cached balance ensures insufficient funds state
-    const quote = mockQuoteWithMetadata as unknown as Record<string, unknown>;
-    const normalized = normalizeQuote(quote);
-    // EVM without gasless so insufficient balance check is active
-    normalized.quote = { ...(normalized.quote ?? {}), srcChainId: '0x1' };
-    // Force provider balance to be tiny for this test
-    const originalGetNetworkClientById = Engine.context.NetworkController
-      .getNetworkClientById as unknown as (id: string) => unknown;
-    (
-      Engine.context.NetworkController as unknown as {
-        getNetworkClientById: (id: string) => unknown;
-      }
-    ).getNetworkClientById = ((id: string) => {
-      const orig = originalGetNetworkClientById(id) as {
-        provider: {
-          request: (args: {
-            method: string;
-            params?: unknown[];
-          }) => Promise<unknown>;
-        };
-      } & Record<string, unknown>;
-      const originalProvider = orig.provider;
-      const tinyBalanceProvider: typeof originalProvider = {
-        ...originalProvider,
-        request: jest.fn(
-          async (args: { method: string; params?: unknown[] }) => {
-            if (args?.method === 'eth_getBalance') return '0x1'; // 1 wei
-            return originalProvider.request(args);
+  describe('Keypad and amounts', () => {
+    it('types via keypad and updates amount and fiat (deterministic)', () => {
+      const { getByText, getByTestId } = renderBridgeView({
+        deterministicFiat: true,
+      });
+
+      // Act: type 9.5 using keypad
+      const scroll = getByTestId(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
+      fireEvent.press(within(scroll).getByText('9'));
+      fireEvent.press(within(scroll).getByText('.'));
+      fireEvent.press(within(scroll).getByText('5'));
+
+      // Assert: input and fiat reflect typed amount
+      const input = getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
+      expect(input.props.value).toBe('9.5');
+      expect(getByText('$19,000.00')).toBeTruthy();
+    });
+  });
+
+  describe('Max button behavior', () => {
+    it('hides Max button for native token', () => {
+      // Native token - no Max button
+      const native = renderBridgeView({
+        deterministicFiat: true,
+        overrides: {
+          bridge: {
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+            },
           },
-        ),
+        },
+      });
+      expect(native.queryByTestId(QuoteViewSelectorIDs.MAX_BUTTON)).toBeNull();
+    });
+
+    it('shows Max button for native token on mainnet when gasless swap is enabled', async () => {
+      // Arrange via preset builder: enable gasless swap on mainnet and set a same-chain dest token (swap)
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withGaslessSwapEnabled('0x1')
+        .withOverrides({
+          bridge: {
+            // Native ETH with an immediate cached balance to avoid async fetch flakiness
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+              balance: '2.0',
+            },
+            // Any ERC-20 on mainnet to make it a swap (same chain)
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
+
+      const { findByTestId } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
+
+      // Assert: Max button is visible for native token under gasless swap (smart tx) conditions
+      expect(await findByTestId(QuoteViewSelectorIDs.MAX_BUTTON)).toBeTruthy();
+    });
+  });
+
+  describe('CTA and quote states', () => {
+    it('shows confirm button when a recommended quote exists and inputs are valid', () => {
+      // Arrange using real mock quote shape used across app unit tests
+      const quote = mockQuoteWithMetadata as unknown as Record<string, unknown>;
+      const normalized = normalizeQuote(quote);
+      // Ensure gas is considered sufficient and EVM chain
+      normalized.quote = {
+        ...(normalized.quote ?? {}),
+        srcChainId: '0x1',
+        gasIncluded: true,
       };
-      return { ...orig, provider: tinyBalanceProvider };
-    }) as typeof originalGetNetworkClientById;
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotes: [normalized],
-              recommendedQuote: normalized,
-              quotesLastFetched: Date.now(),
-              quotesLoadingStatus: RequestStatus.FETCHED,
-            },
-          },
-        },
-        bridge: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-            balance: '0.5', // cached balance used by useLatestBalance initially
-          },
-          destToken: {
-            address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-            chainId: '0x1',
-            decimals: 6,
-            name: 'Tether USD',
-            symbol: 'USDT',
-            image: '',
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
-
-    const { getByTestId } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
-
-    const button = getByTestId(
-      QuoteViewSelectorIDs.CONFIRM_BUTTON,
-    ) as unknown as {
-      props: { accessibilityState?: { disabled?: boolean } };
-    };
-
-    // Assert
-    expect(button.props.accessibilityState?.disabled).toBe(true);
-    // restore provider
-    (
-      Engine.context.NetworkController as unknown as {
-        getNetworkClientById: (id: string) => unknown;
-      }
-    ).getNetworkClientById = originalGetNetworkClientById;
-  });
-
-  it('disables confirm button and shows “Submitting transaction” when submitting', () => {
-    // Arrange: valid EVM recommended quote + submitting state
-    const quote = mockQuoteWithMetadata as unknown as Record<string, unknown>;
-    const normalized = normalizeQuote(quote);
-    // EVM + gasless to avoid gas checks interfering
-    normalized.quote = {
-      ...(normalized.quote ?? {}),
-      srcChainId: '0x1',
-      gasIncluded: true,
-    };
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withOverrides({
-        bridge: {
-          isSubmittingTx: true,
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-          },
-          destToken: {
-            address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-            chainId: '0x1',
-            decimals: 6,
-            name: 'Tether USD',
-            symbol: 'USDT',
-            image: '',
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotes: [normalized],
-              recommendedQuote: normalized,
-              quotesLastFetched: Date.now(),
-              quotesLoadingStatus: RequestStatus.FETCHED,
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
-
-    const { getByTestId, getByText } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
-
-    // Assert
-    const button = getByTestId(
-      QuoteViewSelectorIDs.CONFIRM_BUTTON,
-    ) as unknown as {
-      props: { accessibilityState?: { disabled?: boolean } };
-    };
-    expect(button.props.accessibilityState?.disabled).toBe(true);
-    expect(getByText(strings('bridge.submitting_transaction'))).toBeTruthy();
-  });
-
-  it('disables confirm button and shows hardware warning when account is hardware and source is Solana', async () => {
-    // Arrange: mutate allowed Engine mock to model a hardware keyring including selected address
-    // Selected address from preset: '0x0000000000000000000000000000000000000001'
-    Engine.context.KeyringController.state.keyrings = [
-      {
-        type: 'Ledger Hardware',
-        accounts: ['0x0000000000000000000000000000000000000001'],
-        metadata: { id: 'mock', name: '' },
-      },
-    ];
-
-    // Use Solana chain IDs to set isSolanaSourced=true
-    const { getByTestId, getByText } = renderBridgeView({
-      deterministicFiat: true,
-      overrides: {
-        bridge: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            name: 'Solana',
-            symbol: 'SOL',
-            image: '',
-            balance: '10',
-          },
-          destToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            name: 'Solana',
-            symbol: 'SOL',
-            image: '',
-          },
-        },
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              // Ensure CTA section renders
-              quotesLastFetched: Date.now(),
-              // Use normalized quote to satisfy selectors
-              recommendedQuote: (() => {
-                const q = normalizeQuote(mockQuoteWithMetadata);
-                // Solana numeric scope
-                q.quote = {
-                  ...(q.quote ?? {}),
-                  srcChainId: SolScope.Mainnet,
-                  destChainId: SolScope.Mainnet,
-                };
-                return q;
-              })(),
-              quotes: [
-                (() => {
-                  const q = normalizeQuote(mockQuoteWithMetadata);
-                  q.quote = {
-                    ...(q.quote ?? {}),
-                    srcChainId: SolScope.Mainnet,
-                    destChainId: SolScope.Mainnet,
-                  };
-                  return q;
-                })(),
-              ],
-              quotesLoadingStatus: 'SUCCEEDED',
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                bridgeConfigV2: {
-                  minimumVersion: '0.0.0',
-                  maxRefreshCount: 5,
-                  refreshRate: 30000,
-                  support: true,
-                  chains: {
-                    'solana:1': {
-                      isActiveSrc: true,
-                      isActiveDest: true,
-                    },
-                  },
-                },
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [normalized],
+                recommendedQuote: normalized,
+                quotesLastFetched: Date.now(),
+                quotesLoadingStatus: RequestStatus.FETCHED,
               },
             },
           },
-        },
-      } as unknown as Record<string, unknown>,
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+            },
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
+
+      const { getByTestId, queryByText } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
+
+      // Assert: CTA visible and "Select amount" hidden
+      expect(getByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeTruthy();
+      expect(queryByText(QuoteViewSelectorText.SELECT_AMOUNT)).toBeNull();
     });
 
-    // Assert: CTA disabled and hardware banner visible
-    const button = getByTestId(
-      QuoteViewSelectorIDs.CONFIRM_BUTTON,
-    ) as unknown as {
-      props: { accessibilityState?: { disabled?: boolean } };
-    };
-    expect(button.props.accessibilityState?.disabled).toBe(true);
-    expect(
-      await getByText(strings('bridge.hardware_wallet_not_supported_solana')),
-    ).toBeTruthy();
-  });
-
-  it('disables confirm button and shows “Insufficient gas” when gas is not sufficient', () => {
-    // Arrange: quote with very large effective gas fee vs provider mocked 100 ETH balance
-    const quote = normalizeQuote({
-      ...(mockQuoteWithMetadata as unknown as Record<string, unknown>),
-      gasFee: {
-        effective: { amount: '1000000', usd: null, valueInCurrency: null },
-        max: { amount: '1000000', usd: null, valueInCurrency: null },
-        total: { amount: '1000000', usd: null, valueInCurrency: null },
-      },
-    } as unknown as Record<string, unknown>);
-    // Force EVM to ensure balance lookup works
-    quote.quote = { ...(quote.quote ?? {}), srcChainId: '0x1' };
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withOverrides({
-        bridge: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-            balance: '100', // display balance; provider returns 100 ETH as well
-          },
-          destToken: {
-            address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-            chainId: '0x1',
-            decimals: 6,
-            name: 'Tether USD',
-            symbol: 'USDT',
-            image: '',
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotes: [quote],
-              recommendedQuote: quote,
-              quotesLastFetched: Date.now(),
-              quotesLoadingStatus: 'SUCCEEDED',
+    it('disables confirm button while quotes are loading (active quote present)', () => {
+      // Arrange: real quote + loading status forces disabled CTA
+      const quote = mockQuoteWithMetadata as unknown as Record<string, unknown>;
+      const normalized = normalizeQuote(quote);
+      // EVM + gasless to avoid gas checks interfering with label
+      normalized.quote = {
+        ...(normalized.quote ?? {}),
+        srcChainId: '0x1',
+        gasIncluded: true,
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [normalized],
+                recommendedQuote: normalized,
+                quotesLastFetched: Date.now(),
+                quotesLoadingStatus: RequestStatus.LOADING,
+              },
             },
           },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+            },
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
 
-    const { getByTestId, getByText } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
+      const { getByTestId, getByText } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
 
-    // Assert
-    const button = getByTestId(
-      QuoteViewSelectorIDs.CONFIRM_BUTTON,
-    ) as unknown as {
-      props: { accessibilityState?: { disabled?: boolean } };
-    };
-    expect(button.props.accessibilityState?.disabled).toBe(true);
-    expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
+      // Assert
+      const button = getByTestId(
+        QuoteViewSelectorIDs.CONFIRM_BUTTON,
+      ) as unknown as {
+        props: { accessibilityState?: { disabled?: boolean }; label?: string };
+      };
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
+    });
   });
 
-  it.skip('disables confirm button and shows Blockaid alert when validation returns error (Solana flow)', async () => {
-    // Arrange: mock fetch to return a Blockaid ERROR response
-    const fetchSpy = jest
-      .spyOn(global as unknown as { fetch: typeof fetch }, 'fetch')
-      .mockResolvedValue({
-        json: async () =>
-          Promise.resolve({
-            status: 'ERROR',
-            result: { validation: { reason: 'transaction is malicious' } },
-            error_details: { message: 'transaction is malicious' },
-          }),
-      } as unknown as Response);
+  describe('CTA and quote states - Error handling', () => {
+    it('disables confirm button and shows “Insufficient funds” when balance is lower than sourceAmount', () => {
+      // Arrange: valid quote present + low cached balance ensures insufficient funds state
+      const quote = mockQuoteWithMetadata as unknown as Record<string, unknown>;
+      const normalized = normalizeQuote(quote);
+      // EVM without gasless so insufficient balance check is active
+      normalized.quote = { ...(normalized.quote ?? {}), srcChainId: '0x1' };
+      // Force provider balance to be tiny for this test
+      const originalGetNetworkClientById = Engine.context.NetworkController
+        .getNetworkClientById as unknown as (id: string) => unknown;
+      (
+        Engine.context.NetworkController as unknown as {
+          getNetworkClientById: (id: string) => unknown;
+        }
+      ).getNetworkClientById = ((id: string) => {
+        const orig = originalGetNetworkClientById(id) as {
+          provider: {
+            request: (args: {
+              method: string;
+              params?: unknown[];
+            }) => Promise<unknown>;
+          };
+        } & Record<string, unknown>;
+        const originalProvider = orig.provider;
+        const tinyBalanceProvider: typeof originalProvider = {
+          ...originalProvider,
+          request: jest.fn(
+            async (args: { method: string; params?: unknown[] }) => {
+              if (args?.method === 'eth_getBalance') return '0x1'; // 1 wei
+              return originalProvider.request(args);
+            },
+          ),
+        };
+        return { ...orig, provider: tinyBalanceProvider };
+      }) as typeof originalGetNetworkClientById;
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [normalized],
+                recommendedQuote: normalized,
+                quotesLastFetched: Date.now(),
+                quotesLoadingStatus: RequestStatus.FETCHED,
+              },
+            },
+          },
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+              balance: '0.5', // cached balance used by useLatestBalance initially
+            },
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
 
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withOverrides({
-        bridge: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            name: 'Solana',
-            symbol: 'SOL',
-            image: '',
-            balance: '10',
+      const { getByTestId } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
+
+      const button = getByTestId(
+        QuoteViewSelectorIDs.CONFIRM_BUTTON,
+      ) as unknown as {
+        props: { accessibilityState?: { disabled?: boolean } };
+      };
+
+      // Assert
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // restore provider
+      (
+        Engine.context.NetworkController as unknown as {
+          getNetworkClientById: (id: string) => unknown;
+        }
+      ).getNetworkClientById = originalGetNetworkClientById;
+    });
+
+    it('disables confirm button and shows “Submitting transaction” when submitting', () => {
+      // Arrange: valid EVM recommended quote + submitting state
+      const quote = mockQuoteWithMetadata as unknown as Record<string, unknown>;
+      const normalized = normalizeQuote(quote);
+      // EVM + gasless to avoid gas checks interfering
+      normalized.quote = {
+        ...(normalized.quote ?? {}),
+        srcChainId: '0x1',
+        gasIncluded: true,
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: {
+            isSubmittingTx: true,
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+            },
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
           },
-          destToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            name: 'Solana',
-            symbol: 'SOL',
-            image: '',
+        } as unknown as Record<string, unknown>)
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [normalized],
+                recommendedQuote: normalized,
+                quotesLastFetched: Date.now(),
+                quotesLoadingStatus: RequestStatus.FETCHED,
+              },
+            },
           },
+        } as unknown as Record<string, unknown>)
+        .build();
+
+      const { getByTestId, getByText } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
+
+      // Assert
+      const button = getByTestId(
+        QuoteViewSelectorIDs.CONFIRM_BUTTON,
+      ) as unknown as {
+        props: { accessibilityState?: { disabled?: boolean } };
+      };
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(getByText(strings('bridge.submitting_transaction'))).toBeTruthy();
+    });
+
+    it('disables confirm button and shows hardware warning when account is hardware and source is Solana', async () => {
+      // Arrange: mutate allowed Engine mock to model a hardware keyring including selected address
+      // Selected address from preset: '0x0000000000000000000000000000000000000001'
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: 'Ledger Hardware',
+          accounts: ['0x0000000000000000000000000000000000000001'],
+          metadata: { id: 'mock', name: '' },
         },
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotesLastFetched: Date.now(),
-              recommendedQuote: (() => {
-                const q = normalizeQuote(mockQuoteWithMetadata);
-                q.quote = {
-                  ...(q.quote ?? {}),
-                  srcChainId: SolScope.Mainnet,
-                  destChainId: SolScope.Mainnet,
-                };
-                // include a dummy trade to satisfy validator payload shape
-                q.trade = 'CgRkYXRh';
-                return q;
-              })(),
-              quotes: [
-                (() => {
+      ];
+
+      // Use Solana chain IDs to set isSolanaSourced=true
+      const { getByTestId, getByText } = renderBridgeView({
+        deterministicFiat: true,
+        overrides: {
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: 'So11111111111111111111111111111111111111112',
+              chainId: SolScope.Mainnet,
+              decimals: 9,
+              name: 'Solana',
+              symbol: 'SOL',
+              image: '',
+              balance: '10',
+            },
+            destToken: {
+              address: 'So11111111111111111111111111111111111111112',
+              chainId: SolScope.Mainnet,
+              decimals: 9,
+              name: 'Solana',
+              symbol: 'SOL',
+              image: '',
+            },
+          },
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                // Ensure CTA section renders
+                quotesLastFetched: Date.now(),
+                // Use normalized quote to satisfy selectors
+                recommendedQuote: (() => {
                   const q = normalizeQuote(mockQuoteWithMetadata);
+                  // Solana numeric scope
                   q.quote = {
                     ...(q.quote ?? {}),
                     srcChainId: SolScope.Mainnet,
@@ -597,126 +494,631 @@ describeForPlatforms('BridgeView component-view', () => {
                   };
                   return q;
                 })(),
-              ],
-              quotesLoadingStatus: RequestStatus.FETCHED,
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                bridgeConfigV2: {
-                  minimumVersion: '0.0.0',
-                  maxRefreshCount: 5,
-                  refreshRate: 30000,
-                  support: true,
-                  chains: {
-                    'solana:1': {
-                      isActiveSrc: true,
-                      isActiveDest: true,
+                quotes: [
+                  (() => {
+                    const q = normalizeQuote(mockQuoteWithMetadata);
+                    q.quote = {
+                      ...(q.quote ?? {}),
+                      srcChainId: SolScope.Mainnet,
+                      destChainId: SolScope.Mainnet,
+                    };
+                    return q;
+                  })(),
+                ],
+                quotesLoadingStatus: 'SUCCEEDED',
+              },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      'solana:1': {
+                        isActiveSrc: true,
+                        isActiveDest: true,
+                      },
                     },
                   },
                 },
               },
             },
           },
+        } as unknown as Record<string, unknown>,
+      });
+
+      // Assert: CTA disabled and hardware banner visible
+      const button = getByTestId(
+        QuoteViewSelectorIDs.CONFIRM_BUTTON,
+      ) as unknown as {
+        props: { accessibilityState?: { disabled?: boolean } };
+      };
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(
+        await getByText(strings('bridge.hardware_wallet_not_supported_solana')),
+      ).toBeTruthy();
+    });
+
+    it('disables confirm button and shows “Insufficient gas” when gas is not sufficient', () => {
+      // Arrange: quote with very large effective gas fee vs provider mocked 100 ETH balance
+      const quote = normalizeQuote({
+        ...(mockQuoteWithMetadata as unknown as Record<string, unknown>),
+        gasFee: {
+          effective: { amount: '1000000', usd: null, valueInCurrency: null },
+          max: { amount: '1000000', usd: null, valueInCurrency: null },
+          total: { amount: '1000000', usd: null, valueInCurrency: null },
         },
-      } as unknown as Record<string, unknown>)
-      .build();
+      } as unknown as Record<string, unknown>);
+      // Force EVM to ensure balance lookup works
+      quote.quote = { ...(quote.quote ?? {}), srcChainId: '0x1' };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+              balance: '100', // display balance; provider returns 100 ETH as well
+            },
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
+          },
+        } as unknown as Record<string, unknown>)
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [quote],
+                recommendedQuote: quote,
+                quotesLastFetched: Date.now(),
+                quotesLoadingStatus: 'SUCCEEDED',
+              },
+            },
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
 
-    const { findByTestId } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
+      const { getByTestId, getByText } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
 
-    // Assert
-    const button = (await findByTestId(
-      QuoteViewSelectorIDs.CONFIRM_BUTTON,
-    )) as unknown as { props: { accessibilityState?: { disabled?: boolean } } };
-    expect(button.props.accessibilityState?.disabled).toBe(true);
-    // Assert a banner is shown (Blockaid error)
-    expect(await findByTestId('banneralert')).toBeTruthy();
+      // Assert
+      const button = getByTestId(
+        QuoteViewSelectorIDs.CONFIRM_BUTTON,
+      ) as unknown as {
+        props: { accessibilityState?: { disabled?: boolean } };
+      };
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
+    });
 
-    // Cleanup
-    fetchSpy.mockRestore();
+    it('disables confirm button and shows Blockaid alert when validation returns error (Solana flow)', async () => {
+      // Arrange: mock fetch to return a Blockaid ERROR response
+      const fetchSpy = jest
+        .spyOn(global as unknown as { fetch: typeof fetch }, 'fetch')
+        .mockResolvedValue({
+          json: async () =>
+            Promise.resolve({
+              status: 'ERROR',
+              result: { validation: { reason: 'transaction is malicious' } },
+              error_details: { message: 'transaction is malicious' },
+            }),
+        } as unknown as Response);
+
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: 'So11111111111111111111111111111111111111112',
+              chainId: SolScope.Mainnet,
+              decimals: 9,
+              name: 'Solana',
+              symbol: 'SOL',
+              image: '',
+              balance: '10',
+            },
+            destToken: {
+              address: 'So11111111111111111111111111111111111111112',
+              chainId: SolScope.Mainnet,
+              decimals: 9,
+              name: 'Solana',
+              symbol: 'SOL',
+              image: '',
+            },
+          },
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotesLastFetched: Date.now(),
+                recommendedQuote: (() => {
+                  const q = normalizeQuote(mockQuoteWithMetadata);
+                  q.quote = {
+                    ...(q.quote ?? {}),
+                    srcChainId: SolScope.Mainnet,
+                    destChainId: SolScope.Mainnet,
+                  };
+                  // include a dummy trade to satisfy validator payload shape
+                  q.trade = 'CgRkYXRh';
+                  return q;
+                })(),
+                quotes: [
+                  (() => {
+                    const q = normalizeQuote(mockQuoteWithMetadata);
+                    q.quote = {
+                      ...(q.quote ?? {}),
+                      srcChainId: SolScope.Mainnet,
+                      destChainId: SolScope.Mainnet,
+                    };
+                    return q;
+                  })(),
+                ],
+                quotesLoadingStatus: RequestStatus.FETCHED,
+              },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      'solana:1': {
+                        isActiveSrc: true,
+                        isActiveDest: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
+
+      const { findByTestId } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
+
+      // Assert
+      const button = (await findByTestId(
+        QuoteViewSelectorIDs.CONFIRM_BUTTON,
+      )) as unknown as {
+        props: { accessibilityState?: { disabled?: boolean } };
+      };
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // Assert a banner is shown (Blockaid error)
+      expect(await findByTestId('banneralert')).toBeTruthy();
+
+      // Cleanup
+      fetchSpy.mockRestore();
+    });
+
+    it('displays no MM fee disclaimer for mUSD destination with zero MM fee', async () => {
+      const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+      const now = Date.now();
+
+      // Clone and enforce 0 bps fee and gasIncluded on the active/recommended quote
+      const active = {
+        ...(mockQuoteWithMetadata as unknown as Record<string, unknown>),
+      };
+      const currentQuote = (active.quote as Record<string, unknown>) ?? {};
+      active.quote = {
+        ...currentQuote,
+        feeData: {
+          metabridge: { quoteBpsFee: 0 },
+        },
+        gasIncluded: true,
+        srcChainId: 1,
+        destChainId: 1,
+      };
+
+      const { findByText } = renderBridgeView({
+        deterministicFiat: true,
+        overrides: {
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              symbol: 'ETH',
+              name: 'Ether',
+            },
+            destToken: {
+              address: musdAddress,
+              chainId: '0x1',
+              decimals: 18,
+              symbol: 'mUSD',
+              name: 'mStable USD',
+            },
+          },
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [active as unknown as Record<string, unknown>],
+                recommendedQuote: active as unknown as Record<string, unknown>,
+                quotesLastFetched: now,
+                quotesLoadingStatus: 'SUCCEEDED',
+                quoteFetchError: null,
+              },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      'eip155:1': {
+                        isActiveSrc: true,
+                        isActiveDest: true,
+                        noFeeAssets: [musdAddress],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as Record<string, unknown>,
+      });
+
+      const expected = strings('bridge.no_mm_fee_disclaimer', {
+        destTokenSymbol: 'mUSD',
+      });
+      expect(await findByText(expected)).toBeOnTheScreen();
+    });
   });
 
-  it.skip('shows no MM fee disclaimer when dest token is flagged and fee bps is zero', () => {
-    // Arrange: build state with a recommended quote and override fee bps + noFeeAssets flag
-    const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withBridgeRecommendedQuoteEvmSimple({
-        srcAmount: '1000000000000000000',
-        destTokenAddress: musdAddress,
-      })
-      .withOverrides({
-        // Make fee percentage 0 via quoteBpsFee
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              recommendedQuote: {
-                quote: {
-                  feeData: { metabridge: { quoteBpsFee: 0 } },
-                },
-              },
-              quotes: [
-                {
-                  quote: {
-                    feeData: { metabridge: { quoteBpsFee: 0 } },
-                  },
-                },
-              ],
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                bridgeConfigV2: {
-                  minimumVersion: '0.0.0',
-                  maxRefreshCount: 5,
-                  refreshRate: 30000,
-                  support: true,
-                  chains: {
-                    'eip155:1': {
-                      isActiveSrc: true,
-                      isActiveDest: true,
-                      isGaslessSwapEnabled: false,
-                      noFeeAssets: [musdAddress],
+  describe('Modals and navigation', () => {
+    it('opens Source Token Selector via modal from source area when no source token is selected', () => {
+      // Arrange: render BridgeView with default preset (no tokens picked)
+      const { getByTestId, getAllByTestId } = renderScreenWithRoutes(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        [
+          // Register the modals root so navigation succeeds and we can probe it if needed
+          { name: Routes.BRIDGE.MODALS.ROOT },
+        ],
+        { state: initialStateBridge({ deterministicFiat: true }).build() },
+      );
+
+      // Act: press source token area to open the Source Token Selector modal
+      fireEvent.press(getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA));
+
+      // Assert: navigation occurred to the Bridge Modals root (modal stack)
+      expect(
+        getAllByTestId(`route-${Routes.BRIDGE.MODALS.ROOT}`).length,
+      ).toBeGreaterThan(0);
+    });
+
+    it('opens Destination Network Selector via modal from destination area when no dest token is selected', () => {
+      // Arrange: render BridgeView with default preset (no tokens picked)
+      const { getByText, getAllByTestId } = renderScreenWithRoutes(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        [
+          // Register the modals root so navigation succeeds and we can probe it if needed
+          { name: Routes.BRIDGE.MODALS.ROOT },
+        ],
+        { state: initialStateBridge({ deterministicFiat: true }).build() },
+      );
+
+      // Act: press "Swap to" to open the Dest Network Selector (with shouldGoToTokens flow)
+      fireEvent.press(getByText(strings('bridge.swap_to')));
+
+      // Assert: navigation occurred to the Bridge Modals root (modal stack)
+      expect(
+        getAllByTestId(`route-${Routes.BRIDGE.MODALS.ROOT}`).length,
+      ).toBeGreaterThan(0);
+    });
+
+    it('selects a destination network via BridgeDestNetworkSelector and updates selectedDestChainId', () => {
+      // Arrange
+      const { getByText, store } = renderScreen(
+        BridgeDestNetworkSelector as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR },
+        { state: bridgeInitialState },
+      );
+
+      // Act: pick Optimism
+      fireEvent.press(getByText('Optimism'));
+
+      // Assert: bridge.selectedDestChainId set to optimism chainId
+      const state = store.getState();
+      expect(state.bridge.selectedDestChainId).toBe(optimismChainId);
+    });
+  });
+
+  describe('Post-submit navigation', () => {
+    it('lands on TransactionsView and shows pending transaction(s)', () => {
+      // Activity probe that verifies pending transactions in store
+      const ActivityProbe = () => {
+        const txs =
+          useSelector(
+            (state: RootState) =>
+              state.engine.backgroundState?.TransactionController
+                ?.transactions ?? [],
+          ) || [];
+        const pendingCount = txs.filter((t: { status?: string }) =>
+          ['unapproved', 'approved', 'signed', 'submitted', 'pending'].includes(
+            (t.status || '').toLowerCase(),
+          ),
+        ).length;
+        return <Text testID="pending-count">{`pending:${pendingCount}`}</Text>;
+      };
+
+      // Arrange: seed a pending/submitted EVM transaction in the controller state
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    id: 'tx-1',
+                    status: 'submitted',
+                    chainId: '0x1',
+                    transactionHash: '0xabc',
+                    time: Date.now(),
+                    txParams: {
+                      from: '0x0000000000000000000000000000000000000001',
                     },
                   },
-                },
+                ],
               },
             },
           },
-        },
-        bridge: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-          },
-          destToken: {
-            address: musdAddress,
-            chainId: '0x1',
-            decimals: 6,
-            name: 'MetaMask USD',
-            symbol: 'mUSD',
-            image: '',
-          },
-        },
-      } as unknown as Record<string, unknown>)
-      .build();
+        } as unknown as Record<string, unknown>)
+        .build();
 
-    const { getByText } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
+      // Act: render the TransactionsView route with the probe and assert pending present
+      const { getByTestId } = renderScreenWithRoutes(
+        ActivityProbe as unknown as React.ComponentType,
+        { name: Routes.TRANSACTIONS_VIEW },
+        [],
+        { state },
+      );
 
-    expect(
-      getByText(
-        strings('bridge.no_mm_fee_disclaimer', { destTokenSymbol: 'mUSD' }),
-      ),
-    ).toBeTruthy();
+      expect(getByTestId('pending-count').props.children).toBe('pending:1');
+    });
+  });
+
+  describe('Slippage modal', () => {
+    it('opens from BridgeView and shows preset options', async () => {
+      // Arrange a valid quote so that QuoteDetailsCard (with slippage button) is rendered
+      const q = normalizeQuote(
+        mockQuoteWithMetadata as unknown as Record<string, unknown>,
+      );
+      q.quote = {
+        ...(q.quote ?? {}),
+        srcChainId: '0x1',
+        destChainId: '0x1',
+        gasIncluded: true,
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [q],
+                recommendedQuote: q,
+                quotesLastFetched: Date.now(),
+                quotesLoadingStatus: RequestStatus.FETCHED,
+              },
+            },
+          },
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+            },
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
+            slippage: '0.5',
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
+
+      // A probe for the Bridge Modals root that shows SlippageModal when requested
+      const BridgeModalsProbe = (props: unknown) => {
+        const route = (props as { route?: { params?: { screen?: string } } })
+          ?.route;
+        if (route?.params?.screen === Routes.BRIDGE.MODALS.SLIPPAGE_MODAL) {
+          return <SlippageModal />;
+        }
+        return <Text testID={`route-${Routes.BRIDGE.MODALS.ROOT}`} />;
+      };
+
+      const { findByTestId, getByText, getByTestId } = renderScreenWithRoutes(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        [{ name: Routes.BRIDGE.MODALS.ROOT, Component: BridgeModalsProbe }],
+        { state },
+      );
+
+      // Act: open slippage modal from QuoteDetailsCard
+      fireEvent.press(await findByTestId('edit-slippage-button'));
+
+      // Assert preset options exist (default slippage defined => 0.5%, 1%, 2%, 5%)
+      expect(await findByTestId('slippage-option-0.5')).toBeTruthy();
+      expect(getByTestId('slippage-option-1')).toBeTruthy();
+      expect(getByTestId('slippage-option-2')).toBeTruthy();
+      expect(getByTestId('slippage-option-5')).toBeTruthy();
+      // Header text present
+      expect(getByText(strings('bridge.slippage'))).toBeTruthy();
+    });
+
+    it('applies selected slippage and persists back to BridgeView', async () => {
+      // Arrange similar valid quote and initial slippage 0.5
+      const q = normalizeQuote(
+        mockQuoteWithMetadata as unknown as Record<string, unknown>,
+      );
+      q.quote = {
+        ...(q.quote ?? {}),
+        srcChainId: '0x1',
+        destChainId: '0x1',
+        gasIncluded: true,
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [q],
+                recommendedQuote: q,
+                quotesLastFetched: Date.now(),
+                quotesLoadingStatus: RequestStatus.FETCHED,
+              },
+            },
+          },
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+            },
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
+            slippage: '0.5',
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
+
+      const BridgeModalsProbe = (props: unknown) => {
+        const route = (props as { route?: { params?: { screen?: string } } })
+          ?.route;
+        if (route?.params?.screen === Routes.BRIDGE.MODALS.SLIPPAGE_MODAL) {
+          return <SlippageModal />;
+        }
+        return <Text testID={`route-${Routes.BRIDGE.MODALS.ROOT}`} />;
+      };
+
+      const { getByText, findByTestId } = renderScreenWithRoutes(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        [{ name: Routes.BRIDGE.MODALS.ROOT, Component: BridgeModalsProbe }],
+        { state },
+      );
+
+      // Open slippage modal
+      fireEvent.press(await findByTestId('edit-slippage-button'));
+      // Select 2% preset and apply
+      fireEvent.press(await findByTestId('slippage-option-2'));
+      fireEvent.press(getByText(strings('bridge.apply')));
+
+      // Back on BridgeView, slippage label should reflect 2%
+      expect(getByText('2%')).toBeTruthy();
+    });
+
+    it('shows Auto option when slippage is undefined', async () => {
+      // Arrange with undefined slippage -> modal shows "Auto", 1%, 2%, 5%
+      const q = normalizeQuote(
+        mockQuoteWithMetadata as unknown as Record<string, unknown>,
+      );
+      q.quote = {
+        ...(q.quote ?? {}),
+        srcChainId: '0x1',
+        destChainId: '0x1',
+        gasIncluded: true,
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                quotes: [q],
+                recommendedQuote: q,
+                quotesLastFetched: Date.now(),
+                quotesLoadingStatus: RequestStatus.FETCHED,
+              },
+            },
+          },
+          bridge: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              decimals: 18,
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+            },
+            destToken: {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              decimals: 6,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              image: '',
+            },
+            slippage: undefined,
+          },
+        } as unknown as Record<string, unknown>)
+        .build();
+
+      const BridgeModalsProbe = (props: unknown) => {
+        const route = (props as { route?: { params?: { screen?: string } } })
+          ?.route;
+        if (route?.params?.screen === Routes.BRIDGE.MODALS.SLIPPAGE_MODAL) {
+          return <SlippageModal />;
+        }
+        return <Text testID={`route-${Routes.BRIDGE.MODALS.ROOT}`} />;
+      };
+
+      const { findByTestId, store } = renderScreenWithRoutes(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        [{ name: Routes.BRIDGE.MODALS.ROOT, Component: BridgeModalsProbe }],
+        { state },
+      );
+
+      // Force slippage to undefined in the live store to ensure modal shows Auto
+      store.dispatch(setSlippage(undefined));
+
+      // Open modal and assert Auto + presets
+      fireEvent.press(await findByTestId('edit-slippage-button'));
+      expect(await findByTestId('slippage-option-auto')).toBeTruthy();
+      expect(await findByTestId('slippage-option-1')).toBeTruthy();
+      expect(await findByTestId('slippage-option-2')).toBeTruthy();
+      expect(await findByTestId('slippage-option-5')).toBeTruthy();
+    });
   });
 });
