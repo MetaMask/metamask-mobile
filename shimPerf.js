@@ -28,6 +28,9 @@ nobleHashesHmac.hmac = (hash, key, message) => {
   return originalHmac(hash, key, message);
 };
 
+// add missing hmac.create polyfill with original implementation
+nobleHashesHmac.hmac.create = originalHmac.create;
+
 // Monkey patch keccak256 from @noble/hashes
 const nobleHashesSha3 = require('@noble/hashes/sha3');
 const originalNobleHashesSha3Keccak256 = nobleHashesSha3.keccak_256;
