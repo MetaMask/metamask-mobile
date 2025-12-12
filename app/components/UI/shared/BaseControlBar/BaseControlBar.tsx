@@ -172,12 +172,14 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const renderNetworkLabel = () => (
     <View style={styles.networkManagerWrapper}>
       {!areAllNetworksSelected && (
-        <Avatar
-          variant={AvatarVariant.Network}
-          size={AvatarSize.Xs}
-          name={networkName}
-          imageSource={networkImageSource}
-        />
+        <View style={styles.networkAvatarWrapper}>
+          <Avatar
+            variant={AvatarVariant.Network}
+            size={AvatarSize.Xs}
+            name={networkName}
+            imageSource={networkImageSource}
+          />
+        </View>
       )}
       <TextComponent
         variant={TextVariant.BodyMDMedium}

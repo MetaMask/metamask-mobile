@@ -80,7 +80,7 @@ const NetworkMultiSelector = ({
   openRpcModal,
 }: NetworkMultiSelectorProps) => {
   const insets = useSafeAreaInsets();
-  const { styles } = useStyles(stylesheet, { insets });
+  const { styles } = useStyles(stylesheet, {});
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
@@ -438,7 +438,7 @@ const NetworkMultiSelector = ({
   return (
     <ScrollView
       style={styles.bodyContainer}
-      contentContainerStyle={styles.scrollContentContainer}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       testID={NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER}
     >
       <NetworkMultiSelectorList

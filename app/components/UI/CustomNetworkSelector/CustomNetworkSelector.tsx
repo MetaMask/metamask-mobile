@@ -25,7 +25,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
-import Device from '../../../util/device';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import {
@@ -185,8 +184,7 @@ const CustomNetworkSelector = ({
         ListFooterComponent={renderFooter}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          paddingBottom:
-            safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
+          paddingBottom: safeAreaInsets.bottom + 16,
         }}
       />
     </ScrollView>

@@ -1,14 +1,9 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-import { EdgeInsets } from 'react-native-safe-area-context';
 
-const stylesheet = (params: { theme: Theme; vars: { insets: EdgeInsets } }) =>
+const stylesheet = () =>
   StyleSheet.create({
     bodyContainer: {
       flex: 1,
-    },
-    scrollContentContainer: {
-      paddingBottom: params.vars.insets.bottom + 16,
     },
     // custom network
     customNetworkContainer: {
