@@ -56,6 +56,7 @@ let mockSearchTokensState = {
   isSearchLoading: false,
   isLoadingMore: false,
   searchCursor: undefined as string | undefined,
+  currentSearchQuery: '',
   searchTokens: mockSearchTokens,
   debouncedSearch: mockDebouncedSearch,
   resetSearch: mockResetSearch,
@@ -263,6 +264,7 @@ const resetMocks = () => {
     isSearchLoading: false,
     isLoadingMore: false,
     searchCursor: undefined,
+    currentSearchQuery: '',
     searchTokens: mockSearchTokens,
     debouncedSearch: mockDebouncedSearch,
     resetSearch: mockResetSearch,
@@ -339,6 +341,7 @@ describe('BridgeTokenSelector', () => {
       mockSearchTokensState = {
         ...mockSearchTokensState,
         searchResults: [createSearchToken('WETH')],
+        currentSearchQuery: 'WET',
       };
       const { getByTestId } = render(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
@@ -386,6 +389,7 @@ describe('BridgeTokenSelector', () => {
         ...mockSearchTokensState,
         searchResults: [createSearchToken('WETH')],
         searchCursor: 'next-cursor',
+        currentSearchQuery: 'WET',
       };
       const { getByTestId, UNSAFE_getByType } = render(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
@@ -423,6 +427,7 @@ describe('BridgeTokenSelector', () => {
         mockSearchTokensState = {
           ...mockSearchTokensState,
           searchResults: [createSearchToken('WETH')],
+          currentSearchQuery: 'WET',
           ...stateOverrides,
         };
         const { getByTestId, UNSAFE_getByType } = render(
