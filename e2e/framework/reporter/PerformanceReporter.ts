@@ -66,6 +66,7 @@ class PerformanceReporter implements Reporter {
         const sessionData = JSON.parse(
           sessionAttachment.body.toString(),
         ) as SessionData;
+        this.sessionId = sessionData.sessionId;
         this.sessions.push({
           ...sessionData,
           testStatus: result.status,
@@ -85,6 +86,7 @@ class PerformanceReporter implements Reporter {
       );
       if (sessionIdAnnotation) {
         const sessionId = sessionIdAnnotation.description ?? '';
+        this.sessionId = sessionId;
 
         // Only add if we didn't already capture it from attachments
         if (!this.sessions.find((s) => s.sessionId === sessionId)) {
@@ -281,7 +283,7 @@ class PerformanceReporter implements Reporter {
         .filter((name): name is string => Boolean(name));
 
       isBrowserStackRun = projectNames.some((name) =>
-        name.includes('browserstack-'),
+        name.includes('browserstack'),
       );
     }
 
@@ -365,11 +367,6 @@ class PerformanceReporter implements Reporter {
       }
     }
 
-    // Clean up any leftover environment variables
-    delete process.env.TEMP_SESSION_ID;
-    delete process.env.TEMP_TEST_TITLE;
-    delete process.env.TEMP_PROJECT_NAME;
-
     // If we have a sessionId but no metrics (failed test scenario), create a minimal entry
     if (this.sessionId && this.metrics.length === 0) {
       console.log(
@@ -383,6 +380,11 @@ class PerformanceReporter implements Reporter {
         note: 'Test failed - no performance metrics collected',
       });
     }
+
+    // Clean up any leftover environment variables (after fallback logic uses them)
+    delete process.env.TEMP_SESSION_ID;
+    delete process.env.TEMP_TEST_TITLE;
+    delete process.env.TEMP_PROJECT_NAME;
 
     // Create a timestamp for unique filenames
     const timestamp = new Date()
