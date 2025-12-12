@@ -5,7 +5,17 @@ import Authentication from './';
 import { useAuthentication } from './useAuthentication';
 
 // Create mock function for lockApp
-const mockLockApp = jest.fn<Promise<void>, [{ allowRememberMe?: boolean }?]>();
+const mockLockApp = jest.fn<
+  Promise<void>,
+  [
+    {
+      allowRememberMe?: boolean;
+      reset?: boolean;
+      locked?: boolean;
+      navigateToLogin?: boolean;
+    }?,
+  ]
+>();
 
 describe('useAuthentication', () => {
   let lockAppSpy: jest.SpyInstance;
