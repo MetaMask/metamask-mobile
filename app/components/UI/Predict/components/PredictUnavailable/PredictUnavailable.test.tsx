@@ -90,6 +90,7 @@ describe('PredictUnavailable', () => {
         ref.current?.onOpenBottomSheet();
       });
 
+      expect(screen.getByTestId('header')).toBeOnTheScreen();
       expect(screen.getByTestId('polymarket-terms-link')).toBeOnTheScreen();
       expect(screen.getByTestId('bottomsheetfooter')).toBeOnTheScreen();
     });
@@ -145,6 +146,7 @@ describe('PredictUnavailable', () => {
         ref.current?.onOpenBottomSheet();
       });
 
+      expect(screen.getByTestId('header')).toBeOnTheScreen();
       expect(screen.getByTestId('polymarket-terms-link')).toBeOnTheScreen();
     });
 

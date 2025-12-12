@@ -1,18 +1,24 @@
 // Third party dependencies.
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { IconName, Text } from '@metamask/design-system-react-native';
+
+// External dependencies.
+import { Text, IconName } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import HeaderBase from './HeaderBase';
-import { HEADERBASE_TITLE_TEST_ID } from './HeaderBase.constants';
+import {
+  HEADERBASE_TEST_ID,
+  HEADERBASE_TITLE_TEST_ID,
+} from './HeaderBase.constants';
 import { HeaderBaseVariant } from './HeaderBase.types';
 
-const HEADER_TEST_ID = 'header-base-test';
 const START_ACCESSORY_TEST_ID = 'start-accessory-wrapper';
 const END_ACCESSORY_TEST_ID = 'end-accessory-wrapper';
 const BUTTON_ICON_TEST_ID = 'button-icon';
 const CUSTOM_CONTENT_TEST_ID = 'custom-content';
+const START_CONTENT_TEST_ID = 'start-content';
+const END_CONTENT_TEST_ID = 'end-content';
 
 describe('HeaderBase', () => {
   beforeEach(() => {
@@ -28,7 +34,7 @@ describe('HeaderBase', () => {
 
     it('renders custom children when ReactNode is passed', () => {
       const { getByTestId } = render(
-        <HeaderBase testID={HEADER_TEST_ID}>
+        <HeaderBase>
           <Text testID={CUSTOM_CONTENT_TEST_ID}>Custom Content</Text>
         </HeaderBase>,
       );
@@ -36,12 +42,10 @@ describe('HeaderBase', () => {
       expect(getByTestId(CUSTOM_CONTENT_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('applies testID to container when provided', () => {
-      const { getByTestId } = render(
-        <HeaderBase testID={HEADER_TEST_ID}>Title</HeaderBase>,
-      );
+    it('applies default testID to container', () => {
+      const { getByTestId } = render(<HeaderBase>Title</HeaderBase>);
 
-      expect(getByTestId(HEADER_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(HEADERBASE_TEST_ID)).toBeOnTheScreen();
     });
 
     it('applies title testID when string children is passed', () => {
@@ -49,22 +53,28 @@ describe('HeaderBase', () => {
 
       expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();
     });
+
+    it('accepts custom testID for container', () => {
+      const customTestId = 'custom-header';
+
+      const { getByTestId } = render(
+        <HeaderBase testID={customTestId}>Title</HeaderBase>,
+      );
+
+      expect(getByTestId(customTestId)).toBeOnTheScreen();
+    });
   });
 
   describe('variant', () => {
     it('uses Compact variant by default', () => {
-      const { getByTestId } = render(
-        <HeaderBase testID={HEADER_TEST_ID}>Title</HeaderBase>,
-      );
+      const { getByTestId } = render(<HeaderBase>Title</HeaderBase>);
 
       expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();
     });
 
     it('renders with Display variant when specified', () => {
       const { getByTestId } = render(
-        <HeaderBase variant={HeaderBaseVariant.Display} testID={HEADER_TEST_ID}>
-          Title
-        </HeaderBase>,
+        <HeaderBase variant={HeaderBaseVariant.Display}>Title</HeaderBase>,
       );
 
       expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();
@@ -73,9 +83,9 @@ describe('HeaderBase', () => {
 
   describe('startAccessory', () => {
     it('renders custom start accessory content', () => {
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <HeaderBase
-          startAccessory={<Text>Start</Text>}
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
           startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
         >
           Title
@@ -83,7 +93,7 @@ describe('HeaderBase', () => {
       );
 
       expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
-      expect(getByText('Start')).toBeOnTheScreen();
+      expect(getByTestId(START_CONTENT_TEST_ID)).toBeOnTheScreen();
     });
 
     it('does not render start accessory wrapper when startAccessory is not provided', () => {
@@ -101,7 +111,7 @@ describe('HeaderBase', () => {
     it('passes startAccessoryWrapperProps to start accessory wrapper', () => {
       const { getByTestId } = render(
         <HeaderBase
-          startAccessory={<Text>Start</Text>}
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
           startAccessoryWrapperProps={{ testID: 'custom-start-wrapper' }}
         >
           Title
@@ -114,9 +124,9 @@ describe('HeaderBase', () => {
 
   describe('endAccessory', () => {
     it('renders custom end accessory content', () => {
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <HeaderBase
-          endAccessory={<Text>End</Text>}
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
           endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
         >
           Title
@@ -124,7 +134,7 @@ describe('HeaderBase', () => {
       );
 
       expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
-      expect(getByText('End')).toBeOnTheScreen();
+      expect(getByTestId(END_CONTENT_TEST_ID)).toBeOnTheScreen();
     });
 
     it('does not render end accessory wrapper when endAccessory is not provided', () => {
@@ -142,7 +152,7 @@ describe('HeaderBase', () => {
     it('passes endAccessoryWrapperProps to end accessory wrapper', () => {
       const { getByTestId } = render(
         <HeaderBase
-          endAccessory={<Text>End</Text>}
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
           endAccessoryWrapperProps={{ testID: 'custom-end-wrapper' }}
         >
           Title
@@ -191,9 +201,11 @@ describe('HeaderBase', () => {
     });
 
     it('prioritizes startAccessory over startButtonIconProps', () => {
-      const { getByText, queryByTestId } = render(
+      const { getByTestId, queryByTestId } = render(
         <HeaderBase
-          startAccessory={<Text>Custom Start</Text>}
+          startAccessory={
+            <Text testID={START_CONTENT_TEST_ID}>Custom Start</Text>
+          }
           startButtonIconProps={{
             iconName: IconName.ArrowLeft,
             onPress: jest.fn(),
@@ -203,7 +215,7 @@ describe('HeaderBase', () => {
         </HeaderBase>,
       );
 
-      expect(getByText('Custom Start')).toBeOnTheScreen();
+      expect(getByTestId(START_CONTENT_TEST_ID)).toBeOnTheScreen();
       expect(queryByTestId(BUTTON_ICON_TEST_ID)).toBeNull();
     });
   });
@@ -253,9 +265,9 @@ describe('HeaderBase', () => {
     });
 
     it('prioritizes endAccessory over endButtonIconProps', () => {
-      const { getByText, queryByTestId } = render(
+      const { getByTestId, queryByTestId } = render(
         <HeaderBase
-          endAccessory={<Text>Custom End</Text>}
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>Custom End</Text>}
           endButtonIconProps={[
             { iconName: IconName.Close, onPress: jest.fn() },
           ]}
@@ -264,7 +276,7 @@ describe('HeaderBase', () => {
         </HeaderBase>,
       );
 
-      expect(getByText('Custom End')).toBeOnTheScreen();
+      expect(getByTestId(END_CONTENT_TEST_ID)).toBeOnTheScreen();
       expect(queryByTestId(BUTTON_ICON_TEST_ID)).toBeNull();
     });
   });
@@ -273,7 +285,7 @@ describe('HeaderBase', () => {
     it('renders both accessory wrappers in Compact variant when only start accessory is provided', () => {
       const { getByTestId } = render(
         <HeaderBase
-          startAccessory={<Text>Start</Text>}
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
           startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
           endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
         >
@@ -288,7 +300,7 @@ describe('HeaderBase', () => {
     it('renders both accessory wrappers in Compact variant when only end accessory is provided', () => {
       const { getByTestId } = render(
         <HeaderBase
-          endAccessory={<Text>End</Text>}
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
           startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
           endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
         >
@@ -304,7 +316,7 @@ describe('HeaderBase', () => {
       const { getByTestId, queryByTestId } = render(
         <HeaderBase
           variant={HeaderBaseVariant.Display}
-          startAccessory={<Text>Start</Text>}
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
           startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
           endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
         >
@@ -320,7 +332,7 @@ describe('HeaderBase', () => {
       const { queryByTestId, getByTestId } = render(
         <HeaderBase
           variant={HeaderBaseVariant.Display}
-          endAccessory={<Text>End</Text>}
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
           startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
           endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
         >
@@ -333,10 +345,10 @@ describe('HeaderBase', () => {
     });
 
     it('renders both accessory wrappers when both accessories are provided', () => {
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <HeaderBase
-          startAccessory={<Text>Start</Text>}
-          endAccessory={<Text>End</Text>}
+          startAccessory={<Text testID={START_CONTENT_TEST_ID}>Start</Text>}
+          endAccessory={<Text testID={END_CONTENT_TEST_ID}>End</Text>}
           startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
           endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
         >
@@ -346,8 +358,8 @@ describe('HeaderBase', () => {
 
       expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
       expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
-      expect(getByText('Start')).toBeOnTheScreen();
-      expect(getByText('End')).toBeOnTheScreen();
+      expect(getByTestId(START_CONTENT_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(END_CONTENT_TEST_ID)).toBeOnTheScreen();
     });
   });
 });

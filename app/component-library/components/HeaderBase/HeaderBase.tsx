@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Internal dependencies.
 import { HeaderBaseProps, HeaderBaseVariant } from './HeaderBase.types';
 import {
+  HEADERBASE_TEST_ID,
   HEADERBASE_TITLE_TEST_ID,
   HEADERBASE_VARIANT_TEXT_VARIANTS,
 } from './HeaderBase.constants';
@@ -34,7 +35,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   variant = HeaderBaseVariant.Compact,
   startAccessoryWrapperProps,
   endAccessoryWrapperProps,
-  testID,
+  testID = HEADERBASE_TEST_ID,
   twClassName,
   ...viewProps
 }) => {

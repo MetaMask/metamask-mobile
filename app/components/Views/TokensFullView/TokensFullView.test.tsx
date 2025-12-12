@@ -58,8 +58,8 @@ describe('TokensFullView', () => {
     });
 
     // Act & Assert
+    expect(getByTestId('header')).toBeOnTheScreen();
     expect(getByTestId('header-title')).toBeOnTheScreen();
-    expect(getByTestId('back-button')).toBeOnTheScreen();
     expect(getByTestId('tokens-component')).toBeOnTheScreen();
   });
 
