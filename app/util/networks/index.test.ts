@@ -32,6 +32,7 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
+  MEGAETH_TESTNET,
   MEGAETH_TESTNET_V2,
   MONAD_TESTNET,
   BASE_MAINNET,
@@ -128,6 +129,7 @@ describe('network-utils', () => {
         BASE_MAINNET,
         SEPOLIA,
         LINEA_SEPOLIA,
+        MEGAETH_TESTNET,
         MEGAETH_TESTNET_V2,
         MONAD_TESTNET,
       ]);
