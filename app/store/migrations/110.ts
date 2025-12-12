@@ -13,7 +13,7 @@ import {
 import { ensureValidState } from './util';
 import { cloneDeep } from 'lodash';
 
-export const migrationVersion = 109;
+export const migrationVersion = 110;
 
 export const MEGAETH_TESTNET_V1_CHAIN_ID = '0x18c6'; // 6342
 
