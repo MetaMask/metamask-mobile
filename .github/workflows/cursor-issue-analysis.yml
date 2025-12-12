@@ -45,35 +45,7 @@ jobs:
         run: |
           # Strict allowlist: only read source code, deny everything else
           mkdir -p .cursor
-          cat > .cursor/permissions.json << 'EOF'
-{
-  "permissions": {
-    "allow": [
-      "Read(app/**/*)",
-      "Read(src/**/*)",
-      "Read(e2e/**/*)",
-      "Read(docs/**/*)",
-      "Read(*.md)",
-      "Read(*.json)",
-      "Read(*.ts)",
-      "Read(*.tsx)",
-      "Read(*.js)"
-    ],
-    "deny": [
-      "Shell(*)",
-      "Write(*)",
-      "Read(.env*)",
-      "Read(**/.env*)",
-      "Read(**/secrets/**)",
-      "Read(**/*.pem)",
-      "Read(**/*.key)",
-      "Read(**/*.secret)",
-      "Read(.git/**)",
-      "Read(node_modules/**)"
-    ]
-  }
-}
-EOF
+          printf '%s\n' '{"permissions":{"allow":["Read(app/**/*)","Read(src/**/*)","Read(e2e/**/*)","Read(docs/**/*)","Read(*.md)","Read(*.json)","Read(*.ts)","Read(*.tsx)","Read(*.js)"],"deny":["Shell(*)","Write(*)","Read(.env*)","Read(**/.env*)","Read(**/secrets/**)","Read(**/*.pem)","Read(**/*.key)","Read(**/*.secret)","Read(.git/**)","Read(node_modules/**)"]}}' > .cursor/permissions.json
 
       - name: Install Cursor CLI
         if: steps.check-comment.outputs.exists != 'true'
