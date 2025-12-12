@@ -16,7 +16,6 @@ import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 interface LivePriceHeaderProps {
   symbol: string;
   fallbackPrice?: string;
-  fallbackChange?: string;
   testIDPrice?: string;
   testIDChange?: string;
   throttleMs?: number;
@@ -38,7 +37,6 @@ const styleSheet = () =>
 const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   symbol,
   fallbackPrice = '0',
-  fallbackChange = '0',
   testIDPrice,
   testIDChange,
   throttleMs = 1000, // Balanced updates for header (1 update per second)
@@ -55,12 +53,23 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const displayPrice = priceData
     ? parseFloat(priceData.price)
     : parseFloat(fallbackPrice);
-  const displayChange = priceData
-    ? parseFloat(priceData.percentChange24h || '0')
-    : parseFloat(fallbackChange);
 
-  const isPositiveChange = displayChange >= 0;
-  const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+  // Use null to indicate loading state - only use actual values (including 0) when available
+  // When we have live price data, only use percentChange from that data - don't fall back
+  const displayChange = priceData
+    ? priceData.percentChange24h !== undefined
+      ? parseFloat(priceData.percentChange24h)
+      : null
+    : null;
+
+  // Only determine change color when we have actual data (not loading)
+  const isPositiveChange = displayChange !== null && displayChange >= 0;
+  const changeColor =
+    displayChange === null
+      ? TextColor.Default // Neutral color for loading state
+      : isPositiveChange
+        ? TextColor.Success
+        : TextColor.Error;
 
   // Format price display with edge case handling
   const formattedPrice = useMemo(() => {
@@ -80,6 +89,11 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   }, [displayPrice]);
 
   const formattedChange = useMemo(() => {
+    // If displayChange is null, we're still loading - show loading indicator
+    if (displayChange === null) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+
     if (!displayPrice || displayPrice <= 0 || !Number.isFinite(displayPrice)) {
       return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
     }

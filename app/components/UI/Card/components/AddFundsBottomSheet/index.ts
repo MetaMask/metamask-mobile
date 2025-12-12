@@ -1,1 +1,4 @@
-export { default } from './AddFundsBottomSheet';
+export {
+  default,
+  createAddFundsModalNavigationDetails,
+} from './AddFundsBottomSheet';

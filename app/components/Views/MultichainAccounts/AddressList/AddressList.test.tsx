@@ -8,6 +8,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import { AddressList } from './AddressList';
 import { MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
+import { toFormattedAddress } from '../../../../util/address';
 
 const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
 const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
@@ -208,7 +209,7 @@ describe('AddressList', () => {
       {
         screen: 'ShareAddressQR',
         params: {
-          address: mockEthEoaAccount.address,
+          address: toFormattedAddress(mockEthEoaAccount.address),
           networkName: 'Ethereum',
           chainId: 'eip155:1',
           groupId: ACCOUNT_GROUP_ID,

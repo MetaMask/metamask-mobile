@@ -1,11 +1,13 @@
 import { useSelector } from 'react-redux';
 import { Nft } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
-import { collectiblesSelector } from '../../../../../reducers/collectibles';
+import type { Hex } from '@metamask/utils';
 import { selectAllNftContracts } from '../../../../../selectors/nftController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { selectAllCollectiblesByChain } from '../../../../../reducers/collectibles/collectibles';
+import { RootState } from '../../../../../reducers';
 
 export interface UseNftResponse {
   chainId: string;
@@ -39,13 +41,16 @@ export const useNft = (): UseNftResponse => {
     transactionData?.args?._value ?? transactionData?.args[2]
   )?.toString();
 
-  const nfts: Nft[] = useSelector(collectiblesSelector);
+  const hexChainId = (chainId && toHex(chainId)) as Hex;
+  const nfts: Nft[] = useSelector((state: RootState) =>
+    selectAllCollectiblesByChain(state, hexChainId),
+  );
   const nft = tokenId ? nfts.find((c) => c.tokenId === tokenId) : undefined;
 
   const nftContract = useNftContract(chainId, tokenAddress);
 
   return {
-    chainId: toHex(chainId).toString(),
+    chainId: hexChainId.toString(),
     name: nftContract?.name,
     nft,
     tokenId,

@@ -24,6 +24,7 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
+  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import usePerpsToasts, {
@@ -77,6 +78,10 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     priceData,
   });
 
+  // Check opt-in status for rewards
+  const { accountOptedIn, account: rewardsAccount } =
+    usePerpsRewardAccountOptedIn(calculations?.totalEstimatedPoints);
+
   // Track screen viewed event
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -105,7 +110,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent03],
@@ -128,7 +133,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent01],
@@ -204,11 +209,22 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     }
   }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
+  // Wrapper for "Keep Positions" button that properly handles overlay dismissal
+  const handleKeepButtonPress = useCallback(() => {
+    if (externalSheetRef) {
+      // When used as overlay, close the sheet properly to remove overlay
+      handleClose();
+    } else {
+      // When used as standalone screen, use hook's navigation
+      handleKeepPositions();
+    }
+  }, [externalSheetRef, handleClose, handleKeepPositions]);
+
   const footerButtons = useMemo(
     () => [
       {
         label: strings('perps.close_all_modal.keep_positions'),
-        onPress: handleKeepPositions,
+        onPress: handleKeepButtonPress,
         variant: ButtonVariants.Secondary,
         size: ButtonSize.Lg,
         disabled: isClosing,
@@ -224,13 +240,17 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         danger: true,
       },
     ],
-    [handleKeepPositions, handleCloseAll, isClosing],
+    [handleKeepButtonPress, handleCloseAll, isClosing],
   );
 
   // Show loading state while fetching positions
   if (isInitialLoading) {
     return (
-      <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack={!externalSheetRef}
+        onClose={externalSheetRef ? onExternalClose : undefined}
+      >
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('perps.close_all_modal.title')}
@@ -249,7 +269,11 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   // Show empty state if no positions
   if (!positions || positions.length === 0) {
     return (
-      <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack={!externalSheetRef}
+        onClose={externalSheetRef ? onExternalClose : undefined}
+      >
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('perps.close_all_modal.title')}
@@ -265,7 +289,11 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   }
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack={!externalSheetRef}
+      onClose={externalSheetRef ? onExternalClose : undefined}
+    >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.close_all_modal.title')}
@@ -311,6 +339,8 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             isLoadingFees={calculations.isLoading}
             isLoadingRewards={calculations.isLoading}
             hasRewardsError={calculations.hasError}
+            accountOptedIn={accountOptedIn}
+            rewardsAccount={rewardsAccount}
             enableTooltips={false}
           />
         )}

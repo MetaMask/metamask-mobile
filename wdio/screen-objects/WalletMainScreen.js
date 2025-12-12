@@ -10,6 +10,7 @@ import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.se
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
+import TimerHelper from 'appwright/utils/TimersHelper.js';
 
 class WalletMainScreen {
 
@@ -127,6 +128,30 @@ class WalletMainScreen {
     return Selectors.getXpathElementByText('Localhost 8545 now active.');
   }
 
+  get totalBalanceText() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    }
+  }
+
+  get balanceContainer() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId('balance-container');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'balance-container');
+    }
+  }
+
+  get tokenBalancesLoadedMarker() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId('token-balances-loaded-marker');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'token-balances-loaded-marker');
+    }
+  }
+
   async tapImportTokensButton() {
     const importToken = await this.ImportToken;
     await importToken.waitForDisplayed();
@@ -148,7 +173,23 @@ class WalletMainScreen {
   }
 
   async tapNFTTab() {
-    await Gestures.tapTextByXpath('NFTs');
+    if (!this._device) {
+      await Gestures.tapTextByXpath('NFTs');
+    } else {
+      // For Appwright, tap by text
+      const nftTabText = AppwrightSelectors.getElementByText(this._device, 'NFTs');
+      await AppwrightGestures.tap(nftTabText);
+    }
+  }
+
+  async tapTokensTab() {
+    if (!this._device) {
+      await Gestures.tapTextByXpath('Tokens');
+    } else {
+      // For Appwright, tap by text
+      const tokensTabText = AppwrightSelectors.getElementByText(this._device, 'Tokens');
+      await AppwrightGestures.tap(tokensTabText);
+    }
   }
 
   async tapOnToken(token) {
@@ -157,9 +198,9 @@ class WalletMainScreen {
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
         let tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`); // for some reason by Id does not work sometimeselse {
-        await tokenName.tap();
+        await AppwrightGestures.tap(tokenName);
       } else { // if ios, click on any token that is visible
-        const anyToken = await AppwrightSelectors.getElementByXpath(this._device, `//*[@name="token-list"]//XCUIElementTypeOther[1]`);
+        const anyToken = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
         await AppwrightGestures.tap(anyToken);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
@@ -183,14 +224,14 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await AppwrightGestures.tap(this.accountIcon); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.accountIcon); 
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.swapButton); 
     }
   }
 
@@ -199,7 +240,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await AppwrightGestures.tap(this.networkInNavBar); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.networkInNavBar); 
     }
   }
 
@@ -240,7 +281,67 @@ class WalletMainScreen {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+    }
+  }
+
+  async getTotalBalanceText() {
+    if (!this._device) {
+      return await this.totalBalanceText;
+    } else {
+      const balanceContainer = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
+      const balanceContainerText = await balanceContainer.getText();
+
+      return balanceContainerText;
+    }
+  }
+
+  async isMenuButtonVisible() {
+    if (!this._device) {
+      return await this.balanceContainer.isVisible();
+    } else {
+      const menuButton = await AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON);
+      const timer = new TimerHelper('Time for the menu button to be visible');
+      timer.start();
+      await appwrightExpect(menuButton).toBeVisible();
+      timer.stop();
+      return timer;
+    }
+  }
+
+  async waitForBalanceToStabilize(options = {}) {
+    const { 
+      maxWaitTime = 60000,         // 1 minute timeout
+      pollInterval = 100, 
+      sameResultTimeout = 20000    // 20 seconds with the same result = stable
+    } = options;
+
+    const startTime = Date.now();
+    let previousBalance = '';
+    let sameResultStartTime = null;
+
+    while (true) {
+      // Check if we exceeded the maximum wait time (1 minute)
+      if (Date.now() - startTime > maxWaitTime) {
+        console.log(`Max wait time (${maxWaitTime}ms) exceeded - returning current balance`);
+        return previousBalance;
+      }
+
+      const currentBalance = await this.getTotalBalanceText();
+
+      if (currentBalance === previousBalance && previousBalance !== '') {
+        // Same result - check if 20 seconds have passed
+        const timeSinceSameResult = Date.now() - sameResultStartTime;
+        
+        if (timeSinceSameResult >= sameResultTimeout) {
+          return currentBalance;
+        }
+      } else {
+        sameResultStartTime = Date.now();
+        previousBalance = currentBalance;
+      }
+
+      await AppwrightGestures.wait(pollInterval);
     }
   }
 
@@ -267,7 +368,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await AppwrightGestures.tap(this.accountActionsButton); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(this.accountActionsButton); 
     }
   }
 

@@ -106,6 +106,10 @@ export type BrowserTabProps = SharedTabProps & {
    * Home page url that is appended with metricsEnabled and marketingEnabled
    */
   homePageUrl: string;
+  /**
+   * Whether browser was opened from trending view
+   */
+  fromTrending?: boolean;
 
   /**
    * Boolean indicating if browser is in fullscreen mode

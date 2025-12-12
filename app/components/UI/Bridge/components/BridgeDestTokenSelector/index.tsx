@@ -10,6 +10,7 @@ import {
   selectSelectedDestChainId,
   selectSourceToken,
   setDestToken,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
@@ -34,11 +35,13 @@ import Engine from '../../../../../core/Engine';
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Routes from '../../../../../constants/navigation/Routes';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 export const getNetworkName = (
   chainId: Hex,
   networkConfigurations: Record<string, MultichainNetworkConfiguration>,
 ) =>
+  NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId] ??
   networkConfigurations?.[chainId as Hex]?.name ??
   PopularList.find((network) => network.chainId === chainId)?.nickname ??
   'Unknown Network';
@@ -49,9 +52,9 @@ const createStyles = () =>
       marginRight: 12,
     },
   });
-export const BridgeDestTokenSelector: React.FC = () => {
+export const BridgeDestTokenSelector: React.FC = React.memo(() => {
   const dispatch = useDispatch();
-  const { styles } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles);
   const navigation = useNavigation();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
 
@@ -59,14 +62,26 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const selectedDestToken = useSelector(selectDestToken);
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
+
+  const balanceChainIds = useMemo(
+    () => (selectedDestChainId ? [selectedDestChainId] : []),
+    [selectedDestChainId],
+  );
+  const tokensToExclude = useMemo(
+    () => (selectedSourceToken ? [selectedSourceToken] : []),
+    [selectedSourceToken],
+  );
   const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedDestChainId,
-    balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
-    tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
+    balanceChainIds,
+    tokensToExclude,
   });
+
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
+      // Mark as manually set to prevent auto-updating dest when source chain changes
       dispatch(setDestToken(token));
+      dispatch(setIsDestTokenManuallySet(true));
       navigation.goBack();
     },
     [dispatch, navigation],
@@ -155,14 +170,18 @@ export const BridgeDestTokenSelector: React.FC = () => {
     ],
   );
 
+  const networksBar = useMemo(
+    () =>
+      bridgeViewMode === BridgeViewMode.Bridge ||
+      bridgeViewMode === BridgeViewMode.Unified ? (
+        <BridgeDestNetworksBar />
+      ) : undefined,
+    [bridgeViewMode],
+  );
+
   return (
     <BridgeTokenSelectorBase
-      networksBar={
-        bridgeViewMode === BridgeViewMode.Bridge ||
-        bridgeViewMode === BridgeViewMode.Unified ? (
-          <BridgeDestNetworksBar />
-        ) : undefined
-      }
+      networksBar={networksBar}
       renderTokenItem={renderToken}
       allTokens={allTokens}
       tokensToRender={tokensToRender}
@@ -171,4 +190,6 @@ export const BridgeDestTokenSelector: React.FC = () => {
       scrollResetKey={selectedDestChainId}
     />
   );
-};
+});
+
+BridgeDestTokenSelector.displayName = 'BridgeDestTokenSelector';

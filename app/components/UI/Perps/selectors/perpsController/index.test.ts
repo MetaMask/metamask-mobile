@@ -1,5 +1,6 @@
 import { RootState } from '../../../../../reducers';
 import type { AccountState } from '../../controllers/types';
+import { InitializationState } from '../../controllers/PerpsController';
 import {
   selectPerpsProvider,
   selectPerpsAccountState,
@@ -7,6 +8,7 @@ import {
   selectPerpsEligibility,
   selectPerpsNetwork,
   selectIsFirstTimePerpsUser,
+  selectPerpsInitializationState,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -750,6 +752,25 @@ describe('PerpsController Selectors', () => {
       // Assert
       // Should return true for undefined mainnet state
       expect(result).toBe(true);
+    });
+  });
+
+  describe('selectPerpsInitializationState', () => {
+    it('returns UNINITIALIZED when perpsControllerState is undefined', () => {
+      // Arrange
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PerpsController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      // Act
+      const result = selectPerpsInitializationState(mockState);
+
+      // Assert
+      expect(result).toBe(InitializationState.UNINITIALIZED);
     });
   });
 });

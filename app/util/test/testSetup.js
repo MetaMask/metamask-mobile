@@ -70,8 +70,6 @@ jest.mock('react-native-quick-crypto', () => ({
   ),
 }));
 
-jest.mock('react-native-blob-jsi-helper', () => ({}));
-
 // Create a persistent mock function that survives Jest teardown
 const mockBatchedUpdates = jest.fn((fn) => {
   if (typeof fn === 'function') {
@@ -218,6 +216,9 @@ jest.mock('../../store', () => ({
     getState: jest.fn().mockImplementation(() => mockState),
     dispatch: jest.fn(),
   },
+  runSaga: jest
+    .fn()
+    .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
   _updateMockState: (state) => {
     mockState = state;
   },
@@ -227,8 +228,8 @@ jest.mock('../../store', () => ({
 jest.mock('../../core/SDKConnectV2', () => ({
   __esModule: true,
   default: {
-    isConnectDeeplink: jest.fn(() => false),
-    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
+    isMwpDeeplink: jest.fn(() => false),
+    handleMwpDeeplink: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
   },
 }));
@@ -611,6 +612,11 @@ jest.mock('@sentry/react-native', () => ({
 
   // User feedback
   lastEventId: jest.fn(),
+
+  // Global scope
+  getGlobalScope: jest.fn(() => ({
+    setTag: jest.fn(),
+  })),
 }));
 
 jest.mock('@react-native-firebase/messaging', () => {

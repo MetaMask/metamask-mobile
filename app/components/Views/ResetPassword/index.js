@@ -542,13 +542,22 @@ class ResetPassword extends PureComponent {
 
       // Set biometrics for new password
       await Authentication.resetPassword();
+
       try {
         // compute and store the new authentication method
         const authData = await Authentication.componentAuthenticationType(
           this.state.biometryChoice,
           this.state.rememberMe,
         );
-        await Authentication.storePassword(password, authData.currentAuthType);
+        await Authentication.storePasswordWithFallback(password, authData);
+        if (
+          Authentication.authData.currentAuthType ===
+          AUTHENTICATION_TYPE.BIOMETRIC
+        ) {
+          await updateAuthTypeStorageFlags(this.state.biometryChoice);
+        } else {
+          await updateAuthTypeStorageFlags(false);
+        }
       } catch (error) {
         Logger.error(error);
       }
@@ -624,7 +633,6 @@ class ResetPassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
     this.setState({ biometryChoice });
   };
 

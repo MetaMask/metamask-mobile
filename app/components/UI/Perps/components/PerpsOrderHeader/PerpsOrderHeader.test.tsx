@@ -20,7 +20,7 @@ jest.mock('../../../../../util/theme', () => ({
   })),
 }));
 
-jest.mock('../../../Swaps/components/TokenIcon', () => 'TokenIcon');
+jest.mock('../../../../Base/TokenIcon', () => 'TokenIcon');
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
@@ -192,5 +192,58 @@ describe('PerpsOrderHeader', () => {
     );
     const orderTypeButton = getByTestId('perps-order-header-order-type-button');
     expect(orderTypeButton.props.disabled).toBe(true);
+  });
+
+  describe('HIP3 Asset Symbol Handling', () => {
+    it('should strip hip3 prefix from asset symbol in long direction', () => {
+      const { getByText } = render(
+        <PerpsOrderHeader
+          {...defaultProps}
+          asset="hip3:BTC"
+          direction="long"
+        />,
+      );
+      expect(getByText('Long BTC')).toBeTruthy();
+    });
+
+    it('should strip hip3 prefix from asset symbol in short direction', () => {
+      const { getByText } = render(
+        <PerpsOrderHeader
+          {...defaultProps}
+          asset="hip3:ETH"
+          direction="short"
+        />,
+      );
+      expect(getByText('Short ETH')).toBeTruthy();
+    });
+
+    it('should strip DEX prefix from asset symbol', () => {
+      const { getByText } = render(
+        <PerpsOrderHeader
+          {...defaultProps}
+          asset="xyz:TSLA"
+          direction="long"
+        />,
+      );
+      expect(getByText('Long TSLA')).toBeTruthy();
+    });
+
+    it('should keep regular asset symbols unchanged', () => {
+      const { getByText } = render(
+        <PerpsOrderHeader {...defaultProps} asset="SOL" direction="short" />,
+      );
+      expect(getByText('Short SOL')).toBeTruthy();
+    });
+
+    it('should strip prefix even with custom title not provided', () => {
+      const { getByText } = render(
+        <PerpsOrderHeader
+          {...defaultProps}
+          asset="abc:AAPL"
+          direction="long"
+        />,
+      );
+      expect(getByText('Long AAPL')).toBeTruthy();
+    });
   });
 });

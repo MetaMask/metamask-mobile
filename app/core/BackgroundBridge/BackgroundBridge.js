@@ -91,6 +91,7 @@ import PPOMUtil from '../../lib/ppom/ppom-util';
 import { isRelaySupported } from '../../util/transactions/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { AccountTreeController } from '@metamask/account-tree-controller';
+import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -184,6 +185,11 @@ export class BackgroundBridge extends EventEmitter {
 
     Engine.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      this.sendStateUpdate,
+    );
+
+    Engine.controllerMessenger.subscribe(
+      'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
 
@@ -423,13 +429,16 @@ export class BackgroundBridge extends EventEmitter {
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
+      const accountControllerSelectedAddress = toFormattedAddress(
+        Engine.context.AccountsController.getSelectedAccount().address,
+      );
       if (
         this.addressSent != null &&
-        memState.selectedAddress != null &&
-        !areAddressesEqual(this.addressSent, memState.selectedAddress)
+        accountControllerSelectedAddress != null &&
+        !areAddressesEqual(this.addressSent, accountControllerSelectedAddress)
       ) {
-        this.addressSent = memState.selectedAddress;
-        this.notifySelectedAddressChanged(memState.selectedAddress);
+        this.addressSent = accountControllerSelectedAddress;
+        this.notifySelectedAddressChanged(accountControllerSelectedAddress);
       }
     }
   }
@@ -478,6 +487,10 @@ export class BackgroundBridge extends EventEmitter {
     );
     controllerMessenger.tryUnsubscribe(
       'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
+    controllerMessenger.tryUnsubscribe(
+      'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
 
@@ -621,6 +634,13 @@ export class BackgroundBridge extends EventEmitter {
 
     // Origin throttling middleware for spam filtering
     engine.push(createOriginThrottlingMiddleware(this.navigation));
+
+    engine.push(
+      createTrustSignalsMiddleware({
+        phishingController: Engine.context.PhishingController,
+        networkController: Engine.context.NetworkController,
+      }),
+    );
 
     // user-facing RPC methods
     engine.push(
@@ -1133,14 +1153,14 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const {
-      PreferencesController: { selectedAddress },
-    } = Engine.datamodel.state;
+    const accountControllerSelectedAddress = toFormattedAddress(
+      Engine.context.AccountsController.getSelectedAccount().address,
+    );
     return {
       isInitialized: !!vault,
       isUnlocked: true,
       network: legacyNetworkId(),
-      selectedAddress,
+      selectedAddress: accountControllerSelectedAddress,
     };
   }
 

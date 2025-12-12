@@ -323,23 +323,38 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                         }
                       }
                     >
-                      <View
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        disabled={false}
+                        onPress={[Function]}
                         style={
-                          [
-                            {
-                              "backgroundColor": "#3f434a66",
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
-                            {
-                              "opacity": undefined,
-                            },
-                          ]
+                          {
+                            "bottom": 0,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          }
                         }
-                      />
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#3f434a66",
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
+                              },
+                              {
+                                "opacity": undefined,
+                              },
+                            ]
+                          }
+                        />
+                      </TouchableOpacity>
                       <View
                         collapsable={false}
                         enabled={true}
@@ -376,25 +391,11 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                           ]
                         }
                       >
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            }
-                          }
-                        />
                         <View
                           style={
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "gap": 16,
                               },
@@ -521,7 +522,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -537,7 +538,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -585,7 +586,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,

@@ -75,7 +75,7 @@ export function createLoggerMiddleware(opts) {
   ) {
     next((/** @type {Function} */ cb) => {
       if (res.error) {
-        const { error, ...resWithoutError } = res;
+        const { error } = res;
         if (error) {
           if (containsUserRejectedError(error.message, error.code)) {
             trackErrorAsAnalytics(
@@ -89,21 +89,11 @@ export function createLoggerMiddleware(opts) {
              *   "message":"Internal JSON-RPC error.",
              *   "data":{"code":-32000,"message":"gas required exceeds allowance (59956966) or always failing transaction"}
              * }
-             * This will make the error log to sentry with the title "gas required exceeds allowance (59956966) or always failing transaction"
-             * making it easier to differentiate each error.
+             * This will track the error to analytics with the error message for better differentiation.
              */
-            const errorParams = {
-              message: 'Error in RPC response',
-              orginalError: error,
-              res: resWithoutError,
-              req,
-            };
-
-            if (error.data) {
-              errorParams.data = error.data;
-            }
-
-            Logger.error(error, errorParams);
+            const errorMessage =
+              error.data?.message || error.message || 'Unknown RPC error';
+            trackErrorAsAnalytics('Error in RPC response', errorMessage);
           }
         }
       }

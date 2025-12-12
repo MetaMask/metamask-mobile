@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
@@ -15,16 +9,12 @@ import ScrollableTabView, {
 } from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
-  selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { selectEvmNetworkName } from '../../../selectors/networkInfos';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
-import { selectERC20TokensByChain } from '../../../selectors/tokenListController';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
   BannerAlertSeverity,
@@ -39,7 +29,6 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
-import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
@@ -50,13 +39,19 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 export enum FilterOption {
   AllNetworks,
@@ -73,40 +68,27 @@ const AddAsset = () => {
   } = useStyles(styleSheet, {});
 
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectEvmChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-  const tokenListForAllChains = useSelector(selectERC20TokensByChain);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [openNetworkSelector, setOpenNetworkSelector] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] = useState<Hex | null>(chainId);
+  const { enabledNetworksForAllNamespaces } = useNetworkEnablement();
+  const enabledChainId = useMemo(
+    () =>
+      Object.keys(enabledNetworksForAllNamespaces).find(
+        (chainId) => enabledNetworksForAllNamespaces[chainId as Hex] === true,
+      ) ?? '0x1', // Fallback to Ethereum Mainnet if no networks are enabled
+    [enabledNetworksForAllNamespaces],
+  );
+  const [selectedNetwork, setSelectedNetwork] = useState<
+    SupportedCaipChainId | Hex | null
+  >(enabledChainId as Hex);
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  // Update selectedNetwork when chainId changes (MultichainNetworkController active network)
-  useEffect(() => {
-    if (!selectedNetwork) {
-      setSelectedNetwork(chainId);
-    }
-  }, [chainId, selectedNetwork]);
-
-  const isTokenDetectionSupported = isTokenDetectionSupportedForNetwork(
-    selectedNetwork || chainId,
-  );
+  const { topTokens, remainingTokens, pending } = useTopTokens({
+    chainId: selectedNetwork ?? undefined,
+  });
 
   const networkName = useSelector(selectEvmNetworkName);
-
-  // Check if there are tokens available for the selected network
-  const hasTokensForSelectedNetwork = useMemo(() => {
-    if (!selectedNetwork) return false;
-    const tokensData = tokenListForAllChains?.[selectedNetwork]?.data;
-    if (!tokensData) return null;
-    return tokensData && Object.keys(tokensData).length > 0;
-  }, [selectedNetwork, tokenListForAllChains]);
-
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
 
   const goToSecuritySettings = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -122,23 +104,28 @@ const AddAsset = () => {
         selectedNetwork={selectedNetwork}
         setSelectedNetwork={async (network) => {
           setSelectedNetwork(network);
-          Engine.context.TokenListController.fetchTokenList(network);
+          if (!isNonEvmChainId(network)) {
+            Engine.context.TokenListController.fetchTokenList(network as Hex);
+          }
         }}
         setOpenNetworkSelector={setOpenNetworkSelector}
         sheetRef={sheetRef}
+        displayEvmNetworksOnly={assetType !== 'token'}
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [openNetworkSelector, networkConfigurations, selectedNetwork],
+    [openNetworkSelector, networkConfigurations, selectedNetwork, assetType],
+  );
+
+  const allTokens = useMemo(
+    () => [...(topTokens || []), ...(remainingTokens || [])],
+    [topTokens, remainingTokens],
   );
 
   return (
     <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
-      <BottomSheetHeader onBack={handleBackPress}>
-        {strings(`add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`)}
-      </BottomSheetHeader>
       {assetType !== 'token' && (
-        <View style={styles.infoWrapper}>
+        <View style={styles.infoWrapper} testID="add-asset-nft-banner">
           <Banner
             variant={BannerVariant.Alert}
             description={
@@ -180,19 +167,17 @@ const AddAsset = () => {
       )}
       {assetType === 'token' ? (
         <>
-          <View style={styles.networkSelectorWrapper}>
+          <View
+            style={styles.networkSelectorWrapper}
+            testID="add-asset-network-selector"
+          >
             <TouchableOpacity
               style={styles.networkSelectorContainer}
               onPress={() => setOpenNetworkSelector(true)}
               onLongPress={() => setOpenNetworkSelector(true)}
             >
-              <Text style={styles.networkSelectorText}>
-                {selectedNetwork
-                  ? networkConfigurations?.[selectedNetwork as Hex]?.name
-                  : strings('networks.select_network')}
-              </Text>
-              <View style={styles.overlappingAvatarsContainer}>
-                {selectedNetwork ? (
+              {selectedNetwork ? (
+                <View style={styles.networkSelectorAvatarContainer}>
                   <Avatar
                     variant={AvatarVariant.Network}
                     size={AvatarSize.Sm}
@@ -206,10 +191,17 @@ const AddAsset = () => {
                     })}
                     testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
                   />
-                ) : null}
-
+                </View>
+              ) : null}
+              <Text style={styles.networkSelectorText}>
+                {selectedNetwork
+                  ? networkConfigurations?.[selectedNetwork as Hex]?.name
+                  : strings('networks.select_network')}
+              </Text>
+              <View style={styles.overlappingAvatarsContainer}>
                 <ButtonIcon
                   iconName={IconName.ArrowDown}
+                  size={ButtonIconSizes.Sm}
                   iconColor={IconColor.Default}
                   testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
                   onPress={() => setOpenNetworkSelector(true)}
@@ -218,68 +210,91 @@ const AddAsset = () => {
               </View>
             </TouchableOpacity>
           </View>
-          {hasTokensForSelectedNetwork === null ? (
-            <View style={styles.loadingContainer}>
+          {pending ? (
+            <View
+              style={styles.loadingContainer}
+              testID="add-asset-loading-indicator"
+            >
               <ActivityIndicator size="large" color={colors.primary.default} />
             </View>
           ) : (
-            <View style={styles.tabContainer}>
-              <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
-                {isTokenDetectionSupported && hasTokensForSelectedNetwork && (
+            <View style={styles.tabContainer} testID="add-asset-tabs-container">
+              <ScrollableTabView
+                key={selectedNetwork}
+                renderTabBar={renderTabBar}
+              >
+                {allTokens && allTokens.length > 0 && (
                   <SearchTokenAutocomplete
                     navigation={navigation}
                     tabLabel={strings('add_asset.search_token')}
+                    allTokens={allTokens}
                     selectedChainId={selectedNetwork}
                   />
                 )}
-                <AddCustomToken
-                  chainId={selectedNetwork}
-                  networkName={networkName}
-                  ticker={providerConfig.ticker}
-                  type={providerConfig.type}
-                  navigation={navigation}
-                  tabLabel={strings('add_asset.custom_token')}
-                  isTokenDetectionSupported={
-                    isTokenDetectionSupported && hasTokensForSelectedNetwork
-                  }
-                  selectedNetwork={
-                    selectedNetwork
-                      ? networkConfigurations?.[selectedNetwork as Hex]?.name
-                      : null
-                  }
-                  networkClientId={
-                    selectedNetwork
-                      ? networkConfigurations?.[selectedNetwork]?.rpcEndpoints[
-                          networkConfigurations?.[selectedNetwork]
-                            ?.defaultRpcEndpointIndex
-                        ]?.networkClientId
-                      : null
-                  }
-                />
+
+                {/* Custom tokens are not supported on non-evm chains */}
+                {selectedNetwork && !isNonEvmChainId(selectedNetwork) && (
+                  <AddCustomToken
+                    chainId={selectedNetwork}
+                    networkName={networkName}
+                    ticker={providerConfig.ticker}
+                    type={providerConfig.type}
+                    navigation={navigation}
+                    tabLabel={strings('add_asset.custom_token')}
+                    isTokenDetectionSupported={
+                      allTokens && allTokens.length > 0
+                    }
+                    selectedNetwork={
+                      selectedNetwork
+                        ? networkConfigurations?.[selectedNetwork as Hex]?.name
+                        : null
+                    }
+                    networkClientId={
+                      selectedNetwork
+                        ? (Engine.context.NetworkController.state
+                            ?.networkConfigurationsByChainId?.[
+                            selectedNetwork as Hex
+                          ]?.rpcEndpoints?.[
+                            Engine.context.NetworkController.state
+                              ?.networkConfigurationsByChainId?.[
+                              selectedNetwork as Hex
+                            ]?.defaultRpcEndpointIndex ?? 0
+                          ]?.networkClientId ?? null)
+                        : null
+                    }
+                  />
+                )}
               </ScrollableTabView>
             </View>
           )}
         </>
       ) : (
-        <AddCustomCollectible
-          navigation={navigation}
-          collectibleContract={collectibleContract}
-          setOpenNetworkSelector={setOpenNetworkSelector}
-          networkId={networkConfigurations?.[selectedNetwork as Hex]?.chainId}
-          selectedNetwork={
-            selectedNetwork
-              ? networkConfigurations?.[selectedNetwork as Hex]?.name
-              : null
-          }
-          networkClientId={
-            selectedNetwork
-              ? networkConfigurations?.[selectedNetwork]?.rpcEndpoints[
-                  networkConfigurations?.[selectedNetwork]
-                    ?.defaultRpcEndpointIndex
-                ]?.networkClientId
-              : null
-          }
-        />
+        // Collectibles are not supported on non-evm chains
+        selectedNetwork &&
+        !isNonEvmChainId(selectedNetwork) && (
+          <AddCustomCollectible
+            navigation={navigation}
+            collectibleContract={collectibleContract}
+            setOpenNetworkSelector={setOpenNetworkSelector}
+            networkId={networkConfigurations?.[selectedNetwork as Hex]?.chainId}
+            selectedNetwork={
+              selectedNetwork
+                ? networkConfigurations?.[selectedNetwork as Hex]?.name
+                : null
+            }
+            networkClientId={
+              selectedNetwork
+                ? (Engine.context.NetworkController.state
+                    ?.networkConfigurationsByChainId?.[selectedNetwork as Hex]
+                    ?.rpcEndpoints?.[
+                    Engine.context.NetworkController.state
+                      ?.networkConfigurationsByChainId?.[selectedNetwork as Hex]
+                      ?.defaultRpcEndpointIndex ?? 0
+                  ]?.networkClientId ?? null)
+                : null
+            }
+          />
+        )
       )}
       {openNetworkSelector ? renderNetworkSelector() : null}
     </SafeAreaView>

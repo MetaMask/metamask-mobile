@@ -5,28 +5,30 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type {
-  OrderFill,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
-import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsRecentActivityListProps {
-  fills: OrderFill[];
+  transactions: PerpsTransaction[];
   isLoading?: boolean;
   iconSize?: number;
 }
 
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
-  fills,
+  transactions,
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
 }) => {
@@ -34,9 +36,9 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   const handleSeeAll = useCallback(() => {
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: { redirectToPerpsTransactions: true },
+    navigation.navigate(Routes.PERPS.ACTIVITY, {
+      redirectToPerpsTransactions: true,
+      showBackButton: true,
     });
   }, [navigation]);
 
@@ -55,21 +57,33 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     [navigation],
   );
 
-  // Transform fills to transactions for display
-  const transactions = transformFillsToTransactions(fills);
+  // Render right content for trades (only type shown)
+  const renderRightContent = useCallback((transaction: PerpsTransaction) => {
+    if (!transaction.fill) return null;
+
+    const pnlColor = transaction.fill.isPositive
+      ? TextColor.Success
+      : TextColor.Error;
+    return (
+      <Text variant={TextVariant.BodyMDMedium} color={pnlColor}>
+        {transaction.fill.amount}
+      </Text>
+    );
+  }, []);
 
   const renderItem = useCallback(
-    ({
-      item,
-    }: {
-      item: ReturnType<typeof transformFillsToTransactions>[0];
-    }) => {
-      const isPositive = item.fill?.isPositive ?? false;
-      const pnlColor = isPositive ? TextColor.Success : TextColor.Error;
+    (props: { item: PerpsTransaction; index: number }) => {
+      const { item, index } = props;
+      const isFirstItem = index === 0;
+      const isLastItem = index === transactions.length - 1;
 
       return (
         <TouchableOpacity
-          style={styles.activityItem}
+          style={[
+            styles.activityItem,
+            isFirstItem && styles.activityItemFirst,
+            isLastItem && styles.activityItemLast,
+          ]}
           onPress={() => handleTransactionPress(item)}
           activeOpacity={0.7}
         >
@@ -94,29 +108,29 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
                   variant={TextVariant.BodySM}
                   style={styles.activityAmount}
                 >
-                  {item.subtitle}
+                  {getPerpsDisplaySymbol(item.subtitle)}
                 </Text>
               )}
             </View>
           </View>
-          <View style={styles.rightSection}>
-            {item.fill && (
-              <Text variant={TextVariant.BodyMDMedium} color={pnlColor}>
-                {item.fill.amount}
-              </Text>
-            )}
-          </View>
+          <View style={styles.rightSection}>{renderRightContent(item)}</View>
         </TouchableOpacity>
       );
     },
-    [styles, handleTransactionPress, iconSize],
+    [
+      styles,
+      handleTransactionPress,
+      iconSize,
+      renderRightContent,
+      transactions.length,
+    ],
   );
 
   if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
         </View>
@@ -125,11 +139,11 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     );
   }
 
-  if (fills.length === 0) {
+  if (transactions.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
         </View>
@@ -146,23 +160,27 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-          {strings('perps.home.recent_activity')}
-        </Text>
-        <TouchableOpacity onPress={handleSeeAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.home.see_all')}
+      <TouchableOpacity style={styles.header} onPress={handleSeeAll}>
+        <View style={styles.titleRow}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {strings('perps.home.recent_activity')}
           </Text>
-        </TouchableOpacity>
-      </View>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        </View>
+      </TouchableOpacity>
 
-      <FlatList
-        data={transactions}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.id || index}`}
-        scrollEnabled={false}
-      />
+      <View style={styles.listContainer}>
+        <FlatList
+          data={transactions}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.id || index}`}
+          scrollEnabled={false}
+        />
+      </View>
     </View>
   );
 };

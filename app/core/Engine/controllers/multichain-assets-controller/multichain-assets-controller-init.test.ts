@@ -62,6 +62,7 @@ describe('multichain assets controller init', () => {
             ],
           },
         },
+        allIgnoredAssets: {},
       };
 
     // Update mock with initial state

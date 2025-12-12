@@ -35,6 +35,7 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 /**
  * PerpsOpenOrderCard Component
@@ -247,7 +248,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             </Text>
           </View>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {formatPositionSize(order.originalSize)} {order.symbol}
+            {formatPositionSize(order.originalSize)}{' '}
+            {getPerpsDisplaySymbol(order.symbol)}
           </Text>
         </View>
 

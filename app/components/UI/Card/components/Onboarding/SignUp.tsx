@@ -5,6 +5,9 @@ import {
   FontWeight,
   Text,
   TextVariant,
+  Icon,
+  IconSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
@@ -38,13 +41,14 @@ import { TouchableOpacity } from 'react-native';
 const SignUp = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-
   const [email, setEmail] = useState('');
   const [isEmailError, setIsEmailError] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordError, setIsPasswordError] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isConfirmPasswordError, setIsConfirmPasswordError] = useState(false);
+  const [isConfirmPasswordValid, setIsConfirmPasswordValid] = useState(false);
   const selectedCountry = useSelector(selectSelectedCountry);
   const { data: registrationSettings } = useRegistrationSettings();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -96,65 +100,83 @@ const SignUp = () => {
     if (!debouncedPassword) {
       return;
     }
-    setIsPasswordError(!validatePassword(debouncedPassword));
+    const isValid = validatePassword(debouncedPassword);
+    setIsPasswordError(!isValid);
+    setIsPasswordValid(isValid);
   }, [debouncedPassword]);
 
   useEffect(() => {
     if (!debouncedConfirmPassword) {
       return;
     }
-    setIsConfirmPasswordError(debouncedConfirmPassword !== debouncedPassword);
+    const isValid = debouncedConfirmPassword === debouncedPassword;
+    setIsConfirmPasswordError(!isValid);
+    setIsConfirmPasswordValid(isValid);
   }, [debouncedConfirmPassword, debouncedPassword]);
 
-  const isDisabled = useMemo(
-    () =>
-      !debouncedEmail ||
-      !debouncedPassword ||
-      !debouncedConfirmPassword ||
+  const isDisabled = useMemo(() => {
+    // Check the actual values, not the debounced ones
+    const isEmailValid = email ? validateEmail(email) : false;
+    const isPasswordValid = password ? validatePassword(password) : false;
+    const isConfirmPasswordValid = confirmPassword
+      ? confirmPassword === password
+      : false;
+
+    return (
+      !email ||
+      !password ||
+      !confirmPassword ||
       !selectedCountry ||
-      isPasswordError ||
-      isConfirmPasswordError ||
-      isEmailError ||
+      !isEmailValid ||
+      !isPasswordValid ||
+      !isConfirmPasswordValid ||
       emailVerificationIsError ||
-      emailVerificationIsLoading,
-    [
-      debouncedEmail,
-      debouncedPassword,
-      debouncedConfirmPassword,
-      selectedCountry,
-      isPasswordError,
-      isConfirmPasswordError,
-      isEmailError,
-      emailVerificationIsError,
-      emailVerificationIsLoading,
-    ],
-  );
+      emailVerificationIsLoading
+    );
+  }, [
+    email,
+    password,
+    confirmPassword,
+    selectedCountry,
+    emailVerificationIsError,
+    emailVerificationIsLoading,
+  ]);
 
   const handleEmailChange = useCallback(
-    (email: string) => {
+    (emailText: string) => {
       resetEmailVerificationSend();
-      setEmail(email);
+      setEmail(emailText);
     },
     [resetEmailVerificationSend],
   );
 
   const handlePasswordChange = useCallback(
-    (password: string) => {
+    (passwordText: string) => {
       resetEmailVerificationSend();
-      setPassword(password);
+      setPassword(passwordText);
     },
     [resetEmailVerificationSend],
   );
 
   const handleContinue = useCallback(async () => {
-    if (
-      !debouncedEmail ||
-      !debouncedPassword ||
-      !debouncedConfirmPassword ||
-      !selectedCountry
-    ) {
+    // Use actual values, not debounced ones
+    if (!email || !password || !confirmPassword || !selectedCountry) {
       return;
     }
+
+    // Validate current values before submitting
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    const isConfirmPasswordValid = confirmPassword === password;
+
+    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+      // Set error states
+      setIsEmailError(!isEmailValid);
+      setIsPasswordError(!isPasswordValid);
+      setIsConfirmPasswordError(!isConfirmPasswordValid);
+      return;
+    }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -163,15 +185,14 @@ const SignUp = () => {
           })
           .build(),
       );
-      const { contactVerificationId } =
-        await sendEmailVerification(debouncedEmail);
+      const { contactVerificationId } = await sendEmailVerification(email);
 
       dispatch(setContactVerificationId(contactVerificationId));
 
       if (contactVerificationId) {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
-          email: debouncedEmail,
-          password: debouncedConfirmPassword,
+          email,
+          password: confirmPassword,
         });
       } else {
         // If no contactVerificationId, assume user is registered or email not valid
@@ -181,9 +202,9 @@ const SignUp = () => {
       // Allow error message to display
     }
   }, [
-    debouncedConfirmPassword,
-    debouncedEmail,
-    debouncedPassword,
+    confirmPassword,
+    email,
+    password,
     dispatch,
     navigation,
     selectedCountry,
@@ -210,9 +231,6 @@ const SignUp = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={handleEmailChange}
-          placeholder={strings(
-            'card.card_onboarding.sign_up.email_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={email}
@@ -224,7 +242,7 @@ const SignUp = () => {
           isError={debouncedEmail.length > 0 && isEmailError}
           testID="signup-email-input"
         />
-        {debouncedEmail.length > 0 && emailVerificationIsError ? (
+        {email.length > 0 && emailVerificationIsError ? (
           <Text
             testID="signup-email-error-text"
             variant={TextVariant.BodySm}
@@ -248,9 +266,6 @@ const SignUp = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={handlePasswordChange}
-          placeholder={strings(
-            'card.card_onboarding.sign_up.password_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={password}
@@ -261,6 +276,15 @@ const SignUp = () => {
           )}
           isError={debouncedPassword.length > 0 && isPasswordError}
           testID="signup-password-input"
+          endAccessory={
+            isPasswordValid ? (
+              <Icon
+                name={IconName.Confirmation}
+                size={IconSize.Md}
+                twClassName="text-success-default"
+              />
+            ) : null
+          }
         />
         {debouncedPassword.length > 0 && isPasswordError ? (
           <Text
@@ -270,7 +294,14 @@ const SignUp = () => {
           >
             {strings('card.card_onboarding.sign_up.invalid_password')}
           </Text>
-        ) : null}
+        ) : (
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-text-alternative"
+          >
+            {strings('card.card_onboarding.sign_up.password_placeholder')}
+          </Text>
+        )}
       </Box>
 
       <Box>
@@ -280,9 +311,6 @@ const SignUp = () => {
         <TextField
           autoCapitalize={'none'}
           onChangeText={setConfirmPassword}
-          placeholder={strings(
-            'card.card_onboarding.sign_up.password_placeholder',
-          )}
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={confirmPassword}
@@ -295,6 +323,15 @@ const SignUp = () => {
             debouncedConfirmPassword.length > 0 && isConfirmPasswordError
           }
           testID="signup-confirm-password-input"
+          endAccessory={
+            isConfirmPasswordValid ? (
+              <Icon
+                name={IconName.Confirmation}
+                size={IconSize.Md}
+                twClassName="text-success-default"
+              />
+            ) : null
+          }
         />
         {debouncedConfirmPassword.length > 0 && isConfirmPasswordError && (
           <Text
@@ -343,7 +380,7 @@ const SignUp = () => {
           testID="signup-i-already-have-an-account-text"
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="text-primary-default text-center p-4 underline"
+          twClassName="text-default text-center p-4"
         >
           {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
         </Text>

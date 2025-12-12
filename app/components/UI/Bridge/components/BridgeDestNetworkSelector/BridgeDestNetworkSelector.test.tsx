@@ -152,3 +152,105 @@ describe('BridgeDestNetworkSelector', () => {
     expect(queryByText('Optimism')).toBeTruthy();
   });
 });
+
+describe('BridgeDestNetworkSelector - ChainPopularity fallback', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('assigns Infinity to chains without defined popularity', () => {
+    // Add networks with and without defined popularity to test all branch combinations:
+    // - Optimism: HAS defined popularity (10 in ChainPopularity)
+    // - Palm: NO defined popularity (triggers ?? Infinity)
+    // - zkSync Era: NO defined popularity (triggers ?? Infinity)
+    // This ensures all branch combinations are tested:
+    // 1. Both have defined popularity (Optimism already tested in existing tests)
+    // 2. Both lack defined popularity (Palm vs zkSync Era)
+    // 3. One has, one doesn't (Optimism vs Palm/zkSync)
+    const stateWithMultipleNetworks = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              bridgeConfig: {
+                minimumVersion: '0.0.0',
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
+                chains: {
+                  'eip155:1': {
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                  'eip155:10': {
+                    // Optimism - HAS defined popularity
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                  'eip155:11297108109': {
+                    // Palm - NOT in ChainPopularity
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                  'eip155:324': {
+                    // zkSync Era - NOT in ChainPopularity
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                },
+              },
+              bridgeConfigV2: {
+                minimumVersion: '0.0.0',
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
+                chains: {
+                  'eip155:1': {
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    isGaslessSwapEnabled: true,
+                  },
+                  'eip155:10': {
+                    // Optimism
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    isGaslessSwapEnabled: false,
+                  },
+                  'eip155:11297108109': {
+                    // Palm
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    isGaslessSwapEnabled: false,
+                  },
+                  'eip155:324': {
+                    // zkSync Era
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    isGaslessSwapEnabled: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderScreen(
+      BridgeDestNetworkSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+      },
+      { state: stateWithMultipleNetworks },
+    );
+
+    // All three networks should be visible and sorted by popularity
+    // Optimism (popularity 10) should appear before Palm and zkSync Era (both Infinity)
+    expect(getByText('Optimism')).toBeTruthy();
+    expect(getByText('Palm')).toBeTruthy();
+    expect(getByText('zkSync')).toBeTruthy();
+  });
+});

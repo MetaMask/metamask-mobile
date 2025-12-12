@@ -20,6 +20,7 @@ export interface OnboardingState {
   onboardingId: string | null;
   selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
   contactVerificationId: string | null;
+  consentSetId: string | null;
 }
 
 export interface CacheState {
@@ -59,6 +60,7 @@ export const initialState: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
+    consentSetId: null,
   },
   cache: {
     data: {},
@@ -141,11 +143,15 @@ const slice = createSlice({
     setContactVerificationId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.contactVerificationId = action.payload;
     },
+    setConsentSetId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.consentSetId = action.payload;
+    },
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
         selectedCountry: null,
         contactVerificationId: null,
+        consentSetId: null,
       };
     },
     resetAuthenticatedData: (state) => {
@@ -286,6 +292,11 @@ export const selectCardGeoLocation = createSelector(
   (card) => card.geoLocation,
 );
 
+export const selectHasCardholderAccounts = createSelector(
+  selectCardholderAccounts,
+  (cardholderAccounts) => cardholderAccounts.length > 0,
+);
+
 export const selectIsCardholder = createSelector(
   selectCardholderAccounts,
   selectedAccount,
@@ -360,6 +371,11 @@ export const selectContactVerificationId = createSelector(
   (card) => card.onboarding.contactVerificationId,
 );
 
+export const selectConsentSetId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.consentSetId,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -374,6 +390,7 @@ export const {
   setOnboardingId,
   setSelectedCountry,
   setContactVerificationId,
+  setConsentSetId,
   resetOnboardingState,
   setCacheData,
   clearCacheData,

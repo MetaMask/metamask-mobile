@@ -5,6 +5,8 @@ import {
   selectDestToken,
   selectSourceToken,
   setSelectedDestChainId,
+  setSourceAmount,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -37,7 +39,7 @@ export const useSwitchTokens = () => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  const handleSwitchTokens = async () => {
+  const handleSwitchTokens = (destTokenAmount?: string) => async () => {
     // Reset BridgeController state to prevent stale quotes
     if (Engine.context.BridgeController?.resetState) {
       Engine.context.BridgeController.resetState();
@@ -47,6 +49,10 @@ export const useSwitchTokens = () => {
     if (sourceToken && destToken) {
       dispatch(setSourceToken(destToken));
       dispatch(setDestToken(sourceToken));
+      // Mark dest as manually set since user explicitly chose to flip
+      dispatch(setIsDestTokenManuallySet(true));
+      // Swap amounts
+      dispatch(setSourceAmount(destTokenAmount));
 
       if (sourceToken.chainId !== destToken.chainId) {
         dispatch(setSelectedDestChainId(sourceToken.chainId));

@@ -84,7 +84,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent03],
@@ -107,7 +107,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent01],
@@ -177,11 +177,22 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
     }
   }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
+  // Wrapper for "Keep Orders" button that properly handles overlay dismissal
+  const handleKeepButtonPress = useCallback(() => {
+    if (externalSheetRef) {
+      // When used as overlay, close the sheet properly to remove overlay
+      handleClose();
+    } else {
+      // When used as standalone screen, use hook's navigation
+      handleKeepOrders();
+    }
+  }, [externalSheetRef, handleClose, handleKeepOrders]);
+
   const footerButtons = useMemo(
     () => [
       {
         label: strings('perps.cancel_all_modal.keep_orders'),
-        onPress: handleKeepOrders,
+        onPress: handleKeepButtonPress,
         variant: ButtonVariants.Secondary,
         size: ButtonSize.Lg,
         disabled: isCanceling,
@@ -197,13 +208,17 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
         danger: true,
       },
     ],
-    [handleKeepOrders, handleCancelAll, isCanceling],
+    [handleKeepButtonPress, handleCancelAll, isCanceling],
   );
 
   // Show empty state if no orders (WebSocket data loads instantly, no loading state needed)
   if (!orders || orders.length === 0) {
     return (
-      <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack={!externalSheetRef}
+        onClose={externalSheetRef ? onExternalClose : undefined}
+      >
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('perps.cancel_all_modal.title')}
@@ -219,7 +234,11 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
   }
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack={!externalSheetRef}
+      onClose={externalSheetRef ? onExternalClose : undefined}
+    >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.cancel_all_modal.title')}

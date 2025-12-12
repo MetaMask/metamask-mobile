@@ -13,6 +13,7 @@ import {
 } from '../types/transactionHistory';
 import { formatOrderLabel } from './orderUtils';
 import { strings } from '../../../../../locales/i18n';
+import { getPerpsDisplaySymbol } from './marketUtils';
 
 export interface WithdrawalRequest {
   id: string;
@@ -64,14 +65,17 @@ export function transformFillsToTransactions(
     const isFlipped = part2 === '>';
 
     const isAutoDeleveraging = direction === 'Auto-Deleveraging';
+    // Handle spot-perps and prelaunch markets that use "Buy"/"Sell" instead of "Open Long"/"Close Short"
+    const isBuy = direction === 'Buy';
+    const isSell = direction === 'Sell';
 
     let action = '';
     let isPositive = false;
-    if (isOpened) {
-      action = 'Opened';
+    if (isOpened || isBuy) {
+      action = isBuy ? 'Bought' : 'Opened';
       // Will be set based on fee calculation below
-    } else if (isClosed || isAutoDeleveraging) {
-      action = 'Closed';
+    } else if (isClosed || isSell || isAutoDeleveraging) {
+      action = isSell ? 'Sold' : 'Closed';
       // Will be set based on PnL calculation below
     } else if (isFlipped) {
       action = 'Flipped';
@@ -94,12 +98,12 @@ export function transformFillsToTransactions(
         .toString();
     }
     // Calculate display amount based on action type
-    if (isOpened) {
-      // For opening positions: show fee paid (negative)
+    if (isOpened || isBuy) {
+      // For opening positions or buying: show fee paid (negative)
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
       isPositive = false; // Fee is always a cost
-    } else if (isClosed || isFlipped || isAutoDeleveraging) {
+    } else if (isClosed || isSell || isFlipped || isAutoDeleveraging) {
       // For closing positions: show PnL minus fee
       const pnlValue = BigNumber(fill.pnl || 0);
       const feeValue = BigNumber(fill.fee || 0);
@@ -129,7 +133,10 @@ export function transformFillsToTransactions(
 
     let title = '';
 
-    if (isFlipped) {
+    if (isBuy || isSell) {
+      // For Buy/Sell directions, just use the action ("Bought" or "Sold")
+      title = action;
+    } else if (isFlipped) {
       title = `${action} ${direction?.toLowerCase() || ''}`;
     } else if (isAutoDeleveraging) {
       const startPositionNum = Number(fill.startPosition);
@@ -155,19 +162,22 @@ export function transformFillsToTransactions(
     }
 
     acc.push({
-      id: orderId || `fill-${timestamp}`,
+      id: `${orderId || 'fill'}-${timestamp}-${acc.length}`,
       type: 'trade',
-      category: isOpened ? 'position_open' : 'position_close',
+      category: isOpened || isBuy ? 'position_open' : 'position_close',
       title,
-      subtitle: `${size} ${symbol}`,
+      subtitle: `${size} ${getPerpsDisplaySymbol(symbol)}`,
       timestamp,
       asset: symbol,
       fill: {
-        shortTitle: `${action} ${
-          isFlipped
-            ? direction?.toLowerCase() || ''
-            : part2?.toLowerCase() || ''
-        }`,
+        shortTitle:
+          isBuy || isSell
+            ? action
+            : `${action} ${
+                isFlipped
+                  ? direction?.toLowerCase() || ''
+                  : part2?.toLowerCase() || ''
+              }`,
         // this is the amount that is displayed in the transaction view for what has been spent/gained
         // it may be the fee spent or the pnl depending on the case
         amount: displayAmount,
@@ -216,7 +226,7 @@ export function transformOrdersToTransactions(
 
     // Use centralized order label formatting
     const title = formatOrderLabel(order);
-    const subtitle = `${originalSize || '0'} ${symbol}`;
+    const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
     const orderTypeSlug = orderType.toLowerCase().split(' ').join('_');
 
@@ -298,7 +308,7 @@ export function transformFundingToTransactions(
       type: 'funding',
       category: 'funding_fee',
       title: `${isPositive ? 'Received' : 'Paid'} funding fee`,
-      subtitle: symbol,
+      subtitle: getPerpsDisplaySymbol(symbol),
       timestamp,
       asset: symbol,
       fundingAmount: {

@@ -16,6 +16,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackGeoBlockTriggered: jest.fn(),
+    },
+  },
+}));
+
 // Mock navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -35,6 +43,16 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
 const mockUsePredictBalance = jest.fn();
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
+}));
+
+// Mock TrendingFeedSessionManager
+jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      isFromTrending: false,
+    }),
+  },
 }));
 
 // Mock hooks
@@ -132,7 +150,7 @@ describe('PredictMarketSingle', () => {
     const noButton = getByText('No');
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
@@ -143,7 +161,7 @@ describe('PredictMarketSingle', () => {
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
@@ -303,11 +321,13 @@ describe('PredictMarketSingle', () => {
     );
     fireEvent.press(marketTitle);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
       },
     });
   });
@@ -436,5 +456,51 @@ describe('PredictMarketSingle', () => {
     );
 
     expect(getByText('Unknown Market')).toBeOnTheScreen();
+  });
+
+  describe('carousel mode', () => {
+    it('render market information correctly in carousel mode', () => {
+      const { getByText } = renderWithProvider(
+        <PredictMarketSingle market={mockMarket} isCarousel />,
+        { state: initialState },
+      );
+
+      expect(
+        getByText('Will Bitcoin reach $150,000 by end of year?'),
+      ).toBeOnTheScreen();
+      expect(getByText('65%')).toBeOnTheScreen();
+    });
+
+    it('navigate to place bet modal when buttons are pressed in carousel mode', () => {
+      const { getByText } = renderWithProvider(
+        <PredictMarketSingle market={mockMarket} isCarousel />,
+        { state: initialState },
+      );
+
+      const yesButton = getByText('Yes');
+      const noButton = getByText('No');
+
+      fireEvent.press(yesButton);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: {
+          market: mockMarket,
+          outcome: mockOutcome,
+          outcomeToken: mockOutcome.tokens[0],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        },
+      });
+
+      fireEvent.press(noButton);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: {
+          market: mockMarket,
+          outcome: mockOutcome,
+          outcomeToken: mockOutcome.tokens[1],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        },
+      });
+    });
   });
 });

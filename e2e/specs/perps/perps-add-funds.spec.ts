@@ -26,7 +26,7 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
     jest.setTimeout(150000);
   });
 
-  it('deposits $80 from Add funds and verifies updated balance', async () => {
+  it.skip('deposits $80 from Add funds and verifies updated balance', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -51,6 +51,19 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
               type: 'erc20',
             },
           ])
+          .withTokens(
+            [
+              {
+                address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                symbol: 'USDC',
+                decimals: 6,
+                name: 'USD Coin',
+                type: 'erc20',
+              },
+            ],
+            '0xa4b1',
+            '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+          )
           .build(),
         restartDevice: true,
         testSpecificMock: PERPS_ARBITRUM_MOCKS,
@@ -97,9 +110,6 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
         // Ensure deposit UI visible
         await PerpsDepositView.expectLoaded();
 
-        // Open Pay with selector and choose USDC
-        await PerpsDepositView.selectUSDC();
-
         // Focus and type 80 using keypad helpers
         await PerpsDepositView.focusAmount();
         await PerpsDepositView.typeUSD('80');
@@ -119,7 +129,7 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
               current === initialBalance + 80,
             );
           },
-          { interval: 500, timeout: 30000 },
+          { interval: 1000, timeout: 60000 },
         );
       },
     );

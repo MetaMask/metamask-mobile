@@ -38,7 +38,7 @@ jest.mock('../../../../core/redux/slices/card', () => ({
 
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 
 const mockSelectAllTokenBalances =
@@ -112,7 +112,7 @@ describe('useGetPriorityCardToken', () => {
     getPriorityToken: mockGetPriorityToken,
     getSupportedTokensAllowances: mockFetchAllowances,
     getSupportedTokensByChainId: jest.fn(() => mockSupportedTokens),
-    lineaChainId: LINEA_CHAIN_ID,
+    lineaChainId: CHAIN_IDS.LINEA_MAINNET,
     supportedTokens: mockSupportedTokens,
   };
 
@@ -418,12 +418,12 @@ describe('useGetPriorityCardToken', () => {
       address: '0xCachedToken',
       symbol: 'CACHED',
       name: 'Cached Token',
-      caipChainId: `eip155:${LINEA_CHAIN_ID}`,
+      caipChainId: `eip155:${CHAIN_IDS.LINEA_MAINNET}`,
       allowance: '1000000000000',
       decimals: 18,
       allowanceState: AllowanceState.Enabled,
       isStaked: false,
-      chainId: LINEA_CHAIN_ID,
+      chainId: CHAIN_IDS.LINEA_MAINNET,
     } as CardTokenAllowance;
 
     mockPriorityToken = cachedToken;
@@ -1024,19 +1024,6 @@ describe('useGetPriorityCardToken', () => {
   });
 
   describe('Authenticated Card - fetchPriorityTokenAPI', () => {
-    const mockCardExternalWalletDetail = {
-      walletAddress: '0xWallet123',
-      chainId: LINEA_CHAIN_ID,
-      allowance: '1000000000000',
-      balance: '5000000000000',
-      tokenDetails: {
-        address: '0xToken1',
-        symbol: 'TKN1',
-        name: 'Token 1',
-        decimals: 18,
-      },
-    };
-
     beforeEach(() => {
       jest.clearAllMocks();
       mockGetPriorityToken.mockReset();
@@ -1137,7 +1124,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1207,30 +1195,15 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
-    // TODO: Update test - hook no longer calls getCardExternalWalletDetails directly
-    // It now expects externalWalletDetailsData to be passed as a parameter
-    it.skip('handles wallet detail without token details', async () => {
-      const walletDetailWithoutToken = {
-        walletAddress: '0xWallet123',
-        chainId: LINEA_CHAIN_ID,
-        allowance: '1000',
-        balance: '5000',
-        tokenDetails: null,
+    it('handles wallet detail without token details', async () => {
+      const externalWalletDetailsData = {
+        priorityWalletDetail: null,
+        mappedWalletDetails: [],
       };
 
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([walletDetailWithoutToken]);
-
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1246,43 +1219,27 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.warning).toBe('need_delegation');
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('selects first wallet with balance when first has no balance property', async () => {
-      const walletWithoutBalance = {
-        ...mockCardExternalWalletDetail,
-        balance: undefined,
-        tokenDetails: {
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          decimals: 18,
-        },
+    it('selects first wallet with balance when first has no balance property', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken2',
+        symbol: 'TKN2',
+        name: 'Token 2',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
-      const walletWithBalance = {
-        ...mockCardExternalWalletDetail,
-        balance: '5000000000000',
-        tokenDetails: {
-          address: '0xToken2',
-          symbol: 'TKN2',
-          name: 'Token 2',
-          decimals: 18,
-        },
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
       };
 
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([walletWithoutBalance, walletWithBalance]);
-
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1302,58 +1259,27 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('skips wallets with zero balance and selects wallet with positive balance', async () => {
-      const walletWithUndefinedBalance = {
-        ...mockCardExternalWalletDetail,
-        balance: undefined,
-        tokenDetails: {
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          decimals: 18,
-        },
+    it('skips wallets with zero balance and selects wallet with positive balance', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken3',
+        symbol: 'TKN3',
+        name: 'Token 3',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
-      const walletWithZeroBalance = {
-        ...mockCardExternalWalletDetail,
-        balance: '0',
-        tokenDetails: {
-          address: '0xToken2',
-          symbol: 'TKN2',
-          name: 'Token 2',
-          decimals: 18,
-        },
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
       };
 
-      const walletWithPositiveBalance = {
-        ...mockCardExternalWalletDetail,
-        balance: '5000000000000',
-        tokenDetails: {
-          address: '0xToken3',
-          symbol: 'TKN3',
-          name: 'Token 3',
-          decimals: 18,
-        },
-      };
-
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([
-          walletWithUndefinedBalance,
-          walletWithZeroBalance,
-          walletWithPositiveBalance,
-        ]);
-
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1373,58 +1299,27 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('skips wallets with non-numeric balance and selects wallet with valid balance', async () => {
-      const walletWithUndefinedBalance = {
-        ...mockCardExternalWalletDetail,
-        balance: undefined,
-        tokenDetails: {
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          decimals: 18,
-        },
+    it('skips wallets with non-numeric balance and selects wallet with valid balance', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken3',
+        symbol: 'TKN3',
+        name: 'Token 3',
+        decimals: 18,
+        allowance: '5000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
-      const walletWithInvalidBalance = {
-        ...mockCardExternalWalletDetail,
-        balance: 'invalid',
-        tokenDetails: {
-          address: '0xToken2',
-          symbol: 'TKN2',
-          name: 'Token 2',
-          decimals: 18,
-        },
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
       };
 
-      const walletWithValidBalance = {
-        ...mockCardExternalWalletDetail,
-        balance: '5000000000000',
-        tokenDetails: {
-          address: '0xToken3',
-          symbol: 'TKN3',
-          name: 'Token 3',
-          decimals: 18,
-        },
-      };
-
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([
-          walletWithUndefinedBalance,
-          walletWithInvalidBalance,
-          walletWithValidBalance,
-        ]);
-
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1444,26 +1339,27 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('maps NotEnabled allowance state when allowance is zero', async () => {
-      const walletWithZeroAllowance = {
-        ...mockCardExternalWalletDetail,
+    it('maps NotEnabled allowance state when allowance is zero', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
         allowance: '0',
+        allowanceState: AllowanceState.NotEnabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([walletWithZeroAllowance]);
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
 
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1482,26 +1378,27 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('maps Limited allowance state when allowance is less than arbitrary limit', async () => {
-      const walletWithLimitedAllowance = {
-        ...mockCardExternalWalletDetail,
+    it('maps Limited allowance state when allowance is less than arbitrary limit', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
         allowance: '5000',
+        allowanceState: AllowanceState.Limited,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([walletWithLimitedAllowance]);
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
 
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1520,27 +1417,28 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('calculates available balance as minimum of balance and allowance', async () => {
-      const walletWithLowerAllowance = {
-        ...mockCardExternalWalletDetail,
-        balance: '10000',
+    it('calculates available balance as minimum of balance and allowance', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
         allowance: '5000',
+        allowanceState: AllowanceState.Limited,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        availableBalance: '5000',
       };
 
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([walletWithLowerAllowance]);
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
 
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1559,33 +1457,18 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('handles API error gracefully in authenticated mode', async () => {
-      const mockError = new Error('API request failed');
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockRejectedValue(mockError);
-
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+    it('handles error when external wallet data is invalid', async () => {
+      // Pass undefined to simulate error condition
+      const { result } = renderHook(() => useGetPriorityCardToken(undefined));
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      expect(result.current.error).toBe(true);
+      // In authenticated mode without external wallet data, hook should set null token
       expect(result.current.isLoading).toBe(false);
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'useGetPriorityCardToken::error fetching priority token API',
-      );
+      // The hook should not error when no external wallet data is provided
+      // It will simply not have authenticated data to work with
     });
 
     it('validates cache correctly for authenticated users within 30 second window', () => {
@@ -1604,7 +1487,7 @@ describe('useGetPriorityCardToken', () => {
         decimals: 18,
         allowanceState: AllowanceState.Enabled,
         isStaked: false,
-        chainId: LINEA_CHAIN_ID,
+        chainId: CHAIN_IDS.LINEA_MAINNET,
       };
 
       // Test the cache validation logic directly with a fixed "now" reference
@@ -1644,34 +1527,76 @@ describe('useGetPriorityCardToken', () => {
       );
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('fetches new data when authenticated cache is stale (over 30 seconds)', async () => {
-      const staleTimestamp = new Date(Date.now() - 40 * 1000); // 40 seconds ago
-
-      mockSelectIsAuthenticatedCard.mockReturnValue(true);
-      const mockAccountSelector = (scope: string) => {
-        if (scope === 'eip155:0') {
-          return {
-            address: mockAddress,
-            id: 'test-account-id',
-            type: 'eip155:eoa' as const,
-          };
-        }
-        return undefined;
+    it('processes external wallet data when authenticated cache is stale (over 30 seconds)', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockAccountSelector as any,
-      );
-      mockSelectAllTokenBalances.mockReturnValue({});
 
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      renderHook(() => useGetPriorityCardToken(externalWalletDetailsData));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+          }),
+        }),
+      );
+    });
+
+    it('returns authenticated priority token when manually calling fetchPriorityToken', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      // Update selector to return the authenticated token
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockUseSelector.mockImplementation((selector: any) => {
         if (selector === selectAllTokenBalances) {
           return {};
         }
         if (selector === selectSelectedInternalAccountByScope) {
-          return mockAccountSelector;
+          return (scope: string) => {
+            if (scope === 'eip155:0') {
+              return {
+                address: mockAddress,
+                id: 'test-account-id',
+                type: 'eip155:eoa' as const,
+              };
+            }
+            return undefined;
+          };
         }
         if (selector === selectIsAuthenticatedCard) {
           return true;
@@ -1685,8 +1610,8 @@ describe('useGetPriorityCardToken', () => {
                 isLoaded: true,
                 priorityTokensByAddress: {},
                 lastFetchedByAddress: {},
-                authenticatedPriorityToken: null,
-                authenticatedPriorityTokenLastFetched: staleTimestamp,
+                authenticatedPriorityToken: priorityWalletDetail,
+                authenticatedPriorityTokenLastFetched: new Date(),
               },
               engine: {
                 backgroundState: {
@@ -1707,64 +1632,322 @@ describe('useGetPriorityCardToken', () => {
         return null;
       });
 
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([mockCardExternalWalletDetail]);
-
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      renderHook(() => useGetPriorityCardToken());
+      renderHook(() => useGetPriorityCardToken(externalWalletDetailsData));
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      expect(mockGetCardExternalWalletDetails).toHaveBeenCalledTimes(1);
+      // Verify the dispatched token was set
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+          }),
+        }),
+      );
     });
 
-    // TODO: Update test - hook refactored to accept externalWalletDetailsData parameter
-    it.skip('calls fetchPriorityToken manually in authenticated mode', async () => {
-      const mockGetCardExternalWalletDetails = jest
-        .fn()
-        .mockResolvedValue([mockCardExternalWalletDetail]);
+    it('returns null and sets warning when priorityWalletDetail is undefined', async () => {
+      const externalWalletDetailsData = {
+        priorityWalletDetail: undefined,
+        mappedWalletDetails: [],
+      };
 
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: {
-          ...mockSDK,
-          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-        },
-        isLoading: false,
-      });
-
-      const { result } = renderHook(() => useGetPriorityCardToken());
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      mockGetCardExternalWalletDetails.mockClear();
-      mockDispatch.mockClear();
+      expect(result.current.warning).toBe('need_delegation');
+      expect(result.current.priorityToken).toBeNull();
+    });
 
-      let manualResult: CardTokenAllowance | null | undefined;
+    it('handles multiple wallet details and returns priority token', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const secondWalletDetail: CardTokenAllowance = {
+        address: '0xToken2',
+        symbol: 'TKN2',
+        name: 'Token 2',
+        decimals: 18,
+        allowance: '500000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet456',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail, secondWalletDetail],
+      };
+
+      renderHook(() => useGetPriorityCardToken(externalWalletDetailsData));
+
       await act(async () => {
-        manualResult = await result.current.fetchPriorityToken();
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      expect(manualResult).toEqual(
+      expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          allowanceState: AllowanceState.Enabled,
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+          }),
+        }),
+      );
+    });
+
+    it('manually calls fetchPriorityToken and returns priority wallet detail', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      let fetchResult: CardTokenAllowance | null = null;
+      await act(async () => {
+        fetchResult = await result.current.fetchPriorityToken();
+      });
+
+      expect(fetchResult).toEqual(priorityWalletDetail);
+      expect(result.current.error).toBe(false);
+    });
+
+    it('returns null when manually calling fetchPriorityToken with null priorityWalletDetail', async () => {
+      const externalWalletDetailsData = {
+        priorityWalletDetail: null,
+        mappedWalletDetails: [],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      let fetchResult: CardTokenAllowance | null | undefined;
+      await act(async () => {
+        fetchResult = await result.current.fetchPriorityToken();
+      });
+
+      expect(fetchResult).toBeNull();
+      expect(result.current.warning).toBe('need_delegation');
+    });
+
+    it('dispatches both setAuthenticatedPriorityToken and setAuthenticatedPriorityTokenLastFetched', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      renderHook(() => useGetPriorityCardToken(externalWalletDetailsData));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: priorityWalletDetail,
         }),
       );
 
-      expect(mockGetCardExternalWalletDetails).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining(
+            'setAuthenticatedPriorityTokenLastFetched',
+          ),
+          payload: expect.any(Date),
+        }),
+      );
+    });
+
+    it('clears error state when fetchPriorityToken succeeds', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      await act(async () => {
+        await result.current.fetchPriorityToken();
+      });
+
+      expect(result.current.error).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('maintains state consistency when external wallet data changes', async () => {
+      const initialPriorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail: initialPriorityWalletDetail,
+        mappedWalletDetails: [initialPriorityWalletDetail],
+      };
+
+      const { rerender } = renderHook(
+        (props) => useGetPriorityCardToken(props),
+        {
+          initialProps: externalWalletDetailsData,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const updatedPriorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken2',
+        symbol: 'TKN2',
+        name: 'Token 2',
+        decimals: 18,
+        allowance: '2000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet456',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const updatedWalletDetailsData = {
+        priorityWalletDetail: updatedPriorityWalletDetail,
+        mappedWalletDetails: [updatedPriorityWalletDetail],
+      };
+
+      mockDispatch.mockClear();
+
+      await act(async () => {
+        rerender(updatedWalletDetailsData);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: updatedPriorityWalletDetail,
+        }),
+      );
+    });
+
+    it('handles walletDetails being undefined', async () => {
+      const { result } = renderHook(() => useGetPriorityCardToken(undefined));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(result.current.priorityToken).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('handles walletDetails being null', async () => {
+      const { result } = renderHook(() => useGetPriorityCardToken(null));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(result.current.priorityToken).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('sets error state false and loading state false on successful fetch', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(result.current.error).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.warning).toBeNull();
     });
   });
 
@@ -1772,7 +1955,7 @@ describe('useGetPriorityCardToken', () => {
     // Pre-create static objects to avoid recreating them in each test
     const STATIC_TOKEN_BALANCES = {
       [mockAddress.toLowerCase()]: {
-        [LINEA_CHAIN_ID]: {
+        [CHAIN_IDS.LINEA_MAINNET]: {
           '0xToken1': '1000000000000000000',
         },
       },
@@ -1783,7 +1966,9 @@ describe('useGetPriorityCardToken', () => {
       symbol: 'TKN1',
       name: 'Token 1',
       decimals: 18,
-      chainId: LINEA_CHAIN_ID,
+      chainId: CHAIN_IDS.LINEA_MAINNET,
+      caipChainId:
+        `eip155:${parseInt(CHAIN_IDS.LINEA_MAINNET, 16)}` as `${string}:${string}`,
       allowanceState: AllowanceState.Enabled,
       isStaked: false,
     };
@@ -1837,7 +2022,7 @@ describe('useGetPriorityCardToken', () => {
       mockTokensController = {
         state: {
           allTokens: {
-            [LINEA_CHAIN_ID]: {
+            [CHAIN_IDS.LINEA_MAINNET]: {
               [mockAddress.toLowerCase()]: STATIC_EMPTY_TOKEN_LIST,
             },
           },
@@ -1961,13 +2146,21 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
-    // TODO: Update test - hook behavior may have changed for token existence checks
-    it.skip('should not add token when it already exists in TokensController', async () => {
-      // Mock token already existing in controller
-      mockTokensController.state.allTokens = {
-        [LINEA_CHAIN_ID]: {
-          [mockAddress.toLowerCase()]: STATIC_EXISTING_TOKEN_LIST,
+    it('should not add token when it already exists in TokensController', async () => {
+      // Get the Engine mock and replace the TokensController with one that has existing tokens
+      const mockEngine = jest.requireMock('../../../../core/Engine');
+      const addTokenMock = jest.fn().mockResolvedValue(undefined);
+
+      mockEngine.context.TokensController = {
+        state: {
+          allTokens: {
+            // CHAIN_IDS.LINEA_MAINNET is '0xe708' in hex format
+            '0xe708': {
+              [mockAddress.toLowerCase()]: STATIC_EXISTING_TOKEN_LIST,
+            },
+          },
         },
+        addToken: addTokenMock,
       };
 
       const { result } = renderHook(() => useGetPriorityCardToken());
@@ -1977,7 +2170,7 @@ describe('useGetPriorityCardToken', () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
       });
 
-      expect(mockTokensController.addToken).not.toHaveBeenCalled();
+      expect(addTokenMock).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(false);
     });

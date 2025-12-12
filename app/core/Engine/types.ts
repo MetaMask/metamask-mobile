@@ -154,12 +154,6 @@ import SwapsController, {
   SwapsControllerActions,
   SwapsControllerEvents,
 } from '@metamask/swaps-controller';
-import {
-  PPOMController,
-  PPOMControllerActions,
-  PPOMControllerEvents,
-  PPOMState,
-} from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
@@ -358,6 +352,15 @@ import {
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
 import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
+import {
+  ProfileMetricsController,
+  ProfileMetricsControllerActions,
+  ProfileMetricsControllerEvents,
+  ProfileMetricsControllerState,
+  ProfileMetricsService,
+  ProfileMetricsServiceActions,
+  ProfileMetricsServiceEvents,
+} from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
@@ -368,6 +371,14 @@ type NftDetectionControllerEvents = ControllerStateChangeEvent<
   'NftDetectionController',
   NFTDetectionControllerState
 >;
+import {
+  TransactionPayController,
+  TransactionPayControllerState,
+} from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayControllerActions,
+  TransactionPayControllerEvents,
+} from '@metamask/transaction-pay-controller/dist/types.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -376,7 +387,6 @@ type RequiredControllers = Omit<
   Controllers,
   | 'ErrorReportingService'
   | 'MultichainRouter'
-  | 'PPOMController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
 >;
@@ -388,7 +398,6 @@ type OptionalControllers = Pick<
   Controllers,
   | 'ErrorReportingService'
   | 'MultichainRouter'
-  | 'PPOMController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
 >;
@@ -459,13 +468,13 @@ type GlobalActions =
   | AccountsControllerActions
   | AccountTreeControllerActions
   | PreferencesControllerActions
-  | PPOMControllerActions
   | TokenBalancesControllerActions
   | TokensControllerActions
   | TokenDetectionControllerActions
   | TokenRatesControllerActions
   | TokenListControllerActions
   | TransactionControllerActions
+  | TransactionPayControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
@@ -486,7 +495,9 @@ type GlobalActions =
   | ErrorReportingServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
-  | NftDetectionControllerActions;
+  | NftDetectionControllerActions
+  | ProfileMetricsControllerActions
+  | ProfileMetricsServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -527,7 +538,6 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
-  | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -536,6 +546,7 @@ type GlobalEvents =
   | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
+  | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
@@ -555,7 +566,9 @@ type GlobalEvents =
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   | DelegationControllerEvents
-  | NftDetectionControllerEvents;
+  | NftDetectionControllerEvents
+  | ProfileMetricsControllerEvents
+  | ProfileMetricsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -617,7 +630,6 @@ export type Controllers = {
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
-  PPOMController: PPOMController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
@@ -626,6 +638,7 @@ export type Controllers = {
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
+  TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -665,6 +678,8 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  ProfileMetricsController: ProfileMetricsController;
+  ProfileMetricsService: ProfileMetricsService;
 };
 
 /**
@@ -695,6 +710,7 @@ export type EngineState = {
   TokenRatesController: TokenRatesControllerState;
   TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
+  TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
@@ -714,7 +730,6 @@ export type EngineState = {
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
-  PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
@@ -739,6 +754,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  ProfileMetricsController: ProfileMetricsControllerState;
 };
 
 /** Controller names */
@@ -826,6 +842,7 @@ export type ControllersToInitialize =
   | 'TokenSearchDiscoveryController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
+  | 'TransactionPayController'
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
@@ -833,12 +850,13 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
-  | 'PPOMController'
   | 'RewardsController'
   | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController';
+  | 'SelectedNetworkController'
+  | 'ProfileMetricsController'
+  | 'ProfileMetricsService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -909,8 +927,9 @@ export type ControllerInitRequest<
 
   /**
    * The MetaMetrics ID to use for tracking.
+   * This is always provided at runtime and should not be undefined.
    */
-  metaMetricsId?: string;
+  metaMetricsId: string;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
@@ -975,7 +994,7 @@ export interface InitModularizedControllersFunctionRequest {
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
-  metaMetricsId?: string;
+  metaMetricsId: string;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;

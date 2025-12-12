@@ -1,7 +1,13 @@
+import {
+  TransactionMeta,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { ConfirmationLoader } from '../components/confirm/confirm-component';
 import { useConfirmNavigation } from './useConfirmNavigation';
+import { act } from '@testing-library/react-native';
+import Engine from '../../../../core/Engine';
 
 const mockNavigate = jest.fn();
 
@@ -12,10 +18,29 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const STACK_MOCK = 'SomeStack';
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    ApprovalController: {
+      reject: jest.fn(),
+    },
+  },
+}));
 
-function runHook() {
-  return renderHookWithProvider(useConfirmNavigation, { state: {} });
+const STACK_MOCK = 'SomeStack';
+const TRANSACTION_ID_MOCK = '123-456';
+
+function runHook({ transactions }: { transactions?: TransactionMeta[] } = {}) {
+  return renderHookWithProvider(useConfirmNavigation, {
+    state: {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: transactions ?? [],
+          },
+        },
+      },
+    },
+  });
 }
 
 describe('useConfirmNavigation', () => {
@@ -60,6 +85,36 @@ describe('useConfirmNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
       {},
+    );
+  });
+
+  it('rejects pending transactions before navigating if custom amount loader', async () => {
+    const { result } = runHook({
+      transactions: [
+        {
+          id: TRANSACTION_ID_MOCK,
+          status: TransactionStatus.unapproved,
+        } as TransactionMeta,
+      ],
+    });
+
+    const { navigateToConfirmation } = result.current;
+
+    await act(async () => {
+      navigateToConfirmation({
+        headerShown: false,
+        loader: ConfirmationLoader.CustomAmount,
+      });
+    });
+
+    const approvalControllerMock = jest.mocked(
+      Engine.context.ApprovalController,
+    );
+
+    expect(approvalControllerMock.reject).toHaveBeenCalledTimes(1);
+    expect(approvalControllerMock.reject).toHaveBeenCalledWith(
+      TRANSACTION_ID_MOCK,
+      expect.anything(),
     );
   });
 });

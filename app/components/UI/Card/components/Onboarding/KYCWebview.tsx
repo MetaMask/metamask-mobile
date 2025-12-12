@@ -4,6 +4,7 @@ import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface KYCWebviewProps {
   url: string;
@@ -22,19 +23,30 @@ const KYCWebview: React.FC = () => {
       )
     ) {
       navigation.dispatch(
-        StackActions.replace(Routes.CARD.ONBOARDING.VALIDATING_KYC),
+        StackActions.replace(Routes.CARD.ONBOARDING.PERSONAL_DETAILS),
       );
     }
   };
 
   return (
-    <WebView
-      testID={'kyc-webview'}
-      containerStyle={tw.style('flex-1')}
-      allowsInlineMediaPlayback
-      source={{ uri: url }}
-      onNavigationStateChange={handleNavigationStateChange}
-    />
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={['bottom']}
+    >
+      <WebView
+        testID={'kyc-webview'}
+        containerStyle={tw.style('flex-1')}
+        allowsInlineMediaPlayback
+        source={{ uri: url }}
+        onNavigationStateChange={handleNavigationStateChange}
+        mediaPlaybackRequiresUserAction={false}
+        geolocationEnabled
+        javaScriptEnabled
+        domStorageEnabled
+        androidHardwareAccelerationDisabled
+        startInLoadingState
+      />
+    </SafeAreaView>
   );
 };
 

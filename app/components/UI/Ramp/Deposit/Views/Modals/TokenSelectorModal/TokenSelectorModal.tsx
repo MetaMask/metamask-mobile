@@ -1,11 +1,12 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 
 import NetworksFilterBar from '../../../components/NetworksFilterBar';
 import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
+import TokenListItem from '../../../../components/TokenListItem';
 
 import Text, {
   TextVariant,
@@ -15,15 +16,6 @@ import BottomSheet, {
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../../../component-library/components/List/ListItemColumn';
-import AvatarToken from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
-import BadgeNetwork from '../../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
 
 import styleSheet from './TokenSelectorModal.styles';
@@ -31,18 +23,17 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { useDepositSDK } from '../../../sdk';
 
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
-import { getNetworkImageSource } from '../../../../../../../util/networks';
+import { useDepositCryptoCurrencyNetworkName } from '../../../hooks/useDepositCryptoCurrencyNetworkName';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
 import { useTheme } from '../../../../../../../util/theme';
 import useAnalytics from '../../../../hooks/useAnalytics';
+import { getRampRoutingDecision } from '../../../../../../../reducers/fiatOrders';
 
 interface TokenSelectorModalParams {
   cryptoCurrencies: DepositCryptoCurrency[];
@@ -69,6 +60,8 @@ function TokenSelectorModal() {
 
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
+  const getNetworkName = useDepositCryptoCurrencyNetworkName();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const {
     setSelectedCryptoCurrency,
@@ -85,10 +78,6 @@ function TokenSelectorModal() {
     searchString,
   });
 
-  const allNetworkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
       const selectedToken = supportedTokens.find(
@@ -100,20 +89,27 @@ function TokenSelectorModal() {
           region: selectedRegion?.isoCode || '',
           chain_id: selectedToken.chainId,
           currency_destination: selectedToken.assetId,
+          currency_destination_symbol: selectedToken.symbol,
+          currency_destination_network: getNetworkName(selectedToken.chainId),
           currency_source: selectedRegion?.currency || '',
           is_authenticated: isAuthenticated,
+          token_caip19: selectedToken.assetId,
+          token_symbol: selectedToken.symbol,
+          ramp_routing: rampRoutingDecision ?? undefined,
         });
         setSelectedCryptoCurrency(selectedToken);
       }
       sheetRef.current?.onCloseBottomSheet();
     },
     [
+      getNetworkName,
       supportedTokens,
       trackEvent,
       selectedRegion?.isoCode,
       selectedRegion?.currency,
       isAuthenticated,
       setSelectedCryptoCurrency,
+      rampRoutingDecision,
     ],
   );
 
@@ -139,48 +135,15 @@ function TokenSelectorModal() {
   }, [handleSearchTextChange]);
 
   const renderToken = useCallback(
-    ({ item: token }: { item: DepositCryptoCurrency }) => {
-      const networkName = allNetworkConfigurations[token.chainId]?.name;
-      const networkImageSource = getNetworkImageSource({
-        chainId: token.chainId,
-      });
-      const depositNetworkName =
-        DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
-      return (
-        <ListItemSelect
-          isSelected={selectedCryptoCurrency?.assetId === token.assetId}
-          onPress={() => handleSelectAssetIdCallback(token.assetId)}
-          accessibilityRole="button"
-          accessible
-        >
-          <ListItemColumn widthType={WidthType.Auto}>
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <BadgeNetwork
-                  name={networkName}
-                  imageSource={networkImageSource}
-                />
-              }
-            >
-              <AvatarToken
-                name={token.name}
-                imageSource={{ uri: token.iconUrl }}
-                size={AvatarSize.Md}
-              />
-            </BadgeWrapper>
-          </ListItemColumn>
-          <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
-              {depositNetworkName ?? networkName}
-            </Text>
-          </ListItemColumn>
-        </ListItemSelect>
-      );
-    },
+    ({ item: token }: { item: DepositCryptoCurrency }) => (
+      <TokenListItem
+        token={token}
+        isSelected={selectedCryptoCurrency?.assetId === token.assetId}
+        onPress={() => handleSelectAssetIdCallback(token.assetId)}
+        textColor={colors.text.alternative}
+      />
+    ),
     [
-      allNetworkConfigurations,
       colors.text.alternative,
       handleSelectAssetIdCallback,
       selectedCryptoCurrency?.assetId,

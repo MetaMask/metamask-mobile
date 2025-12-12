@@ -434,7 +434,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -468,12 +467,14 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select token
                               </Text>
@@ -499,10 +500,10 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 32,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 32,
                                     }
                                   }
                                   testID="bridge-token-selector-close-button"
@@ -510,15 +511,15 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={20}
+                                    height={24}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
-                                    width={20}
+                                    width={24}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -548,7 +549,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   "paddingHorizontal": 4,
                                 }
                               }
-                              handlerTag={1}
+                              handlerTag={-1}
                               handlerType="NativeViewGestureHandler"
                               horizontal={true}
                               onGestureHandlerEvent={[Function]}
@@ -589,7 +590,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -656,7 +657,61 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Bitcoin
+                                    </Text>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "flex-start",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 10,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 40,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    gap={8}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 8,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -710,14 +765,14 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
                                       }
                                     >
-                                      Optimism
+                                      Tron
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -764,14 +819,14 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
                                       }
                                     >
-                                      Bitcoin
+                                      Optimism
                                     </Text>
                                   </View>
                                 </TouchableOpacity>
@@ -865,8 +920,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
+                                      "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "lineHeight": 20,
@@ -881,11 +937,28 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               </View>
                             </View>
                           </View>
-                          <View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
                             <RCTScrollView
-                              ListEmptyComponent={[Function]}
+                              ListEmptyComponent={
+                                {
+                                  "$$typeof": Symbol(react.memo),
+                                  "compare": null,
+                                  "type": [Function],
+                                }
+                              }
                               bounces={true}
                               collapsable={false}
+                              contentContainerStyle={
+                                {
+                                  "paddingBottom": 0,
+                                }
+                              }
                               data={
                                 [
                                   {
@@ -953,6 +1026,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               stickyHeaderIndices={[]}
                               style={
                                 {
+                                  "flex": 1,
                                   "marginTop": 10,
                                 }
                               }
@@ -1005,7 +1079,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -1165,7 +1239,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1180,7 +1254,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1209,7 +1283,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1223,7 +1297,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1316,7 +1390,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -1476,7 +1550,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1491,7 +1565,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1520,7 +1594,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1534,7 +1608,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1627,7 +1701,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            undefined,
+                                            {},
                                           ]
                                         }
                                       >
@@ -1666,7 +1740,10 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                     },
                                                     undefined,
                                                     undefined,
-                                                    undefined,
+                                                    {
+                                                      "height": 32,
+                                                      "width": 32,
+                                                    },
                                                   ]
                                                 }
                                                 testID="network-logo-ETH"
@@ -1689,8 +1766,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                     [
                                                       {
                                                         "borderRadius": 18,
-                                                        "height": 36,
-                                                        "width": 36,
+                                                        "height": 32,
+                                                        "width": 32,
                                                       },
                                                       {
                                                         "backgroundColor": "#eee",
@@ -1817,7 +1894,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1832,7 +1909,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1861,7 +1938,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1875,7 +1952,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,

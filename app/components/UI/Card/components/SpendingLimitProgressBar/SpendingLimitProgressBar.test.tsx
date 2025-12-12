@@ -25,20 +25,13 @@ describe('SpendingLimitProgressBar', () => {
   const USDC = 'USDC';
 
   it('renders with full remaining allowance', () => {
-    const priorityToken = {
-      allowance: '0',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '200',
-      isFullAccess: false,
-    };
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="200"
+        symbol={USDC}
       />
     ));
 
@@ -47,20 +40,13 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('renders with partial allowance consumed', () => {
-    const priorityToken = {
-      allowance: '50',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '200',
-      isFullAccess: false,
-    };
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="150"
+        symbol={USDC}
       />
     ));
 
@@ -69,20 +55,13 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('renders with most of allowance consumed', () => {
-    const priorityToken = {
-      allowance: '160',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '200',
-      isFullAccess: false,
-    };
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="40"
+        symbol={USDC}
       />
     ));
 
@@ -91,20 +70,13 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('renders with full allowance consumed', () => {
-    const priorityToken = {
-      allowance: '200',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '200',
-      isFullAccess: false,
-    };
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="0"
+        symbol={USDC}
       />
     ));
 
@@ -113,20 +85,13 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('handles zero total allowance', () => {
-    const priorityToken = {
-      allowance: '0',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '0',
-      isFullAccess: false,
-    };
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="0"
+        remainingAllowance="0"
+        symbol={USDC}
       />
     ));
 
@@ -135,20 +100,13 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('handles undefined allowance values', () => {
-    const priorityToken = {
-      allowance: undefined,
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: undefined,
-      isFullAccess: false,
-    };
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance={undefined as unknown as string}
+        remainingAllowance={undefined as unknown as string}
+        symbol={USDC}
       />
     ));
 
@@ -156,21 +114,14 @@ describe('SpendingLimitProgressBar', () => {
     expect(getByText(`0/0 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('handles large values', () => {
-    const priorityToken = {
-      allowance: '0.5',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '1',
-      isFullAccess: false,
-    };
-
+  it('handles small decimal values', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="1"
+        remainingAllowance="0.5"
+        symbol={USDC}
       />
     ));
 
@@ -178,44 +129,29 @@ describe('SpendingLimitProgressBar', () => {
     expect(getByText(`0.5/1 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('handles remaining allowance exceeding total allowance', () => {
-    const priorityToken = {
-      allowance: '150',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '100',
-      isFullAccess: false,
-    };
-
+  it('handles consumed exceeding total allowance', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="100"
+        remainingAllowance="-50"
+        symbol={USDC}
       />
     ));
 
     expect(getByText('Spending Limit')).toBeOnTheScreen();
-    // Component clamps remaining to 0 when used > limit, so shows full limit as consumed
-    expect(getByText(`100/100 ${USDC}`)).toBeOnTheScreen();
+    expect(getByText(`150/100 ${USDC}`)).toBeOnTheScreen();
   });
 
   it('renders with different symbol', () => {
-    const priorityToken = {
-      allowance: '500',
-      decimals: 18,
-      symbol: 'ETH',
-    };
-    const spendingLimitSettings = {
-      limitAmount: '1000',
-      isFullAccess: false,
-    };
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={18}
+        totalAllowance="1000"
+        remainingAllowance="500"
+        symbol="ETH"
       />
     ));
 
@@ -224,20 +160,13 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('renders progress bar component', () => {
-    const priorityToken = {
-      allowance: '100',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '200',
-      isFullAccess: false,
-    };
-
     const { toJSON } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="100"
+        symbol={USDC}
       />
     ));
 
@@ -245,84 +174,56 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('handles null allowance values', () => {
-    const priorityToken = {
-      allowance: null,
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '200',
-      isFullAccess: false,
-    };
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance={null as unknown as string}
+        symbol={USDC}
       />
     ));
 
     expect(getByText('Spending Limit')).toBeOnTheScreen();
-    expect(getByText(`0/200 ${USDC}`)).toBeOnTheScreen();
+    expect(getByText(`200/200 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('calculates consumed amount correctly for 25% consumption', () => {
-    const priorityToken = {
-      allowance: '100',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '400',
-      isFullAccess: false,
-    };
-
+  it('calculates consumed amount for 25% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="400"
+        remainingAllowance="300"
+        symbol={USDC}
       />
     ));
 
     expect(getByText(`100/400 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('calculates consumed amount correctly for 75% consumption', () => {
-    const priorityToken = {
-      allowance: '300',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '400',
-      isFullAccess: false,
-    };
-
+  it('calculates consumed amount for 75% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="400"
+        remainingAllowance="100"
+        symbol={USDC}
       />
     ));
 
     expect(getByText(`300/400 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('calculates consumed amount correctly for 99% consumption', () => {
-    const priorityToken = {
-      allowance: '99',
-      decimals: 6,
-      symbol: USDC,
-    };
-    const spendingLimitSettings = {
-      limitAmount: '100',
-      isFullAccess: false,
-    };
-
+  it('calculates consumed amount for 99% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        priorityToken={priorityToken}
-        spendingLimitSettings={spendingLimitSettings}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="100"
+        remainingAllowance="1"
+        symbol={USDC}
       />
     ));
 

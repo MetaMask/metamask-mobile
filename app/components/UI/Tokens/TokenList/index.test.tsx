@@ -5,11 +5,15 @@ import configureMockStore from 'redux-mock-store';
 import { TokenList } from './index';
 import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 // Mock external dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
+
+jest.mock('../../../hooks/useMetrics');
 
 jest.mock('../../../../util/theme', () => ({
   useTheme: () => ({
@@ -27,6 +31,23 @@ jest.mock('../../../../../locales/i18n', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+}));
+
+// Mock selectors
+jest.mock('../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+  selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(() => true),
 }));
 
 // Mock child components
@@ -56,9 +77,11 @@ jest.mock('@metamask/design-system-react-native', () => ({
   Box: ({
     children,
     testID,
+    twClassName: _twClassName,
   }: {
     children: React.ReactNode;
     testID?: string;
+    twClassName?: string;
   }) => {
     const React = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
@@ -68,10 +91,14 @@ jest.mock('@metamask/design-system-react-native', () => ({
     children,
     onPress,
     testID,
+    variant: _variant,
+    isFullWidth: _isFullWidth,
   }: {
     children: React.ReactNode;
     onPress: () => void;
     testID?: string;
+    variant?: string;
+    isFullWidth?: boolean;
   }) => {
     const React = jest.requireActual('react');
     const { TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -104,10 +131,12 @@ jest.mock('@shopify/flash-list', () => {
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
 const mockTokenKeys = [
   {
@@ -139,25 +168,22 @@ describe('TokenList', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    // Mock useSelector to return default values
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
-      }
-      if (
-        selector
-          .toString()
-          .includes('selectIsTokenNetworkFilterEqualCurrentNetwork')
-      ) {
-        return true;
-      }
-      if (
-        selector.toString().includes('selectMultichainAccountsState2Enabled')
-      ) {
-        return false;
-      }
-      return undefined;
+    mockUseMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getMetaMetricsId: jest.fn(),
     });
+
+    // Mock useSelector to call the selector function with empty state
+    mockUseSelector.mockImplementation((selector) => selector({}));
   });
 
   const renderComponent = (props = {}, storeState = initialState) => {
@@ -179,11 +205,12 @@ describe('TokenList', () => {
     expect(getByTestId('token-item-0x456')).toBeOnTheScreen();
   });
 
-  it('renders empty state when no tokens', () => {
-    const { getByText } = renderComponent({ tokenKeys: [] });
+  it('renders empty container when no tokens', () => {
+    const { getByTestId } = renderComponent({ tokenKeys: [] });
 
-    expect(getByText('wallet.no_tokens')).toBeOnTheScreen();
-    expect(getByText('wallet.show_tokens_without_balance')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+    ).toBeOnTheScreen();
   });
 
   it('shows view all button when maxItems is exceeded', () => {
@@ -220,20 +247,34 @@ describe('TokenList', () => {
     expect(mockNavigate).toHaveBeenCalledWith('TokensFullView');
   });
 
-  it('navigates to settings when show tokens without balance is pressed', () => {
-    const { getByText } = renderComponent({ tokenKeys: [] });
+  it('tracks analytics event when view all button is pressed', () => {
+    const { getByText } = renderComponent({ maxItems: 1 });
 
-    const showTokensLink = getByText('wallet.show_tokens_without_balance');
-    fireEvent.press(showTokensLink);
+    const viewAllButton = getByText('wallet.view_all_tokens');
+    fireEvent.press(viewAllButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('SettingsView', {
-      screen: 'GeneralSettings',
-    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'View All Assets Clicked',
+        properties: expect.objectContaining({
+          asset_type: 'Token',
+        }),
+      }),
+    );
+  });
+
+  it('renders container without items when tokenKeys is empty', () => {
+    const { getByTestId, queryByTestId } = renderComponent({ tokenKeys: [] });
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('token-item-0x123')).toBeNull();
   });
 
   it('calls onRefresh when refresh control is triggered', () => {
     const onRefresh = jest.fn();
-    const { getByTestId } = renderComponent({ onRefresh });
+    const { getByTestId } = renderComponent({ onRefresh, isFullView: true });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const refreshControl = flashList.props.refreshControl;
@@ -243,12 +284,13 @@ describe('TokenList', () => {
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('applies flashListProps when provided', () => {
-    const customProps = { contentContainerStyle: { padding: 10 } };
-    const { getByTestId } = renderComponent({ flashListProps: customProps });
+  it('applies contentContainerStyle when isFullView is true', () => {
+    const { getByTestId } = renderComponent({
+      isFullView: true,
+    });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
-    expect(flashList.props.contentContainerStyle).toEqual({ padding: 10 });
+    expect(flashList.props.contentContainerStyle).toBeDefined();
   });
 
   it('uses TokenListItemBip44 when multichain accounts state 2 is enabled', () => {
@@ -290,19 +332,32 @@ describe('TokenList', () => {
   });
 
   it('handles undefined tokenKeys gracefully', () => {
-    const { getByText } = renderComponent({ tokenKeys: undefined });
+    const { getByTestId, queryByTestId } = renderComponent({
+      tokenKeys: undefined,
+    });
 
-    expect(getByText('wallet.no_tokens')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('token-item-0x123')).toBeNull();
+    expect(queryByTestId('token-item-0x456')).toBeNull();
   });
 
   it('handles null tokenKeys gracefully', () => {
-    const { getByText } = renderComponent({ tokenKeys: null });
+    const { getByTestId, queryByTestId } = renderComponent({ tokenKeys: null });
 
-    expect(getByText('wallet.no_tokens')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('token-item-0x123')).toBeNull();
+    expect(queryByTestId('token-item-0x456')).toBeNull();
   });
 
   it('shows refreshing state correctly', () => {
-    const { getByTestId } = renderComponent({ refreshing: true });
+    const { getByTestId } = renderComponent({
+      refreshing: true,
+      isFullView: true,
+    });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const refreshControl = flashList.props.refreshControl;
@@ -311,7 +366,7 @@ describe('TokenList', () => {
   });
 
   it('generates unique keys for token items', () => {
-    const { getByTestId } = renderComponent();
+    const { getByTestId } = renderComponent({ isFullView: true });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const keyExtractor = flashList.props.keyExtractor;
@@ -338,5 +393,85 @@ describe('TokenList', () => {
     // This test ensures the component doesn't crash with different prop combinations
     expect(showRemoveMenu).not.toHaveBeenCalled();
     expect(setShowScamWarningModal).not.toHaveBeenCalled();
+  });
+
+  describe('Homepage Redesign V1 Features', () => {
+    beforeEach(() => {
+      // Reset selector mocks for this describe block
+      mockUseSelector.mockReset();
+    });
+
+    it('renders tokens directly in Box when isHomepageRedesignV1Enabled is true and not full view', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const { getByTestId } = renderComponent({ isFullView: false });
+
+      expect(getByTestId('token-item-0x123')).toBeOnTheScreen();
+      expect(getByTestId('token-item-0x456')).toBeOnTheScreen();
+    });
+
+    it('renders FlashList when isHomepageRedesignV1Enabled is true but isFullView is true', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const { getByTestId } = renderComponent({ isFullView: true });
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders FlashList when isHomepageRedesignV1Enabled is false', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return false;
+        }
+        return selector({});
+      });
+
+      const { getByTestId } = renderComponent();
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows view all button when homepage redesign is enabled and maxItems is exceeded', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const { getByText } = renderComponent({ maxItems: 1, isFullView: false });
+
+      expect(getByText('wallet.view_all_tokens')).toBeOnTheScreen();
+    });
+
+    it('renders mapped token items when homepage redesign is enabled and not full view', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const { queryByTestId } = renderComponent({ isFullView: false });
+
+      // When homepage redesign is enabled and not full view, tokens are rendered directly
+      // instead of in FlashList
+      expect(queryByTestId('token-item-0x123')).toBeOnTheScreen();
+      expect(queryByTestId('token-item-0x456')).toBeOnTheScreen();
+    });
   });
 });

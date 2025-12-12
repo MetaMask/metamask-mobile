@@ -24,14 +24,16 @@ export { usePerpsConnection } from './usePerpsConnection';
 export { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 
 // Live data hooks (WebSocket subscriptions)
-export { usePerpsPositionData } from './usePerpsPositionData';
 export { usePerpsPrices } from './usePerpsPrices';
 
 // Asset metadata hooks
 export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
-export { usePerpsMarketData } from './usePerpsMarketData';
+export {
+  usePerpsMarketData,
+  type UsePerpsMarketDataParams,
+} from './usePerpsMarketData';
 export { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Withdrawal specific hooks
@@ -48,15 +50,20 @@ export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
 export { usePerpsRewards } from './usePerpsRewards';
+export { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
 export { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 export { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
+export { usePositionManagement } from './usePositionManagement';
+// Removed from barrel: usePerpsHomeActions imports Engine-dependent hooks
+// Import directly: import { usePerpsHomeActions } from './hooks/usePerpsHomeActions';
 export { useHasExistingPosition } from './useHasExistingPosition';
 export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
+export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
 export { default as usePerpsToasts } from './usePerpsToasts';

@@ -19,6 +19,7 @@ import {
   ToastVariants,
 } from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
+import useMetrics from '../components/hooks/useMetrics/useMetrics';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -51,8 +52,13 @@ interface FeatureFlagOverrideProviderProps {
 export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
+  const { addTraitsToUser } = useMetrics();
   // Get the initial feature flags from Redux
-  const rawFeatureFlags = useSelector(selectRemoteFeatureFlags);
+  const rawFeatureFlagsSelected = useSelector(selectRemoteFeatureFlags);
+  const rawFeatureFlags = useMemo(
+    () => rawFeatureFlagsSelected || {},
+    [rawFeatureFlagsSelected],
+  );
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
 
@@ -139,14 +145,16 @@ export const FeatureFlagOverrideProvider: React.FC<
     getAllOverrides,
   ]);
 
-  const featureFlagsList = Object.values(featureFlags).sort((a, b) =>
-    a.key.localeCompare(b.key),
+  const featureFlagsList = useMemo(
+    () =>
+      Object.values(featureFlags).sort((a, b) => a.key.localeCompare(b.key)),
+    [featureFlags],
   );
 
   const validateMinimumVersion = useCallback(
     (flagKey: string, flagValue: MinimumVersionFlagValue) => {
       if (
-        process.env.NODE_ENV !== 'production' &&
+        process.env.METAMASK_ENVIRONMENT !== 'production' &&
         !isMinimumRequiredVersionSupported(flagValue.minimumVersion)
       ) {
         toastRef?.current?.showToast({
@@ -172,42 +180,71 @@ export const FeatureFlagOverrideProvider: React.FC<
   /**
    * get a specific feature flag value with overrides applied
    */
-  const getFeatureFlag = (key: string) => {
-    const flag = featureFlags[key];
-    if (!flag) {
-      return undefined;
-    }
+  const getFeatureFlag = useCallback(
+    (key: string) => {
+      const flag = featureFlags[key];
+      if (!flag) {
+        return undefined;
+      }
 
-    if (flag.type === 'boolean with minimumVersion') {
-      return validateMinimumVersion(
-        flag.key,
-        flag.value as unknown as MinimumVersionFlagValue,
-      );
-    }
+      if (flag.type === 'boolean with minimumVersion') {
+        const flagValue = validateMinimumVersion(
+          flag.key,
+          flag.value as unknown as MinimumVersionFlagValue,
+        );
+        addTraitsToUser({
+          [flag.key]: flagValue,
+        });
+        return flagValue;
+      }
+      if (flag.type === 'boolean') {
+        addTraitsToUser({
+          [flag.key]: flag.value as boolean,
+        });
+      }
 
-    return flag.value;
-  };
+      return flag.value;
+    },
+    [featureFlags, validateMinimumVersion, addTraitsToUser],
+  );
 
   const getOverrideCount = useCallback(
     (): number => Object.keys(overrides).length,
     [overrides],
   );
 
-  const contextValue: FeatureFlagOverrideContextType = {
-    featureFlags,
-    originalFlags: rawFeatureFlags,
-    getFeatureFlag,
-    featureFlagsList,
-    overrides,
-    setOverride,
-    removeOverride,
-    clearAllOverrides,
-    hasOverride,
-    getOverride,
-    getAllOverrides,
-    applyOverrides,
-    getOverrideCount,
-  };
+  const contextValue: FeatureFlagOverrideContextType = useMemo(
+    () => ({
+      featureFlags,
+      originalFlags: rawFeatureFlags,
+      getFeatureFlag,
+      featureFlagsList,
+      overrides,
+      setOverride,
+      removeOverride,
+      clearAllOverrides,
+      hasOverride,
+      getOverride,
+      getAllOverrides,
+      applyOverrides,
+      getOverrideCount,
+    }),
+    [
+      featureFlags,
+      rawFeatureFlags,
+      getFeatureFlag,
+      featureFlagsList,
+      overrides,
+      setOverride,
+      removeOverride,
+      clearAllOverrides,
+      hasOverride,
+      getOverride,
+      getAllOverrides,
+      applyOverrides,
+      getOverrideCount,
+    ],
+  );
 
   return (
     <FeatureFlagOverrideContext.Provider value={contextValue}>

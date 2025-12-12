@@ -9,10 +9,17 @@ import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfir
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import GasFeesDetailsRow from './gas-fee-details-row';
 import { toHex } from '@metamask/controller-utils';
+import {
+  GasFeeEstimateLevel,
+  GasFeeEstimateType,
+  SimulationData,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 import { useInsufficientBalanceAlert } from '../../../../hooks/alerts/useInsufficientBalanceAlert';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
+import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalanceChanges';
 
 jest.mock('../../../gas/gas-speed', () => ({
   GasSpeed: () => null,
@@ -34,6 +41,7 @@ jest.mock('../../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../../hooks/alerts/useInsufficientBalanceAlert');
 jest.mock('../../../../../../hooks/useHideFiatForTestnet');
 jest.mock('../../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../../../../UI/SimulationDetails/useBalanceChanges');
 
 const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   amount: toHex(10000),
@@ -56,6 +64,82 @@ const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   transferTransaction: {},
 };
 
+const SIMULATION_DATA_MOCK: SimulationData = {
+  nativeBalanceChange: {
+    previousBalance: '0x0',
+    newBalance: '0x0',
+    difference: '0x0',
+    isDecrease: false,
+  },
+  tokenBalanceChanges: [],
+};
+
+const createStateWithSimulationData = (
+  baseState = stakingDepositConfirmationState,
+) => {
+  const stateWithSimulation = cloneDeep(baseState);
+  const transactions =
+    stateWithSimulation.engine.backgroundState.TransactionController
+      .transactions;
+
+  if (transactions?.[0]) {
+    transactions[0].simulationData = cloneDeep(SIMULATION_DATA_MOCK);
+  }
+
+  return stateWithSimulation;
+};
+
+const createStateWithBatchTransaction = (
+  baseState = stakingDepositConfirmationState,
+) => {
+  const stateWithBatch = cloneDeep(baseState);
+  const batchId = 'test-batch-id';
+
+  // Add batch metadata
+  stateWithBatch.engine.backgroundState.TransactionController.transactionBatches =
+    [
+      {
+        id: batchId,
+        chainId: '0x1',
+        from: '0x1234567890123456789012345678901234567890',
+        networkClientId: 'mainnet',
+        gas: '0x5208',
+        gasFeeEstimates: {
+          type: GasFeeEstimateType.FeeMarket,
+          [GasFeeEstimateLevel.Low]: {
+            maxFeePerGas: '0x59682f00',
+            maxPriorityFeePerGas: '0x59682f00',
+          },
+          [GasFeeEstimateLevel.Medium]: {
+            maxFeePerGas: '0x59682f00',
+            maxPriorityFeePerGas: '0x59682f00',
+          },
+          [GasFeeEstimateLevel.High]: {
+            maxFeePerGas: '0x59682f00',
+            maxPriorityFeePerGas: '0x59682f00',
+          },
+        },
+        status: TransactionStatus.unapproved,
+        transactions: [],
+      },
+    ];
+
+  // Create approval for the batch
+  // @ts-expect-error Adding dynamic batch approval to test state
+  stateWithBatch.engine.backgroundState.ApprovalController.pendingApprovals[
+    batchId
+  ] = {
+    id: batchId,
+    type: 'transaction_batch',
+    time: Date.now(),
+    origin: 'metamask',
+    requestData: { txBatchId: batchId },
+  };
+  stateWithBatch.engine.backgroundState.ApprovalController.pendingApprovalCount = 2;
+
+  return stateWithBatch;
+};
+
 describe('GasFeesDetailsRow', () => {
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
@@ -67,6 +151,7 @@ describe('GasFeesDetailsRow', () => {
     useInsufficientBalanceAlert,
   );
   const mockUseHideFiatForTestnet = jest.mocked(useHideFiatForTestnet);
+  const mockUseBalanceChanges = jest.mocked(useBalanceChanges);
 
   beforeEach(() => {
     useConfirmationMetricEventsMock.mockReturnValue({
@@ -76,24 +161,28 @@ describe('GasFeesDetailsRow', () => {
     mockUseIsGaslessSupported.mockReturnValue({
       isSupported: true,
       isSmartTransaction: false,
+      pending: false,
     });
     mockUseInsufficientBalanceAlert.mockReturnValue([]);
     mockUseHideFiatForTestnet.mockReturnValue(false);
+    mockUseBalanceChanges.mockReturnValue({
+      pending: false,
+      value: [],
+    });
   });
 
   it('contains required text', async () => {
     const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('$0.34')).toBeDefined();
     expect(getByText('ETH')).toBeDefined();
   });
 
   it('shows fiat if showFiatOnTestnets is true', async () => {
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
       NETWORKS_CHAIN_ID.SEPOLIA;
 
@@ -104,9 +193,8 @@ describe('GasFeesDetailsRow', () => {
   });
 
   it('hides fiat if showFiatOnTestnets is false', async () => {
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
       NETWORKS_CHAIN_ID.SEPOLIA;
     clonedStakingDepositConfirmationState.settings.showFiatOnTestnets = false;
@@ -118,9 +206,8 @@ describe('GasFeesDetailsRow', () => {
   });
 
   it('hides fiat if nativeConversionRate is undefined', async () => {
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
 
     // No type is exported for CurrencyRate, so we need to cast it to the correct type
     clonedStakingDepositConfirmationState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
@@ -138,7 +225,7 @@ describe('GasFeesDetailsRow', () => {
 
   it('tracks tooltip clicked event', async () => {
     const { getByTestId } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
 
     fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
@@ -153,7 +240,7 @@ describe('GasFeesDetailsRow', () => {
 
   it('shows gas speed row', async () => {
     const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
     expect(getByText('Speed')).toBeDefined();
   });
@@ -162,7 +249,7 @@ describe('GasFeesDetailsRow', () => {
     const { queryByText } = renderWithProvider(
       <GasFeesDetailsRow hideSpeed />,
       {
-        state: stakingDepositConfirmationState,
+        state: createStateWithSimulationData(),
       },
     );
 
@@ -173,7 +260,7 @@ describe('GasFeesDetailsRow', () => {
     const { getByText, queryByText } = renderWithProvider(
       <GasFeesDetailsRow fiatOnly />,
       {
-        state: stakingDepositConfirmationState,
+        state: createStateWithSimulationData(),
       },
     );
 
@@ -188,7 +275,7 @@ describe('GasFeesDetailsRow', () => {
       >,
     );
     const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
 
     expect(getByText('USDC')).toBeDefined();
@@ -197,9 +284,8 @@ describe('GasFeesDetailsRow', () => {
 
   it('shows native amount when is a testnet', async () => {
     mockUseHideFiatForTestnet.mockReturnValue(true);
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
       NETWORKS_CHAIN_ID.SEPOLIA;
 
@@ -212,9 +298,8 @@ describe('GasFeesDetailsRow', () => {
   });
 
   it(`shows 'Paid by MetaMask' when gas is sponsored`, async () => {
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
     const { getByText, queryByText } = renderWithProvider(
       <GasFeesDetailsRow />,
@@ -239,7 +324,7 @@ describe('GasFeesDetailsRow', () => {
     );
 
     const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
 
     expect(queryByText('MetaMask fee: $0.12')).toBeNull();
@@ -259,7 +344,7 @@ describe('GasFeesDetailsRow', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <GasFeesDetailsRow />,
       {
-        state: stakingDepositConfirmationState,
+        state: createStateWithSimulationData(),
       },
     );
 
@@ -271,5 +356,84 @@ describe('GasFeesDetailsRow', () => {
       }),
     );
     expect(getByText('Includes $0.25 fee')).toBeDefined();
+  });
+
+  describe('Batch Transactions', () => {
+    it('displays gas fee for batch transaction with fee estimates', () => {
+      mockUseSelectedGasFeeToken.mockReturnValue(GAS_FEE_TOKEN_MOCK);
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <GasFeesDetailsRow />,
+        {
+          state: createStateWithBatchTransaction(),
+        },
+      );
+
+      expect(getByText('Network fee')).toBeDefined();
+      expect(getByTestId('gas-fees-details')).toBeOnTheScreen();
+      // Batch transaction renders even without simulationData when fee estimates exist
+    });
+
+    it('shows loading skeleton for batch without fee calculations', () => {
+      const stateWithBatch = createStateWithBatchTransaction();
+      // Remove gas fee estimates to simulate loading state
+      stateWithBatch.engine.backgroundState.TransactionController.transactionBatches[0].gasFeeEstimates =
+        undefined;
+
+      const { getByTestId } = renderWithProvider(<GasFeesDetailsRow />, {
+        state: stateWithBatch,
+      });
+
+      // Should show skeleton when fee calculations are not ready
+      expect(getByTestId('gas-fees-details')).toBeOnTheScreen();
+    });
+
+    it('does not require simulationData for batch transactions', () => {
+      // This test verifies that batches don't need simulationData to display fees
+      const stateWithBatch = createStateWithBatchTransaction();
+
+      // Ensure no simulationData exists (batches don't have it)
+      expect(
+        stateWithBatch.engine.backgroundState.TransactionController
+          .transactions?.[0]?.simulationData,
+      ).toBeUndefined();
+
+      const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
+        state: stateWithBatch,
+      });
+
+      // Should still display network fee without simulationData
+      expect(getByText('Network fee')).toBeDefined();
+    });
+
+    it('uses different loading logic for batch vs single transactions', () => {
+      // Single transaction without simulationData should show loading
+      const stateWithoutSim = cloneDeep(stakingDepositConfirmationState);
+      stateWithoutSim.engine.backgroundState.TransactionController.transactions[0].simulationData =
+        undefined;
+
+      // Batch transaction without simulationData but with fee estimates should NOT show loading
+      const batchState = createStateWithBatchTransaction();
+
+      // Single transaction without simulationData should show loading
+      const { getByTestId: getByTestIdSingle } = renderWithProvider(
+        <GasFeesDetailsRow />,
+        {
+          state: stateWithoutSim,
+        },
+      );
+
+      expect(getByTestIdSingle('gas-fees-details')).toBeOnTheScreen();
+
+      // Batch transaction without simulationData but with fee estimates should still render
+      const { getByTestId: getByTestIdBatch } = renderWithProvider(
+        <GasFeesDetailsRow />,
+        {
+          state: batchState,
+        },
+      );
+
+      expect(getByTestIdBatch('gas-fees-details')).toBeOnTheScreen();
+    });
   });
 });

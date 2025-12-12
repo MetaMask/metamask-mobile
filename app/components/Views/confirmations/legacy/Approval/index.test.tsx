@@ -24,6 +24,11 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsOptInStatus: () => false,
   selectUseTransactionSimulations: () => false,
   selectIsTokenNetworkFilterEqualCurrentNetwork: () => true,
+  selectTokenSortConfig: () => ({
+    key: 'name',
+    order: 'asc',
+    sortCallback: 'alphaNumeric',
+  }),
 }));
 
 jest.mock('../../../../../util/dappTransactions', () => ({
@@ -36,6 +41,9 @@ jest.mock('../../../../../core/Engine', () => ({
     GasFeeController: {
       getGasFeeEstimatesAndStartPolling: jest.fn().mockResolvedValue(null),
       stopPolling: jest.fn(),
+    },
+    TransactionController: {
+      getNonceLock: jest.fn().mockResolvedValue({ releaseLock: jest.fn() }),
     },
   },
   controllerMessenger: {
@@ -94,9 +102,7 @@ describe('Approval', () => {
     jest.clearAllMocks();
     store = mockStore({
       ...initialRootState,
-      settings: {
-        showCustomNonce: false,
-      },
+      settings: {},
       transaction: {
         id: TRANSACTION_ID_MOCK,
         from: '0x1234',

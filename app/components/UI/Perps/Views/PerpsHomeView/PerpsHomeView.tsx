@@ -5,14 +5,22 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, ScrollView, Modal } from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -21,6 +29,15 @@ import {
   usePerpsNavigation,
   usePerpsMeasurement,
 } from '../../hooks';
+import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { usePerpsLiveAccount } from '../../hooks/stream';
+import { BigNumber } from 'bignumber.js';
+import {
+  HOME_SCREEN_CONFIG,
+  LEARN_MORE_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -29,7 +46,6 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsHomeHeader from '../../components/PerpsHomeHeader';
-import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -49,6 +65,7 @@ import PerpsNavigationCard, {
 
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
@@ -57,17 +74,26 @@ const PerpsHomeView = () => {
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
 
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
-
   // Bottom sheet state and refs
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
   const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
   const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
-  // Fetch all home screen data with search filtering
+  // Use hook for eligibility checks and action handlers
+  const {
+    handleAddFunds,
+    handleWithdraw,
+    isEligibilityModalVisible,
+    closeEligibilityModal,
+  } = usePerpsHomeActions();
+
+  // Get balance state directly from Redux
+  const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const totalBalance = perpsAccount?.totalBalance || '0';
+  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+
+  // Fetch all home screen data
   const {
     positions,
     orders,
@@ -78,9 +104,7 @@ const PerpsHomeView = () => {
     recentActivity,
     sortBy,
     isLoading,
-  } = usePerpsHomeData({
-    searchQuery: isSearchVisible ? searchQuery : '',
-  });
+  } = usePerpsHomeData({});
 
   // Determine if any data is loading for initial load tracking
   // Orders and activity load via WebSocket instantly, only track positions and markets
@@ -99,18 +123,20 @@ const PerpsHomeView = () => {
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.MARKETS,
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
       [PerpsEventProperties.SOURCE]: source,
     },
   });
 
   const handleSearchToggle = useCallback(() => {
-    setIsSearchVisible(!isSearchVisible);
-    if (isSearchVisible) {
-      // Clear search when hiding search bar
-      setSearchQuery('');
-    }
-  }, [isSearchVisible]);
+    // Navigate to MarketListView with search enabled
+    perpsNavigation.navigateToMarketList({
+      defaultSearchVisible: true,
+      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      fromHome: true,
+    });
+  }, [perpsNavigation]);
 
   const navigtateToTutorial = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
@@ -131,22 +157,26 @@ const PerpsHomeView = () => {
     );
   }, [createEventBuilder, navigation, trackEvent]);
 
-  // Define navigation items for the card
-  const navigationItems: NavigationItem[] = useMemo(
-    () => [
+  const navigationItems: NavigationItem[] = useMemo(() => {
+    const items: NavigationItem[] = [
       {
         label: strings(SUPPORT_CONFIG.TITLE_KEY),
         onPress: () => navigateToContactSupport(),
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
-      {
+    ];
+
+    // Avoid duplicate "Learn more" button (shown in empty state card)
+    if (!isBalanceEmpty) {
+      items.push({
         label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
         onPress: () => navigtateToTutorial(),
         testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
-      },
-    ],
-    [navigateToContactSupport, navigtateToTutorial],
-  );
+      });
+    }
+
+    return items;
+  }, [navigateToContactSupport, navigtateToTutorial, isBalanceEmpty]);
 
   // Bottom sheet handlers - open sheets directly
   const handleCloseAllPress = useCallback(() => {
@@ -179,17 +209,32 @@ const PerpsHomeView = () => {
     setShowCancelAllSheet(false);
   }, []);
 
-  // Back button handler - now uses navigation hook
-  const handleBackPress = perpsNavigation.navigateBack;
+  // Calculate actual footer dimensions
+  // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
+  const footerHeight = 80 + insets.bottom;
+
+  const bottomSpacerStyle = useMemo(
+    () => ({
+      // When footer is visible, add space for it. Otherwise minimal spacing for tab bar.
+      height: isBalanceEmpty ? 16 : footerHeight + 16,
+    }),
+    [isBalanceEmpty, footerHeight],
+  );
+
+  // Add safe area inset to footer for Android navigation bar
+  const fixedFooterStyle = useMemo(
+    () => [styles.fixedFooter, { paddingBottom: 16 + insets.bottom }],
+    [styles.fixedFooter, insets.bottom],
+  );
+
+  // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
+  const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header - Using extracted component */}
       <PerpsHomeHeader
-        isSearchVisible={isSearchVisible}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        onSearchClear={() => setSearchQuery('')}
+        isSearchVisible={false}
         onBack={handleBackPress}
         onSearchToggle={handleSearchToggle}
         testID="perps-home"
@@ -202,7 +247,10 @@ const PerpsHomeView = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Balance Actions Component */}
-        <PerpsMarketBalanceActions />
+        <PerpsMarketBalanceActions
+          positions={positions}
+          showActionButtons={HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS}
+        />
 
         {/* Positions Section */}
         <PerpsHomeSection
@@ -210,11 +258,10 @@ const PerpsHomeView = () => {
           isLoading={isLoading.positions}
           isEmpty={positions.length === 0}
           showWhenEmpty={false}
-          showActionIcon
           onActionPress={handleCloseAllPress}
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
-          <View style={styles.sectionContent}>
+          <View style={styles.positionsOrdersContainer}>
             {positions.map((position, index) => (
               <PerpsCard
                 key={`${position.coin}-${index}`}
@@ -231,11 +278,10 @@ const PerpsHomeView = () => {
           isLoading={isLoading.orders}
           isEmpty={orders.length === 0}
           showWhenEmpty={false}
-          showActionIcon
           onActionPress={handleCancelAllPress}
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
-          <View style={styles.sectionContent}>
+          <View style={styles.positionsOrdersContainer}>
             {orders.map((order) => (
               <PerpsCard
                 key={order.orderId}
@@ -250,6 +296,8 @@ const PerpsHomeView = () => {
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
           isLoading={isLoading.markets}
+          positions={positions}
+          orders={orders}
         />
 
         {/* Crypto Markets List */}
@@ -265,7 +313,7 @@ const PerpsHomeView = () => {
         <PerpsMarketTypeSection
           title={strings('perps.home.stocks_and_commodities')}
           markets={stocksAndCommoditiesMarkets}
-          marketType="all"
+          marketType="stocks_and_commodities"
           sortBy={sortBy}
           isLoading={isLoading.markets}
         />
@@ -280,7 +328,7 @@ const PerpsHomeView = () => {
 
         {/* Recent Activity List */}
         <PerpsRecentActivityList
-          fills={recentActivity}
+          transactions={recentActivity}
           isLoading={isLoading.activity}
         />
 
@@ -289,7 +337,7 @@ const PerpsHomeView = () => {
         </View>
 
         {/* Bottom spacing for tab bar */}
-        <View style={styles.bottomSpacer} />
+        <View style={bottomSpacerStyle} />
       </ScrollView>
 
       {/* Close All Positions Bottom Sheet */}
@@ -306,6 +354,54 @@ const PerpsHomeView = () => {
           sheetRef={cancelAllSheetRef}
           onClose={handleCancelAllSheetClose}
         />
+      )}
+
+      {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
+      {!isBalanceEmpty &&
+        !showCloseAllSheet &&
+        !showCancelAllSheet &&
+        !HOME_SCREEN_CONFIG.SHOW_HEADER_ACTION_BUTTONS && (
+          <View style={fixedFooterStyle}>
+            <View style={styles.footerButtonsContainer}>
+              <View style={styles.footerButton}>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  onPress={handleWithdraw}
+                  isFullWidth
+                  testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
+                >
+                  {strings('perps.withdraw')}
+                </Button>
+              </View>
+              <View style={styles.footerButton}>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={handleAddFunds}
+                  isFullWidth
+                  testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
+                >
+                  {strings('perps.add_funds')}
+                </Button>
+              </View>
+            </View>
+          </View>
+        )}
+
+      {/* Eligibility Modal */}
+      {isEligibilityModalVisible && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={closeEligibilityModal}
+              contentKey={'geo_block'}
+              testID={'perps-home-geo-block-tooltip'}
+            />
+          </Modal>
+        </View>
       )}
     </SafeAreaView>
   );

@@ -13,5 +13,4 @@ export interface StackCardProps {
   nextCardBgOpacity: Animated.Value;
   onSlideClick: (slideId: string, navigation: NavigationAction) => void;
   onTransitionToNextCard?: () => void;
-  onTransitionToEmpty?: () => void;
 }

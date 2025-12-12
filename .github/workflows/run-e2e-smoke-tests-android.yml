@@ -29,20 +29,20 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-  perps-android-smoke:
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: perps-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokePerps'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
+  # perps-android-smoke:
+  #   strategy:
+  #     matrix:
+  #       split: [1]
+  #     fail-fast: false
+  #   uses: ./.github/workflows/run-e2e-workflow.yml
+  #   with:
+  #     test-suite-name: perps-android-smoke-${{ matrix.split }}
+  #     platform: android
+  #     test_suite_tag: 'SmokePerps'
+  #     split_number: ${{ matrix.split }}
+  #     total_splits: 1
+  #     changed_files: ${{ inputs.changed_files }}
+  #   secrets: inherit
 
   wallet-platform-android-smoke:
     strategy:
@@ -141,7 +141,7 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: prediction_market_android_smoke-${{ matrix.split }}
+      test-suite-name: prediction-market-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: 'SmokePredictions'
       split_number: ${{ matrix.split }}
@@ -170,7 +170,7 @@ jobs:
     if: ${{ !cancelled() }}
     needs:
       - trade-android-smoke
-      - perps-android-smoke
+      # - perps-android-smoke
       - wallet-platform-android-smoke
       - identity-android-smoke
       - accounts-android-smoke

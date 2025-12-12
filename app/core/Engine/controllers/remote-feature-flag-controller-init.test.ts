@@ -9,6 +9,11 @@ import { getRemoteFeatureFlagControllerMessenger } from '../messengers/remote-fe
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import Logger from '../../../util/Logger';
+
+jest.mock('../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
 
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
@@ -62,6 +67,7 @@ describe('remoteFeatureFlagControllerInit', () => {
       getMetaMetricsId: expect.any(Function),
       clientConfigApiService: expect.any(ClientConfigApiService),
       fetchInterval: 900_000,
+      clientVersion: expect.any(String),
     });
   });
 
@@ -99,5 +105,36 @@ describe('remoteFeatureFlagControllerInit', () => {
     expect(
       controllerMock.mock.results[0].value.updateRemoteFeatureFlags,
     ).not.toHaveBeenCalled();
+  });
+
+  it('logs success message when feature flags update successfully', async () => {
+    const initRequestMock = getInitRequestMock();
+
+    remoteFeatureFlagControllerInit(initRequestMock);
+
+    await new Promise(process.nextTick);
+
+    expect(Logger.log).toHaveBeenCalledWith('Feature flags updated');
+  });
+
+  it('logs error message when feature flags update fails', async () => {
+    const initRequestMock = getInitRequestMock();
+    const mockError = new Error('Network error');
+    const controllerMock = jest.mocked(RemoteFeatureFlagController);
+    controllerMock.mockImplementationOnce(
+      () =>
+        ({
+          updateRemoteFeatureFlags: jest.fn().mockRejectedValue(mockError),
+        }) as unknown as RemoteFeatureFlagController,
+    );
+
+    remoteFeatureFlagControllerInit(initRequestMock);
+
+    await new Promise(process.nextTick);
+
+    expect(Logger.log).toHaveBeenCalledWith(
+      'Feature flags update failed: ',
+      mockError,
+    );
   });
 });

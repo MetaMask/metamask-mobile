@@ -133,6 +133,17 @@ export interface EstimatePerpsContextDto {
   coin: string;
 }
 
+export interface EstimatePredictContextDto {
+  /**
+   * Fee asset information, in caip19 format
+   * @example {
+   *   id: 'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+   *   amount: '1000000'
+   * }
+   */
+  feeAsset: EstimateAssetDto;
+}
+
 export interface EstimatePointsContextDto {
   /**
    * Swap context data, must be present for SWAP activity
@@ -147,6 +158,11 @@ export interface EstimatePointsContextDto {
    * @example Batch positions: [{ type: 'CLOSE_POSITION', coin: 'USDC', usdFeeValue: '1.00' }, ...]
    */
   perpsContext?: EstimatePerpsContextDto | EstimatePerpsContextDto[];
+
+  /**
+   * Predict context data, must be present for PREDICT activity
+   */
+  predictContext?: EstimatePredictContextDto;
 }
 
 /**
@@ -156,6 +172,7 @@ export interface EstimatePointsContextDto {
 export type PointsEventEarnType =
   | 'SWAP'
   | 'PERPS'
+  | 'PREDICT'
   | 'REFERRAL'
   | 'SIGN_UP_BONUS'
   | 'LOYALTY_BONUS'
@@ -283,6 +300,17 @@ export interface CardEventPayload {
 }
 
 /**
+ * mUSD deposit event payload
+ */
+export interface MusdDepositEventPayload {
+  /**
+   * Date of the deposit
+   * @example '2025-11-11'
+   */
+  date: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -345,9 +373,18 @@ export type PointsEventDto = BasePointsEventDto &
         payload: CardEventPayload | null;
       }
     | {
+        type: 'PREDICT';
+        payload: null;
+      }
+    | {
+        type: 'MUSD_DEPOSIT';
+        payload: MusdDepositEventPayload | null;
+      }
+    | {
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
         payload: null;
       }
+    | { type: string; payload: Record<string, string> | null }
   );
 
 export interface EstimatePointsDto {
@@ -403,6 +440,9 @@ export interface SeasonRewardDto {
   claimUrl?: string;
   iconName: string;
   rewardType: SeasonRewardType;
+  isEndOfSeasonReward?: boolean;
+  endOfSeasonName?: string;
+  endOfSeasonShortDescription?: string;
 }
 
 export enum SeasonRewardType {
@@ -418,6 +458,8 @@ export interface SeasonDto {
   startDate: Date;
   endDate: Date;
   tiers: SeasonTierDto[];
+  activityTypes: SeasonActivityTypeDto[];
+  shouldInstallNewVersion?: string | undefined;
 }
 
 export interface SeasonStatusBalanceDto {
@@ -450,6 +492,7 @@ export interface PointsBoostDto {
   startDate?: string;
   endDate?: string;
   backgroundColor: string;
+  deeplink?: string;
 }
 
 export interface RewardDto {
@@ -457,6 +500,7 @@ export interface RewardDto {
   seasonRewardId: string;
   claimStatus: RewardClaimStatus;
   claim?: RewardClaim;
+  createdAt?: string;
 }
 
 export type RewardClaimData =
@@ -517,6 +561,9 @@ export type SeasonRewardDtoState = {
   claimUrl?: string;
   iconName: string;
   rewardType: SeasonRewardType;
+  isEndOfSeasonReward?: boolean;
+  endOfSeasonName?: string;
+  endOfSeasonShortDescription?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -539,7 +586,9 @@ export type SeasonDtoState = {
   startDate: number; // timestamp
   endDate: number; // timestamp
   tiers: SeasonTierDtoState[];
+  activityTypes: SeasonActivityTypeDto[];
   lastFetched?: number;
+  shouldInstallNewVersion?: string | undefined;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -716,7 +765,10 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (referralCode?: string) => Promise<string | null>;
+  handler: (
+    accounts: InternalAccount[],
+    referralCode?: string,
+  ) => Promise<string | null>;
 }
 
 /**
@@ -808,11 +860,19 @@ export interface RewardsControllerIsRewardsFeatureEnabledAction {
 }
 
 /**
+ * Action for checking if there is an active season
+ */
+export interface RewardsControllerHasActiveSeasonAction {
+  type: 'RewardsController:hasActiveSeason';
+  handler: () => Promise<boolean>;
+}
+
+/**
  * Action for getting season metadata with caching
  */
 export interface RewardsControllerGetSeasonMetadataAction {
   type: 'RewardsController:getSeasonMetadata';
-  handler: (type?: 'current' | 'next') => Promise<SeasonDtoState | null>;
+  handler: (type?: 'current' | 'previous') => Promise<SeasonDtoState | null>;
 }
 
 /**
@@ -969,6 +1029,7 @@ export type RewardsControllerActions =
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
   | RewardsControllerIsRewardsFeatureEnabledAction
+  | RewardsControllerHasActiveSeasonAction
   | RewardsControllerGetSeasonMetadataAction
   | RewardsControllerGetSeasonStatusAction
   | RewardsControllerGetReferralDetailsAction
@@ -1059,6 +1120,11 @@ export interface SeasonInfoDto {
  */
 export interface DiscoverSeasonsDto {
   /**
+   * Previous season information
+   */
+  previous: SeasonInfoDto | null;
+
+  /**
    * Current season information
    */
   current: SeasonInfoDto | null;
@@ -1101,6 +1167,19 @@ export interface SeasonMetadataDto {
    * The tiers for the season
    */
   tiers: SeasonTierDto[];
+
+  /**
+   * Activity types for the season
+   */
+  activityTypes: SeasonActivityTypeDto[];
+
+  /**
+   * Optional version requirements for mobile and extension
+   */
+  shouldInstallNewVersion?: {
+    mobile: string | undefined;
+    extension: string | undefined;
+  };
 }
 
 /**
@@ -1125,3 +1204,30 @@ export interface SeasonStateDto {
    */
   updatedAt: Date;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonActivityTypeDto = {
+  /**
+   * The activity type
+   * @example 'SWAP'
+   */
+  type: string;
+
+  /**
+   * The name of the activity type
+   * @example 'Swap'
+   */
+  title: string;
+
+  /**
+   * The description of the activity type
+   * @example 'Stake your M$D to earn points'
+   */
+  description: string;
+
+  /**
+   * The icon for the activity type
+   * @example 'Rocket'
+   */
+  icon: string;
+};

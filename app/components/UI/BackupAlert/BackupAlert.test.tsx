@@ -36,6 +36,8 @@ describe('BackupAlert', () => {
       {
         state: initialState,
       },
+      true,
+      false,
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -46,6 +48,8 @@ describe('BackupAlert', () => {
       {
         state: initialState,
       },
+      true,
+      false,
     );
     const rightButton = getByTestId(PROTECT_WALLET_BUTTON);
     fireEvent.press(rightButton);

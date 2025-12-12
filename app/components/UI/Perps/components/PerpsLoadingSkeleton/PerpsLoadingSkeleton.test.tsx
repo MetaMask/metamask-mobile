@@ -15,6 +15,13 @@ jest.mock('../../../../../util/theme', () => ({
   }),
 }));
 
+// Mock the tailwind hook
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn((className) => ({ className })),
+  }),
+}));
+
 // Mock the i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -32,6 +39,17 @@ jest.mock('../../hooks/usePerpsConnection', () => ({
   usePerpsConnection: () => ({
     reconnectWithNewContext: mockReconnect,
   }),
+}));
+
+// Mock react-redux
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+// Mock the homepage redesign selector
+jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(),
 }));
 
 // Mock the design system components
@@ -111,11 +129,13 @@ describe('PerpsLoadingSkeleton', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockReconnect.mockClear();
+    mockUseSelector.mockReturnValue(false);
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    mockUseSelector.mockClear();
   });
 
   it('displays loading spinner initially', () => {

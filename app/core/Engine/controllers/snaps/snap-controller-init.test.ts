@@ -14,7 +14,7 @@ import {
   KeyringControllerUnlockEvent,
   KeyringControllerGetKeyringsByTypeAction,
 } from '@metamask/keyring-controller';
-import { store } from '../../../../store';
+import { store, runSaga } from '../../../../store';
 import { MetaMetrics } from '../../../Analytics';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -24,6 +24,9 @@ jest.mock('.../../../../store', () => ({
   store: {
     getState: jest.fn(),
   },
+  runSaga: jest
+    .fn()
+    .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
 }));
 
 function getInitRequestMock(
@@ -57,11 +60,11 @@ describe('SnapControllerInit', () => {
 
     const controllerMock = jest.mocked(SnapController);
     expect(controllerMock).toHaveBeenCalledWith({
-      dynamicPermissions: expect.any(Array),
       messenger: expect.any(Object),
       state: undefined,
       clientCryptography: {
         pbkdf2Sha512: expect.any(Function),
+        hmacSha512: expect.any(Function),
       },
       detectSnapLocation: expect.any(Function),
       encryptor: expect.any(Object),
@@ -72,6 +75,7 @@ describe('SnapControllerInit', () => {
         disableSnapInstallation: true,
         requireAllowlist: true,
         forcePreinstalledSnaps: false,
+        autoUpdatePreinstalledSnaps: true,
       },
       getFeatureFlags: expect.any(Function),
       getMnemonicSeed: expect.any(Function),
@@ -79,6 +83,7 @@ describe('SnapControllerInit', () => {
       maxRequestTime: expect.any(Number),
       preinstalledSnaps: expect.any(Array),
       trackEvent: expect.any(Function),
+      ensureOnboardingComplete: expect.any(Function),
     });
   });
 
@@ -222,6 +227,43 @@ describe('SnapControllerInit', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('ensureOnboardingComplete', () => {
+    it('returns if true onboarding has already completed', async () => {
+      snapControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(SnapController);
+      const ensureOnboardingComplete =
+        controllerMock.mock.calls[0][0].ensureOnboardingComplete;
+
+      jest.mocked(store.getState).mockReturnValue({
+        // @ts-expect-error: Partial mock.
+        onboarding: {
+          completedOnboarding: true,
+        },
+      });
+
+      expect(await ensureOnboardingComplete()).toBeUndefined();
+    });
+
+    it('returns a promise if onboarding is ongoing', async () => {
+      snapControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(SnapController);
+      const ensureOnboardingComplete =
+        controllerMock.mock.calls[0][0].ensureOnboardingComplete;
+
+      jest.mocked(store.getState).mockReturnValue({
+        // @ts-expect-error: Partial mock.
+        onboarding: {
+          completedOnboarding: false,
+        },
+      });
+
+      expect(await ensureOnboardingComplete()).toBeUndefined();
+      expect(runSaga).toHaveBeenCalled();
     });
   });
 });

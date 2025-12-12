@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -19,6 +19,22 @@ jest.mock('../../hooks/useRegisterMailingAddress');
 jest.mock('../../hooks/useRegisterUserConsent');
 jest.mock('../../hooks/useRegistrationSettings');
 jest.mock('../../sdk');
+import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
+
+// Mock useMetrics
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    })),
+  })),
+  MetaMetricsEvents: {
+    CARD_VIEWED: 'card_viewed',
+    CARD_BUTTON_CLICKED: 'card_button_clicked',
+  },
+}));
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
@@ -282,6 +298,7 @@ jest.mock('../../../../../util/Logger');
 // Mock Routes
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   CARD: {
+    VERIFYING_REGISTRATION: 'VerifyingRegistration',
     ONBOARDING: {
       COMPLETE: 'CardOnboardingComplete',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -376,6 +393,7 @@ const createTestStore = (initialState = {}) =>
 
 // Mock functions
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -383,6 +401,8 @@ const mockUseRegisterMailingAddress =
   useRegisterMailingAddress as jest.MockedFunction<
     typeof useRegisterMailingAddress
   >;
+const mockUseRegisterUserConsent =
+  useRegisterUserConsent as jest.MockedFunction<typeof useRegisterUserConsent>;
 const mockUseRegistrationSettings =
   useRegistrationSettings as jest.MockedFunction<
     typeof useRegistrationSettings
@@ -400,6 +420,7 @@ describe('MailingAddress Component', () => {
     // Mock navigation
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
     } as unknown as ReturnType<typeof useNavigation>);
 
     // Mock useRegisterMailingAddress
@@ -409,6 +430,20 @@ describe('MailingAddress Component', () => {
       isSuccess: false,
       isError: false,
       error: null,
+      clearError: jest.fn(),
+      reset: jest.fn(),
+    });
+
+    // Mock useRegisterUserConsent
+    mockUseRegisterUserConsent.mockReturnValue({
+      createOnboardingConsent: jest.fn(),
+      linkUserToConsent: jest.fn(),
+      isLoading: false,
+      isSuccess: false,
+      isError: false,
+      error: null,
+      consentSetId: null,
+      getOnboardingConsentSetByOnboardingId: jest.fn(),
       clearError: jest.fn(),
       reset: jest.fn(),
     });
@@ -469,7 +504,7 @@ describe('MailingAddress Component', () => {
         },
       },
       isLoading: false,
-      error: false,
+      error: null,
       fetchData: jest.fn(),
     });
 
@@ -481,6 +516,7 @@ describe('MailingAddress Component', () => {
         id: 'user-id',
         email: 'test@example.com',
       },
+      fetchUserData: jest.fn(),
       setUser: mockSetUser,
       logoutFromProvider: jest.fn(),
     });
@@ -652,17 +688,15 @@ describe('MailingAddress Component', () => {
         </Provider>,
       );
 
-      // Fill required fields
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
 
-      // Wait for state updates
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const button = getByTestId('mailing-address-continue-button');
-      expect(button.props.disabled).toBe(false);
+      await waitFor(() => {
+        const button = getByTestId('mailing-address-continue-button');
+        expect(button.props.disabled).toBe(false);
+      });
     });
   });
 
@@ -799,7 +833,17 @@ describe('MailingAddress Component', () => {
   describe('Edge Cases', () => {
     it('handles empty Redux state gracefully', () => {
       const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation(() => ({}));
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: null,
+              onboardingId: null,
+              consentSetId: null,
+            },
+          },
+        }),
+      );
 
       const { getByTestId } = render(
         <Provider store={store}>
@@ -814,7 +858,7 @@ describe('MailingAddress Component', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: jest.fn(),
       });
 
@@ -831,7 +875,7 @@ describe('MailingAddress Component', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: jest.fn(),
       });
 
@@ -1096,17 +1140,20 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockRegisterAddress).toHaveBeenCalledWith({
-        onboardingId: 'test-id',
-        addressLine1: '123 Main St',
-        addressLine2: 'Apt 4B',
-        city: 'San Francisco',
-        usState: 'CA',
-        zip: '94102',
+      await waitFor(() => {
+        expect(mockRegisterAddress).toHaveBeenCalledWith({
+          onboardingId: 'test-id',
+          addressLine1: '123 Main St',
+          addressLine2: 'Apt 4B',
+          city: 'San Francisco',
+          usState: 'CA',
+          zip: '94102',
+        });
       });
     });
 
@@ -1153,17 +1200,20 @@ describe('MailingAddress Component', () => {
       fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockRegisterAddress).toHaveBeenCalledWith({
-        onboardingId: 'test-id',
-        addressLine1: '123 Main St',
-        addressLine2: '',
-        city: 'Toronto',
-        usState: undefined,
-        zip: 'M5H 2N2',
+      await waitFor(() => {
+        expect(mockRegisterAddress).toHaveBeenCalledWith({
+          onboardingId: 'test-id',
+          addressLine1: '123 Main St',
+          addressLine2: '',
+          city: 'Toronto',
+          usState: undefined,
+          zip: 'M5H 2N2',
+        });
       });
     });
 
@@ -1201,11 +1251,14 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockSetUser).toHaveBeenCalledWith(updatedUser);
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith(updatedUser);
+      });
     });
 
     it('stores access token and dispatches Redux actions on success', async () => {
@@ -1240,14 +1293,17 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
-        accessToken: 'test-access-token',
-        accessTokenExpiresAt: 3600000,
-        location: 'us',
+      await waitFor(() => {
+        expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
+          accessToken: 'test-access-token',
+          accessTokenExpiresAt: 3600000,
+          location: 'us',
+        });
       });
     });
 
@@ -1283,11 +1339,21 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingComplete');
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: 'VerifyingRegistration' }],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('navigates to sign up when Onboarding ID not found error occurs', async () => {
@@ -1319,11 +1385,14 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingSignUp');
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingSignUp');
+      });
     });
 
     it('allows error display for general registration errors', async () => {
@@ -1351,20 +1420,22 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      // Should not navigate on general errors
-      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
     });
   });
 
   describe('Input Change Handler Error Resets', () => {
-    let mockReset: jest.Mock;
+    let mockResetHandler: jest.Mock;
 
     beforeEach(() => {
-      mockReset = jest.fn();
+      mockResetHandler = jest.fn();
       mockUseRegisterMailingAddress.mockReturnValue({
         registerAddress: jest.fn(),
         isLoading: false,
@@ -1372,7 +1443,7 @@ describe('MailingAddress Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        reset: mockReset,
+        reset: mockResetHandler,
       });
     });
 
@@ -1386,7 +1457,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('address-line-1-input');
       fireEvent.changeText(input, '123 Main St');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when address line 2 changes', () => {
@@ -1399,7 +1470,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('address-line-2-input');
       fireEvent.changeText(input, 'Apt 4B');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when city changes', () => {
@@ -1412,7 +1483,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('city-input');
       fireEvent.changeText(input, 'San Francisco');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when state changes', () => {
@@ -1425,7 +1496,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('state-select');
       fireEvent.press(input);
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when zip code changes', () => {
@@ -1438,7 +1509,403 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('zip-code-input');
       fireEvent.changeText(input, '94102');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('Defensive Consent Management', () => {
+    let mockRegisterAddress: jest.Mock;
+    let mockGetOnboardingConsentSetByOnboardingId: jest.Mock;
+    let mockCreateOnboardingConsent: jest.Mock;
+    let mockLinkUserToConsent: jest.Mock;
+    let mockDispatch: jest.Mock;
+
+    beforeEach(() => {
+      mockRegisterAddress = jest.fn();
+      mockGetOnboardingConsentSetByOnboardingId = jest.fn();
+      mockCreateOnboardingConsent = jest.fn();
+      mockLinkUserToConsent = jest.fn();
+      mockDispatch = jest.fn();
+
+      const { useDispatch } = jest.requireMock('react-redux');
+      useDispatch.mockReturnValue(mockDispatch);
+
+      const cardTokenVault = jest.requireMock('../../util/cardTokenVault');
+      cardTokenVault.storeCardBaanxToken = jest
+        .fn()
+        .mockResolvedValue({ success: true });
+
+      const mapCountry = jest.requireMock('../../util/mapCountryToLocation');
+      mapCountry.mapCountryToLocation = jest.fn().mockReturnValue('us');
+
+      const extractToken = jest.requireMock(
+        '../../util/extractTokenExpiration',
+      );
+      extractToken.extractTokenExpiration = jest.fn().mockReturnValue(3600000);
+    });
+
+    it('creates new consent when no existing consent found', async () => {
+      // Given: No consent exists and registration will succeed
+      mockGetOnboardingConsentSetByOnboardingId.mockResolvedValue(null);
+      mockCreateOnboardingConsent.mockResolvedValue('new-consent-123');
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should check for existing consent and create new one
+      await waitFor(() => {
+        expect(mockGetOnboardingConsentSetByOnboardingId).toHaveBeenCalledWith(
+          'test-id',
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockCreateOnboardingConsent).toHaveBeenCalledWith('test-id');
+      });
+
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'new-consent-123',
+          'user-123',
+        );
+      });
+    });
+
+    it('reuses existing incomplete consent', async () => {
+      // Given: Incomplete consent exists
+      mockGetOnboardingConsentSetByOnboardingId.mockResolvedValue({
+        consentSetId: 'existing-consent-456',
+        userId: null,
+        completedAt: null,
+      });
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should reuse existing consent without creating new one
+      await waitFor(() => {
+        expect(mockGetOnboardingConsentSetByOnboardingId).toHaveBeenCalledWith(
+          'test-id',
+        );
+      });
+
+      expect(mockCreateOnboardingConsent).not.toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'existing-consent-456',
+          'user-123',
+        );
+      });
+    });
+
+    it('skips consent operations when consent already completed', async () => {
+      // Given: Completed consent exists
+      mockGetOnboardingConsentSetByOnboardingId.mockResolvedValue({
+        consentSetId: 'completed-consent-789',
+        userId: 'user-123',
+        completedAt: '2024-01-01T00:00:00.000Z',
+      });
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should check for existing consent but skip all consent operations
+      await waitFor(() => {
+        expect(mockGetOnboardingConsentSetByOnboardingId).toHaveBeenCalledWith(
+          'test-id',
+        );
+      });
+
+      expect(mockCreateOnboardingConsent).not.toHaveBeenCalled();
+      expect(mockLinkUserToConsent).not.toHaveBeenCalled();
+
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: 'VerifyingRegistration' }],
+          });
+        },
+        { timeout: 3000 },
+      );
+    });
+
+    it('uses existing consent set ID from Redux when available', async () => {
+      // Given: Consent ID exists in Redux
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: 'US',
+              onboardingId: 'test-id',
+              consentSetId: 'redux-consent-999',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should use Redux consent ID without checking API
+      expect(mockGetOnboardingConsentSetByOnboardingId).not.toHaveBeenCalled();
+      expect(mockCreateOnboardingConsent).not.toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'redux-consent-999',
+          'user-123',
+        );
+      });
+    });
+
+    it('clears consent set ID from Redux after linking consent', async () => {
+      // Given: No consent exists
+      mockGetOnboardingConsentSetByOnboardingId.mockResolvedValue(null);
+      mockCreateOnboardingConsent.mockResolvedValue('new-consent-123');
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+
+      // When: User submits the form and consent is linked
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      // Then: Should dispatch action to clear consent set ID after linking
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'new-consent-123',
+          'user-123',
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: expect.stringContaining('setConsentSetId'),
+            payload: null,
+          }),
+        );
+      });
     });
   });
 
@@ -1494,10 +1961,10 @@ describe('MailingAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'Toronto');
       fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const button = getByTestId('mailing-address-continue-button');
-      expect(button.props.disabled).toBe(false);
+      await waitFor(() => {
+        const button = getByTestId('mailing-address-continue-button');
+        expect(button.props.disabled).toBe(false);
+      });
     });
 
     it('disables button when registration is in error state', () => {

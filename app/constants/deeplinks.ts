@@ -13,6 +13,7 @@ export enum PROTOCOLS {
 }
 
 export enum ACTIONS {
+  RAMP = 'ramp',
   ENABLE_CARD_BUTTON = 'enable-card-button',
   DAPP = 'dapp',
   SEND = 'send',
@@ -37,6 +38,7 @@ export enum ACTIONS {
   PERPS_MARKETS = 'perps-markets',
   PERPS_ASSET = 'perps-asset',
   REWARDS = 'rewards',
+  PREDICT = 'predict',
   ONBOARDING = 'onboarding',
 }
 
@@ -62,6 +64,7 @@ export const PREFIXES = {
   [ACTIONS.PERPS_MARKETS]: '',
   [ACTIONS.PERPS_ASSET]: '',
   [ACTIONS.REWARDS]: '',
+  [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
   [ACTIONS.ENABLE_CARD_BUTTON]: '',
   METAMASK: 'metamask://',

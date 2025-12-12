@@ -50,11 +50,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="AddAsset"
-    options={
-      {
-        "headerShown": false,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -67,7 +63,34 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="SettingsView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="Asset"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="TrendingTokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -114,10 +137,22 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="NftDetails"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
     name="NftDetailsFullImage"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -133,6 +168,10 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="PaymentRequestView"
   />
   <Screen
+    component={[Function]}
+    name="RampTokenSelection"
+  />
+  <Screen
     name="RampBuy"
   />
   <Screen
@@ -141,10 +180,6 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="Deposit"
-  />
-  <Screen
-    component={[Function]}
-    name="Swaps"
   />
   <Screen
     component={[Function]}
@@ -167,6 +202,13 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="StakeScreens"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -248,6 +290,8 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="DeFiProtocolPositionDetails"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": true,
       }
     }

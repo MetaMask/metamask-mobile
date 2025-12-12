@@ -9,6 +9,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import { PERPS_MARKET_LIST_CONSTANTS } from '../../constants/marketListConfig';
 import styleSheet from './PerpsMarketList.styles';
 import type { PerpsMarketListProps } from './PerpsMarketList.types';
 import type { PerpsMarketData } from '../../controllers/types';
@@ -84,6 +85,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={ListHeaderComponent}
+      drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
+      removeClippedSubviews
       testID={testID}
     />
   );

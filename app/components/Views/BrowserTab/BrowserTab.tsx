@@ -48,12 +48,13 @@ import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
-  getCaip25Caveat,
   getPermittedCaipAccountIdsByHostname,
   getPermittedEvmAddressesByHostname,
   sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { isInternalDeepLink } from '../../../util/deeplinks';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
@@ -76,8 +77,7 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
@@ -111,16 +111,22 @@ import UrlAutocomplete, {
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import {
   getPhishingTestResult,
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
-import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
+import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 /**
  * Tab component for the in-app browser
@@ -134,7 +140,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     toggleFullscreen,
     showTabs,
     linkType,
-    isInTabsView,
     updateTabInfo,
     addToBrowserHistory,
     bookmarks,
@@ -143,6 +148,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     newTab,
     homePageUrl,
     activeChainId,
+    fromTrending,
   }) => {
     // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -164,7 +170,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       ConnectionType.UNKNOWN,
     );
     const webviewRef = useRef<WebView>(null);
-    const blockListType = useRef<string>(''); // TODO: Consider improving this type
     const webStates = useRef<
       Record<string, { requested: boolean; started: boolean; ended: boolean }>
     >({});
@@ -194,6 +199,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }>();
     const fromHomepage = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
+    const isAssetsTrendingTokensEnabled = useSelector(
+      selectAssetsTrendingTokensEnabled,
+    );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
@@ -242,8 +250,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const whitelist = useSelector(
       (state: RootState) => state.browser.whitelist,
     );
-
-    const isFocused = useIsFocused();
 
     /**
      * Checks if a given url or the current url is the homepage
@@ -338,9 +344,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
 
         const testResult = await getPhishingTestResultAsync(urlOrigin);
-        if (testResult?.result && testResult.name) {
-          blockListType.current = testResult.name;
-        }
         return !testResult?.result;
       },
       [whitelist],
@@ -670,60 +673,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       ],
     );
 
-    const checkTabPermissions = useCallback(() => {
-      if (isPerDappSelectedNetworkEnabled()) {
-        return;
-      }
-
-      if (!(isFocused && !isInTabsView && isTabActive)) {
-        return;
-      }
-      if (!resolvedUrlRef.current) return;
-      const hostname = new URLParse(resolvedUrlRef.current).origin;
-      const permissionsControllerState =
-        Engine.context.PermissionController.state;
-      const permittedAccounts = getPermittedCaipAccountIdsByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-
-      const isConnected = permittedAccounts.length > 0;
-
-      if (isConnected) {
-        let permittedChains = [];
-        try {
-          const caveat = getCaip25Caveat(hostname);
-          permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : [];
-
-          const currentChainId = toHex(activeChainId);
-          const isCurrentChainIdAlreadyPermitted =
-            permittedChains.includes(currentChainId);
-
-          if (!isCurrentChainIdAlreadyPermitted) {
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-              params: {
-                isNonDappNetworkSwitch: true,
-                hostInfo: {
-                  metadata: {
-                    origin: hostname,
-                  },
-                },
-                isRenderedAsBottomSheet: true,
-                initialScreen: AccountPermissionsScreens.Connected,
-              },
-            });
-          }
-        } catch (e) {
-          const checkTabPermissionsError = e as Error;
-          Logger.error(
-            checkTabPermissionsError,
-            'Error in checkTabPermissions',
-          );
-        }
-      }
-    }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive]);
-
     /**
      * Handles state changes for when the url changes
      */
@@ -766,10 +715,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           name: siteInfo.title,
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
-
-        if (!isPerDappSelectedNetworkEnabled()) {
-          checkTabPermissions();
-        }
       },
       [
         isUrlBarFocused,
@@ -779,7 +724,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         updateTabInfo,
         addToBrowserHistory,
         navigation,
-        checkTabPermissions,
       ],
     );
 
@@ -811,6 +755,31 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           handleNotAllowedUrl(urlToLoad);
           return false;
         }
+      }
+
+      // Check if this is an internal MetaMask deeplink that should be handled within the app
+      if (isInternalDeepLink(urlToLoad)) {
+        // Handle the deeplink internally instead of passing to OS
+        SharedDeeplinkManager.getInstance()
+          .parse(urlToLoad, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+            browserCallBack: (url: string) => {
+              // If the deeplink handler wants to navigate to a different URL in the browser
+              if (url && webviewRef.current) {
+                webviewRef.current.injectJavaScript(`
+                window.location.href = '${sanitizeUrlInput(url)}';
+                true;  // Required for iOS
+              `);
+              }
+            },
+          })
+          .catch((error) => {
+            Logger.error(
+              error,
+              'BrowserTab: Failed to handle internal deeplink in browser',
+            );
+          });
+        return false; // Stop the webview from loading this URL
       }
 
       const { protocol } = new URLParse(urlToLoad);
@@ -1168,12 +1137,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [linkType],
     );
 
-    useEffect(() => {
-      if (!isPerDappSelectedNetworkEnabled()) {
-        checkTabPermissions();
-      }
-    }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
-
     const handleEnsUrl = useCallback(
       async (ens: string) => {
         try {
@@ -1349,6 +1312,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [],
     );
 
+    const handleBackPress = useCallback(() => {
+      if (fromTrending) {
+        // If within trending follow the normal back button behavior
+        navigation.goBack();
+      } else {
+        // By default go to trending
+        navigation.navigate(Routes.TRENDING_VIEW, {
+          screen: Routes.TRENDING_FEED,
+        });
+      }
+    }, [navigation, fromTrending]);
+
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
       // Reset the url bar to the current url
@@ -1356,6 +1331,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, [hideAutocomplete]);
+
+    const showBackButton = isAssetsTrendingTokensEnabled;
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
@@ -1478,19 +1455,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             style={styles.wrapper}
             {...(Device.isAndroid() ? { collapsable: false } : {})}
           >
-            <BrowserUrlBar
-              ref={urlBarRef}
-              connectionType={connectionType}
-              onSubmitEditing={onSubmitEditing}
-              onCancel={onCancelUrlBar}
-              onFocus={onFocusUrlBar}
-              onBlur={hideAutocomplete}
-              onChangeText={onChangeUrlBar}
-              connectedAccounts={permittedCaipAccountAddressesList}
-              activeUrl={resolvedUrlRef.current}
-              setIsUrlBarFocused={setIsUrlBarFocused}
-              isUrlBarFocused={isUrlBarFocused}
-            />
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              {showBackButton && (
+                <ButtonIcon
+                  iconName={IconName.ArrowLeft}
+                  size={ButtonIconSize.Lg}
+                  onPress={handleBackPress}
+                  testID="browser-tab-back-button"
+                />
+              )}
+              <Box twClassName="flex-1">
+                <BrowserUrlBar
+                  ref={urlBarRef}
+                  connectionType={connectionType}
+                  onSubmitEditing={onSubmitEditing}
+                  onCancel={onCancelUrlBar}
+                  onFocus={onFocusUrlBar}
+                  onBlur={hideAutocomplete}
+                  onChangeText={onChangeUrlBar}
+                  connectedAccounts={permittedCaipAccountAddressesList}
+                  activeUrl={resolvedUrlRef.current}
+                  setIsUrlBarFocused={setIsUrlBarFocused}
+                  isUrlBarFocused={isUrlBarFocused}
+                  showCloseButton={
+                    fromTrending && isAssetsTrendingTokensEnabled
+                  }
+                />
+              </Box>
+            </Box>
             <View style={styles.wrapper}>
               {renderProgressBar()}
               <View style={styles.webview}>
@@ -1555,7 +1550,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 urlBarRef={urlBarRef}
                 addToWhitelist={triggerAddToWhitelist}
                 activeUrl={resolvedUrlRef.current}
-                blockListType={blockListType}
                 goToUrl={onSubmitEditing}
               />
             )}

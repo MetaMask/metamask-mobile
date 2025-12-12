@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useRef } from 'react';
-import { Text, TouchableOpacity, View, InteractionManager } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
@@ -12,31 +12,25 @@ import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
-import {
-  createProviderConfig,
-  selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
-  selectProviderConfig,
-} from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import {
-  findBlockExplorerForNonEvmChainId,
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
-import { RootState } from '../../../reducers';
-import { Hex } from '@metamask/utils';
-import { appendURLParams } from '../../../util/browser';
+import { CaipAssetType, Hex } from '@metamask/utils';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { removeNonEvmToken } from '../../UI/Tokens/util';
+import { toChecksumAddress, areAddressesEqual } from '../../../util/address';
+import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import useBlockExplorer from '../../hooks/useBlockExplorer';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -100,52 +94,39 @@ const AssetOptions = (props: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
-  const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
   const tokenList = useSelector(selectTokenList);
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
+  // Get the selected account for the current network (works for all non-EVM chains)
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
+  const assets = useSelector(selectAssetsBySelectedAccountGroup);
 
-  // Memoize the provider config for the token explorer
-  const { providerConfigTokenExplorer } = useMemo(() => {
+  // Check if token exists in state
+  const tokenExistsInState = useMemo(() => {
+    // selectAssetsBySelectedAccountGroup returns { [chainId: string]: Asset[] }
+    const chainAssets = assets[networkId] || [];
+    if (!chainAssets.length) {
+      return false;
+    }
+
     if (isNonEvmChainId(networkId)) {
-      return {
-        providerConfigTokenExplorer: null,
-      };
-    }
-    const tokenNetworkConfig = networkConfigurations[networkId as Hex];
-    const tokenRpcEndpoint =
-      tokenNetworkConfig?.rpcEndpoints?.[
-        tokenNetworkConfig?.defaultRpcEndpointIndex
-      ];
-    let providerConfigToken;
-    if (isPortfolioViewEnabled()) {
-      providerConfigToken = createProviderConfig(
-        tokenNetworkConfig,
-        tokenRpcEndpoint,
-      );
-    } else {
-      providerConfigToken = providerConfig;
+      // For non-EVM chains, the address is already in CAIP asset format (e.g., "solana:mainnet/token:...")
+      // Check if any asset has a matching assetId
+      return chainAssets.some((assetItem) => assetItem.assetId === address);
     }
 
-    const providerConfigTokenExplorerToken = providerConfigToken;
+    // For EVM tokens, asset.assetId equals the address (already in hex)
+    return chainAssets.some((assetItem) =>
+      assetItem.assetId ? areAddressesEqual(assetItem.assetId, address) : false,
+    );
+  }, [assets, networkId, address]);
 
-    return {
-      providerConfigTokenExplorer: providerConfigTokenExplorerToken,
-    };
-  }, [networkId, networkConfigurations, providerConfig]);
-
-  const explorer = useBlockExplorer(
-    networkConfigurations,
-    providerConfigTokenExplorer,
-  );
-  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
+  const explorer = useBlockExplorer(asset.chainId ?? networkId);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
@@ -166,41 +147,24 @@ const AssetOptions = (props: Props) => {
   };
 
   const openOnBlockExplorer = () => {
-    let explorerToUse = explorer;
-    if (isNonEvmChainId(networkId)) {
-      const solanaExplorer = findBlockExplorerForNonEvmChainId(networkId);
-      explorerToUse = {
-        baseUrl: solanaExplorer,
-        token: (tokenAddress: string) =>
-          `${solanaExplorer}/token/${tokenAddress}`,
-        account: (accountAddress: string) =>
-          `${solanaExplorer}/account/${accountAddress}`,
-        tx: (hash: string) => `${solanaExplorer}/tx/${hash}`,
-        name: 'Block Explorer',
-        value: null,
-        isValid: true,
-        isRPC: false,
-      };
-    }
-    let url = '';
-    const title = new URL(explorerToUse.baseUrl).hostname;
+    // Extract actual token address from CAIP format for non-EVM chains
+    const tokenAddress = isNonEvmChainId(networkId)
+      ? extractTokenAddressFromCaip(address)
+      : address;
 
     // Check if this is a native currency or wrapped native token (like wSOL)
     const isNativeToken =
       isNativeCurrency || isNativeTokenAddress(address, networkId);
 
-    if (isNativeToken) {
-      // Go to block explorer base URL for native tokens
-      url = explorerToUse.baseUrl;
-    } else {
-      // Extract the actual token address from CAIP format only for non-EVM chains
-      const tokenAddress = isNonEvmChainId(networkId)
-        ? extractTokenAddressFromCaip(address)
-        : address;
-      // Go to token on block explorer
-      url = explorerToUse.token(tokenAddress);
+    // For native currencies, go to the base block explorer URL
+    // For tokens, go to the address/account page
+    const url = isNativeToken
+      ? explorer.getBlockExplorerBaseUrl(networkId)
+      : explorer.getBlockExplorerUrl(tokenAddress, networkId);
+
+    if (url) {
+      goToBrowserUrl(url, explorer.getBlockExplorerName(networkId));
     }
-    goToBrowserUrl(url, title);
   };
 
   const openTokenDetails = () => {
@@ -210,7 +174,7 @@ const AssetOptions = (props: Props) => {
         ? extractTokenAddressFromCaip(address)
         : address;
       navigation.navigate('AssetDetails', {
-        address: tokenAddress,
+        address: toChecksumAddress(tokenAddress),
         chainId: networkId,
         asset,
       });
@@ -227,13 +191,9 @@ const AssetOptions = (props: Props) => {
     if (existingPortfolioTab) {
       existingTabId = existingPortfolioTab.id;
     } else {
-      const analyticsEnabled = isEnabled();
-
-      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-        metamaskEntry: 'mobile',
-        metricsEnabled: analyticsEnabled,
-        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-      });
+      const portfolioUrl = buildPortfolioUrlWithMetrics(
+        AppConstants.PORTFOLIO.URL,
+      );
 
       newTabUrl = portfolioUrl.href;
     }
@@ -256,60 +216,62 @@ const AssetOptions = (props: Props) => {
   };
 
   const removeToken = () => {
-    const { TokensController } = Engine.context;
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: 'AssetHideConfirmation',
       params: {
-        onConfirm: () => {
+        onConfirm: async () => {
           navigation.navigate('WalletView');
-          InteractionManager.runAfterInteractions(async () => {
-            try {
-              const { NetworkController } = Engine.context;
+          try {
+            let tokenSymbol;
+            if (isNonEvmChainId(networkId)) {
+              // Use the utility function for non-EVM token removal
+              await removeNonEvmToken({
+                tokenAddress: address,
+                tokenChainId: networkId,
+                selectInternalAccountByScope,
+              });
 
-              const chainIdToUse = isPortfolioViewEnabled()
-                ? networkId
-                : chainId;
+              // Get token symbol for notification
+              const { MultichainAssetsController } = Engine.context;
+              tokenSymbol =
+                MultichainAssetsController.state.assetsMetadata[
+                  address as CaipAssetType
+                ]?.symbol || null;
+            } else {
+              const { TokensController, NetworkController } = Engine.context;
 
               const networkClientId =
                 NetworkController.findNetworkClientIdByChainId(
-                  chainIdToUse as Hex,
+                  networkId as Hex,
                 );
-
-              // Extract the actual token address from CAIP format only for non-EVM chains
-              const tokenAddress = isNonEvmChainId(networkId)
-                ? extractTokenAddressFromCaip(address)
-                : address;
-              await TokensController.ignoreTokens(
-                [tokenAddress],
-                networkClientId,
-              );
-              NotificationManager.showSimpleNotification({
-                status: `simple_notification`,
-                duration: 5000,
-                title: strings('wallet.token_toast.token_hidden_title'),
-                description: strings('wallet.token_toast.token_hidden_desc', {
-                  tokenSymbol: tokenList[address.toLowerCase()]?.symbol || null,
-                }),
-              });
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
-                  .addProperties({
-                    location: 'token_details',
-                    token_standard: 'ERC20',
-                    asset_type: 'token',
-                    tokens: [
-                      `${
-                        tokenList[address.toLowerCase()]?.symbol
-                      } - ${address}`,
-                    ],
-                    chain_id: getDecimalChainId(chainId),
-                  })
-                  .build(),
-              );
-            } catch (err) {
-              Logger.log(err, 'AssetDetails: Failed to hide token!');
+              await TokensController.ignoreTokens([address], networkClientId);
+              tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
             }
-          });
+
+            NotificationManager.showSimpleNotification({
+              status: `simple_notification`,
+              duration: 5000,
+              title: strings('wallet.token_toast.token_hidden_title'),
+              description: strings('wallet.token_toast.token_hidden_desc', {
+                tokenSymbol,
+              }),
+            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+                .addProperties({
+                  location: 'token_details',
+                  token_standard: 'ERC20',
+                  asset_type: 'token',
+                  tokens: [
+                    `${tokenList[address.toLowerCase()]?.symbol} - ${address}`,
+                  ],
+                  chain_id: getDecimalChainId(chainId),
+                })
+                .build(),
+            );
+          } catch (err) {
+            Logger.log(err, 'AssetDetails: Failed to hide token!');
+          }
         },
       },
     });
@@ -328,7 +290,7 @@ const AssetOptions = (props: Props) => {
         onPress: openPortfolio,
         icon: IconName.Export,
       });
-    Boolean(explorer.baseUrl) &&
+    Boolean(explorer.getBlockExplorerName(networkId)) &&
       options.push({
         label: strings('asset_details.options.view_on_block'),
         onPress: openOnBlockExplorer,
@@ -342,7 +304,7 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
-      !isNonEvmChainId(networkId) &&
+      tokenExistsInState &&
       options.push({
         label: strings('asset_details.options.remove_token'),
         onPress: removeToken,

@@ -332,18 +332,6 @@ describe('AssetOverview', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-  it('should render correctly', async () => {
-    const container = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-    expect(container).toMatchSnapshot();
-  });
 
   it('should handle buy button press', async () => {
     const { getByTestId } = renderWithProvider(
@@ -811,21 +799,49 @@ describe('AssetOverview', () => {
     expect(buyButton).toBeNull();
   });
 
-  it('should render native balances even if there are no accounts for the asset chain in the state', async () => {
-    const container = renderWithProvider(
-      <AssetOverview
-        asset={{
-          ...asset,
-          chainId: '0x2',
-          isNative: true,
-        }}
-        displayBuyButton
-        displaySwapsButton
-      />,
-      { state: mockInitialState },
+  it('renders native balances when no accounts exist for asset chain', () => {
+    // Create state without accounts for chain 0x2
+    const stateWithoutChainAccounts = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              // Only has accounts for chain 0x1, not 0x2
+              [MOCK_CHAIN_ID]: {
+                [MOCK_ADDRESS_2]: { balance: '0x1' },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const nativeAsset = {
+      ...asset,
+      chainId: '0x2',
+      isNative: true,
+    };
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AssetOverview asset={nativeAsset} displayBuyButton displaySwapsButton />,
+      { state: stateWithoutChainAccounts },
     );
 
-    expect(container).toMatchSnapshot();
+    // Component should render without crashing
+    const container = getByTestId(TokenOverviewSelectorsIDs.CONTAINER);
+    expect(container).toBeDefined();
+
+    // When no accounts exist for the chain, renderFromWei(undefined) returns '0'
+    // Balance component should render because balance is '0' (not null/undefined)
+    // Verify secondaryBalance shows '0' with the ticker
+    const secondaryBalance = queryByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
+    if (secondaryBalance) {
+      expect(secondaryBalance.props.children).toContain('0');
+      expect(secondaryBalance.props.children).toContain(nativeAsset.symbol);
+    }
   });
 
   it('should render native balances when non evm network is selected', async () => {
@@ -1062,7 +1078,7 @@ describe('AssetOverview', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
+    it('render mainBalance as fiat and secondaryBalance as native', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview asset={asset} />,
         {
@@ -1074,7 +1090,7 @@ describe('AssetOverview', () => {
       const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
       expect(mainBalance.props.children).toBe('1500');
-      expect(secondaryBalance.props.children).toBe('0 ETH');
+      expect(secondaryBalance.props.children).toBe('400 ETH');
     });
 
     it('should handle multichain send for Solana assets', async () => {

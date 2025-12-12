@@ -15,7 +15,6 @@ import styleSheet from './HIP3DebugView.styles';
 import Engine from '../../../../core/Engine';
 import type { HyperLiquidProvider } from '../controllers/providers/HyperLiquidProvider';
 import type { MarketInfo } from '../controllers/types';
-import { findOptimalAmount } from '../utils/orderCalculations';
 
 interface TestResult {
   status: 'idle' | 'loading' | 'success' | 'error';
@@ -367,36 +366,37 @@ const HIP3DebugView: React.FC = () => {
       const szDecimals = marketInfo.szDecimals;
 
       // Calculate position size for $11 USD notional value
-      // Use findOptimalAmount to handle rounding correctly and ensure we meet $10 minimum
+      // USD as source of truth - provider will recalculate size with fresh price
       const targetUsdAmount = 11;
-      const optimalAmount = findOptimalAmount({
-        targetAmount: targetUsdAmount.toString(),
-        maxAllowedAmount: 1000, // Reasonable max for test orders
-        minAllowedAmount: 10, // HyperLiquid minimum order size
-        price: currentPrice,
-        szDecimals,
-      });
 
-      // Calculate actual position size from optimal amount
-      const positionSize = parseFloat(optimalAmount) / currentPrice;
+      // Calculate position size from USD amount
+      const positionSize = targetUsdAmount / currentPrice;
+      const multiplier = Math.pow(10, szDecimals);
+      const roundedPositionSize =
+        Math.round(positionSize * multiplier) / multiplier;
 
       DevLogger.log('Order calculation:', {
         market: selectedMarket,
         currentPrice: currentPrice.toFixed(2),
         szDecimals,
         targetAmount: targetUsdAmount,
-        optimalAmount,
-        calculatedPositionSize: positionSize.toFixed(szDecimals),
-        expectedNotional: (positionSize * currentPrice).toFixed(2),
+        calculatedPositionSize: roundedPositionSize.toFixed(szDecimals),
+        expectedNotional: (roundedPositionSize * currentPrice).toFixed(2),
       });
 
       // Place order with calculated size
+      // USD-as-source-of-truth: provide currentPrice and usdAmount for validation
       const result = await provider.placeOrder({
         coin: selectedMarket,
         isBuy: true,
-        size: positionSize.toFixed(szDecimals),
+        size: roundedPositionSize.toFixed(szDecimals),
         orderType: 'market',
         leverage: 5,
+        // Required by USD-as-source-of-truth validation
+        currentPrice,
+        usdAmount: targetUsdAmount.toString(),
+        priceAtCalculation: currentPrice,
+        maxSlippageBps: 100, // 1% slippage tolerance
       });
 
       if (result.success) {

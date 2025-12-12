@@ -3,6 +3,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Pressable } from 'react-native';
@@ -11,9 +13,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
 import SearchBox from '../SearchBox';
@@ -54,7 +53,7 @@ const PredictFeedHeader: React.FC<PredictFeedHeaderProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="w-full py-2 px-4"
+          twClassName="w-full pt-2 pb-4 px-4"
           style={{ backgroundColor: colors.background.default }}
         >
           <Box
@@ -69,7 +68,7 @@ const PredictFeedHeader: React.FC<PredictFeedHeaderProps> = ({
                 color={colors.text.default}
               />
             </Pressable>
-            <Text variant={TextVariant.HeadingLG}>Predictions</Text>
+            <Text variant={TextVariant.HeadingLg}>Predictions</Text>
           </Box>
           <Pressable testID="search-toggle-button" onPress={onSearchToggle}>
             <Icon

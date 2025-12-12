@@ -42,6 +42,7 @@ const getStories = () => {
   return {
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
     "./app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx": require("../app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx"),
+    "./app/component-library/components-temp/ButtonFilter/ButtonFilter.stories.tsx": require("../app/component-library/components-temp/ButtonFilter/ButtonFilter.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonSemantic/ButtonSemantic.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonSemantic/ButtonSemantic.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
@@ -130,8 +131,8 @@ const getStories = () => {
     "./app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx": require("../app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx"),
     "./app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx": require("../app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx"),
     "./app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx": require("../app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx"),
+    "./app/components/UI/Ramp/Aggregator/components/ShapesBackgroundAnimation/index.stories.tsx": require("../app/components/UI/Ramp/Aggregator/components/ShapesBackgroundAnimation/index.stories.tsx"),
     "./app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx": require("../app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx"),
-    "./app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx": require("../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx"),
     "./app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx": require("../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx"),
     "./app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx"),
     "./app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx"),

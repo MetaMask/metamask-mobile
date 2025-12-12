@@ -174,4 +174,21 @@ describe('ListItemSelect', () => {
     const component = getByTestId('list-item-select');
     expect(component).toBeOnTheScreen();
   });
+
+  it('passes through custom listItemProps', () => {
+    const { getByTestId } = render(
+      <ListItemSelect
+        onPress={() => null}
+        listItemProps={{
+          accessibilityHint: 'Custom Hint',
+          testID: 'nested-list-item',
+        }}
+      >
+        <View testID="test-content">Test Content</View>
+      </ListItemSelect>,
+    );
+
+    const component = getByTestId('nested-list-item');
+    expect(component.props.accessibilityHint).toBe('Custom Hint');
+  });
 });

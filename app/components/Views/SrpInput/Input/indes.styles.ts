@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleProp, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleProp, StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -19,7 +19,7 @@ import { InputStyleSheetVars } from '../../../../component-library/components/Fo
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: InputStyleSheetVars & { inputStyle?: StyleProp<ViewStyle> };
+  vars: InputStyleSheetVars & { inputStyle?: StyleProp<TextStyle> };
 }) => {
   const { theme, vars } = params;
   const {
@@ -57,7 +57,7 @@ const styleSheet = (params: {
       },
       StyleSheet.flatten(inputStyle),
       style,
-    ) as TextStyle,
+    ) satisfies TextStyle,
   });
 };
 

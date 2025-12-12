@@ -5,8 +5,6 @@ import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import { toChecksumAddress } from '../../../util/address';
 
 jest.mock('../../../core/Engine', () => ({
@@ -105,7 +103,6 @@ describe('useAccounts', () => {
   });
 
   it('returns internal accounts', async () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
     const expectedInternalAccounts: Account[] = [
       MOCK_ACCOUNT_1,
       MOCK_ACCOUNT_2,

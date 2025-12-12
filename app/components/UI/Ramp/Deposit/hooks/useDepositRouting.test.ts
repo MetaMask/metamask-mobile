@@ -33,7 +33,12 @@ let mockGeneratePaymentUrl = jest.fn().mockResolvedValue('https://payment.url');
 let mockGetOrder = jest.fn().mockResolvedValue({
   id: 'order-id',
   walletAddress: '0x123',
-  cryptoCurrency: 'USDC',
+  cryptoCurrency: {
+    assetId: 'USDC',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    chainId: 'eip155:1',
+  },
   network: { chainId: 'eip155:1', name: 'Ethereum' },
   fiatAmount: '100',
   cryptoAmount: '0.05',
@@ -861,7 +866,12 @@ describe('useDepositRouting', () => {
       const testOrder = {
         id: 'order-id',
         walletAddress: '0x123',
-        cryptoCurrency: { assetId: 'USDC' },
+        cryptoCurrency: {
+          assetId: 'USDC',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          chainId: 'eip155:1',
+        },
         network: { chainId: 'eip155:1', name: 'Ethereum' },
         fiatAmount: '100',
         cryptoAmount: '0.05',
@@ -906,6 +916,8 @@ describe('useDepositRouting', () => {
           country: 'US',
           chain_id: 'eip155:1',
           currency_destination: 'USDC',
+          currency_destination_symbol: 'USDC',
+          currency_destination_network: 'Ethereum',
           currency_source: 'USD',
         },
       );
@@ -1123,7 +1135,10 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.any(Object),
+      );
     });
   });
 

@@ -40,6 +40,12 @@ jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
+  const TextVariant = {
+    BodySm: 'BodySm',
+    BodyMd: 'BodyMd',
+    HeadingMd: 'HeadingMd',
+  };
+
   return {
     Box: ({
       children,
@@ -57,6 +63,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       testID?: string;
     }) => React.createElement(Text, { testID, ...props }, children),
+    TextVariant,
   };
 });
 
@@ -269,24 +276,64 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    CARD_VIEWED: 'card_viewed',
+    CARD_BUTTON_CLICKED: 'card_button_clicked',
+  },
+  useMetrics: jest.fn(),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+jest.mock('../../types', () => ({
+  CardError: class CardError extends Error {
+    type: string;
+    constructor(type: string, message: string) {
+      super(message);
+      this.type = type;
+      this.name = 'CardError';
+    }
+  },
+  CardErrorType: {
+    UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+  },
+}));
+
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import PersonalDetails from './PersonalDetails';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import { useCardSDK } from '../../sdk';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { CardError, CardErrorType } from '../../types';
 
 // Mock implementations
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockRegisterPersonalDetails = jest.fn();
 const mockSetUser = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
 
 // Mock hooks
 (useNavigation as jest.Mock).mockReturnValue({
   navigate: mockNavigate,
+  reset: mockReset,
 });
 
 (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -326,6 +373,11 @@ const mockSetUser = jest.fn();
   user: null,
   setUser: mockSetUser,
   logoutFromProvider: jest.fn(),
+});
+
+(useMetrics as jest.Mock).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: mockCreateEventBuilder,
 });
 
 describe('PersonalDetails Component', () => {
@@ -497,6 +549,422 @@ describe('PersonalDetails Component', () => {
       const actions = getByTestId('onboarding-step-actions');
       expect(actions).toBeTruthy();
       expect(getByTestId('personal-details-continue-button')).toBeTruthy();
+    });
+  });
+
+  describe('Date of Birth Parsing from userData', () => {
+    it('populates date field with valid ISO 8601 date string', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '2002-06-07T00:00:00.000Z',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      render(<PersonalDetails />);
+
+      // Date should be parsed to timestamp: June 7, 2002
+      // The exact timestamp will depend on local timezone
+      // Just verify it's a valid number string
+      expect(mockSetUser).not.toHaveBeenCalled();
+    });
+
+    it('populates all form fields when userData is provided', () => {
+      const mockUserData = {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        dateOfBirth: '1995-03-15T00:00:00.000Z',
+        countryOfResidence: 'CA',
+        ssn: '987654321',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      const lastNameInput = getByTestId('personal-details-last-name-input');
+
+      expect(firstNameInput.props.value).toBe('Jane');
+      expect(lastNameInput.props.value).toBe('Smith');
+    });
+
+    it('handles missing dateOfBirth gracefully', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: null,
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      expect(firstNameInput.props.value).toBe('John');
+    });
+
+    it('handles empty string dateOfBirth', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      expect(firstNameInput.props.value).toBe('John');
+    });
+
+    it('handles invalid date format without crashing', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: 'invalid-date',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      expect(firstNameInput.props.value).toBe('John');
+    });
+
+    it('handles non-string dateOfBirth type', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: 1234567890000,
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      expect(firstNameInput.props.value).toBe('John');
+    });
+
+    it('extracts date components correctly from ISO date string', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-12-25T00:00:00.000Z',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      render(<PersonalDetails />);
+
+      // If parsing succeeds, component renders without error
+      expect(mockSetUser).not.toHaveBeenCalled();
+    });
+
+    it('populates SSN field when userData includes SSN', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            onboarding: {
+              onboardingId: 'test-onboarding-id',
+              selectedCountry: 'US',
+            },
+          },
+        };
+        return selector(mockState);
+      });
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      expect(ssnInput.props.value).toBe('123456789');
+    });
+  });
+
+  describe('registerPersonalDetails Function Call', () => {
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            onboarding: {
+              onboardingId: 'test-onboarding-id',
+              selectedCountry: 'US',
+            },
+          },
+        };
+        return selector(mockState);
+      });
+    });
+
+    it('calls registerPersonalDetails with correct parameters on continue', async () => {
+      mockRegisterPersonalDetails.mockResolvedValue({
+        user: { id: 'user-123' },
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      const lastNameInput = getByTestId('personal-details-last-name-input');
+      const ssnInput = getByTestId('personal-details-ssn-input');
+
+      fireEvent.changeText(firstNameInput, 'John');
+      fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(ssnInput, '123456789');
+
+      const continueButton = getByTestId('personal-details-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockRegisterPersonalDetails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          onboardingId: 'test-onboarding-id',
+          firstName: 'John',
+          lastName: 'Doe',
+          ssn: '123456789',
+        }),
+      );
+    });
+
+    it('navigates to physical address screen after successful registration', async () => {
+      const mockUser = { id: 'user-123', firstName: 'John' };
+      mockRegisterPersonalDetails.mockResolvedValue({ user: mockUser });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      const lastNameInput = getByTestId('personal-details-last-name-input');
+      const ssnInput = getByTestId('personal-details-ssn-input');
+
+      fireEvent.changeText(firstNameInput, 'John');
+      fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(ssnInput, '123456789');
+
+      const continueButton = getByTestId('personal-details-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockSetUser).toHaveBeenCalledWith(mockUser);
+      expect(mockReset).toHaveBeenCalled();
+    });
+
+    it('disables continue button when required fields are missing', () => {
+      // Ensure no user data is pre-populated
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: null,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      fireEvent.changeText(firstNameInput, 'John');
+
+      const continueButton = getByTestId('personal-details-continue-button');
+
+      expect(continueButton.props.disabled).toBe(true);
+    });
+
+    it('does not call registerPersonalDetails when onboardingId is missing', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            onboarding: {
+              onboardingId: null,
+              selectedCountry: 'US',
+            },
+          },
+        };
+        return selector(mockState);
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      const lastNameInput = getByTestId('personal-details-last-name-input');
+      const ssnInput = getByTestId('personal-details-ssn-input');
+
+      fireEvent.changeText(firstNameInput, 'John');
+      fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(ssnInput, '123456789');
+
+      const continueButton = getByTestId('personal-details-continue-button');
+      fireEvent.press(continueButton);
+
+      expect(mockRegisterPersonalDetails).not.toHaveBeenCalled();
+    });
+
+    it('displays error message when registerPersonalDetails fails', async () => {
+      const mockError = 'Registration failed';
+      (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
+        registerPersonalDetails: mockRegisterPersonalDetails,
+        isLoading: false,
+        isError: true,
+        error: mockError,
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      await waitFor(() => {
+        const errorText = getByTestId('personal-details-error');
+        expect(errorText.props.children).toBe(mockError);
+      });
+    });
+
+    it('handles onboarding ID not found error by resetting state', async () => {
+      // Setup: Pre-fill all required fields via userData
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        logoutFromProvider: jest.fn(),
+      });
+
+      mockRegisterPersonalDetails.mockRejectedValue(
+        new CardError(CardErrorType.UNKNOWN_ERROR, 'Onboarding ID not found'),
+      );
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const continueButton = getByTestId('personal-details-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalled();
+      });
+    });
+
+    it('disables continue button when SSN is invalid', () => {
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      const lastNameInput = getByTestId('personal-details-last-name-input');
+      const ssnInput = getByTestId('personal-details-ssn-input');
+
+      fireEvent.changeText(firstNameInput, 'John');
+      fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
+
+      const continueButton = getByTestId('personal-details-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
+    });
+
+    it('includes dateOfBirth in registration payload when provided', async () => {
+      mockRegisterPersonalDetails.mockResolvedValue({
+        user: { id: 'user-123' },
+      });
+
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      const lastNameInput = getByTestId('personal-details-last-name-input');
+      const ssnInput = getByTestId('personal-details-ssn-input');
+
+      fireEvent.changeText(firstNameInput, 'John');
+      fireEvent.changeText(lastNameInput, 'Doe');
+      fireEvent.changeText(ssnInput, '123456789');
+
+      const continueButton = getByTestId('personal-details-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockRegisterPersonalDetails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          onboardingId: 'test-onboarding-id',
+          firstName: 'John',
+          lastName: 'Doe',
+        }),
+      );
+    });
+
+    it('does not require SSN when country is not US', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            onboarding: {
+              onboardingId: 'test-onboarding-id',
+              selectedCountry: 'CA',
+            },
+          },
+        };
+        return selector(mockState);
+      });
+
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const firstNameInput = getByTestId('personal-details-first-name-input');
+      const lastNameInput = getByTestId('personal-details-last-name-input');
+
+      fireEvent.changeText(firstNameInput, 'John');
+      fireEvent.changeText(lastNameInput, 'Doe');
+
+      expect(queryByTestId('personal-details-ssn-input')).toBeNull();
     });
   });
 });

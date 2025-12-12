@@ -2,6 +2,7 @@ import { Matchers, Gestures } from '../../framework';
 import enContent from '../../../locales/languages/en.json';
 import {
   PredictBalanceSelectorsIDs,
+  PredictBuyPreviewSelectorsIDs,
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
 } from '../../selectors/Predict/Predict.selectors';
@@ -29,6 +30,11 @@ class PredictDetailsPage {
       PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
     );
   }
+  get claimButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON,
+    );
+  }
   get backButton(): DetoxElement {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
@@ -40,6 +46,11 @@ class PredictDetailsPage {
 
   get withdrawButton(): DetoxElement {
     return Matchers.getElementByText(enContent.predict.deposit.withdraw);
+  }
+  get placeBetButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON,
+    );
   }
 
   async tapBackButton(): Promise<void> {
@@ -72,6 +83,62 @@ class PredictDetailsPage {
   async tapWithdrawButton(): Promise<void> {
     await Gestures.waitAndTap(this.withdrawButton, {
       elemDescription: 'Withdraw button',
+    });
+  }
+
+  async tapOpenPositionValue(): Promise<void> {
+    // Use regex to match both "Celtics\n83¢" and "Celtics • 83¢" formats
+    const celticsButton = (await Matchers.getElementByText(
+      /Celtics[\s•\n]*83¢/,
+    )) as unknown as DetoxElement;
+
+    await Gestures.waitAndTap(celticsButton, {
+      elemDescription: 'Celtics outcome button',
+    });
+  }
+
+  async tapPositionAmount(amount: string): Promise<void> {
+    const digits = amount.split('');
+
+    for (const digit of digits) {
+      const digitElement = (await Matchers.getElementByText(
+        digit,
+      )) as unknown as DetoxElement;
+      await Gestures.waitAndTap(digitElement, {
+        elemDescription: `tap ${digit} on keypad`,
+      });
+    }
+  }
+
+  async tapDoneButton(): Promise<void> {
+    const continueButton = (await Matchers.getElementByText(
+      'Done',
+    )) as unknown as DetoxElement;
+
+    await Gestures.waitAndTap(continueButton, {
+      elemDescription: 'Done button',
+    });
+  }
+
+  async tapContinueButton(): Promise<void> {
+    const continueButton = (await Matchers.getElementByText(
+      'Continue',
+    )) as unknown as DetoxElement;
+
+    await Gestures.waitAndTap(continueButton, {
+      elemDescription: 'Continue button',
+    });
+  }
+
+  async tapOpenPosition(): Promise<void> {
+    await Gestures.waitAndTap(this.placeBetButton, {
+      elemDescription: 'Place bet button',
+    });
+  }
+
+  async tapClaimWinningsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.claimButton, {
+      elemDescription: 'Claim winnings button',
     });
   }
 }

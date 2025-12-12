@@ -516,6 +516,9 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Predict', {
       screen: 'PredictMarketList',
+      params: {
+        entryPoint: expect.any(String),
+      },
     });
   });
 

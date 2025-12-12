@@ -1,6 +1,6 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import {
   sortNetworkAddressItems,
@@ -62,7 +62,7 @@ describe('MultichainAddressRowsList Utils', () => {
       expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
     });
 
-    it('sorts networks with Solana second after Ethereum', () => {
+    it('sorts networks with Bitcoin second and Solana third after Ethereum', () => {
       const items: NetworkAddressItem[] = [
         { chainId: 'eip155:0x89', networkName: 'Polygon', address: '0x123' },
         { chainId: SolScope.Mainnet, networkName: 'Solana', address: '0x123' },
@@ -71,11 +71,59 @@ describe('MultichainAddressRowsList Utils', () => {
           networkName: 'Ethereum',
           address: '0x123',
         },
+        { chainId: BtcScope.Mainnet, networkName: 'Bitcoin', address: '0x123' },
       ];
 
       const sorted = sortNetworkAddressItems(items);
       expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
-      expect(sorted[1].chainId).toBe(SolScope.Mainnet);
+      expect(sorted[1].chainId).toBe(BtcScope.Mainnet);
+      expect(sorted[2].chainId).toBe(SolScope.Mainnet);
+    });
+
+    it('sorts networks with Tron fourth after Ethereum, Bitcoin, and Solana', () => {
+      const items: NetworkAddressItem[] = [
+        { chainId: TrxScope.Mainnet, networkName: 'Tron', address: '0x123' },
+        { chainId: 'eip155:0x89', networkName: 'Polygon', address: '0x123' },
+        { chainId: SolScope.Mainnet, networkName: 'Solana', address: '0x123' },
+        {
+          chainId: `eip155:${CHAIN_IDS.MAINNET}`,
+          networkName: 'Ethereum',
+          address: '0x123',
+        },
+        { chainId: BtcScope.Mainnet, networkName: 'Bitcoin', address: '0x123' },
+      ];
+
+      const sorted = sortNetworkAddressItems(items);
+      expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
+      expect(sorted[1].chainId).toBe(BtcScope.Mainnet);
+      expect(sorted[2].chainId).toBe(SolScope.Mainnet);
+      expect(sorted[3].chainId).toBe(TrxScope.Mainnet);
+    });
+
+    it('sorts networks with Linea fifth after Ethereum, Bitcoin, Solana, and Tron', () => {
+      const items: NetworkAddressItem[] = [
+        {
+          chainId: `eip155:${CHAIN_IDS.LINEA_MAINNET}`,
+          networkName: 'Linea',
+          address: '0x123',
+        },
+        { chainId: TrxScope.Mainnet, networkName: 'Tron', address: '0x123' },
+        { chainId: 'eip155:0x89', networkName: 'Polygon', address: '0x123' },
+        { chainId: SolScope.Mainnet, networkName: 'Solana', address: '0x123' },
+        {
+          chainId: `eip155:${CHAIN_IDS.MAINNET}`,
+          networkName: 'Ethereum',
+          address: '0x123',
+        },
+        { chainId: BtcScope.Mainnet, networkName: 'Bitcoin', address: '0x123' },
+      ];
+
+      const sorted = sortNetworkAddressItems(items);
+      expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
+      expect(sorted[1].chainId).toBe(BtcScope.Mainnet);
+      expect(sorted[2].chainId).toBe(SolScope.Mainnet);
+      expect(sorted[3].chainId).toBe(TrxScope.Mainnet);
+      expect(sorted[4].chainId).toBe(`eip155:${CHAIN_IDS.LINEA_MAINNET}`);
     });
 
     it('sorts test networks last', () => {
@@ -193,6 +241,27 @@ describe('MultichainAddressRowsList Utils', () => {
       const result = getCompatibleNetworksForAccount(account, mockNetworks);
 
       expect(result[0].address).toBe(testAddress);
+    });
+
+    it('converts lowercase EVM address to checksummed format', () => {
+      const lowercaseEvmAddress = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+      const expectedChecksummed = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+      const account = createMockAccount(lowercaseEvmAddress, ['eip155:0x1']);
+
+      const result = getCompatibleNetworksForAccount(account, mockNetworks);
+
+      expect(result[0].address).toBe(expectedChecksummed);
+    });
+
+    it('returns unmodified address for non-EVM networks', () => {
+      const solanaAddress = 'DRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC86PZ8okm21hy';
+      const account = createMockAccount(solanaAddress, [
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      ]);
+
+      const result = getCompatibleNetworksForAccount(account, mockNetworks);
+
+      expect(result[0].address).toBe(solanaAddress);
     });
   });
 });

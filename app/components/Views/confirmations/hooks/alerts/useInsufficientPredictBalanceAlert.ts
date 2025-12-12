@@ -22,7 +22,7 @@ export function useInsufficientPredictBalanceAlert({
   const { amountPrecise } = useTokenAmount();
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
 
-  const { balance: predictBalanceUsd } = usePredictBalance({
+  const { balance: predictBalanceHuman } = usePredictBalance({
     loadOnMount: true,
   });
 
@@ -33,8 +33,8 @@ export function useInsufficientPredictBalanceAlert({
   const isInsufficient = useMemo(
     () =>
       isPredictWithdraw &&
-      new BigNumber(predictBalanceUsd ?? '0').isLessThan(amountHuman),
-    [amountHuman, isPredictWithdraw, predictBalanceUsd],
+      new BigNumber(predictBalanceHuman ?? '0').isLessThan(amountHuman),
+    [amountHuman, isPredictWithdraw, predictBalanceHuman],
   );
 
   return useMemo(() => {

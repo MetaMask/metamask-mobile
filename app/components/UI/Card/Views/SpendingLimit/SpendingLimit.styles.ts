@@ -3,15 +3,18 @@ import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    wrapper: {
+    safeAreaView: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
     },
-    contentContainer: {
+    wrapper: {
       flexGrow: 1,
       paddingHorizontal: 16,
+    },
+    contentContainer: {
+      flexGrow: 1,
       paddingTop: 16,
-      paddingBottom: 32,
+      paddingBottom: 16,
     },
     assetContainer: {
       marginBottom: 24,

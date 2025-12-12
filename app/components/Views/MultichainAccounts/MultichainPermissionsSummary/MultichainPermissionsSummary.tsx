@@ -38,10 +38,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import TabBar from '../../../../component-library/components-temp/TabBar';
-import {
-  getNetworkImageSource,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../../util/networks';
+import { getNetworkImageSource } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import { useSelector } from 'react-redux';
@@ -135,7 +132,7 @@ const MultichainPermissionsSummary = ({
 
   const hostname = useMemo(() => {
     try {
-      return new URL(currentPageInformation.url).hostname;
+      return new URL(currentPageInformation.url).origin;
     } catch {
       return currentPageInformation.url;
     }
@@ -179,9 +176,7 @@ const MultichainPermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return isPerDappSelectedNetworkEnabled() &&
-      isAlreadyConnected &&
-      !showPermissionsOnly ? (
+    return isAlreadyConnected && !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}
@@ -257,9 +252,7 @@ const MultichainPermissionsSummary = ({
                 params: {
                   hostInfo: {
                     metadata: {
-                      origin:
-                        currentPageInformation?.url &&
-                        new URL(currentPageInformation?.url).hostname,
+                      origin: hostname,
                     },
                   },
                   connectionDateTime: new Date().getTime(),
@@ -531,10 +524,16 @@ const MultichainPermissionsSummary = ({
         privacyMode={privacyMode}
         selectedAccountGroups={selectedAccountGroups}
         handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+        isConnectionFlow={!isAlreadyConnected}
         {...restAccountsConnectedTabProps}
       />
     ),
-    [privacyMode, selectedAccountGroups, handleEditAccountsButtonPress],
+    [
+      privacyMode,
+      selectedAccountGroups,
+      handleEditAccountsButtonPress,
+      isAlreadyConnected,
+    ],
   );
 
   const renderTabsContent = () => {

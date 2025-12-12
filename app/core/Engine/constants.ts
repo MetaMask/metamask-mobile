@@ -1,5 +1,5 @@
-import { swapsUtils } from '@metamask/swaps-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { SWAPS_TESTNET_CHAIN_ID } from '../../constants/bridge';
 
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
@@ -15,6 +15,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'BackendWebSocketService',
   'AccountActivityService',
   'MultichainAccountService',
+  'ProfileMetricsService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -32,7 +33,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NftController:stateChange',
   'PermissionController:stateChange',
   'PhishingController:stateChange',
-  'PPOMController:stateChange',
   'PreferencesController:stateChange',
   'RemoteFeatureFlagController:stateChange',
   'SelectedNetworkController:stateChange',
@@ -46,6 +46,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TokenSearchDiscoveryController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
+  'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'SnapController:stateChange',
@@ -78,20 +79,21 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'DelegationController:stateChange',
+  'ProfileMetricsController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [
-  swapsUtils.ETH_CHAIN_ID,
-  swapsUtils.BSC_CHAIN_ID,
-  swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-  swapsUtils.POLYGON_CHAIN_ID,
-  swapsUtils.AVALANCHE_CHAIN_ID,
-  swapsUtils.ARBITRUM_CHAIN_ID,
-  swapsUtils.OPTIMISM_CHAIN_ID,
-  swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-  swapsUtils.LINEA_CHAIN_ID,
-  swapsUtils.BASE_CHAIN_ID,
-  swapsUtils.SEI_CHAIN_ID,
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.BSC,
+  SWAPS_TESTNET_CHAIN_ID,
+  CHAIN_IDS.POLYGON,
+  CHAIN_IDS.AVALANCHE,
+  CHAIN_IDS.ARBITRUM,
+  CHAIN_IDS.OPTIMISM,
+  CHAIN_IDS.ZKSYNC_ERA,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.BASE,
+  CHAIN_IDS.SEI,
   CHAIN_IDS.MONAD,
 ];
 

@@ -40,7 +40,6 @@ interface AssetElementProps {
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     itemWrapper: {
-      flex: 1,
       flexDirection: 'row',
       height: 64,
       alignItems: 'center',

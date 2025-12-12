@@ -30,6 +30,7 @@ import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useDepositUser } from './useDepositUser';
+import { useDepositOrderNetworkName } from './useDepositOrderNetworkName';
 
 class LimitExceededError extends Error {
   constructor(message: string) {
@@ -38,7 +39,12 @@ class LimitExceededError extends Error {
   }
 }
 
-export const useDepositRouting = () => {
+interface UseDepositRoutingConfig {
+  screenLocation: string;
+}
+
+export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
+  const { screenLocation = '' } = config || {};
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const {
@@ -49,7 +55,14 @@ export const useDepositRouting = () => {
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
-  const { fetchUserDetails } = useDepositUser();
+
+  const getDepositOrderNetworkName = useDepositOrderNetworkName();
+
+  const { fetchUserDetails } = useDepositUser({
+    screenLocation,
+    shouldTrackFetch: true,
+    fetchOnMount: false,
+  });
 
   const [, getKycRequirement] = useDepositSdkMethod({
     method: 'getKycRequirement',
@@ -104,6 +117,10 @@ export const useDepositRouting = () => {
       const buildQuoteIndex = state.routes.findIndex(
         (route) => route.name === 'BuildQuote',
       );
+
+      if (buildQuoteIndex === -1) {
+        return state;
+      }
 
       return {
         payload: {
@@ -309,8 +326,10 @@ export const useDepositRouting = () => {
                 total_fee: Number(order.totalFeesFiat),
                 payment_method_id: order.paymentMethod.id,
                 country: selectedRegion?.isoCode || '',
-                chain_id: order.network.chainId,
+                chain_id: order.network?.chainId || '',
                 currency_destination: order.cryptoCurrency.assetId || '',
+                currency_destination_symbol: order.cryptoCurrency.symbol,
+                currency_destination_network: getDepositOrderNetworkName(order),
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -333,6 +352,7 @@ export const useDepositRouting = () => {
       navigateToOrderProcessingCallback,
       selectedRegion?.isoCode,
       trackEvent,
+      getDepositOrderNetworkName,
     ],
   );
 

@@ -100,6 +100,19 @@ export const PerpsEventProperties = {
   RETRY_ATTEMPTS: 'retry_attempts',
   SHOW_BACK_BUTTON: 'show_back_button',
   ATTEMPT_NUMBER: 'attempt_number',
+
+  // PnL Hero Card properties
+  IMAGE_SELECTED: 'image_selected',
+  TAB_NUMBER: 'tab_number',
+
+  // A/B testing properties (flat per test for multiple concurrent tests)
+  // Only include AB test properties when test is enabled (event not sent when disabled)
+  // Button color test (TAT-1937)
+  AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
+  // Future tests: add as AB_TEST_{TEST_NAME} (no _ENABLED property needed)
+
+  // Watchlist/Favorites properties
+  FAVORITES_COUNT: 'favorites_count',
 } as const;
 
 /**
@@ -165,6 +178,7 @@ export const PerpsEventValues = {
     TUTORIAL_NAVIGATION: 'tutorial_navigation',
     CANDLE_PERIOD_VIEWED: 'candle_period_viewed',
     CANDLE_PERIOD_CHANGED: 'candle_period_changed',
+    FAVORITE_TOGGLED: 'favorite_toggled',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -172,6 +186,9 @@ export const PerpsEventValues = {
     STOP_LOSS_SET: 'stop_loss_set',
     TAKE_PROFIT_SET: 'take_profit_set',
     ADL_LEARN_MORE: 'adl_learn_more',
+    LEARN_MORE: 'learn_more',
+    FAVORITE_MARKET: 'favorite_market',
+    UNFAVORITE_MARKET: 'unfavorite_market',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'position_liquidated',
@@ -197,6 +214,7 @@ export const PerpsEventValues = {
     EXECUTED: 'executed',
     PARTIALLY_FILLED: 'partially_filled',
     FAILED: 'failed',
+    SUCCESS: 'success',
   },
   SCREEN_TYPE: {
     MARKETS: 'markets',
@@ -212,21 +230,33 @@ export const PerpsEventValues = {
     DEPOSIT_REVIEW: 'deposit_review',
     CLOSE_ALL_POSITIONS: 'close_all_positions',
     CANCEL_ALL_ORDERS: 'cancel_all_orders',
+    ORDER_BOOK: 'order_book',
+    ERROR: 'error',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
   },
   SCREEN_NAME: {
     CONNECTION_ERROR: 'connection_error',
+    PERPS_HERO_CARD: 'perps_hero_card',
     PERPS_ACTIVITY_HISTORY: 'perps_activity_history',
   },
   ACTION: {
     CONNECTION_RETRY: 'connection_retry',
+    SHARE: 'share',
   },
   PERPS_HISTORY_TABS: {
     TRADES: 'trades',
     ORDERS: 'orders',
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
+  },
+  // A/B testing values
+  AB_TEST: {
+    // Test IDs
+    BUTTON_COLOR_TEST: 'button_color_test',
+    // Button color test variants
+    CONTROL: 'control',
+    MONOCHROME: 'monochrome',
   },
 } as const;

@@ -141,7 +141,6 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
       expect(setEnabledSpy).toHaveBeenCalledWith(false);
       expect(alignWalletsSpy).not.toHaveBeenCalled();
     });
@@ -161,7 +160,6 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
       expect(setEnabledSpy).toHaveBeenCalledWith(false);
       expect(alignWalletsSpy).not.toHaveBeenCalled();
     });
@@ -181,7 +179,6 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
       expect(setEnabledSpy).toHaveBeenCalledWith(true);
 
       // And alignment triggered
@@ -205,9 +202,12 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not have been called, nor the alignement process
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
       expect(setEnabledSpy).toHaveBeenCalledWith(false);
       expect(alignWalletsSpy).not.toHaveBeenCalled();
+
+      // Reset spies to check subsequent calls
+      setEnabledSpy.mockClear();
+      alignWalletsSpy.mockClear();
 
       // Enabling the remote feature flag would enable the Bitcoin provider
       messenger.publish(
@@ -225,7 +225,130 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(2);
+      expect(setEnabledSpy).toHaveBeenCalledWith(true);
+
+      // And alignment triggered
+      expect(alignWalletsSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Tron provider feature flag', () => {
+    let setEnabledSpy: jest.SpyInstance;
+    let alignWalletsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      setEnabledSpy = jest.spyOn(
+        AccountProviderWrapper.prototype,
+        'setEnabled',
+      );
+      setEnabledSpy.mockReturnValue(undefined);
+
+      alignWalletsSpy = jest.spyOn(
+        MultichainAccountService.prototype,
+        'alignWallets',
+      );
+      alignWalletsSpy.mockResolvedValue(undefined);
+    });
+
+    it('does not enable Tron provider when feature flag is disabled', () => {
+      // When initializing the service
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          // Given the feature flag is disabled
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: false,
+              minimumVersion: '1.0.0',
+            },
+          },
+        }),
+      );
+
+      // Then Tron provider should not be enabled
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not enable Tron provider when app version is below minimum', () => {
+      // When initializing the service
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          // Given the feature flag indicates version requirement not met
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: true,
+              minimumVersion: '99.99.99',
+            },
+          },
+        }),
+      );
+
+      // Then Tron provider should not be enabled
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
+    });
+
+    it('enables Tron provider when feature flag is enabled and version meets minimum', () => {
+      // When initializing the service
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          // Given the feature flag is enabled and version meets minimum
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        }),
+      );
+
+      // Then Tron provider should be enabled
+      expect(setEnabledSpy).toHaveBeenCalledWith(true);
+
+      // And alignment triggered
+      expect(alignWalletsSpy).toHaveBeenCalled();
+    });
+
+    it('enables Tron provider when feature flag is enabled at runtime', () => {
+      // When initializing the service
+      const messenger = getBaseMessenger();
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          messenger,
+          // Given the feature flag is not enabled yet
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: false,
+              minimumVersion: '1.0.0',
+            },
+          },
+        }),
+      );
+
+      // Then Tron provider should not have been called, nor the alignement process
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
+
+      // Reset spies to check subsequent calls
+      setEnabledSpy.mockClear();
+      alignWalletsSpy.mockClear();
+
+      // Enabling the remote feature flag would enable the Tron provider
+      messenger.publish(
+        'RemoteFeatureFlagController:stateChange',
+        {
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+          cacheTimestamp: 0,
+        },
+        [],
+      );
+
+      // Then Tron provider should be enabled
       expect(setEnabledSpy).toHaveBeenCalledWith(true);
 
       // And alignment triggered

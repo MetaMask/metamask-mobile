@@ -5,7 +5,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../locales/i18n';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import type {
   PerpsMarketData,
@@ -23,7 +27,13 @@ export interface PerpsMarketTypeSectionProps {
   /** Markets to display */
   markets: PerpsMarketData[];
   /** Market type for filtering when "See All" is pressed */
-  marketType: 'crypto' | 'equity' | 'commodity' | 'forex' | 'all';
+  marketType:
+    | 'crypto'
+    | 'equity'
+    | 'commodity'
+    | 'forex'
+    | 'all'
+    | 'stocks_and_commodities';
   /** Sort field for market list */
   sortBy?: SortField;
   /** Whether markets are loading */
@@ -58,7 +68,7 @@ export interface PerpsMarketTypeSectionProps {
 const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   title,
   markets,
-  marketType: _marketType, // Unused but kept for API compatibility
+  marketType,
   sortBy = 'volume',
   isLoading,
   testID,
@@ -67,14 +77,14 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   const handleViewAll = useCallback(() => {
-    // Always navigate to "All" tab when "See all" is pressed
+    // Navigate to the specific market type tab when "See all" is pressed
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
-        defaultMarketTypeFilter: 'all',
+        defaultMarketTypeFilter: marketType,
       },
     });
-  }, [navigation]);
+  }, [navigation, marketType]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
@@ -86,21 +96,23 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
     [navigation],
   );
 
-  // Header component
+  // Header component - full row is pressable with chevron icon next to title
   const SectionHeader = useCallback(
     () => (
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-          {title}
-        </Text>
-        <TouchableOpacity onPress={handleViewAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.home.see_all')}
+      <TouchableOpacity style={styles.header} onPress={handleViewAll}>
+        <View style={styles.titleRow}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {title}
           </Text>
-        </TouchableOpacity>
-      </View>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        </View>
+      </TouchableOpacity>
     ),
-    [styles.header, title, handleViewAll],
+    [styles.header, styles.titleRow, title, handleViewAll],
   );
 
   // Show skeleton during initial load
