@@ -6,8 +6,9 @@ import {
   StorageService,
   StorageServiceMessenger,
   StorageAdapter,
+  StorageGetResult,
   STORAGE_KEY_PREFIX,
-} from '@metamask-previews/storage-service';
+} from '@metamask/storage-service';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 
@@ -25,24 +26,26 @@ const mobileStorageAdapter: StorageAdapter = {
    *
    * @param namespace - The controller namespace.
    * @param key - The data key.
-   * @returns The parsed JSON data, or null if not found.
+   * @returns StorageGetResult: { result } if found, {} if not found, { error } on failure.
    */
-  async getItem(namespace: string, key: string): Promise<Json | null> {
+  async getItem(namespace: string, key: string): Promise<StorageGetResult> {
     try {
       // Build full key: storageService:namespace:key
       const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
       const serialized = await FilesystemStorage.getItem(fullKey);
 
-      if (!serialized) {
-        return null;
+      // Key not found - return empty object
+      if (serialized === undefined || serialized === null) {
+        return {};
       }
 
-      return JSON.parse(serialized) as Json;
+      const result = JSON.parse(serialized) as Json;
+      return { result };
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to get item: ${namespace}:${key}`,
       });
-      throw error;
+      return { error: error as Error };
     }
   },
 

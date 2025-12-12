@@ -3,7 +3,7 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { StorageServiceMessenger } from '@metamask-previews/storage-service';
+import { StorageServiceMessenger } from '@metamask/storage-service';
 
 import { RootMessenger } from '../types';
 

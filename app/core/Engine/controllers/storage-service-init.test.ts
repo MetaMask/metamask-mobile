@@ -7,13 +7,13 @@ import {
   StorageService,
   StorageServiceMessenger,
   STORAGE_KEY_PREFIX,
-} from '@metamask-previews/storage-service';
+} from '@metamask/storage-service';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 
-jest.mock('@metamask-previews/storage-service');
+jest.mock('@metamask/storage-service');
 jest.mock('redux-persist-filesystem-storage');
 jest.mock('../../../util/device');
 jest.mock('../../../util/Logger');
@@ -100,36 +100,44 @@ describe('mobileStorageAdapter', () => {
   }
 
   describe('getItem', () => {
-    it('returns parsed JSON data when item exists', async () => {
+    it('returns { result } with parsed JSON data when item exists', async () => {
       const testData = { foo: 'bar' };
       mockFilesystemStorage.getItem.mockResolvedValue(JSON.stringify(testData));
 
       const adapter = getStorageAdapter();
-      const result = await adapter.getItem('TestController', 'testKey');
+      const response = await adapter.getItem('TestController', 'testKey');
 
-      expect(result).toStrictEqual(testData);
+      expect(response).toStrictEqual({ result: testData });
       expect(mockFilesystemStorage.getItem).toHaveBeenCalledWith(
         `${STORAGE_KEY_PREFIX}TestController:testKey`,
       );
     });
 
-    it('returns null when item does not exist', async () => {
+    it('returns empty object {} when item does not exist (undefined)', async () => {
       mockFilesystemStorage.getItem.mockResolvedValue(undefined);
 
       const adapter = getStorageAdapter();
-      const result = await adapter.getItem('TestController', 'missingKey');
+      const response = await adapter.getItem('TestController', 'missingKey');
 
-      expect(result).toBeNull();
+      expect(response).toStrictEqual({});
     });
 
-    it('logs error and throws when JSON parsing fails', async () => {
+    it('returns empty object {} when item does not exist (null)', async () => {
+      mockFilesystemStorage.getItem.mockResolvedValue(null as unknown as string);
+
+      const adapter = getStorageAdapter();
+      const response = await adapter.getItem('TestController', 'missingKey');
+
+      expect(response).toStrictEqual({});
+    });
+
+    it('returns { error } and logs when JSON parsing fails', async () => {
       mockFilesystemStorage.getItem.mockResolvedValue('invalid json');
 
       const adapter = getStorageAdapter();
+      const response = await adapter.getItem('TestController', 'badKey');
 
-      await expect(
-        adapter.getItem('TestController', 'badKey'),
-      ).rejects.toThrow();
+      expect(response).toStrictEqual({ error: expect.any(Error) });
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
@@ -138,23 +146,31 @@ describe('mobileStorageAdapter', () => {
       );
     });
 
-    it('logs error and throws when FilesystemStorage throws', async () => {
-      mockFilesystemStorage.getItem.mockRejectedValue(
-        new Error('Storage error'),
-      );
+    it('returns { error } and logs when FilesystemStorage throws', async () => {
+      const storageError = new Error('Storage error');
+      mockFilesystemStorage.getItem.mockRejectedValue(storageError);
 
       const adapter = getStorageAdapter();
+      const response = await adapter.getItem('TestController', 'errorKey');
 
-      await expect(
-        adapter.getItem('TestController', 'errorKey'),
-      ).rejects.toThrow('Storage error');
+      expect(response).toStrictEqual({ error: storageError });
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.any(Error),
+        storageError,
         expect.objectContaining({
           message:
             'StorageService: Failed to get item: TestController:errorKey',
         }),
       );
+    });
+
+    it('returns { result: null } when null was explicitly stored', async () => {
+      mockFilesystemStorage.getItem.mockResolvedValue(JSON.stringify(null));
+
+      const adapter = getStorageAdapter();
+      const response = await adapter.getItem('TestController', 'nullValue');
+
+      // This is different from {} - data WAS found, and it was null
+      expect(response).toStrictEqual({ result: null });
     });
   });
 

@@ -326,7 +326,7 @@ import type {
   StorageService,
   StorageServiceActions,
   StorageServiceEvents,
-} from '@metamask-previews/storage-service';
+} from '@metamask/storage-service';
 import {
   AccountTreeController,
   AccountTreeControllerState,
