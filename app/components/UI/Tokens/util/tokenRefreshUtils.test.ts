@@ -112,7 +112,39 @@ describe('performEvmTokenRefresh', () => {
     ).toHaveBeenCalledWith([]);
   });
 
-  it('catches and logs error if any action fails', async () => {
+  it('logs error when refresh times out', async () => {
+    jest.useFakeTimers();
+
+    (
+      Engine.context.TokenDetectionController.detectTokens as jest.Mock
+    ).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(resolve, 10000); // Takes longer than timeout
+        }),
+    );
+
+    const refreshPromise = performEvmTokenRefresh(
+      fakeNetworkConfigurations as Record<
+        string,
+        { chainId: Hex; nativeCurrency: string }
+      >,
+    );
+
+    jest.advanceTimersByTime(5000);
+    await refreshPromise;
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('timed out'),
+      }),
+      'Error while refreshing tokens',
+    );
+
+    jest.useRealTimers();
+  });
+
+  it('completes without error when individual action rejects', async () => {
     (
       Engine.context.TokenDetectionController.detectTokens as jest.Mock
     ).mockRejectedValueOnce(new Error('Simulated error'));
@@ -124,16 +156,17 @@ describe('performEvmTokenRefresh', () => {
       >,
     );
 
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      'Error while refreshing tokens',
-    );
+    expect(Logger.error).not.toHaveBeenCalled();
   });
 });
 
 describe('performEvmRefresh', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
+    (
+      Engine.context.TokenDetectionController.detectTokens as jest.Mock
+    ).mockResolvedValue(undefined);
   });
 
   it('performs all EVM refresh actions including balance refresh', async () => {

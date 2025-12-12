@@ -39,7 +39,8 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
     const [headerError, setHeaderError] = useState<string | null>(null);
 
     const predictPositionsRef = useRef<PredictPositionsHandle>(null);
-    const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
+    const predictPositionsHeaderRef =
+      useRef<PredictPositionsHeaderHandle>(null);
 
     const isHomepageRedesignV1Enabled = useSelector(
       selectHomepageRedesignV1Enabled,
@@ -89,60 +90,60 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
       refresh: handleRefresh,
     }));
 
-  const handlePositionsError = useCallback((error: string | null) => {
-    setPositionsError(error);
-  }, []);
+    const handlePositionsError = useCallback((error: string | null) => {
+      setPositionsError(error);
+    }, []);
 
-  const handleHeaderError = useCallback((error: string | null) => {
-    setHeaderError(error);
-  }, []);
+    const handleHeaderError = useCallback((error: string | null) => {
+      setHeaderError(error);
+    }, []);
 
-  const content = (
-    <>
-      <PredictPositionsHeader
-        ref={predictPositionsHeaderRef}
-        onError={handleHeaderError}
-      />
-      <PredictPositions
-        ref={predictPositionsRef}
-        onError={handlePositionsError}
-        isVisible={isVisible}
-      />
-      <PredictAddFundsSheet />
-    </>
-  );
+    const content = (
+      <>
+        <PredictPositionsHeader
+          ref={predictPositionsHeaderRef}
+          onError={handleHeaderError}
+        />
+        <PredictPositions
+          ref={predictPositionsRef}
+          onError={handlePositionsError}
+          isVisible={isVisible}
+        />
+        <PredictAddFundsSheet />
+      </>
+    );
 
-  return (
-    <View
-      style={tw.style(
-        isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
-      )}
-      testID={
-        isHomepageRedesignV1Enabled
-          ? PredictTabViewSelectorsIDs.SCROLL_VIEW
-          : undefined
-      }
-    >
-      {hasError ? (
-        <PredictOffline onRetry={handleRefresh} />
-      ) : (
-        <ConditionalScrollView
-          isScrollEnabled={!isHomepageRedesignV1Enabled}
-          scrollViewProps={{
-            testID: PredictTabViewSelectorsIDs.SCROLL_VIEW,
-            refreshControl: (
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-              />
-            ),
-          }}
-        >
-          {content}
-        </ConditionalScrollView>
-      )}
-    </View>
-  );
+    return (
+      <View
+        style={tw.style(
+          isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
+        )}
+        testID={
+          isHomepageRedesignV1Enabled
+            ? PredictTabViewSelectorsIDs.SCROLL_VIEW
+            : undefined
+        }
+      >
+        {hasError ? (
+          <PredictOffline onRetry={handleRefresh} />
+        ) : (
+          <ConditionalScrollView
+            isScrollEnabled={!isHomepageRedesignV1Enabled}
+            scrollViewProps={{
+              testID: PredictTabViewSelectorsIDs.SCROLL_VIEW,
+              refreshControl: (
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                />
+              ),
+            }}
+          >
+            {content}
+          </ConditionalScrollView>
+        )}
+      </View>
+    );
   },
 );
 
