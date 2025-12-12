@@ -152,9 +152,13 @@ const AssetOptions = (props: Props) => {
       ? extractTokenAddressFromCaip(address)
       : address;
 
+    // Check if this is a native currency or wrapped native token (like wSOL)
+    const isNativeToken =
+      isNativeCurrency || isNativeTokenAddress(address, networkId);
+
     // For native currencies, go to the base block explorer URL
     // For tokens, go to the address/account page
-    const url = isNativeCurrency
+    const url = isNativeToken
       ? explorer.getBlockExplorerBaseUrl(networkId)
       : explorer.getBlockExplorerUrl(tokenAddress, networkId);
 

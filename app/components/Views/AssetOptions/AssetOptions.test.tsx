@@ -563,17 +563,17 @@ describe('AssetOptions Component', () => {
         },
       },
       {
-        name: 'Non-EVM non-native - Wrapped SOL on Solana',
+        // Wrapped SOL is treated as native token, so it navigates to base URL
+        name: 'Non-EVM wrapped native - Wrapped SOL on Solana (treated as native)',
         isNonEvm: true,
-        isNativeCurrency: false,
+        isNativeCurrency: false, // Not marked as native, but isNativeTokenAddress returns true
         address: nonEvmChains.solana.wrappedNativeAddress,
         chainId: nonEvmChains.solana.chainId,
         assertCalls: () => {
-          expect(mockGetBlockExplorerUrl).toHaveBeenCalledWith(
-            nonEvmChains.solana.extractedWrappedAddress,
+          expect(mockGetBlockExplorerBaseUrl).toHaveBeenCalledWith(
             nonEvmChains.solana.chainId,
           );
-          expect(mockGetBlockExplorerBaseUrl).not.toHaveBeenCalled();
+          expect(mockGetBlockExplorerUrl).not.toHaveBeenCalled();
         },
       },
     ];
