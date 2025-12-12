@@ -92,7 +92,8 @@ const LoginOptionsSettings = ({
           />
         </View>
       ) : null}
-      {biometryType && !biometryChoice ? (
+      {!biometryType ? (
+        // Only show passcode option if biometry type is not available on device
         <View style={styles.setting}>
           <SecurityOptionToggle
             title={
