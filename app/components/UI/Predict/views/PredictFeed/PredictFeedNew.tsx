@@ -13,7 +13,9 @@ import {
   TextInput,
   Platform,
   InteractionManager,
+  StyleSheet,
 } from 'react-native';
+import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -832,7 +834,6 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
       onScrollEndDrag={onScrollEnd}
       onMomentumScrollEnd={onScrollEnd}
       onLayout={handleListLayout}
-      scrollEventThrottle={0}
       // iOS-specific: use contentInset for proper pull-to-refresh
       contentInset={Platform.select({ ios: { top: contentInsetTop } })}
       contentOffset={getInitialContentOffset()}
@@ -857,6 +858,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
 interface PredictFeedTabsProps {
   activeIndex: number;
+  onPageChange: (index: number) => void;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
@@ -869,6 +871,7 @@ interface PredictFeedTabsProps {
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   activeIndex,
+  onPageChange,
   scrollHandler,
   headerHeight,
   tabBarHeight,
@@ -879,56 +882,45 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   getCurrentHeaderOffset,
 }) => {
   const tw = useTailwind();
+  const pagerRef = useRef<PagerView>(null);
 
-  // Track which tabs have been visited (for lazy loading)
-  const [visitedTabs, setVisitedTabs] = useState<Set<number>>(
-    new Set([0]), // Start with first tab loaded
+  // Sync PagerView when activeIndex changes from tab bar tap
+  useEffect(() => {
+    pagerRef.current?.setPage(activeIndex);
+  }, [activeIndex]);
+
+  const handlePageSelected = useCallback(
+    (e: { nativeEvent: { position: number } }) => {
+      onPageChange(e.nativeEvent.position);
+    },
+    [onPageChange],
   );
 
-  // Mark tab as visited when it becomes active
-  useEffect(() => {
-    if (!visitedTabs.has(activeIndex)) {
-      setVisitedTabs((prev) => new Set(prev).add(activeIndex));
-    }
-  }, [activeIndex, visitedTabs]);
-
   return (
-    <Box twClassName="flex-1">
-      {TABS.map((tab, index) => {
-        const isActive = index === activeIndex;
-        const hasBeenVisited = visitedTabs.has(index);
-
-        // Don't render until first visit (lazy loading)
-        if (!hasBeenVisited) {
-          return null;
-        }
-
-        return (
-          <Box
-            key={tab.key}
-            style={tw.style(
-              'absolute inset-0',
-              isActive ? 'opacity-100' : 'opacity-0',
-            )}
-            pointerEvents={isActive ? 'auto' : 'none'}
-          >
-            <PredictTabContent
-              tabKey={tab.key}
-              category={tab.key}
-              isActive={isActive}
-              scrollHandler={scrollHandler}
-              headerHeight={headerHeight}
-              tabBarHeight={tabBarHeight}
-              trackRef={trackRef}
-              onScrollEnd={onScrollEnd}
-              updateTabScrollPosition={updateTabScrollPosition}
-              getTabScrollPosition={getTabScrollPosition}
-              getCurrentHeaderOffset={getCurrentHeaderOffset}
-            />
-          </Box>
-        );
-      })}
-    </Box>
+    <PagerView
+      ref={pagerRef}
+      style={tw.style('flex-1')}
+      initialPage={0}
+      onPageSelected={handlePageSelected}
+    >
+      {TABS.map((tab, index) => (
+        <View key={tab.key} style={tw.style('flex-1')}>
+          <PredictTabContent
+            tabKey={tab.key}
+            category={tab.key}
+            isActive={index === activeIndex}
+            scrollHandler={scrollHandler}
+            headerHeight={headerHeight}
+            tabBarHeight={tabBarHeight}
+            trackRef={trackRef}
+            onScrollEnd={onScrollEnd}
+            updateTabScrollPosition={updateTabScrollPosition}
+            getTabScrollPosition={getTabScrollPosition}
+            getCurrentHeaderOffset={getCurrentHeaderOffset}
+          />
+        </View>
+      ))}
+    </PagerView>
   );
 };
 
@@ -1130,6 +1122,7 @@ const PredictFeed: React.FC = () => {
         {layoutReady && (
           <PredictFeedTabs
             activeIndex={activeIndex}
+            onPageChange={setActiveIndex}
             scrollHandler={scrollHandler}
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
