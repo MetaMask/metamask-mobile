@@ -244,7 +244,6 @@ export const networkControllerInit: ControllerInitFunction<
           } catch (trackingError) {
             // Analytics tracking failures should not break network functionality
             // Error is logged but not thrown
-            Logger.log('Error tracking analytics event', trackingError);
           }
         },
         metaMetricsId: analyticsId ?? '',

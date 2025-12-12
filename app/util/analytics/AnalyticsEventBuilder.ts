@@ -157,15 +157,33 @@ const createBuilderFromEvent = (
       };
       return createBuilderFromEvent(event);
     },
-    addSensitiveProperties: (sensitiveProperties: AnalyticsEventProperties) => {
+
+    addSensitiveProperties: (properties: AnalyticsEventProperties) => {
       event.sensitiveProperties = {
         ...event.sensitiveProperties,
-        ...sensitiveProperties,
+        ...properties,
       };
       return createBuilderFromEvent(event);
     },
-    build: (): AnalyticsTrackingEvent => event,
+
+    removeProperties: (propNames: string[]) => {
+      removePropertiesFromMap(event.properties, propNames);
+      return createBuilderFromEvent(event);
+    },
+
+    removeSensitiveProperties: (propNames: string[]) => {
+      removePropertiesFromMap(event.sensitiveProperties, propNames);
+      return createBuilderFromEvent(event);
+    },
+
+    setSaveDataRecording: (saveDataRecording: boolean) => {
+      event.saveDataRecording = saveDataRecording;
+      return createBuilderFromEvent(event);
+    },
+
+    build: () => event,
   });
+
 /**
  * AnalyticsEventBuilder
  *
@@ -247,47 +265,6 @@ const createEventBuilder = (
   return createBuilderFromEvent(event);
 };
 
-/**
- * Create builder interface from an existing AnalyticsTrackingEvent
- */
-const createBuilderFromEvent = (
-  event: AnalyticsTrackingEvent,
-): AnalyticsEventBuilderInterface =>
-  // Return the builder interface
-  ({
-    addProperties: (properties: AnalyticsEventProperties) => {
-      event.properties = {
-        ...event.properties,
-        ...properties,
-      };
-      return createBuilderFromEvent(event);
-    },
-
-    addSensitiveProperties: (properties: AnalyticsEventProperties) => {
-      event.sensitiveProperties = {
-        ...event.sensitiveProperties,
-        ...properties,
-      };
-      return createBuilderFromEvent(event);
-    },
-
-    removeProperties: (propNames: string[]) => {
-      removePropertiesFromMap(event.properties, propNames);
-      return createBuilderFromEvent(event);
-    },
-
-    removeSensitiveProperties: (propNames: string[]) => {
-      removePropertiesFromMap(event.sensitiveProperties, propNames);
-      return createBuilderFromEvent(event);
-    },
-
-    setSaveDataRecording: (saveDataRecording: boolean) => {
-      event.saveDataRecording = saveDataRecording;
-      return createBuilderFromEvent(event);
-    },
-
-    build: () => event,
-  });
 /**
  * AnalyticsEventBuilder namespace
  */
