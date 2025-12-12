@@ -23,10 +23,7 @@ import { debounce } from 'lodash';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar/index.ts';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/index.ts';
 import Cell, {
   CellVariant,
@@ -236,7 +233,6 @@ const NetworkMultiSelectList = ({
       variant: AvatarVariant.Network as const,
       name: network.name,
       imageSource: network.imageSource as ImageSourcePropType,
-      size: AvatarSize.Md,
     }),
     [],
   );

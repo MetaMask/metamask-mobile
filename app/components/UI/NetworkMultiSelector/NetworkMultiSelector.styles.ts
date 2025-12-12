@@ -1,18 +1,19 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../util/theme/models';
+import { EdgeInsets } from 'react-native-safe-area-context';
 
-const CUSTOM_NETWORK_PADDING_HORIZONTAL = 16;
-
-const stylesheet = () =>
+const stylesheet = (params: { theme: Theme; vars: { insets: EdgeInsets } }) =>
   StyleSheet.create({
     bodyContainer: {
       flex: 1,
     },
     scrollContentContainer: {
-      paddingBottom: 100,
+      paddingBottom: params.vars.insets.bottom + 16,
     },
     // custom network
     customNetworkContainer: {
-      paddingHorizontal: CUSTOM_NETWORK_PADDING_HORIZONTAL,
+      paddingLeft: 24,
+      paddingRight: 16,
     },
   });
 

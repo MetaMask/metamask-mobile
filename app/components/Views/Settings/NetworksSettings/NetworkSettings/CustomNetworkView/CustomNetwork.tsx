@@ -114,7 +114,7 @@ const CustomNetwork = ({
       {!!listHeader && filteredPopularList.length > 0 && (
         <Text
           style={customNetworkStyles.listHeader}
-          variant={TextVariant.BodyMDBold}
+          variant={TextVariant.BodyMDMedium}
         >
           {listHeader}
         </Text>
@@ -139,7 +139,7 @@ const CustomNetwork = ({
             <View style={networkSettingsStyles.popularNetworkImage}>
               <AvatarNetwork
                 name={networkConfiguration.nickname}
-                size={AvatarSize.Sm}
+                size={AvatarSize.Md}
                 imageSource={
                   networkConfiguration.rpcPrefs.imageSource ||
                   (networkConfiguration.rpcPrefs.imageUrl
@@ -196,11 +196,7 @@ const CustomNetwork = ({
           </View>
           {compactMode && (
             <View style={customNetworkStyles.iconContainer}>
-              <Icon
-                name={IconName.Add}
-                size={IconSize.Lg}
-                color={colors.icon.alternative}
-              />
+              <Icon name={IconName.Add} size={IconSize.Lg} />
             </View>
           )}
         </TouchableOpacity>

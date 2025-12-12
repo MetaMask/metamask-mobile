@@ -8,13 +8,15 @@ const createStyles = () =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginVertical: 12,
+      paddingVertical: 16,
     },
     popularNetworkImage: {
       width: 20,
       height: 20,
       marginRight: isNetworkUiRedesignEnabled() ? 20 : 10,
       borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     popularWrapper: {
       flexDirection: 'row',

@@ -15,10 +15,7 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from './../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from './../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconName,
   IconSize,
@@ -79,6 +76,15 @@ const CustomNetworkSelector = ({
     });
   }, [navigate]);
 
+  const createAvatarProps = useCallback(
+    (item: CustomNetworkItem) => ({
+      variant: AvatarVariant.Network as const,
+      name: item.name,
+      imageSource: item.imageSource as ImageSourcePropType,
+    }),
+    [],
+  );
+
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
       const {
@@ -122,12 +128,7 @@ const CustomNetworkSelector = ({
             onTextClick={() =>
               openRpcModal && openRpcModal({ chainId, networkName: name })
             }
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name,
-              imageSource: item.imageSource as ImageSourcePropType,
-              size: AvatarSize.Sm,
-            }}
+            avatarProps={createAvatarProps(item)}
             buttonIcon={IconName.MoreVertical}
             buttonProps={{
               onButtonClick: handleMenuPress,
@@ -140,7 +141,13 @@ const CustomNetworkSelector = ({
         </View>
       );
     },
-    [selectCustomNetwork, openModal, dismissModal, openRpcModal],
+    [
+      selectCustomNetwork,
+      openModal,
+      dismissModal,
+      openRpcModal,
+      createAvatarProps,
+    ],
   );
 
   const renderFooter = useCallback(
