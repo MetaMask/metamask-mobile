@@ -44,6 +44,7 @@ describe('useMultichainBlockExplorerTxUrl', () => {
     getEvmBlockExplorerUrl: jest.fn(),
     getBlockExplorerName: jest.fn(),
     getBlockExplorerUrl: jest.fn(),
+    getBlockExplorerBaseUrl: jest.fn(),
     toBlockExplorer: jest.fn(),
   };
 
