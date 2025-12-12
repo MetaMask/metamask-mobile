@@ -34,6 +34,7 @@ import {
   getDefaultDestToken,
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -175,14 +176,21 @@ export const useSwapBridgeNavigation = ({
           ? ActionLocation.NAVBAR
           : ActionLocation.ASSET_DETAILS,
       });
+      // Check if user is in an active trending session for analytics
+      const isFromTrending =
+        TrendingFeedSessionManager.getInstance().isFromTrending;
+
+      const swapEventProperties = {
+        location,
+        chain_id_source: getDecimalChainId(sourceToken.chainId),
+        token_symbol_source: sourceToken?.symbol,
+        token_address_source: sourceToken?.address,
+        from_trending: isFromTrending,
+      };
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-          .addProperties({
-            location,
-            chain_id_source: getDecimalChainId(sourceToken.chainId),
-            token_symbol_source: sourceToken?.symbol,
-            token_address_source: sourceToken?.address,
-          })
+          .addProperties(swapEventProperties)
           .build(),
       );
       trace({

@@ -203,7 +203,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
-            style={[styles.buttonYes, isBiggerLabel && tw.style('h-18')]}
+            style={[styles.buttonYes, isBiggerLabel && tw.style('h-full py-2')]}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -220,7 +220,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}
-            style={[styles.buttonNo, isBiggerLabel && tw.style('h-18')]}
+            style={[styles.buttonNo, isBiggerLabel && tw.style('h-full py-2')]}
           />
         </View>
       )}
