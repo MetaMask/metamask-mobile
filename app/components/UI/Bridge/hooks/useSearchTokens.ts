@@ -29,6 +29,7 @@ interface UseSearchTokensResult {
   isSearchLoading: boolean;
   isLoadingMore: boolean;
   searchCursor: string | undefined;
+  currentSearchQuery: string;
   searchTokens: (query: string, cursor?: string) => Promise<void>;
   debouncedSearch: ReturnType<typeof debounce>;
   resetSearch: () => void;
@@ -47,6 +48,8 @@ export const useSearchTokens = ({
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  // Consumers need to distinguish "waiting for debounce" from "search returned 0 results"
+  const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('');
   const currentSearchQueryRef = useRef<string>('');
 
   // Use refs to store the latest values without causing re-renders or callback recreation
@@ -66,6 +69,7 @@ export const useSearchTokens = ({
     setSearchResults([]);
     setSearchCursor(undefined);
     currentSearchQueryRef.current = '';
+    setCurrentSearchQuery('');
   }, []);
 
   const searchTokens = useCallback(
@@ -85,6 +89,7 @@ export const useSearchTokens = ({
       } else {
         setIsSearchLoading(true);
         currentSearchQueryRef.current = query.trim();
+        setCurrentSearchQuery(query.trim());
       }
 
       try {
@@ -188,6 +193,7 @@ export const useSearchTokens = ({
     isSearchLoading,
     isLoadingMore,
     searchCursor,
+    currentSearchQuery,
     searchTokens,
     debouncedSearch,
     resetSearch,

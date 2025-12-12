@@ -187,6 +187,7 @@ export const BridgeTokenSelector: React.FC = () => {
     isSearchLoading,
     isLoadingMore,
     searchCursor,
+    currentSearchQuery,
     searchTokens,
     debouncedSearch,
     resetSearch,
@@ -207,19 +208,35 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const displayData = useMemo(() => {
     const isLoading = isPopularTokensLoading || isSearchLoading;
-    if (isLoading) {
-      // Show 8 skeleton items while loading
-      return Array(8).fill(null);
+
+    if (isValidSearch) {
+      // Debounce creates a gap between user typing and search API call.
+      // During this gap, returning an empty array collapses the FlatList layout,
+      // which never recovers when results arrive. Skeletons maintain the layout.
+      const isWaitingForDebounce =
+        !isSearchLoading && currentSearchQuery !== searchString.trim();
+
+      if (isLoading || isWaitingForDebounce) {
+        // Show skeleton items while loading
+        return Array(8).fill(null);
+      }
+
+      return searchResultsWithBalance;
     }
 
-    // Show search results when query meets minimum length, otherwise show popular tokens
-    return isValidSearch ? searchResultsWithBalance : popularTokensWithBalance;
+    if (isLoading) {
+      // Show skeleton items while loading
+      return Array(8).fill(null);
+    }
+    return popularTokensWithBalance;
   }, [
     isPopularTokensLoading,
     isSearchLoading,
     isValidSearch,
     searchResultsWithBalance,
     popularTokensWithBalance,
+    currentSearchQuery,
+    searchString,
   ]);
 
   // Re-trigger search when chain IDs change if there's an active search
@@ -424,6 +441,9 @@ export const BridgeTokenSelector: React.FC = () => {
           placeholder={strings('swaps.search_token')}
           testID="bridge-token-search-input"
           style={styles.searchInput}
+          autoComplete="off"
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </Box>
 

@@ -45,10 +45,6 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
     goToBuy();
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED).build(),
-    );
-
-    trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           text: 'Add funds',
