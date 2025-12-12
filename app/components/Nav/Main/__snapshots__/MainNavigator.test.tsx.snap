@@ -265,6 +265,8 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="DeFiProtocolPositionDetails"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": true,
       }
     }
