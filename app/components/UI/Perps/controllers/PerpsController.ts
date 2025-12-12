@@ -25,6 +25,7 @@ import { MetaMetrics } from '../../../../core/Analytics';
 import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
@@ -42,7 +43,7 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import type { ServiceContext } from './services/ServiceContext';
 import {
   getStreamManagerInstance,
-  type PerpsStreamManager,
+  type PerpsStreamChannelKey,
 } from '../providers/PerpsStreamManager';
 import type {
   AccountState,
@@ -162,6 +163,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this withdrawal
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -185,6 +187,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this deposit
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -222,6 +225,7 @@ export type PerpsControllerState = {
     testnet: {
       [marketSymbol: string]: {
         leverage?: number; // Last used leverage for this market
+        orderBookGrouping?: number; // Persisted price grouping for order book
         // Pending trade configuration (temporary, expires after 5 minutes)
         pendingConfig?: {
           amount?: string; // Order size in USD
@@ -237,6 +241,7 @@ export type PerpsControllerState = {
     mainnet: {
       [marketSymbol: string]: {
         leverage?: number;
+        orderBookGrouping?: number; // Persisted price grouping for order book
         // Pending trade configuration (temporary, expires after 5 minutes)
         pendingConfig?: {
           amount?: string; // Order size in USD
@@ -601,6 +606,14 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:clearPendingTradeConfiguration';
       handler: PerpsController['clearPendingTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getOrderBookGrouping';
+      handler: PerpsController['getOrderBookGrouping'];
+    }
+  | {
+      type: 'PerpsController:saveOrderBookGrouping';
+      handler: PerpsController['saveOrderBookGrouping'];
     };
 
 /**
@@ -666,6 +679,14 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
+  /**
+   * Version counter for blocked region list.
+   * Used to prevent race conditions where stale eligibility checks
+   * (started with fallback config) overwrite results from newer checks
+   * (started with remote config).
+   */
+  private blockedRegionListVersion = 0;
+
   // Store HIP-3 configuration (mutable for runtime updates from remote flags)
   private hip3Enabled: boolean;
   private hip3AllowlistMarkets: string[];
@@ -730,6 +751,28 @@ export class PerpsController extends BaseController<
     );
 
     this.providers = new Map();
+
+    // Migrate old persisted data without accountAddress
+    this.migrateRequestsIfNeeded();
+  }
+
+  /**
+   * Clean up old withdrawal/deposit requests that don't have accountAddress
+   * These are from before the accountAddress field was added and can't be displayed
+   * in the UI (which filters by account), so we discard them
+   */
+  private migrateRequestsIfNeeded(): void {
+    this.update((state) => {
+      // Remove withdrawal requests without accountAddress - they can't be attributed to any account
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => !!req.accountAddress,
+      );
+
+      // Remove deposit requests without accountAddress - they can't be attributed to any account
+      state.depositRequests = state.depositRequests.filter(
+        (req) => !!req.accountAddress,
+      );
+    });
   }
 
   protected setBlockedRegionList(
@@ -746,6 +789,7 @@ export class PerpsController extends BaseController<
           newSource: 'remote' | 'fallback',
         ) => {
           this.blockedRegionList = { list: newList, source: newSource };
+          this.blockedRegionListVersion += 1;
         },
         refreshEligibility: () => this.refreshEligibility(),
       }),
@@ -772,6 +816,7 @@ export class PerpsController extends BaseController<
             source: 'remote' | 'fallback',
           ) => {
             this.blockedRegionList = { list, source };
+            this.blockedRegionListVersion += 1;
           },
           refreshEligibility: () => this.refreshEligibility(),
           getHip3Config: () => ({
@@ -834,10 +879,10 @@ export class PerpsController extends BaseController<
    */
   private async withStreamPause<T>(
     operation: () => Promise<T>,
-    channels: (keyof PerpsStreamManager)[],
+    channels: PerpsStreamChannelKey[],
   ): Promise<T> {
     const streamManager = getStreamManagerInstance();
-    const pausedChannels: (keyof PerpsStreamManager)[] = [];
+    const pausedChannels: PerpsStreamChannelKey[] = [];
 
     // Pause emission on specified channels (WebSocket stays connected)
     // Track which channels successfully paused to ensure proper cleanup
@@ -1200,10 +1245,7 @@ export class PerpsController extends BaseController<
         getOpenOrders: () => this.getOpenOrders(),
       }),
       withStreamPause: <T>(operation: () => Promise<T>, channels: string[]) =>
-        this.withStreamPause(
-          operation,
-          channels as (keyof PerpsStreamManager)[],
-        ),
+        this.withStreamPause(operation, channels as PerpsStreamChannelKey[]),
     });
   }
 
@@ -1327,12 +1369,17 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastDepositResult = null;
 
+        // Get current account address
+        const evmAccount = getEvmAccountFromSelectedAccountGroup();
+        const accountAddress = evmAccount?.address || 'unknown';
+
         // Add deposit request to tracking
         const depositRequest = {
           id: currentDepositId,
           timestamp: Date.now(),
           amount: amount || '0', // Use provided amount or default to '0'
           asset: USDC_SYMBOL,
+          accountAddress, // Track which account initiated deposit
           success: false, // Will be updated when transaction completes
           txHash: undefined,
           status: 'pending' as TransactionStatus,
@@ -2135,12 +2182,24 @@ export class PerpsController extends BaseController<
    * Refresh eligibility status
    */
   async refreshEligibility(): Promise<void> {
-    try {
-      DevLogger.log('PerpsController: Refreshing eligibility');
+    // Capture the current version before starting the async operation.
+    // This prevents race conditions where stale eligibility checks
+    // (started with fallback config) overwrite results from newer checks
+    // (started with remote config after it was fetched).
+    const versionAtStart = this.blockedRegionListVersion;
 
+    try {
+      // TODO: It would be good to have this location before we call this async function to avoid the race condition
       const isEligible = await EligibilityService.checkEligibility(
         this.blockedRegionList.list,
       );
+
+      // Only update state if the blocked region list hasn't changed while we were awaiting.
+      // This prevents stale fallback-based eligibility checks from overwriting
+      // results from remote-based checks.
+      if (this.blockedRegionListVersion !== versionAtStart) {
+        return;
+      }
 
       this.update((state) => {
         state.isEligible = isEligible;
@@ -2150,10 +2209,14 @@ export class PerpsController extends BaseController<
         ensureError(error),
         this.getErrorContext('refreshEligibility'),
       );
-      // Default to eligible on error
-      this.update((state) => {
-        state.isEligible = true;
-      });
+
+      // Only update on error if version is still current
+      if (this.blockedRegionListVersion === versionAtStart) {
+        // Default to eligible on error
+        this.update((state) => {
+          state.isEligible = true;
+        });
+      }
     }
   }
 
@@ -2419,6 +2482,55 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.marketFilterPreferences = optionId;
+    });
+  }
+
+  /**
+   * Get saved order book grouping for a market
+   * @param coin - Market symbol
+   * @returns The saved grouping value or undefined if not set
+   */
+  getOrderBookGrouping(coin: string): number | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const grouping =
+      this.state.tradeConfigurations[network]?.[coin]?.orderBookGrouping;
+
+    if (grouping !== undefined) {
+      DevLogger.log('PerpsController: Retrieved order book grouping', {
+        coin,
+        network,
+        grouping,
+      });
+    }
+
+    return grouping;
+  }
+
+  /**
+   * Save order book grouping for a market
+   * @param coin - Market symbol
+   * @param grouping - Price grouping value
+   */
+  saveOrderBookGrouping(coin: string, grouping: number): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving order book grouping', {
+      coin,
+      network,
+      grouping,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      const existingConfig = state.tradeConfigurations[network][coin] || {};
+      state.tradeConfigurations[network][coin] = {
+        ...existingConfig,
+        orderBookGrouping: grouping,
+      };
     });
   }
 

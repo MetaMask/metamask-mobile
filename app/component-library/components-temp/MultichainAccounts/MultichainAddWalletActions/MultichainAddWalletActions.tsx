@@ -74,7 +74,7 @@ const MultichainAddWalletActions = ({
         iconName: IconName.Usb,
         testID: AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON,
         isVisible: true,
-        analyticsEvent: MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+        analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
         navigationAction: () => {
           navigate(Routes.HW.CONNECT);
           onBack();

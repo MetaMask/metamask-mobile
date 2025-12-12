@@ -13,7 +13,6 @@ exports[`ConnectionDetails renders correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "gap": 16,
           "padding": 16,
@@ -36,7 +35,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -61,7 +60,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -106,7 +105,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

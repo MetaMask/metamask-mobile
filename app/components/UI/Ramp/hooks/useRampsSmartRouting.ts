@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Order } from '@consensys/on-ramp-sdk';
 import {
   setRampRoutingDecision,
   UnifiedRampRoutingType,
   getDetectedGeolocation,
 } from '../../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import type { RootState } from '../../../../reducers';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -12,6 +14,21 @@ import {
 } from '../../../../constants/on-ramp';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import Logger from '../../../../util/Logger';
+
+/**
+ * Checks if an aggregator order was placed through Transak provider.
+ * For aggregator orders, the actual provider is stored in order.data.provider.id
+ */
+const isTransakAggregatorOrder = (order: FiatOrder): boolean => {
+  if (order.provider !== FIAT_ORDER_PROVIDERS.AGGREGATOR) {
+    return false;
+  }
+  const providerId = (order.data as Order)?.provider?.id;
+  return (
+    typeof providerId === 'string' &&
+    providerId.toLowerCase().includes('transak')
+  );
+};
 
 const RAMP_ELIGIBILITY_URLS = {
   STAGING: 'https://on-ramp-content.uat-api.cx.metamask.io',
@@ -101,8 +118,8 @@ export default function useRampsSmartRouting() {
         );
 
         if (
-          lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.TRANSAK ||
-          lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
+          lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||
+          isTransakAggregatorOrder(lastCompletedOrder)
         ) {
           dispatch(setRampRoutingDecision(UnifiedRampRoutingType.DEPOSIT));
         } else {

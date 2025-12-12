@@ -95,9 +95,19 @@ jest.mock('../../../../core/Engine', () => {
     }),
   };
 
+  const mockAccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        type: 'eip155:eoa',
+      },
+    ]),
+  };
+
   const mockEngineContext = {
     RewardsController: mockRewardsController,
     NetworkController: mockNetworkController,
+    AccountTreeController: mockAccountTreeController,
     TransactionController: {},
   };
 
@@ -2513,6 +2523,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
             amount: '50',
             asset: 'USDC',
+            accountAddress: '0x1234567890123456789012345678901234567890',
             success: false,
             status: 'pending',
             source: 'hyperliquid',
@@ -2583,6 +2594,7 @@ describe('PerpsController', () => {
           timestamp: Date.now(),
           amount: '75',
           asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890',
           success: false,
           status: 'pending',
           source: 'hyperliquid',
@@ -2618,6 +2630,7 @@ describe('PerpsController', () => {
           timestamp: Date.now(),
           amount: '100',
           asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890',
           success: false,
           status: 'pending',
           source: 'hyperliquid',
@@ -2991,6 +3004,54 @@ describe('PerpsController', () => {
       // Pending config should also be available
       const pending = controller.getPendingTradeConfiguration('BTC');
       expect(pending).toEqual(pendingConfig);
+    });
+  });
+
+  describe('order book grouping', () => {
+    it('saves order book grouping for mainnet', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+
+      controller.saveOrderBookGrouping('BTC', 10);
+
+      const result = controller.getOrderBookGrouping('BTC');
+      expect(result).toBe(10);
+    });
+
+    it('saves order book grouping for testnet', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = true;
+      });
+
+      controller.saveOrderBookGrouping('ETH', 0.01);
+
+      const result = controller.getOrderBookGrouping('ETH');
+      expect(result).toBe(0.01);
+    });
+
+    it('returns undefined when no grouping is saved', () => {
+      const result = controller.getOrderBookGrouping('SOL');
+      expect(result).toBeUndefined();
+    });
+
+    it('preserves existing config when saving grouping', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+
+      // First save leverage
+      controller.saveTradeConfiguration('BTC', 5);
+
+      // Then save grouping
+      controller.saveOrderBookGrouping('BTC', 100);
+
+      // Both should be preserved
+      const savedConfig = controller.getTradeConfiguration('BTC');
+      expect(savedConfig?.leverage).toBe(5);
+
+      const savedGrouping = controller.getOrderBookGrouping('BTC');
+      expect(savedGrouping).toBe(100);
     });
   });
 });

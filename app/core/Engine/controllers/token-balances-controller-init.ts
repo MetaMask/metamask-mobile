@@ -23,7 +23,9 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
 
   const controller = new TokenBalancesController({
     messenger: controllerMessenger,
-    state: persistedState.TokenBalancesController,
+    state: persistedState?.TokenBalancesController ?? {
+      tokenBalances: {},
+    },
     interval: 30_000,
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     queryMultipleAccounts: preferencesState.isMultiAccountBalancesEnabled,
@@ -31,6 +33,7 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
       selectAssetsAccountApiBalancesEnabled({
         engine: { backgroundState: persistedState as EngineState },
       }) as `0x${string}`[],
+    platform: 'mobile',
   });
 
   return {

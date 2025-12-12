@@ -502,7 +502,8 @@ const Onboarding = () => {
           error.code === OAuthErrorType.UserCancelled ||
           error.code === OAuthErrorType.UserDismissed ||
           error.code === OAuthErrorType.GoogleLoginError ||
-          error.code === OAuthErrorType.AppleLoginError
+          error.code === OAuthErrorType.AppleLoginError ||
+          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature
         ) {
           // QA: do not show error sheet if user cancelled
           return;
@@ -902,7 +903,9 @@ const Onboarding = () => {
 
         <FadeOutOverlay />
 
-        <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+        {!isE2E && (
+          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+        )}
 
         <View>{handleSimpleNotification()}</View>
 

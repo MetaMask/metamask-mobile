@@ -63,7 +63,7 @@ export const getQRType = (
   if (
     content.startsWith(MM_SDK_DEEPLINK) ||
     content.split('metamask-sync:').length > 1 ||
-    SDKConnectV2.isConnectDeeplink(content)
+    SDKConnectV2.isMwpDeeplink(content)
   ) {
     return QRType.DEEPLINK;
   }
