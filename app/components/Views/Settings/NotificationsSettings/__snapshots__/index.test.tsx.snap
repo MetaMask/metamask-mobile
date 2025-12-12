@@ -105,6 +105,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
         </Text>
       </Text>
     </View>
+    <View />
   </View>
 </RCTScrollView>
 `;
