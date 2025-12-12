@@ -7,6 +7,7 @@ import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
   formatProviderLabel,
+  QuoteWarning,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 
@@ -35,14 +36,14 @@ export const useBridgeQuoteEvents = ({
     useSelector(selectBridgeQuotes);
 
   const warnings = useMemo(() => {
-    const latestWarnings = [];
+    const latestWarnings: QuoteWarning[] = [];
 
     hasNoQuotesAvailable && latestWarnings.push('no_quotes');
     hasInsufficientGas &&
       latestWarnings.push('insufficient_gas_for_selected_quote');
     hasInsufficientBalance && latestWarnings.push('insufficient_balance');
     hasTxAlert && latestWarnings.push('tx_alert');
-    isPriceImpactWarningVisible && latestWarnings.push('price_impact_warning');
+    isPriceImpactWarningVisible && latestWarnings.push('price_impact');
 
     return latestWarnings;
   }, [
