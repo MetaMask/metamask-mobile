@@ -48,6 +48,7 @@ jest.mock('../../../../../selectors/multichain', () => ({
       },
     ],
   })),
+  selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
@@ -409,6 +410,21 @@ jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
 }));
 
+jest.mock('react-native-fade-in-image', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      placeholderStyle,
+    }: {
+      children: React.ReactNode;
+      placeholderStyle?: unknown;
+    }) => React.createElement(View, { style: placeholderStyle }, children),
+  };
+});
+
 describe('EarnWithdrawInputView', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
@@ -476,6 +492,39 @@ describe('EarnWithdrawInputView', () => {
       fireEvent.press(screen.getByText('25%'));
 
       expect(screen.getByText('1.44783')).toBeTruthy();
+    });
+
+    it('handles Max button press and sets full balance', async () => {
+      render(EarnWithdrawInputView);
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('Max'));
+      });
+
+      expect(screen.getByText('5.79133')).toBeTruthy();
+    });
+
+    it('tracks quick amount button press for staking flows', async () => {
+      render(EarnWithdrawInputView);
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('50%'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Unstake Input Quick Amount Clicked',
+          properties: expect.objectContaining({
+            location: 'UnstakeInputView',
+            amount: 0.5,
+            is_max: false,
+            mode: 'native',
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+          }),
+        }),
+      );
     });
   });
 
@@ -570,6 +619,8 @@ describe('EarnWithdrawInputView', () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
+        expect.anything(),
+        null,
       );
     });
 
@@ -614,6 +665,8 @@ describe('EarnWithdrawInputView', () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
+        expect.anything(),
+        null,
       );
     });
   });
@@ -737,6 +790,110 @@ describe('EarnWithdrawInputView', () => {
         },
       );
     });
+
+    it('displays error when withdrawal amount exceeds safe limit', async () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+
+      (getAaveV3MaxRiskAwareWithdrawalAmount as jest.Mock).mockResolvedValue(
+        '100000',
+      );
+
+      const mockLendingToken: EarnTokenDetails = {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '1000',
+        balanceMinimalUnit: '1000000000',
+        balanceFiatNumber: 1000,
+        tokenUsdExchangeRate: 1,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+            market: {
+              id: '0x123',
+              chainId: 1,
+              protocol: LendingProtocol.AAVE,
+              name: 'USDC Market',
+              address: '0x123',
+              netSupplyRate: 5.0,
+              totalSupplyRate: 5.0,
+              rewards: [],
+              tvlUnderlying: '1000000',
+              underlying: {
+                address: '0x123',
+                chainId: 1,
+              },
+              outputToken: {
+                address: '0x456',
+                chainId: 1,
+              },
+              position: {
+                id: '0x123-0x456-COLLATERAL-0',
+                chainId: 1,
+                assets: '1000000',
+                marketId: '0x123',
+                marketAddress: '0x123',
+                protocol: LendingProtocol.AAVE,
+              },
+            },
+          },
+        ],
+        experience: {
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '50',
+          estimatedAnnualRewardsFiatNumber: 50,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+          estimatedAnnualRewardsTokenFormatted: '50',
+          market: {
+            id: '0x123',
+            chainId: 1,
+            protocol: LendingProtocol.AAVE,
+            name: 'USDC Market',
+            address: '0x123',
+            netSupplyRate: 5.0,
+            totalSupplyRate: 5.0,
+            rewards: [],
+            tvlUnderlying: '1000000',
+            underlying: {
+              address: '0x123',
+              chainId: 1,
+            },
+            outputToken: {
+              address: '0x456',
+              chainId: 1,
+            },
+            position: {
+              id: '0x123-0x456-COLLATERAL-0',
+              chainId: 1,
+              assets: '1000000',
+              marketId: '0x123',
+              marketAddress: '0x123',
+              protocol: LendingProtocol.AAVE,
+            },
+          },
+        },
+      };
+
+      const { getByText } = render(EarnWithdrawInputView, mockLendingToken);
+
+      await act(async () => {
+        fireEvent.press(getByText('5'));
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryAllByText('Amount exceeds safe withdrawal limit'),
+        ).toHaveLength(2);
+      });
+    });
   });
 
   describe('navigation events', () => {
@@ -780,9 +937,38 @@ describe('EarnWithdrawInputView', () => {
       await act(async () => {
         fireEvent.press(screen.getByText('1'));
       });
+      await waitFor(() => {
+        expect(screen.getAllByText('Unstake')[0]).toBeTruthy();
+      });
+    });
+
+    it('replaces Max button with Done when non-zero amount is entered', async () => {
+      const tronToken: TokenI = {
+        name: 'Tron',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        balance: '1000',
+        balanceFiat: '$100',
+        isNative: true,
+      } as unknown as TokenI;
+
+      const { getByText, queryByText } = render(
+        EarnWithdrawInputView,
+        tronToken,
+      );
+
+      expect(getByText('Max')).toBeTruthy();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
 
       await waitFor(() => {
-        expect(screen.getByText('Unstake')).toBeTruthy();
+        expect(queryByText('Max')).toBeNull();
+        expect(getByText('Done')).toBeTruthy();
       });
     });
   });

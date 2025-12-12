@@ -159,6 +159,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      existingPosition: mockLongPosition,
       hideTPSL: true,
     });
   });
@@ -171,6 +172,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'short',
       asset: 'ETH',
+      existingPosition: mockShortPosition,
       hideTPSL: true,
     });
   });
@@ -270,6 +272,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      existingPosition: mockLongPosition,
       hideTPSL: true,
     });
   });

@@ -77,7 +77,7 @@ const SitesFullView: React.FC = () => {
 
   const renderSkeleton = () => (
     <>
-      {[...Array(10)].map((_, index) => (
+      {[...Array(15)].map((_, index) => (
         <SiteSkeleton key={`skeleton-${index}`} />
       ))}
     </>

@@ -357,6 +357,15 @@ import {
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
 import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
+import {
+  ProfileMetricsController,
+  ProfileMetricsControllerActions,
+  ProfileMetricsControllerEvents,
+  ProfileMetricsControllerState,
+  ProfileMetricsService,
+  ProfileMetricsServiceActions,
+  ProfileMetricsServiceEvents,
+} from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
@@ -494,7 +503,9 @@ type GlobalActions =
   | StorageServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
-  | NftDetectionControllerActions;
+  | NftDetectionControllerActions
+  | ProfileMetricsControllerActions
+  | ProfileMetricsServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -564,7 +575,9 @@ type GlobalEvents =
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   | DelegationControllerEvents
-  | NftDetectionControllerEvents;
+  | NftDetectionControllerEvents
+  | ProfileMetricsControllerEvents
+  | ProfileMetricsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -675,6 +688,8 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  ProfileMetricsController: ProfileMetricsController;
+  ProfileMetricsService: ProfileMetricsService;
 };
 
 /**
@@ -749,6 +764,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  ProfileMetricsController: ProfileMetricsControllerState;
 };
 
 /** Controller names */
@@ -849,7 +865,9 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController';
+  | 'SelectedNetworkController'
+  | 'ProfileMetricsController'
+  | 'ProfileMetricsService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

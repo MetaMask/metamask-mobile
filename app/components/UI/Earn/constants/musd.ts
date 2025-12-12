@@ -5,15 +5,29 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import MusdIcon from '../../../../images/musd-icon-2x.png';
 
 export const MUSD_TOKEN = {
   symbol: 'MUSD',
   name: 'MUSD',
   decimals: 6,
+  imageSource: MusdIcon,
 } as const;
+
+export const MUSD_CONVERSION_DEFAULT_CHAIN_ID = CHAIN_IDS.MAINNET;
 
 export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
   [CHAIN_IDS.MAINNET]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  [CHAIN_IDS.LINEA_MAINNET]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  [CHAIN_IDS.BSC]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+};
+
+export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
+  [CHAIN_IDS.MAINNET]:
+    'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  [CHAIN_IDS.LINEA_MAINNET]:
+    'eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  [CHAIN_IDS.BSC]: 'eip155:56/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
 };
 
 export const MUSD_CURRENCY = 'MUSD';

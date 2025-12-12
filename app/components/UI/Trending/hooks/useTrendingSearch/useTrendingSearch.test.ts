@@ -2,6 +2,7 @@ import { useTrendingSearch } from './useTrendingSearch';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { waitFor } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { CaipChainId } from '@metamask/utils';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
@@ -45,13 +46,14 @@ describe('useTrendingSearch', () => {
 
   const mockSearchResults = [
     {
-      assetId: 'eip155:1/erc20:0x789',
+      assetId: 'eip155:1/erc20:0x789' as CaipChainId,
       symbol: 'USDC',
       name: 'USD Coin',
       decimals: 6,
       price: '1',
       aggregatedUsdVolume: 800000,
       marketCap: 300000000,
+      pricePercentChange1d: '1',
     },
   ];
 
@@ -122,7 +124,16 @@ describe('useTrendingSearch', () => {
   });
 
   it('removes duplicate results when combining search and trending', async () => {
-    const duplicateResult = mockTrendingResults[0]; // ETH
+    const duplicateResult = {
+      assetId: mockTrendingResults[0].assetId as CaipChainId,
+      symbol: mockTrendingResults[0].symbol,
+      name: mockTrendingResults[0].name,
+      decimals: mockTrendingResults[0].decimals,
+      price: mockTrendingResults[0].price,
+      aggregatedUsdVolume: mockTrendingResults[0].aggregatedUsdVolume,
+      marketCap: mockTrendingResults[0].marketCap,
+      pricePercentChange1d: '0',
+    };
     mockUseSearchRequest.mockReturnValue({
       results: [duplicateResult, mockSearchResults[0]],
       isLoading: false,

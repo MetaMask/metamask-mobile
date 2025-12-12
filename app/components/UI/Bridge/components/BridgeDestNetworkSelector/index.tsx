@@ -18,6 +18,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode } from '../../types';
 import { ChainPopularity } from '../BridgeDestNetworksBar';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 export interface BridgeDestNetworkSelectorRouteParams {
   shouldGoToTokens?: boolean;
@@ -80,7 +81,12 @@ export const BridgeDestNetworkSelector: React.FC = () => {
             onPress={() => handleChainSelect(chain.chainId)}
           >
             <ListItem verticalAlignment={VerticalAlignment.Center}>
-              <NetworkRow chainId={chain.chainId} chainName={chain.name} />
+              <NetworkRow
+                chainId={chain.chainId}
+                chainName={
+                  NETWORK_TO_SHORT_NETWORK_NAME_MAP[chain.chainId] ?? chain.name
+                }
+              />
             </ListItem>
           </TouchableOpacity>
         )),
