@@ -21085,7 +21085,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch":
+"appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=3beae4":
   version: 0.1.45
   resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=3beae4"
   dependencies:
@@ -21104,6 +21104,28 @@ __metadata:
   bin:
     appwright: dist/bin/index.js
   checksum: 10/a7b98dc4bcdc19660a976927d6b508779b40ac22b786f90e96559ee8a3fa9df331ff85f8a0bdf28c16ea729011b38a95409b9f07e88e0695fff982735518c71b
+  languageName: node
+  linkType: hard
+
+"appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch":
+  version: 0.1.45
+  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch::version=0.1.45&hash=2d02ee"
+  dependencies:
+    "@empiricalrun/llm": "npm:^0.9.25"
+    "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
+    "@playwright/test": "npm:^1.47.1"
+    appium: "npm:^2.6.0"
+    appium-uiautomator2-driver: "npm:^3.8.0"
+    appium-xcuitest-driver: "npm:^7.27.0"
+    async-retry: "npm:^1.3.3"
+    fluent-ffmpeg: "npm:^2.1.3"
+    form-data: "npm:4.0.0"
+    node-fetch: "npm:^3.3.2"
+    picocolors: "npm:^1.1.0"
+    webdriver: "npm:^8.36.1"
+  bin:
+    appwright: dist/bin/index.js
+  checksum: 10/1ccf9e933937b35aaf15c152353596070dcd7175a5670def418ef0b3a124b750bc23ea4eed16ced52e2e5d631a9833a35be75553618b5ee8b0b88d17c4c9ba37
   languageName: node
   linkType: hard
 
@@ -34414,7 +34436,7 @@ __metadata:
     appium: "npm:^2.12.1"
     appium-uiautomator2-driver: "npm:4.2.7"
     appium-xcuitest-driver: "npm:5.16.1"
-    appwright: "patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch"
+    appwright: "patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=3beae4#~/.yarn/patches/appwright-patch-685d6e06a0.patch"
     assert: "npm:^1.5.0"
     asyncstorage-down: "npm:4.2.0"
     axios: "npm:^1.8.2"
