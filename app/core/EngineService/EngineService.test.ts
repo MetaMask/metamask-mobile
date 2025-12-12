@@ -1097,6 +1097,69 @@ describe('EngineService', () => {
       );
     });
 
+    it('detects state change when property is removed during Engine.init()', async () => {
+      // Arrange - Initial state has more properties than current state (property removed)
+      const initialControllerState = { field1: 'value1', field2: 'value2' };
+      const currentControllerState = { field1: 'value1' }; // field2 was removed
+
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          KeyringController: {
+            subscribe: jest.fn(),
+            state: currentControllerState,
+            metadata: {
+              field1: { persist: true, anonymous: false },
+            },
+          },
+          PreferencesController: {
+            subscribe: jest.fn(),
+            state: { pref1: 'unchanged' },
+            metadata: {
+              pref1: { persist: true, anonymous: false },
+            },
+          },
+          NetworkController: {
+            subscribe: jest.fn(),
+            state: { network: 'mainnet' },
+            metadata: {
+              network: { persist: true, anonymous: false },
+            },
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      // Mock getPersistentState to return filtered state (only field1 now)
+      mockGetPersistentState.mockImplementation(
+        (state) => state as unknown as ReturnType<typeof getPersistentState>,
+      );
+
+      // Mock ControllerStorage to return initial state with both fields
+      (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
+        backgroundState: {
+          KeyringController: initialControllerState,
+          PreferencesController: { pref1: 'unchanged' },
+          NetworkController: { network: 'mainnet' },
+        },
+      });
+
+      // Reset mock
+      mockPersistController.mockClear();
+
+      // Act
+      await engineService.start();
+
+      // Assert - Property removal should be detected as a change
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: KeyringController state changed during init, queued for persist',
+      );
+      expect(mockPersistController).toHaveBeenCalledWith(
+        currentControllerState,
+        'KeyringController',
+      );
+    });
+
     it('does not persist empty state for controllers without state to save', async () => {
       // Arrange - Controller with empty filtered state
       Object.defineProperty(Engine, 'context', {
