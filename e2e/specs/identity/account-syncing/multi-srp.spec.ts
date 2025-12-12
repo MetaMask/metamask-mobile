@@ -121,11 +121,12 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
 
         await waitUntilSyncedAccountsNumberEquals(4);
 
-        // Wait for account to be visible before interacting
+        // Wait for the 4th account's ellipsis button to be visible before tapping
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountNameV2('Account 1'),
+          await AccountListBottomSheet.getEllipsisMenuButtonAtIndex(3),
           {
-            description: 'fourth account should be visible after creation',
+            description:
+              'ellipsis button for 2nd account on SRP 2 should be visible',
             timeout: 10000,
           },
         );
