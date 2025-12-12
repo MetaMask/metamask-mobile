@@ -117,14 +117,33 @@ export async function dissmissAllModals(device) {
   await dissmissPredictionsModal(device);
 }
 
-export async function dissmissPredictionsModal(device) {
+export async function dissmissPredictionsModal(device, maxRetries = 3) {
   const notNowPredictionsModalButton = await AppwrightSelectors.getElementByID(
     device,
     'predict-gtm-not-now-button',
   );
-  if (await notNowPredictionsModalButton.isVisible({ timeout: 10000 })) {
-    await AppwrightGestures.tap(notNowPredictionsModalButton);
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    if (await notNowPredictionsModalButton.isVisible({ timeout: 10000 })) {
+      await AppwrightGestures.tap(notNowPredictionsModalButton);
+
+      // Verify the modal was dismissed
+      const stillVisible = await notNowPredictionsModalButton.isVisible({
+        timeout: 2000,
+      });
+      if (!stillVisible) {
+        console.log(`✅ Predictions modal dismissed on attempt ${attempt}`);
+        return;
+      }
+      console.log(
+        `⚠️ Predictions modal still visible after tap, attempt ${attempt}/${maxRetries}`,
+      );
+    } else {
+      // Modal not visible, nothing to dismiss
+      return;
+    }
   }
+  console.log('⚠️ Predictions modal could not be dismissed after all retries');
 }
 
 export async function checkPredictionsModalIsVisible(device) {

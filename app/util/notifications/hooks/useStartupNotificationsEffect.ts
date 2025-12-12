@@ -88,13 +88,7 @@ export function useRegisterAndFetchNotifications() {
   ]);
 }
 
-const isE2ETest =
-  process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
-
-
 export function useEnableNotificationsByDefaultEffect() {
-    // Skip in E2E tests to avoid notification permission dialog
-  if (isE2ETest) return;
   const {
     isUnlocked,
     isBasicFunctionalityEnabled,
