@@ -302,7 +302,6 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -1987,7 +1986,6 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -3713,7 +3711,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -5398,7 +5395,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -7083,7 +7079,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -8809,7 +8804,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -10494,7 +10488,6 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -11022,7 +11015,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -12707,7 +12699,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View
@@ -14392,7 +14383,6 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
               undefined,
             ]
           }
-          testID="header"
         >
           <View>
             <View

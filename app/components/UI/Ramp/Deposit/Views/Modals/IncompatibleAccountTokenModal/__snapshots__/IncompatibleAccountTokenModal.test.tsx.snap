@@ -444,7 +444,6 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View

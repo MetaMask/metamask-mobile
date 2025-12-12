@@ -444,7 +444,6 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -1156,7 +1155,6 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -2064,7 +2062,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -3204,7 +3201,6 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -3957,7 +3953,6 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -4798,7 +4793,6 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -5938,7 +5932,6 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -7078,7 +7071,6 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View

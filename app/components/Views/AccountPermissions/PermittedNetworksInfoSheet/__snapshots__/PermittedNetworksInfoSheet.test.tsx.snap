@@ -25,7 +25,6 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
         },
       ]
     }
-    testID="header"
   >
     <View
       style={

@@ -1,20 +1,18 @@
 // Third party dependencies.
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { IconName, Text } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import HeaderBase from './HeaderBase';
-import {
-  HEADERBASE_TEST_ID,
-  HEADERBASE_TITLE_TEST_ID,
-} from './HeaderBase.constants';
+import { HEADERBASE_TITLE_TEST_ID } from './HeaderBase.constants';
 import { HeaderBaseVariant } from './HeaderBase.types';
-import { IconName } from '@metamask/design-system-react-native';
 
+const HEADER_TEST_ID = 'header-base-test';
 const START_ACCESSORY_TEST_ID = 'start-accessory-wrapper';
 const END_ACCESSORY_TEST_ID = 'end-accessory-wrapper';
 const BUTTON_ICON_TEST_ID = 'button-icon';
+const CUSTOM_CONTENT_TEST_ID = 'custom-content';
 
 describe('HeaderBase', () => {
   beforeEach(() => {
@@ -29,19 +27,21 @@ describe('HeaderBase', () => {
     });
 
     it('renders custom children when ReactNode is passed', () => {
-      const { getByText } = render(
-        <HeaderBase>
-          <Text>Custom Content</Text>
+      const { getByTestId } = render(
+        <HeaderBase testID={HEADER_TEST_ID}>
+          <Text testID={CUSTOM_CONTENT_TEST_ID}>Custom Content</Text>
         </HeaderBase>,
       );
 
-      expect(getByText('Custom Content')).toBeOnTheScreen();
+      expect(getByTestId(CUSTOM_CONTENT_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('applies default testID to container', () => {
-      const { getByTestId } = render(<HeaderBase>Title</HeaderBase>);
+    it('applies testID to container when provided', () => {
+      const { getByTestId } = render(
+        <HeaderBase testID={HEADER_TEST_ID}>Title</HeaderBase>,
+      );
 
-      expect(getByTestId(HEADERBASE_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(HEADER_TEST_ID)).toBeOnTheScreen();
     });
 
     it('applies title testID when string children is passed', () => {
@@ -49,28 +49,22 @@ describe('HeaderBase', () => {
 
       expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();
     });
-
-    it('accepts custom testID for container', () => {
-      const customTestId = 'custom-header';
-
-      const { getByTestId } = render(
-        <HeaderBase testID={customTestId}>Title</HeaderBase>,
-      );
-
-      expect(getByTestId(customTestId)).toBeOnTheScreen();
-    });
   });
 
   describe('variant', () => {
     it('uses Compact variant by default', () => {
-      const { getByTestId } = render(<HeaderBase>Title</HeaderBase>);
+      const { getByTestId } = render(
+        <HeaderBase testID={HEADER_TEST_ID}>Title</HeaderBase>,
+      );
 
       expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();
     });
 
     it('renders with Display variant when specified', () => {
       const { getByTestId } = render(
-        <HeaderBase variant={HeaderBaseVariant.Display}>Title</HeaderBase>,
+        <HeaderBase variant={HeaderBaseVariant.Display} testID={HEADER_TEST_ID}>
+          Title
+        </HeaderBase>,
       );
 
       expect(getByTestId(HEADERBASE_TITLE_TEST_ID)).toBeOnTheScreen();

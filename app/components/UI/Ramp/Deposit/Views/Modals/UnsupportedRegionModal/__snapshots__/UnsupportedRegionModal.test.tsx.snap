@@ -424,7 +424,6 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -1094,7 +1093,6 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View

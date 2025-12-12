@@ -345,7 +345,6 @@ exports[`ActivityView matches snapshot 1`] = `
                             },
                           ]
                         }
-                        testID="header"
                       >
                         <View
                           style={

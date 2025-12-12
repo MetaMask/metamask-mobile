@@ -144,7 +144,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               },
             ]
           }
-          testID="header"
         >
           <View>
             <View

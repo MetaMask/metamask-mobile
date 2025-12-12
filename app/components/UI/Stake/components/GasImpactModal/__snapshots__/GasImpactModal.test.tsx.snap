@@ -151,7 +151,6 @@ exports[`GasImpactModal render matches snapshot 1`] = `
                 },
               ]
             }
-            testID="header"
           >
             <View>
               <View

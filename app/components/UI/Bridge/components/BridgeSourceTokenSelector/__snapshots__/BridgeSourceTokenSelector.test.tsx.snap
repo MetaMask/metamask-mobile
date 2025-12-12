@@ -445,7 +445,6 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View

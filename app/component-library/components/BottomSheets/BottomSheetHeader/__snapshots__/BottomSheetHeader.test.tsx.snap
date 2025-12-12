@@ -16,7 +16,6 @@ exports[`BottomSheetHeader renders snapshot correctly with Compact variant 1`] =
       },
     ]
   }
-  testID="header"
 >
   <View
     style={
@@ -72,7 +71,6 @@ exports[`BottomSheetHeader renders snapshot correctly with Display variant 1`] =
       },
     ]
   }
-  testID="header"
 >
   <View
     style={
@@ -127,7 +125,6 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
       },
     ]
   }
-  testID="header"
 >
   <View
     style={

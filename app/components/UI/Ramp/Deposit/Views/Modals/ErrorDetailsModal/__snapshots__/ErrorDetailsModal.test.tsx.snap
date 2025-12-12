@@ -444,7 +444,6 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View

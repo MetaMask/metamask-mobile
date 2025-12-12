@@ -161,7 +161,6 @@ exports[`NetworkDetails renders correctly 1`] = `
                     },
                   ]
                 }
-                testID="header"
               >
                 <View
                   style={

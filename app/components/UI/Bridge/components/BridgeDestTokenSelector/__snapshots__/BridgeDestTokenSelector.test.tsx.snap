@@ -445,7 +445,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View

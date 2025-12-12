@@ -951,7 +951,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                               },
                             ]
                           }
-                          testID="header"
                         >
                           <View>
                             <View
@@ -1684,7 +1683,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                               },
                             ]
                           }
-                          testID="header"
                         >
                           <View>
                             <View

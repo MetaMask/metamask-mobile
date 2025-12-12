@@ -52,7 +52,6 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
               },
             ]
           }
-          testID="header"
         >
           <View
             style={
@@ -1230,7 +1229,6 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
               },
             ]
           }
-          testID="header"
         >
           <View
             style={
@@ -2408,7 +2406,6 @@ exports[`Wallet should render correctly 1`] = `
               },
             ]
           }
-          testID="header"
         >
           <View
             style={
@@ -3586,7 +3583,6 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
               },
             ]
           }
-          testID="header"
         >
           <View
             style={
@@ -4764,7 +4760,6 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
               },
             ]
           }
-          testID="header"
         >
           <View
             style={

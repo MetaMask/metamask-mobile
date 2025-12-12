@@ -446,7 +446,6 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
@@ -1007,7 +1006,6 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View

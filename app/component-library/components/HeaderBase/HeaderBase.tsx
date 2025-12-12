@@ -5,7 +5,6 @@ import { View, LayoutChangeEvent } from 'react-native';
 // External dependencies.
 import {
   Box,
-  BoxFlexDirection,
   Text,
   ButtonIcon,
   ButtonIconSize,
@@ -16,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Internal dependencies.
 import { HeaderBaseProps, HeaderBaseVariant } from './HeaderBase.types';
 import {
-  HEADERBASE_TEST_ID,
   HEADERBASE_TITLE_TEST_ID,
   HEADERBASE_VARIANT_TEXT_VARIANTS,
 } from './HeaderBase.constants';
@@ -36,7 +34,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   variant = HeaderBaseVariant.Compact,
   startAccessoryWrapperProps,
   endAccessoryWrapperProps,
-  testID = HEADERBASE_TEST_ID,
+  testID,
   twClassName,
   ...viewProps
 }) => {
@@ -102,20 +100,20 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
       const reversedProps = endButtonIconProps
         .map((props, originalIndex) => ({ props, originalIndex }))
         .reverse();
-      return (
-        <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-          {reversedProps.map(({ props, originalIndex }) => (
-            <ButtonIcon
-              key={`end-button-icon-${originalIndex}`}
-              size={ButtonIconSize.Md}
-              {...props}
-            />
-          ))}
-        </Box>
-      );
+      return reversedProps.map(({ props, originalIndex }) => (
+        <ButtonIcon
+          key={`end-button-icon-${originalIndex}`}
+          size={ButtonIconSize.Md}
+          {...props}
+        />
+      ));
     }
     return null;
   };
+
+  // Check if we have multiple end buttons for layout styling
+  const hasMultipleEndButtons =
+    !endAccessory && endButtonIconProps && endButtonIconProps.length > 1;
 
   // Merge default styles with passed-in twClassName
   // Compact: fixed height, Display: content-based with no default styles
@@ -182,7 +180,14 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
           }
           {...endAccessoryWrapperProps}
         >
-          <View onLayout={handleEndAccessoryLayout}>{renderEndContent()}</View>
+          <View
+            onLayout={handleEndAccessoryLayout}
+            style={
+              hasMultipleEndButtons ? tw.style('flex-row gap-2') : undefined
+            }
+          >
+            {renderEndContent()}
+          </View>
         </View>
       )}
     </View>

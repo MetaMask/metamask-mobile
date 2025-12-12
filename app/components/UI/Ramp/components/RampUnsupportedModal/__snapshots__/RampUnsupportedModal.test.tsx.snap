@@ -327,7 +327,6 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
                           },
                         ]
                       }
-                      testID="header"
                     >
                       <View>
                         <View

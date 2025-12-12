@@ -445,7 +445,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                 },
                               ]
                             }
-                            testID="header"
                           >
                             <View>
                               <View
