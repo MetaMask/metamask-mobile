@@ -36,26 +36,30 @@ interface RemoteImageProps {
   contentFit?: ImageContentFit;
 }
 
-const styles = StyleSheet.create({
-  imageStyle: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-  },
-  detailedImageStyle: {
-    borderRadius: 8,
-  },
-});
+const createStyles = () =>
+  StyleSheet.create({
+    imageStyle: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 8,
+    },
+    detailedImageStyle: {
+      borderRadius: 8,
+    },
+  });
 
 const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   const [error, setError] = useState<string | undefined>(undefined);
   const source = resolveAssetSource(props.source);
   const ipfsGateway = useIpfsGateway();
+  const styles = createStyles();
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>(false);
 
   const uri =
     resolvedIpfsUrl ||
-    (source?.uri && !source.uri.startsWith('ipfs') ? source.uri : '');
+    (!source || source.uri === undefined || source.uri?.startsWith('ipfs')
+      ? ''
+      : source.uri);
 
   const onError = (event: ImageErrorEventData) => setError(event.error);
 
@@ -66,11 +70,13 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
 
   useEffect(() => {
     async function resolveIpfsUrl() {
-      if (!source?.uri) {
-        setResolvedIpfsUrl(false);
-        return;
-      }
       try {
+        if (!source?.uri) {
+          setResolvedIpfsUrl(false);
+          return;
+        }
+        const url = new URL(source.uri);
+        if (url.protocol !== 'ipfs:') setResolvedIpfsUrl(false);
         const ipfsUrl = await getFormattedIpfsUrl(
           ipfsGateway,
           source.uri,
@@ -78,7 +84,6 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
         );
         setResolvedIpfsUrl(ipfsUrl || false);
       } catch (err) {
-        Logger.log(`Failed to resolve IPFS URL for ${source.uri}`);
         setResolvedIpfsUrl(false);
       }
     }
@@ -110,22 +115,15 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
 
   const onImageLoad = useCallback(
     (event: ImageLoadEventData) => {
-      const width = event?.source?.width;
-      const height = event?.source?.height;
-      if (width && height) {
-        const { width: calculatedWidth, height: calculatedHeight } =
-          calculateImageDimensions(width, height);
-
-        // Only update if dimensions actually changed
-        setDimensions((prevDimensions) => {
-          if (
-            prevDimensions?.width === calculatedWidth &&
-            prevDimensions?.height === calculatedHeight
-          ) {
-            return prevDimensions; // Return same reference, no re-render
-          }
-          return { width: calculatedWidth, height: calculatedHeight };
-        });
+      try {
+        const { width, height } = event.source;
+        if (width && height) {
+          const { width: calculatedWidth, height: calculatedHeight } =
+            calculateImageDimensions(width, height);
+          setDimensions({ width: calculatedWidth, height: calculatedHeight });
+        }
+      } catch (err) {
+        Logger.log('Failed to get image dimensions');
       }
     },
     [calculateImageDimensions],

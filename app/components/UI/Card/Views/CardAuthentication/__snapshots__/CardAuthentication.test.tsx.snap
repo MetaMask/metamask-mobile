@@ -411,7 +411,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 18,
                                     "fontWeight": 700,
                                     "letterSpacing": 0,
@@ -478,7 +478,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "fontWeight": 400,
                                         "letterSpacing": 0,
@@ -521,7 +521,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
                                         "letterSpacing": 0,
@@ -542,7 +542,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "fontWeight": 400,
                                         "letterSpacing": 0,
@@ -592,7 +592,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -674,7 +674,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 46,
@@ -705,7 +705,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -788,7 +788,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
                                           "color": "#121314",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "height": 46,
@@ -845,7 +845,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist-Medium",
+                                      "fontFamily": "Geist Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -864,7 +864,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
                                         "fontWeight": 400,
                                         "letterSpacing": 0,

@@ -46,7 +46,6 @@ export const FIELD_ELEMENT_TYPES = [
   'AddressInput',
   'AssetSelector',
   'AccountSelector',
-  'DateTimePicker',
 ];
 
 /**

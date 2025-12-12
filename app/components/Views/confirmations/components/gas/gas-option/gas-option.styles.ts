@@ -35,7 +35,11 @@ const styleSheet = (params: { theme: Theme }) => {
     leftSection: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginLeft: 8,
+    },
+    emoji: {
+      fontSize: 24,
+      marginRight: 12,
+      marginLeft: 6,
     },
     optionTextContainer: {
       justifyContent: 'center',

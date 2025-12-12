@@ -325,14 +325,14 @@ describe('selectCanSignTransactions', () => {
     methods: [EthMethod.SignTransaction],
   };
 
-  const trxAccountWithSignMessage = {
+  const trxAccountWithSignMessageV2 = {
     ...createMockInternalAccount(
       'T123',
-      'TRX Account with SignMessage',
+      'TRX Account with SignMessageV2',
       KeyringTypes.snap,
       TrxAccountType.Eoa,
     ),
-    methods: [TrxMethod.SignMessage],
+    methods: [TrxMethod.SignMessageV2],
   };
 
   const solAccountWithSignTransaction = {
@@ -400,8 +400,8 @@ describe('selectCanSignTransactions', () => {
     expect(selectCanSignTransactions(state)).toBe(true);
   });
 
-  it('returns true for TRX account with SignMessage method', () => {
-    const state = getStateWithAccount(trxAccountWithSignMessage);
+  it('returns true for TRX account with SignMessageV2 method', () => {
+    const state = getStateWithAccount(trxAccountWithSignMessageV2);
 
     expect(selectCanSignTransactions(state)).toBe(true);
   });

@@ -3,8 +3,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
-
-const mockDetectNfts = jest.fn();
+import Engine from '../../../core/Engine';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -23,13 +22,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../hooks/useNftDetection', () => ({
-  useNftDetection: () => ({
-    detectNfts: mockDetectNfts,
-    chainIdsToDetectNftsFor: ['0x1'],
-  }),
-}));
-
 const initialState = {
   engine: {
     backgroundState,
@@ -37,17 +29,12 @@ const initialState = {
 };
 
 describe('CollectibleDetectionModal', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('calls detectNfts from useNftDetection hook when button is pressed', () => {
+  it('calls NFT detection controller', () => {
     const { getByTestId } = renderWithProvider(<CollectibleDetectionModal />, {
       state: initialState,
     });
 
     fireEvent.press(getByTestId(`collectible-detection-modal-button`));
-
-    expect(mockDetectNfts).toHaveBeenCalled();
+    expect(Engine.context.NftDetectionController.detectNfts).toHaveBeenCalled();
   });
 });

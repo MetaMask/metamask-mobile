@@ -56,7 +56,7 @@ const createStyles = (params: {
       paddingHorizontal: 16,
       width: '100%',
       backgroundColor: isSelected
-        ? colors.background.muted
+        ? colors.info.muted
         : colors.background.default,
     },
     selectedIndicator: {

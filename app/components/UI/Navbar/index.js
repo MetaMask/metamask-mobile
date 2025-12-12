@@ -2038,7 +2038,6 @@ export const getSettingsNavigationOptions = (
  * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
  * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
  * @param {import('../Earn/types/lending.types').EarnTokenDetails | null | undefined} [earnToken] - Optional earn token.
- * @param {string | null | undefined} [aprOverride] - Optional APR override (e.g., for Tron staking).
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -2049,7 +2048,6 @@ export function getStakingNavbar(
   metricsOptions,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   earnToken = null,
-  aprOverride = null,
   ///: END:ONLY_INCLUDE_IF
 ) {
   const {
@@ -2124,9 +2122,7 @@ export function getStakingNavbar(
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const apr =
-    aprOverride ??
-    `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
+  const apr = parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1);
   ///: END:ONLY_INCLUDE_IF
 
   return {
@@ -2149,7 +2145,7 @@ export function getStakingNavbar(
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Success}
               >
-                {`${apr} ${strings('earn.apr')}`}
+                {`${apr}% ${strings('earn.apr')}`}
               </MorphText>
             </View>
           )
@@ -2185,7 +2181,7 @@ export function getStakingNavbar(
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >
-          <Icon name={IconName.Question} size={IconSize.Lg} />
+          <Icon name={IconName.Question} />
         </TouchableOpacity>
       ) : (
         <></>
@@ -2245,53 +2241,5 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
         />
       </View>
     ),
-  };
-}
-
-/**
- * Generic navbar with only a close button on the right
- * @param {Object} navigation - Navigation object
- * @param {Object} themeColors - Theme colors object
- * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
- * @returns {Object} - Navigation options
- */
-export function getCloseOnlyNavbar(
-  navigation,
-  themeColors,
-  onClose = undefined,
-) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerRight: {
-      marginHorizontal: 16,
-    },
-  });
-
-  const handleClosePress = () => {
-    if (onClose) {
-      onClose();
-      return;
-    }
-
-    navigation.goBack();
-  };
-
-  return {
-    headerShown: true,
-    headerTitle: () => null,
-    headerLeft: () => null,
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={handleClosePress}
-        style={innerStyles.headerRight}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
   };
 }

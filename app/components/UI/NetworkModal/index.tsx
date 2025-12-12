@@ -335,14 +335,13 @@ const NetworkModals = (props: NetworkProps) => {
   const addNetwork = async () => {
     const isValidUrl = validateRpcUrl(rpcUrl);
     if (showPopularNetworkModal) {
-      // track popular network - first RPC endpoint added (index 0)
+      // track popular network
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.RPC_ADDED)
+        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
           .addProperties({
             chain_id: toHex(chainId),
             source: 'Popular network list',
             symbol: ticker,
-            rpc_url_index: 0,
           })
           .build(),
       );
@@ -351,14 +350,13 @@ const NetworkModals = (props: NetworkProps) => {
         rpcUrl,
         safeChains,
       );
-      // track custom network - first RPC endpoint added (index 0)
+      // track custom network, this shouldn't be in popular networks modal
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.RPC_ADDED)
+        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
           .addProperties({
             chain_id: toHex(safeChain.chainId),
             source: { anonymous: true, value: 'Custom Network Added' },
             symbol: safeChain.nativeCurrency.symbol,
-            rpc_url_index: 0,
           })
           .addSensitiveProperties({ rpcUrl: safeRPCUrl })
           .build(),

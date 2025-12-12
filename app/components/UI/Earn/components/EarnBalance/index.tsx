@@ -12,7 +12,6 @@ import TronStakingCta from '../Tron/TronStakingButtons/TronStakingCta';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { hasStakedTrxPositions as hasStakedTrxPositionsUtil } from '../../utils/tron';
-import useTronStakeApy from '../../hooks/useTronStakeApy';
 ///: END:ONLY_INCLUDE_IF
 export interface EarnBalanceProps {
   asset: TokenI;
@@ -43,8 +42,6 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
     [tronResources],
   );
 
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
-
   if (isTron && isTrxStakingEnabled) {
     if (hasStakedTrxPositions && isStakedTrxAsset) {
       // sTRX row: show Unstake + Stake more
@@ -57,7 +54,7 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
       // TRX native row: show CTA + single Stake button
       return (
         <>
-          <TronStakingCta aprText={tronApyPercent ?? undefined} />
+          <TronStakingCta />
           <TronStakingButtons asset={asset} />
         </>
       );

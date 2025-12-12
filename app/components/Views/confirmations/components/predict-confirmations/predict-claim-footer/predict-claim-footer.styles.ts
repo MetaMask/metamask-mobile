@@ -22,10 +22,6 @@ const styleSheet = (params: { theme: Theme }) =>
     bottom: {
       textAlign: 'center',
     },
-
-    textContainer: {
-      flex: 1,
-    },
   });
 
 export default styleSheet;

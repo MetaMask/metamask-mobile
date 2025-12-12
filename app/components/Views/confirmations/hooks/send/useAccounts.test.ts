@@ -61,14 +61,6 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
 
-function createMockUseSendType(
-  returnValues: Partial<ReturnType<typeof useSendType>>,
-) {
-  mockUseSendType.mockReturnValue(
-    returnValues as ReturnType<typeof useSendType>,
-  );
-}
-
 describe('useAccounts', () => {
   const mockEvmAccount = {
     id: 'evm-account-1',
@@ -174,9 +166,14 @@ describe('useAccounts', () => {
       return [];
     });
 
-    createMockUseSendType({
+    mockUseSendType.mockReturnValue({
       isEvmSendType: true,
-      isPredefinedEvm: true,
+      isSolanaSendType: false,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: false,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
 
     mockUseSendContext.mockReturnValue({
@@ -203,10 +200,6 @@ describe('useAccounts', () => {
         isNonEvmNativeSendType: false,
         isBitcoinSendType: false,
         isTronSendType: false,
-        isPredefinedEvm: true,
-        isPredefinedSolana: false,
-        isPredefinedBitcoin: false,
-        isPredefinedTron: false,
       });
       mockIsEvmAccountType.mockImplementation(
         (accountType) => accountType === 'eip155:eoa',
@@ -261,9 +254,14 @@ describe('useAccounts', () => {
 
   describe('when isSolanaSendType is true', () => {
     beforeEach(() => {
-      createMockUseSendType({
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
         isSolanaSendType: true,
-        isPredefinedSolana: true,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
       mockIsEvmAccountType.mockReturnValue(false);
       mockIsSolanaAccount.mockImplementation(
@@ -300,9 +298,14 @@ describe('useAccounts', () => {
 
   describe('when isBitcoinSendType is true', () => {
     beforeEach(() => {
-      createMockUseSendType({
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
         isBitcoinSendType: true,
-        isPredefinedBitcoin: true,
+        isTronSendType: false,
       });
       mockIsEvmAccountType.mockReturnValue(false);
       mockIsSolanaAccount.mockReturnValue(false);
@@ -356,9 +359,14 @@ describe('useAccounts', () => {
 
   describe('when isTronSendType is true', () => {
     beforeEach(() => {
-      createMockUseSendType({
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
         isTronSendType: true,
-        isPredefinedTron: true,
       });
       mockIsEvmAccountType.mockReturnValue(false);
       mockIsSolanaAccount.mockReturnValue(false);
@@ -413,7 +421,15 @@ describe('useAccounts', () => {
 
   describe('when neither EVM nor Solana send type is active', () => {
     beforeEach(() => {
-      createMockUseSendType({});
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
+      });
     });
 
     it('returns empty array', () => {
@@ -456,9 +472,14 @@ describe('useAccounts', () => {
   });
 
   it('handles wallet with no compatible accounts', () => {
-    createMockUseSendType({
+    mockUseSendType.mockReturnValue({
       isEvmSendType: true,
-      isPredefinedEvm: true,
+      isSolanaSendType: false,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: false,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
     mockIsEvmAccountType.mockReturnValue(false);
 
@@ -547,9 +568,14 @@ describe('useAccounts', () => {
     };
 
     beforeEach(() => {
-      createMockUseSendType({
+      mockUseSendType.mockReturnValue({
         isEvmSendType: true,
-        isPredefinedEvm: true,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
       mockIsEvmAccountType.mockImplementation(
         (accountType) => accountType === 'eip155:eoa',
@@ -597,9 +623,14 @@ describe('useAccounts', () => {
   });
 
   it('calls isEvmAccountType for each account when isEvmSendType is true', () => {
-    createMockUseSendType({
+    mockUseSendType.mockReturnValue({
       isEvmSendType: true,
-      isPredefinedEvm: true,
+      isSolanaSendType: false,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: false,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
 
     renderHook(() => useAccounts());
@@ -609,9 +640,14 @@ describe('useAccounts', () => {
   });
 
   it('calls isSolanaAccount for each account when isSolanaSendType is true', () => {
-    createMockUseSendType({
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: false,
       isSolanaSendType: true,
-      isPredefinedSolana: true,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: false,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
 
     renderHook(() => useAccounts());

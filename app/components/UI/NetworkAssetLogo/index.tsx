@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChainId } from '@metamask/controller-utils';
-import TokenIcon from '../../Base/TokenIcon';
+import TokenIcon from '../Swaps/components/TokenIcon';
 
 interface NetworkAssetLogoProps {
   big: boolean;

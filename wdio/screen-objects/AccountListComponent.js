@@ -30,7 +30,7 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT);
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Add account');
     }
   }
 
@@ -42,13 +42,13 @@ class AccountListComponent {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
-      await AppwrightGestures.scrollIntoView(this.device, this.addAccountButton, {scrollParams: {direction: 'down'}});
-      await AppwrightGestures.tap(this.addAccountButton); 
+      await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
     }
   }
 
   async tapOnAddWalletButton() {
-    await AppwrightGestures.tap(this.addWalletButton); // Use static tap method with retry logic
+    const element = await this.addWalletButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async isComponentDisplayed() {
@@ -65,23 +65,15 @@ class AccountListComponent {
     await element.waitForExist({ reverse: true });
   }
 
-  async isAccountDisplayed(name, timeout = 10000) {
+  async isAccountDisplayed(name) {
     const element = await AppwrightSelectors.getElementByCatchAll(this.device, name);
-    await expect(element).toBeVisible({ timeout });
+    await expect(element).toBeVisible({ timeout: 10000 });
   }
 
   async tapOnAccountByName(name) {
-    const account = AppwrightSelectors.getElementByText(this.device, name);
+    let account = await AppwrightSelectors.getElementByText(this.device, name);
     await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
     await AppwrightGestures.tap(account); // Tap after scrolling into view
-  }
-
-  async waitForSyncingToComplete() {
-    const syncingElement = await AppwrightSelectors.getElementByText(this.device, 'Syncing');
-    await AppwrightSelectors.waitForElementToDisappear(syncingElement, 'Syncing element', 30000);
-    
-    const discoveringAccountsElement = await AppwrightSelectors.getElementByText(this.device, 'Discovering accounts');
-    await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts element', 30000);
   }
 }
 

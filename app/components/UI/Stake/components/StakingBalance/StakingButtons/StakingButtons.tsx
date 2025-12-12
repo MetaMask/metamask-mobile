@@ -13,7 +13,10 @@ import { RootState } from '../../../../../../reducers';
 import { earnSelectors } from '../../../../../../selectors/earnController';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
-import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../../components/hooks/useFeatureFlag';
 import { TokenI } from '../../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
@@ -39,7 +42,9 @@ const StakingButtons = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const chainId = useSelector(selectEvmChainId);
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingEnabled = useFeatureFlag(
+    FeatureFlagNames.earnPooledStakingEnabled,
+  ) as boolean;
 
   const { isStakingSupportedChain } = useStakingChain();
 

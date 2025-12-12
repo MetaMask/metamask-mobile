@@ -129,7 +129,7 @@ exports[`QuotesView should render quote screen 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
                     }
                   }
@@ -164,7 +164,7 @@ exports[`QuotesView should render quote screen 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -187,7 +187,7 @@ exports[`QuotesView should render quote screen 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
                         "letterSpacing": 0,
                         "lineHeight": 22,
@@ -227,7 +227,7 @@ exports[`QuotesView should render quote screen 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
                     }
                   }
@@ -496,7 +496,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -544,7 +544,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                         undefined,
                                         undefined,
                                         {
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist Bold",
                                         },
                                         undefined,
                                         undefined,
@@ -579,7 +579,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -642,7 +642,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -702,7 +702,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -765,7 +765,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -815,7 +815,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -914,7 +914,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -964,7 +964,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -1014,7 +1014,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist-Regular",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -1070,7 +1070,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -1252,14 +1252,14 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
                                       undefined,
                                       undefined,
                                       {
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist Bold",
                                       },
                                       undefined,
                                       undefined,
@@ -1345,14 +1345,14 @@ exports[`QuotesView should render quote screen 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist-Regular",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
                                             undefined,
                                             undefined,
                                             {
-                                              "fontFamily": "Geist-Bold",
+                                              "fontFamily": "Geist Bold",
                                             },
                                             undefined,
                                             undefined,
@@ -1447,7 +1447,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist-Regular",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -1490,14 +1490,14 @@ exports[`QuotesView should render quote screen 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist-Regular",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
                                             "marginVertical": 2,
                                           },
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "Geist-Bold",
+                                            "fontFamily": "Geist Bold",
                                           },
                                           undefined,
                                           undefined,
@@ -1566,14 +1566,14 @@ exports[`QuotesView should render quote screen 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist-Regular",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
                                             "marginVertical": 2,
                                           },
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "Geist-Bold",
+                                            "fontFamily": "Geist Bold",
                                           },
                                           undefined,
                                           undefined,
@@ -1611,7 +1611,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist-Regular",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
                                             "marginVertical": 2,
                                           },
@@ -1686,7 +1686,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist-Regular",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
                                             "marginVertical": 2,
                                           },
@@ -1790,7 +1790,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                     },
                                     [
                                       {
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -1822,7 +1822,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },

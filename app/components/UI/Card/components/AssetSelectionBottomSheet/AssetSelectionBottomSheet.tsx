@@ -6,7 +6,6 @@ import { useCardSDK } from '../../sdk';
 import {
   AllowanceState,
   CardExternalWalletDetailsResponse,
-  CardNetwork,
   CardTokenAllowance,
   DelegationSettingsResponse,
 } from '../../types';
@@ -119,7 +118,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
   // Get supported tokens from the card SDK to display in the bottom sheet.
   const cardSupportedTokens = useMemo(
-    () => sdk?.getSupportedTokensByChainId() ?? [],
+    () => sdk?.getSupportedTokensByChainId(sdk?.lineaChainId) ?? [],
     [sdk],
   );
 
@@ -163,7 +162,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
       // Filter unsupported networks and unknown chains
       if (
-        !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork) ||
+        !SUPPORTED_ASSET_NETWORKS.includes(networkLower) ||
         networkLower === 'unknown'
       ) {
         return true;
@@ -272,10 +271,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
       const networkLower = network.network?.toLowerCase();
 
       // Filter unsupported networks
-      if (
-        !networkLower ||
-        !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork)
-      ) {
+      if (!networkLower || !SUPPORTED_ASSET_NETWORKS.includes(networkLower)) {
         return false;
       }
 

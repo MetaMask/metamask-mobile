@@ -10,6 +10,7 @@ jest.mock('../../../hooks/gas/useGasOptions', () => ({
     return {
       options: [
         {
+          emoji: '🚀',
           estimatedTime: '',
           isSelected: false,
           key: 'fast',
@@ -43,7 +44,9 @@ describe('EstimatesModal', () => {
     // Header
     expect(getByText('Edit network fee')).toBeOnTheScreen();
 
+    // Gas option expected to be rendered
     expect(getByTestId('gas-option-fast')).toBeOnTheScreen();
+    expect(getByText('🚀')).toBeOnTheScreen();
     expect(getByText('Test gas option')).toBeOnTheScreen();
     expect(getByText('< 0.0001')).toBeOnTheScreen();
     expect(getByText('0.05')).toBeOnTheScreen();

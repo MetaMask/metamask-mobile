@@ -33,7 +33,6 @@ describe(SmokeAccounts('Wallet details'), () => {
         testSpecificMock,
       },
       async () => {
-        await device.disableSynchronization();
         await loginToApp();
         await WalletView.tapIdenticon();
 

@@ -27,6 +27,7 @@ describe('PhishingModal', () => {
           urlBarRef={{ current: null }}
           addToWhitelist={jest.fn()}
           activeUrl={'www.test.com'}
+          blockListType={{ current: 'test' }}
         />
       </ThemeContext.Provider>,
     );
@@ -45,6 +46,7 @@ describe('PhishingModal', () => {
           urlBarRef={{ current: null }}
           addToWhitelist={jest.fn()}
           activeUrl={'www.test.com'}
+          blockListType={{ current: 'test' }}
         />
       </ThemeContext.Provider>,
     );

@@ -317,37 +317,37 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('displays skeleton loader when loading', () => {
-    mockUseTrendingSearch.mockReturnValue({
-      data: [],
+    mockUseTrendingRequest.mockReturnValue({
+      results: [],
       isLoading: true,
-      refetch: jest.fn(),
+      error: null,
+      fetch: jest.fn(),
     });
 
-    const { queryAllByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
       false,
     );
 
-    const skeletons = queryAllByTestId('trending-tokens-skeleton');
-    expect(skeletons.length).toBeGreaterThan(0);
-    expect(skeletons[0]).toBeOnTheScreen();
+    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
   });
 
-  it('displays empty error state when results are empty', () => {
-    mockUseTrendingSearch.mockReturnValue({
-      data: [],
+  it('displays skeleton loader when results are empty', () => {
+    mockUseTrendingRequest.mockReturnValue({
+      results: [],
       isLoading: false,
-      refetch: jest.fn(),
+      error: null,
+      fetch: jest.fn(),
     });
 
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
       false,
     );
 
-    expect(getByText('Trending tokens is not available')).toBeOnTheScreen();
+    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
   });
 
   it('displays trending tokens list when data is loaded', () => {

@@ -38,7 +38,6 @@ import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAsset
 import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
 import { SnapUIAccountSelector } from '../../Snaps/SnapUIAccountSelector/SnapUIAccountSelector';
 import { SnapUIRadioGroup } from '../../Snaps/SnapUIRadioGroup/SnapUIRadioGroup';
-import { SnapUIDateTimePicker } from '../../Snaps/SnapUIDateTimePicker/SnapUIDateTimePicker';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -73,7 +72,6 @@ export const safeComponentList = {
   SnapUISpinner,
   SnapUIInfoRow,
   SnapUIAccountSelector,
-  SnapUIDateTimePicker,
   RNText,
   ScrollView,
   SnapUITooltip,

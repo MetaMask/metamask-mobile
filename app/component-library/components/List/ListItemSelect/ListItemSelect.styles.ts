@@ -35,10 +35,17 @@ const styleSheet = (params: {
     underlay: {
       ...StyleSheet.absoluteFillObject,
       flexDirection: 'row',
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.primary.muted,
     },
     listItem: {
       padding: 16,
+    },
+    underlayBar: {
+      marginVertical: 4,
+      marginLeft: 4,
+      width: 4,
+      borderRadius: 2,
+      backgroundColor: colors.primary.default,
     },
   });
 };

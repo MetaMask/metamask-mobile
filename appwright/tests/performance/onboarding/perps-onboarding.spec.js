@@ -32,16 +32,13 @@ async function screensSetup(device) {
 }
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC */
-// TODO: Fix this test: https://consensyssoftware.atlassian.net/browse/MMQA-1190
-test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
+test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   device,
   performanceTracker,
 }, testInfo) => {
-  test.setTimeout(10 * 60 * 1000); // 10 minutes
   await screensSetup(device);
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
-  await WalletMainScreen.isTokenVisible('ETH');
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3, 120000);
   await TabBarModal.tapTradeButton();
 
   // Open Perps tab
@@ -53,8 +50,9 @@ test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
       await PerpsTutorialScreen.expectFirstScreenVisible();
     },
   );
+
   // Open Tutorial flow
-  await PerpsTutorialScreen.flowTapContinueTutorial(6);
+  await PerpsTutorialScreen.flowTapContinueTutorial(5);
 
   // Open Add Funds flow
   await TimerHelper.withTimer(
@@ -65,22 +63,24 @@ test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
       await PerpsDepositScreen.isAmountInputVisible();
     },
   );
+
   // Select pay token
   await TimerHelper.withTimer(
     performanceTracker,
     'Select pay token - 1 click USDC.arb',
     async () => {
       await PerpsDepositScreen.tapPayWith();
-      await PerpsDepositScreen.selectPayTokenByText('USDC');
+      await PerpsDepositScreen.selectPayTokenByText('0xa4b1', 'USDC');
     },
   );
 
   // Fill amount
   await TimerHelper.withTimer(
     performanceTracker,
-    'Fill amount - 2 USD',
+    'Fill amount - 10 USD',
     async () => {
-      await PerpsDepositScreen.fillUsdAmount('2');
+      await PerpsDepositScreen.fillUsdAmount('10');
+      await PerpsDepositScreen.tapContinue();
     },
   );
 
@@ -89,7 +89,7 @@ test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
     performanceTracker,
     'Cancel - 1 click',
     async () => {
-      await PerpsDepositScreen.checkTransactionFeeIsVisible();
+      await PerpsDepositScreen.tapCancel();
     },
   );
 

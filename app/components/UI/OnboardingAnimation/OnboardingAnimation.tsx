@@ -73,7 +73,7 @@ const OnboardingAnimation = ({
   const { themeAppearance } = useAppThemeFromContext();
   const styles = createStyles();
 
-  const [isPlaying, setIsPlaying] = useState(isE2E);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const moveLogoUp = useCallback(() => {
     Animated.parallel([
@@ -143,20 +143,18 @@ const OnboardingAnimation = ({
           ]}
           pointerEvents="none"
         >
-          {!isE2E && (
-            <Rive
-              ref={logoRef}
-              style={styles.image}
-              source={MetaMaskWordmarkAnimation}
-              fit={Fit.Contain}
-              alignment={Alignment.Center}
-              stateMachineName="WordmarkBuildUp"
-              testID="metamask-wordmark-animation"
-              onPlay={() => {
-                setIsPlaying(true);
-              }}
-            />
-          )}
+          <Rive
+            ref={logoRef}
+            style={styles.image}
+            source={MetaMaskWordmarkAnimation}
+            fit={Fit.Contain}
+            alignment={Alignment.Center}
+            stateMachineName="WordmarkBuildUp"
+            testID="metamask-wordmark-animation"
+            onPlay={() => {
+              setIsPlaying(true);
+            }}
+          />
         </Animated.View>
       </View>
 

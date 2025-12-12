@@ -39,9 +39,7 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
@@ -176,8 +174,13 @@ const AddAsset = () => {
               onPress={() => setOpenNetworkSelector(true)}
               onLongPress={() => setOpenNetworkSelector(true)}
             >
-              {selectedNetwork ? (
-                <View style={styles.networkSelectorAvatarContainer}>
+              <Text style={styles.networkSelectorText}>
+                {selectedNetwork
+                  ? networkConfigurations?.[selectedNetwork as Hex]?.name
+                  : strings('networks.select_network')}
+              </Text>
+              <View style={styles.overlappingAvatarsContainer}>
+                {selectedNetwork ? (
                   <Avatar
                     variant={AvatarVariant.Network}
                     size={AvatarSize.Sm}
@@ -191,17 +194,10 @@ const AddAsset = () => {
                     })}
                     testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
                   />
-                </View>
-              ) : null}
-              <Text style={styles.networkSelectorText}>
-                {selectedNetwork
-                  ? networkConfigurations?.[selectedNetwork as Hex]?.name
-                  : strings('networks.select_network')}
-              </Text>
-              <View style={styles.overlappingAvatarsContainer}>
+                ) : null}
+
                 <ButtonIcon
                   iconName={IconName.ArrowDown}
-                  size={ButtonIconSizes.Sm}
                   iconColor={IconColor.Default}
                   testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
                   onPress={() => setOpenNetworkSelector(true)}

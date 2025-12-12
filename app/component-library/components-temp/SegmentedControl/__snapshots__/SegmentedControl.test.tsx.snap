@@ -53,7 +53,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -99,7 +99,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -145,7 +145,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -191,7 +191,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -253,7 +253,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -299,7 +299,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -345,7 +345,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -391,7 +391,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

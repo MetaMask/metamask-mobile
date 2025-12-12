@@ -78,7 +78,6 @@ import {
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { isE2E } from '../../../util/test/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -724,7 +723,7 @@ class ChoosePassword extends PureComponent {
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            {!isE2E && <FoxRiveLoaderAnimation />}
+            <FoxRiveLoaderAnimation />
           </View>
         ) : (
           <KeyboardAwareScrollView

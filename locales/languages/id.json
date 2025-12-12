@@ -3728,7 +3728,7 @@
     "show_test_networks": "Tampilkan jaringan pengujian",
     "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
     "network_deprecated_title": "Jaringan ini tidak digunakan lagi",
-    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di MetaMask.",
+    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask.",
     "edit_networks_title": "Edit jaringan"
   },
   "permissions": {

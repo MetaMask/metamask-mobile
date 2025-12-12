@@ -1,5 +1,6 @@
 import React from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
+import { swapsUtils } from '@metamask/swaps-controller/';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
@@ -277,12 +278,12 @@ jest.mock('../../../selectors/earnController', () => ({
   },
 }));
 
-const mockSelectSelectedInternalAccountByScope = jest.fn(() => () => undefined);
-jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
-  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
-  selectSelectedInternalAccountByScope: (...args) =>
-    mockSelectSelectedInternalAccountByScope(...args),
-}));
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
 
 describe('Asset', () => {
   it('should render correctly', () => {
@@ -350,6 +351,7 @@ describe('Asset', () => {
   });
 
   it('should not display swaps button if the asset is not allowed', () => {
+    jest.spyOn(swapsUtils, 'fetchSwapsFeatureFlags').mockRejectedValue('error');
     const { toJSON } = renderWithProvider(
       <Asset
         navigation={{ setOptions: jest.fn() }}
@@ -571,7 +573,7 @@ describe('Asset', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('returns empty list for unknown SPL tokens', () => {
+    it('should handle unknown SPL token filtering gracefully', () => {
       const testState = createMockStateWithAccount(SolAccountType.DataAccount);
 
       const { toJSON } = renderScreen(
@@ -672,7 +674,7 @@ describe('Asset', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('renders empty state when no multichain transactions exist', () => {
+    it('should handle state with no multichain transactions', () => {
       const stateWithoutMultichain = {
         ...createMockStateWithAccount(SolAccountType.DataAccount),
         engine: {
@@ -956,215 +958,6 @@ describe('Asset', () => {
         { state },
       );
       expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
-  describe('selectedAddressForAsset', () => {
-    const MOCK_EVM_ADDRESS = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
-    const MOCK_SOLANA_ADDRESS = '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC';
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
-    });
-
-    it('calls selectSelectedInternalAccountByScope with EVM CAIP chainId', () => {
-      const mockScopedSelector = jest.fn().mockReturnValue({
-        id: 'evm-account-id',
-        address: MOCK_EVM_ADDRESS,
-        type: EthAccountType.Eoa,
-      });
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        mockScopedSelector,
-      );
-
-      renderWithProvider(
-        <Asset
-          navigation={{ setOptions: jest.fn() }}
-          route={{
-            params: {
-              symbol: 'ETH',
-              address: '0x0000000000000000000000000000000000000000',
-              isETH: true,
-              chainId: '0x1',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
-
-      expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledTimes(1);
-      expect(mockScopedSelector).toHaveBeenCalledWith('eip155:1');
-    });
-
-    it('calls selectSelectedInternalAccountByScope with Solana CAIP chainId', () => {
-      const mockScopedSelector = jest.fn().mockReturnValue({
-        id: 'solana-account-id',
-        address: MOCK_SOLANA_ADDRESS,
-        type: SolAccountType.DataAccount,
-      });
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        mockScopedSelector,
-      );
-
-      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
-
-      renderScreen(
-        (props) => (
-          <Asset
-            {...props}
-            route={{
-              params: {
-                symbol: 'SOL',
-                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-                isNative: true,
-                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-              },
-            }}
-          />
-        ),
-        { name: 'Asset' },
-        { state: testState },
-        {
-          symbol: 'SOL',
-          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-          isNative: true,
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
-      );
-
-      expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalled();
-      expect(mockScopedSelector).toHaveBeenCalledWith(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-    });
-
-    it('attempts scope lookup even when it returns undefined', () => {
-      const mockScopedSelector = jest.fn().mockReturnValue(undefined);
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        mockScopedSelector,
-      );
-
-      renderWithProvider(
-        <Asset
-          navigation={{ setOptions: jest.fn() }}
-          route={{
-            params: {
-              symbol: 'ETH',
-              address: '0x0000000000000000000000000000000000000000',
-              isETH: true,
-              chainId: '0x1',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
-
-      // Selector was called, returned undefined, component still renders (fallback)
-      expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledTimes(1);
-      expect(mockScopedSelector).toHaveBeenCalledWith('eip155:1');
-    });
-
-    it('converts EVM hex chainId to CAIP format when looking up account by scope', () => {
-      const mockScopedSelector = jest.fn().mockReturnValue({
-        id: 'evm-account-id',
-        address: MOCK_EVM_ADDRESS,
-        type: EthAccountType.Eoa,
-      });
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        mockScopedSelector,
-      );
-
-      renderWithProvider(
-        <Asset
-          navigation={{ setOptions: jest.fn() }}
-          route={{
-            params: {
-              symbol: 'ETH',
-              address: '0x0000000000000000000000000000000000000000',
-              isETH: true,
-              chainId: '0x1',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
-
-      // formatChainIdToCaip converts '0x1' to 'eip155:1'
-      expect(mockScopedSelector).toHaveBeenCalledWith('eip155:1');
-    });
-
-    it('passes Solana CAIP chainId directly when looking up account by scope', () => {
-      const mockScopedSelector = jest.fn().mockReturnValue({
-        id: 'solana-account-id',
-        address: MOCK_SOLANA_ADDRESS,
-        type: SolAccountType.DataAccount,
-      });
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        mockScopedSelector,
-      );
-
-      const testState = createMockStateWithAccount(SolAccountType.DataAccount);
-
-      renderScreen(
-        (props) => (
-          <Asset
-            {...props}
-            route={{
-              params: {
-                symbol: 'SOL',
-                address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-                isNative: true,
-                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-              },
-            }}
-          />
-        ),
-        { name: 'Asset' },
-        { state: testState },
-        {
-          symbol: 'SOL',
-          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-          isNative: true,
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
-      );
-
-      // Solana chainId is already in CAIP format, passed through as-is
-      expect(mockScopedSelector).toHaveBeenCalledWith(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-    });
-
-    it('still calls scope selector when account has null address', () => {
-      // Test that selector is called even when account has null address (fallback scenario)
-      const mockScopedSelector = jest.fn().mockReturnValue({
-        id: 'account-without-address',
-        address: null,
-        type: EthAccountType.Eoa,
-      });
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        mockScopedSelector,
-      );
-
-      renderWithProvider(
-        <Asset
-          navigation={{ setOptions: jest.fn() }}
-          route={{
-            params: {
-              symbol: 'ETH',
-              address: '0x0000000000000000000000000000000000000000',
-              isETH: true,
-              chainId: '0x1',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
-
-      // Selector was called with correct chainId, even though address was null
-      expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledTimes(1);
-      expect(mockScopedSelector).toHaveBeenCalledWith('eip155:1');
     });
   });
 });

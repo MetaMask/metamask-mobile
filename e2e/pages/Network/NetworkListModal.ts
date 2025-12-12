@@ -130,7 +130,6 @@ class NetworkListModal {
   async scrollToBottomOfNetworkMultiSelector(): Promise<void> {
     await Gestures.swipe(this.popularNetworksContainer, 'up', {
       speed: 'fast',
-      startOffsetPercentage: { x: 0.5, y: 0.25 },
     });
   }
 

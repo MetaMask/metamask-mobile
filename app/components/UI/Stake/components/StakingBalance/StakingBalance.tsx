@@ -49,7 +49,10 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../components/hooks/useFeatureFlag';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
@@ -71,7 +74,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingEnabled = useFeatureFlag(
+    FeatureFlagNames.earnPooledStakingEnabled,
+  );
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
   const { styles } = useStyles(styleSheet, { theme });

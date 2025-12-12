@@ -186,7 +186,7 @@ exports[`BrowserBottomBar Button states and interactions should apply disabled s
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
             "textAlign": "center",
           }
@@ -523,7 +523,7 @@ exports[`BrowserBottomBar Component snapshots should match snapshot with all pro
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
             "textAlign": "center",
           }
@@ -857,7 +857,7 @@ exports[`BrowserBottomBar Component snapshots should match snapshot with mixed e
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
             "textAlign": "center",
           }
@@ -1193,7 +1193,7 @@ exports[`BrowserBottomBar Edge cases and error handling should render without cr
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
             "textAlign": "center",
           }
@@ -1533,7 +1533,7 @@ exports[`BrowserBottomBar Fullscreen behavior should apply bottom inset padding 
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
             "textAlign": "center",
           }
@@ -1871,7 +1871,7 @@ exports[`BrowserBottomBar Fullscreen behavior should display fullscreen icon whe
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
             "textAlign": "center",
           }
@@ -2209,7 +2209,7 @@ exports[`BrowserBottomBar Fullscreen behavior should display fullscreen-exit ico
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
             "textAlign": "center",
           }
@@ -2546,7 +2546,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
             "textAlign": "center",
           }

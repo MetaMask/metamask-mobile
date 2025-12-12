@@ -14,6 +14,7 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
+import FontLoadingGate from './FontLoadingGate';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
@@ -79,8 +80,10 @@ const Root = ({ foxCode }: RootProps) => {
                 <ControllersGate>
                   <ToastContextWrapper>
                     <ErrorBoundary view="Root">
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
+                      <FontLoadingGate>
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </FontLoadingGate>
                     </ErrorBoundary>
                   </ToastContextWrapper>
                 </ControllersGate>

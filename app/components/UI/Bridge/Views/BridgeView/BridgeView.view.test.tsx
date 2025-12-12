@@ -10,9 +10,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
-import { QuoteViewSelectorIDs } from '../../../../../../e2e/selectors/swaps/QuoteView.selectors';
-import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
-import { CommonSelectorsIDs } from '../../../../../../e2e/selectors/Common.selectors';
+import {
+  SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID,
+  SWAP_SCREEN_QUOTE_DISPLAYED_ID,
+  SWAP_SCREEN_CONFIRM_BUTTON_ID,
+  SWAP_SCREEN_BANNER_CLOSE_BUTTON_ICON_ID,
+  SWAP_SCREEN_KEYPAD_DELETE_BUTTON_ID,
+  SWAP_SCREEN_SOURCE_TOKEN_AREA_ID,
+} from '../../../../../../wdio/screen-objects/testIDs/Screens/SwapScreen.testIds';
 
 describeForPlatforms('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
@@ -34,15 +39,13 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Input areas are rendered
+    expect(getByTestId(SWAP_SCREEN_SOURCE_TOKEN_AREA_ID)).toBeOnTheScreen();
     expect(
-      getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT),
+      getByTestId(SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID),
     ).toBeOnTheScreen();
 
     // Confirm button should NOT be rendered without valid inputs and quote
-    expect(queryByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON)).toBeNull();
+    expect(queryByTestId(SWAP_SCREEN_CONFIRM_BUTTON_ID)).toBeNull();
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
@@ -65,9 +68,7 @@ describeForPlatforms('BridgeView', () => {
       });
 
     // Close possible banner to reveal keypad
-    const closeBanner = queryByTestId(
-      CommonSelectorsIDs.BANNER_CLOSE_BUTTON_ICON,
-    );
+    const closeBanner = queryByTestId(SWAP_SCREEN_BANNER_CLOSE_BUTTON_ICON_ID);
     if (closeBanner) {
       fireEvent.press(closeBanner);
     }
@@ -75,12 +76,12 @@ describeForPlatforms('BridgeView', () => {
     // Ensure keypad is visible
     await waitFor(() => {
       expect(
-        getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+        getByTestId(SWAP_SCREEN_KEYPAD_DELETE_BUTTON_ID),
       ).toBeOnTheScreen();
     });
 
-    // Type 9.5 using keypad buttons inside the bridge scroll container
-    const scroll = getByTestId(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
+    // Type 9.5 using keypad buttons
+    const scroll = getByTestId(SWAP_SCREEN_QUOTE_DISPLAYED_ID);
     fireEvent.press(within(scroll).getByText('9'));
     fireEvent.press(within(scroll).getByText('.'));
     fireEvent.press(within(scroll).getByText('5'));
@@ -131,7 +132,7 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    const button = getByTestId(QuoteViewSelectorIDs.CONFIRM_BUTTON);
+    const button = getByTestId(SWAP_SCREEN_CONFIRM_BUTTON_ID);
     expect(button).toBeOnTheScreen();
     expect(
       (button as unknown as { props: { isDisabled?: boolean } }).props

@@ -15,9 +15,14 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
+import {
+  hideNftFetchingLoadingIndicator,
+  showNftFetchingLoadingIndicator,
+} from '../../../reducers/collectibles';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useMetrics } from '../../hooks/useMetrics';
-import { useNftDetection } from '../../hooks/useNftDetection';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -30,9 +35,9 @@ const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { addTraitsToUser } = useMetrics();
-  const { detectNfts } = useNftDetection();
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
-  const showToastAndEnableNFtDetection = useCallback(() => {
+  const showToastAndEnableNFtDetection = useCallback(async () => {
     // show toast
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
@@ -43,7 +48,7 @@ const CollectibleDetectionModal = () => {
       hasNoTimeout: false,
     });
     // set nft autodetection
-    const { PreferencesController } = Engine.context;
+    const { PreferencesController, NftDetectionController } = Engine.context;
     PreferencesController.setDisplayNftMedia(true);
     PreferencesController.setUseNftDetection(true);
     const traits = {
@@ -51,8 +56,21 @@ const CollectibleDetectionModal = () => {
       [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.ON,
     };
     addTraitsToUser(traits);
-    detectNfts();
-  }, [colors.primary.inverse, toastRef, addTraitsToUser, detectNfts]);
+    // Call detect nfts
+    showNftFetchingLoadingIndicator();
+    try {
+      trace({ name: TraceName.DetectNfts });
+      await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+      endTrace({ name: TraceName.DetectNfts });
+    } finally {
+      hideNftFetchingLoadingIndicator();
+    }
+  }, [
+    colors.primary.inverse,
+    toastRef,
+    addTraitsToUser,
+    chainIdsToDetectNftsFor,
+  ]);
 
   return (
     <View style={styles.alertBar}>

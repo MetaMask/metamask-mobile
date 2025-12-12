@@ -113,6 +113,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
           style={
             [
               {
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
                 "padding": 16,
@@ -146,7 +147,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -249,7 +250,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist-Medium",
+                      "fontFamily": "Geist Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -278,7 +279,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist-Medium",
+                      "fontFamily": "Geist Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -307,7 +308,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "Geist-Medium",
+                      "fontFamily": "Geist Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -332,7 +333,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 24,
                     "letterSpacing": 0,
                     "lineHeight": 32,
@@ -346,7 +347,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -523,7 +524,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -537,7 +538,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -578,7 +579,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -592,7 +593,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -607,6 +608,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
         <View
           style={
             {
+              "backgroundColor": "#ffffff",
               "flexDirection": "row",
               "paddingBottom": 16,
               "paddingHorizontal": 16,
@@ -646,7 +648,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -686,7 +688,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,

@@ -34,6 +34,14 @@ jest.mock('../../../../hooks/useStyles', () => ({
         paddingHorizontal: 16,
         paddingVertical: 8,
       },
+      midPriceContainer: {
+        position: 'absolute',
+        left: '50%',
+        top: 0,
+        bottom: 0,
+        width: 1,
+        backgroundColor: '#e0e0e0',
+      },
       legendContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -241,6 +249,14 @@ describe('PerpsOrderBookDepthChart', () => {
       expect(getByText('$49,800')).toBeOnTheScreen();
     });
 
+    it('displays mid price label', () => {
+      const { getByText } = render(
+        <PerpsOrderBookDepthChart orderBook={mockOrderBookData} />,
+      );
+
+      expect(getByText('$50,050')).toBeOnTheScreen();
+    });
+
     it('displays max price label', () => {
       const { getByText } = render(
         <PerpsOrderBookDepthChart orderBook={mockOrderBookData} />,
@@ -248,15 +264,6 @@ describe('PerpsOrderBookDepthChart', () => {
 
       // Max price is from highest ask
       expect(getByText('$50,300')).toBeOnTheScreen();
-    });
-
-    it('does not display mid price label (removed for cleaner UI)', () => {
-      const { queryByText } = render(
-        <PerpsOrderBookDepthChart orderBook={mockOrderBookData} />,
-      );
-
-      // Mid price label was removed to reduce visual clutter
-      expect(queryByText('$50,050')).toBeNull();
     });
   });
 
@@ -298,13 +305,15 @@ describe('PerpsOrderBookDepthChart', () => {
         asks: [],
       };
 
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <PerpsOrderBookDepthChart orderBook={emptyData} />,
       );
 
       expect(
         getByTestId(PerpsOrderBookDepthChartSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
+      // Mid price should still be displayed
+      expect(getByText('$50,050')).toBeOnTheScreen();
     });
 
     it('handles single bid level', () => {
@@ -690,13 +699,11 @@ describe('PerpsOrderBookDepthChart', () => {
 
   describe('re-rendering behavior', () => {
     it('re-renders when orderBook data changes', () => {
-      const { rerender, getByTestId } = render(
+      const { rerender, getByText } = render(
         <PerpsOrderBookDepthChart orderBook={mockOrderBookData} />,
       );
 
-      expect(
-        getByTestId(PerpsOrderBookDepthChartSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(getByText('$50,050')).toBeOnTheScreen();
 
       const updatedOrderBook: OrderBookData = {
         ...mockOrderBookData,
@@ -705,9 +712,7 @@ describe('PerpsOrderBookDepthChart', () => {
 
       rerender(<PerpsOrderBookDepthChart orderBook={updatedOrderBook} />);
 
-      expect(
-        getByTestId(PerpsOrderBookDepthChartSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(getByText('$51,000')).toBeOnTheScreen();
     });
 
     it('re-renders when height changes', () => {
@@ -781,8 +786,9 @@ describe('PerpsOrderBookDepthChart', () => {
       expect(getByText('Bids')).toBeOnTheScreen();
       expect(getByText('Asks')).toBeOnTheScreen();
 
-      // Price labels (min and max only, no mid-price)
+      // Price labels
       expect(getByText('$49,800')).toBeOnTheScreen();
+      expect(getByText('$50,050')).toBeOnTheScreen();
       expect(getByText('$50,300')).toBeOnTheScreen();
     });
   });

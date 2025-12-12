@@ -434,6 +434,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             style={
                               [
                                 {
+                                  "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "gap": 16,
                                   "padding": 16,
@@ -467,7 +468,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -758,7 +759,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           "backgroundColor": "#000000cc",
                                           "borderRadius": 4,
                                           "color": "#ffffff",
-                                          "fontFamily": "Geist-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 10,
                                           "height": 16,
                                           "letterSpacing": 0,
@@ -780,7 +781,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -893,7 +894,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -1284,7 +1285,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1299,7 +1300,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1328,7 +1329,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1342,7 +1343,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1561,7 +1562,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1576,7 +1577,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1605,7 +1606,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1619,7 +1620,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1871,7 +1872,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1886,7 +1887,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1915,7 +1916,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1929,7 +1930,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2148,7 +2149,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2163,7 +2164,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2192,7 +2193,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2206,7 +2207,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2425,7 +2426,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2440,7 +2441,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2469,7 +2470,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2483,7 +2484,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2702,7 +2703,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2717,7 +2718,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2746,7 +2747,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2760,7 +2761,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3012,7 +3013,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3027,7 +3028,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3056,7 +3057,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3070,7 +3071,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3289,7 +3290,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3314,7 +3315,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "Geist-Medium",
+                                                    "fontFamily": "Geist Medium",
                                                     "fontSize": 12,
                                                     "letterSpacing": 0.25,
                                                     "lineHeight": 20,
@@ -3330,7 +3331,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3359,7 +3360,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3373,7 +3374,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3592,7 +3593,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist-Medium",
+                                                  "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3607,7 +3608,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3636,7 +3637,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -3650,7 +3651,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#686e7d",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,

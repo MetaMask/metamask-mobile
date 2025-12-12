@@ -9,7 +9,11 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFeeCalculations } from './useFeeCalculations';
-import { EMPTY_VALUE_STRING, GasModalType } from '../../constants/gas';
+import {
+  EMPTY_VALUE_STRING,
+  GasModalType,
+  GasOptionIcon,
+} from '../../constants/gas';
 import { type GasOption } from '../../types/gas';
 
 const HEX_ZERO = '0x0';
@@ -114,6 +118,7 @@ export const useAdvancedGasFeeOption = ({
   const memoizedGasOption = useMemo(
     () => [
       {
+        emoji: GasOptionIcon.ADVANCED,
         estimatedTime: '',
         isSelected: isAdvancedGasFeeSelected,
         key: 'advanced',

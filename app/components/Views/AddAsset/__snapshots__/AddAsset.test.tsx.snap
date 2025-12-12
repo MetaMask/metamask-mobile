@@ -67,7 +67,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -188,7 +188,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
                     }
                   }
@@ -272,7 +272,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "paddingBottom": 3,
                   }
                 }
@@ -293,7 +293,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Geist Regular",
                       "padding": 16,
                     },
                     {},
@@ -306,7 +306,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "marginTop": 15,
                   }
                 }
@@ -324,7 +324,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "paddingBottom": 3,
                   }
                 }
@@ -347,7 +347,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Geist Regular",
                       "padding": 16,
                     },
                     {},
@@ -360,7 +360,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "marginTop": 15,
                   }
                 }
@@ -413,7 +413,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -454,7 +454,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -529,10 +529,28 @@ exports[`AddAsset component renders token view correctly 1`] = `
           }
         }
       >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Ethereum
+        </Text>
         <View
           style={
             {
-              "marginRight": 8,
+              "alignItems": "center",
+              "flexDirection": "row",
+              "paddingHorizontal": 16,
+              "position": "absolute",
+              "right": 0,
             }
           }
         >
@@ -563,32 +581,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
               testID="network-avatar-image"
             />
           </View>
-        </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Ethereum
-        </Text>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "paddingHorizontal": 16,
-              "position": "absolute",
-              "right": 0,
-            }
-          }
-        >
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
@@ -601,10 +593,10 @@ exports[`AddAsset component renders token view correctly 1`] = `
               {
                 "alignItems": "center",
                 "borderRadius": 8,
-                "height": 24,
+                "height": 28,
                 "justifyContent": "center",
                 "opacity": 1,
-                "width": 24,
+                "width": 28,
               }
             }
             testID="select-network-button"
@@ -612,15 +604,15 @@ exports[`AddAsset component renders token view correctly 1`] = `
             <SvgMock
               color="#121314"
               fill="currentColor"
-              height={16}
+              height={20}
               name="ArrowDown"
               style={
                 {
-                  "height": 16,
-                  "width": 16,
+                  "height": 20,
+                  "width": 20,
                 }
               }
-              width={16}
+              width={20}
             />
           </TouchableOpacity>
         </View>
@@ -631,6 +623,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
     style={
       {
         "flex": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="add-asset-tabs-container"
@@ -640,7 +633,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
         {
           "backgroundColor": "#ffffff",
           "flex": 1,
-          "paddingHorizontal": 16,
         }
       }
     >
@@ -704,7 +696,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                 [
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 30,
                     "marginVertical": 2,
                   },
@@ -778,7 +770,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                 }
               }
             >
@@ -799,7 +791,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "paddingHorizontal": 16,
                   "paddingVertical": 12,
                 }
@@ -811,7 +803,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
               style={
                 {
                   "color": "#ca3542",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "marginTop": 0,
                   "paddingBottom": 8,
                 }
@@ -821,55 +813,51 @@ exports[`AddAsset component renders token view correctly 1`] = `
           </View>
         </View>
       </RCTScrollView>
-      <View
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={true}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
-            "margin": 16,
-            "paddingBottom": 0,
-            "paddingVertical": 16,
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "color": "#4459ff",
+            "flexDirection": "row",
+            "fontFamily": "Geist Regular",
+            "fontSize": 18,
+            "height": 48,
+            "justifyContent": "center",
+            "marginBottom": 16,
+            "opacity": 0.5,
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+            "position": "relative",
+            "width": "100%",
           }
         }
+        testID="token-import-next-button"
       >
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          disabled={true}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+        <Text
+          accessibilityRole="text"
           style={
             {
-              "alignItems": "center",
-              "alignSelf": "stretch",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "opacity": 0.5,
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
+              "color": "#ffffff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
-          testID="token-import-next-button"
         >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Next
-          </Text>
-        </TouchableOpacity>
-      </View>
+          Next
+        </Text>
+      </TouchableOpacity>
     </View>
   </View>
 </RCTSafeAreaView>

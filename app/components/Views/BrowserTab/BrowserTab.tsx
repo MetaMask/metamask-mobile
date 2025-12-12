@@ -170,6 +170,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       ConnectionType.UNKNOWN,
     );
     const webviewRef = useRef<WebView>(null);
+    const blockListType = useRef<string>(''); // TODO: Consider improving this type
     const webStates = useRef<
       Record<string, { requested: boolean; started: boolean; ended: boolean }>
     >({});
@@ -344,6 +345,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
 
         const testResult = await getPhishingTestResultAsync(urlOrigin);
+        if (testResult?.result && testResult.name) {
+          blockListType.current = testResult.name;
+        }
         return !testResult?.result;
       },
       [whitelist],
@@ -1316,9 +1320,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         navigation.goBack();
       } else {
         // By default go to trending
-        navigation.navigate(Routes.TRENDING_VIEW, {
-          screen: Routes.TRENDING_FEED,
-        });
+        navigation.navigate('TrendingFeed');
       }
     }, [navigation, fromTrending]);
 
@@ -1548,6 +1550,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 urlBarRef={urlBarRef}
                 addToWhitelist={triggerAddToWhitelist}
                 activeUrl={resolvedUrlRef.current}
+                blockListType={blockListType}
                 goToUrl={onSubmitEditing}
               />
             )}

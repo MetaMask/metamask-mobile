@@ -376,7 +376,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -386,7 +386,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -446,7 +446,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -482,7 +482,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -527,7 +527,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -584,7 +584,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -663,7 +663,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -1073,7 +1073,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -1083,7 +1083,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -1143,7 +1143,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -1179,7 +1179,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -1224,7 +1224,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -1281,7 +1281,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -1360,7 +1360,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -1770,7 +1770,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -1780,7 +1780,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -1840,7 +1840,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -1872,7 +1872,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                       {
                                         "alignItems": "center",
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "justifyContent": "center",
                                         "marginRight": 8,
@@ -1892,7 +1892,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -1937,7 +1937,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -1994,7 +1994,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -2073,7 +2073,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -2483,7 +2483,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -2493,7 +2493,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -2553,7 +2553,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -2585,7 +2585,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                       {
                                         "alignItems": "center",
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "justifyContent": "center",
                                         "marginRight": 8,
@@ -2605,7 +2605,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -2650,7 +2650,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -2707,7 +2707,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -2786,7 +2786,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -3196,7 +3196,7 @@ exports[`Amount displays correct balance 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -3206,7 +3206,7 @@ exports[`Amount displays correct balance 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -3266,7 +3266,7 @@ exports[`Amount displays correct balance 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -3302,7 +3302,7 @@ exports[`Amount displays correct balance 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -3346,7 +3346,7 @@ exports[`Amount displays correct balance 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -3403,7 +3403,7 @@ exports[`Amount displays correct balance 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -3482,7 +3482,7 @@ exports[`Amount displays correct balance 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -3892,7 +3892,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -3902,7 +3902,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -3962,7 +3962,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -3998,7 +3998,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -4042,7 +4042,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -4099,7 +4099,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -4178,7 +4178,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -4588,7 +4588,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -4598,7 +4598,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -4710,7 +4710,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                             [
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist-Regular",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 30,
                                                 "marginVertical": 2,
                                               },
@@ -4816,7 +4816,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 32,
                                       "textAlign": "center",
                                     }
@@ -4826,7 +4826,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
                                       "marginTop": 8,
                                       "textAlign": "center",
@@ -4906,7 +4906,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -5316,7 +5316,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -5326,7 +5326,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -5386,7 +5386,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -5422,7 +5422,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -5467,7 +5467,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -5524,7 +5524,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -5600,7 +5600,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                   null,
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -6008,7 +6008,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -6018,7 +6018,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -6078,7 +6078,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -6114,7 +6114,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -6159,7 +6159,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -6216,7 +6216,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -6292,7 +6292,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                   null,
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -6776,7 +6776,7 @@ exports[`Amount renders correctly 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -6786,7 +6786,7 @@ exports[`Amount renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -6846,7 +6846,7 @@ exports[`Amount renders correctly 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -6882,7 +6882,7 @@ exports[`Amount renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -6903,7 +6903,7 @@ exports[`Amount renders correctly 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -6982,7 +6982,7 @@ exports[`Amount renders correctly 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -7468,7 +7468,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -7478,7 +7478,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -7538,7 +7538,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -7574,7 +7574,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -7595,7 +7595,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -7674,7 +7674,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                   },
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },
@@ -8084,7 +8084,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                       "backgroundColor": "#4459ff",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "paddingHorizontal": 16,
                                       "paddingVertical": 2,
                                     }
@@ -8094,7 +8094,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
                                         "paddingVertical": 2,
                                       }
@@ -8154,7 +8154,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                       {
                                         "alignSelf": "flex-end",
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "textTransform": "uppercase",
                                       }
@@ -8190,7 +8190,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 44,
                                         "textAlign": "center",
                                       }
@@ -8235,7 +8235,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist-Regular",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
                                           "textTransform": "uppercase",
                                         }
@@ -8292,7 +8292,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#121314",
-                                      "fontFamily": "Geist-Regular",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 12,
                                       "lineHeight": 16,
                                     }
@@ -8330,7 +8330,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
                                         "lineHeight": 16,
                                         "textAlign": "center",
@@ -8408,7 +8408,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 14,
                                       "textAlign": "center",
                                     },

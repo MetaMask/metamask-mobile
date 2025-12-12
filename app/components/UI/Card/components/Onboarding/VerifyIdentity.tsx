@@ -1,17 +1,8 @@
 import React, { useCallback, useEffect } from 'react';
-import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -21,12 +12,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import MM_CARD_VERIFY_IDENTITY from '../../../../../images/mm-card-verify.png';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
-  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
   const {
     data: verificationResponse,
@@ -65,40 +53,6 @@ const VerifyIdentity = () => {
 
   const renderFormFields = () => (
     <>
-      <Box twClassName="flex flex-1 items-center justify-center">
-        <Image
-          source={MM_CARD_VERIFY_IDENTITY}
-          resizeMode="contain"
-          style={tw.style('w-full h-full')}
-        />
-      </Box>
-      <Box twClassName="flex flex-row gap-3">
-        <Icon
-          name={IconName.EyeSlash}
-          size={IconSize.Lg}
-          color={IconColor.IconAlternative}
-        />
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="flex-1 flex-shrink text-text-alternative"
-        >
-          {strings('card.card_onboarding.verify_identity.terms_1')}
-        </Text>
-      </Box>
-      <Box twClassName="flex flex-row gap-3">
-        <Icon
-          name={IconName.Fingerprint}
-          size={IconSize.Lg}
-          color={IconColor.IconAlternative}
-        />
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="flex-1 flex-shrink text-text-alternative"
-        >
-          {strings('card.card_onboarding.verify_identity.terms_2')}
-        </Text>
-      </Box>
-
       {startVerificationIsError ? (
         <Text
           variant={TextVariant.BodySm}

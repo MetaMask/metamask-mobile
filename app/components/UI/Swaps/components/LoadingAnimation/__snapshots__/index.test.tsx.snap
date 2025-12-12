@@ -25,7 +25,7 @@ exports[`LoadingAnimation renders 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist-Regular",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
             "marginVertical": 2,
           },
@@ -67,7 +67,7 @@ exports[`LoadingAnimation renders 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,

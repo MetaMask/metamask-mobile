@@ -28,7 +28,6 @@ import { copyable } from './copyable';
 import { accountSelector } from './account-selector';
 import { dropdown } from './dropdown';
 import { radioGroup } from './radioGroup';
-import { dateTimePicker } from './date-time-picker';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -61,5 +60,4 @@ export const COMPONENT_MAPPING = {
   AccountSelector: accountSelector,
   Dropdown: dropdown,
   RadioGroup: radioGroup,
-  DateTimePicker: dateTimePicker,
 };

@@ -29,7 +29,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           "marginBottom": 80,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -58,7 +57,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -72,7 +71,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -141,7 +140,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -189,7 +188,6 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
           "marginBottom": 0,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -290,7 +288,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -348,7 +346,6 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
           "marginBottom": 0,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -450,7 +447,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -545,7 +542,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -603,7 +600,6 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
           "marginBottom": 0,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -704,7 +700,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -798,7 +794,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -856,7 +852,6 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
           "marginBottom": 0,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -885,7 +880,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -899,7 +894,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -952,7 +947,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           "marginBottom": 80,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -1038,7 +1032,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1072,7 +1066,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       style={
                         {
                           "color": "#b7bbc8",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1086,7 +1080,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1201,7 +1195,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist-Medium",
+                          "fontFamily": "Geist Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1216,7 +1210,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       style={
                         {
                           "color": "#686e7d",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1244,7 +1238,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1260,7 +1254,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1329,7 +1323,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1392,7 +1386,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1407,7 +1401,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1419,7 +1413,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               style={
                 {
                   "color": "inherit",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": undefined,
                   "letterSpacing": 0,
@@ -1471,7 +1465,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
           "marginBottom": 80,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -1500,7 +1493,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1514,7 +1507,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1582,7 +1575,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1645,7 +1638,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1660,7 +1653,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1672,7 +1665,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               style={
                 {
                   "color": "inherit",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": undefined,
                   "letterSpacing": 0,
@@ -1731,7 +1724,6 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
           "marginBottom": 0,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -1785,7 +1777,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist-Medium",
+                      "fontFamily": "Geist Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1952,7 +1944,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#121314",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "height": 46,
@@ -1991,7 +1983,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         style={
                           {
                             "color": "#4459ff",
-                            "fontFamily": "Geist-Medium",
+                            "fontFamily": "Geist Medium",
                             "fontSize": 16,
                             "fontWeight": undefined,
                             "letterSpacing": 0,
@@ -2048,7 +2040,6 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
           "marginBottom": 0,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -2149,7 +2140,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -2207,7 +2198,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           "marginBottom": 80,
         }
       }
-      testID="snap-ui-renderer__scrollview"
     >
       <View>
         <TouchableHighlight>
@@ -2236,7 +2226,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2250,7 +2240,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2318,7 +2308,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -2381,7 +2371,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -2396,7 +2386,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2408,7 +2398,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               style={
                 {
                   "color": "inherit",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": undefined,
                   "letterSpacing": 0,

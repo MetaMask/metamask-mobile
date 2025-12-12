@@ -74,7 +74,6 @@ export const container: UIComponentFactory<BoxElement> = ({
       children: styledContent,
     },
     props: {
-      testID: 'snap-ui-renderer__scrollview',
       style: {
         marginBottom: useFooter && footer ? 80 : 0,
       },

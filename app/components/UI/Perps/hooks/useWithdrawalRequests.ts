@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 export interface WithdrawalRequest {
   id: string;
   timestamp: number;
   amount: string;
   asset: string;
-  accountAddress: string; // Account that initiated this withdrawal
   txHash?: string;
   status: 'pending' | 'bridging' | 'completed' | 'failed';
   destination?: string;
@@ -48,46 +45,10 @@ export const useWithdrawalRequests = (
 ): UseWithdrawalRequestsResult => {
   const { startTime, skipInitialFetch = false } = options;
 
-  // Get current selected account address
-  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
-    'eip155:1',
-  )?.address;
-
-  // Get pending withdrawals from controller state and filter by current account
-  const pendingWithdrawals = usePerpsSelector((state) => {
-    const allWithdrawals = state?.withdrawalRequests || [];
-
-    // If no selected address, return empty array (don't show potentially wrong account's data)
-    if (!selectedAddress) {
-      DevLogger.log(
-        'useWithdrawalRequests: No selected address, returning empty array',
-        {
-          totalCount: allWithdrawals.length,
-        },
-      );
-      return [];
-    }
-
-    // Filter by current account, normalizing addresses for comparison
-    const filtered = allWithdrawals.filter((req) => {
-      const match =
-        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase();
-      return match;
-    });
-
-    DevLogger.log('useWithdrawalRequests: Filtered withdrawals by account', {
-      selectedAddress,
-      totalCount: allWithdrawals.length,
-      filteredCount: filtered.length,
-      withdrawals: filtered.map((w) => ({
-        id: w.id,
-        accountAddress: w.accountAddress,
-        status: w.status,
-      })),
-    });
-
-    return filtered;
-  });
+  // Get pending withdrawals from controller state (real-time)
+  const pendingWithdrawals = usePerpsSelector(
+    (state) => state?.withdrawalRequests || [],
+  );
 
   DevLogger.log('Pending withdrawals from controller state:', {
     count: pendingWithdrawals.length,
@@ -109,15 +70,6 @@ export const useWithdrawalRequests = (
     try {
       setIsLoading(true);
       setError(null);
-
-      // Skip fetch if no selected address - can't attribute withdrawals to unknown account
-      if (!selectedAddress) {
-        DevLogger.log(
-          'fetchCompletedWithdrawals: No selected address, skipping fetch',
-        );
-        setIsLoading(false);
-        return;
-      }
 
       const controller = Engine.context.PerpsController;
       if (!controller) {
@@ -180,7 +132,6 @@ export const useWithdrawalRequests = (
           timestamp: update.time,
           amount: Math.abs(parseFloat(update.delta.usdc)).toString(),
           asset: update.delta.coin || 'USDC', // Default to USDC if coin is not specified
-          accountAddress: selectedAddress, // selectedAddress is guaranteed to exist due to early return above
           txHash: update.hash,
           status: 'completed' as const, // HyperLiquid ledger updates are completed transactions
           destination: undefined, // Not available in ledger updates
@@ -198,7 +149,7 @@ export const useWithdrawalRequests = (
     } finally {
       setIsLoading(false);
     }
-  }, [startTime, selectedAddress]);
+  }, [startTime]);
 
   // Combine pending and completed withdrawals
   const allWithdrawals = useMemo(() => {

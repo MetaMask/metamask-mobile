@@ -24,7 +24,7 @@ import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.1.0/';
+  'https://metamask.github.io/snaps/test-snaps/2.28.1/';
 
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {
@@ -59,32 +59,6 @@ class TestSnaps {
 
   get checkboxElement(): DetoxElement {
     return Matchers.getElementByID('snap-ui-renderer__checkbox');
-  }
-
-  get dateTimePickerTouchable(): DetoxElement {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--datetime-touchable',
-    );
-  }
-
-  get datePickerTouchable(): DetoxElement {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--date-touchable',
-    );
-  }
-
-  get timePickerTouchable(): DetoxElement {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--time-touchable',
-    );
-  }
-
-  get dateTimePickerOkButton(): DetoxElement {
-    return Matchers.getElementByText('OK');
-  }
-
-  get snapUIRendererScrollView(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
 
   async checkResultSpan(
@@ -346,34 +320,6 @@ class TestSnaps {
 
   async tapCheckbox() {
     await Gestures.tap(this.checkboxElement);
-  }
-
-  async selectDateInDateTimePicker() {
-    await Gestures.scrollToElement(
-      this.timePickerTouchable,
-      this.snapUIRendererScrollView,
-    );
-
-    await Gestures.waitAndTap(this.dateTimePickerTouchable);
-
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
-
-    // Android date and time picker is a two-step process, so we need to tap OK again
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.dateTimePickerOkButton);
-    }
-  }
-
-  async selectDateInDatePicker() {
-    await Gestures.waitAndTap(this.datePickerTouchable);
-
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
-  }
-
-  async selectTimeInTimePicker() {
-    await Gestures.waitAndTap(this.timePickerTouchable);
-
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
   }
 
   async installSnap(

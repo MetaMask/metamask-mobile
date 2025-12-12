@@ -50,25 +50,33 @@ jest.mock(
   }),
 );
 
-// Mock the Perps feature flag selector - will be controlled per test
+// Mock the Perps feature flag - will be controlled per test
 let mockPerpsEnabled = true;
 let mockPerpsGTMModalEnabled = false;
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
-  selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
   selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPerpsGTMModalEnabled,
   ),
 }));
 
-// Mock the Predict feature flag selector - will be controlled per test
+// Mock the Predict feature flag - will be controlled per test
 let mockPredictEnabled = true;
 let mockPredictGTMModalEnabled = false;
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
-  selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
   selectPredictGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPredictGTMModalEnabled,
   ),
+}));
+
+// Mock useFeatureFlag hook
+jest.mock('../../hooks/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn(),
+  FeatureFlagNames: {
+    perpsPerpTradingEnabled: 'perpsPerpTradingEnabled',
+    predictTradingEnabled: 'predictTradingEnabled',
+    carouselBanners: 'carouselBanners',
+  },
 }));
 
 // Create shared mock reference for TabsList
@@ -102,6 +110,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -1077,6 +1086,23 @@ describe('Wallet', () => {
       mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
       mockPredictGTMModalEnabled = false;
+
+      // Set up useFeatureFlag mock
+      const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+        typeof useFeatureFlag
+      >;
+      mockUseFeatureFlag.mockImplementation((flagName) => {
+        if (flagName === FeatureFlagNames.perpsPerpTradingEnabled) {
+          return mockPerpsEnabled;
+        }
+        if (flagName === FeatureFlagNames.predictTradingEnabled) {
+          return mockPredictEnabled;
+        }
+        if (flagName === FeatureFlagNames.carouselBanners) {
+          return true; // Default to enabled
+        }
+        return false;
+      });
     });
 
     afterEach(() => {

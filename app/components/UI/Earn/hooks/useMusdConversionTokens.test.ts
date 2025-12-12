@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { selectMusdConversionPaymentTokensAllowlist } from '../selectors/featureFlags';
 import { isMusdConversionPaymentToken } from '../utils/musd';
@@ -102,12 +101,11 @@ describe('useMusdConversionTokens', () => {
   });
 
   describe('hook structure', () => {
-    it('returns object with tokenFilter, isConversionToken, isMusdSupportedOnChain, and tokens properties', () => {
+    it('returns object with tokenFilter, isConversionToken, and tokens properties', () => {
       const { result } = renderHook(() => useMusdConversionTokens());
 
       expect(result.current).toHaveProperty('tokenFilter');
       expect(result.current).toHaveProperty('isConversionToken');
-      expect(result.current).toHaveProperty('isMusdSupportedOnChain');
       expect(result.current).toHaveProperty('tokens');
     });
 
@@ -121,12 +119,6 @@ describe('useMusdConversionTokens', () => {
       const { result } = renderHook(() => useMusdConversionTokens());
 
       expect(typeof result.current.isConversionToken).toBe('function');
-    });
-
-    it('returns isMusdSupportedOnChain as a function', () => {
-      const { result } = renderHook(() => useMusdConversionTokens());
-
-      expect(typeof result.current.isMusdSupportedOnChain).toBe('function');
     });
 
     it('returns tokens as an array', () => {
@@ -277,52 +269,6 @@ describe('useMusdConversionTokens', () => {
         result.current.isConversionToken(uppercaseUsdcMainnet);
 
       expect(isConversion).toBe(true);
-    });
-  });
-
-  describe('isMusdSupportedOnChain', () => {
-    it('returns true for Ethereum mainnet', () => {
-      const { result } = renderHook(() => useMusdConversionTokens());
-
-      const isSupported = result.current.isMusdSupportedOnChain(
-        CHAIN_IDS.MAINNET,
-      );
-
-      expect(isSupported).toBe(true);
-    });
-
-    it('returns true for Linea mainnet', () => {
-      const { result } = renderHook(() => useMusdConversionTokens());
-
-      const isSupported = result.current.isMusdSupportedOnChain(
-        CHAIN_IDS.LINEA_MAINNET,
-      );
-
-      expect(isSupported).toBe(true);
-    });
-
-    it('returns true for BSC', () => {
-      const { result } = renderHook(() => useMusdConversionTokens());
-
-      const isSupported = result.current.isMusdSupportedOnChain(CHAIN_IDS.BSC);
-
-      expect(isSupported).toBe(true);
-    });
-
-    it('returns false for unsupported chain', () => {
-      const { result } = renderHook(() => useMusdConversionTokens());
-
-      const isSupported = result.current.isMusdSupportedOnChain('0x89');
-
-      expect(isSupported).toBe(false);
-    });
-
-    it('returns false for empty string', () => {
-      const { result } = renderHook(() => useMusdConversionTokens());
-
-      const isSupported = result.current.isMusdSupportedOnChain('');
-
-      expect(isSupported).toBe(false);
     });
   });
 

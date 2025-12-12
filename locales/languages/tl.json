@@ -3728,7 +3728,7 @@
     "show_test_networks": "Ipakita ang mga test network",
     "deprecated_goerli": "Dahil sa mga pagbabago sa protocol ng Ethereum: Ang Goerli test network ay maaaring hindi gumana tulad ng inaasahan at malapit nang ihinto ang paggamit.",
     "network_deprecated_title": "Ang network na ito ay hindi na suportado",
-    "network_deprecated_description": "Ang network na sinusubukan mong ikonekta ay hindi na suportado ng MetaMask.",
+    "network_deprecated_description": "Ang network na sinusubukan mong ikonekta ay hindi na suportado ng Metamask.",
     "edit_networks_title": "I-edit ang mga network"
   },
   "permissions": {
@@ -5692,7 +5692,7 @@
     },
     "estimated_gas_fee": {
       "title": "Tinatayang bayad sa gas",
-      "gas_recipient": "Ang mga bayad sa gas ay ibinabayad sa mga minero ng crypto na nagpoproseso ng mga transaksyon sa network ng Ethereum. Ang MetaMask ay hindi kumikita mula sa mga bayad sa gas.",
+      "gas_recipient": "Ang mga bayad sa gas ay ibinabayad sa mga minero ng crypto na nagpoproseso ng mga transaksyon sa network ng Ethereum. Ang Metamask ay hindi kumikita mula sa mga bayad sa gas.",
       "gas_fluctuation": "Ang mga bayad sa gas ay tinatantya at magbabago batay sa trapiko sa network at pagiging kumplikado ng transaksyon.",
       "gas_learn_more": "Matuto pa tungkol sa mga bayad sa gas"
     },

@@ -13,7 +13,6 @@ import {
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 import { Keys } from '../../../Base/Keypad/constants';
-import type { QuickAmount } from '../types/lending.types';
 
 export interface InputHandlerParams {
   balance: string;
@@ -114,10 +113,11 @@ const useInputHandler = ({
           value !== amountToken)
       ) {
         if (isValueNaN) {
-          if (pressedKey === Keys.Period) {
-            value = '0.';
-          } else if (/^[0-9]$/.test(pressedKey)) {
-            value = pressedKey;
+          if (
+            pressedKey === digitsOnly[digitsOnly.length - 1] ||
+            pressedKey === Keys.Period
+          ) {
+            value = pressedKey === Keys.Period ? '0.' : pressedKey;
           } else {
             value = '0';
           }
@@ -132,7 +132,7 @@ const useInputHandler = ({
     setIsFiat(!isFiat);
   }, [isFiat]);
 
-  const percentageOptions: QuickAmount[] = [
+  const percentageOptions = [
     { value: 0.25, label: '25%' },
     { value: 0.5, label: '50%' },
     { value: 0.75, label: '75%' },

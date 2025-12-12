@@ -11,7 +11,6 @@ import Gestures from "../../helpers/Gestures";
 import Selectors from "../../helpers/Selectors";
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import { expect } from "appwright";
-import { ChoosePasswordSelectorsIDs } from "../../../e2e/selectors/Onboarding/ChoosePassword.selectors";
 
 class CreateNewWalletScreen {
   get device() {
@@ -99,7 +98,7 @@ class CreateNewWalletScreen {
     } else {
       return AppwrightSelectors.getElementByID(
         this._device,
-        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+        I_UNDERSTAND_BUTTON_ID,
       );
     }
   }
@@ -132,6 +131,8 @@ class CreateNewWalletScreen {
     } else {
       const field = await this.newWalletPasswordConfirm;
       await field.fill(secondPassword);
+      const checkbox = await this.termsAndConditionCheckBox;
+      await checkbox.tap();
     }
   }
 

@@ -167,14 +167,6 @@ const mockUseRecipientSelectionMetrics = jest.mocked(
 const mockUseSendActions = jest.mocked(useSendActions);
 const mockUseSendType = jest.mocked(useSendType);
 
-function createMockUseSendType(
-  returnValues: Partial<ReturnType<typeof useSendType>>,
-) {
-  mockUseSendType.mockReturnValue(
-    returnValues as ReturnType<typeof useSendType>,
-  );
-}
-
 describe('Recipient', () => {
   const mockUpdateTo = jest.fn();
   const mockHandleSubmitPress = jest.fn();
@@ -220,8 +212,14 @@ describe('Recipient', () => {
     });
 
     mockDoENSLookup.mockReturnValue(Promise.resolve(''));
-    createMockUseSendType({
+    mockUseSendType.mockReturnValue({
       isEvmSendType: true,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: false,
+      isNonEvmNativeSendType: false,
+      isSolanaSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
   });
 

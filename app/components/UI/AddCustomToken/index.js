@@ -1,13 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-  ScrollView,
-  Platform,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text, TextInput, View, StyleSheet, ScrollView } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -32,7 +24,6 @@ import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
@@ -46,12 +37,11 @@ import CLText from '../../../component-library/components/Texts/Text/Text';
 import Logger from '../../../util/Logger';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
-const createStyles = (colors, bottomInset = 0) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      paddingHorizontal: 16,
     },
     overlappingAvatarsContainer: {
       flexDirection: 'row',
@@ -66,11 +56,7 @@ const createStyles = (colors, bottomInset = 0) =>
     rowWrapper: {
       paddingHorizontal: 16,
     },
-    buttonWrapper: {
-      paddingVertical: 16,
-      margin: 16,
-      paddingBottom: bottomInset,
-    },
+    buttonWrapper: {},
     textInput: {
       borderWidth: 1,
       borderRadius: 8,
@@ -115,6 +101,15 @@ const createStyles = (colors, bottomInset = 0) =>
     tokenDetectionIcon: {
       paddingTop: 4,
       paddingRight: 8,
+    },
+    import: {
+      fontSize: 18,
+      color: colors.primary.default,
+      ...fontStyles.normal,
+      position: 'relative',
+      width: '100%',
+      alignSelf: 'center',
+      marginBottom: 16,
     },
     textWrapper: {
       padding: 0,
@@ -177,11 +172,6 @@ class AddCustomToken extends PureComponent {
      * The network client ID
      */
     networkClientId: PropTypes.string,
-
-    /**
-     * Safe area insets from react-native-safe-area-context
-     */
-    safeAreaInsets: PropTypes.object,
   };
 
   getTokenAddedAnalyticsParams = () => {
@@ -537,9 +527,7 @@ class AddCustomToken extends PureComponent {
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
-    const bottomInset =
-      Platform.OS === 'ios' ? 0 : this.props.safeAreaInsets?.bottom || 0;
-    const styles = createStyles(colors, bottomInset);
+    const styles = createStyles(colors);
     const isDisabled = !symbol || !decimals || !this.props.selectedNetwork;
 
     const addressInputStyle = onFocusAddress
@@ -671,17 +659,15 @@ class AddCustomToken extends PureComponent {
             </View>
           ) : null}
         </ScrollView>
-        <View style={styles.buttonWrapper}>
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('transaction.next')}
-            onPress={this.goToConfirmAddToken}
-            isDisabled={isDisabled}
-            testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-          />
-        </View>
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          label={strings('transaction.next')}
+          style={styles.import}
+          onPress={this.goToConfirmAddToken}
+          isDisabled={isDisabled}
+          testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
+        />
       </View>
     );
   };
@@ -689,10 +675,4 @@ class AddCustomToken extends PureComponent {
 
 AddCustomToken.contextType = ThemeContext;
 
-// Wrapper component to inject safe area insets into the class component
-const AddCustomTokenWithInsets = (props) => {
-  const safeAreaInsets = useSafeAreaInsets();
-  return <AddCustomToken {...props} safeAreaInsets={safeAreaInsets} />;
-};
-
-export default withMetricsAwareness(AddCustomTokenWithInsets);
+export default withMetricsAwareness(AddCustomToken);

@@ -14,10 +14,7 @@ import CreatePasswordScreen from '../../../../wdio/screen-objects/Onboarding/Cre
 import ImportFromSeedScreen from '../../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 
-import {
-  dissmissPredictionsModal,
-  checkPredictionsModalIsVisible,
-} from '../../../utils/Flows.js';
+import { dissmissAllModals } from '../../../utils/Flows.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.setTimeout(150000000);
@@ -37,6 +34,7 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   WalletMainScreen.device = device;
   ImportFromSeedScreen.device = device;
   CreatePasswordScreen.device = device;
+
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
   );
@@ -62,13 +60,13 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
     'Time since the user clicks on "Account list" button until the account list is visible',
   );
 
-  await OnboardingScreen.tapHaveAnExistingWallet();
   timer3.start();
+  await OnboardingScreen.tapHaveAnExistingWallet();
   await OnboardingSheet.isVisible();
   timer3.stop();
 
-  await OnboardingSheet.tapImportSeedButton();
   timer4.start();
+  await OnboardingSheet.tapImportSeedButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
   timer4.stop();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(
@@ -77,8 +75,9 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   );
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
 
-  await ImportFromSeedScreen.tapContinueButton();
   timer5.start();
+  await ImportFromSeedScreen.tapContinueButton();
+
   await CreatePasswordScreen.isVisible();
   timer5.stop();
   await CreatePasswordScreen.enterPassword(getPasswordForScenario('import'));
@@ -90,21 +89,17 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   await MetaMetricsScreen.isScreenTitleVisible();
   timer6.stop();
 
-  await MetaMetricsScreen.tapIAgreeButton();
   timer7.start();
+  await MetaMetricsScreen.tapIAgreeButton();
   await OnboardingSucessScreen.isVisible();
   timer7.stop();
 
-  await OnboardingSucessScreen.tapDone();
   timer8.start();
-  await checkPredictionsModalIsVisible(device);
+  await OnboardingSucessScreen.tapDone();
   timer8.stop();
-
-  await dissmissPredictionsModal(device);
+  await dissmissAllModals(device);
   timer9.start();
-
-  await WalletMainScreen.isTokenVisible('ETH');
-  await WalletMainScreen.isTokenVisible('SOL');
+  await WalletMainScreen.tapOnToken('ETH');
   timer9.stop();
 
   performanceTracker.addTimer(timer3);

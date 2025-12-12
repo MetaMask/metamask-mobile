@@ -1,4 +1,5 @@
 export interface GasOption {
+  emoji: string;
   estimatedTime?: string;
   isSelected: boolean;
   key: string;

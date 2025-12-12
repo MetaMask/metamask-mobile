@@ -8,20 +8,16 @@ export function useSendTokens({
 }: {
   includeNoBalance?: boolean;
 } = {}): AssetType[] {
-  const {
-    isPredefinedTron,
-    isPredefinedBitcoin,
-    isPredefinedSolana,
-    isPredefinedEvm,
-  } = useSendType();
+  const { isEvmSendType, isSolanaSendType, isTronSendType, isBitcoinSendType } =
+    useSendType();
   const allTokens = useAccountTokens({ includeNoBalance });
 
   return useMemo(() => {
     const accountTypeMap: Record<string, boolean> = {
-      eip155: !!isPredefinedEvm,
-      solana: !!isPredefinedSolana,
-      tron: !!isPredefinedTron,
-      bip122: !!isPredefinedBitcoin,
+      eip155: !!isEvmSendType,
+      solana: !!isSolanaSendType,
+      tron: !!isTronSendType,
+      bip122: !!isBitcoinSendType,
     };
 
     const matchedAccountType = Object.entries(accountTypeMap).find(
@@ -37,9 +33,9 @@ export function useSendTokens({
     );
   }, [
     allTokens,
-    isPredefinedEvm,
-    isPredefinedSolana,
-    isPredefinedTron,
-    isPredefinedBitcoin,
+    isEvmSendType,
+    isSolanaSendType,
+    isTronSendType,
+    isBitcoinSendType,
   ]);
 }

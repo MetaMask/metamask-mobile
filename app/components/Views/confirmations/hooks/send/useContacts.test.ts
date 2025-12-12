@@ -20,14 +20,6 @@ import { selectAddressBook } from '../../../../../selectors/addressBookControlle
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseSendType = useSendType as jest.MockedFunction<typeof useSendType>;
 
-function createMockUseSendType(
-  returnValues: Partial<ReturnType<typeof useSendType>>,
-) {
-  mockUseSendType.mockReturnValue(
-    returnValues as ReturnType<typeof useSendType>,
-  );
-}
-
 describe('useContacts', () => {
   const mockEvmContact1 = {
     name: 'John Doe',
@@ -89,8 +81,14 @@ describe('useContacts', () => {
       return {};
     });
 
-    createMockUseSendType({
+    mockUseSendType.mockReturnValue({
       isEvmSendType: true,
+      isSolanaSendType: false,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: false,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
   });
 
@@ -104,10 +102,6 @@ describe('useContacts', () => {
         isNonEvmNativeSendType: false,
         isBitcoinSendType: false,
         isTronSendType: false,
-        isPredefinedEvm: true,
-        isPredefinedSolana: false,
-        isPredefinedBitcoin: false,
-        isPredefinedTron: false,
       });
     });
 
@@ -156,7 +150,15 @@ describe('useContacts', () => {
 
   describe('when neither EVM nor Solana send type is active', () => {
     beforeEach(() => {
-      createMockUseSendType({});
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
+      });
     });
 
     it('returns all contacts without filtering', () => {
@@ -200,9 +202,14 @@ describe('useContacts', () => {
   });
 
   it('returns empty array when isNonEvmSendType is true', () => {
-    createMockUseSendType({
+    mockUseSendType.mockReturnValue({
       isEvmSendType: true,
+      isSolanaSendType: false,
+      isEvmNativeSendType: false,
       isNonEvmSendType: true,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
     const { result } = renderHook(() => useContacts());
     expect(result.current).toEqual([]);
@@ -282,9 +289,14 @@ describe('useContacts', () => {
     });
 
     it('filters addresses correctly for EVM when addresses have different lengths', () => {
-      createMockUseSendType({
+      mockUseSendType.mockReturnValue({
         isEvmSendType: true,
-        isPredefinedEvm: true,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
 
       const { result } = renderHook(() => useContacts());

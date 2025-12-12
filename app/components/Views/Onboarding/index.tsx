@@ -327,7 +327,7 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await metrics.enable(false);
+    await metrics.enableSocialLogin?.(false);
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
@@ -356,7 +356,7 @@ const Onboarding = () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await metrics.enable(false);
+    await metrics.enableSocialLogin?.(false);
     await hasMetricsConsent();
 
     const action = async () => {
@@ -502,8 +502,7 @@ const Onboarding = () => {
           error.code === OAuthErrorType.UserCancelled ||
           error.code === OAuthErrorType.UserDismissed ||
           error.code === OAuthErrorType.GoogleLoginError ||
-          error.code === OAuthErrorType.AppleLoginError ||
-          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature
+          error.code === OAuthErrorType.AppleLoginError
         ) {
           // QA: do not show error sheet if user cancelled
           return;
@@ -594,7 +593,7 @@ const Onboarding = () => {
       navigation.navigate('Onboarding');
 
       // Enable metrics for OAuth users
-      await metrics.enable(true);
+      await metrics.enableSocialLogin?.(true);
       discardBufferedTraces();
       await setupSentry();
 
@@ -903,9 +902,7 @@ const Onboarding = () => {
 
         <FadeOutOverlay />
 
-        {!isE2E && (
-          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
-        )}
+        <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
 
         <View>{handleSimpleNotification()}</View>
 

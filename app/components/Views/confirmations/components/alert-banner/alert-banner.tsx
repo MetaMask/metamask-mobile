@@ -7,7 +7,6 @@ import { getBannerAlertSeverity } from '../../utils/alert-system';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { AlertKeys } from '../../constants/alerts';
-import { hasTransactionType } from '../../utils/transaction';
 export interface AlertBannerProps {
   blockingOnly?: boolean;
   excludeKeys?: AlertKeys[];
@@ -25,7 +24,7 @@ const AlertBanner = ({
 }: AlertBannerProps = {}) => {
   const { generalAlerts, fieldAlerts } = useAlerts();
   const { styles } = useStyles(styleSheet, { inline });
-  const transaction = useTransactionMetadataRequest();
+  const { type } = useTransactionMetadataRequest() ?? {};
 
   let alerts = [...generalAlerts];
 
@@ -41,10 +40,7 @@ const AlertBanner = ({
     alerts = alerts.filter((a) => !excludeKeys.includes(a.key as AlertKeys));
   }
 
-  if (
-    alerts.length === 0 ||
-    hasTransactionType(transaction, ignoreTypes ?? [])
-  ) {
+  if (alerts.length === 0 || ignoreTypes?.includes(type as TransactionType)) {
     return null;
   }
 

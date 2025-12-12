@@ -254,59 +254,6 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Populate DEX meta cache with pre-fetched meta data
-   * Called by Provider after buildAssetMapping to share cached meta,
-   * avoiding redundant metaAndAssetCtxs/meta API calls during subscription setup
-   * @param dex - DEX key ('' for main DEX, 'xyz'/'flx'/etc for HIP-3)
-   * @param meta - Meta response containing universe data
-   */
-  public setDexMetaCache(
-    dex: string,
-    meta: {
-      universe: {
-        name: string;
-        szDecimals: number;
-        maxLeverage: number;
-      }[];
-    },
-  ): void {
-    this.dexMetaCache.set(dex, meta);
-    DevLogger.log('[SubscriptionService] DEX meta cache populated', {
-      dex: dex || 'main',
-      universeSize: meta.universe.length,
-    });
-  }
-
-  /**
-   * Cache asset contexts for a specific DEX from API response
-   * This allows buildAssetMapping() to populate cache for getMarketDataWithPrices() to use
-   * @param dex - DEX name ('' for main perps)
-   * @param assetCtxs - Asset contexts from metaAndAssetCtxs response
-   */
-  public setDexAssetCtxsCache(
-    dex: string,
-    assetCtxs: WsAssetCtxsEvent['ctxs'],
-  ): void {
-    this.dexAssetCtxsCache.set(dex, assetCtxs);
-    DevLogger.log('[SubscriptionService] DEX assetCtxs cache populated', {
-      dex: dex || 'main',
-      ctxsCount: assetCtxs.length,
-    });
-  }
-
-  /**
-   * Get cached assetCtxs for a DEX
-   * Returns the cached asset contexts from WebSocket subscription if available
-   * @param dex - DEX key ('' for main DEX, 'xyz'/'flx'/etc for HIP-3)
-   * @returns Array of asset contexts or undefined if not cached
-   */
-  public getDexAssetCtxsCache(
-    dex: string,
-  ): WsAssetCtxsEvent['ctxs'] | undefined {
-    return this.dexAssetCtxsCache.get(dex);
-  }
-
-  /**
    * Update feature flags for HIP-3 support
    * Called when provider configuration changes at runtime
    * Note: Market filtering is NOT applied in subscription service - only in Provider
@@ -689,10 +636,45 @@ export class HyperLiquidSubscriptionService {
       });
     }
 
-    // Note: Funding rates are now cached via assetCtxs WebSocket subscription
-    // (ensureAssetCtxsSubscription above), eliminating the need for a separate
-    // metaAndAssetCtxs API call here. The WebSocket callback in createAssetCtxsSubscription
-    // populates marketDataCache with funding rates as they arrive.
+    // Cache funding rates from initial market data fetch if available (legacy fallback)
+    if (includeMarketData) {
+      // Get initial market data to cache funding rates
+      try {
+        // Get the provider through the clientService instead of Engine directly
+        const infoClient = this.clientService.getInfoClient();
+        const [perpsMeta, assetCtxs] = await Promise.all([
+          infoClient.meta(),
+          infoClient.metaAndAssetCtxs(),
+        ]);
+
+        if (perpsMeta?.universe && assetCtxs?.[1]) {
+          // Cache funding rates directly from assetCtxs and meta
+          perpsMeta.universe.forEach((asset, index) => {
+            const assetCtx = assetCtxs[1][index];
+            if (assetCtx && 'funding' in assetCtx) {
+              const existing = this.marketDataCache.get(asset.name) || {
+                lastUpdated: 0,
+              };
+              this.marketDataCache.set(asset.name, {
+                ...existing,
+                funding: parseFloat(assetCtx.funding),
+                lastUpdated: Date.now(),
+              });
+            }
+          });
+
+          DevLogger.log('Cached funding rates from initial market data:', {
+            cachedCount: perpsMeta.universe.filter((_asset, index) => {
+              const assetCtx = assetCtxs[1][index];
+              return assetCtx && 'funding' in assetCtx;
+            }).length,
+            totalMarkets: perpsMeta.universe.length,
+          });
+        }
+      } catch (error) {
+        DevLogger.log('Failed to cache initial funding rates:', error);
+      }
+    }
 
     symbols.forEach((symbol) => {
       // Subscribe to activeAssetCtx only when market data is requested
@@ -2059,8 +2041,7 @@ export class HyperLiquidSubscriptionService {
    * Create assetCtxs subscription for specific DEX
    * Provides real-time market data for all assets on the DEX
    *
-   * Performance: Uses cached meta from dexMetaCache (populated by metaAndAssetCtxs)
-   * to avoid redundant meta() API calls during subscription setup
+   * Performance: Fetches meta() ONCE during setup to avoid REST API spam on every WebSocket update
    */
   private async createAssetCtxsSubscription(dex: string): Promise<void> {
     this.clientService.ensureSubscriptionClient(
@@ -2073,35 +2054,25 @@ export class HyperLiquidSubscriptionService {
     }
 
     const dexKey = dex || '';
+
+    // Fetch meta ONCE during setup to cache symbol mapping
+    // This prevents REST API call on every WebSocket update (critical performance fix)
+    const infoClient = this.clientService.getInfoClient();
+    const perpsMeta = await infoClient.meta({ dex: dex || undefined });
+
     const dexIdentifier = dex ?? 'main DEX';
-
-    // Check cache first - populated by metaAndAssetCtxs in ensureAssetCtxsSubscription
-    let perpsMeta = this.dexMetaCache.get(dexKey);
-
-    if (!perpsMeta) {
-      // Fallback: fetch meta if not in cache (shouldn't happen in normal flow)
-      DevLogger.log(`Meta cache miss for ${dexIdentifier}, fetching from API`);
-      const infoClient = this.clientService.getInfoClient();
-      const fetchedMeta = await infoClient.meta({ dex: dex || undefined });
-      if (fetchedMeta?.universe) {
-        perpsMeta = fetchedMeta;
-        this.dexMetaCache.set(dexKey, fetchedMeta);
-      }
-    }
 
     if (!perpsMeta?.universe) {
       const errorMessage = `No universe data available for ${dexIdentifier}`;
       throw new Error(errorMessage);
     }
 
-    DevLogger.log(
-      `Using ${this.dexMetaCache.has(dexKey) ? 'cached' : 'fetched'} meta for ${dexIdentifier}`,
-      {
-        dex,
-        universeCount: perpsMeta.universe.length,
-        firstAssetSample: perpsMeta.universe[0]?.name,
-      },
-    );
+    const metaLogMessage = `Cached meta for ${dexIdentifier}`;
+    DevLogger.log(metaLogMessage, {
+      dex,
+      universeCount: perpsMeta.universe.length,
+      firstAssetSample: perpsMeta.universe[0]?.name,
+    });
 
     return new Promise<void>((resolve, reject) => {
       const subscriptionParams = dex ? { dex } : {};
@@ -2281,14 +2252,7 @@ export class HyperLiquidSubscriptionService {
    * @returns Cleanup function to unsubscribe
    */
   public subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
-    const {
-      symbol,
-      levels = 10,
-      nSigFigs = 5,
-      mantissa,
-      callback,
-      onError,
-    } = params;
+    const { symbol, levels = 10, nSigFigs = 5, callback, onError } = params;
 
     this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
@@ -2308,7 +2272,7 @@ export class HyperLiquidSubscriptionService {
     let cancelled = false;
 
     subscriptionClient
-      .l2Book({ coin: symbol, nSigFigs, mantissa }, (data: L2BookResponse) => {
+      .l2Book({ coin: symbol, nSigFigs }, (data: L2BookResponse) => {
         if (cancelled || data?.coin !== symbol || !data?.levels) {
           return;
         }

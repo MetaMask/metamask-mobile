@@ -3,9 +3,19 @@ import { useFeatureFlagOverride } from '../../contexts/FeatureFlagOverrideContex
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 export enum FeatureFlagNames {
-  rewardsEnabled = 'rewardsEnabled',
   otaUpdatesEnabled = 'otaUpdatesEnabled',
+  rewardsEnableCardSpend = 'rewardsEnableCardSpend',
+  rewardsEnableMusdDeposit = 'rewardsEnableMusdDeposit',
   rewardsEnableMusdHolding = 'rewardsEnableMusdHolding',
+  cardFeature = 'cardFeature', //remote config
+  sampleFeatureCounterEnabled = 'sampleFeatureCounterEnabled',
+  bridgeConfigV2 = 'bridgeConfigV2', //remote config
+  depositConfig = 'depositConfig', //remote config
+  earnPooledStakingEnabled = 'earnPooledStakingEnabled',
+  predictTradingEnabled = 'predictTradingEnabled',
+  perpsPerpTradingEnabled = 'perpsPerpTradingEnabled',
+  confirmationsPay = 'confirmations_pay', //remote config
+  carouselBanners = 'carouselBanners',
   fullPageAccountList = 'fullPageAccountList',
 }
 

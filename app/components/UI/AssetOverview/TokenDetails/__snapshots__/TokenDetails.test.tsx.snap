@@ -5,7 +5,7 @@ exports[`TokenDetails should render correctly 1`] = `
   style={
     {
       "gap": 24,
-      "marginTop": 16,
+      "marginTop": 24,
     }
   }
 >
@@ -15,7 +15,7 @@ exports[`TokenDetails should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -52,7 +52,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -79,7 +79,7 @@ exports[`TokenDetails should render correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist-Regular",
+                "fontFamily": "Geist Regular",
                 "fontSize": 14,
                 "letterSpacing": 0,
                 "lineHeight": 22,
@@ -118,7 +118,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -132,7 +132,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -161,7 +161,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -175,7 +175,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -193,7 +193,7 @@ exports[`TokenDetails should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -230,7 +230,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -244,7 +244,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -268,7 +268,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -282,7 +282,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -306,7 +306,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -320,7 +320,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -344,7 +344,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -358,7 +358,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -382,7 +382,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -396,7 +396,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -420,7 +420,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -434,7 +434,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -458,7 +458,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -472,7 +472,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist-Regular",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,

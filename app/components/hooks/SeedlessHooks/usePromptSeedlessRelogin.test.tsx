@@ -6,17 +6,22 @@ import thunk from 'redux-thunk';
 import usePromptSeedlessRelogin from './usePromptSeedlessRelogin';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import storageWrapper from '../../../store/storage-wrapper';
+import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import { clearHistory } from '../../../actions/browser';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 // Mock dependencies
 jest.mock('../useMetrics');
 jest.mock('../../../util/identity/hooks/useAuthentication');
-jest.mock('../../../core/Authentication/Authentication', () => ({
-  Authentication: {
-    deleteWallet: jest.fn(),
-  },
+jest.mock('../DeleteWallet');
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
 }));
 jest.mock('../../../actions/browser');
+jest.mock('../../../actions/onboarding');
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -33,20 +38,25 @@ jest.mock('@react-navigation/native', () => ({
 // Mock imports
 import { useMetrics } from '../useMetrics';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
-import { Authentication } from '../../../core/Authentication/Authentication';
+import { useDeleteWallet } from '../DeleteWallet';
 
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 const mockUseSignOut = useSignOut as jest.MockedFunction<typeof useSignOut>;
+const mockUseDeleteWallet = useDeleteWallet as jest.MockedFunction<
+  typeof useDeleteWallet
+>;
+const mockStorageWrapper = storageWrapper as jest.Mocked<typeof storageWrapper>;
 const mockClearHistory = clearHistory as jest.MockedFunction<
   typeof clearHistory
 >;
-const mockDeleteWallet = Authentication.deleteWallet as jest.MockedFunction<
-  typeof Authentication.deleteWallet
->;
+const mockSetCompletedOnboarding =
+  setCompletedOnboarding as jest.MockedFunction<typeof setCompletedOnboarding>;
 
 describe('usePromptSeedlessRelogin', () => {
   const mockStore = configureMockStore([thunk]);
   const mockSignOut = jest.fn();
+  const mockResetWalletState = jest.fn();
+  const mockDeleteUser = jest.fn();
   const mockMetrics = {
     isEnabled: jest.fn().mockReturnValue(true),
     trackEvent: jest.fn(),
@@ -84,12 +94,17 @@ describe('usePromptSeedlessRelogin', () => {
     // Setup mocks
     mockUseMetrics.mockReturnValue(mockMetrics);
     mockUseSignOut.mockReturnValue({ signOut: mockSignOut });
-    mockDeleteWallet.mockResolvedValue(undefined);
+    mockUseDeleteWallet.mockReturnValue([mockResetWalletState, mockDeleteUser]);
+    (mockStorageWrapper.removeItem as jest.Mock).mockResolvedValue(undefined);
     mockClearHistory.mockReturnValue({
       type: 'CLEAR_BROWSER_HISTORY',
       id: expect.any(Number),
       metricsEnabled: expect.any(Boolean),
       marketingEnabled: expect.any(Boolean),
+    });
+    mockSetCompletedOnboarding.mockReturnValue({
+      type: 'SET_COMPLETED_ONBOARDING',
+      completedOnboarding: expect.any(Boolean),
     });
   });
 
@@ -198,7 +213,12 @@ describe('usePromptSeedlessRelogin', () => {
       // Assert
       expect(mockClearHistory).toHaveBeenCalledWith(true, true);
       expect(mockSignOut).toHaveBeenCalledTimes(1);
-      expect(mockDeleteWallet).toHaveBeenCalledTimes(1);
+      expect(mockResetWalletState).toHaveBeenCalledTimes(1);
+      expect(mockDeleteUser).toHaveBeenCalledTimes(1);
+      expect(mockStorageWrapper.removeItem).toHaveBeenCalledWith(
+        OPTIN_META_METRICS_UI_SEEN,
+      );
+      expect(mockSetCompletedOnboarding).toHaveBeenCalledWith(false);
     });
 
     it('navigates to onboarding root after deletion flow', async () => {
@@ -240,7 +260,7 @@ describe('usePromptSeedlessRelogin', () => {
       });
     });
 
-    it('dispatches clearHistory action when deleting wallet', async () => {
+    it('dispatches Redux actions in correct order', async () => {
       // Arrange
       const { result } = renderHookWithProvider(() =>
         usePromptSeedlessRelogin(),
@@ -266,6 +286,10 @@ describe('usePromptSeedlessRelogin', () => {
           id: expect.any(Number),
           metricsEnabled: expect.any(Boolean),
           marketingEnabled: expect.any(Boolean),
+        },
+        {
+          type: 'SET_COMPLETED_ONBOARDING',
+          completedOnboarding: expect.any(Boolean),
         },
       ]);
     });
@@ -303,12 +327,12 @@ describe('usePromptSeedlessRelogin', () => {
         usePromptSeedlessRelogin(),
       );
 
-      // Make deleteWallet async to test loading state
-      let resolveDeleteWallet: () => void;
-      const deleteWalletPromise = new Promise<void>((resolve) => {
-        resolveDeleteWallet = resolve;
+      // Make resetWalletState async to test loading state
+      let resolveResetWallet: () => void;
+      const resetWalletPromise = new Promise<void>((resolve) => {
+        resolveResetWallet = resolve;
       });
-      mockDeleteWallet.mockReturnValueOnce(deleteWalletPromise);
+      mockResetWalletState.mockReturnValue(resetWalletPromise);
 
       act(() => {
         result.current.promptSeedlessRelogin();
@@ -326,9 +350,9 @@ describe('usePromptSeedlessRelogin', () => {
       // Assert - check loading state is true during deletion
       expect(result.current.isDeletingInProgress).toBe(true);
 
-      // Complete the delete wallet operation
+      // Complete the reset wallet operation
       act(() => {
-        resolveDeleteWallet();
+        resolveResetWallet();
       });
 
       // Wait for completion
@@ -369,7 +393,7 @@ describe('usePromptSeedlessRelogin', () => {
       const { result } = renderHookWithProvider(() =>
         usePromptSeedlessRelogin(),
       );
-      mockDeleteWallet.mockRejectedValueOnce(new Error('Reset failed'));
+      mockResetWalletState.mockRejectedValueOnce(new Error('Reset failed'));
 
       act(() => {
         result.current.promptSeedlessRelogin();
@@ -393,12 +417,14 @@ describe('usePromptSeedlessRelogin', () => {
       );
     });
 
-    it('handles wallet deletion failure gracefully', async () => {
+    it('handles storage removal failure gracefully', async () => {
       // Arrange
       const { result } = renderHookWithProvider(() =>
         usePromptSeedlessRelogin(),
       );
-      mockDeleteWallet.mockRejectedValueOnce(new Error('Deletion error'));
+      (mockStorageWrapper.removeItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Storage error'),
+      );
 
       act(() => {
         result.current.promptSeedlessRelogin();
@@ -416,11 +442,11 @@ describe('usePromptSeedlessRelogin', () => {
 
       // Assert - error state is set
       expect(result.current.deleteWalletError).toEqual(
-        new Error('Deletion error'),
+        new Error('Storage error'),
       );
       // Assert other operations were still attempted
       expect(mockSignOut).toHaveBeenCalledTimes(1);
-      expect(mockDeleteWallet).toHaveBeenCalledTimes(1);
+      expect(mockResetWalletState).toHaveBeenCalledTimes(1);
     });
   });
 
