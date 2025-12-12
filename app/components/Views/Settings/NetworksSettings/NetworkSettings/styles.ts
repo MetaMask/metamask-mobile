@@ -34,9 +34,6 @@ export const createCustomNetworkStyles = (params: { colors: Colors }) =>
       color: params.colors.text.alternative,
       marginVertical: 16,
     },
-    iconContainer: {
-      marginRight: 12,
-    },
     nameAndTagContainer: {
       flexDirection: 'column',
     },

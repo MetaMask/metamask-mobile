@@ -137,6 +137,7 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
+            style={styles.networkItem}
           />
         </View>
       );
@@ -147,6 +148,7 @@ const CustomNetworkSelector = ({
       dismissModal,
       openRpcModal,
       createAvatarProps,
+      styles.networkItem,
     ],
   );
 

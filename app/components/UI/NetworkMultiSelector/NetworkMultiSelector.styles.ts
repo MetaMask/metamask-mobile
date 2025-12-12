@@ -15,6 +15,10 @@ const stylesheet = (params: { theme: Theme; vars: { insets: EdgeInsets } }) =>
       paddingLeft: 24,
       paddingRight: 16,
     },
+    // select all popular networks cell
+    selectAllPopularNetworksCell: {
+      alignItems: 'center',
+    },
   });
 
 export default stylesheet;

@@ -425,9 +425,14 @@ const NetworkMultiSelector = ({
           variant: AvatarVariant.Icon,
           name: IconName.Global,
         }}
+        style={styles.selectAllPopularNetworksCell}
       />
     ),
-    [areAllNetworksSelectedCombined, onSelectAllPopularNetworks],
+    [
+      areAllNetworksSelectedCombined,
+      onSelectAllPopularNetworks,
+      styles.selectAllPopularNetworksCell,
+    ],
   );
 
   return (

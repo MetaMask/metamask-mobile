@@ -195,7 +195,7 @@ const CustomNetwork = ({
             )}
           </View>
           {compactMode && (
-            <View style={customNetworkStyles.iconContainer}>
+            <View>
               <Icon name={IconName.Add} size={IconSize.Lg} />
             </View>
           )}

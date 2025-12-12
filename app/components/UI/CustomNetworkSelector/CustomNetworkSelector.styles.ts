@@ -18,6 +18,9 @@ const createStyles = () =>
     iconContainer: {
       marginRight: 14,
     },
+    networkItem: {
+      alignItems: 'center',
+    },
   });
 
 export default createStyles;
