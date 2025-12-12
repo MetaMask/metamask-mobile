@@ -112,7 +112,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -232,7 +232,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -247,7 +247,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -384,7 +384,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -398,7 +398,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -429,7 +429,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -515,7 +515,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -600,7 +600,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -632,7 +632,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -645,7 +645,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -785,7 +785,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -817,7 +817,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -829,7 +829,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -987,7 +987,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1053,7 +1053,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1113,7 +1113,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1247,7 +1247,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1367,7 +1367,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1382,7 +1382,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1461,7 +1461,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1545,7 +1545,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1577,7 +1577,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1589,7 +1589,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -1603,7 +1603,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Medium",
+                            "fontFamily": "Geist-Medium",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -1707,7 +1707,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1773,7 +1773,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1833,7 +1833,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -1967,7 +1967,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -2087,7 +2087,7 @@ exports[`PermissionsSummary should render only the account permissions card when
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -2102,7 +2102,7 @@ exports[`PermissionsSummary should render only the account permissions card when
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -2180,7 +2180,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2212,7 +2212,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -2225,7 +2225,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
                           "lineHeight": 22,
@@ -2371,7 +2371,7 @@ exports[`PermissionsSummary should render only the account permissions card when
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2437,7 +2437,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -2497,7 +2497,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -2613,7 +2613,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 24,
                       "textAlign": "center",
                       "textTransform": "uppercase",
@@ -2654,7 +2654,7 @@ exports[`PermissionsSummary should render only the network permissions card when
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -2669,7 +2669,7 @@ exports[`PermissionsSummary should render only the network permissions card when
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -2746,7 +2746,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2778,7 +2778,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -2790,7 +2790,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
                           "lineHeight": 22,
@@ -2947,7 +2947,7 @@ exports[`PermissionsSummary should render only the network permissions card when
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -3013,7 +3013,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -3073,7 +3073,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -3207,7 +3207,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -3327,7 +3327,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -3342,7 +3342,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -3479,7 +3479,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -3493,7 +3493,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -3524,7 +3524,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -3610,7 +3610,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -3695,7 +3695,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -3727,7 +3727,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -3740,7 +3740,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -3880,7 +3880,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -3912,7 +3912,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -3924,7 +3924,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -4082,7 +4082,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -4148,7 +4148,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -4208,7 +4208,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -4342,7 +4342,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -4462,7 +4462,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -4477,7 +4477,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -4614,7 +4614,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -4628,7 +4628,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -4659,7 +4659,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -4745,7 +4745,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -4830,7 +4830,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -4862,7 +4862,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -4875,7 +4875,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -5015,7 +5015,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -5047,7 +5047,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -5059,7 +5059,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -5217,7 +5217,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -5283,7 +5283,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },
@@ -5343,7 +5343,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 null,
                 [
                   {
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "textAlign": "center",
                   },

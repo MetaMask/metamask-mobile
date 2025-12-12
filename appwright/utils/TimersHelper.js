@@ -32,6 +32,12 @@ class TimerHelper {
     return null;
   }
 
+  changeName(newName) {
+    const oldId = this._id;
+    Timers.renameTimer(oldId, newName);
+    this._id = newName;
+  }
+
   getDurationInSeconds() {
     const duration = this.getDuration();
     return duration ? duration / 1000 : 0;
@@ -49,22 +55,6 @@ class TimerHelper {
 
   get id() {
     return this._id;
-  }
-
-  // Runs the provided async function while timing it, and automatically
-  // registers the timer with the given performanceTracker.
-  // Usage:
-  // await TimerHelper.withTimer(performanceTracker, 'Step name', async () => { /* ... */ });
-  static async withTimer(performanceTracker, id, fn) {
-    const timer = new TimerHelper(id);
-    timer.start();
-    try {
-      const result = await fn();
-      return result;
-    } finally {
-      timer.stop();
-      performanceTracker.addTimer(timer);
-    }
   }
 }
 

@@ -30,33 +30,10 @@ describe('GasSpeed', () => {
     jest.clearAllMocks();
   });
 
-  it('renders null when transaction metadata has no userFeeLevel', () => {
-    const stateWithoutUserFeeLevel = merge({}, transferTransactionStateMock, {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: [
-              {
-                id: '56f60ff0-2bef-11f0-80ce-2f66f7fbd577',
-                userFeeLevel: undefined,
-              },
-            ],
-          },
-        },
-      },
-    });
-
-    const { queryByText } = renderWithProvider(<GasSpeed />, {
-      state: stateWithoutUserFeeLevel,
-    });
-
-    expect(queryByText(/🐢|🦊|🦍|🌐|⚙️/)).toBeNull();
-  });
-
   it.each([
-    [GasFeeEstimateLevel.Low, 'Low', /🐢.*Low.*~ 30 sec/],
-    [GasFeeEstimateLevel.Medium, 'Medium', /🦊.*Market.*~ 20 sec/],
-    [GasFeeEstimateLevel.High, 'High', /🦍.*Aggressive.*~ 10 sec/],
+    [GasFeeEstimateLevel.Low, 'Low', /.*Low.*~ 30 sec/],
+    [GasFeeEstimateLevel.Medium, 'Medium', /.*Market.*~ 20 sec/],
+    [GasFeeEstimateLevel.High, 'High', /.*Aggressive.*~ 10 sec/],
   ])(
     'renders correct content for %s gas fee estimate level',
     (userFeeLevel, _levelName, expectedPattern) => {
@@ -104,7 +81,7 @@ describe('GasSpeed', () => {
       state: stateWithDappSuggested,
     });
 
-    expect(getByText('🌐 Site suggested')).toBeTruthy();
+    expect(getByText('Site suggested')).toBeTruthy();
   });
 
   it('renders correct content for CUSTOM user fee level', () => {
@@ -126,7 +103,7 @@ describe('GasSpeed', () => {
       state: stateWithCustom,
     });
 
-    expect(getByText('⚙️ Advanced')).toBeTruthy();
+    expect(getByText('Advanced')).toBeTruthy();
   });
 
   it('does not show estimated time for gas price estimate when Medium level is selected', () => {
@@ -151,7 +128,7 @@ describe('GasSpeed', () => {
       state: stateWithGasPriceEstimate,
     });
 
-    expect(getByText('🦊 Market')).toBeTruthy();
+    expect(getByText('Market')).toBeTruthy();
     expect(queryByText(/sec/)).toBeNull();
   });
 
@@ -177,7 +154,7 @@ describe('GasSpeed', () => {
       state: stateWithFeeMarketEstimate,
     });
 
-    expect(getByText(/🦍.*Aggressive.*~ 10 sec/)).toBeTruthy();
+    expect(getByText(/.*Aggressive.*~ 10 sec/)).toBeTruthy();
   });
 
   it('handles unknown user fee level by defaulting to advanced', () => {
@@ -199,7 +176,7 @@ describe('GasSpeed', () => {
       state: stateWithUnknownFeeLevel,
     });
 
-    expect(getByText('⚙️ Advanced')).toBeTruthy();
+    expect(getByText('Advanced')).toBeTruthy();
   });
 
   it('calls useGasFeeEstimates with correct networkClientId', () => {

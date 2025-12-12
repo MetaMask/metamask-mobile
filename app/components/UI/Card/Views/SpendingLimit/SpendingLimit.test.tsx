@@ -139,6 +139,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.cancel': 'Cancel',
       'card.card_spending_limit.update_success': 'Spending limit updated',
       'card.card_spending_limit.update_error': 'Failed to update limit',
+      'card.card_spending_limit.select_token': 'Select token',
     };
     return strings[key] || key;
   },

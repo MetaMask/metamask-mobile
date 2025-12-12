@@ -1,351 +1,344 @@
 import { captureException } from '@sentry/react-native';
-import { ensureValidState } from './util';
-import StorageWrapper from '../storage-wrapper';
+import { cloneDeep } from 'lodash';
+
 import migrate from './109';
-import {
-  AGREED,
-  DENIED,
-  METAMETRICS_ID,
-  METRICS_OPT_IN,
-  MIXPANEL_METAMETRICS_ID,
-  ANALYTICS_ID,
-} from '../../constants/storage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
-jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
-}));
-
-jest.mock('../storage-wrapper', () => ({
-  __esModule: true,
-  default: {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
-    removeItem: jest.fn(),
-  },
-}));
-
 const mockedCaptureException = jest.mocked(captureException);
-const mockedEnsureValidState = jest.mocked(ensureValidState);
-const mockedStorageWrapper = jest.mocked(StorageWrapper);
+const mockedEnsureValidState = jest.spyOn(
+  jest.requireActual('./util'),
+  'ensureValidState',
+);
 
 const migrationVersion = 109;
+const QUICKNODE_MONAD_URL = 'https://failover.com';
+const MONAD_CHAIN_ID = '0x8f';
 
-const createValidState = () => ({
+// Helper functions to reduce duplication
+const createEthereumMainnetConfig = () => ({
+  chainId: '0x1',
+  rpcEndpoints: [
+    {
+      networkClientId: 'mainnet',
+      url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+      type: 'infura',
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+  blockExplorerUrls: ['https://etherscan.io'],
+  defaultBlockExplorerUrlIndex: 0,
+  name: 'Ethereum Mainnet',
+  nativeCurrency: 'ETH',
+});
+
+const createMonadNetworkConfig = (options?: {
+  rpcEndpoints?: {
+    networkClientId: string;
+    url: string;
+    type: string;
+    name?: string;
+    failoverUrls?: string[];
+  }[];
+}) => ({
+  chainId: MONAD_CHAIN_ID,
+  rpcEndpoints: options?.rpcEndpoints || [
+    {
+      networkClientId: 'monad-network',
+      url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+      type: 'custom',
+      name: 'Monad Network',
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+  blockExplorerUrls: ['https://monadscan.com'],
+  defaultBlockExplorerUrlIndex: 0,
+  name: 'Monad Network',
+  nativeCurrency: 'MON',
+});
+
+const createNetworkControllerState = (
+  networkConfigs: Record<string, unknown>,
+) => ({
+  selectedNetworkClientId: 'mainnet',
+  networksMetadata: {},
+  networkConfigurationsByChainId: networkConfigs,
+});
+
+const createState = (networkConfigs: Record<string, unknown>) => ({
   engine: {
-    backgroundState: {},
+    backgroundState: {
+      NetworkController: createNetworkControllerState(networkConfigs),
+    },
   },
 });
 
-const createValidUUIDv4 = () => 'f2673eb8-db32-40bb-88a5-97cf5107d31d';
-
 describe(`migration #${migrationVersion}`, () => {
+  let originalEnv: NodeJS.ProcessEnv;
+
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockedStorageWrapper.getItem.mockResolvedValue(null);
-    mockedStorageWrapper.setItem.mockResolvedValue(undefined);
-    mockedStorageWrapper.removeItem.mockResolvedValue(undefined);
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
+
+    originalEnv = { ...process.env };
   });
 
-  it('returns state unchanged if ensureValidState fails', async () => {
+  afterEach(() => {
+    for (const key of new Set([
+      ...Object.keys(originalEnv),
+      ...Object.keys(process.env),
+    ])) {
+      if (originalEnv[key]) {
+        process.env[key] = originalEnv[key];
+      } else {
+        delete process.env[key];
+      }
+    }
+  });
+
+  it('returns state unchanged if ensureValidState fails', () => {
     const state = { some: 'state' };
     mockedEnsureValidState.mockReturnValue(false);
 
-    const migratedState = await migrate(state);
+    const migratedState = migrate(state);
 
-    expect(migratedState).toStrictEqual(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-    expect(mockedStorageWrapper.getItem).not.toHaveBeenCalled();
+    expect(migratedState).toStrictEqual({ some: 'state' });
+    // ensureValidState may call captureException for invalid states
+    // but the migration should still return the state unchanged
   });
 
-  it('returns state unchanged and captures exception when storage read fails', async () => {
-    const state = createValidState();
+  const invalidStates = [
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            settings: {},
+          },
+        },
+        settings: {},
+        security: {},
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
+      scenario: 'missing NetworkController',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: 'invalid',
+            settings: {},
+          },
+        },
+        settings: {},
+        security: {},
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: 'string'`,
+      scenario: 'invalid NetworkController type',
+    },
+    {
+      state: {
+        engine: { backgroundState: { NetworkController: 'invalid' } },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: 'string'`,
+      scenario: 'invalid NetworkController state',
+    },
+    {
+      state: {
+        engine: { backgroundState: { NetworkController: {} } },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: missing networkConfigurationsByChainId property`,
+      scenario: 'missing networkConfigurationsByChainId property',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: { networkConfigurationsByChainId: 'invalid' },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController networkConfigurationsByChainId: 'string'`,
+      scenario: 'invalid networkConfigurationsByChainId state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [MONAD_CHAIN_ID]: 'invalid',
+              },
+            },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid Monad network configuration: 'string'`,
+      scenario: 'invalid Monad network configuration',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [MONAD_CHAIN_ID]: {
+                  chainId: MONAD_CHAIN_ID,
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: ['https://monadscan.com'],
+                  defaultBlockExplorerUrlIndex: 0,
+                  name: 'Custom Monad Network',
+                  nativeCurrency: 'MON',
+                },
+              },
+            },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid Monad network configuration: missing rpcEndpoints property`,
+      scenario: 'missing rpcEndpoints property in Monad network configuration',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [MONAD_CHAIN_ID]: {
+                  chainId: MONAD_CHAIN_ID,
+                  rpcEndpoints: 'not-an-array',
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: ['https://monadscan.com'],
+                  defaultBlockExplorerUrlIndex: 0,
+                  name: 'Custom Monad Network',
+                  nativeCurrency: 'MON',
+                },
+              },
+            },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid Monad network rpcEndpoints: expected array, got 'string'`,
+      scenario: 'rpcEndpoints is not an array in Monad network configuration',
+    },
+  ];
+
+  it.each(invalidStates)(
+    'captures exception if $scenario',
+    ({ errorMessage, state }) => {
+      const orgState = cloneDeep(state);
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const migratedState = migrate(state);
+
+      // State should be unchanged
+      expect(migratedState).toStrictEqual(orgState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        errorMessage,
+      );
+    },
+  );
+
+  it('does not modify state and does not capture exception if Monad network is not found', () => {
+    const state = createState({
+      '0x1': createEthereumMainnetConfig(),
+    });
+    const orgState = cloneDeep(state);
     mockedEnsureValidState.mockReturnValue(true);
-    const storageError = new Error('Storage read failed');
-    mockedStorageWrapper.getItem.mockRejectedValue(storageError);
 
-    const migratedState = await migrate(state);
+    const migratedState = migrate(state);
 
-    expect(migratedState).toStrictEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining(
-          'Migration 109: Failed to read legacy storage values',
-        ),
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('does not add failover URL if there is already a failover URL', async () => {
+    const oldState = createState({
+      '0x1': createEthereumMainnetConfig(),
+      [MONAD_CHAIN_ID]: createMonadNetworkConfig({
+        rpcEndpoints: [
+          {
+            networkClientId: 'monad-network',
+            url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+            type: 'custom',
+            name: 'Monad Network',
+            failoverUrls: ['https://failover.com'],
+          },
+        ],
       }),
-    );
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-  });
-
-  it('migrates analytics ID from METAMETRICS_ID to new MMKV key', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === ANALYTICS_ID) {
-        return Promise.resolve(null); // New key doesn't exist yet
-      }
-      return Promise.resolve(null);
     });
 
-    const migratedState = await migrate(state);
+    mockedEnsureValidState.mockReturnValue(true);
 
-    // State is returned unchanged (migration only affects MMKV)
-    expect(migratedState).toStrictEqual(state);
-    // Analytics ID was written to new key
-    expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
-      ANALYTICS_ID,
-      analyticsId,
-      { emitEvent: false },
-    );
-    // Legacy keys were cleaned up
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      METAMETRICS_ID,
-    );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      MIXPANEL_METAMETRICS_ID,
-    );
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(oldState);
   });
 
-  it('migrates opt-in from METRICS_OPT_IN AGREED to AnalyticsController state', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(AGREED);
-      }
-      if (key === ANALYTICS_ID) {
-        return Promise.resolve(null);
-      }
-      return Promise.resolve(null);
+  it('does not add failover URL if QUICKNODE_MONAD_URL env variable is not set', async () => {
+    const oldState = createState({
+      '0x1': createEthereumMainnetConfig(),
+      [MONAD_CHAIN_ID]: createMonadNetworkConfig(),
     });
 
-    const migratedState = (await migrate(state)) as {
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(oldState);
+  });
+
+  it('adds QuickNode failover URL to all Monad RPC endpoints when no failover URLs exist', async () => {
+    process.env.QUICKNODE_MONAD_URL = QUICKNODE_MONAD_URL;
+    const monadRpcEndpoints = [
+      {
+        networkClientId: 'monad-network',
+        url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+        type: 'custom',
+        name: 'Monad Network',
+      },
+      {
+        networkClientId: 'monad-network-2',
+        url: 'http://some-monad-rpc.com',
+        type: 'custom',
+        name: 'Monad Network',
+      },
+    ];
+    const oldState = createState({
+      '0x1': createEthereumMainnetConfig(),
+      [MONAD_CHAIN_ID]: createMonadNetworkConfig({
+        rpcEndpoints: monadRpcEndpoints,
+      }),
+    });
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const monadNetworkConfig = createMonadNetworkConfig({
+      rpcEndpoints: monadRpcEndpoints,
+    });
+    const expectedData = {
       engine: {
         backgroundState: {
-          AnalyticsController?: { optedIn: boolean };
-        };
-      };
-    };
-
-    expect(migratedState.engine.backgroundState.AnalyticsController).toEqual({
-      optedIn: true,
-    });
-    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
-      expect.stringContaining('OptedIn'),
-      expect.any(String),
-      expect.any(Object),
-    );
-  });
-
-  it('migrates opt-in from METRICS_OPT_IN DENIED to AnalyticsController state', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(DENIED);
-      }
-      if (key === ANALYTICS_ID) {
-        return Promise.resolve(null);
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = (await migrate(state)) as {
-      engine: {
-        backgroundState: {
-          AnalyticsController?: { optedIn: boolean };
-        };
-      };
-    };
-
-    expect(migratedState.engine.backgroundState.AnalyticsController).toEqual({
-      optedIn: false,
-    });
-    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
-      expect.stringContaining('OptedIn'),
-      expect.any(String),
-      expect.any(Object),
-    );
-  });
-
-  it('uses MIXPANEL_METAMETRICS_ID as fallback when METAMETRICS_ID is null', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(null);
-      }
-      if (key === MIXPANEL_METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === ANALYTICS_ID) {
-        return Promise.resolve(null);
-      }
-      return Promise.resolve(null);
-    });
-
-    await migrate(state);
-
-    expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
-      ANALYTICS_ID,
-      analyticsId,
-      { emitEvent: false },
-    );
-  });
-
-  it('does not overwrite existing AnalyticsController state', async () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            optedIn: true,
+          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              [MONAD_CHAIN_ID]: {
+                ...monadNetworkConfig,
+                rpcEndpoints: monadRpcEndpoints.map((endpoint) => ({
+                  ...endpoint,
+                  failoverUrls: [QUICKNODE_MONAD_URL],
+                })),
+              },
+            },
           },
         },
       },
     };
-    const legacyId = createValidUUIDv4();
-    const existingId = 'a1b2c3d4-e5f6-4789-a012-3456789abcde';
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(legacyId);
-      }
-      if (key === ANALYTICS_ID) {
-        return Promise.resolve(existingId); // New key already has value
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(DENIED); // Would migrate to false, but should not overwrite
-      }
-      return Promise.resolve(null);
-    });
 
-    const migratedState = (await migrate(state)) as typeof state;
-
-    // optedIn should remain true (not overwritten)
-    expect(
-      migratedState.engine.backgroundState.AnalyticsController.optedIn,
-    ).toBe(true);
-    // setItem should not be called for analytics ID that already exists
-    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
-      ANALYTICS_ID,
-      expect.any(String),
-      expect.any(Object),
-    );
-  });
-
-  it('skips analytics ID migration for invalid UUID', async () => {
-    const state = createValidState();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve('invalid-id');
-      }
-      return Promise.resolve(null);
-    });
-
-    await migrate(state);
-
-    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
-      ANALYTICS_ID,
-      expect.any(String),
-      expect.any(Object),
-    );
-  });
-
-  it('skips opt-in migration for invalid values', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve('invalid-value');
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = (await migrate(state)) as {
-      engine: {
-        backgroundState: {
-          AnalyticsController?: { optedIn: boolean };
-        };
-      };
-    };
-
-    // AnalyticsController should not be created for invalid opt-in values
-    expect(
-      migratedState.engine.backgroundState.AnalyticsController,
-    ).toBeUndefined();
-  });
-
-  it('cleans up legacy storage keys after migration', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(AGREED);
-      }
-      return Promise.resolve(null);
-    });
-
-    await migrate(state);
-
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      METAMETRICS_ID,
-    );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      MIXPANEL_METAMETRICS_ID,
-    );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      METRICS_OPT_IN,
-    );
-  });
-
-  it('continues migration even when cleanup fails', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(AGREED);
-      }
-      return Promise.resolve(null);
-    });
-    mockedStorageWrapper.removeItem.mockRejectedValue(
-      new Error('Cleanup failed'),
-    );
-
-    const migratedState = await migrate(state);
-
-    // Migration completed successfully despite cleanup failure
-    expect(migratedState).toStrictEqual(state);
-    expect(mockedStorageWrapper.setItem).toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedData);
   });
 });

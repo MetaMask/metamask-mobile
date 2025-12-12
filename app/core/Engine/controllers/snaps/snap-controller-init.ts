@@ -1,5 +1,6 @@
 import { SnapController } from '@metamask/snaps-controllers';
 import { Duration, hasProperty, inMilliseconds } from '@metamask/utils';
+import { hmacSha512 } from '@metamask/native-utils';
 import { ControllerInitFunction } from '../../types';
 import {
   SnapControllerInitMessenger,
@@ -165,6 +166,7 @@ export const snapControllerInit: ControllerInitFunction<
     detectSnapLocation,
     clientCryptography: {
       pbkdf2Sha512: pbkdf2,
+      hmacSha512: async (key, data) => hmacSha512(key, data),
     },
     trackEvent: (params: {
       event: string;
