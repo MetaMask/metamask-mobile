@@ -547,6 +547,8 @@ generateAndroidBinary() {
 	local reactNativeArchitecturesArg=""
 	# Define Test build type arg
 	local testBuildTypeArg=""
+	# Define Gradle debug flags
+	local gradleDebugFlags=""
 
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
@@ -572,14 +574,19 @@ generateAndroidBinary() {
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
 			# Only build for x86_64 for E2E builds
 			reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
+			# Enable Gradle debugging flags for E2E builds to investigate Daemon disappearance issues
+			gradleDebugFlags="--stacktrace --info"
+			echo "📊 E2E build: Enabling Gradle debugging flags (--stacktrace --info)"
 		fi
 	fi
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg
+	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleDebugFlags
 
-	if [ "$configuration" = "Release" ] ; then		
+	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
+	# and is only needed for Play Store distribution
+	if [ "$configuration" = "Release" ] && [ "$METAMASK_ENVIRONMENT" != "e2e" ] ; then		
 		# Generate AAB bundle (not needed for E2E)
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
