@@ -304,10 +304,15 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks]
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 70 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   build-ios-apps:
@@ -335,10 +340,15 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 70 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   # Flask E2E tests
