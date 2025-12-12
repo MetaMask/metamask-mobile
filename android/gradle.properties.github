@@ -4,7 +4,7 @@
 # JVM configuration - tuned for 48GB runner to avoid OOM while maintaining performance
 # Heap: 12GB to leave room for Node.js/Metro and native memory
 # ExitOnOutOfMemoryError: fail-fast on OOM for CI
-org.gradle.jvmargs=-Xmx12g -Xms4g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=500 -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/gradle-heap-dump.hprof -Dfile.encoding=UTF-8
+org.gradle.jvmargs=-Xmx12g -Xms4g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=500 -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8
 
 # Enable performance optimizations but limit parallelism to prevent OOM
 org.gradle.parallel=true
