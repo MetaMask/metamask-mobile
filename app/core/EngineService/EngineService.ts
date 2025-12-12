@@ -256,14 +256,24 @@ export class EngineService {
               // Check if any property at the first level has changed
               // Only persist if there's state to persist AND either:
               // 1. No initial state existed but now there is state (new install/new controller)
-              // 2. Initial state existed and has changed
-              const hasStateToSave = Object.keys(filteredState).length > 0;
+              // 2. Initial state existed and has changed (added, modified, or removed properties)
+              const filteredStateKeys = Object.keys(filteredState);
+              const initialStateKeys = initialControllerState
+                ? Object.keys(initialControllerState)
+                : [];
+              const hasStateToSave = filteredStateKeys.length > 0;
+
+              // Check for changes: different key count, or any value differs
+              const hasKeyCountChanged =
+                filteredStateKeys.length !== initialStateKeys.length;
+              const hasValueChanged = filteredStateKeys.some(
+                (key) =>
+                  !initialControllerState ||
+                  filteredState[key] !== initialControllerState[key],
+              );
+
               const hasChanged =
-                hasStateToSave &&
-                (!initialControllerState ||
-                  Object.keys(filteredState).some(
-                    (key) => filteredState[key] !== initialControllerState[key],
-                  ));
+                hasStateToSave && (hasKeyCountChanged || hasValueChanged);
 
               if (hasChanged) {
                 // Reuse the same debounced function for consistency
