@@ -245,46 +245,52 @@ export class EngineService {
           // If initialControllerState is undefined (new install or new controller), always persist.
           // @ts-expect-error - Engine context has stateless controllers
           const currentState = UntypedEngine.context[controllerName]?.state;
-          const initialControllerState = initialState?.[controllerName] as
-            | Record<string, unknown>
-            | undefined;
-          const filteredState = getPersistentState(
-            currentState,
-            controllerMetadata,
-          );
 
-          // Check if any property at the first level has changed
-          // Only persist if there's state to persist AND either:
-          // 1. No initial state existed but now there is state (new install/new controller)
-          // 2. Initial state existed and has changed
-          const hasStateToSave = Object.keys(filteredState).length > 0;
-          const hasChanged =
-            hasStateToSave &&
-            (!initialControllerState ||
-              Object.keys(filteredState).some(
-                (key) =>
-                  filteredState[key] !==
-                  initialControllerState[
-                    key as keyof typeof initialControllerState
-                  ],
-              ));
-
-          if (hasChanged) {
+          // Only check for init-time state changes if controller has state
+          // (stateless controllers will have undefined state)
+          if (currentState) {
             try {
-              // Reuse the same debounced function for consistency
-              persistController(filteredState, controllerName);
-              Logger.log(
-                `${LOG_TAG}: ${controllerName} state changed during init, queued for persist`,
+              const initialControllerState = initialState?.[controllerName] as
+                | Record<string, unknown>
+                | undefined;
+              const filteredState = getPersistentState(
+                currentState,
+                controllerMetadata,
               );
+
+              // Check if any property at the first level has changed
+              // Only persist if there's state to persist AND either:
+              // 1. No initial state existed but now there is state (new install/new controller)
+              // 2. Initial state existed and has changed
+              const hasStateToSave = Object.keys(filteredState).length > 0;
+              const hasChanged =
+                hasStateToSave &&
+                (!initialControllerState ||
+                  Object.keys(filteredState).some(
+                    (key) =>
+                      filteredState[key] !==
+                      initialControllerState[
+                        key as keyof typeof initialControllerState
+                      ],
+                  ));
+
+              if (hasChanged) {
+                // Reuse the same debounced function for consistency
+                persistController(filteredState, controllerName);
+                Logger.log(
+                  `${LOG_TAG}: ${controllerName} state changed during init, queued for persist`,
+                );
+              }
             } catch (error) {
+              // Log error but don't crash - init-time persistence is best-effort
               Logger.error(
                 error as Error,
-                `Failed to persist ${controllerName} state that changed during init`,
+                `Failed to check/persist ${controllerName} state during init`,
               );
             }
           }
 
-          // Set up subscription for future state changes
+          // Set up subscription for future state changes (always, even for stateless controllers)
           UntypedEngine.controllerMessenger.subscribe(
             eventName,
             async (controllerState: StateConstraint) => {
