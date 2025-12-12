@@ -6,7 +6,7 @@ import {
 import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
-  formatProviderLabel,
+  getQuotesReceivedProperties,
   QuoteWarning,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
@@ -59,22 +59,12 @@ export const useBridgeQuoteEvents = ({
     if (!isLoading && quotesRefreshCount > 0 && !quoteFetchError) {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.QuotesReceived,
-        {
-          can_submit: !isSubmitDisabled,
-          gas_included: Boolean(activeQuote?.quote?.gasIncluded),
-          gas_included_7702: Boolean(activeQuote?.quote?.gasIncluded7702),
-          quoted_time_minutes: activeQuote?.estimatedProcessingTimeInSeconds
-            ? activeQuote.estimatedProcessingTimeInSeconds / 60
-            : 0,
-          usd_quoted_gas: Number(activeQuote?.gasFee?.effective?.usd ?? 0),
-          usd_quoted_return: Number(activeQuote?.toTokenAmount?.usd ?? 0),
-          best_quote_provider: recommendedQuote
-            ? formatProviderLabel(recommendedQuote.quote)
-            : undefined,
-          provider: activeQuote ? formatProviderLabel(activeQuote.quote) : '_',
+        getQuotesReceivedProperties(
+          activeQuote,
           warnings,
-          price_impact: Number(activeQuote?.quote.priceData?.priceImpact ?? 0),
-        },
+          !isSubmitDisabled,
+          recommendedQuote,
+        ),
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
