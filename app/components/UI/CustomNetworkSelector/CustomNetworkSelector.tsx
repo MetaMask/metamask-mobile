@@ -165,7 +165,7 @@ const CustomNetworkSelector = ({
           style={styles.iconContainer}
         />
 
-        <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
+        <Text variant={TextVariant.BodyMD} color={colors.text.default}>
           {strings('app_settings.network_add_custom_network')}
         </Text>
       </TouchableOpacity>
