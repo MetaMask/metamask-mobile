@@ -138,7 +138,7 @@ export class PlaywrightElement {
   async waitForDisplayed(
     options: GestureOptions & {
       reverse?: boolean;
-    },
+    } = {},
   ): Promise<void> {
     this.logger.debug(
       `Waiting for element to be displayed: ${options.elemDescription || this.elem.selector}`,
@@ -153,7 +153,7 @@ export class PlaywrightElement {
   async waitForEnabled(
     options: GestureOptions & {
       reverse?: boolean;
-    },
+    } = {},
   ): Promise<void> {
     this.logger.debug(
       `Waiting for element to be enabled: ${options.elemDescription || this.elem.selector}`,
