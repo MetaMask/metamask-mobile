@@ -34,58 +34,62 @@ describe('useAuthentication', () => {
   });
 
   describe('hook initialization', () => {
-    it('returns turnOffRememberMeAndLockApp function', () => {
-      const { result } = renderHook(() => useAuthentication());
-
-      expect(result.current.turnOffRememberMeAndLockApp).toBeDefined();
-      expect(typeof result.current.turnOffRememberMeAndLockApp).toBe(
-        'function',
-      );
-    });
-  });
-
-  describe('turnOffRememberMeAndLockApp', () => {
-    it('calls Authentication.lockApp with allowRememberMe set to false', async () => {
-      const { result } = renderHook(() => useAuthentication());
-
-      await act(async () => {
-        await result.current.turnOffRememberMeAndLockApp();
-      });
+    it('calls Authentication.lockApp with allowRememberMe set to false', () => {
+      renderHook(() => useAuthentication());
 
       expect(lockAppSpy).toHaveBeenCalledTimes(1);
       expect(lockAppSpy).toHaveBeenCalledWith({ allowRememberMe: false });
     });
 
-    it('handles lockApp promise resolution', async () => {
+    it('returns turnOffRememberMeAndLockApp as a Promise', () => {
+      const { result } = renderHook(() => useAuthentication());
+
+      expect(result.current.turnOffRememberMeAndLockApp).toBeDefined();
+      expect(result.current.turnOffRememberMeAndLockApp).toBeInstanceOf(
+        Promise,
+      );
+    });
+  });
+
+  describe('turnOffRememberMeAndLockApp', () => {
+    it('returns promise that resolves when lockApp succeeds', async () => {
       const { result } = renderHook(() => useAuthentication());
 
       await act(async () => {
-        const promise = result.current.turnOffRememberMeAndLockApp();
-        await expect(promise).resolves.toBeUndefined();
+        await expect(
+          result.current.turnOffRememberMeAndLockApp,
+        ).resolves.toBeUndefined();
       });
     });
 
-    it('handles lockApp promise rejection', async () => {
+    it('returns promise that rejects when lockApp fails', async () => {
       const testError = new Error('Lock app failed');
       mockLockApp.mockRejectedValue(testError);
       const { result } = renderHook(() => useAuthentication());
 
       await act(async () => {
         await expect(
-          result.current.turnOffRememberMeAndLockApp(),
+          result.current.turnOffRememberMeAndLockApp,
         ).rejects.toThrow('Lock app failed');
       });
 
       expect(lockAppSpy).toHaveBeenCalledWith({ allowRememberMe: false });
     });
 
-    it('maintains function reference across re-renders', () => {
-      const { result, rerender } = renderHook(() => useAuthentication());
-      const firstReference = result.current.turnOffRememberMeAndLockApp;
+    it('calls lockApp on each hook render', () => {
+      const { rerender } = renderHook(() => useAuthentication());
+
+      expect(lockAppSpy).toHaveBeenCalledTimes(1);
 
       rerender();
 
-      expect(result.current.turnOffRememberMeAndLockApp).toBe(firstReference);
+      expect(lockAppSpy).toHaveBeenCalledTimes(2);
+      expect(lockAppSpy).toHaveBeenNthCalledWith(1, {
+        allowRememberMe: false,
+      });
+      expect(lockAppSpy).toHaveBeenNthCalledWith(2, {
+        allowRememberMe: false,
+      });
     });
   });
 
@@ -97,7 +101,7 @@ describe('useAuthentication', () => {
 
       await act(async () => {
         try {
-          await result.current.turnOffRememberMeAndLockApp();
+          await result.current.turnOffRememberMeAndLockApp;
         } catch {
           // Expected to throw
         }
@@ -113,19 +117,15 @@ describe('useAuthentication', () => {
 
       await act(async () => {
         await expect(
-          result.current.turnOffRememberMeAndLockApp(),
+          result.current.turnOffRememberMeAndLockApp,
         ).rejects.toThrow('Authentication service error');
       });
     });
   });
 
   describe('integration', () => {
-    it('completes full flow: calls lockApp with allowRememberMe false', async () => {
-      const { result } = renderHook(() => useAuthentication());
-
-      await act(async () => {
-        await result.current.turnOffRememberMeAndLockApp();
-      });
+    it('completes full flow: calls lockApp with allowRememberMe false on initialization', () => {
+      renderHook(() => useAuthentication());
 
       expect(lockAppSpy).toHaveBeenCalledTimes(1);
       expect(lockAppSpy).toHaveBeenCalledWith({ allowRememberMe: false });
