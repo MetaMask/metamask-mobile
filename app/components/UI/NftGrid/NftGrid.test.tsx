@@ -25,6 +25,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     push: mockPush,
   }),
+  useFocusEffect: jest.fn(),
 }));
 
 // Mock react-redux
@@ -48,6 +49,14 @@ jest.mock('../../hooks/useMetrics');
   isEnabled: jest.fn(),
   getMetaMetricsId: jest.fn(),
 });
+
+// Mock useNftDetection
+jest.mock('../../hooks/useNftDetection', () => ({
+  useNftDetection: () => ({
+    detectNfts: jest.fn(),
+    chainIdsToDetectNftsFor: ['0x1'],
+  }),
+}));
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => ({

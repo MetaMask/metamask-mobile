@@ -34,7 +34,6 @@ const mockEventBuilder = {
 jest.mock('../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {
-    BUY_BUTTON_CLICKED: 'buy_button_clicked',
     RAMPS_BUTTON_CLICKED: 'ramps_button_clicked',
   },
 }));
