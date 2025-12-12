@@ -32,7 +32,6 @@ import {
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
-  BIOMETRY_CHOICE,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -45,6 +44,7 @@ import {
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
 import { Authentication } from '../../../core';
+import { reauthenticate } from '../../../core/Authentication/hooks/useAuthentication';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
@@ -398,17 +398,6 @@ class ResetPassword extends PureComponent {
     );
   };
 
-  unlockWithBiometrics = async () => {
-    // Try to use biometrics to unlock
-    const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-    if (biometryChoice) {
-      const credentials = await Authentication.getPassword();
-      if (credentials) {
-        this.tryUnlockWithPassword(credentials.password);
-      }
-    }
-  };
-
   async componentDidMount() {
     this.updateNavBar();
 
@@ -434,7 +423,7 @@ class ResetPassword extends PureComponent {
         biometryType: authData.availableBiometryType,
         biometryChoice: biometryChoiceState,
       });
-      this.unlockWithBiometrics();
+      await reauthenticate();
     }
 
     this.setState(state);
@@ -659,8 +648,7 @@ class ResetPassword extends PureComponent {
   tryUnlockWithPassword = async (password) => {
     this.setState({ ready: false });
     try {
-      // Just try
-      await this.tryExportSeedPhrase(password);
+      await reauthenticate(password);
       this.setState({
         password: null,
         originalPassword: password,
