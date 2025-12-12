@@ -149,7 +149,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "type": "Simple Key Pair",
           },
         ],
-        "vaultExists": true,
+        "vaultExists": false,
       },
       "LoggingController": {
         "logs": {},
@@ -920,7 +920,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "type": "Simple Key Pair",
           },
         ],
-        "vaultExists": true,
+        "vaultExists": false,
       },
       "LoggingController": {
         "logs": {},

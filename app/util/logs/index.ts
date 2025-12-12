@@ -110,9 +110,9 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
           keyrings: KeyringController.state?.keyrings,
           isUnlocked: KeyringController.state?.isUnlocked,
           vaultExists:
-            KeyringController.state.vault !== null ||
-            KeyringController.state.vault !== undefined ||
-            KeyringController.state.vault !== '',
+            KeyringController.state?.vault !== null &&
+            KeyringController.state?.vault !== undefined &&
+            KeyringController.state?.vault !== '',
         },
         SeedlessOnboardingController:
           getSanitizedSeedlessOnboardingControllerState(),

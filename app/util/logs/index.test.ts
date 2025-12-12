@@ -170,7 +170,7 @@ describe('logs :: generateStateLogs', () => {
     );
   });
 
-  it('sets vaultExists to true when vault is not null', () => {
+  it('sets vaultExists to true when vault has a value', () => {
     Engine.context.KeyringController.state = {
       keyrings: [
         {
@@ -202,7 +202,40 @@ describe('logs :: generateStateLogs', () => {
     ).toBe(true);
   });
 
-  it('sets vaultExists to true when vault is not undefined', () => {
+  it('sets vaultExists to false when vault is null', () => {
+    Engine.context.KeyringController.state = {
+      keyrings: [
+        {
+          accounts: ['0x1'],
+          type: KeyringTypes.hd,
+          metadata: { id: 'keyring1', name: '' },
+        },
+      ] as KeyringObject[],
+      isUnlocked: true,
+      // @ts-expect-error - testing null vault handling
+      vault: null,
+    };
+
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(
+      parsedLogs.engine.backgroundState.KeyringController.vaultExists,
+    ).toBe(false);
+  });
+
+  it('sets vaultExists to false when vault is undefined', () => {
     Engine.context.KeyringController.state = {
       keyrings: [
         {
@@ -231,10 +264,10 @@ describe('logs :: generateStateLogs', () => {
 
     expect(
       parsedLogs.engine.backgroundState.KeyringController.vaultExists,
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it('sets vaultExists to true when vault is not empty string', () => {
+  it('sets vaultExists to false when vault is empty string', () => {
     Engine.context.KeyringController.state = {
       keyrings: [
         {
@@ -263,7 +296,30 @@ describe('logs :: generateStateLogs', () => {
 
     expect(
       parsedLogs.engine.backgroundState.KeyringController.vaultExists,
-    ).toBe(true);
+    ).toBe(false);
+  });
+
+  it('sets vaultExists to false when KeyringController state is undefined', () => {
+    // @ts-expect-error - testing undefined state handling
+    Engine.context.KeyringController.state = undefined;
+
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsedLogs = JSON.parse(logs);
+
+    expect(
+      parsedLogs.engine.backgroundState.KeyringController.vaultExists,
+    ).toBe(false);
   });
 
   it('includes loggedIn parameter in generated logs', () => {
