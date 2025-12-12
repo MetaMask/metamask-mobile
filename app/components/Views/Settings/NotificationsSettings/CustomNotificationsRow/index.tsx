@@ -18,7 +18,6 @@ export const CUSTOM_NOTIFICATIONS_ROW_SWITCH_CONTAINER_TEST_ID = (
 
 interface CustomNotificationsRowProps {
   title: string;
-  description?: string;
   icon?: IconName;
   isEnabled: boolean;
   toggleCustomNotificationsEnabled: () => void;
@@ -27,7 +26,6 @@ interface CustomNotificationsRowProps {
 
 const CustomNotificationsRow = ({
   title,
-  description,
   icon,
   isEnabled,
   toggleCustomNotificationsEnabled,
@@ -51,14 +49,7 @@ const CustomNotificationsRow = ({
         />
       )}
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {title}
-        </Text>
-        {description && (
-          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {description}
-          </Text>
-        )}
+        <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
       </View>
       <Switch
         value={isEnabled}
