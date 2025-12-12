@@ -17,6 +17,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../component-library/components/Icons/Icon';
 
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -29,6 +30,7 @@ import { createAddressListNavigationDetails } from '../../Views/MultichainAccoun
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useTheme } from '../../../util/theme';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import type { AddressCopyProps } from './AddressCopy.types';
 import {
@@ -41,6 +43,7 @@ import {
 const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
+  const { colors } = useTheme();
 
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -65,7 +68,10 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
       getFormattedAddressFromInternalAccount(account),
     );
     toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
       labelOptions: [
         { label: strings('account_details.account_copied_to_clipboard') },
       ],
@@ -78,6 +84,8 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
     );
   }, [
     account,
+    colors.accent03.dark,
+    colors.accent03.normal,
     createEventBuilder,
     handleProtectWalletModalVisible,
     toastRef,

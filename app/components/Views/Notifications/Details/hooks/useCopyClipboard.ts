@@ -7,6 +7,8 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
 
 export const CopyClipboardAlertMessage = {
   default: (): string => strings('notifications.copied_to_clipboard'),
@@ -18,6 +20,7 @@ export const CopyClipboardAlertMessage = {
 function useCopyClipboard() {
   const dispatch = useDispatch();
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
 
   const handleProtectWalletModalVisible = useCallback(
     () => dispatch(protectWalletModalVisible()),
@@ -29,7 +32,10 @@ function useCopyClipboard() {
       if (!value) return;
       await ClipboardManager.setString(value);
       toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
+        variant: ToastVariants.Icon,
+        iconName: IconName.CheckBold,
+        iconColor: colors.accent03.dark,
+        backgroundColor: colors.accent03.normal,
         labelOptions: [
           { label: alertText ?? CopyClipboardAlertMessage.default() },
         ],
@@ -37,7 +43,12 @@ function useCopyClipboard() {
       });
       setTimeout(() => handleProtectWalletModalVisible(), 2000);
     },
-    [toastRef, handleProtectWalletModalVisible],
+    [
+      colors.accent03.dark,
+      colors.accent03.normal,
+      toastRef,
+      handleProtectWalletModalVisible,
+    ],
   );
 
   return copyToClipboard;

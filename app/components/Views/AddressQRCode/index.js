@@ -22,6 +22,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -114,13 +115,16 @@ const AddressQRCode = ({ closeQrModal }) => {
   const copyAccountToClipboard = useCallback(async () => {
     await ClipboardManager.setString(selectedAddress);
     toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
+      variant: ToastVariants.Icon,
+      iconName: IconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
       labelOptions: [
         { label: strings('account_details.account_copied_to_clipboard') },
       ],
       hasNoTimeout: false,
     });
-  }, [selectedAddress, toastRef]);
+  }, [colors.accent03.dark, colors.accent03.normal, selectedAddress, toastRef]);
 
   const processAddress = useCallback(() => {
     const processedAddress = `${selectedAddress.slice(0, 2)} ${selectedAddress

@@ -17,6 +17,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../component-library/components/Icons/Icon';
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
@@ -191,7 +192,10 @@ const AssetDetails = (props: InnerProps) => {
   const copyAddressToClipboard = async () => {
     await ClipboardManager.setString(address);
     toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
       labelOptions: [
         { label: strings('detected_tokens.address_copied_to_clipboard') },
       ],
