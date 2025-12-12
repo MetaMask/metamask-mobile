@@ -22,6 +22,7 @@ export class NavigationHandler extends BaseHandler {
     ACTIONS.PERPS_ASSET,
   ];
 
+  // remember that low # means higher priority
   readonly priority = 10; // Standard priority
 
   async handle(
