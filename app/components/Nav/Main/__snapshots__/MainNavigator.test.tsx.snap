@@ -131,10 +131,22 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="NftDetails"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
     name="NftDetailsFullImage"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -184,6 +196,13 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="StakeScreens"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -265,6 +284,8 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="DeFiProtocolPositionDetails"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": true,
       }
     }
