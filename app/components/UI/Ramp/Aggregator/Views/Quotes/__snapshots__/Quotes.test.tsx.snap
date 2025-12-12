@@ -1170,6 +1170,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -3452,6 +3453,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -5338,6 +5340,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
