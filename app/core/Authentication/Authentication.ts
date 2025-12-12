@@ -77,6 +77,11 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { Alert } from 'react-native';
+import { strings } from '../../../locales/i18n';
+import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import AppConstants from '../AppConstants';
+import { setLockTime } from '../../actions/settings';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1370,6 +1375,84 @@ class AuthenticationService {
       Logger.log(error, errorMsg);
     }
   }
+
+  /**
+   * Stores credentials with the specified authentication preference.
+   * This method handles password validation, storage, and authentication preference updates.
+   *
+   * @param password - password provided by user
+   * @param enabled - whether the authentication method is enabled
+   * @param authChoice - authentication choice string ('passcodeChoice' or 'biometryChoice')
+   * @param setLoading - callback to update loading state
+   * @returns {Promise<void>}
+   */
+  storeCredentialsWithAuthPreference = async (
+    password: string,
+    enabled: boolean,
+    authChoice: string,
+    setLoading: (loading: boolean) => void,
+  ): Promise<void> => {
+    const PASSCODE_CHOICE_STRING = 'passcodeChoice';
+    const BIOMETRY_CHOICE_STRING = 'biometryChoice';
+
+    try {
+      await this.resetPassword();
+
+      await Engine.context.KeyringController.exportSeedPhrase(password);
+
+      if (!enabled) {
+        setLoading(false);
+        if (authChoice === PASSCODE_CHOICE_STRING) {
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+        } else if (authChoice === BIOMETRY_CHOICE_STRING) {
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+        }
+
+        return;
+      }
+
+      try {
+        let authType;
+        if (authChoice === BIOMETRY_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.BIOMETRIC;
+        } else if (authChoice === PASSCODE_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.PASSCODE;
+        } else {
+          authType = AUTHENTICATION_TYPE.PASSWORD;
+        }
+        await this.storePassword(password, authType);
+      } catch (error) {
+        Logger.error(error as unknown as Error, {});
+      }
+
+      ReduxService.store.dispatch(passwordSet());
+
+      const lockTime = ReduxService.store.getState().settings.lockTime;
+      if (lockTime === -1) {
+        ReduxService.store.dispatch(
+          setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
+        );
+      }
+      setLoading(false);
+    } catch (e) {
+      const errorWithMessage = e as { message: string };
+      if (errorWithMessage.message === 'Invalid password') {
+        Alert.alert(
+          strings('app_settings.invalid_password'),
+          strings('app_settings.invalid_password_message'),
+        );
+        trackErrorAsAnalytics(
+          'SecuritySettings: Invalid password',
+          errorWithMessage?.message,
+          '',
+        );
+      } else {
+        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
+      }
+      setLoading(false);
+    }
+  };
 }
 
 export const Authentication = new AuthenticationService();

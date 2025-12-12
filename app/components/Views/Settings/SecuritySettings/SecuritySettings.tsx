@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   Switch,
   ScrollView,
   View,
@@ -16,22 +15,13 @@ import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { setLockTime } from '../../../../actions/settings';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
-import { passwordSet, setExistingUser } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
-import AppConstants from '../../../../core/AppConstants';
-import {
-  TRUE,
-  PASSCODE_DISABLED,
-  BIOMETRY_CHOICE_DISABLED,
-  SEED_PHRASE_HINTS,
-} from '../../../../constants/storage';
+import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { Authentication } from '../../../../core';
-import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme } from '../../../../util/theme';
 import {
   ClearCookiesSection,
@@ -69,7 +59,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
@@ -127,7 +116,6 @@ const Settings: React.FC = () => {
     (state: RootState) => state.browser.history,
   );
 
-  const lockTime = useSelector((state: RootState) => state.settings.lockTime);
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
   );
@@ -258,63 +246,12 @@ const Settings: React.FC = () => {
     enabled: boolean,
     authChoice: string,
   ) => {
-    try {
-      await Authentication.resetPassword();
-
-      await Engine.context.KeyringController.exportSeedPhrase(password);
-
-      // Mark user as existing when they set up authentication
-      dispatch(setExistingUser(true));
-
-      if (!enabled) {
-        setLoading(false);
-        if (authChoice === PASSCODE_CHOICE_STRING) {
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-        } else if (authChoice === BIOMETRY_CHOICE_STRING) {
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-        }
-
-        return;
-      }
-
-      try {
-        let authType;
-        if (authChoice === BIOMETRY_CHOICE_STRING) {
-          authType = AUTHENTICATION_TYPE.BIOMETRIC;
-        } else if (authChoice === PASSCODE_CHOICE_STRING) {
-          authType = AUTHENTICATION_TYPE.PASSCODE;
-        } else {
-          authType = AUTHENTICATION_TYPE.PASSWORD;
-        }
-        await Authentication.storePassword(password, authType);
-      } catch (error) {
-        Logger.error(error as unknown as Error, {});
-      }
-
-      dispatch(passwordSet());
-
-      if (lockTime === -1) {
-        dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT));
-      }
-      setLoading(false);
-    } catch (e) {
-      const errorWithMessage = e as { message: string };
-      if (errorWithMessage.message === 'Invalid password') {
-        Alert.alert(
-          strings('app_settings.invalid_password'),
-          strings('app_settings.invalid_password_message'),
-        );
-        trackErrorAsAnalytics(
-          'SecuritySettings: Invalid password',
-          errorWithMessage?.message,
-          '',
-        );
-      } else {
-        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
-      }
-      setLoading(false);
-    }
+    await Authentication.storeCredentialsWithAuthPreference(
+      password,
+      enabled,
+      authChoice,
+      setLoading,
+    );
   };
 
   const setPassword = async (enabled: boolean, passwordType: string) => {

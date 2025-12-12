@@ -36,7 +36,12 @@ import {
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import { SolScope } from '@metamask/keyring-api';
-import { logOut, setExistingUser, logIn } from '../../actions/user';
+import {
+  logOut,
+  setExistingUser,
+  logIn,
+  passwordSet,
+} from '../../actions/user';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import { RootState } from '../../reducers';
 import {
@@ -49,6 +54,11 @@ import { resetProviderToken as depositResetProviderToken } from '../../component
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import Logger from '../../util/Logger';
+import { Alert } from 'react-native';
+import { strings } from '../../../locales/i18n';
+import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import AppConstants from '../AppConstants';
+import { setLockTime } from '../../actions/settings';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -222,6 +232,20 @@ jest.mock('../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
 }));
+
+jest.mock('react-native', () => ({
+  Alert: {
+    alert: jest.fn(),
+  },
+}));
+
+jest.mock('../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
+
+jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
+  jest.fn(),
+);
 
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
@@ -3517,6 +3541,301 @@ describe('Authentication', () => {
         error,
         'Failed to reset existingUser state in Redux',
       );
+    });
+  });
+
+  describe('storeCredentialsWithAuthPreference', () => {
+    const mockPassword = 'test-password-123';
+    const mockSetLoading = jest.fn();
+    const PASSCODE_CHOICE_STRING = 'passcodeChoice';
+    const BIOMETRY_CHOICE_STRING = 'biometryChoice';
+
+    let Engine: typeof import('../Engine').default;
+    let mockDispatch: jest.Mock;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      mockDispatch = jest.fn();
+      jest.clearAllMocks();
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          settings: { lockTime: 30000 },
+          security: { allowLoginWithRememberMe: true },
+        }),
+      } as unknown as ReduxStore);
+
+      Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue(undefined) as jest.MockedFunction<
+        typeof Engine.context.KeyringController.exportSeedPhrase
+      >;
+
+      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue(undefined);
+      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('stores credentials with biometric authentication when enabled', async () => {
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.KeyringController.exportSeedPhrase,
+      ).toHaveBeenCalledWith(mockPassword);
+      expect(Authentication.storePassword).toHaveBeenCalledWith(
+        mockPassword,
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('stores credentials with passcode authentication when enabled', async () => {
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        PASSCODE_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.KeyringController.exportSeedPhrase,
+      ).toHaveBeenCalledWith(mockPassword);
+      expect(Authentication.storePassword).toHaveBeenCalledWith(
+        mockPassword,
+        AUTHENTICATION_TYPE.PASSCODE,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('stores credentials with password authentication when enabled with unknown choice', async () => {
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        'unknown-choice',
+        mockSetLoading,
+      );
+
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.KeyringController.exportSeedPhrase,
+      ).toHaveBeenCalledWith(mockPassword);
+      expect(Authentication.storePassword).toHaveBeenCalledWith(
+        mockPassword,
+        AUTHENTICATION_TYPE.PASSWORD,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('disables passcode and sets storage flag when disabled with passcode choice', async () => {
+      const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        false,
+        PASSCODE_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.KeyringController.exportSeedPhrase,
+      ).toHaveBeenCalledWith(mockPassword);
+      expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
+      expect(Authentication.storePassword).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(passwordSet());
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('disables biometry and passcode when disabled with biometry choice', async () => {
+      const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        false,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(Authentication.resetPassword).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.KeyringController.exportSeedPhrase,
+      ).toHaveBeenCalledWith(mockPassword);
+      expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
+      expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
+      expect(Authentication.storePassword).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(passwordSet());
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('updates lock time when lockTime is -1', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          settings: { lockTime: -1 },
+          security: { allowLoginWithRememberMe: true },
+        }),
+      } as unknown as ReduxStore);
+
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
+      );
+    });
+
+    it('does not update lock time when lockTime is not -1', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          settings: { lockTime: 30000 },
+          security: { allowLoginWithRememberMe: true },
+        }),
+      } as unknown as ReduxStore);
+
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
+      );
+    });
+
+    it('handles storePassword error and continues execution', async () => {
+      const storePasswordError = new Error('Storage failed');
+      jest
+        .spyOn(Authentication, 'storePassword')
+        .mockRejectedValueOnce(storePasswordError);
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(storePasswordError, {});
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('shows alert and tracks error when password is invalid', async () => {
+      const invalidPasswordError = new Error('Invalid password');
+      (
+        Engine.context.KeyringController.exportSeedPhrase as jest.Mock
+      ).mockRejectedValueOnce(invalidPasswordError);
+      const alertSpy = jest.spyOn(Alert, 'alert');
+      const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
+
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        strings('app_settings.invalid_password'),
+        strings('app_settings.invalid_password_message'),
+      );
+      expect(trackErrorSpy).toHaveBeenCalledWith(
+        'SecuritySettings: Invalid password',
+        'Invalid password',
+        '',
+      );
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+
+      alertSpy.mockRestore();
+    });
+
+    it('logs error for non-invalid-password errors', async () => {
+      const otherError = new Error('Export failed');
+      (
+        Engine.context.KeyringController.exportSeedPhrase as jest.Mock
+      ).mockRejectedValueOnce(otherError);
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+      const alertSpy = jest.spyOn(Alert, 'alert');
+      const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
+
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(alertSpy).not.toHaveBeenCalled();
+      expect(trackErrorSpy).not.toHaveBeenCalled();
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        otherError,
+        'SecuritySettings:biometrics',
+      );
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+
+      alertSpy.mockRestore();
+    });
+
+    it('calls setLoading with false in error path', async () => {
+      const error = new Error('Test error');
+      (
+        Engine.context.KeyringController.exportSeedPhrase as jest.Mock
+      ).mockRejectedValueOnce(error);
+
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('calls setLoading with false when disabled', async () => {
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        false,
+        PASSCODE_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('calls setLoading with false on successful completion', async () => {
+      await Authentication.storeCredentialsWithAuthPreference(
+        mockPassword,
+        true,
+        BIOMETRY_CHOICE_STRING,
+        mockSetLoading,
+      );
+
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
     });
   });
 });
