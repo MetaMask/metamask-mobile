@@ -1,6 +1,11 @@
 import { View } from 'react-native';
 import { Image } from 'expo-image';
-import { BadgeIcon, IconSize } from '@metamask/design-system-react-native';
+import {
+  BadgeIcon,
+  IconSize,
+  BadgeStatus,
+  BadgeStatusStatus,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
 import React, {
@@ -65,31 +70,31 @@ function NotificationIcon(props: NotificationIconProps) {
               iconProps={{ size: IconSize.Lg }}
             />
           }
-          style={styles.badgeWrapper}
         >
           {children}
         </BadgeWrapper>
       ) : (
         <>{children}</>
       ),
-    [props.badgeIcon, styles.badgeWrapper],
+    [props.badgeIcon],
+  );
+
+  const statusStyle = useMemo(
+    () => (props.isRead ? tw`self-center opacity-0` : tw`self-center`),
+    [props.isRead, tw],
   );
 
   return (
-    <React.Fragment>
-      <View style={styles.itemLogoSize} testID={TEST_IDS.CONTAINER}>
-        <MaybeBadgeContainer>
-          <MenuIcon {...props} />
-        </MaybeBadgeContainer>
-        <View
-          style={
-            !props.isRead
-              ? tw`absolute -left-2 top-1/2 size-1 rounded-full bg-info-default`
-              : undefined
-          }
-        />
+    <View>
+      <View style={tw`flex-row gap-1`}>
+        <BadgeStatus status={BadgeStatusStatus.New} style={statusStyle} />
+        <View style={styles.itemLogoSize} testID={TEST_IDS.CONTAINER}>
+          <MaybeBadgeContainer>
+            <MenuIcon {...props} />
+          </MaybeBadgeContainer>
+        </View>
       </View>
-    </React.Fragment>
+    </View>
   );
 }
 
