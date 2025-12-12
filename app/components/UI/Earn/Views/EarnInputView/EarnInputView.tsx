@@ -133,6 +133,7 @@ const EarnInputView = () => {
     preview: tronPreview,
     validateStakeAmount: tronValidateStakeAmount,
     confirmStake: tronConfirmStake,
+    tronAccountId,
   } = useTronStake({ token });
   const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
@@ -625,7 +626,12 @@ const EarnInputView = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronEnabled) {
       const result = await tronConfirmStake?.(amountToken);
-      handleTronStakingNavigationResult(navigation, result, 'stake');
+      handleTronStakingNavigationResult(
+        navigation,
+        result,
+        'stake',
+        tronAccountId,
+      );
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -649,6 +655,7 @@ const EarnInputView = () => {
     isTronEnabled,
     navigation,
     tronConfirmStake,
+    tronAccountId,
     ///: END:ONLY_INCLUDE_IF
     handlePooledStakingFlow,
     handleLendingFlow,

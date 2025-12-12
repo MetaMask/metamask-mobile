@@ -25,6 +25,19 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockUpdateBalance = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    MultichainBalancesController: {
+      updateBalance: (accountId: string) => mockUpdateBalance(accountId),
+    },
+  },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 describe('tron utils', () => {
   interface RafGlobal {
     requestAnimationFrame?: (callback: () => void) => void;
@@ -210,6 +223,7 @@ describe('tron utils', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+      mockUpdateBalance.mockClear();
     });
 
     it('navigates to success sheet for stake when result is valid and has no errors', () => {
@@ -234,6 +248,32 @@ describe('tron utils', () => {
           },
         },
       );
+    });
+
+    it('refreshes multichain balance when accountId is provided on success', () => {
+      const navigation = createNavigation();
+      const result = {
+        valid: true,
+        errors: undefined,
+      };
+      const accountId = 'test-tron-account-id';
+
+      handleTronStakingNavigationResult(navigation, result, 'stake', accountId);
+
+      expect(mockUpdateBalance).toHaveBeenCalledWith(accountId);
+      expect(navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not refresh balance when accountId is not provided', () => {
+      const navigation = createNavigation();
+      const result = {
+        valid: true,
+        errors: undefined,
+      };
+
+      handleTronStakingNavigationResult(navigation, result, 'stake');
+
+      expect(mockUpdateBalance).not.toHaveBeenCalled();
     });
 
     it('navigates to error sheet for stake when result has errors', () => {

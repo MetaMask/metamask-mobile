@@ -10,6 +10,8 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
 import type { TronStakeResult, TronUnstakeResult } from './tron-staking-snap';
 import { TokenI } from '../../Tokens/types';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 
 interface TronResource {
   symbol?: string;
@@ -145,10 +147,25 @@ export const handleTronStakingNavigationResult = (
   navigation: NavigationProp<ParamListBase>,
   result: TronStakingNavigationResult,
   action: TronStakingAction,
+  accountId?: string,
 ) => {
   const copy = TRON_STAKING_COPY[action];
 
   if (result?.valid && (!result.errors || result.errors.length === 0)) {
+    // Refreshes the multichain balance after successful stake/unstake
+    // to make sure that the asset overview displays the updated staked balance right away
+    if (accountId) {
+      const { MultichainBalancesController } = Engine.context;
+      MultichainBalancesController.updateBalance(accountId).catch(
+        (error: Error) => {
+          Logger.error(
+            error,
+            `[Tron ${action}] Failed to refresh multichain balance`,
+          );
+        },
+      );
+    }
+
     navigation.goBack();
     requestAnimationFrame(() => {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
