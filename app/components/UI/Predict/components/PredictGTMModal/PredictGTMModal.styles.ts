@@ -75,7 +75,7 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     title: {
-      fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+      fontFamily: 'MMPoly-Regular',
       fontWeight: '400',
       // make it smaller on smaller screens
       fontSize:
