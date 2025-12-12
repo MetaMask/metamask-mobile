@@ -1,18 +1,15 @@
-import { strings } from '../../../../../locales/i18n';
-import { showAlert } from '../../../../actions/alert';
-import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../../DeeplinkManager';
+import { strings } from '../../../locales/i18n';
+import { showAlert } from '../../actions/alert';
+import { handleNetworkSwitch } from './handleNetworkSwitch';
+import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 
-import { selectEvmChainId } from '../../../../selectors/networkController';
-import { store } from '../../../../store';
+import { selectEvmChainId } from '../../selectors/networkController';
+import { store } from '../../store';
 import { toHex } from '@metamask/controller-utils';
 
 function switchNetwork({
-  deeplinkManager,
   switchToChainId,
 }: {
-  deeplinkManager: DeeplinkManager;
   switchToChainId: `${number}` | undefined;
 }) {
   if (
@@ -30,7 +27,7 @@ function switchNetwork({
       throw new Error(`Unable to find network with chain id ${newChainId}`);
     }
 
-    deeplinkManager.dispatch(
+    store.dispatch(
       showAlert({
         isVisible: true,
         autodismiss: 5000,
