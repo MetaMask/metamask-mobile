@@ -77,6 +77,7 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { setAllowLoginWithRememberMe } from '../../actions/security';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -744,11 +745,15 @@ class AuthenticationService {
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
   lockApp = async ({
+    allowRememberMe = undefined as boolean | undefined,
     reset = true,
     locked = false,
     navigateToLogin = true,
   } = {}): Promise<void> => {
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    if (allowRememberMe === false) {
+      ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+    }
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();

@@ -38,6 +38,7 @@ import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import { SolScope } from '@metamask/keyring-api';
 import { logOut, setExistingUser, logIn } from '../../actions/user';
 import { setCompletedOnboarding } from '../../actions/onboarding';
+import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { RootState } from '../../reducers';
 import {
   SeedlessOnboardingControllerError,
@@ -1360,6 +1361,127 @@ describe('Authentication', () => {
         Engine.context.KeyringController.submitPassword,
       ).toHaveBeenCalledWith('');
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('lockApp', () => {
+    let Engine: typeof import('../Engine').default;
+    let mockDispatch: jest.Mock;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      mockDispatch = jest.fn();
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: true },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: null,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      Engine.context.KeyringController = {
+        isUnlocked: jest.fn().mockReturnValue(true),
+        setLocked: jest.fn().mockResolvedValue(undefined),
+      } as unknown as KeyringController;
+
+      Engine.context.SeedlessOnboardingController = {
+        setLocked: jest.fn().mockResolvedValue(undefined),
+        state: { vault: null },
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue(undefined);
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(false);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('dispatches setAllowLoginWithRememberMe with false when allowRememberMe is false', async () => {
+      await Authentication.lockApp({ allowRememberMe: false });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setAllowLoginWithRememberMe(false),
+      );
+    });
+
+    it('does not dispatch setAllowLoginWithRememberMe when allowRememberMe is not provided', async () => {
+      await Authentication.lockApp();
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setAllowLoginWithRememberMe(false),
+      );
+    });
+
+    it('does not dispatch setAllowLoginWithRememberMe when allowRememberMe is true', async () => {
+      await Authentication.lockApp({ allowRememberMe: true });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setAllowLoginWithRememberMe(false),
+      );
+    });
+
+    it('dispatches setAllowLoginWithRememberMe before calling resetPassword when allowRememberMe is false', async () => {
+      const callOrder: string[] = [];
+
+      mockDispatch.mockImplementation(() => {
+        callOrder.push('dispatch');
+      });
+
+      jest
+        .spyOn(Authentication, 'resetPassword')
+        .mockImplementation(async () => {
+          callOrder.push('resetPassword');
+          await Promise.resolve();
+        });
+
+      await Authentication.lockApp({ allowRememberMe: false });
+
+      expect(callOrder).toEqual(['dispatch', 'resetPassword', 'dispatch']);
+    });
+
+    it('calls resetPassword when reset is true', async () => {
+      const resetPasswordSpy = jest.spyOn(Authentication, 'resetPassword');
+
+      await Authentication.lockApp({ reset: true });
+
+      expect(resetPasswordSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips resetPassword when reset is false', async () => {
+      const resetPasswordSpy = jest.spyOn(Authentication, 'resetPassword');
+
+      await Authentication.lockApp({ reset: false });
+
+      expect(resetPasswordSpy).not.toHaveBeenCalled();
+    });
+
+    it('calls KeyringController.setLocked when keyring is unlocked', async () => {
+      await Authentication.lockApp();
+
+      expect(Engine.context.KeyringController.setLocked).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('skips KeyringController.setLocked when keyring is already locked', async () => {
+      Engine.context.KeyringController.isUnlocked = jest
+        .fn()
+        .mockReturnValue(false);
+
+      await Authentication.lockApp();
+
+      expect(Engine.context.KeyringController.setLocked).not.toHaveBeenCalled();
     });
   });
 

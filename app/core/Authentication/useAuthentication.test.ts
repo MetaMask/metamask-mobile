@@ -1,45 +1,26 @@
 import { act, renderHook } from '@testing-library/react-hooks';
-import { useDispatch } from 'react-redux';
+import Authentication from './';
+
+// Import useAuthentication
 import { useAuthentication } from './useAuthentication';
-import {
-  setAllowLoginWithRememberMe,
-  ActionType,
-} from '../../actions/security';
 
-jest.mock('react-redux');
-jest.mock('../../actions/security');
-
-// Create mock function that will be used in both the mock factory and tests
-let mockLockApp: jest.MockedFunction<() => Promise<void>>;
-
-jest.mock('./Authentication', () => {
-  const lockAppMock = jest.fn<Promise<void>, []>();
-  mockLockApp = lockAppMock;
-  return {
-    __esModule: true,
-    default: {
-      lockApp: lockAppMock,
-    },
-  };
-});
-
-const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
-const mockSetAllowLoginWithRememberMe =
-  setAllowLoginWithRememberMe as jest.MockedFunction<
-    typeof setAllowLoginWithRememberMe
-  >;
+// Create mock function for lockApp
+const mockLockApp = jest.fn<Promise<void>, [{ allowRememberMe?: boolean }?]>();
 
 describe('useAuthentication', () => {
-  const mockDispatch = jest.fn();
+  let lockAppSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDispatch.mockReturnValue(mockDispatch);
-    mockSetAllowLoginWithRememberMe.mockReturnValue({
-      type: ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME,
-      enabled: false,
-    });
+    // Spy on the actual lockApp method
+    lockAppSpy = jest
+      .spyOn(Authentication, 'lockApp')
+      .mockImplementation(mockLockApp);
     mockLockApp.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    lockAppSpy.mockRestore();
   });
 
   describe('hook initialization', () => {
@@ -51,58 +32,18 @@ describe('useAuthentication', () => {
         'function',
       );
     });
-
-    it('calls useDispatch on initialization', () => {
-      renderHook(() => useAuthentication());
-
-      expect(mockUseDispatch).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('turnOffRememberMeAndLockApp', () => {
-    it('dispatches setAllowLoginWithRememberMe with false', async () => {
+    it('calls Authentication.lockApp with allowRememberMe set to false', async () => {
       const { result } = renderHook(() => useAuthentication());
 
       await act(async () => {
         await result.current.turnOffRememberMeAndLockApp();
       });
 
-      expect(mockSetAllowLoginWithRememberMe).toHaveBeenCalledWith(false);
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME,
-        enabled: false,
-      });
-    });
-
-    it('calls Authentication.lockApp after dispatching action', async () => {
-      const { result } = renderHook(() => useAuthentication());
-
-      await act(async () => {
-        await result.current.turnOffRememberMeAndLockApp();
-      });
-
-      expect(mockLockApp).toHaveBeenCalledTimes(1);
-      expect(mockLockApp).toHaveBeenCalledWith();
-    });
-
-    it('dispatches action before calling lockApp', async () => {
-      const { result } = renderHook(() => useAuthentication());
-      const callOrder: string[] = [];
-
-      mockDispatch.mockImplementation(() => {
-        callOrder.push('dispatch');
-      });
-
-      mockLockApp.mockImplementation(async () => {
-        callOrder.push('lockApp');
-        await Promise.resolve();
-      });
-
-      await act(async () => {
-        await result.current.turnOffRememberMeAndLockApp();
-      });
-
-      expect(callOrder).toEqual(['dispatch', 'lockApp']);
+      expect(lockAppSpy).toHaveBeenCalledTimes(1);
+      expect(lockAppSpy).toHaveBeenCalledWith({ allowRememberMe: false });
     });
 
     it('handles lockApp promise resolution', async () => {
@@ -125,11 +66,10 @@ describe('useAuthentication', () => {
         ).rejects.toThrow('Lock app failed');
       });
 
-      expect(mockSetAllowLoginWithRememberMe).toHaveBeenCalledWith(false);
-      expect(mockDispatch).toHaveBeenCalled();
+      expect(lockAppSpy).toHaveBeenCalledWith({ allowRememberMe: false });
     });
 
-    it('maintains function reference across re-renders when dispatch does not change', () => {
+    it('maintains function reference across re-renders', () => {
       const { result, rerender } = renderHook(() => useAuthentication());
       const firstReference = result.current.turnOffRememberMeAndLockApp;
 
@@ -137,23 +77,10 @@ describe('useAuthentication', () => {
 
       expect(result.current.turnOffRememberMeAndLockApp).toBe(firstReference);
     });
-
-    it('creates new function reference when dispatch changes', () => {
-      const { result, rerender } = renderHook(() => useAuthentication());
-      const firstReference = result.current.turnOffRememberMeAndLockApp;
-
-      const newMockDispatch = jest.fn();
-      mockUseDispatch.mockReturnValue(newMockDispatch);
-      rerender();
-
-      expect(result.current.turnOffRememberMeAndLockApp).not.toBe(
-        firstReference,
-      );
-    });
   });
 
   describe('error handling', () => {
-    it('dispatches action even when lockApp throws error', async () => {
+    it('calls lockApp with correct parameters even when it throws error', async () => {
       const testError = new Error('Lock app error');
       mockLockApp.mockRejectedValue(testError);
       const { result } = renderHook(() => useAuthentication());
@@ -166,8 +93,7 @@ describe('useAuthentication', () => {
         }
       });
 
-      expect(mockSetAllowLoginWithRememberMe).toHaveBeenCalledWith(false);
-      expect(mockDispatch).toHaveBeenCalled();
+      expect(lockAppSpy).toHaveBeenCalledWith({ allowRememberMe: false });
     });
 
     it('propagates error from lockApp when it fails', async () => {
@@ -184,26 +110,15 @@ describe('useAuthentication', () => {
   });
 
   describe('integration', () => {
-    it('completes full flow: dispatch action then lock app', async () => {
+    it('completes full flow: calls lockApp with allowRememberMe false', async () => {
       const { result } = renderHook(() => useAuthentication());
-      const callOrder: string[] = [];
-
-      mockDispatch.mockImplementation(() => {
-        callOrder.push('dispatch');
-      });
-
-      mockLockApp.mockImplementation(async () => {
-        callOrder.push('lockApp');
-        await Promise.resolve();
-      });
 
       await act(async () => {
         await result.current.turnOffRememberMeAndLockApp();
       });
 
-      expect(callOrder).toEqual(['dispatch', 'lockApp']);
-      expect(mockSetAllowLoginWithRememberMe).toHaveBeenCalledWith(false);
-      expect(mockLockApp).toHaveBeenCalledTimes(1);
+      expect(lockAppSpy).toHaveBeenCalledTimes(1);
+      expect(lockAppSpy).toHaveBeenCalledWith({ allowRememberMe: false });
     });
   });
 });
