@@ -158,6 +158,7 @@ describe('useUnifiedSwapBridgeContext', () => {
     mockSelectSourceAmount.mockReturnValue('1');
     mockSelectCurrencyRates.mockReturnValue({
       usd: { conversionRate: 1 },
+      ETH: { conversionRate: 1 },
     });
     mockSelectTokenMarketData.mockReturnValue({
       '0x1': {
@@ -176,7 +177,7 @@ describe('useUnifiedSwapBridgeContext', () => {
     );
 
     expect(result.current.usd_amount_source).toBeDefined();
-    expect(typeof result.current.usd_amount_source).toBe('number');
+    expect(result.current.usd_amount_source).toBe(2000);
   });
 
   it('returns 0 usd_amount_source when usd conversion rate is missing', () => {
