@@ -160,7 +160,15 @@ export default class Gestures {
     index: number,
     options: TapOptions = {},
   ): Promise<void> {
-    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      elemDescription,
+      delay = 0,
+    } = options;
+
+    // Add delay before tapping if provided
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;

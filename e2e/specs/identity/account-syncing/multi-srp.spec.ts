@@ -130,7 +130,9 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
 
-        await AccountListBottomSheet.tapAccountEllipsisButtonV2(3);
+        await AccountListBottomSheet.tapAccountEllipsisButtonV2(3, {
+          delay: 1500,
+        });
         await AccountDetails.tapEditAccountName();
         await EditAccountName.updateAccountName(SRP_2_SECOND_ACCOUNT);
         await EditAccountName.tapSave();
