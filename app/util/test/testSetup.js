@@ -563,6 +563,11 @@ jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
 );
 
+jest.mock('../assets', () => ({
+  ...jest.requireActual('../assets'),
+  prepareNftDetectionEvents: jest.fn(() => []),
+}));
+
 jest.mock('react-native-safe-area-context', () => ({
   ...jest.requireActual('react-native-safe-area-context'),
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
