@@ -1215,6 +1215,25 @@ export class PerpsStreamManager {
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
   // public readonly trades = new TradeStreamChannel();
+
+  /**
+   * Force reconnection of all stream channels after WebSocket reconnection
+   * Disconnects all channels (clearing dead WebSocket subscriptions) so they
+   * will automatically reconnect when subscribers are still active
+   */
+  public clearAllChannels(): void {
+    // Disconnect all channels to clear dead WebSocket subscriptions
+    // Channels will automatically reconnect when subscribers call connect()
+    this.prices.disconnect();
+    this.orders.disconnect();
+    this.positions.disconnect();
+    this.fills.disconnect();
+    this.account.disconnect();
+    this.marketData.disconnect();
+    this.oiCaps.disconnect();
+    this.topOfBook.disconnect();
+    this.candles.disconnect();
+  }
 }
 
 // Singleton instance
@@ -1257,5 +1276,14 @@ export const usePerpsStream = () => {
   }
   return context;
 };
+
+// Type that only includes channel properties (excludes methods like clearAllChannels)
+export type PerpsStreamChannelKey = {
+  [K in keyof PerpsStreamManager]: PerpsStreamManager[K] extends {
+    pause(): void;
+  }
+    ? K
+    : never;
+}[keyof PerpsStreamManager];
 
 // Types are exported from controllers/types

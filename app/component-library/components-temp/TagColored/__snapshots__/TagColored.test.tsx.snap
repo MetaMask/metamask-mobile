@@ -20,7 +20,7 @@ exports[`TagColored should render TagColored 1`] = `
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 12,
         "fontWeight": "bold",
         "letterSpacing": 0.25,
