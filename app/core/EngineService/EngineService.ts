@@ -220,11 +220,6 @@ export class EngineService {
         BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
           const controllerName = eventName.split(':')[0];
 
-          // Skip CronjobController as it's handled separately
-          if (eventName === 'CronjobController:stateChange') {
-            return;
-          }
-
           // Check if controller has any persistent state before setting up persistence
           const controllerMetadata =
             // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
@@ -267,11 +262,7 @@ export class EngineService {
                 hasStateToSave &&
                 (!initialControllerState ||
                   Object.keys(filteredState).some(
-                    (key) =>
-                      filteredState[key] !==
-                      initialControllerState[
-                        key as keyof typeof initialControllerState
-                      ],
+                    (key) => filteredState[key] !== initialControllerState[key],
                   ));
 
               if (hasChanged) {
