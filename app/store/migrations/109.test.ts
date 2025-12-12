@@ -285,4 +285,89 @@ describe(`migration #${migrationVersion}`, () => {
       expect(newStorage).toStrictEqual(expectedStorage);
     },
   );
+
+  it('switchs to mainnet when the enabled network is MegaETH Testnet v1 and the selected network client id is not MegaETH Testnet v1', async () => {
+    const mainnet = {
+      '0x1': {
+        chainId: '0x1',
+        name: 'Ethereum',
+        nativeCurrency: 'ETH',
+        blockExplorerUrls: ['https://explorer.com'],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        rpcEndpoints: [
+          {
+            networkClientId: 'mainnet',
+            type: RpcEndpointType.Custom,
+            url: 'https://mainnet.com',
+          },
+        ],
+      },
+    };
+
+    const oldStorage = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              ...mainnet,
+              [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
+                name: 'Mega Testnet',
+                nativeCurrency: 'MegaETH',
+                blockExplorerUrls: ['https://explorer.com'],
+                defaultRpcEndpointIndex: 0,
+                defaultBlockExplorerUrlIndex: 0,
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'megaeth-testnet',
+                    type: RpcEndpointType.Custom,
+                    url: 'https://rpc.com',
+                  },
+                ],
+              },
+            },
+            selectedNetworkClientId: 'mainnet',
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                '0x1': false,
+                // Simulate the MegaETH Testnet v1 is enabled
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: true,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const expectedStorage = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              ...mainnet,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+            },
+            selectedNetworkClientId: 'mainnet',
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                '0x1': true,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const newStorage = await migrate(oldStorage);
+
+    expect(newStorage).toStrictEqual(expectedStorage);
+  });
 });
