@@ -78,6 +78,7 @@ exports[`BottomSheetHeader renders snapshot correctly with Display variant 1`] =
     style={
       [
         {
+          "alignItems": "flex-start",
           "display": "flex",
           "flexBasis": "0%",
           "flexGrow": 1,

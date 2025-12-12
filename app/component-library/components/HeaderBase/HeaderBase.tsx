@@ -98,12 +98,15 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
     }
     if (endButtonIconProps && endButtonIconProps.length > 0) {
       // Reverse the array so first item appears rightmost
-      const reversedProps = [...endButtonIconProps].reverse();
+      // Use original index (before reversal) for stable React keys
+      const reversedProps = endButtonIconProps
+        .map((props, originalIndex) => ({ props, originalIndex }))
+        .reverse();
       return (
         <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-          {reversedProps.map((props, index) => (
+          {reversedProps.map(({ props, originalIndex }) => (
             <ButtonIcon
-              key={`end-button-icon-${index}`}
+              key={`end-button-icon-${originalIndex}`}
               size={ButtonIconSize.Md}
               {...props}
             />
@@ -123,8 +126,10 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
     ? `${baseStyles} ${twClassName}`
     : baseStyles;
 
-  // Title  classes based on variant
-  const titleWrapperClass = isLeftAligned ? 'flex-1' : 'flex-1 items-center';
+  // Title classes based on variant
+  const titleWrapperClass = isLeftAligned
+    ? 'flex-1 items-start'
+    : 'flex-1 items-center';
 
   return (
     <View
