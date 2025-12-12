@@ -14,6 +14,7 @@ import {
   POLYMARKET_EVENT_DETAILS_BLUE_JAYS_MARINERS_RESPONSE,
   POLYMARKET_EVENT_DETAILS_SPURS_PELICANS_RESPONSE,
   POLYMARKET_EVENT_DETAILS_CELTICS_NETS_RESPONSE,
+  POLYMARKET_EVENT_DETAILS_COWBOYS_COMMANDERS_RESPONSE,
 } from './polymarket-event-details-response';
 import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
 import {
@@ -184,6 +185,13 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
         return {
           statusCode: 200,
           json: POLYMARKET_EVENT_DETAILS_CELTICS_NETS_RESPONSE,
+        };
+      }
+      if (eventId === '58319') {
+        // Return Celtics vs Nets event details from mock response file
+        return {
+          statusCode: 200,
+          json: POLYMARKET_EVENT_DETAILS_COWBOYS_COMMANDERS_RESPONSE,
         };
       }
 
