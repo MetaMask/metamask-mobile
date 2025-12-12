@@ -32,7 +32,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl # Bumped from lg to xl to prevent Daemon disappearance issue (Daemon OOM issue in CI)
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
