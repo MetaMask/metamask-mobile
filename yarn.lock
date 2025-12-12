@@ -9670,7 +9670,7 @@ __metadata:
 
 "@metamask/snaps-controllers@patch:@metamask/snaps-controllers@npm%3A17.0.0#~/.yarn/patches/@metamask-snaps-controllers-npm-17.0.0-b06471080b.patch":
   version: 17.0.0
-  resolution: "@metamask/snaps-controllers@patch:@metamask/snaps-controllers@npm%3A17.0.0#~/.yarn/patches/@metamask-snaps-controllers-npm-17.0.0-b06471080b.patch::version=17.0.0&hash=075266"
+  resolution: "@metamask/snaps-controllers@patch:@metamask/snaps-controllers@npm%3A17.0.0#~/.yarn/patches/@metamask-snaps-controllers-npm-17.0.0-b06471080b.patch::version=17.0.0&hash=64fc2b"
   dependencies:
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -9706,7 +9706,7 @@ __metadata:
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: 10/7ec09d1a27c9c7ffe25dea983629fd449832b09989f237e65011b3758bf3eb52b74b190dd3dcafced147c74117d5c0cd0ec2795cb5c537e0711e9d6bab3b1776
+  checksum: 10/405750a3f89c7f89c2ef4d344af0a1855974750863d7b5c4996a145c5b59c3569457a384ef751cf4ec6f5963837a9924a971e87456804e80d2d59a805123f894
   languageName: node
   linkType: hard
 
