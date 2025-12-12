@@ -1138,100 +1138,100 @@ const AppContent: React.FC = () => {
   );
   const existingUser = useSelector(selectExistingUser);
 
-  useEffect(() => {
-    const appTriggeredAuth = async () => {
-      try {
-        if (existingUser) {
-          // Check if we came from Settings screen to skip auto-authentication
-          const previousRoute = routes[routes.length - 2]?.name;
+  // useEffect(() => {
+  //   const appTriggeredAuth = async () => {
+  //     try {
+  //       if (existingUser) {
+  //         // Check if we came from Settings screen to skip auto-authentication
+  //         const previousRoute = routes[routes.length - 2]?.name;
 
-          if (previousRoute === Routes.SETTINGS_VIEW) {
-            return;
-          }
+  //         if (previousRoute === Routes.SETTINGS_VIEW) {
+  //           return;
+  //         }
 
-          // only proceed if biometric is enabled else rerouted to lock screen
-          const authType = await Authentication.getType();
-          if (authType.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
-            navigation.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
-            return;
-          }
+  //         // only proceed if biometric is enabled else rerouted to lock screen
+  //         const authType = await Authentication.getType();
+  //         if (authType.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+  //           navigation.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
+  //           return;
+  //         }
 
-          // This should only be called if the auth type is not password, which is not the case so consider removing it
-          await trace(
-            {
-              name: TraceName.AppStartBiometricAuthentication,
-              op: TraceOperation.BiometricAuthentication,
-            },
-            async () => {
-              await Authentication.appTriggeredAuth();
-            },
-          );
+  //         // This should only be called if the auth type is not password, which is not the case so consider removing it
+  //         await trace(
+  //           {
+  //             name: TraceName.AppStartBiometricAuthentication,
+  //             op: TraceOperation.BiometricAuthentication,
+  //           },
+  //           async () => {
+  //             await Authentication.appTriggeredAuth();
+  //           },
+  //         );
 
-          // Only show metrics optin for SRP users
-          if (!isSeedlessOnboardingLoginFlow) {
-            const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-              OPTIN_META_METRICS_UI_SEEN,
-            );
+  //         // Only show metrics optin for SRP users
+  //         if (!isSeedlessOnboardingLoginFlow) {
+  //           const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+  //             OPTIN_META_METRICS_UI_SEEN,
+  //           );
 
-            if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
-              const resetParams = {
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.ROOT_NAV,
-                    params: {
-                      screen: Routes.ONBOARDING.NAV,
-                      params: {
-                        screen: Routes.ONBOARDING.OPTIN_METRICS,
-                      },
-                    },
-                  },
-                ],
-              };
-              navigation.reset(resetParams);
-              return;
-            }
-          }
+  //           if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
+  //             const resetParams = {
+  //               routes: [
+  //                 {
+  //                   name: Routes.ONBOARDING.ROOT_NAV,
+  //                   params: {
+  //                     screen: Routes.ONBOARDING.NAV,
+  //                     params: {
+  //                       screen: Routes.ONBOARDING.OPTIN_METRICS,
+  //                     },
+  //                   },
+  //                 },
+  //               ],
+  //             };
+  //             navigation.reset(resetParams);
+  //             return;
+  //           }
+  //         }
 
-          // Navigate to home for both SRP users (who have seen metrics) and social login users
-          navigation.reset({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
-        } else {
-          navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
-        }
-      } catch (error) {
-        const errorMessage = (error as Error).message;
-        // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
-        const locked =
-          errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+  //         // Navigate to home for both SRP users (who have seen metrics) and social login users
+  //         navigation.reset({
+  //           routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+  //         });
+  //       } else {
+  //         navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
+  //       }
+  //     } catch (error) {
+  //       const errorMessage = (error as Error).message;
+  //       // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
+  //       const locked =
+  //         errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
-        // Track vault corruption with enabled state checking
-        trackVaultCorruption(errorMessage, {
-          error_type: 'app_startup_authentication_failure',
-          context: 'app_initialization_unlock_failed',
-        });
+  //       // Track vault corruption with enabled state checking
+  //       trackVaultCorruption(errorMessage, {
+  //         error_type: 'app_startup_authentication_failure',
+  //         context: 'app_initialization_unlock_failed',
+  //       });
 
-        // Only call lockApp if there is an existing user to prevent unnecessary calls
-        await Authentication.lockApp({ reset: false, locked });
-        trackErrorAsAnalytics(
-          'App: Max Attempts Reached',
-          errorMessage,
-          `Unlock attempts: 1`,
-        );
-        if (locked) {
-          Logger.error(
-            new Error(errorMessage),
-            'Nav/App: Error in appTriggeredAuth:',
-          );
-        }
-        // We are not logging when it's a keychain error
-      }
-    };
-    appTriggeredAuth().catch((error) => {
-      Logger.error(error, 'App: Error in appTriggeredAuth');
-    });
-    // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
-  }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
+  //       // Only call lockApp if there is an existing user to prevent unnecessary calls
+  //       await Authentication.lockApp({ reset: false, locked });
+  //       trackErrorAsAnalytics(
+  //         'App: Max Attempts Reached',
+  //         errorMessage,
+  //         `Unlock attempts: 1`,
+  //       );
+  //       if (locked) {
+  //         Logger.error(
+  //           new Error(errorMessage),
+  //           'Nav/App: Error in appTriggeredAuth:',
+  //         );
+  //       }
+  //       // We are not logging when it's a keychain error
+  //     }
+  //   };
+  //   appTriggeredAuth().catch((error) => {
+  //     Logger.error(error, 'App: Error in appTriggeredAuth');
+  //   });
+  //   // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
+  // }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const initMetrics = async () => {

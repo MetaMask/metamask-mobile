@@ -667,6 +667,39 @@ class AuthenticationService {
   };
 
   /**
+   * Method for unlocking the wallet.
+   *
+   * If the user exists, it will try to derive the password from biometric credentials and navigate to the wallet if successful.
+   * If the user exists and the biometric credentials are not found, it will navigate to the login flow and request the user to enter their password.
+   * If the user does not exist, it will place the user in the onboarding flow.
+   */
+  unlockWallet = async () => {
+    const { KeyringController } = Engine.context;
+    const existingUser = selectExistingUser(ReduxService.store.getState());
+    if (existingUser) {
+      // User exists. Try to derive password from biometric credentials.
+      const credentials = await SecureKeychain.getGenericPassword();
+      if (credentials?.password) {
+        // Biometric credentials found. Navigate to wallet.
+        await KeyringController.submitPassword(credentials.password);
+        NavigationService.navigation?.reset({
+          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+        });
+      } else {
+        // No biometric credentials found. Navigate to login.
+        NavigationService.navigation?.reset({
+          routes: [{ name: Routes.ONBOARDING.LOGIN }],
+        });
+      }
+    } else {
+      // User is new. Navigate to onboarding.
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+      });
+    }
+  };
+
+  /**
    * Attempts to use biometric/pin code/remember me to login
    * @param bioStateMachineId - ID associated with each biometric session.
    * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
