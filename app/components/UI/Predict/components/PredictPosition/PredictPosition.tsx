@@ -1,9 +1,5 @@
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
@@ -12,6 +8,12 @@ import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Pre
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -25,6 +27,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   skipOptimisticRefresh = false,
 }: PredictPositionProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
 
   const optimisticPosition = usePredictOptimisticPositionRefresh({
     position,
@@ -53,10 +56,18 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
       <View style={styles.positionDetails}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
+        >
           {title}
         </Text>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          style={tw.style('font-medium')}
+        >
           {strings('predict.position_info', {
             initialValue: formatPrice(initialValue, {
               maximumDecimals: 2,
@@ -76,12 +87,21 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           </>
         ) : (
           <>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
+              style={tw.style('font-medium')}
+            >
               {formatPrice(currentValue, { maximumDecimals: 2 })}
             </Text>
             <Text
-              variant={TextVariant.BodySMMedium}
-              color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+              variant={TextVariant.BodySm}
+              style={tw.style('font-medium')}
+              color={
+                percentPnl > 0
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault
+              }
             >
               {formatPercentage(percentPnl)}
             </Text>
