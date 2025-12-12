@@ -1,5 +1,5 @@
 // Third parties dependencies
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -12,8 +12,11 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -41,21 +44,12 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
 
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { toastRef } = useContext(ToastContext);
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
-
-  const handleShowAlert = useCallback(
-    (config: {
-      isVisible: boolean;
-      autodismiss: number;
-      content: string;
-      data: { msg: string };
-    }) => dispatch(showAlert(config)),
-    [dispatch],
-  );
 
   const handleProtectWalletModalVisible = useCallback(
     () => dispatch(protectWalletModalVisible()),
@@ -70,11 +64,12 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
     await ClipboardManager.setString(
       getFormattedAddressFromInternalAccount(account),
     );
-    handleShowAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: { msg: strings('account_details.account_copied_to_clipboard') },
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: strings('account_details.account_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
     });
     setTimeout(() => handleProtectWalletModalVisible(), 2000);
 
@@ -85,7 +80,7 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
     account,
     createEventBuilder,
     handleProtectWalletModalVisible,
-    handleShowAlert,
+    toastRef,
     trackEvent,
   ]);
 
