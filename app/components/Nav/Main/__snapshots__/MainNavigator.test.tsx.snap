@@ -131,10 +131,22 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="NftDetails"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
     name="NftDetailsFullImage"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
