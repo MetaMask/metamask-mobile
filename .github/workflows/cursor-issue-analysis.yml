@@ -43,9 +43,37 @@ jobs:
       - name: Configure Cursor permissions
         if: steps.check-comment.outputs.exists != 'true'
         run: |
-          # Restrict cursor-agent to read-only analysis - no shell or file writes
+          # Strict allowlist: only read source code, deny everything else
           mkdir -p .cursor
-          echo '{"permissions":{"deny":["Shell(*)","Write(*)"]}}' > .cursor/permissions.json
+          cat > .cursor/permissions.json << 'EOF'
+          {
+            "permissions": {
+              "allow": [
+                "Read(app/**/*)",
+                "Read(src/**/*)",
+                "Read(e2e/**/*)",
+                "Read(docs/**/*)",
+                "Read(*.md)",
+                "Read(*.json)",
+                "Read(*.ts)",
+                "Read(*.tsx)",
+                "Read(*.js)"
+              ],
+              "deny": [
+                "Shell(*)",
+                "Write(*)",
+                "Read(.env*)",
+                "Read(**/.env*)",
+                "Read(**/secrets/**)",
+                "Read(**/*.pem)",
+                "Read(**/*.key)",
+                "Read(**/*.secret)",
+                "Read(.git/**)",
+                "Read(node_modules/**)"
+              ]
+            }
+          }
+          EOF
 
       - name: Install Cursor CLI
         if: steps.check-comment.outputs.exists != 'true'
