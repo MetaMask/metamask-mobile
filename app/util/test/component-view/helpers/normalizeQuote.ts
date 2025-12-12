@@ -4,8 +4,8 @@
 export interface AmountObject {
   amount: string;
   value: string;
-  usd: unknown | null;
-  valueInCurrency: unknown | null;
+  usd: unknown;
+  valueInCurrency: unknown;
 }
 
 export interface GasFeeObject {
@@ -41,14 +41,14 @@ export interface NormalizedQuote {
 
 const ensureAmountObj = (val: unknown): AmountObject => {
   if (typeof val === 'string' || val == null) {
-    const v = (val ?? '0') as string;
+    const v = val ?? '0';
     return { value: v, usd: null, amount: v, valueInCurrency: null };
   }
   const obj = val as Record<string, unknown>;
   return {
-    value: typeof obj.value === 'string' ? (obj.value as string) : '0',
+    value: typeof obj.value === 'string' ? obj.value : '0',
     usd: obj.usd ?? null,
-    amount: typeof obj.amount === 'string' ? (obj.amount as string) : '0',
+    amount: typeof obj.amount === 'string' ? obj.amount : '0',
     valueInCurrency: obj.valueInCurrency ?? null,
   };
 };
@@ -74,21 +74,20 @@ export function normalizeQuote(input: unknown): NormalizedQuote {
   const quoteRaw = (out as { quote?: Record<string, unknown> }).quote ?? {};
 
   const totalNetworkFee: AmountObject = {
-    amount: typeof tnf.amount === 'string' ? (tnf.amount as string) : '0',
-    value: typeof tnf.value === 'string' ? (tnf.value as string) : '0',
+    amount: typeof tnf.amount === 'string' ? tnf.amount : '0',
+    value: typeof tnf.value === 'string' ? tnf.value : '0',
     usd: tnf.usd ?? null,
     valueInCurrency:
-      tnf.valueInCurrency ??
-      (typeof tnf.value === 'string' ? (tnf.value as string) : null),
+      tnf.valueInCurrency ?? (typeof tnf.value === 'string' ? tnf.value : null),
   };
 
   const totalMaxNetworkFee: AmountObject = {
-    amount: typeof tmnf.amount === 'string' ? (tmnf.amount as string) : '0',
-    value: typeof tmnf.value === 'string' ? (tmnf.value as string) : '0',
+    amount: typeof tmnf.amount === 'string' ? tmnf.amount : '0',
+    value: typeof tmnf.value === 'string' ? tmnf.value : '0',
     usd: tmnf.usd ?? null,
     valueInCurrency:
       tmnf.valueInCurrency ??
-      (typeof tmnf.value === 'string' ? (tmnf.value as string) : null),
+      (typeof tmnf.value === 'string' ? tmnf.value : null),
   };
 
   const gasFee: GasFeeObject = {
@@ -121,7 +120,7 @@ export function normalizeQuote(input: unknown): NormalizedQuote {
           amount: ensureAmountObj(feeDataRaw.metabridge.amount),
           quoteBpsFee:
             typeof feeDataRaw.metabridge.quoteBpsFee === 'number'
-              ? (feeDataRaw.metabridge.quoteBpsFee as number)
+              ? feeDataRaw.metabridge.quoteBpsFee
               : (feeDataRaw.metabridge.quoteBpsFee as
                   | number
                   | null
@@ -148,16 +147,16 @@ export function normalizeQuote(input: unknown): NormalizedQuote {
     srcChainId:
       typeof quoteRaw.srcChainId === 'string' ||
       typeof quoteRaw.srcChainId === 'number'
-        ? (quoteRaw.srcChainId as string | number)
+        ? quoteRaw.srcChainId
         : undefined,
     destChainId:
       typeof quoteRaw.destChainId === 'string' ||
       typeof quoteRaw.destChainId === 'number'
-        ? (quoteRaw.destChainId as string | number)
+        ? quoteRaw.destChainId
         : undefined,
     gasIncluded:
       typeof quoteRaw.gasIncluded === 'boolean'
-        ? (quoteRaw.gasIncluded as boolean)
+        ? quoteRaw.gasIncluded
         : undefined,
   };
 
