@@ -29,6 +29,11 @@ class PredictDetailsPage {
       PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
     );
   }
+  get claimButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON,
+    );
+  }
   get backButton(): DetoxElement {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
@@ -118,6 +123,12 @@ class PredictDetailsPage {
   async tapOpenPosition(): Promise<void> {
     await Gestures.waitAndTap(this.placeBetButton, {
       elemDescription: 'Place bet button',
+    });
+  }
+
+  async tapClaimWinningsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.claimButton, {
+      elemDescription: 'Claim winnings button',
     });
   }
 }
