@@ -713,8 +713,15 @@ const EarnInputView = () => {
 
   // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
   const onRightActionPress = React.useCallback(() => {
-    if (isTronEnabled && isTronNative && isNonZeroAmount && !isPreviewVisible) {
-      setIsPreviewVisible(true);
+    // For TRON: if we have a non-zero amount, show preview; otherwise just set max directly (skip modal)
+    if (isTronEnabled && isTronNative) {
+      if (isNonZeroAmount && !isPreviewVisible) {
+        setIsPreviewVisible(true);
+      } else {
+        // Directly call handleMax for Tron - the MaxInputModal is EVM-specific
+        lastQuickAmountButtonPressed.current = 'MAX';
+        handleMax();
+      }
       return;
     }
     handleMaxPressWithTracking();
@@ -724,6 +731,7 @@ const EarnInputView = () => {
     isNonZeroAmount,
     isPreviewVisible,
     handleMaxPressWithTracking,
+    handleMax,
   ]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
