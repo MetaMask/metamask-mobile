@@ -424,6 +424,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View
                               style={
@@ -1019,6 +1020,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View
                               style={

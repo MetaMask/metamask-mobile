@@ -444,6 +444,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View

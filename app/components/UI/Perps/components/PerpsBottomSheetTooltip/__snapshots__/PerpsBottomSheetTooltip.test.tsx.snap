@@ -145,6 +145,7 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
               },
             ]
           }
+          testID="header"
         >
           <View
             style={

@@ -445,6 +445,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View

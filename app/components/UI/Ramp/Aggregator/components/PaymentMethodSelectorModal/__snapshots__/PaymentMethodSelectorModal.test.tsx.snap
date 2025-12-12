@@ -444,6 +444,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -1584,6 +1585,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -2724,6 +2726,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View

@@ -444,6 +444,7 @@ exports[`SettingsModal renders snapshot correctly 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View

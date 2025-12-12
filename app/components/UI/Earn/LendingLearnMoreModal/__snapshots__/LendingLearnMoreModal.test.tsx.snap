@@ -124,6 +124,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               },
             ]
           }
+          testID="header"
         >
           <View>
             <View

@@ -444,6 +444,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -1303,6 +1304,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -2500,6 +2502,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -3359,6 +3362,7 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -4086,6 +4090,7 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -4813,6 +4818,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -5662,6 +5668,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -6859,6 +6866,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -8056,6 +8064,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -9269,6 +9278,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
@@ -10482,6 +10492,7 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View

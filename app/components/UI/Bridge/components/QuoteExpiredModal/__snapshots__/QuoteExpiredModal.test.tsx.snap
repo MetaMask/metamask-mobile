@@ -144,6 +144,7 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
               },
             ]
           }
+          testID="header"
         >
           <View>
             <View

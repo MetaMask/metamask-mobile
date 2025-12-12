@@ -19,6 +19,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         },
       ]
     }
+    testID="header"
   >
     <View
       style={
@@ -557,6 +558,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         },
       ]
     }
+    testID="header"
   >
     <View
       style={

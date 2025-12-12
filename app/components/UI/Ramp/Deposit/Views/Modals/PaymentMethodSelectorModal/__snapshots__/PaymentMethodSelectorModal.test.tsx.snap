@@ -444,6 +444,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                 },
                               ]
                             }
+                            testID="header"
                           >
                             <View>
                               <View
