@@ -310,7 +310,7 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 70 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
@@ -346,7 +346,7 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 70 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
