@@ -36,7 +36,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
-        const futureDate = new Date(Date.now() + 5_000).toISOString();
+        const futureDate = new Date(Date.now() + 10_000).toISOString();
 
         await TestSnaps.fillMessage('backgroundEventDateInput', futureDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
