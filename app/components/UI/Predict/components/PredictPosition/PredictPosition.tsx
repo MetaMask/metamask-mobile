@@ -16,17 +16,21 @@ import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptim
 interface PredictPositionProps {
   position: PredictPositionType;
   onPress?: (position: PredictPositionType) => void;
+  skipOptimisticRefresh?: boolean;
 }
 
 const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
   onPress,
+  skipOptimisticRefresh = false,
 }: PredictPositionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const currentPosition = usePredictOptimisticPositionRefresh({
+  const optimisticPosition = usePredictOptimisticPositionRefresh({
     position,
   });
+
+  const currentPosition = skipOptimisticRefresh ? position : optimisticPosition;
 
   const {
     icon,
