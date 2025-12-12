@@ -184,7 +184,7 @@ const CustomNetworkSelector = ({
         ListFooterComponent={renderFooter}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          paddingBottom: safeAreaInsets.bottom + 16,
+          paddingBottom: safeAreaInsets.bottom,
         }}
       />
     </ScrollView>
