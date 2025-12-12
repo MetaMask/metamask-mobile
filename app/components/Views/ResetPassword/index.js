@@ -640,11 +640,6 @@ class ResetPassword extends PureComponent {
     );
   };
 
-  tryExportSeedPhrase = async (password) => {
-    const { KeyringController } = Engine.context;
-    await KeyringController.exportSeedPhrase(password);
-  };
-
   tryUnlockWithPassword = async (password) => {
     this.setState({ ready: false });
     try {
