@@ -62,17 +62,27 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('../../../core/SDKConnectV2', () => ({
   __esModule: true,
   default: {
-    isConnectDeeplink: jest.fn().mockReturnValue(false),
-    handleConnectDeeplink: jest.fn(),
+    isMwpDeeplink: jest.fn().mockReturnValue(false),
+    handleMwpDeeplink: jest.fn(),
   },
 }));
 
-jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  __esModule: true,
-  default: {
-    parse: jest.fn().mockResolvedValue(false),
-  },
-}));
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
+  // Default to false (not handled) so QR scanner handles the content directly
+  const mockParse = jest.fn().mockResolvedValue(false);
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn(),
+      start: jest.fn(),
+      getInstance: jest.fn(() => ({ parse: mockParse })),
+      parse: mockParse,
+      setDeeplink: jest.fn(),
+      getPendingDeeplink: jest.fn(),
+      expireDeeplink: jest.fn(),
+    },
+  };
+});
 
 jest.mock('../../../util/validators', () => ({
   isValidMnemonic: jest.fn().mockReturnValue(false),
@@ -180,6 +190,7 @@ const initialState = {
 
 // Import useMetrics after mocking
 import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
@@ -596,9 +607,9 @@ describe('QrScanner', () => {
         const SDKConnectV2Module = jest.requireMock(
           '../../../core/SDKConnectV2',
         );
-        (
-          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
-        ).mockReturnValue(true);
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          true,
+        );
 
         const mockOnScanSuccess = jest.fn();
         renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
@@ -642,16 +653,11 @@ describe('QrScanner', () => {
         const SDKConnectV2Module = jest.requireMock(
           '../../../core/SDKConnectV2',
         );
-        (
-          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
-        ).mockReturnValue(false);
-
-        const SharedDeeplinkManagerModule = jest.requireMock(
-          '../../../core/DeeplinkManager/SharedDeeplinkManager',
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
         );
-        (
-          SharedDeeplinkManagerModule.default.parse as jest.Mock
-        ).mockResolvedValue(false);
+
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
         let confirmCallback: (() => void) | undefined;
         mockNavigate.mockImplementation((_route, params) => {
@@ -713,16 +719,11 @@ describe('QrScanner', () => {
         const SDKConnectV2Module = jest.requireMock(
           '../../../core/SDKConnectV2',
         );
-        (
-          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
-        ).mockReturnValue(false);
-
-        const SharedDeeplinkManagerModule = jest.requireMock(
-          '../../../core/DeeplinkManager/SharedDeeplinkManager',
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
         );
-        (
-          SharedDeeplinkManagerModule.default.parse as jest.Mock
-        ).mockResolvedValue(false);
+
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
         let cancelCallback: (() => void) | undefined;
         mockNavigate.mockImplementation((_route, params) => {
@@ -778,16 +779,11 @@ describe('QrScanner', () => {
         const SDKConnectV2Module = jest.requireMock(
           '../../../core/SDKConnectV2',
         );
-        (
-          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
-        ).mockReturnValue(false);
-
-        const SharedDeeplinkManagerModule = jest.requireMock(
-          '../../../core/DeeplinkManager/SharedDeeplinkManager',
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
         );
-        (
-          SharedDeeplinkManagerModule.default.parse as jest.Mock
-        ).mockResolvedValue(false);
+
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
         const mockOnScanSuccess = jest.fn();
         renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {

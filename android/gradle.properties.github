@@ -1,16 +1,16 @@
 # GitHub Actions-specific Gradle settings
 # Optimized for E2E builds on GitHub Actions runners
 
-# JVM configuration - balanced settings to avoid OOM while maintaining performance
-# Using 16GB heap to leave room for parallel workers and native memory
-org.gradle.jvmargs=-Xmx16g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
+# JVM configuration - tuned for 48GB runner to avoid OOM while maintaining performance
+# Heap: 12GB to leave room for Node.js/Metro and native memory
+# ExitOnOutOfMemoryError: fail-fast on OOM for CI
+org.gradle.jvmargs=-Xmx12g -Xms4g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=500 -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8
 
 # Enable performance optimizations but limit parallelism to prevent OOM
 org.gradle.parallel=true
-org.gradle.configureondemand=true
 org.gradle.caching=true
-org.gradle.daemon=true
-org.gradle.workers.max=6
+org.gradle.daemon=false
+org.gradle.workers.max=2
 org.gradle.vfs.watch=false
 
 # CI-specific optimizations - enabled for GitHub Actions
@@ -54,4 +54,4 @@ hermesEnabled=true
 android.disableResourceValidation=true
 
 # Use legacy packaging to compress native libraries in the resulting APK.
-expo.useLegacyPackaging=false 
+expo.useLegacyPackaging=false

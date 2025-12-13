@@ -23,7 +23,7 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
 import { formatCurrency } from './currencyUtils';
 
-interface GetDisplayCurrencyValueParams {
+export interface CalcTokenFiatValueParams {
   token: BridgeToken | undefined;
   amount: string | undefined;
   evmMultiChainMarketData:
@@ -33,8 +33,68 @@ interface GetDisplayCurrencyValueParams {
   evmMultiChainCurrencyRates:
     | Record<string, { conversionRate: number | null }>
     | undefined;
-  currentCurrency: string;
   nonEvmMultichainAssetRates: ReturnType<typeof selectMultichainAssetsRates>;
+}
+
+/**
+ * Calculates the fiat value of a token amount in the user's current currency
+ * @returns The numeric fiat value (not formatted)
+ */
+export const calcTokenFiatValue = ({
+  token,
+  amount,
+  evmMultiChainMarketData,
+  networkConfigurationsByChainId,
+  evmMultiChainCurrencyRates,
+  nonEvmMultichainAssetRates,
+}: CalcTokenFiatValueParams): number => {
+  if (!token || !amount) {
+    return 0;
+  }
+
+  if (isNonEvmChainId(token.chainId)) {
+    const assetId = token.address as CaipAssetType;
+    // This rate is asset to fiat. Whatever the user selected display fiat currency is.
+    // We don't need to have an additional conversion from native token to fiat.
+    const rate = nonEvmMultichainAssetRates?.[assetId]?.rate;
+    if (rate) {
+      return Number(balanceToFiatNumber(amount, Number(rate), 1));
+    }
+    return token?.currencyExchangeRate && amount
+      ? Number(amount) * token?.currencyExchangeRate
+      : 0;
+  }
+
+  // EVM
+  const evmChainId = token.chainId as Hex;
+  const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
+  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+
+  const nativeCurrency =
+    networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
+  const multiChainConversionRate =
+    evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
+
+  if (multiChainConversionRate && evmTokenMarketData?.price) {
+    return Number(
+      balanceToFiatNumber(
+        amount,
+        multiChainConversionRate,
+        evmTokenMarketData.price,
+      ),
+    );
+  }
+
+  const currentCurrencyValue =
+    token?.currencyExchangeRate && amount
+      ? Number(amount) * token?.currencyExchangeRate
+      : 0;
+
+  return currentCurrencyValue;
+};
+
+interface GetDisplayCurrencyValueParams extends CalcTokenFiatValueParams {
+  currentCurrency: string;
 }
 
 export const getDisplayCurrencyValue = ({
@@ -46,51 +106,17 @@ export const getDisplayCurrencyValue = ({
   currentCurrency,
   nonEvmMultichainAssetRates,
 }: GetDisplayCurrencyValueParams): string => {
+  const currencyValue = calcTokenFiatValue({
+    token,
+    amount,
+    evmMultiChainMarketData,
+    networkConfigurationsByChainId,
+    evmMultiChainCurrencyRates,
+    nonEvmMultichainAssetRates,
+  });
+
   if (!token || !amount) {
     return formatCurrency('0', currentCurrency);
-  }
-
-  let currencyValue = 0;
-
-  if (isNonEvmChainId(token.chainId)) {
-    const assetId = token.address as CaipAssetType;
-    // This rate is asset to fiat. Whatever the user selected display fiat currency is.
-    // We don't need to have an additional conversion from native token to fiat.
-    const rate = nonEvmMultichainAssetRates?.[assetId]?.rate;
-    if (rate) {
-      currencyValue = Number(balanceToFiatNumber(amount, Number(rate), 1));
-    } else {
-      currencyValue =
-        token?.currencyExchangeRate && amount
-          ? Number(amount) * token?.currencyExchangeRate
-          : 0;
-    }
-  } else {
-    // EVM
-    const evmChainId = token.chainId as Hex;
-    const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-    const evmTokenMarketData =
-      evmMultiChainExchangeRates?.[token.address as Hex];
-
-    const nativeCurrency =
-      networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
-    const multiChainConversionRate =
-      evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
-
-    if (multiChainConversionRate && evmTokenMarketData?.price) {
-      currencyValue = Number(
-        balanceToFiatNumber(
-          amount,
-          multiChainConversionRate,
-          evmTokenMarketData.price,
-        ),
-      );
-    } else {
-      currencyValue =
-        token?.currencyExchangeRate && amount
-          ? Number(amount) * token?.currencyExchangeRate
-          : 0;
-    }
   }
 
   const formattedCurrencyValue = formatCurrency(currencyValue, currentCurrency);
