@@ -151,6 +151,11 @@ jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
+jest.mock('../../../util/test/utils', () => ({
+  ...jest.requireActual('../../../util/test/utils'),
+  isE2E: false,
+}));
+
 // Mock Rive animations
 jest.mock('rive-react-native', () => ({
   __esModule: true,
