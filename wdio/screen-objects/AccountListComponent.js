@@ -65,15 +65,23 @@ class AccountListComponent {
     await element.waitForExist({ reverse: true });
   }
 
-  async isAccountDisplayed(name) {
+  async isAccountDisplayed(name, timeout = 10000) {
     const element = await AppwrightSelectors.getElementByCatchAll(this.device, name);
-    await expect(element).toBeVisible({ timeout: 10000 });
+    await expect(element).toBeVisible({ timeout });
   }
 
   async tapOnAccountByName(name) {
     const account = AppwrightSelectors.getElementByText(this.device, name);
     await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
     await AppwrightGestures.tap(account); // Tap after scrolling into view
+  }
+
+  async waitForSyncingToComplete() {
+    const syncingElement = await AppwrightSelectors.getElementByText(this.device, 'Syncing');
+    await AppwrightSelectors.waitForElementToDisappear(syncingElement, 'Syncing element', 30000);
+    
+    const discoveringAccountsElement = await AppwrightSelectors.getElementByText(this.device, 'Discovering accounts');
+    await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts element', 30000);
   }
 }
 

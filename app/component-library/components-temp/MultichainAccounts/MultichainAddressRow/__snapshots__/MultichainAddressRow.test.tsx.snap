@@ -88,7 +88,7 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,
@@ -107,7 +107,7 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
         [
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 14,
             "fontWeight": 400,
             "letterSpacing": 0,
