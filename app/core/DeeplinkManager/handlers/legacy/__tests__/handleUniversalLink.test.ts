@@ -12,8 +12,10 @@ import { DeeplinkManager } from '../../../DeeplinkManager';
 import extractURLParams from '../../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
 import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
+import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 // eslint-disable-next-line import/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -542,6 +544,9 @@ describe('handleUniversalLink', () => {
 
   describe('ACTIONS.SHIELD', () => {
     it('calls _handleBrowserUrl when action is SHIELD', async () => {
+      const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
+        typeof handleBrowserUrl
+      >;
       const shieldUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SHIELD}`;
       const shieldUrlObj = {
         ...urlObj,
@@ -560,6 +565,10 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handled).toHaveBeenCalled();
+      expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+        url: SHIELD_WEBSITE_URL,
+        callback: mockBrowserCallBack,
+      });
     });
   });
 
