@@ -2534,7 +2534,7 @@
     "ipfs_gateway_content": "Ang MetaMask ay gumagamit ng mga serbisyo ng third-party para ipakita ang mga imahe sa iyong mga NFT na nakaimbak sa IPFS, nagpapakita ng impormasyong nauugnay sa mga ENS address na ipinakita sa address bar ng iyong browser, at kinukuha ang mga icon para sa iba't ibang token. Ang iyong IP address ay maaaring ipakita sa mga serbisyong ito kapag ginagamit mo ang mga iyon.",
     "ipfs_gateway_down": "Down ang kasalukuyan mong IPFS gateway",
     "ipfs_gateway_desc": "Pumili ng gusto mong IPFS gateway.",
-    "search_engine": "Search Engine",
+    "search_engine": "Search engine",
     "new_RPC_URL": "Bagong RPC Network",
     "state_logs": "Mga Log ng Estado",
     "add_network_title": "Magdagdag ng network",

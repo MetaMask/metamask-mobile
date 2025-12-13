@@ -237,7 +237,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          Market Cap
+          Market cap
         </Text>
         <Text
           accessibilityRole="text"
@@ -275,7 +275,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          Total Volume (24h)
+          Total volume (24h)
         </Text>
         <Text
           accessibilityRole="text"
@@ -313,7 +313,7 @@ exports[`TokenDetails should render correctly 1`] = `
             }
           }
         >
-          Volume / Market Cap
+          Volume / market cap
         </Text>
         <Text
           accessibilityRole="text"
