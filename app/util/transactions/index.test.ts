@@ -1766,7 +1766,7 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
   });
 
   it('returns "Increase Allowance" review action key for increase allowance transaction', async () => {
-    const expectedReviewActionKey = 'Increase Allowance';
+    const expectedReviewActionKey = 'Increase allowance';
 
     const result = await getTransactionReviewActionKey(
       { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
