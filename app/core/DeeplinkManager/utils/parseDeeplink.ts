@@ -1,16 +1,16 @@
-import { PROTOCOLS } from '../../constants/deeplinks';
-import SDKConnect from '../SDKConnect/SDKConnect';
-import Logger from '../../util/Logger';
-import DevLogger from '../SDKConnect/utils/DevLogger';
-import DeeplinkManager from './DeeplinkManager';
-import extractURLParams from './utils/extractURLParams';
-import handleDappUrl from './handlers/legacy/handleDappUrl';
-import handleUniversalLink from './handlers/legacy/handleUniversalLink';
-import connectWithWC from './handlers/legacy/connectWithWC';
+import { PROTOCOLS } from '../../../constants/deeplinks';
+import SDKConnect from '../../SDKConnect/SDKConnect';
+import Logger from '../../../util/Logger';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { DeeplinkManager } from '../DeeplinkManager';
+import extractURLParams from './extractURLParams';
+import handleDappUrl from '../handlers/legacy/handleDappUrl';
+import handleUniversalLink from '../handlers/legacy/handleUniversalLink';
+import connectWithWC from '../handlers/legacy/connectWithWC';
 import { Alert } from 'react-native';
-import { strings } from '../../../locales/i18n';
-import AppConstants from '../AppConstants';
-import handleEthereumUrl from './handlers/legacy/handleEthereumUrl';
+import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../AppConstants';
+import handleEthereumUrl from '../handlers/legacy/handleEthereumUrl';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -70,7 +70,6 @@ async function parseDeeplink({
       case PROTOCOLS.ETHEREUM:
         handled();
         handleEthereumUrl({
-          deeplinkManager: instance,
           url,
           origin,
         }).catch((err) => {
@@ -80,7 +79,7 @@ async function parseDeeplink({
       // Specific to the browser screen
       // For ex. navigate to a specific dapp
       case PROTOCOLS.DAPP:
-        handleDappUrl({ instance, handled, urlObj, browserCallBack });
+        handleDappUrl({ handled, urlObj, browserCallBack });
         break;
       default:
         return false;

@@ -1,29 +1,31 @@
-import switchNetwork from '../switchNetwork';
-import DeeplinkManager from '../../../DeeplinkManager';
-import { showAlert } from '../../../../../actions/alert';
-import { strings } from '../../../../../../locales/i18n';
-import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
+import switchNetwork from './switchNetwork';
+import { showAlert } from '../../actions/alert';
+import { strings } from '../../../locales/i18n';
+import { handleNetworkSwitch } from './handleNetworkSwitch';
+import { store } from '../../store';
 
-jest.mock('../../../../../util/networks/handleNetworkSwitch', () => ({
+jest.mock('../../store', () => ({
+  store: {
+    dispatch: jest.fn(),
+    getState: jest.fn(),
+  },
+}));
+
+jest.mock('./handleNetworkSwitch', () => ({
   handleNetworkSwitch: jest.fn(),
 }));
 
-jest.mock('../../../../../actions/alert', () => ({
+jest.mock('../../actions/alert', () => ({
   showAlert: jest.fn(),
 }));
 
 describe('switchNetwork', () => {
-  let deeplinkManager: DeeplinkManager;
   const mockHandleNetworkSwitch = handleNetworkSwitch as jest.MockedFunction<
     typeof handleNetworkSwitch
   >;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    deeplinkManager = {
-      dispatch: jest.fn(),
-    } as unknown as DeeplinkManager;
 
     // Mock the switchNetwork function to return a valid network name
     mockHandleNetworkSwitch.mockReturnValue('Ethereum Mainnet');
@@ -32,9 +34,9 @@ describe('switchNetwork', () => {
   it('should dispatch an alert for a valid switchToChainId', () => {
     const switchToChainId = '1'; // Assuming '1' is a valid chain ID
 
-    switchNetwork({ deeplinkManager, switchToChainId });
+    switchNetwork({ switchToChainId });
 
-    expect(deeplinkManager.dispatch).toHaveBeenCalledWith(
+    expect(store.dispatch).toHaveBeenCalledWith(
       showAlert({
         isVisible: true,
         autodismiss: 5000,
@@ -48,7 +50,7 @@ describe('switchNetwork', () => {
     const switchToChainId = '56' as `${number}` | undefined;
     mockHandleNetworkSwitch.mockReturnValue(undefined);
 
-    expect(() => switchNetwork({ deeplinkManager, switchToChainId })).toThrow(
+    expect(() => switchNetwork({ switchToChainId })).toThrow(
       `Unable to find network with chain id ${switchToChainId}`,
     );
   });
@@ -57,8 +59,8 @@ describe('switchNetwork', () => {
     const switchToChainId = '1'; // Assuming '1' is a valid chain ID
     mockHandleNetworkSwitch.mockReturnValue(undefined);
 
-    switchNetwork({ deeplinkManager, switchToChainId });
+    switchNetwork({ switchToChainId });
 
-    expect(deeplinkManager.dispatch).not.toHaveBeenCalled();
+    expect(store.dispatch).not.toHaveBeenCalled();
   });
 });
