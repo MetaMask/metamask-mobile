@@ -5,8 +5,9 @@ import Authentication from './';
  */
 export function useAuthentication() {
   return {
-    turnOffRememberMeAndLockApp: Authentication.lockApp({
-      allowRememberMe: false,
-    }),
+    lockApp: async (args: Parameters<typeof Authentication.lockApp>[0]) =>
+      await Authentication.lockApp({
+        ...args,
+      }),
   };
 }
