@@ -5,9 +5,6 @@ import Authentication from './';
  */
 export function useAuthentication() {
   return {
-    lockApp: async (args: Parameters<typeof Authentication.lockApp>[0]) =>
-      await Authentication.lockApp({
-        ...args,
-      }),
+    lockApp: Authentication.lockApp,
   };
 }
