@@ -27,7 +27,7 @@ export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
 const TurnOffRememberMeModal = () => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
-  const { turnOffRememberMeAndLockApp } = useAuthentication();
+  const { lockApp } = useAuthentication();
 
   const modalRef = useRef<ReusableModalRef>(null);
 
@@ -61,8 +61,8 @@ const TurnOffRememberMeModal = () => {
   const triggerClose = () => dismissModal();
 
   const disableRememberMe = useCallback(async () => {
-    dismissModal(async () => await turnOffRememberMeAndLockApp());
-  }, [turnOffRememberMeAndLockApp]);
+    dismissModal(async () => await lockApp({ allowRememberMe: false }));
+  }, [lockApp]);
 
   return (
     <ReusableModal ref={modalRef}>
