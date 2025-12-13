@@ -76,6 +76,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
+import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 
 export const PRIVATE_KEY = 'private_key';
 
@@ -137,6 +138,7 @@ const RevealPrivateCredential = ({
 
   const theme = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { reauthenticate } = useAuthentication();
   const { colors, themeAppearance } = theme;
   const styles = createStyles(theme);
 
@@ -286,11 +288,8 @@ const RevealPrivateCredential = ({
   };
 
   const tryUnlock = async () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController } = Engine.context as any;
     try {
-      await KeyringController.verifyPassword(password);
+      await reauthenticate(password);
     } catch {
       const msg = strings('reveal_credential.warning_incorrect_password');
       setWarningIncorrectPassword(msg);

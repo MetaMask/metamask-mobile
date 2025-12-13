@@ -35,6 +35,7 @@ const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
 >;
 
 const mockExportSeedPhrase = jest.fn();
+const mockReauthenticate = jest.fn();
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -88,6 +89,7 @@ jest.mock('../../../core/Authentication', () => ({
   authData: {
     currentAuthType: 'passcode',
   },
+  reauthenticate: (password?: string) => mockReauthenticate(password),
 }));
 
 jest.mock('../../../core/NavigationService', () => ({

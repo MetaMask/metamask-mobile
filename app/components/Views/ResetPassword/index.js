@@ -20,7 +20,6 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
-import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -44,7 +43,6 @@ import {
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
 import { Authentication } from '../../../core';
-import { reauthenticate } from '../../../core/Authentication/hooks/useAuthentication';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
@@ -408,6 +406,7 @@ class ResetPassword extends PureComponent {
     );
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
+
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE)
       this.setState({
         biometryType: passcodeType(authData.currentAuthType),
@@ -423,7 +422,7 @@ class ResetPassword extends PureComponent {
         biometryType: authData.availableBiometryType,
         biometryChoice: biometryChoiceState,
       });
-      await reauthenticate();
+      await Authentication.reauthenticate();
     }
 
     this.setState(state);
@@ -643,7 +642,7 @@ class ResetPassword extends PureComponent {
   tryUnlockWithPassword = async (password) => {
     this.setState({ ready: false });
     try {
-      await reauthenticate(password);
+      await Authentication.reauthenticate(password);
       this.setState({
         password: null,
         originalPassword: password,

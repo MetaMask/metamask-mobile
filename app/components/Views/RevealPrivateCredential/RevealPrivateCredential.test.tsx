@@ -10,6 +10,8 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
+const mockReauthenticate = jest.fn();
+
 // Mock dispatch function
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -92,6 +94,13 @@ jest.mock('../../UI/ScreenshotDeterrent', () => ({
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({ availableBiometryType: null }),
   getPassword: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
+  __esModule: true,
+  default: () => ({
+    reauthenticate: (password?: string) => mockReauthenticate(password),
+  }),
 }));
 
 // Mock StorageWrapper - necessary for testing without real storage operations
@@ -259,6 +268,8 @@ describe('RevealPrivateCredential', () => {
   });
 
   it('shows warning message on incorrect password', async () => {
+    mockReauthenticate.mockRejectedValueOnce(new Error('Incorrect password'));
+
     const { getByPlaceholderText, getByTestId } = renderWithProviders(
       <RevealPrivateCredential
         route={{
@@ -362,10 +373,10 @@ describe('RevealPrivateCredential', () => {
 
   it('renders TabView when unlocked', async () => {
     const mockEngine = jest.requireMock('../../../core/Engine');
-    mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(true);
     mockEngine.context.KeyringController.exportSeedPhrase.mockResolvedValue(
       new Uint8Array([1, 2, 3]),
     );
+    mockReauthenticate.mockResolvedValueOnce(undefined);
 
     const { getByPlaceholderText, getByTestId } = renderWithProviders(
       <RevealPrivateCredential

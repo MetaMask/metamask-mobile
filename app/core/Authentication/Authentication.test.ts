@@ -3519,4 +3519,47 @@ describe('Authentication', () => {
       );
     });
   });
+
+  describe('reauthenticate', () => {
+    it('uses provided password when biometry is not enabled', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const mockVerifyPassword = jest.fn().mockResolvedValue(undefined);
+      Engine.context.KeyringController.verifyPassword = mockVerifyPassword;
+
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce(null);
+
+      await Authentication.reauthenticate('test-password');
+
+      expect(mockVerifyPassword).toHaveBeenCalledWith('test-password');
+    });
+
+    it('uses stored biometric password when biometry is enabled and credentials exist', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const mockVerifyPassword = jest.fn().mockResolvedValue(undefined);
+      Engine.context.KeyringController.verifyPassword = mockVerifyPassword;
+
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce('true');
+      jest.spyOn(Authentication, 'getPassword').mockResolvedValue({
+        username: 'user',
+        password: 'biometric-pass',
+      } as Keychain.UserCredentials);
+
+      await Authentication.reauthenticate();
+
+      expect(mockVerifyPassword).toHaveBeenCalledWith('biometric-pass');
+    });
+
+    it('falls back to provided password when biometry is enabled but no credentials are stored', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const mockVerifyPassword = jest.fn().mockResolvedValue(undefined);
+      Engine.context.KeyringController.verifyPassword = mockVerifyPassword;
+
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce('true');
+      jest.spyOn(Authentication, 'getPassword').mockResolvedValue(null);
+
+      await Authentication.reauthenticate('fallback-pass');
+
+      expect(mockVerifyPassword).toHaveBeenCalledWith('fallback-pass');
+    });
+  });
 });

@@ -1373,37 +1373,22 @@ class AuthenticationService {
   }
 
   /**
-   * Verifies that the provided password can decrypt the main vault.
-   *
-   * It does this by trying to export the seed phrase with the given password.
-   * If the password is wrong, this method will throw an error.
-   *
-   * @param password - The password entered by the user.
-   * @param keyringId - Optional keyring id. When not provided, the primary keyring is used.
-   */
-  verifyPassword = async (
-    password: string,
-    keyringId?: string,
-  ): Promise<Uint8Array> => {
-    const { KeyringController } = Engine.context;
-    return await KeyringController.exportSeedPhrase(password, keyringId);
-  };
-
-  /**
    * Reauthenticates the user by verifying the password or using biometrics.
    *
    * @param password - The password entered by the user.
    */
   reauthenticate = async (password?: string): Promise<void> => {
     const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
+    const { KeyringController } = Engine.context;
+    let passwordToVerify = password || '';
+
     if (biometryChoice) {
       const credentials = await this.getPassword();
       if (credentials) {
-        await this.verifyPassword(credentials.password);
+        passwordToVerify = credentials.password;
       }
-    } else if (password) {
-      await this.verifyPassword(password);
     }
+    return await KeyringController.verifyPassword(passwordToVerify);
   };
 }
 
