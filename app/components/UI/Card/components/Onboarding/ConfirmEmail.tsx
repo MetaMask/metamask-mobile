@@ -314,6 +314,7 @@ const ConfirmEmail = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      loading={verifyLoading}
       testID="confirm-email-continue-button"
     />
   );

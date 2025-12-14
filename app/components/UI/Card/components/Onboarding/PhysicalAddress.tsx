@@ -571,6 +571,7 @@ const PhysicalAddress = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        loading={registerLoading}
         testID="physical-address-continue-button"
       />
     </Box>

@@ -386,6 +386,7 @@ const SignUp = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        loading={emailVerificationIsLoading}
         testID="signup-continue-button"
       />
       <TouchableOpacity

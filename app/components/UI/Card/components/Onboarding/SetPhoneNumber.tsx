@@ -188,8 +188,8 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg">
-          <Box twClassName="w-26">
+        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg h-full">
+          <Box twClassName="w-26 justify-center items-center flex">
             <TouchableOpacity
               onPress={handleCountrySelect}
               testID="set-phone-number-country-area-code-select"
@@ -251,6 +251,7 @@ const SetPhoneNumber = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        loading={phoneVerificationIsLoading}
         testID="set-phone-number-continue-button"
       />
       <Text

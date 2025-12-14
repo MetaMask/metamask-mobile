@@ -412,6 +412,7 @@ const PersonalDetails = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        loading={registerLoading}
         testID="personal-details-continue-button"
       />
     </Box>

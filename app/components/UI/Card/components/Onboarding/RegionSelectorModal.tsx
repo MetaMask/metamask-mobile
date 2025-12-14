@@ -79,7 +79,7 @@ function RegionSelectorModal() {
   }, [regions]);
 
   const listStyle = useMemo(
-    () => ({ maxHeight: screenHeight * 0.65 }),
+    () => ({ height: screenHeight * 0.65 }),
     [screenHeight],
   );
 
