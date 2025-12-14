@@ -207,7 +207,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === 'android' && !isE2E) {
       KeyboardController.setInputMode(
         AndroidSoftInputModes.SOFT_INPUT_ADJUST_PAN,
       );
