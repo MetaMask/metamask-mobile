@@ -63,14 +63,7 @@ function useIsOriginalNativeTokenSymbol(
       }
     }
     getNativeTokenSymbol(chainId);
-  }, [
-    isOriginalNativeSymbol,
-    chainId,
-    ticker,
-    type,
-    useSafeChainsListValidation,
-    safeChainsList,
-  ]);
+  }, [chainId, ticker, type, useSafeChainsListValidation, safeChainsList]);
 
   return isOriginalNativeSymbol;
 }
