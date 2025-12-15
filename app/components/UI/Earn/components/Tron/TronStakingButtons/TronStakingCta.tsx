@@ -17,8 +17,8 @@ const styles = {
     flexWrap: 'wrap',
     justifyContent: 'center',
     marginTop: 4,
+    marginBottom: 8,
   },
-  button: { marginTop: 10 },
 } as const;
 
 interface TronStakingCtaProps extends Pick<ViewProps, 'style'> {
@@ -33,12 +33,11 @@ const TronStakingCta = ({ style, aprText, onEarn }: TronStakingCtaProps) => (
     </Text>
     <View style={styles.row}>
       <Text>{strings('stake.stake_your_trx_cta.description_start')}</Text>
-      {aprText ? <Text color={TextColor.Success}>{aprText}</Text> : null}
+      {aprText ? <Text color={TextColor.Success}>{'3%'}</Text> : null}
       <Text>{strings('stake.stake_your_trx_cta.description_end')}</Text>
     </View>
     {onEarn ? (
       <Button
-        style={styles.button}
         label={strings('stake.stake_your_trx_cta.learn_more')}
         variant={ButtonVariants.Link}
         onPress={onEarn}
