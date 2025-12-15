@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
@@ -21,24 +20,14 @@ export interface PermissionApprovalProps {
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { approvalRequest } = useApprovalRequest();
+  const { approvalRequest, pendingApprovals } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
-
-  const isProcessing = useRef<boolean>(false);
 
   const eventSource = useOriginSource({
     origin: approvalRequest?.requestData?.metadata?.origin,
   });
 
   useEffect(() => {
-    if (
-      approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS ||
-      !eventSource
-    ) {
-      isProcessing.current = false;
-      return;
-    }
-
     const requestData = approvalRequest?.requestData;
 
     if (!requestData?.permissions?.[Caip25EndowmentPermissionName]) return;
@@ -52,16 +41,12 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
       return;
     }
 
-    if (isProcessing.current) return;
-
-    isProcessing.current = true;
-
     const chainIds = getAllScopesFromPermission(
       requestData.permissions[Caip25EndowmentPermissionName],
     );
 
     const isMultichainRequest =
-      !approvalRequest.requestData?.metadata?.isEip1193Request;
+      !approvalRequest?.requestData?.metadata?.isEip1193Request;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
@@ -87,6 +72,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     trackEvent,
     createEventBuilder,
     eventSource,
+    pendingApprovals,
   ]);
 
   return null;
