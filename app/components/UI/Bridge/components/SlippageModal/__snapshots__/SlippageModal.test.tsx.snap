@@ -155,7 +155,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -167,6 +166,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
           >
             <Text
               accessibilityRole="text"
+              maxFontSizeMultiplier={1.75}
               style={
                 [
                   {

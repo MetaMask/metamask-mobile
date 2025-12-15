@@ -456,7 +456,6 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1264,7 +1263,6 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1856,7 +1854,6 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -2556,7 +2553,6 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

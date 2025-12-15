@@ -338,7 +338,6 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                         style={
                           [
                             {
-                              "alignItems": "center",
                               "display": "flex",
                               "flexBasis": "0%",
                               "flexGrow": 1,

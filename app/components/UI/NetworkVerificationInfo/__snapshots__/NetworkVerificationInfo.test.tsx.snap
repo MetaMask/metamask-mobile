@@ -25,7 +25,6 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       style={
         [
           {
-            "alignItems": "center",
             "display": "flex",
             "flexBasis": "0%",
             "flexGrow": 1,
@@ -564,7 +563,6 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       style={
         [
           {
-            "alignItems": "center",
             "display": "flex",
             "flexBasis": "0%",
             "flexGrow": 1,

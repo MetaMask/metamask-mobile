@@ -396,7 +396,6 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -2081,7 +2080,6 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -3807,7 +3805,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -5492,7 +5489,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -7177,7 +7173,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -8903,7 +8898,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -10588,7 +10582,6 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -11116,7 +11109,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -12801,7 +12793,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -14486,7 +14477,6 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,

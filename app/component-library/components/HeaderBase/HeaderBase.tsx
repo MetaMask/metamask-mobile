@@ -125,11 +125,6 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
     ? `${baseStyles} ${twClassName}`
     : baseStyles;
 
-  // Title classes based on variant
-  const titleWrapperClass = isLeftAligned
-    ? 'flex-1 items-start'
-    : 'flex-1 items-center';
-
   return (
     <View
       style={[
@@ -157,12 +152,13 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
       )}
 
       {/* Title */}
-      <Box twClassName={titleWrapperClass}>
+      <Box twClassName={'flex-1'}>
         {typeof children === 'string' ? (
           <Text
             variant={textVariant}
             testID={HEADERBASE_TITLE_TEST_ID}
             style={isLeftAligned ? undefined : tw.style('text-center')}
+            maxFontSizeMultiplier={1.75}
           >
             {children}
           </Text>

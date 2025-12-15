@@ -435,7 +435,6 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1105,7 +1104,6 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

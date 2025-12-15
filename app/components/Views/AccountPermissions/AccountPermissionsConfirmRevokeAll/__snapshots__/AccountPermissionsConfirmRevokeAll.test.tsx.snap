@@ -147,7 +147,6 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
             style={
               [
                 {
-                  "alignItems": "center",
                   "display": "flex",
                   "flexBasis": "0%",
                   "flexGrow": 1,
@@ -159,6 +158,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
           >
             <Text
               accessibilityRole="text"
+              maxFontSizeMultiplier={1.75}
               style={
                 [
                   {

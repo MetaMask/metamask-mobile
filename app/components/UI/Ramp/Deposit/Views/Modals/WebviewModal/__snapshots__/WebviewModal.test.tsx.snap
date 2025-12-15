@@ -457,7 +457,6 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,
@@ -1018,7 +1017,6 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
                                     "display": "flex",
                                     "flexBasis": "0%",
                                     "flexGrow": 1,

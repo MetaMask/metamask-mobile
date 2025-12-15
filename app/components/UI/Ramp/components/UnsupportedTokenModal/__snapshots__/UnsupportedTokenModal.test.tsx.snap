@@ -338,7 +338,6 @@ exports[`UnsupportedTokenModal renders the modal with correct title and descript
                         style={
                           [
                             {
-                              "alignItems": "center",
                               "display": "flex",
                               "flexBasis": "0%",
                               "flexGrow": 1,
@@ -350,6 +349,7 @@ exports[`UnsupportedTokenModal renders the modal with correct title and descript
                       >
                         <Text
                           accessibilityRole="text"
+                          maxFontSizeMultiplier={1.75}
                           style={
                             [
                               {

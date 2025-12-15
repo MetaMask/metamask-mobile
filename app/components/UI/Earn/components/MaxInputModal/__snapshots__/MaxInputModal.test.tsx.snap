@@ -462,7 +462,6 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
                                       "display": "flex",
                                       "flexBasis": "0%",
                                       "flexGrow": 1,
