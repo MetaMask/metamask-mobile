@@ -373,7 +373,6 @@ export const NETWORK_CHAIN_ID: {
   readonly FRAXTAL: '0xfc';
   readonly XDC: '0x32';
   readonly MEGAETH_MAINNET: '0x10e6';
-  readonly MEGAETH_TESTNET: '0x18c6';
   readonly MEGAETH_TESTNET_V2: '0x18c7';
   readonly HEMI: '0xa867';
   readonly LUKSO: '0x2a';
@@ -411,7 +410,6 @@ export const NETWORK_CHAIN_ID: {
   FRAXTAL: '0xfc',
   XDC: '0x32',
   MEGAETH_MAINNET: '0x10e6',
-  MEGAETH_TESTNET: '0x18c6',
   MEGAETH_TESTNET_V2: '0x18c7',
   HEMI: '0xa867',
   LUKSO: '0x2a',
@@ -454,7 +452,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
-  [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: require('../../images/megaeth-testnet-logo.png'),
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET_V2]: require('../../images/megaeth-testnet-logo.png'),
   [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
   [NETWORK_CHAIN_ID.LUKSO]: require('../../images/lukso.png'),
