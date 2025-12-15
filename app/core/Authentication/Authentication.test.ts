@@ -286,14 +286,13 @@ describe('Authentication', () => {
     jest.runAllTimers();
   });
 
-  it('should return a type password', async () => {
+  it('returns PASSWORD type when biometric and passcode are disabled', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
     await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
 
-    // Mock Redux store to return existingUser: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({
         user: { existingUser: false },
@@ -302,11 +301,12 @@ describe('Authentication', () => {
     } as unknown as ReduxStore);
 
     const result = await Authentication.getType();
+
     expect(result.availableBiometryType).toEqual('FaceID');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
-  it('should return a type biometric', async () => {
+  it('returns BIOMETRIC type when biometric is available and not disabled', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
@@ -324,7 +324,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
-  it('should return a type passcode', async () => {
+  it('returns PASSCODE type when biometric is disabled but passcode is available', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -343,7 +343,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
   });
 
-  it('should return a type password with biometric & pincode disabled', async () => {
+  it('returns PASSWORD type when both biometric and passcode are disabled', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -363,7 +363,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
-  it('should return a type AUTHENTICATION_TYPE.REMEMBER_ME if the user exists and there are no available biometrics options and the password exist in the keychain', async () => {
+  it('returns REMEMBER_ME type when user exists, no biometrics available, and password exists in keychain', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
     const mockCredentials = { username: 'test', password: 'test' };
     SecureKeychain.getGenericPassword = jest
@@ -383,7 +383,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
   });
 
-  it('should prioritize REMEMBER_ME over BIOMETRIC when remember me is enabled', async () => {
+  it('prioritizes REMEMBER_ME over BIOMETRIC when remember me is enabled', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
@@ -405,7 +405,7 @@ describe('Authentication', () => {
     expect(result.availableBiometryType).toEqual('FaceID');
   });
 
-  it('should prioritize REMEMBER_ME over PASSCODE when remember me is enabled', async () => {
+  it('prioritizes REMEMBER_ME over PASSCODE when remember me is enabled', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -428,7 +428,7 @@ describe('Authentication', () => {
     expect(result.availableBiometryType).toEqual('Fingerprint');
   });
 
-  it('should return BIOMETRIC when remember me is disabled even if password exists', async () => {
+  it('returns BIOMETRIC when remember me is disabled even if password exists', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
@@ -450,13 +450,12 @@ describe('Authentication', () => {
     expect(result.availableBiometryType).toEqual('FaceID');
   });
 
-  it('should return REMEMBER_ME only when password exists in keychain', async () => {
+  it('returns BIOMETRIC when remember me is enabled but password does not exist in keychain', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
     SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(null);
 
-    // Mock Redux store to return existingUser: true and remember me enabled
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({
         user: { existingUser: true },
@@ -465,11 +464,11 @@ describe('Authentication', () => {
     } as unknown as ReduxStore);
 
     const result = await Authentication.getType();
-    // Should fall back to biometric since no password in keychain
+
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
-  it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user exists and there are no available biometrics options but the password does not exist in the keychain', async () => {
+  it('returns PASSWORD type when user exists, no biometrics available, and password does not exist in keychain', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
     SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(null);
 
@@ -486,7 +485,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
-  it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user does not exist and there are no available biometrics options', async () => {
+  it('returns PASSWORD type when user does not exist and no biometrics are available', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
 
     // Mock Redux store to return existingUser: false
@@ -502,7 +501,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
-  it('should return a auth type for components AUTHENTICATION_TYPE.REMEMBER_ME', async () => {
+  it('returns REMEMBER_ME type for components when remember me is enabled', async () => {
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ security: { allowLoginWithRememberMe: true } }),
     } as unknown as ReduxStore);
@@ -519,7 +518,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
   });
 
-  it('should return a auth type for components AUTHENTICATION_TYPE.PASSWORD', async () => {
+  it('returns PASSWORD type for components when both biometric and passcode are disabled', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -539,7 +538,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
-  it('should return a auth type for components AUTHENTICATION_TYPE.PASSCODE', async () => {
+  it('returns PASSCODE type for components when biometric is disabled', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -558,7 +557,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
   });
 
-  it('should return a auth type for components AUTHENTICATION_TYPE.BIOMETRIC', async () => {
+  it('returns BIOMETRIC type for components when biometric is available', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -741,7 +740,7 @@ describe('Authentication', () => {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
       });
 
-      // Should have called storePassword twice: first with BIOMETRIC (failed), then with PASSWORD (succeeded)
+      // Verifies storePassword was called twice: first with BIOMETRIC (failed), then with PASSWORD (succeeded)
       expect(storePasswordSpy).toHaveBeenCalledTimes(2);
       expect(storePasswordSpy).toHaveBeenNthCalledWith(
         1,
@@ -754,7 +753,7 @@ describe('Authentication', () => {
         AUTHENTICATION_TYPE.PASSWORD,
       );
 
-      // Should have completed successfully
+      // Verifies operation completed successfully
       expect(fallbackMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
       expect(fallbackMockDispatch).toHaveBeenCalledWith(logIn());
 
@@ -795,7 +794,7 @@ describe('Authentication', () => {
         true,
       );
 
-      // Should have called storePassword twice: first with BIOMETRIC (failed), then with PASSWORD (succeeded)
+      // Verifies storePassword was called twice: first with BIOMETRIC (failed), then with PASSWORD (succeeded)
       expect(storePasswordSpy).toHaveBeenCalledTimes(2);
       expect(storePasswordSpy).toHaveBeenNthCalledWith(
         1,
@@ -808,7 +807,7 @@ describe('Authentication', () => {
         AUTHENTICATION_TYPE.PASSWORD,
       );
 
-      // Should have completed successfully
+      // Verifies operation completed successfully
       expect(restoreMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
       expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
 
@@ -856,7 +855,7 @@ describe('Authentication', () => {
         expect((error as AuthenticationError).message).toBe(
           'Password storage failed',
         );
-        // Should have called storePassword only once since it's PASSWORD authType (no fallback)
+        // Verifies storePassword was called only once since it's PASSWORD authType (no fallback)
         expect(storePasswordSpy).toHaveBeenCalledTimes(1);
         await Promise.resolve();
         jest.runAllTimers();
@@ -914,7 +913,7 @@ describe('Authentication', () => {
         expect((error as AuthenticationError).message).toBe(
           'Password storage failed',
         );
-        // Should have called storePassword only once since it's PASSWORD authType (no fallback)
+        // Verifies storePassword was called only once since it's PASSWORD authType (no fallback)
         expect(storePasswordSpy).toHaveBeenCalledTimes(1);
         await Promise.resolve();
         jest.runAllTimers();
@@ -1154,7 +1153,7 @@ describe('Authentication', () => {
             expect.any(Error),
           );
 
-          // Should not attempt discovery due to storage error
+          // Does not attempt discovery due to storage error
           expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
 
           // Restore original method
@@ -1172,7 +1171,7 @@ describe('Authentication', () => {
             .fn()
             .mockReturnValue(mockCredentials);
 
-          // Should not throw and should complete authentication
+          // Does not throw and completes authentication
           await expect(
             Authentication.appTriggeredAuth(),
           ).resolves.not.toThrow();
@@ -1346,7 +1345,7 @@ describe('Authentication', () => {
           Engine.context.KeyringController.state.keyrings = [
             { type: KeyringTypes.hd, metadata: { id: 'test-keyring-1' } },
             { type: KeyringTypes.hd, metadata: { id: 'test-keyring-2' } },
-            // Should not run discovery for this one.
+            // Does not run discovery for this one.
             { type: KeyringTypes.simple, metadata: { id: 'test-keyring-3' } },
           ];
 
@@ -1494,7 +1493,7 @@ describe('Authentication', () => {
   });
 
   describe('resetPassword', () => {
-    it('should call SecureKeychain.resetGenericPassword', async () => {
+    it('calls SecureKeychain.resetGenericPassword', async () => {
       const resetGenericPasswordSpy = jest.spyOn(
         SecureKeychain,
         'resetGenericPassword',
@@ -1505,7 +1504,7 @@ describe('Authentication', () => {
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
     });
 
-    it('should throw AuthenticationError when SecureKeychain fails', async () => {
+    it('throws AuthenticationError when SecureKeychain fails', async () => {
       const error = new Error('Reset failed');
       jest
         .spyOn(SecureKeychain, 'resetGenericPassword')
@@ -1906,7 +1905,7 @@ describe('Authentication', () => {
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
-    it('should throw an error if first seed phrase is falsy', async () => {
+    it('throws error when first seed phrase is falsy', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
