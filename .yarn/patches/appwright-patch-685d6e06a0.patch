@@ -1,0 +1,13 @@
+diff --git a/dist/providers/browserstack/index.js b/dist/providers/browserstack/index.js
+index f5b8ff4f50a96479149d3223ccb31a49aa2c948c..d88d10a97693aa4862e19deef12bb9ffd3fa8287 100644
+--- a/dist/providers/browserstack/index.js
++++ b/dist/providers/browserstack/index.js
+@@ -249,6 +249,8 @@ class BrowserStackDeviceProvider {
+                 "bstack:options": {
+                     debug: true,
+                     networkProfile : '4g-lte-advanced-good',
++                    gpsLocation: "22.3193,114.1694",
++                    geoLocation: "HK",
+                     interactiveDebugging: true,
+                     selfHeal: true,
+                     appProfiling: true,

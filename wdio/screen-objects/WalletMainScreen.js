@@ -10,6 +10,7 @@ import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.se
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
+import TimerHelper from 'appwright/utils/TimersHelper.js';
 
 class WalletMainScreen {
 
@@ -292,6 +293,19 @@ class WalletMainScreen {
       const balanceContainerText = await balanceContainer.getText();
 
       return balanceContainerText;
+    }
+  }
+
+  async isMenuButtonVisible() {
+    if (!this._device) {
+      return await this.balanceContainer.isVisible();
+    } else {
+      const menuButton = await AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON);
+      const timer = new TimerHelper('Time for the menu button to be visible');
+      timer.start();
+      await appwrightExpect(menuButton).toBeVisible();
+      timer.stop();
+      return timer;
     }
   }
 

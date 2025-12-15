@@ -619,6 +619,8 @@ describe('EarnWithdrawInputView', () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
+        expect.anything(),
+        null,
       );
     });
 
@@ -663,6 +665,8 @@ describe('EarnWithdrawInputView', () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
+        expect.anything(),
+        null,
       );
     });
   });
