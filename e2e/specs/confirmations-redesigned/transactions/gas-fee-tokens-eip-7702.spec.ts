@@ -306,6 +306,7 @@ describe(
           await TabBarComponent.tapActivity();
 
           await Assertions.expectTextDisplayed('Confirmed');
+          await device.enableSynchronization();
         },
       );
     });
