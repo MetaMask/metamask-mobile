@@ -165,7 +165,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleBackPress = () => {
-    Authentication.lockApp();
+    Authentication.lockApp({ reset: false });
     return false;
   };
 
