@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
   return StyleSheet.create({
     tokenDetailsContainer: {
-      marginTop: 24,
+      marginTop: 16,
       gap: 24,
     },
     contentWrapper: {
