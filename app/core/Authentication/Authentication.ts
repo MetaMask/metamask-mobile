@@ -77,6 +77,8 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { strings } from '../../../locales/i18n';
+import { IconName } from '../../component-library/components/Icons/Icon';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -1283,6 +1285,47 @@ class AuthenticationService {
       Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
       return false;
     }
+  };
+
+  /**
+   * Checks if the seedless password is outdated and shows a modal if it is.
+   * This method verifies the outdated state and navigates to show the password outdated modal.
+   *
+   * @param {boolean} isSeedlessPasswordOutdated - whether the seedless password is marked as outdated in state
+   * @returns {Promise<void>}
+   */
+  checkAndShowSeedlessPasswordOutdatedModal = async (
+    isSeedlessPasswordOutdated: boolean,
+  ): Promise<void> => {
+    if (!isSeedlessPasswordOutdated) {
+      return;
+    }
+
+    // Check for latest seedless password outdated state
+    // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
+    const isOutdated = await this.checkIsSeedlessPasswordOutdated(false);
+    if (!isOutdated) {
+      return;
+    }
+
+    // show seedless password outdated modal and force user to lock app
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings('login.seedless_password_outdated_modal_title'),
+        description: strings('login.seedless_password_outdated_modal_content'),
+        primaryButtonLabel: strings(
+          'login.seedless_password_outdated_modal_confirm',
+        ),
+        type: 'error',
+        icon: IconName.Danger,
+        isInteractable: false,
+        onPrimaryButtonPress: async () => {
+          await this.lockApp({ locked: true });
+        },
+        closeOnPrimaryButtonPress: true,
+      },
+    });
   };
 
   /**
