@@ -452,8 +452,5 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       </View>
     </View>
   </View>
-  <View />
-  <View />
-  <View />
 </View>
 `;
