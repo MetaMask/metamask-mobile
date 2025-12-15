@@ -131,6 +131,31 @@ jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
 }));
 
 describe('Login test suite 2', () => {
+  const createMockReduxStore = (
+    stateOverrides?: RecursivePartial<RootState>,
+  ) => {
+    const defaultState = {
+      user: {
+        existingUser: false,
+      },
+      security: {
+        allowLoginWithRememberMe: false,
+      },
+      settings: {
+        lockTime: -1,
+      },
+      ...(stateOverrides || {}),
+    } as RecursivePartial<RootState>;
+
+    return {
+      dispatch: jest.fn(),
+      getState: jest.fn(() => defaultState),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+      [Symbol.observable]: jest.fn(),
+    } as unknown as ReduxStore;
+  };
+
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -139,12 +164,19 @@ describe('Login test suite 2', () => {
     jest
       .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
       .mockResolvedValue(false);
+
+    // Mock Redux store for all tests
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.clearAllTimers();
     jest.clearAllMocks();
+    // Restore Redux store mock after clearing mocks
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   afterAll(() => {
@@ -184,7 +216,7 @@ describe('Login test suite 2', () => {
         });
 
       jest
-        .spyOn(Authentication, 'storePassword')
+        .spyOn(Authentication, 'updateAuthPreference')
         .mockResolvedValueOnce(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -290,7 +322,7 @@ describe('Login test suite 2', () => {
         });
 
       jest
-        .spyOn(Authentication, 'storePassword')
+        .spyOn(Authentication, 'updateAuthPreference')
         .mockRejectedValueOnce(new Error('Store password failed'));
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -383,6 +415,12 @@ describe('Login test suite 2', () => {
         return null;
       });
       const mockState: RecursivePartial<RootState> = {
+        user: {
+          existingUser: false,
+        },
+        security: {
+          allowLoginWithRememberMe: false,
+        },
         engine: {
           backgroundState: {
             SeedlessOnboardingController: {
@@ -395,8 +433,14 @@ describe('Login test suite 2', () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
         getState: jest.fn(() => mockState),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+        [Symbol.observable]: jest.fn(),
       } as unknown as ReduxStore);
-      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
+      jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
+      jest
+        .spyOn(Authentication, 'updateAuthPreference')
+        .mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
