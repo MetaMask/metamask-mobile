@@ -7,8 +7,7 @@ const stylesheet = () =>
     },
     // custom network
     customNetworkContainer: {
-      paddingLeft: 24,
-      paddingRight: 16,
+      paddingHorizontal: 16,
     },
     // select all popular networks cell
     selectAllPopularNetworksCell: {

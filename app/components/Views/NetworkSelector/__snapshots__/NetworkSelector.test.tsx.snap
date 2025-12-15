@@ -2224,7 +2224,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 8,
+                                        "paddingRight": 4,
                                       }
                                     }
                                   >
@@ -2442,7 +2442,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 8,
+                                        "paddingRight": 4,
                                       }
                                     }
                                   >
@@ -2660,7 +2660,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 8,
+                                        "paddingRight": 4,
                                       }
                                     }
                                   >
@@ -2878,7 +2878,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 8,
+                                        "paddingRight": 4,
                                       }
                                     }
                                   >
@@ -3096,7 +3096,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 8,
+                                        "paddingRight": 4,
                                       }
                                     }
                                   >
@@ -3317,7 +3317,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingRight": 8,
+                                        "paddingRight": 4,
                                       }
                                     }
                                   >
@@ -3743,10 +3743,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >
@@ -3872,10 +3870,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >
@@ -4017,10 +4013,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >
@@ -4146,10 +4140,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >
@@ -4275,10 +4267,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >
@@ -4404,10 +4394,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >
@@ -4533,10 +4521,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >
@@ -4662,10 +4648,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >
@@ -4791,10 +4775,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           {
                                             "alignItems": "center",
                                             "borderRadius": 10,
-                                            "height": 20,
                                             "justifyContent": "center",
                                             "marginRight": 20,
-                                            "width": 20,
                                           }
                                         }
                                       >

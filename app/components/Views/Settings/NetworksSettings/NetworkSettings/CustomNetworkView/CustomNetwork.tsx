@@ -196,7 +196,11 @@ const CustomNetwork = ({
           </View>
           {compactMode && (
             <View>
-              <Icon name={IconName.Add} size={IconSize.Lg} />
+              <Icon
+                style={customNetworkStyles.icon}
+                name={IconName.Add}
+                size={IconSize.Lg}
+              />
             </View>
           )}
         </TouchableOpacity>
