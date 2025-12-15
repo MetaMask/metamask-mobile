@@ -15,29 +15,31 @@ let cachedChainsListPromise: Promise<SafeChain[]> | null = null;
 
 async function fetchChainsList(): Promise<SafeChain[]> {
   if (!cachedChainsListPromise) {
-    const response = await fetch('https://chainid.network/chains.json');
+    cachedChainsListPromise = (async () => {
+      const response = await fetch('https://chainid.network/chains.json');
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch chains: ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Failed to fetch chains: ${response.status}`);
+      }
 
-    const safeChainsData = await response.json();
+      const safeChainsData = await response.json();
 
-    // Validate the structure
-    if (!Array.isArray(safeChainsData)) {
-      throw new Error('Invalid chains data format');
-    }
+      // Validate the structure
+      if (!Array.isArray(safeChainsData)) {
+        throw new Error('Invalid chains data format');
+      }
 
-    try {
-      await StorageWrapper.setItem(
-        'SAFE_CHAINS_CACHE',
-        JSON.stringify(safeChainsData),
-      );
-    } catch (cacheError) {
-      Logger.log('Error caching chains data:', cacheError);
-    }
+      try {
+        await StorageWrapper.setItem(
+          'SAFE_CHAINS_CACHE',
+          JSON.stringify(safeChainsData),
+        );
+      } catch (cacheError) {
+        Logger.log('Error caching chains data:', cacheError);
+      }
 
-    cachedChainsListPromise = Promise.resolve(safeChainsData);
+      return safeChainsData;
+    })();
   }
   return cachedChainsListPromise;
 }
