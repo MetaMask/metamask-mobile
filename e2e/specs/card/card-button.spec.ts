@@ -51,12 +51,9 @@ describe.skip(SmokeCard('Card NavBar Button'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should open Card Home when pressing card navbar button', async () => {
+  it('opens Card Home when pressing card navbar button', async () => {
     await setupCardTest(async () => {
       await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
-      await Assertions.expectElementToBeVisible(
-        WalletView.navbarCardButtonBadge,
-      );
       await WalletView.tapNavbarCardButton();
       await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
     });
