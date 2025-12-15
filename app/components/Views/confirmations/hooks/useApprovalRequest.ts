@@ -63,7 +63,7 @@ const useApprovalRequest = () => {
     pageMeta,
     onConfirm,
     onReject,
-    pendingApprovalList,
+    pendingApprovals,
   };
 };
 

@@ -20,7 +20,7 @@ export interface PermissionApprovalProps {
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { approvalRequest, pendingApprovalList } = useApprovalRequest();
+  const { approvalRequest, pendingApprovals } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
 
   const eventSource = useOriginSource({
@@ -72,7 +72,11 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     trackEvent,
     createEventBuilder,
     eventSource,
-    pendingApprovalList,
+    // Include pendingApprovals to ensure the effect re-runs when the approval queue changes.
+    // This prevents the queue from getting permanently stuck and handles cases where new approvals
+    // are added to the list, ensuring previous approvals that weren't rendered for other reasons
+    // can be processed. Ideally we can identify all cases where approval fail to render and then remove this dependency.
+    pendingApprovals,
   ]);
 
   return null;
