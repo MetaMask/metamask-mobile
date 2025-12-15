@@ -488,27 +488,26 @@ describe('useNftDetection', () => {
   describe('abortDetection', () => {
     it('aborts in-progress detection', async () => {
       mockEngine.context.PreferencesController.state.useNftDetection = true;
-      let abortSignal: AbortSignal | undefined;
+      let capturedSignal: AbortSignal | undefined;
 
       mockDetectNfts.mockImplementation(
-        (_chainIds, options?: { signal?: AbortSignal }) => {
-          abortSignal = options?.signal;
-          return new Promise((resolve) => setTimeout(resolve, 1000));
+        async (_chainIds, options?: { signal?: AbortSignal }) => {
+          capturedSignal = options?.signal;
         },
       );
 
       const { result } = renderHook(() => useNftDetection());
 
-      act(() => {
-        result.current.detectNfts();
+      await act(async () => {
+        await result.current.detectNfts();
       });
 
       act(() => {
         result.current.abortDetection();
       });
 
-      expect(abortSignal).toBeDefined();
-      expect(abortSignal?.aborted).toBe(true);
+      expect(capturedSignal).toBeDefined();
+      expect(capturedSignal?.aborted).toBe(true);
     });
 
     it('does nothing when no detection is in progress', () => {
