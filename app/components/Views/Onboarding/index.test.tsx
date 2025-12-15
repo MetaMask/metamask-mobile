@@ -1109,13 +1109,20 @@ describe('Onboarding', () => {
       );
     });
 
-    it('shows error sheet for OAuth when no credential is available in Android', async () => {
+    it('attempts browser fallback when no credential is available in Android', async () => {
+      Platform.OS = 'android';
       const noCredentialError = new OAuthError(
         '',
         OAuthErrorType.GoogleLoginNoCredential,
       );
-      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(noCredentialError);
+      const fallbackError = new OAuthError('', OAuthErrorType.GoogleLoginError);
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noCredentialError)
+        .mockRejectedValueOnce(fallbackError);
 
       mockNavigate.mockClear();
       const { getByTestId } = renderScreen(
@@ -1146,32 +1153,40 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      // Verify fallback was attempted
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      // Verify no error sheet is shown (handled silently)
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('error_sheet.google_login_no_credential_title'),
-            description: strings(
-              'error_sheet.google_login_no_credential_description',
-            ),
-            descriptionAlign: 'center',
-            buttonLabel: strings(
-              'error_sheet.google_login_no_credential_button',
-            ),
-            type: 'error',
-          }),
         }),
       );
+
+      Platform.OS = 'ios';
     });
 
-    it('shows error sheet for OAuth when no matching credential in Android', async () => {
-      const noCredentialError = new OAuthError(
+    it('attempts browser fallback when no matching credential in Android', async () => {
+      Platform.OS = 'android';
+      const noMatchingCredentialError = new OAuthError(
         '',
         OAuthErrorType.GoogleLoginNoMatchingCredential,
       );
-      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(noCredentialError);
+      const fallbackError = new OAuthError('', OAuthErrorType.GoogleLoginError);
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noMatchingCredentialError)
+        .mockRejectedValueOnce(fallbackError);
 
       mockNavigate.mockClear();
       const { getByTestId } = renderScreen(
@@ -1202,23 +1217,93 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      // Verify fallback was attempted
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      // Verify no error sheet is shown (handled silently)
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: expect.objectContaining({
-            title: strings('error_sheet.google_login_no_credential_title'),
-            description: strings(
-              'error_sheet.google_login_no_credential_description',
-            ),
-            descriptionAlign: 'center',
-            buttonLabel: strings(
-              'error_sheet.google_login_no_credential_button',
-            ),
-            type: 'error',
-          }),
         }),
       );
+
+      Platform.OS = 'ios';
+    });
+
+    it('successfully authenticates via browser fallback when no credential is available in Android', async () => {
+      Platform.OS = 'android';
+      const noCredentialError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginNoCredential,
+      );
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noCredentialError)
+        .mockResolvedValueOnce({
+          type: 'success',
+          existingUser: false,
+          accountName: 'test@example.com',
+        });
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      // Verify successful navigation to ChoosePassword
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.objectContaining({
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          provider: 'google',
+        }),
+      );
+
+      Platform.OS = 'ios';
     });
 
     it('enables social login metrics when OAuth login succeeds', async () => {
