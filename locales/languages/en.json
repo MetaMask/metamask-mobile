@@ -5762,9 +5762,10 @@
       "learn_more_with_period": "Learn more."
     },
     "stake_your_trx_cta": {
-      "base": "Stake your TRX with MetaMask Pool and earn",
-      "annually": "annually.",
-      "learn_more_with_period": "Learn more."
+      "title": "Lend Tron and earn",
+      "description_start": "Stake your Tron and earn ",
+      "description_end": " annually.",
+      "earn_button": "Earn"
     },
     "day": {
       "zero": "",
