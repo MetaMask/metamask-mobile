@@ -48,8 +48,14 @@ function useIsOriginalNativeTokenSymbol(
           return;
         }
 
+        // Wait for safeChainsList to load before checking
+        // Keep state as null (loading) to avoid false warnings
+        if (!safeChainsList || safeChainsList.length === 0) {
+          return;
+        }
+
         // check safety network using a third part
-        const matchedChain = safeChainsList?.find(
+        const matchedChain = safeChainsList.find(
           (network) => network.chainId === parseInt(networkId),
         );
 
