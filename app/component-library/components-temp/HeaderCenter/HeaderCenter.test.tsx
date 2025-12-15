@@ -25,7 +25,7 @@ describe('HeaderCenter', () => {
     it('renders with title', () => {
       const { getByText } = render(<HeaderCenter title="Test Title" />);
 
-      expect(getByText('Test Title')).toBeTruthy();
+      expect(getByText('Test Title')).toBeOnTheScreen();
     });
 
     it('renders title with testID when provided via titleProps', () => {
@@ -36,7 +36,7 @@ describe('HeaderCenter', () => {
         />,
       );
 
-      expect(getByTestId(TITLE_TEST_ID)).toBeTruthy();
+      expect(getByTestId(TITLE_TEST_ID)).toBeOnTheScreen();
     });
 
     it('renders container with testID when provided', () => {
@@ -44,7 +44,7 @@ describe('HeaderCenter', () => {
         <HeaderCenter title="Test Title" testID={CONTAINER_TEST_ID} />,
       );
 
-      expect(getByTestId(CONTAINER_TEST_ID)).toBeTruthy();
+      expect(getByTestId(CONTAINER_TEST_ID)).toBeOnTheScreen();
     });
 
     it('renders custom children instead of title', () => {
@@ -54,8 +54,8 @@ describe('HeaderCenter', () => {
         </HeaderCenter>,
       );
 
-      expect(getByText('Custom Content')).toBeTruthy();
-      expect(queryByText('Ignored Title')).toBeNull();
+      expect(getByText('Custom Content')).toBeOnTheScreen();
+      expect(queryByText('Ignored Title')).not.toBeOnTheScreen();
     });
 
     it('renders children when both title and children provided', () => {
@@ -65,8 +65,8 @@ describe('HeaderCenter', () => {
         </HeaderCenter>,
       );
 
-      expect(getByText('Children Text')).toBeTruthy();
-      expect(queryByText('Title Text')).toBeNull();
+      expect(getByText('Children Text')).toBeOnTheScreen();
+      expect(queryByText('Title Text')).not.toBeOnTheScreen();
     });
   });
 
@@ -80,7 +80,7 @@ describe('HeaderCenter', () => {
         />,
       );
 
-      expect(getByTestId(BACK_BUTTON_TEST_ID)).toBeTruthy();
+      expect(getByTestId(BACK_BUTTON_TEST_ID)).toBeOnTheScreen();
     });
 
     it('renders back button when backButtonProps provided', () => {
@@ -91,7 +91,7 @@ describe('HeaderCenter', () => {
         />,
       );
 
-      expect(getByTestId(BACK_BUTTON_TEST_ID)).toBeTruthy();
+      expect(getByTestId(BACK_BUTTON_TEST_ID)).toBeOnTheScreen();
     });
 
     it('calls onBack when back button pressed', () => {
@@ -140,12 +140,15 @@ describe('HeaderCenter', () => {
       expect(onBack).not.toHaveBeenCalled();
     });
 
-    it('does not render back button when neither onBack nor backButtonProps provided', () => {
+    it('does not render start accessory when no back button props provided', () => {
       const { queryByTestId } = render(
-        <HeaderCenter title="Title" testID={CONTAINER_TEST_ID} />,
+        <HeaderCenter
+          title="Title"
+          startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
+        />,
       );
 
-      expect(queryByTestId(BACK_BUTTON_TEST_ID)).toBeNull();
+      expect(queryByTestId(START_ACCESSORY_TEST_ID)).not.toBeOnTheScreen();
     });
   });
 
@@ -159,7 +162,7 @@ describe('HeaderCenter', () => {
         />,
       );
 
-      expect(getByTestId(CLOSE_BUTTON_TEST_ID)).toBeTruthy();
+      expect(getByTestId(CLOSE_BUTTON_TEST_ID)).toBeOnTheScreen();
     });
 
     it('renders close button when closeButtonProps provided', () => {
@@ -173,7 +176,7 @@ describe('HeaderCenter', () => {
         />,
       );
 
-      expect(getByTestId(CLOSE_BUTTON_TEST_ID)).toBeTruthy();
+      expect(getByTestId(CLOSE_BUTTON_TEST_ID)).toBeOnTheScreen();
     });
 
     it('calls onClose when close button pressed', () => {
@@ -222,12 +225,15 @@ describe('HeaderCenter', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
 
-    it('does not render close button when neither onClose nor closeButtonProps provided', () => {
+    it('does not render end accessory when no close button props provided', () => {
       const { queryByTestId } = render(
-        <HeaderCenter title="Title" testID={CONTAINER_TEST_ID} />,
+        <HeaderCenter
+          title="Title"
+          endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
+        />,
       );
 
-      expect(queryByTestId(CLOSE_BUTTON_TEST_ID)).toBeNull();
+      expect(queryByTestId(END_ACCESSORY_TEST_ID)).not.toBeOnTheScreen();
     });
   });
 
@@ -242,7 +248,7 @@ describe('HeaderCenter', () => {
         />,
       );
 
-      expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeTruthy();
+      expect(getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
     });
 
     it('forwards endButtonIconProps and adds close button', () => {
@@ -258,8 +264,8 @@ describe('HeaderCenter', () => {
         />,
       );
 
-      expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeTruthy();
-      expect(getByTestId(CLOSE_BUTTON_TEST_ID)).toBeTruthy();
+      expect(getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(CLOSE_BUTTON_TEST_ID)).toBeOnTheScreen();
     });
 
     it('accepts custom testID', () => {
@@ -267,7 +273,7 @@ describe('HeaderCenter', () => {
         <HeaderCenter title="Title" testID="custom-header" />,
       );
 
-      expect(getByTestId('custom-header')).toBeTruthy();
+      expect(getByTestId('custom-header')).toBeOnTheScreen();
     });
   });
 });
