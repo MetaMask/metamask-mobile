@@ -163,7 +163,7 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
   timer2.start();
   await AddAccountModal.isVisible();
   timer2.stop();
-
+  await AccountListComponent.waitForSyncingToComplete();
   await AddAccountModal.tapImportSrpButton();
   timer3.start();
   await ImportFromSeedScreen.isScreenTitleVisible(false);

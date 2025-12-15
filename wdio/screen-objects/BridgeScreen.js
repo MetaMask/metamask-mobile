@@ -46,7 +46,7 @@ class BridgeScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${networkName}"]`);
+        return AppwrightSelectors.getElementByCatchAll(this._device, networkName);
       } else {
         return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
       }

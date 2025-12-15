@@ -77,11 +77,11 @@ class AccountListComponent {
   }
 
   async waitForSyncingToComplete() {
-    const syncingElement = await AppwrightSelectors.getElementByText(this.device, 'Syncing');
-    await AppwrightSelectors.waitForElementToDisappear(syncingElement, 'Syncing element', 30000);
+    const syncingElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Syncing');
+    await AppwrightSelectors.waitForElementToDisappear(syncingElement, 'Syncing', 30000);
     
-    const discoveringAccountsElement = await AppwrightSelectors.getElementByText(this.device, 'Discovering accounts');
-    await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts element', 30000);
+    const discoveringAccountsElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Discovering accounts...');
+    await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts', 30000);
   }
 }
 
