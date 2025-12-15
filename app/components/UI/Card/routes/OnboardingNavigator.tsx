@@ -23,7 +23,11 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import KYCWebview from '../components/Onboarding/KYCWebview';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -110,7 +114,7 @@ const OnboardingNavigator: React.FC = () => {
   const onboardingId = useSelector(selectOnboardingId);
   const { user, isLoading, fetchUserData } = useCardSDK();
   const [isMounted, setIsMounted] = useState(false);
-
+  const navigation = useNavigation();
   // Fetch fresh user data on mount if user data is missing
   // This ensures we always have the most up-to-date onboarding information
   // when the navigator is accessed
@@ -178,6 +182,23 @@ const OnboardingNavigator: React.FC = () => {
     // Default to SIGN_UP route if no user data is available
     return Routes.CARD.ONBOARDING.SIGN_UP;
   }, [user, cardUserPhase, onboardingId]);
+
+  useEffect(() => {
+    const initialRoute = getInitialRouteName;
+    if (initialRoute !== Routes.CARD.ONBOARDING.SIGN_UP) {
+      navigation.navigate(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+        params: {
+          title: strings('card.card_onboarding.keep_going.title'),
+          description: strings('card.card_onboarding.keep_going.description'),
+          confirmAction: {
+            label: strings('card.card_onboarding.keep_going.confirm_button'),
+          },
+          icon: IconName.ArrowDoubleRight,
+        },
+      });
+    }
+  }, [getInitialRouteName, navigation]);
 
   if (isLoading && !user) {
     return (

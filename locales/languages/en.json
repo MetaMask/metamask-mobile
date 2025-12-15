@@ -6520,8 +6520,7 @@
         "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
         "didnt_receive_code": "Didn't receive the code? ",
         "resend_verification": "Resend it",
-        "resend_cooldown": "Resend available in {{seconds}} seconds",
-        "account_exists": "Please log in to proceed with your onboarding"
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "set_phone_number": {
         "title": "Confirm your phone number",
@@ -6610,6 +6609,16 @@
         "title": "You're in!",
         "description": "Let's set up your card so you can start spending your crypto.",
         "confirm_button": "Set up my card"
+      },
+      "account_exists": {
+        "title": "You already have an account",
+        "description": "The email address {{email}} is already associated with a Card account.",
+        "confirm_button": "Log in"
+      },
+      "keep_going":{
+        "title": "Let's keep going",
+        "description": "Pick up where you left off and finish setting up your card.",
+        "confirm_button": "Continue"
       },
       "continue_button": "Next",
       "confirm_button": "Confirm",

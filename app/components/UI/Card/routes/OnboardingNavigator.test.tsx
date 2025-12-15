@@ -160,6 +160,10 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       COMPLETE: 'COMPLETE',
       WEBVIEW: 'WEBVIEW',
     },
+    MODALS: {
+      ID: 'CARD_MODALS',
+      CONFIRM_MODAL: 'CONFIRM_MODAL',
+    },
   },
 }));
 
