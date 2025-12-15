@@ -138,19 +138,16 @@ describe(`migration #${migrationVersion}`, () => {
     },
   ];
 
-  it.each(invalidStates)(
-    'captures exception if $scenario',
-    ({ state }) => {
-      const orgState = cloneDeep(state);
-      mockedEnsureValidState.mockReturnValue(true);
+  it.each(invalidStates)('captures exception if $scenario', ({ state }) => {
+    const orgState = cloneDeep(state);
+    mockedEnsureValidState.mockReturnValue(true);
 
-      const migratedState = migrate(state);
+    const migratedState = migrate(state);
 
-      // State should be unchanged
-      expect(migratedState).toStrictEqual(orgState);
-      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    },
-  );
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+  });
 
   it('removes the megaeth testnet v1 network configuration and adds the megaeth testnet v2 network configuration', async () => {
     const orgState = {
