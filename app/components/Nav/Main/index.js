@@ -90,6 +90,7 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { Authentication } from '../../../core';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
+import IntercomButton from '../../UI/IntercomButton';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 import {
   useNetworksByNamespace,
@@ -122,6 +123,11 @@ const Main = (props) => {
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
+
+  // Intercom integration - only enabled on beta builds with feature flag
+  const INTERCOM_ENABLED =
+    process.env.MM_INTERCOM_ENABLED === 'true' &&
+    process.env.METAMASK_ENVIRONMENT === 'beta';
 
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
@@ -460,6 +466,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        {INTERCOM_ENABLED && <IntercomButton />}
       </View>
     </React.Fragment>
   );

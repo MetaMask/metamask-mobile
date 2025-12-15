@@ -141,5 +141,13 @@
 	<string>$(MM_FOX_CODE)</string>
 	<key>mixpanel_token</key>
 	<string>$(MM_MIXPANEL_TOKEN)</string>
+	<key>intercom_enabled</key>
+	<string>$(MM_INTERCOM_ENABLED)</string>
+	<key>metamask_environment</key>
+	<string>$(METAMASK_ENVIRONMENT)</string>
+	<key>intercom_api_key</key>
+	<string>$(MM_INTERCOM_API_KEY_IOS)</string>
+	<key>intercom_app_id</key>
+	<string>$(MM_INTERCOM_APP_ID)</string>
 </dict>
 </plist>
