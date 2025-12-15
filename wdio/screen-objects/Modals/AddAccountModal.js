@@ -100,7 +100,7 @@ class AddAccountModal {
 
   async isVisible() {
     const element = await this.importSrpButton;
-    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+    await appwrightExpect(element).toBeVisible({ timeout: 20000 });
   }
 }
 

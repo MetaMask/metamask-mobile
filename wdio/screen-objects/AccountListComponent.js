@@ -76,14 +76,33 @@ class AccountListComponent {
     await AppwrightGestures.tap(account); // Tap after scrolling into view
   }
 
-  async waitForSyncingToComplete() {
+  async waitForSyncingToComplete(timeout = 60000) {
+    console.log('⏳ waitForSyncingToComplete: Starting...');
+    const startTime = Date.now();
+    const pollInterval = 500;
+    
     const syncingElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Syncing');
-    await AppwrightSelectors.waitForElementToDisappear(syncingElement, 'Syncing', 30000);
-    const discoveringAccountsElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Discovering');
-    await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts...', 30000);
+    const discoveringElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Discovering');
 
-    const addButton = await this.addAccountButton;
-    await expect(addButton).toBeVisible({ timeout: 30000 });
+    
+    while (Date.now() - startTime < timeout) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      const addButton = await this.addAccountButton;
+      // Check if loading indicators are gone
+      const isSyncing = await syncingElement.isVisible({ timeout: 200 }).catch(() => false);
+      const isDiscovering = await discoveringElement.isVisible({ timeout: 200 }).catch(() => false);
+      const isAddButtonVisible = await addButton.isVisible({ timeout: 200 }).catch(() => false);
+      
+      // Success: no loading indicators AND add button is visible
+      if (!isSyncing && !isDiscovering && isAddButtonVisible) {
+        console.log(`✅ waitForSyncingToComplete: Completed after ${elapsed}s`);
+        return;
+      }
+      
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+    
+    throw new Error(`Syncing did not complete within ${timeout / 1000} seconds`);
   }
 }
 

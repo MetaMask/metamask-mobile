@@ -158,12 +158,12 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
   timer.start();
   await AccountListComponent.isComponentDisplayed();
   timer.stop();
-
+  await AccountListComponent.waitForSyncingToComplete();
   await AccountListComponent.tapOnAddWalletButton();
   timer2.start();
   await AddAccountModal.isVisible();
   timer2.stop();
-  await AccountListComponent.waitForSyncingToComplete();
+
   await AddAccountModal.tapImportSrpButton();
   timer3.start();
   await ImportFromSeedScreen.isScreenTitleVisible(false);
@@ -189,7 +189,6 @@ export async function login(device, options = {}) {
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  await new Promise((resolve) => setTimeout(resolve, 5000)); // workaround for notification modal to appear
   if (dismissModals) {
     await dismissMultichainAccountsIntroModal(device);
     await dissmissPredictionsModal(device);
