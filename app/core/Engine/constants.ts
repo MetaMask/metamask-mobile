@@ -15,6 +15,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'BackendWebSocketService',
   'AccountActivityService',
   'MultichainAccountService',
+  'OnRampService',
   'ProfileMetricsService',
 ] as const;
 
@@ -34,6 +35,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PermissionController:stateChange',
   'PhishingController:stateChange',
   'PreferencesController:stateChange',
+  'RampsController:stateChange',
   'RemoteFeatureFlagController:stateChange',
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',

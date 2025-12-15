@@ -123,6 +123,8 @@ import { bridgeControllerInit } from './controllers/bridge-controller/bridge-con
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
+import { onRampServiceInit } from './controllers/on-ramp-service-init';
+import { rampsControllerInit } from './controllers/ramps-controller-init';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
@@ -359,6 +361,8 @@ export class Engine {
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        OnRampService: onRampServiceInit,
+        RampsController: rampsControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -390,6 +394,8 @@ export class Engine {
     const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
     const rewardsController = controllersByName.RewardsController;
+    const onRampService = controllersByName.OnRampService;
+    const rampsController = controllersByName.RampsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
     const selectedNetworkController =
@@ -544,6 +550,8 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       RewardsController: rewardsController,
+      OnRampService: onRampService,
+      RampsController: rampsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
@@ -1306,6 +1314,7 @@ export default {
       PhishingController,
       PredictController,
       PreferencesController,
+      RampsController,
       RemoteFeatureFlagController,
       RewardsController,
       SeedlessOnboardingController,
@@ -1368,6 +1377,7 @@ export default {
       PhishingController,
       PredictController,
       PreferencesController,
+      RampsController,
       RemoteFeatureFlagController,
       RewardsController,
       SeedlessOnboardingController,

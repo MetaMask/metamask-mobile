@@ -110,6 +110,8 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
+import { getRampsControllerMessenger } from './ramps-controller-messenger';
+import { getOnRampServiceMessenger } from './on-ramp-service-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
@@ -353,6 +355,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   RemoteFeatureFlagController: {
     getMessenger: getRemoteFeatureFlagControllerMessenger,
+    getInitMessenger: noop,
+  },
+  RampsController: {
+    getMessenger: getRampsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  OnRampService: {
+    getMessenger: getOnRampServiceMessenger,
     getInitMessenger: noop,
   },
   RewardsController: {

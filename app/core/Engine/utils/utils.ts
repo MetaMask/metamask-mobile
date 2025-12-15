@@ -82,6 +82,7 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
       controllerMessenger,
       getController,
       initMessenger,
+      baseControllerMessenger,
       ...initRequest,
     };
 
