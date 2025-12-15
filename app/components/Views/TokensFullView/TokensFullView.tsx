@@ -39,6 +39,7 @@ const TokensFullView = () => {
           />
         }
         style={tw`p-4`}
+        twClassName="h-auto"
       >
         {strings('wallet.tokens')}
       </HeaderBase>

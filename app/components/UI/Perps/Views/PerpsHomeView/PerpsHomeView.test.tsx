@@ -137,6 +137,10 @@ jest.mock('@metamask/design-system-react-native', () => ({
   BoxAlignItems: {
     Center: 'Center',
   },
+  TextVariant: {
+    HeadingSm: 'heading-sm',
+    HeadingLg: 'heading-lg',
+  },
 }));
 
 // Mock stylesheet

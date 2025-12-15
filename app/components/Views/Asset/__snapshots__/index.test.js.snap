@@ -291,23 +291,20 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -397,10 +394,16 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -454,13 +457,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -1979,23 +1976,20 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -2085,10 +2079,16 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -2142,13 +2142,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -3708,23 +3702,20 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -3814,10 +3805,16 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -3871,13 +3868,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -5396,23 +5387,20 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -5502,10 +5490,16 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -5559,13 +5553,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -7084,23 +7072,20 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -7190,10 +7175,16 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -7247,13 +7238,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -8813,23 +8798,20 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -8919,10 +8901,16 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -8976,13 +8964,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -10501,23 +10483,20 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -10607,10 +10586,16 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -10664,13 +10649,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -11032,23 +11011,20 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -11138,10 +11114,16 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -11195,13 +11177,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -12720,23 +12696,20 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -12826,10 +12799,16 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -12883,13 +12862,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -14408,23 +14381,20 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
+                "height": "auto",
               },
               {
                 "marginTop": 0,
               },
+              undefined,
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
@@ -14514,10 +14484,16 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -14571,13 +14547,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
               </View>
             </TouchableOpacity>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >
