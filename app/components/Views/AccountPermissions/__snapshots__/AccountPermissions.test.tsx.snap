@@ -513,7 +513,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               <View
                 style={
                   {
-                    "paddingRight": 8,
+                    "paddingRight": 4,
                   }
                 }
               >
