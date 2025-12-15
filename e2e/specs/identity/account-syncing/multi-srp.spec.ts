@@ -117,6 +117,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         // Create second account for SRP 2
         await AccountListBottomSheet.tapAddAccountButtonV2({
           srpIndex: 1,
+          shouldWait: true,
         });
 
         await waitUntilSyncedAccountsNumberEquals(4);

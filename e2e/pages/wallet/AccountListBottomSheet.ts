@@ -134,7 +134,10 @@ class AccountListBottomSheet {
     });
   }
 
-  async tapAddAccountButtonV2(options?: { srpIndex?: number }): Promise<void> {
+  async tapAddAccountButtonV2(options?: {
+    srpIndex?: number;
+    shouldWait?: boolean;
+  }): Promise<void> {
     const button = Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       options?.srpIndex ?? 0,
@@ -142,6 +145,7 @@ class AccountListBottomSheet {
 
     await Gestures.waitAndTap(button, {
       elemDescription: 'Add Account button in V2 multichain accounts',
+      delay: options?.shouldWait ? 1500 : 0,
     });
   }
 
