@@ -79,12 +79,11 @@ class AccountListComponent {
   async waitForSyncingToComplete() {
     const syncingElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Syncing');
     await AppwrightSelectors.waitForElementToDisappear(syncingElement, 'Syncing', 30000);
-    
-    const discoveringAccountsElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Discovering accounts...');
+    const discoveringAccountsElement = await AppwrightSelectors.getElementByCatchAll(this.device, 'Discovering');
     await AppwrightSelectors.waitForElementToDisappear(discoveringAccountsElement, 'Discovering accounts...', 30000);
 
     const addButton = await this.addAccountButton;
-    expect(addButton).toBeVisible({ timeout: 30000 });
+    await expect(addButton).toBeVisible({ timeout: 30000 });
   }
 }
 
