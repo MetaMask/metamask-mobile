@@ -33,7 +33,7 @@ const TronStakingCta = ({ style, aprText, onEarn }: TronStakingCtaProps) => (
     </Text>
     <View style={styles.row}>
       <Text>{strings('stake.stake_your_trx_cta.description_start')}</Text>
-      {aprText ? <Text color={TextColor.Success}>{'3%'}</Text> : null}
+      {aprText ? <Text color={TextColor.Success}>{aprText}</Text> : null}
       <Text>{strings('stake.stake_your_trx_cta.description_end')}</Text>
     </View>
     {onEarn ? (
