@@ -1,4 +1,4 @@
-import { Matchers, Gestures } from '../../framework';
+import { Matchers, Gestures, Utilities } from '../../framework';
 import {
   PredictBalanceSelectorsIDs,
   PredictBuyPreviewSelectorsIDs,
@@ -127,9 +127,15 @@ class PredictDetailsPage {
   }
 
   async tapClaimWinningsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.claimButton, {
-      elemDescription: 'Claim winnings button',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.claimButton);
+      },
+      {
+        timeout: 10000,
+        description: 'Tap Claim Winnings Button on Market Details',
+      },
+    );
   }
 }
 
