@@ -1,8 +1,8 @@
 import React from 'react';
 import { ReactTestInstance } from 'react-test-renderer';
+import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import NotificationIcon, { TEST_IDS } from './Icon';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import SVG_ETH_LOGO_PATH from '../../../../component-library/components/Icons/Icon/assets/ethereum.svg';
 import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 
