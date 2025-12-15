@@ -139,20 +139,12 @@ export class HyperLiquidSubscriptionService {
   >(); // Per-DEX asset contexts
   private assetCtxsSubscriptionPromises = new Map<string, Promise<void>>(); // Track in-progress subscriptions
 
-  // Fallback subscriptions for missing fields in webData3
+  // Individual subscriptions for user data (primary data source in HIP-3 mode)
   private readonly clearinghouseStateSubscriptions = new Map<
     string,
     Subscription
   >(); // Key: dex name ('' for main)
   private readonly openOrdersSubscriptions = new Map<string, Subscription>(); // Key: dex name ('' for main)
-  private readonly fallbackClearinghouseStateCache = new Map<
-    string,
-    WsClearinghouseStateEvent['clearinghouseState']
-  >(); // Per-DEX fallback clearinghouse state
-  private readonly fallbackOpenOrdersCache = new Map<
-    string,
-    WsOpenOrdersEvent['orders']
-  >(); // Per-DEX fallback orders
 
   // Meta cache per DEX - populated by metaAndAssetCtxs, used by createAssetCtxsSubscription
   // This avoids redundant meta() API calls since metaAndAssetCtxs already returns meta data
@@ -917,101 +909,39 @@ export class HyperLiquidSubscriptionService {
             reject(ensureError(error));
           });
       } else {
-        // HIP-3 enabled: Use webData3 (main + HIP-3 DEXs)
-        subscriptionClient
+        // HIP-3 enabled: Use individual subscriptions for positions/orders/account
+        // webData3 is only used for OI caps extraction
+
+        // Determine which DEXs to subscribe to
+        const dexsToSubscribe = [
+          '', // Main DEX
+          ...this.enabledDexs.filter((d) => this.isDexEnabled(d)),
+        ];
+
+        // Set up individual subscriptions for each DEX
+        const subscriptionPromises: Promise<void>[] = [];
+
+        for (const currentDexName of dexsToSubscribe) {
+          // Set up clearinghouseState subscription for positions + account
+          subscriptionPromises.push(
+            this.ensureClearinghouseStateSubscription(
+              userAddress,
+              currentDexName,
+            ),
+          );
+
+          // Set up openOrders subscription for orders
+          subscriptionPromises.push(
+            this.ensureOpenOrdersSubscription(userAddress, currentDexName),
+          );
+        }
+
+        // Also set up webData3 for OI caps only
+        const webData3Promise = subscriptionClient
           .webData3({ user: userAddress }, (data: WsWebData3Event) => {
             try {
-              // Process data from each DEX in perpDexStates array
-              // webData3 returns data for ALL protocol DEXs, but we only process the ones we care about
-              data.perpDexStates.forEach((dexState, index) => {
-                // Map webData3 index to DEX name
-                // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
-                const dexIdentifier =
-                  index === 0 ? null : this.discoveredDexNames[index - 1];
-
-                // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
-                if (index > 0 && dexIdentifier === undefined) {
-                  return; // Unknown DEX - skip to prevent misidentifying as main DEX
-                }
-
-                // Only process DEXs we care about (skip others silently)
-                // webData3 API returns all protocol DEXs regardless of our config
-                if (!this.isDexEnabled(dexIdentifier ?? null)) {
-                  return; // Skip this DEX - not enabled in our configuration
-                }
-
-                const currentDexName = dexIdentifier ?? ''; // null -> '' for Map keys
-
-                // HOTFIX: Handle missing fields by using fallback subscriptions
-                // Check if clearinghouseState is missing and ensure fallback subscription
-                if (!dexState.clearinghouseState) {
-                  // Ensure fallback subscription exists
-                  this.setupFallbackClearinghouseStateSubscription(
-                    userAddress,
-                    currentDexName,
-                  );
-                  // Try to use cached fallback data
-                  const fallbackState =
-                    this.fallbackClearinghouseStateCache.get(currentDexName);
-                  if (!fallbackState) {
-                    // No fallback data yet, skip this update
-                    return;
-                  }
-                  // Use fallback data
-                  dexState.clearinghouseState = fallbackState;
-                }
-
-                // Check if openOrders is missing and ensure fallback subscription
-                if (!('openOrders' in dexState) || !dexState.openOrders) {
-                  // Ensure fallback subscription exists
-                  this.setupFallbackOpenOrdersSubscription(
-                    userAddress,
-                    currentDexName,
-                  );
-                  // Use fallback data if available
-                  const fallbackOrders =
-                    this.fallbackOpenOrdersCache.get(currentDexName);
-                  if (fallbackOrders) {
-                    dexState.openOrders = fallbackOrders;
-                  }
-                }
-
-                // Extract and process positions for this DEX
-                const positions = dexState.clearinghouseState.assetPositions
-                  .filter((assetPos) => assetPos.position.szi !== '0')
-                  .map((assetPos) => adaptPositionFromSDK(assetPos));
-
-                // Extract TP/SL from orders and process orders using shared helper
-                const {
-                  tpslMap,
-                  tpslCountMap,
-                  processedOrders: orders,
-                } = this.extractTPSLFromOrders(
-                  dexState.openOrders || [],
-                  positions,
-                );
-
-                // Merge TP/SL data into positions using shared helper
-                const positionsWithTPSL = this.mergeTPSLIntoPositions(
-                  positions,
-                  tpslMap,
-                  tpslCountMap,
-                );
-
-                // Extract account data for this DEX
-                // Note: spotState is not included in webData3
-                const accountState: AccountState = adaptAccountStateFromSDK(
-                  dexState.clearinghouseState,
-                  undefined, // webData3 doesn't include spotState
-                );
-
-                // Store per-DEX data in caches
-                this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
-                this.dexOrdersCache.set(currentDexName, orders);
-                this.dexAccountCache.set(currentDexName, accountState);
-              });
-
-              // Extract OI caps from all DEXs (main + HIP-3)
+              // webData3 is ONLY used for OI caps extraction
+              // Positions, orders, and account data come from individual subscriptions
               const allOICaps: string[] = [];
               data.perpDexStates.forEach((dexState, index) => {
                 // Map webData3 index to DEX name
@@ -1058,20 +988,13 @@ export class HyperLiquidSubscriptionService {
                   callback(allOICaps),
                 );
               }
-
-              // Aggregate and notify subscribers
-              this.aggregateAndNotifySubscribers();
             } catch (error) {
               Logger.error(
                 ensureError(error),
-                this.getErrorContext('webData3 callback error', {
+                this.getErrorContext('webData3 callback error (OI caps only)', {
                   user: userAddress,
                   hasPerpDexStates: data?.perpDexStates !== undefined,
                   perpDexStatesLength: data?.perpDexStates?.length ?? 0,
-                  dataKeys: data ? Object.keys(data) : 'data is null/undefined',
-                  firstDexStateKeys: data?.perpDexStates?.[0]
-                    ? Object.keys(data.perpDexStates[0])
-                    : [],
                 }),
               );
             }
@@ -1079,9 +1002,8 @@ export class HyperLiquidSubscriptionService {
           .then((sub) => {
             this.webData3Subscriptions.set(dexName, sub);
             DevLogger.log(
-              `webData3 subscription established for all DEXs (main + HIP-3)`,
+              `webData3 subscription established for OI caps (main + HIP-3)`,
             );
-            resolve();
           })
           .catch((error) => {
             Logger.error(
@@ -1090,69 +1012,37 @@ export class HyperLiquidSubscriptionService {
                 dex: dexName,
               }),
             );
+            // Don't reject here - individual subscriptions are more important
+          });
+
+        subscriptionPromises.push(webData3Promise);
+
+        // Wait for all subscriptions to be established
+        Promise.all(subscriptionPromises)
+          .then(() => {
+            DevLogger.log(
+              `HIP-3 user data subscriptions established for ${dexsToSubscribe.length} DEXs`,
+            );
+            resolve();
+          })
+          .catch((error) => {
+            Logger.error(
+              ensureError(error),
+              this.getErrorContext('createUserDataSubscription (HIP-3)', {
+                dexs: dexsToSubscribe,
+              }),
+            );
             reject(ensureError(error));
           });
-      } // Close else block for webData3
+      } // Close else block for HIP-3
     }); // Close Promise wrapper
   }
 
   /**
-   * Handle error from fallback subscription setup
+   * Ensure clearinghouseState subscription exists for a DEX
+   * Primary data source for positions and account state in HIP-3 mode
    */
-  private handleFallbackSubscriptionError(
-    error: unknown,
-    method: string,
-    dexName: string,
-  ): void {
-    Logger.error(
-      ensureError(error),
-      this.getErrorContext(method, {
-        dex: dexName,
-      }),
-    );
-  }
-
-  /**
-   * Setup fallback clearinghouseState subscription with error handling
-   */
-  private setupFallbackClearinghouseStateSubscription(
-    userAddress: string,
-    dexName: string,
-  ): void {
-    this.ensureFallbackClearinghouseStateSubscription(
-      userAddress,
-      dexName,
-    ).catch((error) =>
-      this.handleFallbackSubscriptionError(
-        error,
-        'ensureFallbackClearinghouseState',
-        dexName,
-      ),
-    );
-  }
-
-  /**
-   * Setup fallback openOrders subscription with error handling
-   */
-  private setupFallbackOpenOrdersSubscription(
-    userAddress: string,
-    dexName: string,
-  ): void {
-    this.ensureFallbackOpenOrdersSubscription(userAddress, dexName).catch(
-      (error) =>
-        this.handleFallbackSubscriptionError(
-          error,
-          'ensureFallbackOpenOrders',
-          dexName,
-        ),
-    );
-  }
-
-  /**
-   * HOTFIX: Ensure fallback clearinghouseState subscription exists for a DEX
-   * Used when clearinghouseState is missing from webData3.perpDexStates
-   */
-  private async ensureFallbackClearinghouseStateSubscription(
+  private async ensureClearinghouseStateSubscription(
     userAddress: string,
     dexName: string,
   ): Promise<void> {
@@ -1172,25 +1062,80 @@ export class HyperLiquidSubscriptionService {
           dex: dexName || undefined, // Empty string -> undefined for main DEX
         },
         (data: WsClearinghouseStateEvent) => {
-          // Cache the fallback clearinghouse state
           const cacheKey = data.dex || '';
-          this.fallbackClearinghouseStateCache.set(
-            cacheKey,
-            data.clearinghouseState,
-          );
+
           // Update caches and notify subscribers if we have positions/account subscribers
           if (
             this.positionSubscriberCount > 0 ||
             this.accountSubscriberCount > 0
           ) {
-            // Process positions from fallback clearinghouse state
+            // Process positions from clearinghouse state
             const positions = data.clearinghouseState.assetPositions
               .filter((assetPos) => assetPos.position.szi !== '0')
               .map((assetPos) => adaptPositionFromSDK(assetPos));
 
-            // For fallback clearinghouseState, we don't have orders yet
-            // Process positions without TP/SL (will be added when orders arrive)
-            const positionsWithTPSL = positions;
+            // Get cached orders to preserve TP/SL data (prevents flickering)
+            // Orders are cached by openOrders subscription
+            const cachedOrders = this.dexOrdersCache.get(cacheKey) || [];
+
+            // Re-extract TP/SL from cached orders for the new positions
+            // This ensures TP/SL data persists across clearinghouseState updates
+            let positionsWithTPSL = positions;
+            if (cachedOrders.length > 0) {
+              // Build TP/SL maps from cached orders
+              const tpslMap = new Map<
+                string,
+                { takeProfitPrice?: string; stopLossPrice?: string }
+              >();
+              const tpslCountMap = new Map<
+                string,
+                { takeProfitCount?: number; stopLossCount?: number }
+              >();
+
+              cachedOrders.forEach((order) => {
+                // Check if this is a trigger order (TP/SL) by checking isTrigger flag
+                // For trigger orders, the price field contains the trigger price
+                if (order.isTrigger && order.price) {
+                  const isTakeProfit =
+                    order.detailedOrderType?.includes('Take Profit');
+                  const isStop = order.detailedOrderType?.includes('Stop');
+                  const currentTakeProfitCount =
+                    tpslCountMap.get(order.symbol)?.takeProfitCount || 0;
+                  const currentStopLossCount =
+                    tpslCountMap.get(order.symbol)?.stopLossCount || 0;
+
+                  tpslCountMap.set(order.symbol, {
+                    takeProfitCount: isTakeProfit
+                      ? currentTakeProfitCount + 1
+                      : currentTakeProfitCount,
+                    stopLossCount: isStop
+                      ? currentStopLossCount + 1
+                      : currentStopLossCount,
+                  });
+
+                  // Find matching position for TP/SL assignment
+                  const matchingPosition = positions.find(
+                    (p) => p.coin === order.symbol,
+                  );
+                  if (matchingPosition) {
+                    const existing = tpslMap.get(order.symbol) || {};
+                    if (isTakeProfit) {
+                      existing.takeProfitPrice = order.price;
+                    } else if (isStop) {
+                      existing.stopLossPrice = order.price;
+                    }
+                    tpslMap.set(order.symbol, existing);
+                  }
+                }
+              });
+
+              // Merge TP/SL into positions
+              positionsWithTPSL = this.mergeTPSLIntoPositions(
+                positions,
+                tpslMap,
+                tpslCountMap,
+              );
+            }
 
             // Update account state
             const accountState: AccountState = adaptAccountStateFromSDK(
@@ -1210,12 +1155,12 @@ export class HyperLiquidSubscriptionService {
 
       this.clearinghouseStateSubscriptions.set(dexName, subscription);
       DevLogger.log(
-        `Fallback clearinghouseState subscription established for DEX: ${dexName || 'main'}`,
+        `clearinghouseState subscription established for DEX: ${dexName || 'main'}`,
       );
     } catch (error) {
       Logger.error(
         ensureError(error),
-        this.getErrorContext('ensureFallbackClearinghouseState', {
+        this.getErrorContext('ensureClearinghouseStateSubscription', {
           dex: dexName,
         }),
       );
@@ -1224,10 +1169,10 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * HOTFIX: Ensure fallback openOrders subscription exists for a DEX
-   * Used when openOrders is missing from webData3.perpDexStates
+   * Ensure openOrders subscription exists for a DEX
+   * Primary data source for orders in HIP-3 mode
    */
-  private async ensureFallbackOpenOrdersSubscription(
+  private async ensureOpenOrdersSubscription(
     userAddress: string,
     dexName: string,
   ): Promise<void> {
@@ -1247,14 +1192,17 @@ export class HyperLiquidSubscriptionService {
           dex: dexName || undefined, // Empty string -> undefined for main DEX
         },
         (data: WsOpenOrdersEvent) => {
-          // Cache the fallback orders
           const cacheKey = data.dex || '';
-          this.fallbackOpenOrdersCache.set(cacheKey, data.orders);
+
           // Update caches and notify subscribers if we have order subscribers
-          if (this.orderSubscriberCount > 0) {
+          if (
+            this.orderSubscriberCount > 0 ||
+            this.positionSubscriberCount > 0
+          ) {
             // Get cached positions for TP/SL processing
             const cachedPositions = this.dexPositionsCache.get(cacheKey) || [];
-            // Extract TP/SL and process orders (data.orders is FrontendOpenOrdersResponse - correct type)
+
+            // Extract TP/SL and process orders
             const {
               tpslMap,
               tpslCountMap,
@@ -1282,12 +1230,12 @@ export class HyperLiquidSubscriptionService {
 
       this.openOrdersSubscriptions.set(dexName, subscription);
       DevLogger.log(
-        `Fallback openOrders subscription established for DEX: ${dexName || 'main'}`,
+        `openOrders subscription established for DEX: ${dexName || 'main'}`,
       );
     } catch (error) {
       Logger.error(
         ensureError(error),
-        this.getErrorContext('ensureFallbackOpenOrders', {
+        this.getErrorContext('ensureOpenOrdersSubscription', {
           dex: dexName,
         }),
       );
@@ -1376,7 +1324,7 @@ export class HyperLiquidSubscriptionService {
         this.webData3SubscriptionPromise = undefined;
       }
 
-      // Cleanup fallback subscriptions (HOTFIX for missing fields)
+      // Cleanup individual subscriptions (clearinghouseState + openOrders)
       if (this.clearinghouseStateSubscriptions.size > 0) {
         this.clearinghouseStateSubscriptions.forEach(
           (subscription, dexName) => {
@@ -1394,7 +1342,6 @@ export class HyperLiquidSubscriptionService {
           },
         );
         this.clearinghouseStateSubscriptions.clear();
-        this.fallbackClearinghouseStateCache.clear();
       }
 
       if (this.openOrdersSubscriptions.size > 0) {
@@ -1412,7 +1359,6 @@ export class HyperLiquidSubscriptionService {
           });
         });
         this.openOrdersSubscriptions.clear();
-        this.fallbackOpenOrdersCache.clear();
       }
 
       // Clear subscriber counts
@@ -1439,7 +1385,7 @@ export class HyperLiquidSubscriptionService {
       this.cachedAccountHash = '';
 
       DevLogger.log(
-        'All multi-DEX subscriptions cleaned up (webData2 + clearinghouseState)',
+        'All multi-DEX subscriptions cleaned up (webData2/3 + individual subscriptions)',
       );
     }
   }
@@ -2510,7 +2456,7 @@ export class HyperLiquidSubscriptionService {
       );
     }
 
-    // Re-establish webData3 subscriptions if there are user data subscribers
+    // Re-establish user data subscriptions if there are user data subscribers
     if (
       this.positionSubscribers.size > 0 ||
       this.orderSubscribers.size > 0 ||
@@ -2521,7 +2467,12 @@ export class HyperLiquidSubscriptionService {
       this.webData3Subscriptions.clear();
       this.webData3SubscriptionPromise = undefined;
 
+      // Clear individual subscriptions (clearinghouseState + openOrders) for HIP-3 mode
+      this.clearinghouseStateSubscriptions.clear();
+      this.openOrdersSubscriptions.clear();
+
       // Re-establish the subscription (will use current account)
+      // This will set up webData2 for non-HIP-3, or individual subscriptions + webData3 (OI caps only) for HIP-3
       await this.ensureSharedWebData3Subscription();
     }
 
@@ -2658,7 +2609,7 @@ export class HyperLiquidSubscriptionService {
     this.assetCtxsSubscriptions.clear();
     this.assetCtxsSubscriptionPromises.clear();
 
-    // Cleanup fallback subscriptions (HOTFIX for missing fields)
+    // Cleanup individual subscriptions (clearinghouseState + openOrders)
     if (this.clearinghouseStateSubscriptions.size > 0) {
       this.clearinghouseStateSubscriptions.forEach((subscription, dexName) => {
         subscription.unsubscribe().catch((error: Error) => {
@@ -2671,7 +2622,6 @@ export class HyperLiquidSubscriptionService {
         });
       });
       this.clearinghouseStateSubscriptions.clear();
-      this.fallbackClearinghouseStateCache.clear();
     }
 
     if (this.openOrdersSubscriptions.size > 0) {
@@ -2686,11 +2636,10 @@ export class HyperLiquidSubscriptionService {
         });
       });
       this.openOrdersSubscriptions.clear();
-      this.fallbackOpenOrdersCache.clear();
     }
 
     DevLogger.log(
-      'HyperLiquid: Subscription service cleared (multi-DEX with webData3)',
+      'HyperLiquid: Subscription service cleared (multi-DEX with individual subscriptions)',
       {
         timestamp: new Date().toISOString(),
       },
