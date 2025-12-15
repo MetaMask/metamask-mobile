@@ -1,6 +1,7 @@
 /* eslint-disable import/no-nodejs-modules */
 import { PerformanceTracker } from './PerformanceTracker';
 import { AppProfilingDataHandler } from './AppProfilingDataHandler';
+import QualityGatesValidator from '../utils/QualityGatesValidator';
 import fs from 'fs';
 import path from 'path';
 
@@ -9,6 +10,7 @@ class CustomReporter {
     this.metrics = [];
     this.sessions = []; // Array to store all session data
     this.processedTests = new Set(); // Track processed tests to avoid duplicates
+    this.qualityGatesValidator = new QualityGatesValidator();
   }
 
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
@@ -115,6 +117,21 @@ class CustomReporter {
           if (!metricsEntry.steps) {
             metricsEntry.steps = [];
           }
+        }
+
+        // Validate quality gates
+        if (metricsEntry.steps && metricsEntry.steps.length > 0) {
+          const qualityGatesResult = this.qualityGatesValidator.validate(
+            test.title,
+            metricsEntry.steps,
+            metricsEntry.total || 0,
+          );
+          metricsEntry.qualityGates = qualityGatesResult;
+
+          // Log quality gates result to console
+          console.log(
+            this.qualityGatesValidator.formatConsoleReport(qualityGatesResult),
+          );
         }
 
         this.metrics.push(metricsEntry);
@@ -547,6 +564,13 @@ class CustomReporter {
                     : ''
                 }
               </table>
+              ${
+                test.qualityGates
+                  ? this.qualityGatesValidator.generateHtmlSection(
+                      test.qualityGates,
+                    )
+                  : ''
+              }
             `,
               )
               .join('')}
@@ -1033,6 +1057,14 @@ class CustomReporter {
           if (test.note) {
             csvRows.push(`NOTE,"${test.note}",,,,`);
           }
+        }
+
+        // Add quality gates information
+        if (test.qualityGates) {
+          const qgRows = this.qualityGatesValidator.generateCsvRows(
+            test.qualityGates,
+          );
+          csvRows.push(...qgRows);
         }
 
         // Add spacing between tables (3 blank lines to clearly separate tables)

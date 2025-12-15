@@ -10,7 +10,7 @@ import { login } from '../../../utils/Flows.js';
 test('Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
-}, testInfo) => {
+}) => {
   WalletMainScreen.device = device;
   TabBarModal.device = device;
   LoginScreen.device = device;
@@ -27,6 +27,5 @@ test('Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3', async ({
   balanceStableTimer.stop();
 
   performanceTracker.addTimer(balanceStableTimer);
-
-  await performanceTracker.attachToTest(testInfo);
+  // Quality gates validation is performed by the reporter when generating reports
 });

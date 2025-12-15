@@ -1,0 +1,56 @@
+{
+  "defaults": {
+    "maxStepDuration": 30000,
+    "maxTotalDuration": 120000
+  },
+  "tests": {
+    "Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3": {
+      "stepThresholds": [1500, 1000, 2000, 5000],
+      "totalThreshold": 10000
+    },
+    "Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3": {
+      "stepThresholds": [25000],
+      "totalThreshold": 25000
+    },
+    "Asset View, SRP 1 + SRP 2 + SRP 3": {
+      "stepThresholds": [5000],
+      "totalThreshold": 5000
+    },
+    "Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3": {
+      "stepThresholds": [5000, 15000],
+      "totalThreshold": 20000
+    },
+    "Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3": {
+      "stepThresholds": [5000, 15000],
+      "totalThreshold": 20000
+    },
+    "Perps add funds": {
+      "stepThresholds": [5000, 5000, 10000],
+      "totalThreshold": 20000
+    },
+    "Perps open position and close it": {
+      "stepThresholds": [5000, 3000, 5000, 3000, 5000, 10000, 15000],
+      "totalThreshold": 46000
+    },
+    "Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3": {
+      "stepThresholds": [3000, 3000, 3000, 5000],
+      "totalThreshold": 14000
+    },
+    "Send flow - Solana, SRP 1 + SRP 2 + SRP 3": {
+      "stepThresholds": [3000, 3000, 3000, 10000],
+      "totalThreshold": 19000
+    },
+    "Cold Start: Measure ColdStart To Login Screen": {
+      "stepThresholds": [5000],
+      "totalThreshold": 5000
+    },
+    "Predict Deposit - Complete Flow Performance": {
+      "stepThresholds": [5000, 3000, 3000, 5000, 5000],
+      "totalThreshold": 21000
+    },
+    "Predict Market Details - Load Time Performance": {
+      "stepThresholds": [5000, 5000, 3000, 3000],
+      "totalThreshold": 16000
+    }
+  }
+}

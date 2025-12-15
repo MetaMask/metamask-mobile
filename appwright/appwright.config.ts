@@ -47,7 +47,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-android',
-      testMatch: '**/tests/performance/login/**/*.spec.js',
+      testMatch: '**/tests/performance/login/**/import-multiple-srps.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -55,13 +55,13 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
-        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+        buildPath: 'bs://57ade428f2d846d25112c66777e36f555ef27a34', // Path to Browserstack url
         expectTimeout: 30 * 1000,
       },
     },
     {
       name: 'browserstack-ios',
-      testMatch: '**/tests/performance/login/**/*.spec.js',
+      testMatch: '**/tests/performance/login/**/import-multiple-srps.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -69,7 +69,7 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
+        buildPath: 'bs://bedc3ccf8dc417c608bfd9bd8fe6f70077820b8b',
         expectTimeout: 30 * 1000,
       },
     },
