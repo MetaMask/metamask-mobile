@@ -14,6 +14,30 @@ import { NotificationFeedbackType } from 'expo-haptics';
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('./useEarnToasts');
+jest.mock('../../Bridge/hooks/useAssetMetadata/utils', () => ({
+  getAssetImageUrl: jest.fn(),
+}));
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+jest.mock('../../../../selectors/tokenListController', () => ({
+  selectERC20TokensByChain: jest.fn(),
+}));
+jest.mock('../../../../selectors/transactionPayController', () => ({
+  selectTransactionPayTransactionData: jest.fn(),
+}));
+
+import { useSelector } from 'react-redux';
+import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
+import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
+import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
+
+const mockUseSelector = jest.mocked(useSelector);
+const mockGetAssetImageUrl = jest.mocked(getAssetImageUrl);
+const mockSelectERC20TokensByChain = jest.mocked(selectERC20TokensByChain);
+const mockSelectTransactionPayTransactionData = jest.mocked(
+  selectTransactionPayTransactionData,
+);
 
 type TransactionStatusUpdatedHandler = (event: {
   transactionMeta: TransactionMeta;
@@ -40,19 +64,21 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 
 describe('useMusdConversionStatus', () => {
   const mockShowToast = jest.fn();
+  const mockInProgressToast = {
+    variant: ToastVariants.Icon as const,
+    iconName: IconName.Loading,
+    hasNoTimeout: true,
+    iconColor: '#000000',
+    backgroundColor: '#FFFFFF',
+    hapticsType: NotificationFeedbackType.Warning,
+    labelOptions: [{ label: 'In Progress', isBold: true }],
+  };
+  const mockInProgressFn = jest.fn(() => mockInProgressToast);
   const mockEarnToastOptions: EarnToastOptionsConfig = {
     mUsdConversion: {
-      inProgress: {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
-        hasNoTimeout: false,
-        iconColor: '#000000',
-        backgroundColor: '#FFFFFF',
-        hapticsType: NotificationFeedbackType.Success,
-        labelOptions: [{ label: 'In Progress', isBold: true }],
-      },
+      inProgress: mockInProgressFn,
       success: {
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Icon as const,
         iconName: IconName.CheckBold,
         hasNoTimeout: false,
         iconColor: '#000000',
@@ -61,7 +87,7 @@ describe('useMusdConversionStatus', () => {
         labelOptions: [{ label: 'Success', isBold: true }],
       },
       failed: {
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Icon as const,
         iconName: IconName.Danger,
         hasNoTimeout: false,
         iconColor: '#000000',
@@ -72,15 +98,62 @@ describe('useMusdConversionStatus', () => {
     },
   };
 
+  // Default mock data
+  const defaultTokensChainsCache = {};
+  const defaultTransactionPayData = {};
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockInProgressFn.mockClear();
 
     mockUseEarnToasts.mockReturnValue({
       showToast: mockShowToast,
       EarnToastOptions: mockEarnToastOptions,
     });
+
+    // Setup useSelector to return different values based on selector
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === mockSelectERC20TokensByChain) {
+        return defaultTokensChainsCache;
+      }
+      if (selector === mockSelectTransactionPayTransactionData) {
+        return defaultTransactionPayData;
+      }
+      return {};
+    });
+
+    mockGetAssetImageUrl.mockReturnValue('https://example.com/token-icon.png');
   });
+
+  // Helper to setup token cache mock
+  const setupTokensCacheMock = (tokenData: Record<string, unknown>) => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === mockSelectERC20TokensByChain) {
+        return tokenData;
+      }
+      if (selector === mockSelectTransactionPayTransactionData) {
+        return defaultTransactionPayData;
+      }
+      return {};
+    });
+  };
+
+  // Helper to setup transaction pay data mock
+  const setupTransactionPayDataMock = (
+    transactionPayData: Record<string, unknown>,
+    tokenData: Record<string, unknown> = {},
+  ) => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === mockSelectERC20TokensByChain) {
+        return tokenData;
+      }
+      if (selector === mockSelectTransactionPayTransactionData) {
+        return transactionPayData;
+      }
+      return {};
+    });
+  };
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -91,18 +164,21 @@ describe('useMusdConversionStatus', () => {
     status: TransactionStatus,
     transactionId = 'test-transaction-1',
     type = TransactionType.musdConversion,
-  ): TransactionMeta => ({
-    id: transactionId,
-    status,
-    type,
-    chainId: '0x1',
-    networkClientId: 'mainnet',
-    time: Date.now(),
-    txParams: {
-      from: '0x123',
-      to: '0x456',
-    },
-  });
+    metamaskPay?: { chainId?: string; tokenAddress?: string },
+  ): TransactionMeta =>
+    ({
+      id: transactionId,
+      status,
+      type,
+      chainId: '0x1',
+      networkClientId: 'mainnet',
+      time: Date.now(),
+      txParams: {
+        from: '0x123',
+        to: '0x456',
+      },
+      ...(metamaskPay && { metamaskPay }),
+    }) as TransactionMeta;
 
   const getSubscribedHandler = (): TransactionStatusUpdatedHandler => {
     const subscribeCalls = mockSubscribe.mock.calls;
@@ -139,36 +215,363 @@ describe('useMusdConversionStatus', () => {
     });
   });
 
-  describe('submitted transaction status', () => {
-    it('shows in-progress toast when transaction status is submitted', () => {
+  describe('approved transaction status', () => {
+    it('shows in-progress toast when transaction status is approved', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.submitted,
-      );
+      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
 
       handler({ transactionMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
+      expect(mockShowToast).toHaveBeenCalledWith(mockInProgressToast);
     });
 
     it('prevents duplicate in-progress toast for same transaction', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.submitted,
-      );
+      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
 
       handler({ transactionMeta });
       handler({ transactionMeta });
       handler({ transactionMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes token symbol and icon from metamaskPay data to in-progress toast', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x89';
+      const mockTokenData = {
+        [chainId]: {
+          data: {
+            [tokenAddress]: { symbol: 'USDC' },
+          },
+        },
+      };
+      setupTokensCacheMock(mockTokenData);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-with-token',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).toHaveBeenCalledWith(
+        tokenAddress.toLowerCase(),
+        chainId,
+      );
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'USDC',
+        tokenIcon: 'https://example.com/token-icon.png',
+        estimatedTimeSeconds: 15,
+      });
+    });
+
+    it('uses lowercase token address as fallback for symbol lookup', () => {
+      const tokenAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+      const chainId = '0x1';
+      const mockTokenData = {
+        [chainId]: {
+          data: {
+            [tokenAddress.toLowerCase()]: { symbol: 'DAI' },
+          },
+        },
+      };
+      setupTokensCacheMock(mockTokenData);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-lowercase',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenSymbol: 'DAI' }),
+      );
+    });
+
+    it('uses "Token" as fallback when token symbol is not found', () => {
+      const tokenAddress = '0x1111111111111111111111111111111111111111';
+      const chainId = '0x1';
+      setupTokensCacheMock({
+        [chainId]: { data: {} },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-unknown',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenSymbol: 'Token' }),
+      );
+    });
+
+    it('passes empty tokenSymbol and undefined tokenIcon when payTokenAddress is missing', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-no-token',
+        TransactionType.musdConversion,
+        { chainId: '0x1' },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'Token',
+        tokenIcon: undefined,
+        estimatedTimeSeconds: 15,
+      });
+    });
+
+    it('passes empty tokenSymbol and undefined tokenIcon when metamaskPay is missing', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'Token',
+        tokenIcon: undefined,
+        estimatedTimeSeconds: 15,
+      });
+    });
+
+    it('uses estimatedDuration from transaction pay data when available', () => {
+      const transactionId = 'test-tx-with-duration';
+      setupTransactionPayDataMock({
+        [transactionId]: {
+          totals: {
+            estimatedDuration: 45,
+          },
+        },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        transactionId,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ estimatedTimeSeconds: 45 }),
+      );
+    });
+
+    it('falls back to default estimated time when transaction pay data is missing', () => {
+      setupTransactionPayDataMock({});
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-no-pay-data',
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ estimatedTimeSeconds: 15 }),
+      );
+    });
+
+    it('falls back to default estimated time when totals is missing', () => {
+      const transactionId = 'test-tx-no-totals';
+      setupTransactionPayDataMock({
+        [transactionId]: {},
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        transactionId,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ estimatedTimeSeconds: 15 }),
+      );
+    });
+
+    it('falls back to default estimated time when estimatedDuration is missing', () => {
+      const transactionId = 'test-tx-no-duration';
+      setupTransactionPayDataMock({
+        [transactionId]: {
+          totals: {},
+        },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        transactionId,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ estimatedTimeSeconds: 15 }),
+      );
+    });
+
+    it('uses iconUrl from token cache when available', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x89';
+      const cachedIconUrl = 'https://cached.example.com/usdc-icon.png';
+      const mockTokenData = {
+        [chainId]: {
+          data: {
+            [tokenAddress]: {
+              symbol: 'USDC',
+              iconUrl: cachedIconUrl,
+            },
+          },
+        },
+      };
+      setupTokensCacheMock(mockTokenData);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-cached-icon',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'USDC',
+        tokenIcon: cachedIconUrl,
+        estimatedTimeSeconds: 15,
+      });
+    });
+
+    it('falls back to getAssetImageUrl when iconUrl is not in token cache', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x89';
+      const mockTokenData = {
+        [chainId]: {
+          data: {
+            [tokenAddress]: {
+              symbol: 'USDC',
+              // No iconUrl
+            },
+          },
+        },
+      };
+      setupTokensCacheMock(mockTokenData);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-fallback-icon',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).toHaveBeenCalledWith(
+        tokenAddress.toLowerCase(),
+        chainId,
+      );
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'USDC',
+        tokenIcon: 'https://example.com/token-icon.png',
+        estimatedTimeSeconds: 15,
+      });
+    });
+
+    it('uses both cached iconUrl and estimatedDuration together', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x89';
+      const transactionId = 'test-tx-full-data';
+      const cachedIconUrl = 'https://cached.example.com/usdc-icon.png';
+
+      const mockTokenData = {
+        [chainId]: {
+          data: {
+            [tokenAddress]: {
+              symbol: 'USDC',
+              iconUrl: cachedIconUrl,
+            },
+          },
+        },
+      };
+
+      const mockPayData = {
+        [transactionId]: {
+          totals: {
+            estimatedDuration: 120,
+          },
+        },
+      };
+
+      setupTransactionPayDataMock(mockPayData, mockTokenData);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        transactionId,
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockGetAssetImageUrl).not.toHaveBeenCalled();
+      expect(mockInProgressFn).toHaveBeenCalledWith({
+        tokenSymbol: 'USDC',
+        tokenIcon: cachedIconUrl,
+        estimatedTimeSeconds: 120,
+      });
     });
   });
 
@@ -208,8 +611,8 @@ describe('useMusdConversionStatus', () => {
 
       const handler = getSubscribedHandler();
       const transactionId = 'test-transaction-1';
-      const submittedMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+      const approvedMeta = createTransactionMeta(
+        TransactionStatus.approved,
         transactionId,
       );
       const confirmedMeta = createTransactionMeta(
@@ -217,7 +620,7 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
       handler({ transactionMeta: confirmedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
@@ -225,7 +628,7 @@ describe('useMusdConversionStatus', () => {
       jest.advanceTimersByTime(5000);
 
       // After cleanup, should be able to show toasts again for same transaction
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
       handler({ transactionMeta: confirmedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
@@ -264,8 +667,8 @@ describe('useMusdConversionStatus', () => {
 
       const handler = getSubscribedHandler();
       const transactionId = 'test-transaction-2';
-      const submittedMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+      const approvedMeta = createTransactionMeta(
+        TransactionStatus.approved,
         transactionId,
       );
       const failedMeta = createTransactionMeta(
@@ -273,7 +676,7 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
       handler({ transactionMeta: failedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
@@ -281,21 +684,21 @@ describe('useMusdConversionStatus', () => {
       jest.advanceTimersByTime(5000);
 
       // After cleanup, should be able to show toasts again for same transaction
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
       handler({ transactionMeta: failedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
     });
   });
 
-  describe('transaction flow from submitted to final status', () => {
+  describe('transaction flow from approved to final status', () => {
     it('shows both in-progress and success toasts for transaction flow', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
       const transactionId = 'test-transaction-3';
-      const submittedMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+      const approvedMeta = createTransactionMeta(
+        TransactionStatus.approved,
         transactionId,
       );
       const confirmedMeta = createTransactionMeta(
@@ -303,12 +706,10 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
+      expect(mockShowToast).toHaveBeenCalledWith(mockInProgressToast);
 
       handler({ transactionMeta: confirmedMeta });
 
@@ -323,8 +724,8 @@ describe('useMusdConversionStatus', () => {
 
       const handler = getSubscribedHandler();
       const transactionId = 'test-transaction-4';
-      const submittedMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+      const approvedMeta = createTransactionMeta(
+        TransactionStatus.approved,
         transactionId,
       );
       const failedMeta = createTransactionMeta(
@@ -332,12 +733,10 @@ describe('useMusdConversionStatus', () => {
         transactionId,
       );
 
-      handler({ transactionMeta: submittedMeta });
+      handler({ transactionMeta: approvedMeta });
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
+      expect(mockShowToast).toHaveBeenCalledWith(mockInProgressToast);
 
       handler({ transactionMeta: failedMeta });
 
@@ -354,7 +753,7 @@ describe('useMusdConversionStatus', () => {
 
       const handler = getSubscribedHandler();
       const transactionMeta = createTransactionMeta(
-        TransactionStatus.submitted,
+        TransactionStatus.approved,
         'test-transaction-5',
         'contractInteraction' as typeof TransactionType.musdConversion,
       );
@@ -409,11 +808,13 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('ignores transaction when status is approved', () => {
+    it('ignores transaction when status is submitted', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.submitted,
+      );
 
       handler({ transactionMeta });
 
@@ -430,17 +831,6 @@ describe('useMusdConversionStatus', () => {
 
       expect(mockShowToast).not.toHaveBeenCalled();
     });
-
-    it('ignores transaction when status is rejected', () => {
-      renderHook(() => useMusdConversionStatus());
-
-      const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(TransactionStatus.rejected);
-
-      handler({ transactionMeta });
-
-      expect(mockShowToast).not.toHaveBeenCalled();
-    });
   });
 
   describe('multiple concurrent transactions', () => {
@@ -448,12 +838,12 @@ describe('useMusdConversionStatus', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getSubscribedHandler();
-      const transaction1Submitted = createTransactionMeta(
-        TransactionStatus.submitted,
+      const transaction1Approved = createTransactionMeta(
+        TransactionStatus.approved,
         'transaction-1',
       );
-      const transaction2Submitted = createTransactionMeta(
-        TransactionStatus.submitted,
+      const transaction2Approved = createTransactionMeta(
+        TransactionStatus.approved,
         'transaction-2',
       );
       const transaction1Confirmed = createTransactionMeta(
@@ -465,20 +855,14 @@ describe('useMusdConversionStatus', () => {
         'transaction-2',
       );
 
-      handler({ transactionMeta: transaction1Submitted });
-      handler({ transactionMeta: transaction2Submitted });
+      handler({ transactionMeta: transaction1Approved });
+      handler({ transactionMeta: transaction2Approved });
       handler({ transactionMeta: transaction1Confirmed });
       handler({ transactionMeta: transaction2Failed });
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
-      expect(mockShowToast).toHaveBeenNthCalledWith(
-        1,
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
-      expect(mockShowToast).toHaveBeenNthCalledWith(
-        2,
-        mockEarnToastOptions.mUsdConversion.inProgress,
-      );
+      expect(mockShowToast).toHaveBeenNthCalledWith(1, mockInProgressToast);
+      expect(mockShowToast).toHaveBeenNthCalledWith(2, mockInProgressToast);
       expect(mockShowToast).toHaveBeenNthCalledWith(
         3,
         mockEarnToastOptions.mUsdConversion.success,
@@ -524,9 +908,7 @@ describe('useMusdConversionStatus', () => {
       expect(mockUseEarnToasts).toHaveBeenCalledTimes(1);
 
       const handler = getSubscribedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.submitted,
-      );
+      const transactionMeta = createTransactionMeta(TransactionStatus.approved);
 
       handler({ transactionMeta });
 

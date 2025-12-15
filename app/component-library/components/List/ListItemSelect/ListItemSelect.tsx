@@ -39,9 +39,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
         {children}
       </ListItem>
       {isSelected && (
-        <View style={styles.underlay} accessibilityRole="checkbox" accessible>
-          <View style={styles.underlayBar} />
-        </View>
+        <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
     </TouchableOpacity>
   );

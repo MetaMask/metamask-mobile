@@ -47,7 +47,11 @@ import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networ
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import { getMultichainBlockExplorer } from '../../../core/Multichain/networks';
-import { forgetQrDevice } from '../../../core/QrKeyring/QrKeyring';
+import {
+  forgetQrDevice,
+  withQrKeyring,
+} from '../../../core/QrKeyring/QrKeyring';
+import useLedgerDeviceForAccount from '../../hooks/Ledger/useLedgerDeviceForAccount';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -82,6 +86,8 @@ const AccountActions = () => {
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
+
+  const { ledgerDevice } = useLedgerDeviceForAccount(selectedAccount);
 
   const blockExplorer:
     | {
@@ -298,26 +304,35 @@ const AccountActions = () => {
     }
     if (requestForgetDevice) {
       switch (keyringType) {
-        case ExtendedKeyringTypes.ledger:
+        case ExtendedKeyringTypes.ledger: {
+          const ledgerDeviceId = ledgerDevice?.id;
           await forgetLedger();
           trackEvent(
             createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
               .addProperties({
                 device_type: HardwareDeviceTypes.LEDGER,
+                device_model: ledgerDeviceId,
               })
               .build(),
           );
           break;
-        case ExtendedKeyringTypes.qr:
+        }
+        case ExtendedKeyringTypes.qr: {
+          const deviceName = await withQrKeyring(
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            async ({ keyring }) => await keyring.getName(),
+          );
           await forgetQrDevice();
           trackEvent(
             createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
               .addProperties({
                 device_type: HardwareDeviceTypes.QR,
+                device_model: deviceName,
               })
               .build(),
           );
           break;
+        }
         default:
           break;
       }
@@ -325,6 +340,7 @@ const AccountActions = () => {
   }, [
     controllers.KeyringController,
     keyring?.type,
+    ledgerDevice?.id,
     trackEvent,
     createEventBuilder,
   ]);

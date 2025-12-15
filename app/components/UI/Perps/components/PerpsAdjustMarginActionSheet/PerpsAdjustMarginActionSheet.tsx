@@ -56,12 +56,15 @@ const PerpsAdjustMarginActionSheet: React.FC<
         description: strings('perps.adjust_margin.add_margin_description'),
         iconName: IconName.Add,
       },
-      {
-        action: 'reduce_margin',
-        label: strings('perps.adjust_margin.reduce_margin'),
-        description: strings('perps.adjust_margin.reduce_margin_description'),
-        iconName: IconName.Minus,
-      },
+      // TODO: Re-enable remove margin when we can accurately calculate the max removable amount
+      // HyperLiquid's formula requires data we don't have access to via API
+      // See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
+      // {
+      //   action: 'reduce_margin',
+      //   label: strings('perps.adjust_margin.reduce_margin'),
+      //   description: strings('perps.adjust_margin.reduce_margin_description'),
+      //   iconName: IconName.Minus,
+      // },
     ],
     [],
   );

@@ -43,7 +43,6 @@ const mockAlerts = [
 ];
 
 describe('InlineAlert', () => {
-  const INLINE_ALERT_LABEL = 'Alert';
   const mockShowAlertModal = jest.fn();
   const mockSetAlertKey = jest.fn();
   const mockTrackInlineAlertClicked = jest.fn();
@@ -68,12 +67,12 @@ describe('InlineAlert', () => {
     render(<InlineAlert alertObj={alertObj} disabled={disabled} />);
 
   it('renders correctly with default props', () => {
-    const { getByTestId, getByText } = renderComponent();
+    const { getByTestId } = renderComponent();
     const inlineAlert = getByTestId('inline-alert');
-    const label = getByText(INLINE_ALERT_LABEL);
+    const icon = getByTestId('inline-alert-icon');
 
     expect(inlineAlert).toBeDefined();
-    expect(label).toBeDefined();
+    expect(icon).toBeDefined();
   });
 
   it('renders with danger severity', () => {
@@ -87,7 +86,7 @@ describe('InlineAlert', () => {
     const { getByTestId } = renderComponent(mockAlerts[1]);
     const icon = getByTestId('inline-alert-icon');
 
-    expect(icon.props.name).toBe(IconName.Danger);
+    expect(icon.props.name).toBe(IconName.Info);
   });
 
   it('renders with info severity', () => {

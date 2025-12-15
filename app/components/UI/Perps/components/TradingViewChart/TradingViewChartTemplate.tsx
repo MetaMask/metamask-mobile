@@ -504,6 +504,14 @@ export const createTradingViewChartTemplate = (
                             if (price === 0) return '0';
                             if (isNaN(price)) return '0';
 
+                            // For the current price line label, use universal formatting to match header
+                            // TradingView ignores axisLabelFormatter on price lines, so we detect the
+                            // current price value here and apply consistent formatting
+                            if (window.currentPriceNumeric !== undefined &&
+                                Math.abs(price - window.currentPriceNumeric) < 0.0000001) {
+                                return window.formatPriceUniversal(price);
+                            }
+
                             const absPrice = Math.abs(price);
 
                             // Get base formatting configuration from universal ranges
@@ -947,22 +955,23 @@ export const createTradingViewChartTemplate = (
                     // Silent error handling
                 }
                 window.priceLines.currentPrice = null;
+                window.currentPriceNumeric = undefined;
             }
 
             // Create new current price line if price is valid
             if (currentPrice && !isNaN(parseFloat(currentPrice))) {
                 try {
+                    const priceNumeric = parseFloat(currentPrice);
+                    // Store numeric value so priceFormatter can detect and use universal formatting
+                    window.currentPriceNumeric = priceNumeric;
+
                     const priceLine = window.candlestickSeries.createPriceLine({
-                        price: parseFloat(currentPrice),
+                        price: priceNumeric,
                         color: '${theme.colors.background.muted}',
                         lineWidth: 2,
                         lineStyle: 2, // Dashed line
                         axisLabelVisible: true,
                         title: '',
-                        // Use universal formatting to match header precision
-                        // This prevents mismatch where Y-axis shows zoom-adjusted decimals
-                        // but price line label should always match the header display
-                        axisLabelFormatter: (price) => window.formatPriceUniversal(price)
                     });
                     // Store reference for future removal
                     window.priceLines.currentPrice = priceLine;
@@ -1412,14 +1421,9 @@ export const createTradingViewChartTemplate = (
 
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
-                                
-                                // Update current price line with the latest candle's close price
-                                if (message.data && message.data.length > 0) {
-                                    const latestCandle = message.data[message.data.length - 1];
-                                    if (latestCandle && latestCandle.close) {
-                                        window.updateCurrentPriceLine(latestCandle.close.toString());
-                                    }
-                                }
+
+                                // Price line is updated via ADD_AUXILIARY_LINES with mark price from React Native
+                                // Do NOT use candle close price here - it differs from header's mark price
                             }
                         }
                         break;
