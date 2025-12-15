@@ -1,18 +1,19 @@
-import { RefreshControl } from 'react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
+import { useNftDetection } from '../../hooks/useNftDetection';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
-import { useNftDetection } from '../../hooks/useNftDetection';
 
-const NftGridRefreshControl = React.forwardRef<RefreshControl>((props, ref) => {
-  const { colors } = useTheme();
+interface UseNftRefreshReturn {
+  refreshing: boolean;
+  onRefresh: () => Promise<void>;
+}
+
+export const useNftRefresh = (): UseNftRefreshReturn => {
   const allEVMNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
-
   const { detectNfts } = useNftDetection();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -32,34 +33,30 @@ const NftGridRefreshControl = React.forwardRef<RefreshControl>((props, ref) => {
   );
 
   const onRefresh = useCallback(async () => {
-    requestAnimationFrame(async () => {
-      setRefreshing(true);
+    const { NftController } = Engine.context;
 
-      const { NftController } = Engine.context;
-      const actions = [detectNfts()];
+    setRefreshing(true);
 
-      // Also check and update ownership status for all networks
-      allNetworkClientIds.forEach((networkClientId) => {
-        actions.push(
-          NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
-        );
-      });
+    try {
+      // Use useNftDetection.detectNfts which:
+      // - Checks if NFT detection is enabled in user preferences
+      // - Dispatches loading indicators
+      // - Handles analytics tracking
+      const detectNftsPromise = detectNfts();
 
-      await Promise.allSettled(actions);
+      // Also update ownership status for all NFTs
+      const ownershipPromises = allNetworkClientIds.map((networkClientId) =>
+        NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
+      );
+
+      await Promise.allSettled([detectNftsPromise, ...ownershipPromises]);
+    } finally {
       setRefreshing(false);
-    });
+    }
   }, [detectNfts, allNetworkClientIds]);
 
-  return (
-    <RefreshControl
-      ref={ref}
-      colors={[colors.primary.default]}
-      tintColor={colors.icon.default}
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      {...props}
-    />
-  );
-});
-
-export default NftGridRefreshControl;
+  return {
+    refreshing,
+    onRefresh,
+  };
+};
