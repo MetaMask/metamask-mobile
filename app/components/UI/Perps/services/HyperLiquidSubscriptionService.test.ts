@@ -2394,7 +2394,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should re-extract TP/SL from cached orders when clearinghouseState updates', async () => {
       // Arrange
       const mockCallback = jest.fn();
-      let clearinghouseStateCallback: (data: any) => void;
+      let clearinghouseStateCallback: (data: any) => void = () => undefined;
 
       // Setup adapter to return positions with coin matching the orders
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
