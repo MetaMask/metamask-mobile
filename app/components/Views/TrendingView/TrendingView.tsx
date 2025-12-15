@@ -23,6 +23,7 @@ import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -35,6 +36,22 @@ export const ExploreFeed: React.FC = () => {
 
   // Track which sections have empty data
   const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
+  const sessionManager = TrendingFeedSessionManager.getInstance();
+
+  // Initialize session and enable AppState listener on mount
+  useEffect(() => {
+    // Enable AppState listener to detect app backgrounding
+    sessionManager.enableAppStateListener();
+
+    // Start session
+    sessionManager.startSession('trending_feed');
+
+    return () => {
+      // End session and disable listener on unmount
+      sessionManager.endSession();
+      sessionManager.disableAppStateListener();
+    };
+  }, [sessionManager]);
 
   const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 

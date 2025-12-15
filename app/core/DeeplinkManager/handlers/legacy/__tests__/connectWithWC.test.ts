@@ -9,7 +9,7 @@ describe('handleWCProtocol', () => {
     jest.clearAllMocks();
   });
 
-  it('should call handled and connect to WalletConnect with the correct parameters', async () => {
+  it('calls handled and connects to WalletConnect with the correct parameters', async () => {
     const handledMock = jest.fn();
     const wcURL = 'wc:test';
     const origin = 'testOrigin';
