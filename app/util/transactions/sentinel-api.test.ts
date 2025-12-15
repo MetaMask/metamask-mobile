@@ -198,10 +198,9 @@ describe('sentinel-api', () => {
     });
 
     it('fetches fresh data after cache TTL expires', async () => {
-      // Mock Date.now to control time
-      const originalDateNow = Date.now;
+      // Use jest.spyOn so cleanup happens via jest.clearAllMocks() in beforeEach
       let mockTime = 1000;
-      Date.now = jest.fn(() => mockTime);
+      jest.spyOn(Date, 'now').mockImplementation(() => mockTime);
 
       fetchMock.mockResolvedValue({
         json: async () => MOCK_NETWORKS,
@@ -221,9 +220,6 @@ describe('sentinel-api', () => {
       mockTime = 1000 + 300_001; // Just over 5 minutes
       await getSentinelNetworkFlags('0x1' as Hex);
       expect(fetchMock).toHaveBeenCalledTimes(2);
-
-      // Restore Date.now
-      Date.now = originalDateNow;
     });
 
     it('does not cache HTTP error responses and allows retry', async () => {
