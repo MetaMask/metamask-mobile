@@ -3,7 +3,8 @@ import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-
+import Engine from '../../../../../../core/Engine';
+import { selectGeolocation } from '../../../../../../selectors/rampsController';
 import styleSheet from './BuildQuote.styles';
 
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -132,6 +133,23 @@ const BuildQuote = () => {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const [quoteError, setError] = useState<string | null>();
+
+  const geolocation = useSelector(selectGeolocation);
+  console.log('geolocation', geolocation);
+
+  useEffect(() => {
+    const { RampsController } = Engine.context;
+    console.log('RampsController', RampsController);
+    if (RampsController) {
+      console.log('RampsController', RampsController);
+      console.log('updateGeolocation');
+      RampsController.updateGeolocation().catch((error: unknown) => {
+        console.log('error', error);
+        console.log('Failed to update geolocation');
+        Logger.error(error as Error, 'Failed to update geolocation');
+      });
+    }
+  }, []);
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
@@ -512,6 +530,7 @@ const BuildQuote = () => {
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.selectionRow}>
             <AccountSelector isEvmOnly={false} />
+            <Text> your location: {geolocation} </Text>
             <TouchableOpacity
               style={styles.fiatSelector}
               onPress={handleRegionPress}

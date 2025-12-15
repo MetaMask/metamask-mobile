@@ -114,6 +114,11 @@ import {
   PreferencesState,
 } from '@metamask/preferences-controller';
 import {
+  RampsController,
+  RampsControllerState,
+  RampsService,
+} from '@metamask/ramps-controller';
+import {
   TransactionController,
   TransactionControllerActions,
   TransactionControllerEvents,
@@ -629,6 +634,7 @@ export type Controllers = {
   SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
+  RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
@@ -680,6 +686,7 @@ export type Controllers = {
   DelegationController: DelegationController;
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
+  RampsService: RampsService;
 };
 
 /**
@@ -705,6 +712,7 @@ export type EngineState = {
   NetworkEnablementController: NetworkEnablementControllerState;
   PreferencesController: PreferencesState;
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
+  RampsController: RampsControllerState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
@@ -852,6 +860,8 @@ export type ControllersToInitialize =
   | 'NetworkEnablementController'
   | 'RewardsController'
   | 'RewardsDataService'
+  | 'RampsController'
+  | 'RampsService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
