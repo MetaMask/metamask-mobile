@@ -193,6 +193,9 @@ const OnboardingNavigator: React.FC = () => {
           description: strings('card.card_onboarding.keep_going.description'),
           confirmAction: {
             label: strings('card.card_onboarding.keep_going.confirm_button'),
+            onPress: () => {
+              navigation.navigate(initialRoute);
+            },
           },
           icon: IconName.ArrowDoubleRight,
         },
