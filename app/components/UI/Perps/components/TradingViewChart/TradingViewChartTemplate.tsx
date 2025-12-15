@@ -1621,14 +1621,12 @@ export const createTradingViewChartTemplate = (
             window.dispatchEvent(new MessageEvent('message', event));
         });
 
-        // Clear OHLC data and crosshair when touch ends (user releases press)
-        // Always clear - this ensures indicator disappears on release
+        // Clear crosshair and OHLC bar when touch ends
         document.addEventListener('touchend', function() {
-            // Always clear crosshair position on touch end
+            // Always clear crosshair to reset TradingView internal state
             if (window.chart && window.chart.clearCrosshairPosition) {
                 window.chart.clearCrosshairPosition();
             }
-            // Always send null OHLC data to hide the indicator bar
             if (window.isCrosshairActive) {
                 window.isCrosshairActive = false;
                 if (window.ReactNativeWebView) {
@@ -1639,9 +1637,9 @@ export const createTradingViewChartTemplate = (
                     }));
                 }
             }
-        });
+        }, true);
 
-        // Also handle touchcancel for interrupted touches
+        // Also handle touchcancel
         document.addEventListener('touchcancel', function() {
             if (window.chart && window.chart.clearCrosshairPosition) {
                 window.chart.clearCrosshairPosition();
@@ -1656,7 +1654,7 @@ export const createTradingViewChartTemplate = (
                     }));
                 }
             }
-        });
+        }, true);
 
         // Start loading after a small delay
         // Library is already loaded inline, so start creating chart
