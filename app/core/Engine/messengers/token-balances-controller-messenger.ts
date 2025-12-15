@@ -39,6 +39,11 @@ export function getTokenBalancesControllerMessenger(
       'AccountTrackerController:updateStakedBalances',
       'TokenDetectionController:addDetectedTokensViaWs',
       'AuthenticationController:getBearerToken',
+      'KeyringController:getState',
+      'TokenDetectionController:detectTokens',
+      'NetworkController:findNetworkClientIdByChainId',
+      'TokenListController:getState',
+      'TokensController:addTokens',
     ],
     events: [
       'TokensController:stateChange',
@@ -48,6 +53,11 @@ export function getTokenBalancesControllerMessenger(
       'AccountActivityService:balanceUpdated',
       'AccountActivityService:statusChanged',
       'AccountsController:selectedEvmAccountChange',
+      'KeyringController:lock',
+      'KeyringController:unlock',
+      'TransactionController:transactionConfirmed',
+      'TransactionController:incomingTransactionsReceived',
+      'TokenListController:stateChange',
     ],
     messenger,
   });

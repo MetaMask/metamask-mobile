@@ -1,0 +1,1861 @@
+diff --git a/dist/token-prices-service/codefi-v2.cjs b/dist/token-prices-service/codefi-v2.cjs
+index ba0f0c1bcbf0f231549b1ca9d3be2d1137a0d732..fd4851471fa0c2f07efbb527a3eea55cbfbc4743 100644
+--- a/dist/token-prices-service/codefi-v2.cjs
++++ b/dist/token-prices-service/codefi-v2.cjs
+@@ -220,43 +222,43 @@ exports.getNativeTokenAddress = getNativeTokenAddress;
+ // Source: https://github.com/consensys-vertical-apps/va-mmcx-price-api/blob/main/src/constants/slip44.ts
+ // We can only support PricesAPI V3 for EVM chains that have a CAIP-19 native asset mapping.
+ exports.SPOT_PRICES_SUPPORT_INFO = {
+-    '0x1': 'eip155:1/slip44:60', // Ethereum Mainnet - Native symbol: ETH
+-    '0xa': 'eip155:10/slip44:60', // OP Mainnet - Native symbol: ETH
+-    '0x19': 'eip155:25/slip44:394', // Cronos Mainnet - Native symbol: CRO
+-    '0x38': 'eip155:56/slip44:714', // BNB Smart Chain Mainnet - Native symbol: BNB
+-    '0x39': 'eip155:57/erc20:0x0000000000000000000000000000000000000000', // 'eip155:57/slip44:57', // Syscoin Mainnet - Native symbol: SYS
++    '0x1': null, //'eip155:1/slip44:60', // Ethereum Mainnet - Native symbol: ETH
++    '0xa': null, //'eip155:10/slip44:60', // OP Mainnet - Native symbol: ETH
++    '0x19': null, //'eip155:25/slip44:394', // Cronos Mainnet - Native symbol: CRO
++    '0x38': null, //'eip155:56/slip44:714', // BNB Smart Chain Mainnet - Native symbol: BNB
++    '0x39': null, //'eip155:57/erc20:0x0000000000000000000000000000000000000000', // 'eip155:57/slip44:57', // Syscoin Mainnet - Native symbol: SYS
+     '0x52': null, // 'eip155:82/slip44:18000', // Meter Mainnet - Native symbol: MTR
+-    '0x58': 'eip155:88/erc20:0x0000000000000000000000000000000000000000', // 'eip155:88/slip44:889', // TomoChain - Native symbol: TOMO
+-    '0x64': 'eip155:100/slip44:700', // Gnosis (formerly xDAI Chain) - Native symbol: xDAI
+-    '0x6a': 'eip155:106/erc20:0x0000000000000000000000000000000000000000', // 'eip155:106/slip44:5655640', // Velas EVM Mainnet - Native symbol: VLX
+-    '0x80': 'eip155:128/erc20:0x0000000000000000000000000000000000000000', // 'eip155:128/slip44:1010', // Huobi ECO Chain Mainnet - Native symbol: HT
+-    '0x89': 'eip155:137/slip44:966', // Polygon Mainnet - Native symbol: POL
++    '0x58': null, //'eip155:88/erc20:0x0000000000000000000000000000000000000000', // 'eip155:88/slip44:889', // TomoChain - Native symbol: TOMO
++    '0x64': null, //'eip155:100/slip44:700', // Gnosis (formerly xDAI Chain) - Native symbol: xDAI
++    '0x6a': null, //'eip155:106/erc20:0x0000000000000000000000000000000000000000', // 'eip155:106/slip44:5655640', // Velas EVM Mainnet - Native symbol: VLX
++    '0x80': null, //'eip155:128/erc20:0x0000000000000000000000000000000000000000', // 'eip155:128/slip44:1010', // Huobi ECO Chain Mainnet - Native symbol: HT
++    '0x89': null, //'eip155:137/slip44:966', // Polygon Mainnet - Native symbol: POL
+     '0x8f': null, // 'eip155:143/slip44:268435779', // Monad Mainnet - Native symbol: MON
+-    '0x92': 'eip155:146/slip44:10007', // Sonic Mainnet - Native symbol: S
+-    '0xfa': 'eip155:250/slip44:1007', // Fantom Opera - Native symbol: FTM
+-    '0x141': 'eip155:321/erc20:0x0000000000000000000000000000000000000000', // 'eip155:321/slip44:641', // KCC Mainnet - Native symbol: KCS
+-    '0x144': 'eip155:324/slip44:60', // zkSync Era Mainnet (Ethereum L2) - Native symbol: ETH
+-    '0x169': 'eip155:361/erc20:0x0000000000000000000000000000000000000000', // 'eip155:361/slip44:589', // Theta Mainnet - Native symbol: TFUEL
+-    '0x3e7': 'eip155:999/slip44:2457', // HyperEVM - Native symbol: ETH
+-    '0x440': 'eip155:1088/erc20:0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000', // 'eip155:1088/slip44:XXX', // Metis Andromeda Mainnet (Ethereum L2) - Native symbol: METIS
+-    '0x44d': 'eip155:1101/slip44:60', // Polygon zkEVM mainnet - Native symbol: ETH
+-    '0x504': 'eip155:1284/slip44:1284', // Moonbeam - Native symbol: GLMR
+-    '0x505': 'eip155:1285/slip44:1285', // Moonriver - Native symbol: MOVR
+-    '0x531': 'eip155:1329/slip44:19000118', // Sei Mainnet - Native symbol: SEI
+-    '0x1388': 'eip155:5000/erc20:0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000', // 'eip155:5000/slip44:XXX', // Mantle - Native symbol: MNT
+-    '0x2105': 'eip155:8453/slip44:60', // Base - Native symbol: ETH
+-    '0x2710': 'eip155:10000/erc20:0x0000000000000000000000000000000000000000', // 'eip155:10000/slip44:145', // Smart Bitcoin Cash - Native symbol: BCH
+-    '0xa4b1': 'eip155:42161/slip44:60', // Arbitrum One - Native symbol: ETH
+-    '0xa4ec': 'eip155:42220/slip44:52752', // Celo Mainnet - Native symbol: CELO
+-    '0xa516': 'eip155:42262/erc20:0x0000000000000000000000000000000000000000', // 'eip155:42262/slip44:474', // Oasis Emerald - Native symbol: ROSE
+-    '0xa86a': 'eip155:43114/slip44:9005', // Avalanche C-Chain - Native symbol: AVAX
+-    '0xe708': 'eip155:59144/slip44:60', // Linea Mainnet - Native symbol: ETH
+-    '0x13c31': 'eip155:81457/erc20:0x0000000000000000000000000000000000000000', // 'eip155:81457/slip44:60', // Blast Mainnet - Native symbol: ETH
+-    '0x17dcd': 'eip155:97741/erc20:0x0000000000000000000000000000000000000000', // 'eip155:97741/slip44:XXX', // Pepe Unchained Mainnet - Native symbol: PEPU
++    '0x92': null, //'eip155:146/slip44:10007', // Sonic Mainnet - Native symbol: S
++    '0xfa': null, //'eip155:250/slip44:1007', // Fantom Opera - Native symbol: FTM
++    '0x141': null, //'eip155:321/erc20:0x0000000000000000000000000000000000000000', // 'eip155:321/slip44:641', // KCC Mainnet - Native symbol: KCS
++    '0x144': null, //'eip155:324/slip44:60', // zkSync Era Mainnet (Ethereum L2) - Native symbol: ETH
++    '0x169': null, //'eip155:361/erc20:0x0000000000000000000000000000000000000000', // 'eip155:361/slip44:589', // Theta Mainnet - Native symbol: TFUEL
++    '0x3e7': null, //'eip155:999/slip44:2457', // HyperEVM - Native symbol: ETH
++    '0x440': null, //'eip155:1088/erc20:0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000', // 'eip155:1088/slip44:XXX', // Metis Andromeda Mainnet (Ethereum L2) - Native symbol: METIS
++    '0x44d': null, //'eip155:1101/slip44:60', // Polygon zkEVM mainnet - Native symbol: ETH
++    '0x504': null, //'eip155:1284/slip44:1284', // Moonbeam - Native symbol: GLMR
++    '0x505': null, //'eip155:1285/slip44:1285', // Moonriver - Native symbol: MOVR
++    '0x531': null, //'eip155:1329/slip44:19000118', // Sei Mainnet - Native symbol: SEI
++    '0x1388': null, //'eip155:5000/erc20:0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000', // 'eip155:5000/slip44:XXX', // Mantle - Native symbol: MNT
++    '0x2105': null, //'eip155:8453/slip44:60', // Base - Native symbol: ETH
++    '0x2710': null, //'eip155:10000/erc20:0x0000000000000000000000000000000000000000', // 'eip155:10000/slip44:145', // Smart Bitcoin Cash - Native symbol: BCH
++    '0xa4b1': null, //'eip155:42161/slip44:60', // Arbitrum One - Native symbol: ETH
++    '0xa4ec': null, //'eip155:42220/slip44:52752', // Celo Mainnet - Native symbol: CELO
++    '0xa516': null, //'eip155:42262/erc20:0x0000000000000000000000000000000000000000', // 'eip155:42262/slip44:474', // Oasis Emerald - Native symbol: ROSE
++    '0xa86a': null, //'eip155:43114/slip44:9005', // Avalanche C-Chain - Native symbol: AVAX
++    '0xe708': null, //'eip155:59144/slip44:60', // Linea Mainnet - Native symbol: ETH
++    '0x13c31': null, //'eip155:81457/erc20:0x0000000000000000000000000000000000000000', // 'eip155:81457/slip44:60', // Blast Mainnet - Native symbol: ETH
++    '0x17dcd': null, //'eip155:97741/erc20:0x0000000000000000000000000000000000000000', // 'eip155:97741/slip44:XXX', // Pepe Unchained Mainnet - Native symbol: PEPU
+     '0x518af': null, // 'eip155:333999/slip44:1997', // Polis Mainnet - Native symbol: POLIS
+-    '0x82750': 'eip155:534352/slip44:60', // Scroll Mainnet - Native symbol: ETH
+-    '0x4e454152': 'eip155:60/slip44:60', // Aurora Mainnet (Ethereum L2 on NEAR) - Native symbol: ETH
+-    '0x63564c40': 'eip155:1666600000/slip44:1023', // Harmony Mainnet Shard 0 - Native symbol: ONE
++    '0x82750': null, //'eip155:534352/slip44:60', // Scroll Mainnet - Native symbol: ETH
++    '0x4e454152': null, //'eip155:60/slip44:60', // Aurora Mainnet (Ethereum L2 on NEAR) - Native symbol: ETH
++    '0x63564c40': null, //'eip155:1666600000/slip44:1023', // Harmony Mainnet Shard 0 - Native symbol: ONE
+ };
+ /**
+  * The list of chain IDs that can be supplied in the URL for the `/spot-prices`
+diff --git a/dist/TokenBalancesController.cjs b/dist/TokenBalancesController.cjs
+index a9b96c68a340b3d5567041505fb75846d8553a89..bb05d94ec989967055ff5717b27b7f01c5d5d0ca 100644
+--- a/dist/TokenBalancesController.cjs
++++ b/dist/TokenBalancesController.cjs
+@@ -10,7 +10,7 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+ };
+-var _TokenBalancesController_instances, _TokenBalancesController_platform, _TokenBalancesController_queryAllAccounts, _TokenBalancesController_accountsApiChainIds, _TokenBalancesController_balanceFetchers, _TokenBalancesController_allTokens, _TokenBalancesController_detectedTokens, _TokenBalancesController_allIgnoredTokens, _TokenBalancesController_defaultInterval, _TokenBalancesController_websocketActivePollingInterval, _TokenBalancesController_chainPollingConfig, _TokenBalancesController_intervalPollingTimers, _TokenBalancesController_isControllerPollingActive, _TokenBalancesController_requestedChainIds, _TokenBalancesController_statusChangeDebouncer, _TokenBalancesController_normalizeAccountAddresses, _TokenBalancesController_chainIdsWithTokens, _TokenBalancesController_getProvider, _TokenBalancesController_getNetworkClient, _TokenBalancesController_createAccountsApiFetcher, _TokenBalancesController_startIntervalGroupPolling, _TokenBalancesController_startPollingForInterval, _TokenBalancesController_setPollingTimer, _TokenBalancesController_isTokenTracked, _TokenBalancesController_onTokensChanged, _TokenBalancesController_onNetworkChanged, _TokenBalancesController_onAccountRemoved, _TokenBalancesController_onAccountChanged, _TokenBalancesController_prepareBalanceUpdates, _TokenBalancesController_onAccountActivityBalanceUpdate, _TokenBalancesController_onAccountActivityStatusChanged, _TokenBalancesController_processAccumulatedStatusChanges;
++var _TokenBalancesController_instances, _TokenBalancesController_platform, _TokenBalancesController_queryAllAccounts, _TokenBalancesController_accountsApiChainIds, _TokenBalancesController_balanceFetchers, _TokenBalancesController_allTokens, _TokenBalancesController_detectedTokens, _TokenBalancesController_allIgnoredTokens, _TokenBalancesController_defaultInterval, _TokenBalancesController_websocketActivePollingInterval, _TokenBalancesController_chainPollingConfig, _TokenBalancesController_intervalPollingTimers, _TokenBalancesController_isControllerPollingActive, _TokenBalancesController_isUnlocked, _TokenBalancesController_requestedChainIds, _TokenBalancesController_statusChangeDebouncer, _TokenBalancesController_subscribeToControllers, _TokenBalancesController_registerActions, _TokenBalancesController_normalizeAccountAddresses, _TokenBalancesController_chainIdsWithTokens, _TokenBalancesController_getProvider, _TokenBalancesController_getNetworkClient, _TokenBalancesController_createAccountsApiFetcher, _TokenBalancesController_startIntervalGroupPolling, _TokenBalancesController_startPollingForInterval, _TokenBalancesController_setPollingTimer, _TokenBalancesController_stopAllPolling, _TokenBalancesController_getTargetChains, _TokenBalancesController_getAccountsAndJwt, _TokenBalancesController_fetchAllBalances, _TokenBalancesController_filterByTokenAddresses, _TokenBalancesController_getAccountsToProcess, _TokenBalancesController_applyTokenBalancesToState, _TokenBalancesController_buildNativeBalanceUpdates, _TokenBalancesController_buildStakedBalanceUpdates, _TokenBalancesController_importUntrackedTokens, _TokenBalancesController_isTokenTracked, _TokenBalancesController_onTokensChanged, _TokenBalancesController_onNetworkChanged, _TokenBalancesController_onAccountRemoved, _TokenBalancesController_onAccountChanged, _TokenBalancesController_prepareBalanceUpdates, _TokenBalancesController_onAccountActivityBalanceUpdate, _TokenBalancesController_onAccountActivityStatusChanged, _TokenBalancesController_processAccumulatedStatusChanges;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TokenBalancesController = exports.parseAssetType = exports.caipChainIdToHex = void 0;
+ const providers_1 = require("@ethersproject/providers");
+@@ -33,19 +33,14 @@ const metadata = {
+         usedInUi: true,
+     },
+ };
+-// endregion
+-// ────────────────────────────────────────────────────────────────────────────
+-// region: Helper utilities
+ const draft = (base, fn) => (0, immer_1.produce)(base, fn);
+ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+ const checksum = (addr) => (0, controller_utils_1.toChecksumHexAddress)(addr);
+ /**
+- * Convert CAIP chain ID or hex chain ID to hex chain ID
+- * Handles both CAIP-2 format (e.g., "eip155:1") and hex format (e.g., "0x1")
++ * Convert CAIP chain ID or hex chain ID to hex chain ID.
+  *
+- * @param chainId - CAIP chain ID (e.g., "eip155:1") or hex chain ID (e.g., "0x1")
+- * @returns Hex chain ID (e.g., "0x1")
+- * @throws {Error} If chainId is neither a valid CAIP-2 chain ID nor a hex string
++ * @param chainId - CAIP chain ID or hex chain ID.
++ * @returns Hex chain ID.
+  */
+ const caipChainIdToHex = (chainId) => {
+     if ((0, utils_1.isStrictHexString)(chainId)) {
+@@ -58,31 +53,25 @@ const caipChainIdToHex = (chainId) => {
+ };
+ exports.caipChainIdToHex = caipChainIdToHex;
+ /**
+- * Extract token address from asset type
+- * Returns tuple of [tokenAddress, isNativeToken] or null if invalid
++ * Extract token address from asset type.
+  *
+- * @param assetType - Asset type string (e.g., 'eip155:1/erc20:0x...' or 'eip155:1/slip44:60')
+- * @returns Tuple of [tokenAddress, isNativeToken] or null if invalid
++ * @param assetType - Asset type string.
++ * @returns Tuple of [tokenAddress, isNativeToken] or null if invalid.
+  */
+ const parseAssetType = (assetType) => {
+     if (!(0, utils_1.isCaipAssetType)(assetType)) {
+         return null;
+     }
+     const parsed = (0, utils_1.parseCaipAssetType)(assetType);
+-    // ERC20 token (e.g., "eip155:1/erc20:0x...")
+     if (parsed.assetNamespace === 'erc20') {
+         return [parsed.assetReference, false];
+     }
+-    // Native token (e.g., "eip155:1/slip44:60")
+     if (parsed.assetNamespace === 'slip44') {
+         return [ZERO_ADDRESS, true];
+     }
+     return null;
+ };
+ exports.parseAssetType = parseAssetType;
+-// endregion
+-// ────────────────────────────────────────────────────────────────────────────
+-// region: Main controller
+ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPollingController)() {
+     constructor({ messenger, interval = DEFAULT_INTERVAL_MS, websocketActivePollingInterval = DEFAULT_WEBSOCKET_ACTIVE_POLLING_INTERVAL_MS, chainPollingIntervals = {}, state = {}, queryMultipleAccounts = true, accountsApiChainIds = () => [], allowExternalServices = () => true, platform, }) {
+         super({
+@@ -109,6 +98,8 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+         _TokenBalancesController_intervalPollingTimers.set(this, new Map());
+         /** Track if controller-level polling is active */
+         _TokenBalancesController_isControllerPollingActive.set(this, false);
++        /** Track if the keyring is unlocked */
++        _TokenBalancesController_isUnlocked.set(this, false);
+         /** Store original chainIds from startPolling to preserve intent */
+         _TokenBalancesController_requestedChainIds.set(this, []);
+         /** Debouncing for rapid status changes to prevent excessive HTTP calls */
+@@ -118,52 +109,32 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+         });
+         _TokenBalancesController_getProvider.set(this, (chainId) => {
+             const { networkConfigurationsByChainId } = this.messenger.call('NetworkController:getState');
+-            const cfg = networkConfigurationsByChainId[chainId];
+-            const { networkClientId } = cfg.rpcEndpoints[cfg.defaultRpcEndpointIndex];
++            const networkConfig = networkConfigurationsByChainId[chainId];
++            const { networkClientId } = networkConfig.rpcEndpoints[networkConfig.defaultRpcEndpointIndex];
+             const client = this.messenger.call('NetworkController:getNetworkClientById', networkClientId);
+             return new providers_1.Web3Provider(client.provider);
+         });
+         _TokenBalancesController_getNetworkClient.set(this, (chainId) => {
+             const { networkConfigurationsByChainId } = this.messenger.call('NetworkController:getState');
+-            const cfg = networkConfigurationsByChainId[chainId];
+-            const { networkClientId } = cfg.rpcEndpoints[cfg.defaultRpcEndpointIndex];
++            const networkConfig = networkConfigurationsByChainId[chainId];
++            const { networkClientId } = networkConfig.rpcEndpoints[networkConfig.defaultRpcEndpointIndex];
+             return this.messenger.call('NetworkController:getNetworkClientById', networkClientId);
+         });
+-        /**
+-         * Creates an AccountsApiBalanceFetcher that only supports chains in the accountsApiChainIds array
+-         *
+-         * @returns A BalanceFetcher that wraps AccountsApiBalanceFetcher with chainId filtering
+-         */
+         _TokenBalancesController_createAccountsApiFetcher.set(this, () => {
+             const originalFetcher = new api_balance_fetcher_1.AccountsApiBalanceFetcher(__classPrivateFieldGet(this, _TokenBalancesController_platform, "f"), __classPrivateFieldGet(this, _TokenBalancesController_getProvider, "f"));
+             return {
+-                supports: (chainId) => {
+-                    // Only support chains that are both:
+-                    // 1. In our specified accountsApiChainIds array
+-                    // 2. Actually supported by the AccountsApi
+-                    return (__classPrivateFieldGet(this, _TokenBalancesController_accountsApiChainIds, "f").call(this).includes(chainId) &&
+-                        originalFetcher.supports(chainId));
+-                },
++                supports: (chainId) => __classPrivateFieldGet(this, _TokenBalancesController_accountsApiChainIds, "f").call(this).includes(chainId) &&
++                    originalFetcher.supports(chainId),
+                 fetch: originalFetcher.fetch.bind(originalFetcher),
+             };
+         });
+         _TokenBalancesController_onTokensChanged.set(this, async (state) => {
+             const changed = [];
+             let hasChanges = false;
+-            // Get chains that have existing balances
+-            const chainsWithBalances = new Set();
+-            for (const address of Object.keys(this.state.tokenBalances)) {
+-                const addressKey = address;
+-                for (const chainId of Object.keys(this.state.tokenBalances[addressKey] || {})) {
+-                    chainsWithBalances.add(chainId);
+-                }
+-            }
+-            // Only process chains that are explicitly mentioned in the incoming state change
+             const incomingChainIds = new Set([
+                 ...Object.keys(state.allTokens),
+                 ...Object.keys(state.allDetectedTokens),
+             ]);
+-            // Only proceed if there are actual changes to chains that have balances or are being added
+             const relevantChainIds = Array.from(incomingChainIds).filter((chainId) => {
+                 const id = chainId;
+                 const hasTokensNow = (state.allTokens[id] && Object.keys(state.allTokens[id]).length > 0) ||
+@@ -172,20 +143,16 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+                 const hadTokensBefore = (__classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")[id] && Object.keys(__classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")[id]).length > 0) ||
+                     (__classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[id] &&
+                         Object.keys(__classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[id]).length > 0);
+-                // Check if there's an actual change in token state
+                 const hasTokenChange = !(0, lodash_1.isEqual)(state.allTokens[id], __classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")[id]) ||
+                     !(0, lodash_1.isEqual)(state.allDetectedTokens[id], __classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[id]);
+-                // Process chains that have actual changes OR are new chains getting tokens
+                 return hasTokenChange || (!hadTokensBefore && hasTokensNow);
+             });
+-            if (relevantChainIds.length === 0) {
+-                // No relevant changes, just update internal state
++            if (!relevantChainIds.length) {
+                 __classPrivateFieldSet(this, _TokenBalancesController_allTokens, state.allTokens, "f");
+                 __classPrivateFieldSet(this, _TokenBalancesController_detectedTokens, state.allDetectedTokens, "f");
+                 return;
+             }
+-            // Handle both cleanup and updates in a single state update
+-            this.update((s) => {
++            this.update((currentState) => {
+                 for (const chainId of relevantChainIds) {
+                     const id = chainId;
+                     const hasTokensNow = (state.allTokens[id] &&
+@@ -196,20 +163,20 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+                         Object.keys(__classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")[id]).length > 0) ||
+                         (__classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[id] &&
+                             Object.keys(__classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[id]).length > 0);
+-                    if (!(0, lodash_1.isEqual)(state.allTokens[id], __classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")[id]) ||
+-                        !(0, lodash_1.isEqual)(state.allDetectedTokens[id], __classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[id])) {
+-                        if (hasTokensNow) {
+-                            // Chain still has tokens - mark for async balance update
+-                            changed.push(id);
+-                        }
+-                        else if (hadTokensBefore) {
+-                            // Chain had tokens before but doesn't now - clean up balances immediately
+-                            for (const address of Object.keys(s.tokenBalances)) {
+-                                const addressKey = address;
+-                                if (s.tokenBalances[addressKey]?.[id]) {
+-                                    s.tokenBalances[addressKey][id] = {};
+-                                    hasChanges = true;
+-                                }
++                    const tokensChanged = !(0, lodash_1.isEqual)(state.allTokens[id], __classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")[id]) ||
++                        !(0, lodash_1.isEqual)(state.allDetectedTokens[id], __classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[id]);
++                    if (!tokensChanged) {
++                        continue;
++                    }
++                    if (hasTokensNow) {
++                        changed.push(id);
++                    }
++                    else if (hadTokensBefore) {
++                        for (const address of Object.keys(currentState.tokenBalances)) {
++                            const addressKey = address;
++                            if (currentState.tokenBalances[addressKey]?.[id]) {
++                                currentState.tokenBalances[addressKey][id] = {};
++                                hasChanges = true;
+                             }
+                         }
+                     }
+@@ -218,7 +185,6 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+             __classPrivateFieldSet(this, _TokenBalancesController_allTokens, state.allTokens, "f");
+             __classPrivateFieldSet(this, _TokenBalancesController_detectedTokens, state.allDetectedTokens, "f");
+             __classPrivateFieldSet(this, _TokenBalancesController_allIgnoredTokens, state.allIgnoredTokens, "f");
+-            // Only update balances for chains that still have tokens (and only if we haven't already updated state)
+             if (changed.length && !hasChanges) {
+                 this.updateBalances({ chainIds: changed }).catch((error) => {
+                     console.warn('Error updating balances after token change:', error);
+@@ -226,9 +192,7 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+             }
+         });
+         _TokenBalancesController_onNetworkChanged.set(this, (state) => {
+-            // Check if any networks were removed by comparing with previous state
+             const currentNetworks = new Set(Object.keys(state.networkConfigurationsByChainId));
+-            // Get all networks that currently have balances
+             const networksWithBalances = new Set();
+             for (const address of Object.keys(this.state.tokenBalances)) {
+                 const addressKey = address;
+@@ -236,83 +200,59 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+                     networksWithBalances.add(network);
+                 }
+             }
+-            // Find networks that were removed
+             const removedNetworks = Array.from(networksWithBalances).filter((network) => !currentNetworks.has(network));
+-            if (removedNetworks.length > 0) {
+-                this.update((s) => {
+-                    // Remove balances for all accounts on the deleted networks
+-                    for (const address of Object.keys(s.tokenBalances)) {
+-                        const addressKey = address;
+-                        for (const removedNetwork of removedNetworks) {
+-                            const networkKey = removedNetwork;
+-                            if (s.tokenBalances[addressKey]?.[networkKey]) {
+-                                delete s.tokenBalances[addressKey][networkKey];
+-                            }
++            if (!removedNetworks.length) {
++                return;
++            }
++            this.update((currentState) => {
++                for (const address of Object.keys(currentState.tokenBalances)) {
++                    const addressKey = address;
++                    for (const removedNetwork of removedNetworks) {
++                        const networkKey = removedNetwork;
++                        if (currentState.tokenBalances[addressKey]?.[networkKey]) {
++                            delete currentState.tokenBalances[addressKey][networkKey];
+                         }
+                     }
+-                });
+-            }
++                }
++            });
+         });
+         _TokenBalancesController_onAccountRemoved.set(this, (addr) => {
+             if (!(0, utils_1.isStrictHexString)(addr) || !(0, controller_utils_1.isValidHexAddress)(addr)) {
+                 return;
+             }
+-            this.update((s) => {
+-                delete s.tokenBalances[addr];
++            this.update((currentState) => {
++                delete currentState.tokenBalances[addr];
+             });
+         });
+-        /**
+-         * Handle account selection changes
+-         * Triggers immediate balance fetch to ensure we have the latest balances
+-         * since WebSocket only provides updates for changes going forward
+-         */
+         _TokenBalancesController_onAccountChanged.set(this, () => {
+-            // Fetch balances for all chains with tokens when account changes
+             const chainIds = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_chainIdsWithTokens).call(this);
+-            if (chainIds.length > 0) {
+-                this.updateBalances({ chainIds }).catch(() => {
+-                    // Silently handle polling errors
+-                });
++            if (!chainIds.length) {
++                return;
+             }
++            this.updateBalances({ chainIds }).catch(() => {
++                // Silently handle polling errors
++            });
+         });
+-        // ────────────────────────────────────────────────────────────────────────────
+-        // AccountActivityService event handlers
+-        /**
+-         * Handle real-time balance updates from AccountActivityService
+-         * Processes balance updates and updates the token balance state
+-         * If any balance update has an error, triggers fallback polling for the chain
+-         *
+-         * @param options0 - Balance update parameters
+-         * @param options0.address - Account address
+-         * @param options0.chain - CAIP chain identifier
+-         * @param options0.updates - Array of balance updates for the account
+-         */
+         _TokenBalancesController_onAccountActivityBalanceUpdate.set(this, async ({ address, chain, updates, }) => {
+             const chainId = (0, exports.caipChainIdToHex)(chain);
+             const checksummedAccount = checksum(address);
+             try {
+-                // Process all balance updates at once
+                 const { tokenBalances, newTokens, nativeBalanceUpdates } = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_prepareBalanceUpdates).call(this, updates, checksummedAccount, chainId);
+-                // Update state once with all token balances
+                 if (tokenBalances.length > 0) {
+                     this.update((state) => {
+                         var _a, _b;
+-                        // Temporary until ADR to normalize all keys - tokenBalances state requires: account in lowercase, token in checksum
+                         const lowercaseAccount = checksummedAccount.toLowerCase();
+                         (_a = state.tokenBalances)[lowercaseAccount] ?? (_a[lowercaseAccount] = {});
+                         (_b = state.tokenBalances[lowercaseAccount])[chainId] ?? (_b[chainId] = {});
+-                        // Apply all token balance updates
+                         for (const { tokenAddress, balance } of tokenBalances) {
+                             state.tokenBalances[lowercaseAccount][chainId][tokenAddress] =
+                                 balance;
+                         }
+                     });
+                 }
+-                // Update native balances in AccountTrackerController
+                 if (nativeBalanceUpdates.length > 0) {
+                     this.messenger.call('AccountTrackerController:updateNativeBalances', nativeBalanceUpdates);
+                 }
+-                // Import any new tokens that were discovered (balance already updated from websocket)
+                 if (newTokens.length > 0) {
+                     await this.messenger.call('TokenDetectionController:addDetectedTokensViaWs', {
+                         tokensSlice: newTokens,
+@@ -323,35 +263,22 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+             catch (error) {
+                 console.warn(`Error updating balances from AccountActivityService for chain ${chain}, account ${address}:`, error);
+                 console.warn('Balance update data:', JSON.stringify(updates, null, 2));
+-                // On error, trigger fallback polling
+                 await this.updateBalances({ chainIds: [chainId] }).catch(() => {
+                     // Silently handle polling errors
+                 });
+             }
+         });
+-        /**
+-         * Handle status changes from AccountActivityService
+-         * Uses aggressive debouncing to prevent excessive HTTP calls from rapid up/down changes
+-         *
+-         * @param options0 - Status change event data
+-         * @param options0.chainIds - Array of chain identifiers
+-         * @param options0.status - Connection status ('up' for connected, 'down' for disconnected)
+-         */
+         _TokenBalancesController_onAccountActivityStatusChanged.set(this, ({ chainIds, status, }) => {
+-            // Update pending changes (latest status wins for each chain)
+             for (const chainId of chainIds) {
+                 __classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").pendingChanges.set(chainId, status);
+             }
+-            // Clear existing timer to extend debounce window
+             if (__classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").timer) {
+                 clearTimeout(__classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").timer);
+             }
+-            // Set new timer - only process changes after activity settles
+             __classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").timer = setTimeout(() => {
+                 __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_processAccumulatedStatusChanges).call(this);
+-            }, 5000); // 5-second debounce window
++            }, 5000);
+         });
+-        // Normalize all account addresses to lowercase in existing state
+         __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_normalizeAccountAddresses).call(this);
+         __classPrivateFieldSet(this, _TokenBalancesController_platform, platform ?? 'extension', "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_queryAllAccounts, queryMultipleAccounts, "f");
+@@ -359,7 +286,6 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+         __classPrivateFieldSet(this, _TokenBalancesController_defaultInterval, interval, "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_websocketActivePollingInterval, websocketActivePollingInterval, "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_chainPollingConfig, { ...chainPollingIntervals }, "f");
+-        // Strategy order: API first, then RPC fallback
+         __classPrivateFieldSet(this, _TokenBalancesController_balanceFetchers, [
+             ...(accountsApiChainIds().length > 0 && allowExternalServices()
+                 ? [__classPrivateFieldGet(this, _TokenBalancesController_createAccountsApiFetcher, "f").call(this)]
+@@ -370,303 +296,173 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+             })),
+         ], "f");
+         this.setIntervalLength(interval);
+-        // initial token state & subscriptions
+         const { allTokens, allDetectedTokens, allIgnoredTokens } = this.messenger.call('TokensController:getState');
+         __classPrivateFieldSet(this, _TokenBalancesController_allTokens, allTokens, "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_detectedTokens, allDetectedTokens, "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_allIgnoredTokens, allIgnoredTokens, "f");
+-        this.messenger.subscribe('TokensController:stateChange', (tokensState) => {
+-            __classPrivateFieldGet(this, _TokenBalancesController_onTokensChanged, "f").call(this, tokensState).catch((error) => {
+-                console.warn('Error handling token state change:', error);
+-            });
+-        });
+-        this.messenger.subscribe('NetworkController:stateChange', __classPrivateFieldGet(this, _TokenBalancesController_onNetworkChanged, "f"));
+-        this.messenger.subscribe('KeyringController:accountRemoved', __classPrivateFieldGet(this, _TokenBalancesController_onAccountRemoved, "f"));
+-        this.messenger.subscribe('AccountsController:selectedEvmAccountChange', __classPrivateFieldGet(this, _TokenBalancesController_onAccountChanged, "f"));
+-        // Register action handlers for polling interval control
+-        this.messenger.registerActionHandler(`TokenBalancesController:updateChainPollingConfigs`, this.updateChainPollingConfigs.bind(this));
+-        this.messenger.registerActionHandler(`TokenBalancesController:getChainPollingConfig`, this.getChainPollingConfig.bind(this));
+-        // Subscribe to AccountActivityService balance updates for real-time updates
+-        this.messenger.subscribe('AccountActivityService:balanceUpdated', __classPrivateFieldGet(this, _TokenBalancesController_onAccountActivityBalanceUpdate, "f").bind(this));
+-        // Subscribe to AccountActivityService status changes for dynamic polling management
+-        this.messenger.subscribe('AccountActivityService:statusChanged', __classPrivateFieldGet(this, _TokenBalancesController_onAccountActivityStatusChanged, "f").bind(this));
++        const { isUnlocked } = this.messenger.call('KeyringController:getState');
++        __classPrivateFieldSet(this, _TokenBalancesController_isUnlocked, isUnlocked, "f");
++        __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_subscribeToControllers).call(this);
++        __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_registerActions).call(this);
+     }
+     /**
+-     * Override to support per-chain polling intervals by grouping chains by interval
++     * Whether the controller is active (keyring is unlocked).
++     * When locked, balance updates should be skipped.
+      *
+-     * @param options0 - The polling options
+-     * @param options0.chainIds - Chain IDs to start polling for
++     * @returns Whether the keyring is unlocked.
+      */
++    get isActive() {
++        return __classPrivateFieldGet(this, _TokenBalancesController_isUnlocked, "f");
++    }
+     _startPolling({ chainIds }) {
+-        // Store the original chainIds to preserve intent across config updates
+         __classPrivateFieldSet(this, _TokenBalancesController_requestedChainIds, [...chainIds], "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_isControllerPollingActive, true, "f");
+         __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_startIntervalGroupPolling).call(this, chainIds, true);
+     }
+-    /**
+-     * Override to handle our custom polling approach
+-     *
+-     * @param tokenSetId - The token set ID to stop polling for
+-     */
+     _stopPollingByPollingTokenSetId(tokenSetId) {
+-        let parsedTokenSetId;
+         let chainsToStop = [];
+         try {
+-            parsedTokenSetId = JSON.parse(tokenSetId);
+-            chainsToStop = parsedTokenSetId.chainIds || [];
++            const parsedTokenSetId = JSON.parse(tokenSetId);
++            chainsToStop = parsedTokenSetId.chainIds ?? [];
+         }
+         catch (error) {
+             console.warn('Failed to parse tokenSetId, stopping all polling:', error);
+-            // Fallback: stop all polling if we can't parse the tokenSetId
+-            __classPrivateFieldSet(this, _TokenBalancesController_isControllerPollingActive, false, "f");
+-            __classPrivateFieldSet(this, _TokenBalancesController_requestedChainIds, [], "f");
+-            __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").forEach((timer) => clearInterval(timer));
+-            __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").clear();
++            __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_stopAllPolling).call(this);
+             return;
+         }
+-        // Compare with current chains - only stop if it matches our current session
+         const currentChainsSet = new Set(__classPrivateFieldGet(this, _TokenBalancesController_requestedChainIds, "f"));
+         const stopChainsSet = new Set(chainsToStop);
+-        // Check if this stop request is for our current session
+         const isCurrentSession = currentChainsSet.size === stopChainsSet.size &&
+             [...currentChainsSet].every((chain) => stopChainsSet.has(chain));
+         if (isCurrentSession) {
+-            __classPrivateFieldSet(this, _TokenBalancesController_isControllerPollingActive, false, "f");
+-            __classPrivateFieldSet(this, _TokenBalancesController_requestedChainIds, [], "f");
+-            __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").forEach((timer) => clearInterval(timer));
+-            __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").clear();
++            __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_stopAllPolling).call(this);
+         }
+     }
+-    /**
+-     * Get polling configuration for a chain (includes default fallback)
+-     *
+-     * @param chainId - The chain ID to get config for
+-     * @returns The polling configuration for the chain
+-     */
+     getChainPollingConfig(chainId) {
+         return (__classPrivateFieldGet(this, _TokenBalancesController_chainPollingConfig, "f")[chainId] ?? {
+             interval: __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f"),
+         });
+     }
+     async _executePoll({ chainIds, queryAllAccounts = false, }) {
+-        // This won't be called with our custom implementation, but keep for compatibility
+         await this.updateBalances({ chainIds, queryAllAccounts });
+     }
+-    /**
+-     * Update multiple chain polling configurations at once
+-     *
+-     * @param configs - Object mapping chain IDs to polling configurations
+-     * @param options - Optional configuration for the update behavior
+-     * @param options.immediateUpdate - Whether to immediately fetch balances after updating configs (default: true)
+-     */
+     updateChainPollingConfigs(configs, options = { immediateUpdate: true }) {
+         Object.assign(__classPrivateFieldGet(this, _TokenBalancesController_chainPollingConfig, "f"), configs);
+-        // If polling is currently active, restart with new interval groupings
+         if (__classPrivateFieldGet(this, _TokenBalancesController_isControllerPollingActive, "f")) {
+-            // Restart polling with immediate fetch by default, unless explicitly disabled
+             __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_startIntervalGroupPolling).call(this, __classPrivateFieldGet(this, _TokenBalancesController_requestedChainIds, "f"), options.immediateUpdate);
+         }
+     }
+-    async updateBalances({ chainIds, queryAllAccounts = false, } = {}) {
+-        const targetChains = chainIds ?? __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_chainIdsWithTokens).call(this);
+-        if (!targetChains.length) {
++    async updateBalances({ chainIds, tokenAddresses, queryAllAccounts = false, } = {}) {
++        if (!this.isActive) {
+             return;
+         }
+-        const { address: selected } = this.messenger.call('AccountsController:getSelectedAccount');
+-        const allAccounts = this.messenger.call('AccountsController:listAccounts');
+-        const jwtToken = await (0, controller_utils_1.safelyExecuteWithTimeout)(() => {
+-            return this.messenger.call('AuthenticationController:getBearerToken');
+-        }, false, 5000);
+-        const aggregated = [];
+-        let remainingChains = [...targetChains];
+-        // Try each fetcher in order, removing successfully processed chains
+-        for (const fetcher of __classPrivateFieldGet(this, _TokenBalancesController_balanceFetchers, "f")) {
+-            const supportedChains = remainingChains.filter((c) => fetcher.supports(c));
+-            if (!supportedChains.length) {
+-                continue;
+-            }
+-            try {
+-                const result = await fetcher.fetch({
+-                    chainIds: supportedChains,
+-                    queryAllAccounts: queryAllAccounts ?? __classPrivateFieldGet(this, _TokenBalancesController_queryAllAccounts, "f"),
+-                    selectedAccount: selected,
+-                    allAccounts,
+-                    jwtToken,
+-                });
+-                if (result.balances && result.balances.length > 0) {
+-                    aggregated.push(...result.balances);
+-                    // Remove chains that were successfully processed
+-                    const processedChains = new Set(result.balances.map((b) => b.chainId));
+-                    remainingChains = remainingChains.filter((chain) => !processedChains.has(chain));
+-                }
+-                // Add unprocessed chains back to remainingChains for next fetcher
+-                if (result.unprocessedChainIds &&
+-                    result.unprocessedChainIds.length > 0) {
+-                    const currentRemainingChains = remainingChains;
+-                    const chainsToAdd = result.unprocessedChainIds.filter((chainId) => supportedChains.includes(chainId) &&
+-                        !currentRemainingChains.includes(chainId));
+-                    remainingChains.push(...chainsToAdd);
+-                }
+-            }
+-            catch (error) {
+-                console.warn(`Balance fetcher failed for chains ${supportedChains.join(', ')}: ${String(error)}`);
+-                // Continue to next fetcher (fallback)
+-            }
+-            // If all chains have been processed, break early
+-            if (remainingChains.length === 0) {
+-                break;
+-            }
++        const targetChains = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_getTargetChains).call(this, chainIds);
++        if (!targetChains.length) {
++            return;
+         }
+-        // Determine which accounts to process based on queryAllAccounts parameter
+-        const accountsToProcess = (queryAllAccounts ?? __classPrivateFieldGet(this, _TokenBalancesController_queryAllAccounts, "f"))
+-            ? allAccounts.map((a) => a.address)
+-            : [selected];
++        const { selectedAccount, allAccounts, jwtToken } = await __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_getAccountsAndJwt).call(this);
++        const aggregatedBalances = await __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_fetchAllBalances).call(this, {
++            targetChains,
++            selectedAccount,
++            allAccounts,
++            jwtToken,
++            queryAllAccounts: queryAllAccounts ?? __classPrivateFieldGet(this, _TokenBalancesController_queryAllAccounts, "f"),
++        });
++        const filteredAggregated = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_filterByTokenAddresses).call(this, aggregatedBalances, tokenAddresses);
++        const accountsToProcess = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_getAccountsToProcess).call(this, queryAllAccounts, allAccounts, selectedAccount);
+         const prev = this.state;
+-        const next = draft(prev, (d) => {
+-            var _a, _b;
+-            // Initialize account and chain structures if they don't exist, but preserve existing balances
+-            for (const chainId of targetChains) {
+-                for (const account of accountsToProcess) {
+-                    // Ensure the nested structure exists without overwriting existing balances
+-                    (_a = d.tokenBalances)[account] ?? (_a[account] = {});
+-                    (_b = d.tokenBalances[account])[chainId] ?? (_b[chainId] = {});
+-                    // Initialize tokens from allTokens only if they don't exist yet
+-                    const chainTokens = __classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")[chainId];
+-                    if (chainTokens?.[account]) {
+-                        Object.values(chainTokens[account]).forEach((token) => {
+-                            const tokenAddress = checksum(token.address);
+-                            // Only initialize if the token balance doesn't exist yet
+-                            if (!(tokenAddress in d.tokenBalances[account][chainId])) {
+-                                d.tokenBalances[account][chainId][tokenAddress] = '0x0';
+-                            }
+-                        });
+-                    }
+-                    // Initialize tokens from allDetectedTokens only if they don't exist yet
+-                    const detectedChainTokens = __classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[chainId];
+-                    if (detectedChainTokens?.[account]) {
+-                        Object.values(detectedChainTokens[account]).forEach((token) => {
+-                            const tokenAddress = checksum(token.address);
+-                            // Only initialize if the token balance doesn't exist yet
+-                            if (!(tokenAddress in d.tokenBalances[account][chainId])) {
+-                                d.tokenBalances[account][chainId][tokenAddress] = '0x0';
+-                            }
+-                        });
+-                    }
+-                }
+-            }
+-            // Update with actual fetched balances only if the value has changed
+-            aggregated.forEach(({ success, value, account, token, chainId }) => {
+-                var _a, _b;
+-                if (success && value !== undefined) {
+-                    // Ensure all accounts we add/update are in lower-case
+-                    const lowerCaseAccount = account.toLowerCase();
+-                    const newBalance = (0, controller_utils_1.toHex)(value);
+-                    const tokenAddress = checksum(token);
+-                    const currentBalance = d.tokenBalances[lowerCaseAccount]?.[chainId]?.[tokenAddress];
+-                    // Only update if the balance has actually changed
+-                    if (currentBalance !== newBalance) {
+-                        ((_b = ((_a = d.tokenBalances)[lowerCaseAccount] ?? (_a[lowerCaseAccount] = {})))[chainId] ?? (_b[chainId] = {}))[tokenAddress] = newBalance;
+-                    }
+-                }
+-            });
++        const next = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_applyTokenBalancesToState).call(this, {
++            prev,
++            targetChains,
++            accountsToProcess,
++            balances: filteredAggregated,
+         });
+         if (!(0, lodash_1.isEqual)(prev, next)) {
+             this.update(() => next);
+-            const nativeBalances = aggregated.filter((r) => r.success && r.token === ZERO_ADDRESS);
+-            // Get current AccountTracker state to compare existing balances
+             const accountTrackerState = this.messenger.call('AccountTrackerController:getState');
+-            // Update native token balances only if they have changed
+-            if (nativeBalances.length > 0) {
+-                const balanceUpdates = nativeBalances
+-                    .map((balance) => ({
+-                    address: balance.account,
+-                    chainId: balance.chainId,
+-                    balance: balance.value ? (0, controller_utils_1.BNToHex)(balance.value) : '0x0',
+-                }))
+-                    .filter((update) => {
+-                    const currentBalance = accountTrackerState.accountsByChainId[update.chainId]?.[checksum(update.address)]?.balance;
+-                    // Only include if the balance has actually changed
+-                    return currentBalance !== update.balance;
+-                });
+-                if (balanceUpdates.length > 0) {
+-                    this.messenger.call('AccountTrackerController:updateNativeBalances', balanceUpdates);
+-                }
++            const nativeUpdates = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_buildNativeBalanceUpdates).call(this, filteredAggregated, accountTrackerState);
++            if (nativeUpdates.length > 0) {
++                this.messenger.call('AccountTrackerController:updateNativeBalances', nativeUpdates);
+             }
+-            // Filter and update staked balances in a single batch operation for better performance
+-            const stakedBalances = aggregated.filter((r) => {
+-                if (!r.success || r.token === ZERO_ADDRESS) {
+-                    return false;
+-                }
+-                // Check if the chainId and token address match any staking contract
+-                const stakingContractAddress = AssetsContractController_1.STAKING_CONTRACT_ADDRESS_BY_CHAINID[r.chainId];
+-                return (stakingContractAddress &&
+-                    stakingContractAddress.toLowerCase() === r.token.toLowerCase());
+-            });
+-            if (stakedBalances.length > 0) {
+-                const stakedBalanceUpdates = stakedBalances
+-                    .map((balance) => ({
+-                    address: balance.account,
+-                    chainId: balance.chainId,
+-                    stakedBalance: balance.value ? (0, controller_utils_1.toHex)(balance.value) : '0x0',
+-                }))
+-                    .filter((update) => {
+-                    const currentStakedBalance = accountTrackerState.accountsByChainId[update.chainId]?.[checksum(update.address)]?.stakedBalance;
+-                    // Only include if the staked balance has actually changed
+-                    return currentStakedBalance !== update.stakedBalance;
+-                });
+-                if (stakedBalanceUpdates.length > 0) {
+-                    this.messenger.call('AccountTrackerController:updateStakedBalances', stakedBalanceUpdates);
+-                }
++            const stakedUpdates = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_buildStakedBalanceUpdates).call(this, filteredAggregated, accountTrackerState);
++            if (stakedUpdates.length > 0) {
++                this.messenger.call('AccountTrackerController:updateStakedBalances', stakedUpdates);
+             }
+         }
++        await __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_importUntrackedTokens).call(this, filteredAggregated);
+     }
+     resetState() {
+         this.update(() => ({ tokenBalances: {} }));
+     }
+-    /**
+-     * Clean up all timers and resources when controller is destroyed
+-     */
+     destroy() {
+         __classPrivateFieldSet(this, _TokenBalancesController_isControllerPollingActive, false, "f");
+         __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").forEach((timer) => clearInterval(timer));
+         __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").clear();
+-        // Clean up debouncing timer
+         if (__classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").timer) {
+             clearTimeout(__classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").timer);
+             __classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").timer = null;
+         }
+-        // Unregister action handlers
+         this.messenger.unregisterActionHandler(`TokenBalancesController:updateChainPollingConfigs`);
+         this.messenger.unregisterActionHandler(`TokenBalancesController:getChainPollingConfig`);
+         super.destroy();
+     }
+ }
+ exports.TokenBalancesController = TokenBalancesController;
+-_TokenBalancesController_platform = new WeakMap(), _TokenBalancesController_queryAllAccounts = new WeakMap(), _TokenBalancesController_accountsApiChainIds = new WeakMap(), _TokenBalancesController_balanceFetchers = new WeakMap(), _TokenBalancesController_allTokens = new WeakMap(), _TokenBalancesController_detectedTokens = new WeakMap(), _TokenBalancesController_allIgnoredTokens = new WeakMap(), _TokenBalancesController_defaultInterval = new WeakMap(), _TokenBalancesController_websocketActivePollingInterval = new WeakMap(), _TokenBalancesController_chainPollingConfig = new WeakMap(), _TokenBalancesController_intervalPollingTimers = new WeakMap(), _TokenBalancesController_isControllerPollingActive = new WeakMap(), _TokenBalancesController_requestedChainIds = new WeakMap(), _TokenBalancesController_statusChangeDebouncer = new WeakMap(), _TokenBalancesController_getProvider = new WeakMap(), _TokenBalancesController_getNetworkClient = new WeakMap(), _TokenBalancesController_createAccountsApiFetcher = new WeakMap(), _TokenBalancesController_onTokensChanged = new WeakMap(), _TokenBalancesController_onNetworkChanged = new WeakMap(), _TokenBalancesController_onAccountRemoved = new WeakMap(), _TokenBalancesController_onAccountChanged = new WeakMap(), _TokenBalancesController_onAccountActivityBalanceUpdate = new WeakMap(), _TokenBalancesController_onAccountActivityStatusChanged = new WeakMap(), _TokenBalancesController_instances = new WeakSet(), _TokenBalancesController_normalizeAccountAddresses = function _TokenBalancesController_normalizeAccountAddresses() {
++_TokenBalancesController_platform = new WeakMap(), _TokenBalancesController_queryAllAccounts = new WeakMap(), _TokenBalancesController_accountsApiChainIds = new WeakMap(), _TokenBalancesController_balanceFetchers = new WeakMap(), _TokenBalancesController_allTokens = new WeakMap(), _TokenBalancesController_detectedTokens = new WeakMap(), _TokenBalancesController_allIgnoredTokens = new WeakMap(), _TokenBalancesController_defaultInterval = new WeakMap(), _TokenBalancesController_websocketActivePollingInterval = new WeakMap(), _TokenBalancesController_chainPollingConfig = new WeakMap(), _TokenBalancesController_intervalPollingTimers = new WeakMap(), _TokenBalancesController_isControllerPollingActive = new WeakMap(), _TokenBalancesController_isUnlocked = new WeakMap(), _TokenBalancesController_requestedChainIds = new WeakMap(), _TokenBalancesController_statusChangeDebouncer = new WeakMap(), _TokenBalancesController_getProvider = new WeakMap(), _TokenBalancesController_getNetworkClient = new WeakMap(), _TokenBalancesController_createAccountsApiFetcher = new WeakMap(), _TokenBalancesController_onTokensChanged = new WeakMap(), _TokenBalancesController_onNetworkChanged = new WeakMap(), _TokenBalancesController_onAccountRemoved = new WeakMap(), _TokenBalancesController_onAccountChanged = new WeakMap(), _TokenBalancesController_onAccountActivityBalanceUpdate = new WeakMap(), _TokenBalancesController_onAccountActivityStatusChanged = new WeakMap(), _TokenBalancesController_instances = new WeakSet(), _TokenBalancesController_subscribeToControllers = function _TokenBalancesController_subscribeToControllers() {
++    this.messenger.subscribe('TokensController:stateChange', (tokensState) => {
++        __classPrivateFieldGet(this, _TokenBalancesController_onTokensChanged, "f").call(this, tokensState).catch((error) => {
++            console.warn('Error handling token state change:', error);
++        });
++    });
++    this.messenger.subscribe('NetworkController:stateChange', __classPrivateFieldGet(this, _TokenBalancesController_onNetworkChanged, "f"));
++    this.messenger.subscribe('KeyringController:unlock', () => {
++        __classPrivateFieldSet(this, _TokenBalancesController_isUnlocked, true, "f");
++    });
++    this.messenger.subscribe('KeyringController:lock', () => {
++        __classPrivateFieldSet(this, _TokenBalancesController_isUnlocked, false, "f");
++    });
++    this.messenger.subscribe('KeyringController:accountRemoved', __classPrivateFieldGet(this, _TokenBalancesController_onAccountRemoved, "f"));
++    this.messenger.subscribe('AccountsController:selectedEvmAccountChange', __classPrivateFieldGet(this, _TokenBalancesController_onAccountChanged, "f"));
++    this.messenger.subscribe('AccountActivityService:balanceUpdated', (event) => {
++        __classPrivateFieldGet(this, _TokenBalancesController_onAccountActivityBalanceUpdate, "f").call(this, event).catch((error) => {
++            console.warn('Error handling balance update:', error);
++        });
++    });
++    this.messenger.subscribe('AccountActivityService:statusChanged', __classPrivateFieldGet(this, _TokenBalancesController_onAccountActivityStatusChanged, "f").bind(this));
++    this.messenger.subscribe('TransactionController:transactionConfirmed', (transactionMeta) => {
++        this.updateBalances({
++            chainIds: [transactionMeta.chainId],
++        }).catch(() => {
++            // Silently handle balance update errors
++        });
++    });
++    this.messenger.subscribe('TransactionController:incomingTransactionsReceived', (incomingTransactions) => {
++        this.updateBalances({
++            chainIds: incomingTransactions.map((tx) => tx.chainId),
++        }).catch(() => {
++            // Silently handle balance update errors
++        });
++    });
++}, _TokenBalancesController_registerActions = function _TokenBalancesController_registerActions() {
++    this.messenger.registerActionHandler(`TokenBalancesController:updateChainPollingConfigs`, this.updateChainPollingConfigs.bind(this));
++    this.messenger.registerActionHandler(`TokenBalancesController:getChainPollingConfig`, this.getChainPollingConfig.bind(this));
++}, _TokenBalancesController_normalizeAccountAddresses = function _TokenBalancesController_normalizeAccountAddresses() {
++    var _a;
+     const currentState = this.state.tokenBalances;
+     const normalizedBalances = {};
+-    // Iterate through all accounts and normalize to lowercase
+     for (const address of Object.keys(currentState)) {
+         const lowercaseAddress = address.toLowerCase();
+         const accountBalances = currentState[address];
+         if (!accountBalances) {
+             continue;
+         }
+-        // If this lowercase address doesn't exist yet, create it
+-        if (!normalizedBalances[lowercaseAddress]) {
+-            normalizedBalances[lowercaseAddress] = {};
+-        }
+-        // Merge chain data
++        normalizedBalances[lowercaseAddress] ?? (normalizedBalances[lowercaseAddress] = {});
+         for (const chainId of Object.keys(accountBalances)) {
+             const chainIdKey = chainId;
+-            if (!normalizedBalances[lowercaseAddress][chainIdKey]) {
+-                normalizedBalances[lowercaseAddress][chainIdKey] = {};
+-            }
+-            // Merge token balances (later values override earlier ones if duplicates exist)
++            (_a = normalizedBalances[lowercaseAddress])[chainIdKey] ?? (_a[chainIdKey] = {});
+             Object.assign(normalizedBalances[lowercaseAddress][chainIdKey], accountBalances[chainIdKey]);
+         }
+     }
+-    // Only update if there were changes
+     if (Object.keys(currentState).length !==
+         Object.keys(normalizedBalances).length ||
+         Object.keys(currentState).some((addr) => addr !== addr.toLowerCase())) {
+@@ -680,18 +476,15 @@ _TokenBalancesController_platform = new WeakMap(), _TokenBalancesController_quer
+         ]),
+     ];
+ }, _TokenBalancesController_startIntervalGroupPolling = function _TokenBalancesController_startIntervalGroupPolling(chainIds, immediate = true) {
+-    // Stop any existing interval timers
+     __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").forEach((timer) => clearInterval(timer));
+     __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").clear();
+-    // Group chains by their polling intervals
+     const intervalGroups = new Map();
+     for (const chainId of chainIds) {
+         const config = this.getChainPollingConfig(chainId);
+-        const existing = intervalGroups.get(config.interval) || [];
+-        existing.push(chainId);
+-        intervalGroups.set(config.interval, existing);
++        const group = intervalGroups.get(config.interval) ?? [];
++        group.push(chainId);
++        intervalGroups.set(config.interval, group);
+     }
+-    // Start separate polling loop for each interval group
+     for (const [interval, chainIdsGroup] of intervalGroups) {
+         __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_startPollingForInterval).call(this, interval, chainIdsGroup, immediate);
+     }
+@@ -707,33 +500,221 @@ _TokenBalancesController_platform = new WeakMap(), _TokenBalancesController_quer
+             console.warn(`Polling failed for chains ${chainIds.join(', ')} with interval ${interval}:`, error);
+         }
+     };
+-    // Poll immediately first if requested
+     if (immediate) {
+         pollFunction().catch((error) => {
+             console.warn(`Immediate polling failed for chains ${chainIds.join(', ')}:`, error);
+         });
+     }
+-    // Then start regular interval polling
+     __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_setPollingTimer).call(this, interval, chainIds, pollFunction);
+ }, _TokenBalancesController_setPollingTimer = function _TokenBalancesController_setPollingTimer(interval, chainIds, pollFunction) {
+-    // Clear any existing timer for this interval first
+-    const existingTimer = __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").get(interval);
+-    if (existingTimer) {
+-        clearInterval(existingTimer);
+-    }
+     const timer = setInterval(() => {
+         pollFunction().catch((error) => {
+             console.warn(`Interval polling failed for chains ${chainIds.join(', ')}:`, error);
+         });
+     }, interval);
+     __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").set(interval, timer);
++}, _TokenBalancesController_stopAllPolling = function _TokenBalancesController_stopAllPolling() {
++    __classPrivateFieldSet(this, _TokenBalancesController_isControllerPollingActive, false, "f");
++    __classPrivateFieldSet(this, _TokenBalancesController_requestedChainIds, [], "f");
++    __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").forEach((timer) => clearInterval(timer));
++    __classPrivateFieldGet(this, _TokenBalancesController_intervalPollingTimers, "f").clear();
++}, _TokenBalancesController_getTargetChains = function _TokenBalancesController_getTargetChains(chainIds) {
++    return chainIds?.length ? chainIds : __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_chainIdsWithTokens).call(this);
++}, _TokenBalancesController_getAccountsAndJwt = async function _TokenBalancesController_getAccountsAndJwt() {
++    const { address: selected } = this.messenger.call('AccountsController:getSelectedAccount');
++    const allAccounts = this.messenger.call('AccountsController:listAccounts');
++    const jwtToken = await (0, controller_utils_1.safelyExecuteWithTimeout)(() => {
++        return this.messenger.call('AuthenticationController:getBearerToken');
++    }, false, 5000);
++    return {
++        selectedAccount: selected,
++        allAccounts,
++        jwtToken,
++    };
++}, _TokenBalancesController_fetchAllBalances = async function _TokenBalancesController_fetchAllBalances({ targetChains, selectedAccount, allAccounts, jwtToken, queryAllAccounts, }) {
++    const aggregated = [];
++    let remainingChains = [...targetChains];
++    for (const fetcher of __classPrivateFieldGet(this, _TokenBalancesController_balanceFetchers, "f")) {
++        const supportedChains = remainingChains.filter((chain) => fetcher.supports(chain));
++        if (!supportedChains.length) {
++            continue;
++        }
++        try {
++            const result = await fetcher.fetch({
++                chainIds: supportedChains,
++                queryAllAccounts,
++                selectedAccount,
++                allAccounts,
++                jwtToken,
++            });
++            if (result.balances?.length) {
++                aggregated.push(...result.balances);
++                const processed = new Set(result.balances.map((b) => b.chainId));
++                remainingChains = remainingChains.filter((chain) => !processed.has(chain));
++            }
++            if (result.unprocessedChainIds?.length) {
++                const currentRemaining = [...remainingChains];
++                const chainsToAdd = result.unprocessedChainIds.filter((chainId) => supportedChains.includes(chainId) &&
++                    !currentRemaining.includes(chainId));
++                remainingChains.push(...chainsToAdd);
++                this.messenger
++                    .call('TokenDetectionController:detectTokens', {
++                    chainIds: result.unprocessedChainIds,
++                    forceRpc: true,
++                })
++                    .catch(() => {
++                    // Silently handle token detection errors
++                });
++            }
++        }
++        catch (error) {
++            console.warn(`Balance fetcher failed for chains ${supportedChains.join(', ')}: ${String(error)}`);
++            this.messenger
++                .call('TokenDetectionController:detectTokens', {
++                chainIds: supportedChains,
++                forceRpc: true,
++            })
++                .catch(() => {
++                // Silently handle token detection errors
++            });
++        }
++        if (!remainingChains.length) {
++            break;
++        }
++    }
++    return aggregated;
++}, _TokenBalancesController_filterByTokenAddresses = function _TokenBalancesController_filterByTokenAddresses(balances, tokenAddresses) {
++    if (!tokenAddresses?.length) {
++        return balances;
++    }
++    const lowered = tokenAddresses.map((a) => a.toLowerCase());
++    return balances.filter((balance) => lowered.includes(balance.token.toLowerCase()));
++}, _TokenBalancesController_getAccountsToProcess = function _TokenBalancesController_getAccountsToProcess(queryAllAccountsParam, allAccounts, selectedAccount) {
++    const effectiveQueryAll = queryAllAccountsParam ?? __classPrivateFieldGet(this, _TokenBalancesController_queryAllAccounts, "f") ?? false;
++    if (!effectiveQueryAll) {
++        return [selectedAccount];
++    }
++    return allAccounts.map((account) => account.address);
++}, _TokenBalancesController_applyTokenBalancesToState = function _TokenBalancesController_applyTokenBalancesToState({ prev, targetChains, accountsToProcess, balances, }) {
++    return draft(prev, (draftState) => {
++        var _a, _b;
++        for (const chainId of targetChains) {
++            for (const account of accountsToProcess) {
++                (_a = draftState.tokenBalances)[account] ?? (_a[account] = {});
++                (_b = draftState.tokenBalances[account])[chainId] ?? (_b[chainId] = {});
++                const chainTokens = __classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")[chainId];
++                if (chainTokens?.[account]) {
++                    Object.values(chainTokens[account]).forEach((token) => {
++                        var _a;
++                        const tokenAddress = checksum(token.address);
++                        (_a = draftState.tokenBalances[account][chainId])[tokenAddress] ?? (_a[tokenAddress] = '0x0');
++                    });
++                }
++                const detectedChainTokens = __classPrivateFieldGet(this, _TokenBalancesController_detectedTokens, "f")[chainId];
++                if (detectedChainTokens?.[account]) {
++                    Object.values(detectedChainTokens[account]).forEach((token) => {
++                        var _a;
++                        const tokenAddress = checksum(token.address);
++                        (_a = draftState.tokenBalances[account][chainId])[tokenAddress] ?? (_a[tokenAddress] = '0x0');
++                    });
++                }
++            }
++        }
++        balances.forEach(({ success, value, account, token, chainId }) => {
++            var _a, _b;
++            if (!success || value === undefined) {
++                return;
++            }
++            const lowerCaseAccount = account.toLowerCase();
++            const newBalance = (0, controller_utils_1.toHex)(value);
++            const tokenAddress = checksum(token);
++            const currentBalance = draftState.tokenBalances[lowerCaseAccount]?.[chainId]?.[tokenAddress];
++            if (currentBalance !== newBalance) {
++                ((_b = ((_a = draftState.tokenBalances)[lowerCaseAccount] ?? (_a[lowerCaseAccount] = {})))[chainId] ?? (_b[chainId] = {}))[tokenAddress] = newBalance;
++            }
++        });
++    });
++}, _TokenBalancesController_buildNativeBalanceUpdates = function _TokenBalancesController_buildNativeBalanceUpdates(balances, accountTrackerState) {
++    const nativeBalances = balances.filter((balance) => balance.success && balance.token === ZERO_ADDRESS);
++    if (!nativeBalances.length) {
++        return [];
++    }
++    return nativeBalances
++        .map((balance) => ({
++        address: balance.account,
++        chainId: balance.chainId,
++        balance: balance.value ? (0, controller_utils_1.BNToHex)(balance.value) : '0x0',
++    }))
++        .filter((update) => {
++        const currentBalance = accountTrackerState.accountsByChainId[update.chainId]?.[checksum(update.address)]?.balance;
++        return currentBalance !== update.balance;
++    });
++}, _TokenBalancesController_buildStakedBalanceUpdates = function _TokenBalancesController_buildStakedBalanceUpdates(balances, accountTrackerState) {
++    const stakedBalances = balances.filter((balance) => {
++        if (!balance.success || balance.token === ZERO_ADDRESS) {
++            return false;
++        }
++        const stakingContractAddress = AssetsContractController_1.STAKING_CONTRACT_ADDRESS_BY_CHAINID[balance.chainId];
++        return (stakingContractAddress &&
++            stakingContractAddress.toLowerCase() === balance.token.toLowerCase());
++    });
++    if (!stakedBalances.length) {
++        return [];
++    }
++    return stakedBalances
++        .map((balance) => ({
++        address: balance.account,
++        chainId: balance.chainId,
++        stakedBalance: balance.value ? (0, controller_utils_1.toHex)(balance.value) : '0x0',
++    }))
++        .filter((update) => {
++        const currentStakedBalance = accountTrackerState.accountsByChainId[update.chainId]?.[checksum(update.address)]?.stakedBalance;
++        return currentStakedBalance !== update.stakedBalance;
++    });
++}, _TokenBalancesController_importUntrackedTokens = 
++/**
++ * Import untracked tokens that have non-zero balances.
++ * This mirrors the v2 behavior where only tokens with actual balances are added.
++ * Delegates to TokenDetectionController:addDetectedTokensViaPolling which handles:
++ * - Checking if useTokenDetection preference is enabled
++ * - Filtering tokens already in allTokens or allIgnoredTokens
++ * - Token metadata lookup and addition via TokensController
++ *
++ * @param balances - Array of processed balance results from fetchers
++ */
++async function _TokenBalancesController_importUntrackedTokens(balances) {
++    const tokensByChain = new Map();
++    for (const balance of balances) {
++        // Skip failed fetches, native tokens, and zero balances (like v2 did)
++        if (!balance.success ||
++            balance.token === ZERO_ADDRESS ||
++            !balance.value ||
++            balance.value.isZero()) {
++            continue;
++        }
++        const tokenAddress = checksum(balance.token);
++        const existing = tokensByChain.get(balance.chainId) ?? [];
++        if (!existing.includes(tokenAddress)) {
++            existing.push(tokenAddress);
++            tokensByChain.set(balance.chainId, existing);
++        }
++    }
++    // Add detected tokens via TokenDetectionController (handles preference check,
++    // filtering of allTokens/allIgnoredTokens, and metadata lookup)
++    for (const [chainId, tokenAddresses] of tokensByChain) {
++        if (tokenAddresses.length) {
++            await this.messenger.call('TokenDetectionController:addDetectedTokensViaPolling', {
++                tokensSlice: tokenAddresses,
++                chainId,
++            });
++        }
++    }
+ }, _TokenBalancesController_isTokenTracked = function _TokenBalancesController_isTokenTracked(tokenAddress, account, chainId) {
+-    // Check if token exists in allTokens
+-    if (__classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")?.[chainId]?.[account.toLowerCase()]?.some((token) => token.address === tokenAddress)) {
++    const normalizedAccount = account.toLowerCase();
++    if (__classPrivateFieldGet(this, _TokenBalancesController_allTokens, "f")?.[chainId]?.[normalizedAccount]?.some((token) => token.address === tokenAddress)) {
+         return true;
+     }
+-    // Check if token exists in allIgnoredTokens
+-    if (__classPrivateFieldGet(this, _TokenBalancesController_allIgnoredTokens, "f")?.[chainId]?.[account.toLowerCase()]?.some((token) => token === tokenAddress)) {
++    if (__classPrivateFieldGet(this, _TokenBalancesController_allIgnoredTokens, "f")?.[chainId]?.[normalizedAccount]?.some((token) => token === tokenAddress)) {
+         return true;
+     }
+     return false;
+@@ -743,31 +724,25 @@ _TokenBalancesController_platform = new WeakMap(), _TokenBalancesController_quer
+     const nativeBalanceUpdates = [];
+     for (const update of updates) {
+         const { asset, postBalance } = update;
+-        // Throw if balance update has an error
+         if (postBalance.error) {
+             throw new Error('Balance update has error');
+         }
+-        // Parse token address from asset type
+         const parsed = (0, exports.parseAssetType)(asset.type);
+         if (!parsed) {
+             throw new Error('Failed to parse asset type');
+         }
+         const [tokenAddress, isNativeToken] = parsed;
+-        // Validate token address
+         if (!(0, utils_1.isStrictHexString)(tokenAddress) ||
+             !(0, controller_utils_1.isValidHexAddress)(tokenAddress)) {
+             throw new Error('Invalid token address');
+         }
+         const checksumTokenAddress = checksum(tokenAddress);
+         const isTracked = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_isTokenTracked).call(this, checksumTokenAddress, account, chainId);
+-        // postBalance.amount is in hex format (raw units)
+         const balanceHex = postBalance.amount;
+-        // Add token balance (tracked tokens, ignored tokens, and native tokens all get balance updates)
+         tokenBalances.push({
+             tokenAddress: checksumTokenAddress,
+             balance: balanceHex,
+         });
+-        // Add native balance update if this is a native token
+         if (isNativeToken) {
+             nativeBalanceUpdates.push({
+                 address: account,
+@@ -775,7 +750,6 @@ _TokenBalancesController_platform = new WeakMap(), _TokenBalancesController_quer
+                 balance: balanceHex,
+             });
+         }
+-        // Handle untracked ERC20 tokens - queue for import
+         if (!isNativeToken && !isTracked) {
+             newTokens.push(checksumTokenAddress);
+         }
+@@ -785,28 +759,18 @@ _TokenBalancesController_platform = new WeakMap(), _TokenBalancesController_quer
+     const changes = Array.from(__classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").pendingChanges.entries());
+     __classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").pendingChanges.clear();
+     __classPrivateFieldGet(this, _TokenBalancesController_statusChangeDebouncer, "f").timer = null;
+-    if (changes.length === 0) {
++    if (!changes.length) {
+         return;
+     }
+-    // Calculate final polling configurations
+     const chainConfigs = {};
+     for (const [chainId, status] of changes) {
+-        // Convert CAIP format (eip155:1) to hex format (0x1)
+-        // chainId is always in CAIP format from AccountActivityService
+         const hexChainId = (0, exports.caipChainIdToHex)(chainId);
+-        if (status === 'down') {
+-            // Chain is down - use default polling since no real-time updates available
+-            chainConfigs[hexChainId] = { interval: __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f") };
+-        }
+-        else {
+-            // Chain is up - use longer intervals since WebSocket provides real-time updates
+-            chainConfigs[hexChainId] = {
+-                interval: __classPrivateFieldGet(this, _TokenBalancesController_websocketActivePollingInterval, "f"),
+-            };
+-        }
++        chainConfigs[hexChainId] =
++            status === 'down'
++                ? { interval: __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f") }
++                : { interval: __classPrivateFieldGet(this, _TokenBalancesController_websocketActivePollingInterval, "f") };
+     }
+-    // Add jitter to prevent synchronized requests across instances
+-    const jitterDelay = Math.random() * __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f"); // 0 to default interval
++    const jitterDelay = Math.random() * __classPrivateFieldGet(this, _TokenBalancesController_defaultInterval, "f");
+     setTimeout(() => {
+         this.updateChainPollingConfigs(chainConfigs, { immediateUpdate: true });
+     }, jitterDelay);
+diff --git a/dist/TokenBalancesController.d.cts b/dist/TokenBalancesController.d.cts
+index 701cbeb95e02b4412f3e000b41508b50a98ad476..e5de1ed58a7a64e40b41dd913ded439ab28a1570 100644
+--- a/dist/TokenBalancesController.d.cts
++++ b/dist/TokenBalancesController.d.cts
+@@ -1,14 +1,15 @@
+ import type { AccountsControllerGetSelectedAccountAction, AccountsControllerListAccountsAction, AccountsControllerSelectedEvmAccountChangeEvent } from "@metamask/accounts-controller";
+ import type { ControllerGetStateAction, ControllerStateChangeEvent } from "@metamask/base-controller";
+ import type { AccountActivityServiceBalanceUpdatedEvent, AccountActivityServiceStatusChangedEvent } from "@metamask/core-backend";
+-import type { KeyringControllerAccountRemovedEvent } from "@metamask/keyring-controller";
++import type { KeyringControllerAccountRemovedEvent, KeyringControllerGetStateAction, KeyringControllerLockEvent, KeyringControllerUnlockEvent } from "@metamask/keyring-controller";
+ import type { Messenger } from "@metamask/messenger";
+ import type { NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetStateAction, NetworkControllerStateChangeEvent } from "@metamask/network-controller";
+ import type { PreferencesControllerGetStateAction, PreferencesControllerStateChangeEvent } from "@metamask/preferences-controller";
+ import type { AuthenticationController } from "@metamask/profile-sync-controller";
++import type { TransactionControllerIncomingTransactionsReceivedEvent, TransactionControllerTransactionConfirmedEvent } from "@metamask/transaction-controller";
+ import type { Hex } from "@metamask/utils";
+ import type { AccountTrackerControllerGetStateAction, AccountTrackerUpdateNativeBalancesAction, AccountTrackerUpdateStakedBalancesAction } from "./AccountTrackerController.cjs";
+-import type { TokenDetectionControllerAddDetectedTokensViaWsAction } from "./TokenDetectionController.cjs";
++import type { TokenDetectionControllerAddDetectedTokensViaPollingAction, TokenDetectionControllerAddDetectedTokensViaWsAction, TokenDetectionControllerDetectTokensAction } from "./TokenDetectionController.cjs";
+ import type { TokensControllerGetStateAction, TokensControllerStateChangeEvent } from "./TokensController.cjs";
+ export type ChainIdHex = Hex;
+ export type ChecksumAddress = Hex;
+@@ -33,8 +34,8 @@ export type NativeBalanceEvent = {
+     payload: unknown[];
+ };
+ export type TokenBalancesControllerEvents = TokenBalancesControllerStateChangeEvent | NativeBalanceEvent;
+-export type AllowedActions = NetworkControllerGetNetworkClientByIdAction | NetworkControllerGetStateAction | TokensControllerGetStateAction | TokenDetectionControllerAddDetectedTokensViaWsAction | PreferencesControllerGetStateAction | AccountsControllerGetSelectedAccountAction | AccountsControllerListAccountsAction | AccountTrackerControllerGetStateAction | AccountTrackerUpdateNativeBalancesAction | AccountTrackerUpdateStakedBalancesAction | AuthenticationController.AuthenticationControllerGetBearerToken;
+-export type AllowedEvents = TokensControllerStateChangeEvent | PreferencesControllerStateChangeEvent | NetworkControllerStateChangeEvent | KeyringControllerAccountRemovedEvent | AccountActivityServiceBalanceUpdatedEvent | AccountActivityServiceStatusChangedEvent | AccountsControllerSelectedEvmAccountChangeEvent;
++export type AllowedActions = NetworkControllerGetNetworkClientByIdAction | NetworkControllerGetStateAction | TokensControllerGetStateAction | TokenDetectionControllerAddDetectedTokensViaPollingAction | TokenDetectionControllerAddDetectedTokensViaWsAction | TokenDetectionControllerDetectTokensAction | PreferencesControllerGetStateAction | AccountsControllerGetSelectedAccountAction | AccountsControllerListAccountsAction | AccountTrackerControllerGetStateAction | AccountTrackerUpdateNativeBalancesAction | AccountTrackerUpdateStakedBalancesAction | KeyringControllerGetStateAction | AuthenticationController.AuthenticationControllerGetBearerToken;
++export type AllowedEvents = TokensControllerStateChangeEvent | PreferencesControllerStateChangeEvent | NetworkControllerStateChangeEvent | KeyringControllerAccountRemovedEvent | KeyringControllerLockEvent | KeyringControllerUnlockEvent | AccountActivityServiceBalanceUpdatedEvent | AccountActivityServiceStatusChangedEvent | AccountsControllerSelectedEvmAccountChangeEvent | TransactionControllerTransactionConfirmedEvent | TransactionControllerIncomingTransactionsReceivedEvent;
+ export type TokenBalancesControllerMessenger = Messenger<typeof CONTROLLER, TokenBalancesControllerActions | AllowedActions, TokenBalancesControllerEvents | AllowedEvents>;
+ export type ChainPollingConfig = {
+     /** Polling interval in milliseconds for this chain */
+@@ -64,20 +65,17 @@ export type TokenBalancesControllerOptions = {
+     websocketActivePollingInterval?: number;
+ };
+ /**
+- * Convert CAIP chain ID or hex chain ID to hex chain ID
+- * Handles both CAIP-2 format (e.g., "eip155:1") and hex format (e.g., "0x1")
++ * Convert CAIP chain ID or hex chain ID to hex chain ID.
+  *
+- * @param chainId - CAIP chain ID (e.g., "eip155:1") or hex chain ID (e.g., "0x1")
+- * @returns Hex chain ID (e.g., "0x1")
+- * @throws {Error} If chainId is neither a valid CAIP-2 chain ID nor a hex string
++ * @param chainId - CAIP chain ID or hex chain ID.
++ * @returns Hex chain ID.
+  */
+ export declare const caipChainIdToHex: (chainId: string) => ChainIdHex;
+ /**
+- * Extract token address from asset type
+- * Returns tuple of [tokenAddress, isNativeToken] or null if invalid
++ * Extract token address from asset type.
+  *
+- * @param assetType - Asset type string (e.g., 'eip155:1/erc20:0x...' or 'eip155:1/slip44:60')
+- * @returns Tuple of [tokenAddress, isNativeToken] or null if invalid
++ * @param assetType - Asset type string.
++ * @returns Tuple of [tokenAddress, isNativeToken] or null if invalid.
+  */
+ export declare const parseAssetType: (assetType: string) => [
+     string,
+@@ -114,47 +112,28 @@ export declare class TokenBalancesController extends TokenBalancesController_bas
+     #private;
+     constructor({ messenger, interval, websocketActivePollingInterval, chainPollingIntervals, state, queryMultipleAccounts, accountsApiChainIds, allowExternalServices, platform, }: TokenBalancesControllerOptions);
+     /**
+-     * Override to support per-chain polling intervals by grouping chains by interval
++     * Whether the controller is active (keyring is unlocked).
++     * When locked, balance updates should be skipped.
+      *
+-     * @param options0 - The polling options
+-     * @param options0.chainIds - Chain IDs to start polling for
++     * @returns Whether the keyring is unlocked.
+      */
++    get isActive(): boolean;
+     _startPolling({ chainIds }: {
+         chainIds: ChainIdHex[];
+     }): void;
+-    /**
+-     * Override to handle our custom polling approach
+-     *
+-     * @param tokenSetId - The token set ID to stop polling for
+-     */
+     _stopPollingByPollingTokenSetId(tokenSetId: string): void;
+-    /**
+-     * Get polling configuration for a chain (includes default fallback)
+-     *
+-     * @param chainId - The chain ID to get config for
+-     * @returns The polling configuration for the chain
+-     */
+     getChainPollingConfig(chainId: ChainIdHex): ChainPollingConfig;
+     _executePoll({ chainIds, queryAllAccounts, }: {
+         chainIds: ChainIdHex[];
+         queryAllAccounts?: boolean;
+     }): Promise<void>;
+-    /**
+-     * Update multiple chain polling configurations at once
+-     *
+-     * @param configs - Object mapping chain IDs to polling configurations
+-     * @param options - Optional configuration for the update behavior
+-     * @param options.immediateUpdate - Whether to immediately fetch balances after updating configs (default: true)
+-     */
+     updateChainPollingConfigs(configs: Record<ChainIdHex, ChainPollingConfig>, options?: UpdateChainPollingConfigsOptions): void;
+-    updateBalances({ chainIds, queryAllAccounts, }?: {
++    updateBalances({ chainIds, tokenAddresses, queryAllAccounts, }?: {
+         chainIds?: ChainIdHex[];
++        tokenAddresses?: string[];
+         queryAllAccounts?: boolean;
+     }): Promise<void>;
+     resetState(): void;
+-    /**
+-     * Clean up all timers and resources when controller is destroyed
+-     */
+     destroy(): void;
+ }
+ export default TokenBalancesController;
+diff --git a/dist/TokenDetectionController.cjs b/dist/TokenDetectionController.cjs
+index 81d8eb4fbdc876951d601797f5acb2aa6ed055fb..9c64edf0431f6dfd454c7a13f507bee52ccf7c16 100644
+--- a/dist/TokenDetectionController.cjs
++++ b/dist/TokenDetectionController.cjs
+@@ -13,18 +13,16 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _TokenDetectionController_instances, _TokenDetectionController_intervalId, _TokenDetectionController_selectedAccountId, _TokenDetectionController_tokensChainsCache, _TokenDetectionController_disabled, _TokenDetectionController_isUnlocked, _TokenDetectionController_isDetectionEnabledFromPreferences, _TokenDetectionController_useTokenDetection, _TokenDetectionController_useExternalServices, _TokenDetectionController_getBalancesInSingleCall, _TokenDetectionController_trackMetaMetricsEvent, _TokenDetectionController_accountsAPI, _TokenDetectionController_registerEventListeners, _TokenDetectionController_stopPolling, _TokenDetectionController_startPolling, _TokenDetectionController_compareTokensChainsCache, _TokenDetectionController_getCorrectNetworkClientIdByChainId, _TokenDetectionController_restartTokenDetection, _TokenDetectionController_getChainsToDetect, _TokenDetectionController_attemptAccountAPIDetection, _TokenDetectionController_addChainsToRpcDetection, _TokenDetectionController_shouldDetectTokens, _TokenDetectionController_detectTokensUsingRpc, _TokenDetectionController_getSlicesOfTokensToDetect, _TokenDetectionController_getConvertedStaticMainnetTokenList, _TokenDetectionController_addDetectedTokensViaAPI, _TokenDetectionController_filterAndBuildTokensWithBalance, _TokenDetectionController_addDetectedTokens, _TokenDetectionController_getSelectedAccount, _TokenDetectionController_getSelectedAddress;
++var _TokenDetectionController_instances, _TokenDetectionController_intervalId, _TokenDetectionController_selectedAccountId, _TokenDetectionController_tokensChainsCache, _TokenDetectionController_disabled, _TokenDetectionController_isUnlocked, _TokenDetectionController_isDetectionEnabledFromPreferences, _TokenDetectionController_useTokenDetection, _TokenDetectionController_useExternalServices, _TokenDetectionController_getBalancesInSingleCall, _TokenDetectionController_trackMetaMetricsEvent, _TokenDetectionController_registerEventListeners, _TokenDetectionController_stopPolling, _TokenDetectionController_startPolling, _TokenDetectionController_compareTokensChainsCache, _TokenDetectionController_getCorrectNetworkClientIdByChainId, _TokenDetectionController_restartTokenDetection, _TokenDetectionController_shouldDetectTokens, _TokenDetectionController_detectTokensUsingRpc, _TokenDetectionController_getSlicesOfTokensToDetect, _TokenDetectionController_getConvertedStaticMainnetTokenList, _TokenDetectionController_addDetectedTokens, _TokenDetectionController_getSelectedAccount, _TokenDetectionController_getSelectedAddress;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TokenDetectionController = exports.controllerName = exports.mapChainIdWithTokenListMap = exports.STATIC_MAINNET_TOKEN_LIST = void 0;
+ const contract_metadata_1 = __importDefault(require("@metamask/contract-metadata"));
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const polling_controller_1 = require("@metamask/polling-controller");
+-const utils_1 = require("@metamask/utils");
+ const lodash_1 = require("lodash");
+ const assetsUtil_1 = require("./assetsUtil.cjs");
+-const multi_chain_accounts_service_1 = require("./multi-chain-accounts-service/index.cjs");
++const constants_1 = require("./constants.cjs");
+ const DEFAULT_INTERVAL = 180000;
+-const ACCOUNTS_API_TIMEOUT_MS = 10000;
+ exports.STATIC_MAINNET_TOKEN_LIST = Object.entries(contract_metadata_1.default).reduce((acc, [base, contract]) => {
+     const { logo, erc20, erc721, ...tokenMetadata } = contract;
+     return {
+@@ -79,12 +77,10 @@ class TokenDetectionController extends (0, polling_controller_1.StaticIntervalPo
+      * @param options.interval - Polling interval used to fetch new token rates
+      * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address.
+      * @param options.trackMetaMetricsEvent - Sets options for MetaMetrics event tracking.
+-     * @param options.useAccountsAPI - Feature Switch for using the accounts API when detecting tokens (default: true)
+      * @param options.useTokenDetection - Feature Switch for using token detection (default: true)
+      * @param options.useExternalServices - Feature Switch for using external services (default: false)
+-     * @param options.platform - Indicates whether the platform is extension or mobile
+      */
+-    constructor({ interval = DEFAULT_INTERVAL, disabled = true, getBalancesInSingleCall, trackMetaMetricsEvent, messenger, useAccountsAPI = true, useTokenDetection = () => true, useExternalServices = () => true, platform, }) {
++    constructor({ interval = DEFAULT_INTERVAL, disabled = true, getBalancesInSingleCall, trackMetaMetricsEvent, messenger, useTokenDetection = () => true, useExternalServices = () => true, }) {
+         super({
+             name: exports.controllerName,
+             messenger,
+@@ -102,38 +98,9 @@ class TokenDetectionController extends (0, polling_controller_1.StaticIntervalPo
+         _TokenDetectionController_useExternalServices.set(this, void 0);
+         _TokenDetectionController_getBalancesInSingleCall.set(this, void 0);
+         _TokenDetectionController_trackMetaMetricsEvent.set(this, void 0);
+-        _TokenDetectionController_accountsAPI.set(this, {
+-            isAccountsAPIEnabled: true,
+-            supportedNetworksCache: null,
+-            platform: '',
+-            async getSupportedNetworks() {
+-                /* istanbul ignore next */
+-                if (!this.isAccountsAPIEnabled) {
+-                    throw new Error('Accounts API Feature Switch is disabled');
+-                }
+-                /* istanbul ignore next */
+-                if (this.supportedNetworksCache) {
+-                    return this.supportedNetworksCache;
+-                }
+-                const result = await (0, multi_chain_accounts_service_1.fetchSupportedNetworks)().catch(() => null);
+-                this.supportedNetworksCache = result;
+-                return result;
+-            },
+-            async getMultiNetworksBalances(address, chainIds, supportedNetworks, jwtToken) {
+-                const chainIdNumbers = chainIds.map((chainId) => (0, utils_1.hexToNumber)(chainId));
+-                if (!supportedNetworks ||
+-                    !chainIdNumbers.every((id) => supportedNetworks.includes(id))) {
+-                    const supportedNetworksErrStr = (supportedNetworks ?? []).toString();
+-                    throw new Error(`Unsupported Network: supported networks ${supportedNetworksErrStr}, requested networks: ${chainIdNumbers.toString()}`);
+-                }
+-                const result = await (0, multi_chain_accounts_service_1.fetchMultiChainBalances)(address, {
+-                    networks: chainIdNumbers,
+-                }, this.platform, jwtToken);
+-                // Return the full response including unprocessedNetworks
+-                return result;
+-            },
+-        });
+         this.messenger.registerActionHandler(`${exports.controllerName}:addDetectedTokensViaWs`, this.addDetectedTokensViaWs.bind(this));
++        this.messenger.registerActionHandler(`${exports.controllerName}:addDetectedTokensViaPolling`, this.addDetectedTokensViaPolling.bind(this));
++        this.messenger.registerActionHandler(`${exports.controllerName}:detectTokens`, this.detectTokens.bind(this));
+         __classPrivateFieldSet(this, _TokenDetectionController_disabled, disabled, "f");
+         this.setIntervalLength(interval);
+         __classPrivateFieldSet(this, _TokenDetectionController_selectedAccountId, __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSelectedAccount).call(this).id, "f");
+@@ -145,10 +112,8 @@ class TokenDetectionController extends (0, polling_controller_1.StaticIntervalPo
+         __classPrivateFieldSet(this, _TokenDetectionController_trackMetaMetricsEvent, trackMetaMetricsEvent, "f");
+         const { isUnlocked } = this.messenger.call('KeyringController:getState');
+         __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, isUnlocked, "f");
+-        __classPrivateFieldGet(this, _TokenDetectionController_accountsAPI, "f").isAccountsAPIEnabled = useAccountsAPI;
+         __classPrivateFieldSet(this, _TokenDetectionController_useTokenDetection, useTokenDetection, "f");
+         __classPrivateFieldSet(this, _TokenDetectionController_useExternalServices, useExternalServices, "f");
+-        __classPrivateFieldGet(this, _TokenDetectionController_accountsAPI, "f").platform = platform;
+         __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_registerEventListeners).call(this);
+     }
+     /**
+@@ -201,43 +166,33 @@ class TokenDetectionController extends (0, polling_controller_1.StaticIntervalPo
+      * @param options - Options for token detection.
+      * @param options.chainIds - The chain IDs of the network client to use.
+      * @param options.selectedAddress - the selectedAddress against which to detect for token balances.
++     * @param options.forceRpc - Force RPC-based token detection for all specified chains,
++     * bypassing external services check and ensuring RPC is used even for chains
++     * that might otherwise be handled by the Accounts API.
+      */
+-    async detectTokens({ chainIds, selectedAddress, } = {}) {
++    async detectTokens({ chainIds, selectedAddress, forceRpc = false, } = {}) {
+         if (!this.isActive) {
+             return;
+         }
+-        if (!__classPrivateFieldGet(this, _TokenDetectionController_useTokenDetection, "f").call(this)) {
++        // When forceRpc is true, bypass the useTokenDetection check to ensure RPC detection runs
++        if (!forceRpc && !__classPrivateFieldGet(this, _TokenDetectionController_useTokenDetection, "f").call(this)) {
++            return;
++        }
++        // If external services are disabled and not forcing RPC, skip all detection
++        if (!forceRpc && !__classPrivateFieldGet(this, _TokenDetectionController_useExternalServices, "f").call(this)) {
+             return;
+         }
+         const addressToDetect = selectedAddress ?? __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSelectedAddress).call(this);
+         const clientNetworks = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getCorrectNetworkClientIdByChainId).call(this, chainIds);
+-        const jwtToken = await (0, controller_utils_1.safelyExecuteWithTimeout)(() => {
+-            return this.messenger.call('AuthenticationController:getBearerToken');
+-        }, false, 5000);
+-        let supportedNetworks;
+-        if (__classPrivateFieldGet(this, _TokenDetectionController_accountsAPI, "f").isAccountsAPIEnabled && __classPrivateFieldGet(this, _TokenDetectionController_useExternalServices, "f").call(this)) {
+-            supportedNetworks = await __classPrivateFieldGet(this, _TokenDetectionController_accountsAPI, "f").getSupportedNetworks();
+-        }
+-        const { chainsToDetectUsingRpc, chainsToDetectUsingAccountAPI } = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getChainsToDetect).call(this, clientNetworks, supportedNetworks);
+-        // Try detecting tokens via Account API first if conditions allow
+-        if (supportedNetworks && chainsToDetectUsingAccountAPI.length > 0) {
+-            const apiResult = await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_attemptAccountAPIDetection).call(this, chainsToDetectUsingAccountAPI, addressToDetect, supportedNetworks, jwtToken);
+-            // If the account API call failed or returned undefined, have those chains fall back to RPC detection
+-            if (!apiResult || apiResult.result === 'failed') {
+-                __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_addChainsToRpcDetection).call(this, chainsToDetectUsingRpc, chainsToDetectUsingAccountAPI, clientNetworks);
+-            }
+-            else if (apiResult?.result === 'success' &&
+-                apiResult.unprocessedNetworks &&
+-                apiResult.unprocessedNetworks.length > 0) {
+-                // Handle unprocessed networks by adding them to RPC detection
+-                const unprocessedChainIds = apiResult.unprocessedNetworks.map((chainId) => (0, controller_utils_1.toHex)(chainId));
+-                __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_addChainsToRpcDetection).call(this, chainsToDetectUsingRpc, unprocessedChainIds, clientNetworks);
+-            }
+-        }
+-        // Proceed with RPC detection if there are chains remaining in chainsToDetectUsingRpc
+-        if (chainsToDetectUsingRpc.length > 0) {
+-            await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_detectTokensUsingRpc).call(this, chainsToDetectUsingRpc, addressToDetect);
++        // If forceRpc is true, use RPC for all chains
++        // Otherwise, skip chains supported by Accounts API (they are handled by TokenBalancesController)
++        const chainsToDetectUsingRpc = forceRpc
++            ? clientNetworks
++            : clientNetworks.filter(({ chainId }) => !constants_1.SUPPORTED_NETWORKS_ACCOUNTS_API_V4.includes(chainId));
++        if (chainsToDetectUsingRpc.length === 0) {
++            return;
+         }
++        await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_detectTokensUsingRpc).call(this, chainsToDetectUsingRpc, addressToDetect);
+     }
+     /**
+      * Add tokens detected from websocket balance updates
+@@ -292,48 +247,127 @@ class TokenDetectionController extends (0, polling_controller_1.StaticIntervalPo
+             await this.messenger.call('TokensController:addTokens', tokensWithBalance, networkClientId);
+         }
+     }
++    /**
++     * Add tokens detected from polling balance updates
++     * This method:
++     * - Checks if useTokenDetection preference is enabled (skips if disabled)
++     * - Filters out tokens already in allTokens or allIgnoredTokens
++     * - Tokens are expected to be in the tokensChainsCache with full metadata
++     * - Balance fetching is skipped since balances are provided by the caller
++     *
++     * @param options - The options object
++     * @param options.tokensSlice - Array of token addresses detected from polling
++     * @param options.chainId - Hex chain ID
++     * @returns Promise that resolves when tokens are added
++     */
++    async addDetectedTokensViaPolling({ tokensSlice, chainId, }) {
++        // Check if token detection is enabled via preferences
++        if (!__classPrivateFieldGet(this, _TokenDetectionController_useTokenDetection, "f").call(this)) {
++            return;
++        }
++        const selectedAddress = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSelectedAddress).call(this);
++        // Get current token states to filter out already tracked/ignored tokens
++        const { allTokens, allIgnoredTokens } = this.messenger.call('TokensController:getState');
++        const existingTokenAddresses = (allTokens[chainId]?.[selectedAddress] ?? []).map((token) => token.address.toLowerCase());
++        const ignoredTokenAddresses = (allIgnoredTokens[chainId]?.[selectedAddress] ?? []).map((address) => address.toLowerCase());
++        const tokensWithBalance = [];
++        const eventTokensDetails = [];
++        for (const tokenAddress of tokensSlice) {
++            const lowercaseTokenAddress = tokenAddress.toLowerCase();
++            const checksummedTokenAddress = (0, controller_utils_1.toChecksumHexAddress)(tokenAddress);
++            // Skip tokens already in allTokens
++            if (existingTokenAddresses.includes(lowercaseTokenAddress)) {
++                continue;
++            }
++            // Skip tokens in allIgnoredTokens
++            if (ignoredTokenAddresses.includes(lowercaseTokenAddress)) {
++                continue;
++            }
++            // Check map of validated tokens (cache keys are lowercase)
++            const tokenData = __classPrivateFieldGet(this, _TokenDetectionController_tokensChainsCache, "f")[chainId]?.data?.[lowercaseTokenAddress];
++            if (!tokenData) {
++                console.warn(`Token metadata not found in cache for ${tokenAddress} on chain ${chainId}`);
++                continue;
++            }
++            const { decimals, symbol, aggregators, iconUrl, name } = tokenData;
++            eventTokensDetails.push(`${symbol} - ${checksummedTokenAddress}`);
++            tokensWithBalance.push({
++                address: checksummedTokenAddress,
++                decimals,
++                symbol,
++                aggregators,
++                image: iconUrl,
++                isERC721: false,
++                name,
++            });
++        }
++        // Perform addition
++        if (tokensWithBalance.length) {
++            __classPrivateFieldGet(this, _TokenDetectionController_trackMetaMetricsEvent, "f").call(this, {
++                event: 'Token Detected',
++                category: 'Wallet',
++                properties: {
++                    tokens: eventTokensDetails,
++                    token_standard: controller_utils_1.ERC20,
++                    asset_type: controller_utils_1.ASSET_TYPES.TOKEN,
++                },
++            });
++            const networkClientId = this.messenger.call('NetworkController:findNetworkClientIdByChainId', chainId);
++            await this.messenger.call('TokensController:addTokens', tokensWithBalance, networkClientId);
++        }
++    }
+ }
+ exports.TokenDetectionController = TokenDetectionController;
+-_TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_selectedAccountId = new WeakMap(), _TokenDetectionController_tokensChainsCache = new WeakMap(), _TokenDetectionController_disabled = new WeakMap(), _TokenDetectionController_isUnlocked = new WeakMap(), _TokenDetectionController_isDetectionEnabledFromPreferences = new WeakMap(), _TokenDetectionController_useTokenDetection = new WeakMap(), _TokenDetectionController_useExternalServices = new WeakMap(), _TokenDetectionController_getBalancesInSingleCall = new WeakMap(), _TokenDetectionController_trackMetaMetricsEvent = new WeakMap(), _TokenDetectionController_accountsAPI = new WeakMap(), _TokenDetectionController_instances = new WeakSet(), _TokenDetectionController_registerEventListeners = function _TokenDetectionController_registerEventListeners() {
+-    this.messenger.subscribe('KeyringController:unlock', async () => {
++_TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_selectedAccountId = new WeakMap(), _TokenDetectionController_tokensChainsCache = new WeakMap(), _TokenDetectionController_disabled = new WeakMap(), _TokenDetectionController_isUnlocked = new WeakMap(), _TokenDetectionController_isDetectionEnabledFromPreferences = new WeakMap(), _TokenDetectionController_useTokenDetection = new WeakMap(), _TokenDetectionController_useExternalServices = new WeakMap(), _TokenDetectionController_getBalancesInSingleCall = new WeakMap(), _TokenDetectionController_trackMetaMetricsEvent = new WeakMap(), _TokenDetectionController_instances = new WeakSet(), _TokenDetectionController_registerEventListeners = function _TokenDetectionController_registerEventListeners() {
++    this.messenger.subscribe('KeyringController:unlock', () => {
+         __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, true, "f");
+-        await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this);
++        __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this).catch(() => {
++            // Silently handle token detection errors
++        });
+     });
+     this.messenger.subscribe('KeyringController:lock', () => {
+         __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, false, "f");
+         __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_stopPolling).call(this);
+     });
+-    this.messenger.subscribe('TokenListController:stateChange', async ({ tokensChainsCache }) => {
++    this.messenger.subscribe('TokenListController:stateChange', ({ tokensChainsCache }) => {
+         const isEqualValues = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_compareTokensChainsCache).call(this, tokensChainsCache, __classPrivateFieldGet(this, _TokenDetectionController_tokensChainsCache, "f"));
+         if (!isEqualValues) {
+-            await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this);
++            __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this).catch(() => {
++                // Silently handle token detection errors
++            });
+         }
+     });
+-    this.messenger.subscribe('PreferencesController:stateChange', async ({ useTokenDetection }) => {
++    this.messenger.subscribe('PreferencesController:stateChange', ({ useTokenDetection }) => {
+         const selectedAccount = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSelectedAccount).call(this);
+         const isDetectionChangedFromPreferences = __classPrivateFieldGet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, "f") !== useTokenDetection;
+         __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, useTokenDetection, "f");
+         if (isDetectionChangedFromPreferences) {
+-            await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, {
++            __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, {
+                 selectedAddress: selectedAccount.address,
++            }).catch(() => {
++                // Silently handle token detection errors
+             });
+         }
+     });
+-    this.messenger.subscribe('AccountsController:selectedEvmAccountChange', async (selectedAccount) => {
++    this.messenger.subscribe('AccountsController:selectedEvmAccountChange', (selectedAccount) => {
+         const { networkConfigurationsByChainId } = this.messenger.call('NetworkController:getState');
+         const chainIds = Object.keys(networkConfigurationsByChainId);
+         const isSelectedAccountIdChanged = __classPrivateFieldGet(this, _TokenDetectionController_selectedAccountId, "f") !== selectedAccount.id;
+         if (isSelectedAccountIdChanged) {
+             __classPrivateFieldSet(this, _TokenDetectionController_selectedAccountId, selectedAccount.id, "f");
+-            await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, {
++            __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, {
+                 selectedAddress: selectedAccount.address,
+                 chainIds,
++            }).catch(() => {
++                // Silently handle token detection errors
+             });
+         }
+     });
+-    this.messenger.subscribe('TransactionController:transactionConfirmed', async (transactionMeta) => {
+-        await this.detectTokens({
++    this.messenger.subscribe('TransactionController:transactionConfirmed', (transactionMeta) => {
++        this.detectTokens({
+             chainIds: [transactionMeta.chainId],
++        }).catch(() => {
++            // Silently handle token detection errors
+         });
+     });
+ }, _TokenDetectionController_stopPolling = function _TokenDetectionController_stopPolling() {
+@@ -394,41 +428,6 @@ async function _TokenDetectionController_restartTokenDetection({ selectedAddress
+         selectedAddress,
+     });
+     this.setIntervalLength(DEFAULT_INTERVAL);
+-}, _TokenDetectionController_getChainsToDetect = function _TokenDetectionController_getChainsToDetect(clientNetworks, supportedNetworks) {
+-    const chainsToDetectUsingAccountAPI = [];
+-    const chainsToDetectUsingRpc = [];
+-    clientNetworks.forEach(({ chainId, networkClientId }) => {
+-        if (supportedNetworks?.includes((0, utils_1.hexToNumber)(chainId))) {
+-            chainsToDetectUsingAccountAPI.push(chainId);
+-        }
+-        else {
+-            chainsToDetectUsingRpc.push({ chainId, networkClientId });
+-        }
+-    });
+-    return { chainsToDetectUsingRpc, chainsToDetectUsingAccountAPI };
+-}, _TokenDetectionController_attemptAccountAPIDetection = async function _TokenDetectionController_attemptAccountAPIDetection(chainsToDetectUsingAccountAPI, addressToDetect, supportedNetworks, jwtToken) {
+-    const result = await (0, controller_utils_1.safelyExecuteWithTimeout)(async () => {
+-        return __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_addDetectedTokensViaAPI).call(this, {
+-            chainIds: chainsToDetectUsingAccountAPI,
+-            selectedAddress: addressToDetect,
+-            supportedNetworks,
+-            jwtToken,
+-        });
+-    }, false, ACCOUNTS_API_TIMEOUT_MS);
+-    if (!result) {
+-        return { result: 'failed' };
+-    }
+-    return result;
+-}, _TokenDetectionController_addChainsToRpcDetection = function _TokenDetectionController_addChainsToRpcDetection(chainsToDetectUsingRpc, chainsToDetectUsingAccountAPI, clientNetworks) {
+-    chainsToDetectUsingAccountAPI.forEach((chainId) => {
+-        const networkEntry = clientNetworks.find((network) => network.chainId === chainId);
+-        if (networkEntry) {
+-            chainsToDetectUsingRpc.push({
+-                chainId: networkEntry.chainId,
+-                networkClientId: networkEntry.networkClientId,
+-            });
+-        }
+-    });
+ }, _TokenDetectionController_shouldDetectTokens = function _TokenDetectionController_shouldDetectTokens(chainId) {
+     if (!(0, assetsUtil_1.isTokenDetectionSupportedForNetwork)(chainId)) {
+         return false;
+@@ -503,96 +502,6 @@ async function _TokenDetectionController_restartTokenDetection({ selectedAddress
+             timestamp: 0,
+         },
+     };
+-}, _TokenDetectionController_addDetectedTokensViaAPI = 
+-/**
+- * This adds detected tokens from the Accounts API, avoiding the multi-call RPC calls for balances
+- *
+- * @param options - method arguments
+- * @param options.selectedAddress - address to check against
+- * @param options.chainIds - array of chainIds to check tokens for
+- * @param options.supportedNetworks - array of chainIds to check tokens for
+- * @param options.jwtToken - JWT token for authentication
+- * @returns a success or failed object
+- */
+-async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddress, chainIds, supportedNetworks, jwtToken, }) {
+-    return await (0, controller_utils_1.safelyExecute)(async () => {
+-        // Fetch balances for multiple chain IDs at once
+-        const apiResponse = await __classPrivateFieldGet(this, _TokenDetectionController_accountsAPI, "f")
+-            .getMultiNetworksBalances(selectedAddress, chainIds, supportedNetworks, jwtToken)
+-            .catch(() => null);
+-        if (apiResponse === null) {
+-            return { result: 'failed' };
+-        }
+-        const tokenBalancesByChain = apiResponse.balances;
+-        // Process each chain ID individually
+-        for (const chainId of chainIds) {
+-            const isTokenDetectionInactiveInMainnet = !__classPrivateFieldGet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, "f") &&
+-                chainId === controller_utils_1.ChainId.mainnet;
+-            const { tokensChainsCache } = this.messenger.call('TokenListController:getState');
+-            __classPrivateFieldSet(this, _TokenDetectionController_tokensChainsCache, isTokenDetectionInactiveInMainnet
+-                ? __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getConvertedStaticMainnetTokenList).call(this)
+-                : (tokensChainsCache ?? {}), "f");
+-            // Generate token candidates based on chainId and selectedAddress
+-            const tokenCandidateSlices = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSlicesOfTokensToDetect).call(this, {
+-                chainId,
+-                selectedAddress,
+-            });
+-            // Filter balances for the current chainId
+-            const tokenBalances = tokenBalancesByChain.filter((balance) => balance.chainId === (0, utils_1.hexToNumber)(chainId));
+-            if (!tokenBalances || tokenBalances.length === 0) {
+-                continue;
+-            }
+-            // Use helper function to filter tokens with balance for this chainId
+-            const { tokensWithBalance, eventTokensDetails } = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_filterAndBuildTokensWithBalance).call(this, tokenCandidateSlices, tokenBalances, chainId);
+-            if (tokensWithBalance.length) {
+-                __classPrivateFieldGet(this, _TokenDetectionController_trackMetaMetricsEvent, "f").call(this, {
+-                    event: 'Token Detected',
+-                    category: 'Wallet',
+-                    properties: {
+-                        tokens: eventTokensDetails,
+-                        token_standard: controller_utils_1.ERC20,
+-                        asset_type: controller_utils_1.ASSET_TYPES.TOKEN,
+-                    },
+-                });
+-                const networkClientId = this.messenger.call('NetworkController:findNetworkClientIdByChainId', chainId);
+-                await this.messenger.call('TokensController:addTokens', tokensWithBalance, networkClientId);
+-            }
+-        }
+-        return {
+-            result: 'success',
+-            unprocessedNetworks: apiResponse.unprocessedNetworks,
+-        };
+-    });
+-}, _TokenDetectionController_filterAndBuildTokensWithBalance = function _TokenDetectionController_filterAndBuildTokensWithBalance(tokenCandidateSlices, tokenBalances, chainId) {
+-    const tokensWithBalance = [];
+-    const eventTokensDetails = [];
+-    const tokenCandidateSet = new Set(tokenCandidateSlices.flat());
+-    tokenBalances?.forEach((token) => {
+-        const tokenAddress = token.address;
+-        // Make sure the token to add is in our candidate list
+-        if (!tokenCandidateSet.has(tokenAddress)) {
+-            return;
+-        }
+-        // Retrieve token data from cache to safely add it
+-        const tokenData = __classPrivateFieldGet(this, _TokenDetectionController_tokensChainsCache, "f")[chainId]?.data[tokenAddress];
+-        // We need specific data from tokensChainsCache to correctly create a token
+-        // So even if we have a token that was detected correctly by the API, if its missing data we cannot safely add it.
+-        if (!tokenData) {
+-            return;
+-        }
+-        const { decimals, symbol, aggregators, iconUrl, name } = tokenData;
+-        eventTokensDetails.push(`${symbol} - ${tokenAddress}`);
+-        tokensWithBalance.push({
+-            address: tokenAddress,
+-            decimals,
+-            symbol,
+-            aggregators,
+-            image: iconUrl,
+-            isERC721: false,
+-            name,
+-        });
+-    });
+-    return { tokensWithBalance, eventTokensDetails };
+ }, _TokenDetectionController_addDetectedTokens = async function _TokenDetectionController_addDetectedTokens({ tokensSlice, selectedAddress, networkClientId, chainId, }) {
+     await (0, controller_utils_1.safelyExecute)(async () => {
+         const balances = await __classPrivateFieldGet(this, _TokenDetectionController_getBalancesInSingleCall, "f").call(this, selectedAddress, tokensSlice, networkClientId);
+@@ -629,7 +538,7 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
+ }, _TokenDetectionController_getSelectedAddress = function _TokenDetectionController_getSelectedAddress() {
+     // If the address is not defined (or empty), we fallback to the currently selected account's address
+     const account = this.messenger.call('AccountsController:getAccount', __classPrivateFieldGet(this, _TokenDetectionController_selectedAccountId, "f"));
+-    return account?.address || '';
++    return account?.address ?? '';
+ };
+ exports.default = TokenDetectionController;
+ //# sourceMappingURL=TokenDetectionController.cjs.map
+\ No newline at end of file
+diff --git a/dist/TokenDetectionController.d.cts b/dist/TokenDetectionController.d.cts
+index 4033d5cbd15f0bddab90bdcd7e60e9a723974835..bcd35560ce1f48832431918852b2e19104cbbe02 100644
+--- a/dist/TokenDetectionController.d.cts
++++ b/dist/TokenDetectionController.d.cts
+@@ -20,9 +20,7 @@ export declare const STATIC_MAINNET_TOKEN_LIST: TokenDetectionMap;
+  * @param tokensChainsCache - TokensChainsCache input object
+  * @returns returns the map of chainId with TokenListMap
+  */
+-export declare function mapChainIdWithTokenListMap(tokensChainsCache: TokensChainsCache): {
+-    [x: `0x${string}`]: TokenListMap;
+-};
++export declare function mapChainIdWithTokenListMap(tokensChainsCache: TokensChainsCache): Record<string, unknown>;
+ export declare const controllerName = "TokenDetectionController";
+ export type TokenDetectionState = Record<never, never>;
+ export type TokenDetectionControllerGetStateAction = ControllerGetStateAction<typeof controllerName, TokenDetectionState>;
+@@ -30,7 +28,15 @@ export type TokenDetectionControllerAddDetectedTokensViaWsAction = {
+     type: `TokenDetectionController:addDetectedTokensViaWs`;
+     handler: TokenDetectionController['addDetectedTokensViaWs'];
+ };
+-export type TokenDetectionControllerActions = TokenDetectionControllerGetStateAction | TokenDetectionControllerAddDetectedTokensViaWsAction;
++export type TokenDetectionControllerAddDetectedTokensViaPollingAction = {
++    type: `TokenDetectionController:addDetectedTokensViaPolling`;
++    handler: TokenDetectionController['addDetectedTokensViaPolling'];
++};
++export type TokenDetectionControllerDetectTokensAction = {
++    type: `TokenDetectionController:detectTokens`;
++    handler: TokenDetectionController['detectTokens'];
++};
++export type TokenDetectionControllerActions = TokenDetectionControllerGetStateAction | TokenDetectionControllerAddDetectedTokensViaWsAction | TokenDetectionControllerAddDetectedTokensViaPollingAction | TokenDetectionControllerDetectTokensAction;
+ export type AllowedActions = AccountsControllerGetSelectedAccountAction | AccountsControllerGetAccountAction | NetworkControllerGetNetworkClientByIdAction | NetworkControllerGetNetworkConfigurationByNetworkClientId | NetworkControllerGetStateAction | GetTokenListState | KeyringControllerGetStateAction | PreferencesControllerGetStateAction | TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction | TokensControllerAddTokensAction | NetworkControllerFindNetworkClientIdByChainIdAction | AuthenticationController.AuthenticationControllerGetBearerToken;
+ export type TokenDetectionControllerStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, TokenDetectionState>;
+ export type TokenDetectionControllerEvents = TokenDetectionControllerStateChangeEvent;
+@@ -83,12 +89,10 @@ export declare class TokenDetectionController extends TokenDetectionController_b
+      * @param options.interval - Polling interval used to fetch new token rates
+      * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address.
+      * @param options.trackMetaMetricsEvent - Sets options for MetaMetrics event tracking.
+-     * @param options.useAccountsAPI - Feature Switch for using the accounts API when detecting tokens (default: true)
+      * @param options.useTokenDetection - Feature Switch for using token detection (default: true)
+      * @param options.useExternalServices - Feature Switch for using external services (default: false)
+-     * @param options.platform - Indicates whether the platform is extension or mobile
+      */
+-    constructor({ interval, disabled, getBalancesInSingleCall, trackMetaMetricsEvent, messenger, useAccountsAPI, useTokenDetection, useExternalServices, platform, }: {
++    constructor({ interval, disabled, getBalancesInSingleCall, trackMetaMetricsEvent, messenger, useTokenDetection, useExternalServices, }: {
+         interval?: number;
+         disabled?: boolean;
+         getBalancesInSingleCall: AssetsContractController['getBalancesInSingleCall'];
+@@ -102,10 +106,8 @@ export declare class TokenDetectionController extends TokenDetectionController_b
+             };
+         }) => void;
+         messenger: TokenDetectionControllerMessenger;
+-        useAccountsAPI?: boolean;
+         useTokenDetection?: () => boolean;
+         useExternalServices?: () => boolean;
+-        platform: 'extension' | 'mobile';
+     });
+     /**
+      * Allows controller to make active and passive polling requests
+@@ -137,10 +139,14 @@ export declare class TokenDetectionController extends TokenDetectionController_b
+      * @param options - Options for token detection.
+      * @param options.chainIds - The chain IDs of the network client to use.
+      * @param options.selectedAddress - the selectedAddress against which to detect for token balances.
++     * @param options.forceRpc - Force RPC-based token detection for all specified chains,
++     * bypassing external services check and ensuring RPC is used even for chains
++     * that might otherwise be handled by the Accounts API.
+      */
+-    detectTokens({ chainIds, selectedAddress, }?: {
++    detectTokens({ chainIds, selectedAddress, forceRpc, }?: {
+         chainIds?: Hex[];
+         selectedAddress?: string;
++        forceRpc?: boolean;
+     }): Promise<void>;
+     /**
+      * Add tokens detected from websocket balance updates
+@@ -158,6 +164,23 @@ export declare class TokenDetectionController extends TokenDetectionController_b
+         tokensSlice: string[];
+         chainId: Hex;
+     }): Promise<void>;
++    /**
++     * Add tokens detected from polling balance updates
++     * This method:
++     * - Checks if useTokenDetection preference is enabled (skips if disabled)
++     * - Filters out tokens already in allTokens or allIgnoredTokens
++     * - Tokens are expected to be in the tokensChainsCache with full metadata
++     * - Balance fetching is skipped since balances are provided by the caller
++     *
++     * @param options - The options object
++     * @param options.tokensSlice - Array of token addresses detected from polling
++     * @param options.chainId - Hex chain ID
++     * @returns Promise that resolves when tokens are added
++     */
++    addDetectedTokensViaPolling({ tokensSlice, chainId, }: {
++        tokensSlice: string[];
++        chainId: Hex;
++    }): Promise<void>;
+ }
+ export default TokenDetectionController;
+ //# sourceMappingURL=TokenDetectionController.d.cts.map
+\ No newline at end of file
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index c9b504ff331075eafc07e95275a35bf61554c7e6..d42b16a4a26233cc03143ba0a7510e8f2076fb98 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -9,7 +9,7 @@ export type { NftDetectionControllerMessenger, ApiNft, ApiNftContract, ApiNftLas
+ export { NftDetectionController } from "./NftDetectionController.cjs";
+ export type { TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerMessenger, TokenBalancesControllerOptions, TokenBalancesControllerStateChangeEvent, TokenBalancesControllerState, } from "./TokenBalancesController.cjs";
+ export { TokenBalancesController } from "./TokenBalancesController.cjs";
+-export type { TokenDetectionControllerMessenger, TokenDetectionControllerActions, TokenDetectionControllerGetStateAction, TokenDetectionControllerAddDetectedTokensViaWsAction, TokenDetectionControllerEvents, TokenDetectionControllerStateChangeEvent, } from "./TokenDetectionController.cjs";
++export type { TokenDetectionControllerMessenger, TokenDetectionControllerActions, TokenDetectionControllerGetStateAction, TokenDetectionControllerDetectTokensAction, TokenDetectionControllerAddDetectedTokensViaWsAction, TokenDetectionControllerAddDetectedTokensViaPollingAction, TokenDetectionControllerEvents, TokenDetectionControllerStateChangeEvent, } from "./TokenDetectionController.cjs";
+ export { TokenDetectionController } from "./TokenDetectionController.cjs";
+ export type { TokenListState, TokenListToken, TokenListMap, TokenListStateChange, TokenListControllerEvents, GetTokenListState, TokenListControllerActions, TokenListControllerMessenger, } from "./TokenListController.cjs";
+ export { TokenListController } from "./TokenListController.cjs";
+diff --git a/dist/multi-chain-accounts-service/api-balance-fetcher.cjs b/dist/multi-chain-accounts-service/api-balance-fetcher.cjs
+index 74b46362876dcd6f56c79e3c5512bfe836ff4eee..50d8ee9fb47ecc6e08f6322095e7689b8e3bd5a7 100644
+--- a/dist/multi-chain-accounts-service/api-balance-fetcher.cjs
++++ b/dist/multi-chain-accounts-service/api-balance-fetcher.cjs
+@@ -18,6 +18,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AccountsApiBalanceFetcher = void 0;
+ const contracts_1 = require("@ethersproject/contracts");
+ const controller_utils_1 = require("@metamask/controller-utils");
++const utils_1 = require("@metamask/utils");
+ const bn_js_1 = __importDefault(require("bn.js"));
+ const multi_chain_accounts_1 = require("./multi-chain-accounts.cjs");
+ const AssetsContractController_1 = require("../AssetsContractController.cjs");
+@@ -62,8 +63,18 @@ class AccountsApiBalanceFetcher {
+             throw new Error('Accounts API request timed out or failed');
+         }
+         // Extract unprocessed networks and convert to hex chain IDs
+-        const unprocessedChainIds = apiResponse.unprocessedNetworks
+-            ? apiResponse.unprocessedNetworks.map((chainId) => (0, controller_utils_1.toHex)(chainId))
++        // V4 API returns CAIP chain IDs like 'eip155:1329', need to parse them
++        // V2 API returns decimal numbers, handle both cases
++        const unprocessedChainIds = apiResponse
++            .unprocessedNetworks?.length
++            ? apiResponse.unprocessedNetworks.map((network) => {
++                if (typeof network === 'string') {
++                    // CAIP chain ID format: 'eip155:1329'
++                    return (0, controller_utils_1.toHex)((0, utils_1.parseCaipChainId)(network).reference);
++                }
++                // Decimal number format
++                return (0, controller_utils_1.toHex)(network);
++            })
+             : undefined;
+         const stakedBalances = await __classPrivateFieldGet(this, _AccountsApiBalanceFetcher_instances, "m", _AccountsApiBalanceFetcher_fetchStakedBalances).call(this, caipAddrs);
+         const results = [];
