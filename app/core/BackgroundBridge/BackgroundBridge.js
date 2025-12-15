@@ -576,7 +576,7 @@ export class BackgroundBridge extends EventEmitter {
     // transport. Unlike externally_connectable's chrome.runtime.connect() API, the
     // window.postMessage API allows the inpage provider to setup listeners for
     // messages before attempting to establish the connection meaning that it will
-    // have listeners ready for this Solana accountChanged event below.
+    // have listeners ready for this Solana and Tron accountChanged event below.
     this.notifySolanaAccountChangedForCurrentAccount();
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     this.notifyTronAccountChangedForCurrentAccount();
@@ -983,14 +983,14 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    // wallet_notify for tron accountChanged when permission changes
+    // wallet_notify for Tron accountChanged when permission changes
     controllerMessenger.subscribe(
       `${PermissionController.name}:stateChange`,
       this.handleTronAccountChangedFromScopeChanges,
       getAuthorizedScopes(this.channelIdOrOrigin),
     );
 
-    // wallet_notify for tron accountChanged when selected account changes
+    // wallet_notify for Tron accountChanged when selected account changes
     controllerMessenger.subscribe(
       `${AccountsController.name}:selectedAccountChange`,
       this.handleTronAccountChangedFromSelectedAccountChanges,
@@ -1480,11 +1480,11 @@ export class BackgroundBridge extends EventEmitter {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   /**
-   * For origins with a tron scope permitted, sends a wallet_notify -> metamask_accountChanged
-   * event to fire for the tron scope with the currently selected tron account if any are
+   * For origins with a Tron scope permitted, sends a wallet_notify -> metamask_accountChanged
+   * event to fire for the Tron scope with the currently selected Tron account if any are
    * permitted or empty array otherwise.
    *
-   * @param {string} origin - The origin to notify with the current tron account
+   * @param {string} origin - The origin to notify with the current Tron account
    */
   notifyTronAccountChangedForCurrentAccount() {
     let caip25Caveat;
