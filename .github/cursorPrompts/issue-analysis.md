@@ -1,4 +1,4 @@
-@cursor Analyze this MetaMask issue and provide:
+Analyze this MetaMask issue and provide:
 
 1. **Problem**: What's broken (2-3 sentences)
 2. **Root Cause**: 1-2 likely causes based on evidence

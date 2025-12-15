@@ -19,7 +19,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
@@ -1302,6 +1302,7 @@ export function getNetworkNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
+        twClassName="h-auto"
         startAccessory={
           <ButtonIcon
             style={styles.headerLeftButton}

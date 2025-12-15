@@ -143,6 +143,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const accountsParams = useMemo(
     () => ({
       isLoading: reloadAccounts,
+      fetchENS: false,
     }),
     [reloadAccounts],
   );
