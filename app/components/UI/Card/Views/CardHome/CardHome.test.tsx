@@ -163,8 +163,13 @@ const mockUseAssetBalances = jest.fn(() =>
   }),
 );
 
+const mockNavigateToTravelPage = jest.fn();
+const mockNavigateToCardTosPage = jest.fn();
+
 const mockUseNavigateToCardPage = jest.fn(() => ({
   navigateToCardPage: mockNavigateToCardPage,
+  navigateToTravelPage: mockNavigateToTravelPage,
+  navigateToCardTosPage: mockNavigateToCardTosPage,
 }));
 
 const mockUseSwapBridgeNavigation = jest.fn(() => ({
@@ -265,6 +270,7 @@ jest.mock('../../util/getHighestFiatToken', () => ({
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
   isSolanaChainId: jest.fn(),
 }));
 
@@ -629,6 +635,8 @@ describe('CardHome Component', () => {
 
     mockUseNavigateToCardPage.mockReturnValue({
       navigateToCardPage: mockNavigateToCardPage,
+      navigateToTravelPage: mockNavigateToTravelPage,
+      navigateToCardTosPage: mockNavigateToCardTosPage,
     });
 
     mockUseSwapBridgeNavigation.mockReturnValue({
@@ -789,6 +797,31 @@ describe('CardHome Component', () => {
     // Then: should navigate to card page
     await waitFor(() => {
       expect(mockNavigateToCardPage).toHaveBeenCalled();
+    });
+  });
+
+  it('calls navigateToTravelPage when travel item is pressed', async () => {
+    render();
+
+    const travelItem = screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM);
+    fireEvent.press(travelItem);
+
+    await waitFor(() => {
+      expect(mockNavigateToTravelPage).toHaveBeenCalled();
+    });
+  });
+
+  it('calls navigateToCardTosPage when TOS item is pressed', async () => {
+    setupMockSelectors({ isAuthenticated: true });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    const tosItem = screen.getByTestId(CardHomeSelectors.CARD_TOS_ITEM);
+    fireEvent.press(tosItem);
+
+    await waitFor(() => {
+      expect(mockNavigateToCardTosPage).toHaveBeenCalled();
     });
   });
 

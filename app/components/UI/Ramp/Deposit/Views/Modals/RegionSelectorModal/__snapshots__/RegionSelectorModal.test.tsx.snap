@@ -433,58 +433,61 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "padding": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select a region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -618,7 +621,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -682,7 +685,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1142,58 +1145,61 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "padding": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select a region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -1327,7 +1333,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -1469,7 +1475,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1485,7 +1491,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1565,7 +1571,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -1581,7 +1587,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2047,58 +2053,61 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "padding": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select a region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -2232,7 +2241,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -2399,7 +2408,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2415,7 +2424,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2434,7 +2443,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#4459ff1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -2443,19 +2452,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                         "top": 0,
                                       }
                                     }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </TouchableOpacity>
                               </View>
                               <View
@@ -2522,7 +2519,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2538,7 +2535,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2618,7 +2615,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2634,7 +2631,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2714,7 +2711,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -2730,7 +2727,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -3196,58 +3193,61 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "padding": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select a region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -3381,7 +3381,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -3486,7 +3486,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -3946,58 +3946,61 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "padding": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select a region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -4131,7 +4134,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -4302,7 +4305,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -4318,7 +4321,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -4784,58 +4787,61 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "padding": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select a region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -4969,7 +4975,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -5136,7 +5142,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5152,7 +5158,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5171,7 +5177,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#4459ff1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -5180,19 +5186,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                         "top": 0,
                                       }
                                     }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </TouchableOpacity>
                               </View>
                               <View
@@ -5259,7 +5253,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5275,7 +5269,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5355,7 +5349,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5371,7 +5365,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5451,7 +5445,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5467,7 +5461,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -5933,58 +5927,61 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "padding": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select a region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -6118,7 +6115,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -6285,7 +6282,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6301,7 +6298,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6381,7 +6378,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6397,7 +6394,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6416,7 +6413,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#4459ff1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -6425,19 +6422,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                         "top": 0,
                                       }
                                     }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </TouchableOpacity>
                               </View>
                               <View
@@ -6504,7 +6489,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6520,7 +6505,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6600,7 +6585,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -6616,7 +6601,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7082,58 +7067,61 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 48,
                                 },
                                 false,
+                                {
+                                  "padding": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select a region
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -7267,7 +7255,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -7434,7 +7422,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7450,7 +7438,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7469,7 +7457,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#4459ff1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -7478,19 +7466,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                         "top": 0,
                                       }
                                     }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </TouchableOpacity>
                               </View>
                               <View
@@ -7557,7 +7533,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7573,7 +7549,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7653,7 +7629,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7669,7 +7645,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7749,7 +7725,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
@@ -7765,7 +7741,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
+                                                  "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,

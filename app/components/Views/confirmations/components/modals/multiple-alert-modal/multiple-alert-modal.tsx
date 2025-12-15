@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { Alert, AlertSeverity, Severity } from '../../../types/alerts';
@@ -139,6 +139,17 @@ const MultipleAlertModal: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState(
     initialAlertIndex === -1 ? 0 : initialAlertIndex,
   );
+
+  // syncs selectedIndex with alertKey when the modal is reopened which
+  // ensures the correct styling is applied
+  useEffect(() => {
+    const alertKeyIndex = fieldAlerts.findIndex(
+      (alert: Alert) => alert.key === alertKey,
+    );
+    if (alertKeyIndex !== -1 && alertKeyIndex !== selectedIndex) {
+      setSelectedIndex(alertKeyIndex);
+    }
+  }, [alertKey, fieldAlerts, selectedIndex]);
 
   const handleBackButtonClick = useCallback(() => {
     setSelectedIndex((prevIndex: number) =>

@@ -7,6 +7,8 @@ import {
   SolAccountType,
   BtcScope,
   BtcAccountType,
+  TrxScope,
+  TrxAccountType,
 } from '@metamask/keyring-api';
 import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { ethers } from 'ethers';
@@ -53,6 +55,11 @@ export const solanaToken2Address =
 export const btcNativeTokenAddress =
   'bip122:000000000019d6689c085ae165831e93/slip44:0' as CaipAssetId;
 
+// Tron account and tokens
+export const trxAccountId = 'trxAccountId';
+export const trxAccountAddress = 'TN3W4Bb1JVHPiWJVm7d9q9qHGXSdoMrMrE';
+export const trxNativeTokenAddress = 'tron:728126428/slip44:195' as CaipAssetId;
+
 export const initialState = {
   engine: {
     backgroundState: {
@@ -96,6 +103,11 @@ export const initialState = {
                 isGaslessSwapEnabled: false,
               },
               [BtcScope.Mainnet]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+                isGaslessSwapEnabled: false,
+              },
+              [TrxScope.Mainnet]: {
                 isActiveSrc: true,
                 isActiveDest: true,
                 isGaslessSwapEnabled: false,
@@ -259,6 +271,12 @@ export const initialState = {
               'bip122:000000000019d6689c085ae165831e93/slip44:0' as const,
             isEvm: false as const,
           },
+          [TrxScope.Mainnet]: {
+            chainId: TrxScope.Mainnet,
+            name: 'Tron',
+            nativeCurrency: 'tron:728126428/slip44:195' as const,
+            isEvm: false as const,
+          },
         },
       },
       MultichainBalancesController: {
@@ -279,12 +297,19 @@ export const initialState = {
               unit: 'BTC',
             },
           },
+          [trxAccountId]: {
+            [trxNativeTokenAddress]: {
+              amount: '500',
+              unit: 'TRX',
+            },
+          },
         },
       },
       MultichainAssetsController: {
         accountsAssets: {
           [solanaAccountId]: [solanaNativeTokenAddress, solanaToken2Address],
           [btcAccountId]: [btcNativeTokenAddress],
+          [trxAccountId]: [trxNativeTokenAddress],
         },
         assetsMetadata: {
           [btcNativeTokenAddress]: {
@@ -348,6 +373,19 @@ export const initialState = {
               },
             ],
           },
+          [trxNativeTokenAddress]: {
+            name: 'Tron',
+            symbol: 'TRX',
+            iconUrl: 'https://tron.network/static/images/logo.png',
+            fungible: true as const,
+            units: [
+              {
+                name: 'Tron',
+                symbol: 'TRX',
+                decimals: 6,
+              },
+            ],
+          },
         },
       },
       MultichainAssetsRatesController: {
@@ -362,6 +400,10 @@ export const initialState = {
           },
           [btcNativeTokenAddress]: {
             rate: '100000', // 1 BTC = 100000 USD
+            conversionTime: 0,
+          },
+          [trxNativeTokenAddress]: {
+            rate: '0.10', // 1 TRX = 0.10 USD
             conversionTime: 0,
           },
         },
@@ -400,6 +442,16 @@ export const initialState = {
                 lastSelected: 0,
               },
             },
+            [trxAccountId]: {
+              id: trxAccountId,
+              address: trxAccountAddress,
+              name: 'Account 4',
+              type: TrxAccountType.Eoa,
+              scopes: [TrxScope.Mainnet],
+              metadata: {
+                lastSelected: 0,
+              },
+            },
           },
         },
       },
@@ -428,7 +480,12 @@ export const initialState = {
                       groupIndex: 0,
                     },
                   },
-                  accounts: [evmAccountId, solanaAccountId, btcAccountId],
+                  accounts: [
+                    evmAccountId,
+                    solanaAccountId,
+                    btcAccountId,
+                    trxAccountId,
+                  ],
                 },
               },
             },
