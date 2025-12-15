@@ -23,13 +23,13 @@ jest.mock('../../util/Logger', () => ({
 describe('useSafeChains', () => {
   const mockSafeChains: SafeChain[] = [
     {
-      chainId: '1',
+      chainId: 1,
       name: 'Ethereum Mainnet',
       nativeCurrency: { symbol: 'ETH' },
       rpc: ['https://mainnet.infura.io/v3/123'],
     },
     {
-      chainId: '137',
+      chainId: 137,
       name: 'Polygon Mainnet',
       nativeCurrency: { symbol: 'MATIC' },
       rpc: ['https://polygon-rpc.com'],
@@ -101,13 +101,13 @@ describe('useSafeChains', () => {
 describe('rpcIdentifierUtility', () => {
   const mockSafeChains: SafeChain[] = [
     {
-      chainId: '1',
+      chainId: 1,
       name: 'Ethereum Mainnet',
       nativeCurrency: { symbol: 'ETH' },
       rpc: ['https://mainnet.infura.io/v3/123'],
     },
     {
-      chainId: '137',
+      chainId: 137,
       name: 'Polygon Mainnet',
       nativeCurrency: { symbol: 'MATIC' },
       rpc: ['https://polygon-rpc.com'],
